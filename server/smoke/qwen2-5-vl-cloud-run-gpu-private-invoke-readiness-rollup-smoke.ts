@@ -57,6 +57,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATED_ASSET_VERSION
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_9_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-9-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_CHECK_RESULTS_CHECK_COLUMN_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-check-results-check-column-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_10_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_REPORTS_APPROVED_SNAPSHOT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -65,9 +66,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_retry_10_recorded_qa_reports_fix_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_qa_reports_fix_recorded_retry_11_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58AO-BACKEND-RUNTIME-PERSISTENCE-BASELINE-QA-REPORTS-APPROVED-SNAPSHOT-FIX: fix ReEditPro local baseline qa_reports approved_plan_snapshot_id for Qwen harness validation, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58AP-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-11: retry Qwen local harness validation after qa_reports approved-snapshot baseline fix, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -230,6 +231,12 @@ for (const file of [
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-credit-estimates-plan-version-fix.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-7-result.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-generation-requests-approved-snapshot-fix.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-8-result.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-generated-asset-versions-version-fix.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-9-result.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-qa-check-results-check-column-fix.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-10-result.md',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-8-result.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-baseline-generated-asset-versions-version-fix.md',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-9-result.md',
@@ -449,6 +456,11 @@ assert.equal(
   'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result-smoke.ts',
   'local harness validation retry 10 package script mismatch',
 )
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix'],
+  'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix-smoke.ts',
+  'QA reports approved snapshot baseline fix package script mismatch',
+)
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
 for (const phrase of [
@@ -620,7 +632,13 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessValidationRetry10Attempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRetry10Passed=false`',
   '`backendRuntimePersistenceQaCheckResultsCheckReservedColumnFixVerified=true`',
-  '`backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired=true`',
+  '`backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired=false`',
+  '`backendRuntimePersistenceBaselineQaReportsApprovedSnapshotFixRecorded=true`',
+  '`qaReportsApprovedPlanSnapshotColumnGuarded=true`',
+  '`qaReportsApprovedPlanSnapshotForeignKeyGuarded=true`',
+  '`qaReportsProjectSnapshotIndexUnblocked=true`',
+  '`qaReportsApprovedSnapshotBackfillSkipped=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterQaReportsApprovedSnapshotFixRequired=true`',
   '`202605180006_reeditpro_qa_exports_audit.sql`',
   '`qa_check_results.check`',
   '`"check" text`',
@@ -791,7 +809,9 @@ for (const phrase of [
   '`backendRuntimePersistenceLocalHarnessValidationRetry10Attempted=true`',
   '`backendRuntimePersistenceLocalHarnessValidationRetry10Passed=false`',
   '`backendRuntimePersistenceQaCheckResultsCheckReservedColumnFixVerified=true`',
-  '`backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired=true`',
+  '`backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired=false`',
+  '`backendRuntimePersistenceBaselineQaReportsApprovedSnapshotFixRecorded=true`',
+  '`backendRuntimePersistenceLocalHarnessValidationRetryAfterQaReportsApprovedSnapshotFixRequired=true`',
   '`structuredFixtureOutputSchemaValid=true`',
   '`structuredFixtureOutputParsedJson=true`',
   '`structuredFixtureOutputRawOutputStoredInRepo=false`',
@@ -1016,6 +1036,10 @@ assert.equal(
   rollup.upstreamBackendRuntimePersistenceLocalHarnessValidationRetry10ResultDecision,
   QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_10_RESULT.decision,
 )
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceBaselineQaReportsApprovedSnapshotFixDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_REPORTS_APPROVED_SNAPSHOT_FIX.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1081,7 +1105,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'backend_runtime_persistence_qa_reports_approved_plan_snapshot_baseline_fix_required',
+  'backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1154,8 +1178,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_qa_check_results_check_reserved_column_baseline_fix',
   'backend_runtime_persistence_local_harness_validation_retry_after_qa_check_results_check_column_fix',
   'backend_runtime_persistence_qa_reports_approved_plan_snapshot_baseline_fix',
+  'backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 51)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 52)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -1314,6 +1339,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_qa_reports_approved_plan_snapshot_baseline_fix_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix_required').length,
   1,
 )
 assert.equal(
@@ -1594,7 +1623,13 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidation
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry10Attempted, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry10Passed, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceQaCheckResultsCheckReservedColumnFixVerified, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceQaReportsApprovedPlanSnapshotFixRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceBaselineQaReportsApprovedSnapshotFixRecorded, true)
+assert.equal(rollup.runtimeFlags.qaReportsApprovedPlanSnapshotColumnGuarded, true)
+assert.equal(rollup.runtimeFlags.qaReportsApprovedPlanSnapshotForeignKeyGuarded, true)
+assert.equal(rollup.runtimeFlags.qaReportsProjectSnapshotIndexUnblocked, true)
+assert.equal(rollup.runtimeFlags.qaReportsApprovedSnapshotBackfillSkipped, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetryAfterQaReportsApprovedSnapshotFixRequired, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplied, false)
 assert.equal(rollup.runtimeFlags.qwenLocalSqlTestsExecuted, false)
 assert.equal(rollup.runtimeFlags.existingLocalSupabaseProjectDetected, true)
@@ -1684,6 +1719,12 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-credit-estimates-plan-version-fix.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-7-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-generation-requests-approved-snapshot-fix.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-8-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-generated-asset-versions-version-fix.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-9-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-check-results-check-column-fix.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-10-result.ts',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-qa-reports-approved-snapshot-fix.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -1728,6 +1769,12 @@ const forbiddenDataFindings = scanValues({
   backendRuntimePersistenceBaselineCreditEstimatesPlanVersionFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_CREDIT_ESTIMATES_PLAN_VERSION_FIX,
   backendRuntimePersistenceLocalHarnessValidationRetry7Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_7_RESULT,
   backendRuntimePersistenceBaselineGenerationRequestsApprovedSnapshotFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATION_REQUESTS_APPROVED_SNAPSHOT_FIX,
+  backendRuntimePersistenceLocalHarnessValidationRetry8Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_8_RESULT,
+  backendRuntimePersistenceBaselineGeneratedAssetVersionsVersionFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_GENERATED_ASSET_VERSIONS_VERSION_FIX,
+  backendRuntimePersistenceLocalHarnessValidationRetry9Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_9_RESULT,
+  backendRuntimePersistenceBaselineQaCheckResultsCheckColumnFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_CHECK_RESULTS_CHECK_COLUMN_FIX,
+  backendRuntimePersistenceLocalHarnessValidationRetry10Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_10_RESULT,
+  backendRuntimePersistenceBaselineQaReportsApprovedSnapshotFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_QA_REPORTS_APPROVED_SNAPSHOT_FIX,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

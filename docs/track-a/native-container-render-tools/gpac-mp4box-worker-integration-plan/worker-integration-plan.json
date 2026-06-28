@@ -1,0 +1,38 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1",
+  "decision": "tracka_gpac_mp4box_worker_integration_plan_passed_ready_for_route_contract_and_mock_worker_interface",
+  "execution": "completed_docs_only_worker_integration_plan_no_runtime_execution",
+  "owner": "backend_worker_service_role_only_future_lane",
+  "frontendDirectExecution": false,
+  "requiredFutureWorkerEnvelope": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "jobRef",
+    "workerLeaseRef",
+    "routeIdempotencyKey",
+    "sourceSequenceMapRef",
+    "compiledIntentRef",
+    "modelRoutingPolicyRef",
+    "qaPolicyRef",
+    "privateInputManifestRef",
+    "privateArtifactManifestRef",
+    "privateArtifactChecksumRef",
+    "toolRuntimePolicyRef",
+    "gpacMp4boxWorkerContractRef",
+    "gpacMp4boxRouteContractRef",
+    "cleanupPolicyRef",
+    "auditRecordRef"
+  ],
+  "requiredFutureStages": [
+    "approved_snapshot_and_credit_approval_state_validation",
+    "private_input_manifest_and_source_checksum_validation",
+    "static_command_template_allowlist_selection",
+    "worker_lease_and_route_idempotency_acquisition",
+    "future_guarded_worker_packet_execution_only",
+    "sanitized_manifest_qa_cleanup_and_failure_reporting"
+  ],
+  "runtimeExecution": false,
+  "readyForRouteContract": true,
+  "readyForMockWorkerInterface": true,
+  "readyForProductRuntime": false
+}

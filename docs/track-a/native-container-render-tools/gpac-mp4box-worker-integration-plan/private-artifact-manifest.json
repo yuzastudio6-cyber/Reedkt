@@ -1,0 +1,10 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1",
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "committedMediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "notes": "Docs-only worker integration plan. No runtime artifacts were generated or committed."
+}

@@ -1,0 +1,32 @@
+{
+  "routeBoundary": "gpac_mp4box_backend_service_role_route_boundary",
+  "allowedFutureInputs": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "jobRef",
+    "routeIdempotencyKey",
+    "privateInputManifestRef"
+  ],
+  "forbiddenFutureInputs": [
+    "rawChat",
+    "frontendDirectFilePath",
+    "publicUrl",
+    "signedUrlAsSourceOfTruth",
+    "arbitraryPrivateMedia",
+    "userProvidedCommandString"
+  ],
+  "blockedInThisPhase": {
+    "routeImplementation": true,
+    "routeExecution": true,
+    "serviceRoleWriteExecution": true,
+    "supabaseMutation": true,
+    "sqlExecution": true,
+    "storageTransfer": true,
+    "workerExecution": true,
+    "gpacMp4boxExecution": true,
+    "ffmpegFfprobeHelperExpansion": true,
+    "renderExport": true,
+    "externalBetaProductUse": true,
+    "production": true
+  }
+}

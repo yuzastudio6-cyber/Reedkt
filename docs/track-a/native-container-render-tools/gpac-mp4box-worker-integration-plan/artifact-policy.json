@@ -1,0 +1,12 @@
+{
+  "artifactPolicy": "gpac_mp4box_worker_integration_artifact_policy",
+  "privateInputManifestRequired": true,
+  "privateArtifactManifestRequired": true,
+  "ownerAuthorizationRequired": true,
+  "checksumRequired": true,
+  "cleanupStatusRequired": true,
+  "publicArtifacts": "blocked",
+  "signedUrls": "blocked_as_source_of_truth",
+  "finalRenderExportHandoff": "blocked_pending_later_product_route_and_qa_gate",
+  "generatedArtifactsCommitted": []
+}

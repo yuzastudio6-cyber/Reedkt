@@ -1,0 +1,18 @@
+{
+  "mockWorkerInterfacePlan": "gpac_mp4box_mock_worker_interface_packet",
+  "typeScriptOnlyFuturePacket": true,
+  "packageDependencyChangeAllowed": false,
+  "packageLockMutationAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "requiredFutureBlockers": [
+    "blocked_missing_approved_snapshot",
+    "blocked_missing_approval_record",
+    "blocked_missing_private_input_manifest",
+    "blocked_input_checksum_mismatch",
+    "blocked_unapproved_command_template",
+    "blocked_idempotency_conflict",
+    "blocked_worker_lease_unavailable",
+    "blocked_public_or_signed_artifact_attempt",
+    "blocked_cleanup_policy_missing"
+  ]
+}

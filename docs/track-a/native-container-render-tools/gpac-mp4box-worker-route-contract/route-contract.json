@@ -1,0 +1,41 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-WORKER-ROUTE-CONTRACT-1",
+  "decision": "tracka_gpac_mp4box_worker_route_contract_passed_ready_for_mock_worker_interface_packet",
+  "execution": "completed_docs_only_route_contract_no_runtime_execution",
+  "routeOwner": "backend_service_role_only_future_lane",
+  "acceptedRequestInputs": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "jobRef",
+    "routeIdempotencyKey",
+    "privateInputManifestRef",
+    "gpacMp4boxRouteContractRef"
+  ],
+  "rejectedRequestInputs": [
+    "rawChat",
+    "rawCommandString",
+    "frontendFilePath",
+    "publicUrl",
+    "signedUrlAsSourceOfTruth",
+    "arbitraryPrivateMedia",
+    "providerModelPromptPayload"
+  ],
+  "requiredPreEnqueueChecks": [
+    "approvedSnapshotStatus",
+    "approvalCreditGate",
+    "idempotency",
+    "privateInputManifestChecksum",
+    "commandTemplateId",
+    "retentionCleanupPolicyRef"
+  ],
+  "allowedResponseShape": [
+    "jobId",
+    "status",
+    "sanitizedBlockers",
+    "manifestRefs",
+    "qaReportRefs",
+    "cleanupRefs",
+    "auditRefs"
+  ],
+  "runtimeExecution": false
+}

@@ -1,0 +1,101 @@
+import assert from 'node:assert/strict'
+
+import {
+  QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV,
+  QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_REQUIRED_VALUES,
+} from '../config/qwen2-5-vl-external-beta-runtime-gate-contract'
+import { QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_WORKFLOW_ROUTE_ID } from '../services/qwen2-5-vl-external-beta-product-workflow-route-integration'
+import {
+  QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_CONFIRM_VALUE,
+  QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_READY_STATUS,
+  assertQwen25VlExternalBetaProductRouteReadbackValidationResult,
+  buildQwen25VlExternalBetaProductRouteReadbackValidation,
+} from '../services/qwen2-5-vl-external-beta-product-route-readback-validation'
+
+const targetRef = 'wmyyttnynmteqgcdishd'
+const env = {
+  [QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.enabled]:
+    QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_REQUIRED_VALUES.enabled,
+  [QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.targetRef]: targetRef,
+  [QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.scope]:
+    QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_REQUIRED_VALUES.scope,
+}
+
+const confirmedReadbackReferenceGate = buildQwen25VlExternalBetaProductRouteReadbackValidation({
+  env,
+  confirmation: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_CONFIRM_VALUE,
+  routeId: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_WORKFLOW_ROUTE_ID,
+  requestId: 'request_qwen_route_readback_validation_confirmed_1',
+  authenticatedUserRef: 'user_qwen_route_readback_validation_confirmed_1',
+  workspaceMembershipRef: 'workspace_membership_qwen_route_readback_validation_confirmed_1',
+  routeIdempotencyKey: 'route_idempotency_qwen_route_readback_validation_confirmed_1',
+  targetRef,
+  workflowBindingId: 'qwen_product_route_readback_validation_confirmed_1',
+  workspaceId: 'workspace_qwen_product_route_readback_validation_confirmed_1',
+  projectId: 'project_qwen_product_route_readback_validation_confirmed_1',
+  editSessionId: 'edit_session_qwen_product_route_readback_validation_confirmed_1',
+  adapterRequestId: 'qwen_product_route_readback_adapter_validation_confirmed_1',
+  sourceSequenceMapRef: 'source_sequence_map_qwen_product_route_readback_validation_confirmed_1',
+  compiledIntentSnapshotRef: 'compiled_intent_qwen_product_route_readback_validation_confirmed_1',
+  editPlanVersionRef: 'edit_plan_version_qwen_product_route_readback_validation_confirmed_1',
+  approvedSnapshotRef: 'approved_snapshot_qwen_product_route_readback_validation_confirmed_1',
+  creditReservationRef: 'credit_reservation_qwen_product_route_readback_validation_confirmed_1',
+  queueLeaseRef: 'queue_lease_qwen_product_route_readback_validation_confirmed_1',
+  idempotencyKey: 'idempotency_qwen_product_route_readback_validation_confirmed_1',
+  privateInputManifestRef: 'private_input_manifest_qwen_product_route_readback_validation_confirmed_1',
+  privateArtifactManifestRef: 'private_artifact_manifest_qwen_product_route_readback_validation_confirmed_1',
+  privateArtifactChecksumRef: 'sha256:qwen-product-route-readback-validation-confirmed-checksum-ref',
+  modelRoutingPolicyRef: 'model_routing_policy_qwen_product_route_readback_validation_confirmed_1',
+  qaPolicyRef: 'qa_policy_qwen_product_route_readback_validation_confirmed_1',
+  approvedSnapshotReadbackRef: 'readback_approved_snapshot_qwen_product_route_readback_validation_confirmed_1',
+  creditReservationReadbackRef: 'readback_credit_reservation_qwen_product_route_readback_validation_confirmed_1',
+  queueLeaseReadbackRef: 'readback_queue_lease_qwen_product_route_readback_validation_confirmed_1',
+  privateInputManifestReadbackRef: 'readback_private_input_manifest_qwen_product_route_readback_validation_confirmed_1',
+  privateArtifactManifestReadbackRef: 'readback_private_artifact_manifest_qwen_product_route_readback_validation_confirmed_1',
+  privateArtifactChecksumReadbackRef: 'readback_sha256:qwen-product-route-readback-validation-confirmed-checksum-ref',
+  sourceSequenceMapReadbackRef: 'readback_source_sequence_map_qwen_product_route_readback_validation_confirmed_1',
+  compiledIntentReadbackRef: 'readback_compiled_intent_qwen_product_route_readback_validation_confirmed_1',
+  modelRoutingPolicyReadbackRef: 'readback_model_routing_policy_qwen_product_route_readback_validation_confirmed_1',
+  qaPolicyReadbackRef: 'readback_qa_policy_qwen_product_route_readback_validation_confirmed_1',
+  workflowStatus: 'external_beta_guarded_binding',
+})
+
+assert.equal(confirmedReadbackReferenceGate.ok, true)
+assert.equal(confirmedReadbackReferenceGate.status, QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_READY_STATUS)
+assert.equal(confirmedReadbackReferenceGate.confirmationGate.confirmationPresent, true)
+assert.equal(confirmedReadbackReferenceGate.confirmationGate.currentPhaseRemoteReadbackExecuted, false)
+assert.equal(confirmedReadbackReferenceGate.target.targetRef, targetRef)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.routeContractReady, true)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.actualRemoteReadbackAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.routeHandlerExecutionAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.supabaseReadbackExecutionAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.serviceRoleReadbackExecutionAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.secretPayloadAccessAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.sqlMutationAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.supabaseMutationAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.workerDispatchAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.providerModelCallAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.signedUrlCreationAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.publicArtifactAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.finalRenderExportAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.allowedReadbackUse.externalBetaUnlockAllowedNow, false)
+assert.equal(confirmedReadbackReferenceGate.safety.routeReadbackExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.routeHandlerExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.supabaseReadbackExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.serviceRoleReadbackExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.remoteRuntimeExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.secretPayloadAccess, false)
+assert.equal(confirmedReadbackReferenceGate.safety.sqlExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.supabaseMutation, false)
+assert.equal(confirmedReadbackReferenceGate.safety.providerCall, false)
+assert.equal(confirmedReadbackReferenceGate.safety.modelCall, false)
+assert.equal(confirmedReadbackReferenceGate.safety.workerExecution, false)
+assert.equal(confirmedReadbackReferenceGate.safety.workerDispatch, false)
+assert.equal(confirmedReadbackReferenceGate.safety.signedUrlCreation, false)
+assert.equal(confirmedReadbackReferenceGate.safety.publicArtifactCreation, false)
+assert.equal(confirmedReadbackReferenceGate.safety.mediaProcessing, false)
+assert.equal(confirmedReadbackReferenceGate.safety.finalRenderExport, false)
+assert.equal(confirmedReadbackReferenceGate.safety.externalBetaUnlockAppliedToEnvironment, false)
+assertQwen25VlExternalBetaProductRouteReadbackValidationResult(confirmedReadbackReferenceGate)
+
+console.log('qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-smoke passed')

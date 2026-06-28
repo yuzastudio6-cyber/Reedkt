@@ -21,6 +21,15 @@ const requiredFiles = [
 const allowedSupportFiles = [
   'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-e2e-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1-diagnostics.mjs',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/readiness-rollup.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/qwen-evidence-review.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/safety-boundary.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/validation-results.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/current-readiness-rollup-record.json',
+  'docs/activation-phase-rp-external-beta-current-readiness-rollup-after-qwen-orchestration-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-controlled-single-tester-product-flow-after-qwen-orchestration-1.md',
+  'scripts/validation/rp-external-beta-current-readiness-rollup-after-qwen-orchestration-1-diagnostics.mjs',
 ]
 
 const requiredText = [

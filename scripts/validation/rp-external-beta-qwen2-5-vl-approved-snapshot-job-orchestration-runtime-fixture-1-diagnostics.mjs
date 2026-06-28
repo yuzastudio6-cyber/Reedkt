@@ -36,6 +36,17 @@ const requiredText = [
   'Generated artifacts committed: `none`',
 ]
 
+const allowedFollowUpFiles = [
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/qa-rollup.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/artifact-manifest-review.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1/qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-record.json',
+  'docs/activation-phase-rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-current-readiness-rollup-after-qwen-orchestration-1.md',
+  'scripts/validation/rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-qa-rollup-1-diagnostics.mjs',
+]
+
 function fail(message) {
   console.error(`${packet} diagnostics failed: ${message}`)
   process.exit(1)
@@ -114,7 +125,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...allowedFollowUpFiles])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (

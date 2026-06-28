@@ -1,0 +1,67 @@
+{
+  "packet": "RP-EXTERNAL-BETA-STAGING-MIGRATION-HISTORY-SOURCE-ALIGNMENT-1",
+  "decision": "completed_staging_remote_only_migration_history_source_alignment",
+  "execution": "completed_source_alignment_import_no_remote_migration_apply",
+  "integrationBase": "8e4d32faabd0bad3774355589d8f03de4d26cf55",
+  "stagingValidationPr": 1493,
+  "excludedPr": 577,
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "class": "non_production_staging"
+  },
+  "sourceAlignedMigrations": [
+    {
+      "version": "202606270001",
+      "name": "tool_cost_metering_events",
+      "localFile": "supabase/migrations/202606270001_tool_cost_metering_events.sql",
+      "remoteStatementCount": 12,
+      "remoteStatementsMd5": "71e9214a04a1726aafae6aea3a9f4a1b",
+      "localFileSha256": "6653396cf311412bd402cc3ca78a00d56d96538cff899396a2745d672b79786d"
+    },
+    {
+      "version": "202606270002",
+      "name": "beta_readiness_evidence_packets",
+      "localFile": "supabase/migrations/202606270002_beta_readiness_evidence_packets.sql",
+      "remoteStatementCount": 9,
+      "remoteStatementsMd5": "9d83b4b38dfe2b15521c59474c6fba7c",
+      "localFileSha256": "eeff596176d8a4e2c6a83be91953a0e379e290e82e11c32d871172517ccc9c6d"
+    },
+    {
+      "version": "202606270003",
+      "name": "tool_cost_wallet_settlement_rpc",
+      "localFile": "supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql",
+      "remoteStatementCount": 10,
+      "remoteStatementsMd5": "47998b2f5e92887527f4800973fc6803",
+      "localFileSha256": "123cf0f71e47041598f68f1d90b04d8b82573ab7fcf15c0a6e82611528201e1a"
+    }
+  ],
+  "postAlignmentDryRun": {
+    "result": "passed_only_qwen_pending",
+    "remainingPendingMigration": "20260628000100_qwen2_5_vl_backend_runtime_persistence.sql",
+    "remoteOnlyHistoryError": "closed"
+  },
+  "safety": {
+    "secretManagerPayloadAccess": "ephemeral_db_url_only_not_printed_or_persisted",
+    "remoteSupabaseCommandExecution": "migration_list_and_dry_run_only",
+    "remoteSqlExecution": "read_only_schema_migrations_source_readback_only",
+    "remoteSupabaseMutation": false,
+    "remoteMigrationApply": false,
+    "migrationHistoryRepairEdit": false,
+    "providerModelCalls": false,
+    "qwenRuntimeExecution": false,
+    "workerDispatch": false,
+    "routeExecution": false,
+    "cloudRunInvocation": false,
+    "mediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "broadExternalBetaUnlock": false,
+    "productionFinalExportUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-STAGING-MIGRATION-APPLY-1"
+}

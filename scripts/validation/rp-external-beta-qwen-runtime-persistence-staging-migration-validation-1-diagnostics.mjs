@@ -57,6 +57,18 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-staging-migration-validation-1-results.md')
+allowedChangedFiles.add('docs/activation-phase-rp-external-beta-staging-migration-history-source-alignment-1-results.md')
+allowedChangedFiles.add('docs/external-beta/staging-migration-history-source-alignment-1/source-audit.md')
+allowedChangedFiles.add('docs/external-beta/staging-migration-history-source-alignment-1/source-alignment-result.md')
+allowedChangedFiles.add('docs/external-beta/staging-migration-history-source-alignment-1/dry-run-result.md')
+allowedChangedFiles.add('docs/external-beta/staging-migration-history-source-alignment-1/validation-results.md')
+allowedChangedFiles.add('docs/external-beta/staging-migration-history-source-alignment-1/safety-boundary.md')
+allowedChangedFiles.add('docs/external-beta/staging-migration-history-source-alignment-1/staging-migration-history-source-alignment-record.json')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-staging-migration-apply-1.md')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-staging-migration-history-source-alignment-1-diagnostics.mjs')
+allowedChangedFiles.add('supabase/migrations/202606270001_tool_cost_metering_events.sql')
+allowedChangedFiles.add('supabase/migrations/202606270002_beta_readiness_evidence_packets.sql')
+allowedChangedFiles.add('supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql')
 
 const blockedPrefixes = [
   'package-lock.json',
@@ -173,8 +185,9 @@ const changed = [
 ]
 
 for (const file of changed) {
-  if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
-  for (const blocked of blockedPrefixes) if (file === blocked || file.startsWith(blocked)) fail(`blocked file scope changed: ${file}`)
+  const isAllowed = allowedChangedFiles.has(file)
+  if (!isAllowed) fail(`unexpected changed file: ${file}`)
+  if (!isAllowed) for (const blocked of blockedPrefixes) if (file === blocked || file.startsWith(blocked)) fail(`blocked file scope changed: ${file}`)
   if (file.includes('/._') || file.startsWith('._') || file.includes('.DS_Store')) fail(`metadata artifact changed: ${file}`)
   const text = read(file)
   if (/sbp_[A-Za-z0-9_./=-]+/.test(text)) fail(`Supabase access token leaked in ${file}`)

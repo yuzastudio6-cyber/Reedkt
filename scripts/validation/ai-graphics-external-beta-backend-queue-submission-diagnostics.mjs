@@ -249,6 +249,9 @@ if (!index.includes("export * from './ai-graphics-external-beta-backend-queue-su
 if (docs.decision !== 'ai_graphics_external_beta_backend_queue_submission_envelope_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
+if (docs.sourceWorkerEnqueueAdapterProofBridgeAccepted !== true) {
+  fail('docs_source_worker_enqueue_adapter_proof_bridge_not_true')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
@@ -277,6 +280,7 @@ for (const tool of gpuTools) {
 }
 for (const gate of [
   'accepted external-beta worker enqueue adapter packet',
+  'accepted external-beta worker enqueue adapter packet preserving the native GPU runtime-proof bridge',
   'external beta queue submission reference',
   'external beta queue submission schema reference',
   'external beta service-role transaction envelope reference',
@@ -294,6 +298,7 @@ for (const gate of [
 for (const key of [
   'externalBetaBackendQueueSubmissionEnvelopePrepared',
   'sourceExternalBetaWorkerEnqueueAdapterAccepted',
+  'sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted',
   'externalBetaQueueSubmissionControlsSatisfied',
   'externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence',
   'all21ToolsCovered',
@@ -342,6 +347,9 @@ for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_BACKEND_QUEUE_SUBMISSION_DECISION',
   'evaluateAiGraphicsExternalBetaBackendQueueSubmission',
   'sourceExternalBetaWorkerEnqueueAdapterPacket',
+  'sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted',
+  'sourceExternalBetaToolCallGatewayProofBridgeAccepted',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted',
   'AiGraphicsExternalBetaQueueBatchCandidate',
   'AiGraphicsExternalBetaQueueJobCandidate',
   'AiGraphicsExternalBetaQueueAuditCandidate',
@@ -375,6 +383,8 @@ for (const needle of [
 for (const needle of [
   'External-Beta Backend Queue Submission',
   'batch, job, and audit candidates',
+  'Source worker enqueue adapter proof bridge accepted: `true`',
+  'sourceGatewayRuntimeAdmissionProofBridgeAccepted=true',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   'Live backend queue submissions now: `0`',
   'Live service-role transactions now: `0`',
@@ -386,6 +396,8 @@ for (const needle of [
 for (const needle of [
   'AI graphics external beta backend queue submission decision',
   'batch/job/audit queue submission envelope',
+  'rejects source worker enqueue adapter packets',
+  'proof bridge flag',
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   '`backendQueueSubmissionPerformed=false`',
   '`serviceRoleTransactionPerformed=false`',
@@ -665,6 +677,29 @@ const readyD3CpuStaticAdapter = parseJsonOutput(runNpm(adapterScriptName, [
   ...adapterControlsFor('d3-cpu-static'),
 ]), 'ready_d3_cpu_static_adapter')
 const readySam2AdapterPath = writeJson(path.join(tmpRoot, 'sam2-adapter.json'), readySam2Adapter)
+const weakenedSam2AdapterPath = writeJson(
+  path.join(tmpRoot, 'weakened-sam2-adapter.json'),
+  {
+    ...readySam2Adapter,
+    sourceExternalBetaToolCallGatewayProofBridgeAccepted: false,
+    externalBetaWorkerEnqueueAdapterPayload: readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload
+      ? {
+          ...readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload,
+          productionWorkerJobPayload: {
+            ...readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload.productionWorkerJobPayload,
+            metadata: {
+              ...readySam2Adapter.externalBetaWorkerEnqueueAdapterPayload.productionWorkerJobPayload.metadata,
+              sourceGatewayRuntimeAdmissionProofBridgeAccepted: false,
+            },
+          },
+        }
+      : null,
+    booleans: {
+      ...readySam2Adapter.booleans,
+      sourceExternalBetaToolCallGatewayProofBridgeAccepted: false,
+    },
+  },
+)
 const readyD3AdapterPath = writeJson(path.join(tmpRoot, 'd3-adapter.json'), readyD3Adapter)
 const readyD3CpuStaticAdapterPath = writeJson(
   path.join(tmpRoot, 'd3-cpu-static-adapter.json'),
@@ -714,6 +749,11 @@ const blockedMissingWriteAuthorization = parseJsonOutput(runNpm(runScriptName, [
   readySam2AdapterPath,
   ...submissionControlsWithoutWriteAuthorization,
 ]), 'blocked_missing_write_authorization_submission')
+const weakenedAdapterSubmission = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-worker-enqueue-adapter-packet',
+  weakenedSam2AdapterPath,
+  ...submissionControls,
+]), 'weakened_adapter_submission')
 const readySam2Submission = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-worker-enqueue-adapter-packet',
   readySam2AdapterPath,
@@ -742,6 +782,18 @@ if (blockedMissingWriteAuthorization.decision !== 'missing_external_beta_backend
 if (!blockedMissingWriteAuthorization.missingQueueSubmissionControls?.includes('external beta queue write authorization reference is missing')) {
   fail('blocked_missing_write_authorization_not_reported')
 }
+if (weakenedAdapterSubmission.decision !== 'missing_external_beta_worker_enqueue_adapter') {
+  fail(`weakened_adapter_submission_decision_unexpected:${weakenedAdapterSubmission.decision}`)
+}
+if (weakenedAdapterSubmission.sourceExternalBetaWorkerEnqueueAdapterAccepted !== false) {
+  fail('weakened_adapter_submission_source_adapter_accepted_not_false')
+}
+if (weakenedAdapterSubmission.sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted !== false) {
+  fail('weakened_adapter_submission_proof_bridge_not_false')
+}
+if (weakenedAdapterSubmission.externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence !== false) {
+  fail('weakened_adapter_submission_envelope_ready_not_false')
+}
 
 for (const [label, output] of Object.entries({
   readySam2Submission,
@@ -757,6 +809,9 @@ for (const [label, output] of Object.entries({
   const envelope = output.externalBetaBackendQueueSubmissionEnvelope
   if (!envelope) fail(`${label}_missing_submission_envelope`)
   if (envelope?.submissionEnvelopeShapeValid !== true) fail(`${label}_envelope_shape_not_valid`)
+  if (envelope?.sourceAdapterProofBridgeAccepted !== true) {
+    fail(`${label}_source_adapter_proof_bridge_not_true`)
+  }
   if (envelope?.queueJobCandidate?.jobType !== 'ai_graphics_tool_runtime') {
     fail(`${label}_queue_job_type_unexpected`)
   }
@@ -765,6 +820,9 @@ for (const [label, output] of Object.entries({
   }
   if (typeof envelope?.productionWorkerJobPayload?.metadata?.sourceGatewayRuntimeAdmissionMode !== 'string') {
     fail(`${label}_missing_source_gateway_runtime_admission_mode`)
+  }
+  if (envelope?.productionWorkerJobPayload?.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted !== true) {
+    fail(`${label}_missing_source_gateway_runtime_proof_bridge`)
   }
   if (envelope?.queueBatchCandidate?.jobCount !== 1) fail(`${label}_queue_batch_job_count_not_1`)
   if (envelope?.queueBatchCandidate?.liveInsertPerformed !== false) {
@@ -956,6 +1014,7 @@ console.log(JSON.stringify({
   planningSubmissionDecision: planningSubmission.decision,
   blockedMissingAdapterDecision: blockedMissingAdapter.decision,
   blockedMissingWriteAuthorizationDecision: blockedMissingWriteAuthorization.decision,
+  weakenedAdapterSubmissionDecision: weakenedAdapterSubmission.decision,
   readySam2SubmissionDecision: readySam2Submission.decision,
   readyD3SubmissionDecision: readyD3Submission.decision,
   readyD3CpuStaticSubmissionDecision: readyD3CpuStaticSubmission.decision,

@@ -36,8 +36,10 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "sourceWorkerEnqueueAdapterProofBridgeAccepted": true,
   "requiredQueueSubmissionControls": [
     "accepted external-beta worker enqueue adapter packet",
+    "accepted external-beta worker enqueue adapter packet preserving the native GPU runtime-proof bridge",
     "external beta queue submission reference",
     "external beta queue submission schema reference",
     "external beta service-role transaction envelope reference",
@@ -170,6 +172,7 @@
   "booleans": {
     "externalBetaBackendQueueSubmissionEnvelopePrepared": true,
     "sourceExternalBetaWorkerEnqueueAdapterAccepted": true,
+    "sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted": true,
     "externalBetaQueueSubmissionControlsSatisfied": true,
     "externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence": true,
     "all21ToolsCovered": true,

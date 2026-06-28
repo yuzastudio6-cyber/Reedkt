@@ -248,6 +248,10 @@ service-role transaction: `backendQueueSubmissionPerformed=false`,
 `serviceRoleTransactionPerformed=false`, `workerLeaseCreated=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
 `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0` remain enforced.
+Backend queue submission now also rejects source worker enqueue adapter packets
+that strip or weaken the native GPU runtime-proof bridge, and preserves the
+proof bridge flag in the prepared-not-submitted queue envelope before any future
+service-role queue transaction.
 
 AI graphics external beta service-role queue transaction decision
 `ai_graphics_external_beta_service_role_queue_transaction_envelope_prepared_with_runtime_blocks`

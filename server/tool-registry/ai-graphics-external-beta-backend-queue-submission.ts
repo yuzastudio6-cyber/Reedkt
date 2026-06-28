@@ -85,6 +85,7 @@ export interface AiGraphicsExternalBetaBackendQueueSubmissionEnvelope {
   serviceRoleTransactionEnvelopeRef: string
   queueWriteAuthorizationRef: string
   sourceAdapterCandidateRef: string
+  sourceAdapterProofBridgeAccepted: boolean
   productionWorkerJobPayload: ProductionWorkerJobPayload
   queueBatchCandidate: AiGraphicsExternalBetaQueueBatchCandidate
   queueJobCandidate: AiGraphicsExternalBetaQueueJobCandidate
@@ -113,6 +114,7 @@ export interface AiGraphicsExternalBetaBackendQueueSubmission {
   executionRequested: boolean
   sourceExternalBetaWorkerEnqueueAdapter: AiGraphicsExternalBetaWorkerEnqueueAdapter
   sourceExternalBetaWorkerEnqueueAdapterAccepted: boolean
+  sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted: boolean
   missingQueueSubmissionControls: string[]
   externalBetaQueueSubmissionControlsSatisfied: boolean
   externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence: boolean
@@ -145,6 +147,7 @@ export interface AiGraphicsExternalBetaBackendQueueSubmission {
   booleans: {
     externalBetaBackendQueueSubmissionEnvelopePrepared: true
     sourceExternalBetaWorkerEnqueueAdapterAccepted: boolean
+    sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted: boolean
     externalBetaQueueSubmissionControlsSatisfied: boolean
     externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -227,6 +230,10 @@ function hasValue(value?: string): boolean {
 
 function adapterAccepted(packet: AiGraphicsExternalBetaWorkerEnqueueAdapter): boolean {
   return packet.decision === 'external_beta_worker_enqueue_adapter_payload_ready' &&
+    packet.sourceExternalBetaToolCallGatewayProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaToolCallGatewayProofBridgeAccepted === true &&
+    packet.externalBetaWorkerEnqueueAdapterPayload
+      ?.productionWorkerJobPayload.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true &&
     packet.externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence === true &&
     packet.externalBetaWorkerEnqueueAdapterPayload !== null &&
     packet.externalBetaReadyNowTools === 0 &&
@@ -296,6 +303,8 @@ function buildSubmissionEnvelope(input: {
   controlsSatisfied: boolean
 }): AiGraphicsExternalBetaBackendQueueSubmissionEnvelope {
   const payload = input.adapterPayload.productionWorkerJobPayload
+  const sourceAdapterProofBridgeAccepted =
+    payload.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true
   const queueBatchCandidate: AiGraphicsExternalBetaQueueBatchCandidate = {
     batchId: `external-beta-ai-graphics-batch-${payload.workspaceId}-${payload.projectId}`,
     workspaceId: payload.workspaceId,
@@ -342,6 +351,7 @@ function buildSubmissionEnvelope(input: {
       queueJobCandidate.idempotencyKey === payload.idempotencyKey &&
       queueJobCandidate.status === 'prepared_not_submitted' &&
       queueJobCandidate.liveInsertPerformed === false &&
+      sourceAdapterProofBridgeAccepted &&
       queueAuditCandidate.auditEventRef &&
       queueAuditCandidate.liveInsertPerformed === false,
   )
@@ -363,6 +373,7 @@ function buildSubmissionEnvelope(input: {
       input.input.externalBetaServiceRoleTransactionEnvelopeRef ?? '',
     queueWriteAuthorizationRef: input.input.externalBetaQueueWriteAuthorizationRef ?? '',
     sourceAdapterCandidateRef: input.adapterPayload.sourceGatewayCandidateRef,
+    sourceAdapterProofBridgeAccepted,
     productionWorkerJobPayload: payload,
     queueBatchCandidate,
     queueJobCandidate,
@@ -392,6 +403,11 @@ export function evaluateAiGraphicsExternalBetaBackendQueueSubmission(
     evaluateAiGraphicsExternalBetaWorkerEnqueueAdapter(input)
   const executionRequested =
     input.executionRequested === true || adapter.executionRequested === true
+  const sourceAdapterProofBridgeAccepted =
+    adapter.sourceExternalBetaToolCallGatewayProofBridgeAccepted === true &&
+    adapter.booleans.sourceExternalBetaToolCallGatewayProofBridgeAccepted === true &&
+    adapter.externalBetaWorkerEnqueueAdapterPayload
+      ?.productionWorkerJobPayload.metadata?.sourceGatewayRuntimeAdmissionProofBridgeAccepted === true
   const sourceAdapterAccepted = adapterAccepted(adapter)
   const missingControls = executionRequested ? missingQueueSubmissionControls(input) : []
   const controlsSatisfied =
@@ -424,6 +440,8 @@ export function evaluateAiGraphicsExternalBetaBackendQueueSubmission(
     executionRequested,
     sourceExternalBetaWorkerEnqueueAdapter: adapter,
     sourceExternalBetaWorkerEnqueueAdapterAccepted: sourceAdapterAccepted,
+    sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted:
+      sourceAdapterProofBridgeAccepted,
     missingQueueSubmissionControls: missingControls,
     externalBetaQueueSubmissionControlsSatisfied: controlsSatisfied,
     externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence: envelopeReady,
@@ -440,6 +458,8 @@ export function evaluateAiGraphicsExternalBetaBackendQueueSubmission(
     booleans: {
       externalBetaBackendQueueSubmissionEnvelopePrepared: true,
       sourceExternalBetaWorkerEnqueueAdapterAccepted: sourceAdapterAccepted,
+      sourceExternalBetaWorkerEnqueueAdapterProofBridgeAccepted:
+        sourceAdapterProofBridgeAccepted,
       externalBetaQueueSubmissionControlsSatisfied: controlsSatisfied,
       externalBetaBackendQueueSubmissionEnvelopeReadyWithProvidedEvidence: envelopeReady,
       all21ToolsCovered: true,

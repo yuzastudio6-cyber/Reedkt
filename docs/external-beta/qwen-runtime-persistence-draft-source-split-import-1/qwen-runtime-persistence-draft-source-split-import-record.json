@@ -1,0 +1,27 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-DRAFT-SOURCE-SPLIT-IMPORT-1",
+  "decision": "completed_qwen_runtime_persistence_draft_source_split_import_024_draft_sql_and_022_local_sql_tests",
+  "execution": "completed_source_import_draft_sql_and_local_sql_tests_no_sql_execution",
+  "integrationBase": "4b7882ad08e60a44ade3dcdd3bd5ba52eb8b5e54",
+  "sourceBranch": "origin/codex/qwen2-5-vl-7b-backend-runtime-persistence-migration-draft",
+  "sourceGuardPr": 1474,
+  "baselineSplitImportPr": 1478,
+  "localHarnessRetryPr": 1483,
+  "sourceQwenPr": 1465,
+  "excludedPr": 577,
+  "importedFiles": [
+    "database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql",
+    "database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql"
+  ],
+  "activeMigrationImported": false,
+  "remoteSupabaseExecution": false,
+  "sqlExecution": false,
+  "migrationApply": false,
+  "qwenRuntimeExecution": false,
+  "workerDispatch": false,
+  "providerModelCalls": false,
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "RP-EXTERNAL-BETA-QWEN-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RETRY-12"
+}

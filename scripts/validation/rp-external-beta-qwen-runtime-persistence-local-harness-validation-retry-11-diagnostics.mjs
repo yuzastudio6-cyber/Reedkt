@@ -54,9 +54,20 @@ const requiredText = [
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-stack-fresh-source-import-1-diagnostics.mjs')
 allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-11-results.md')
 allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1.md')
 allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-baseline-split-import-1-diagnostics.mjs')
+allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-source-split-import-1/source-audit.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-source-split-import-1/imported-source.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-source-split-import-1/validation-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-source-split-import-1/safety-boundary.md')
+allowedChangedFiles.add('docs/external-beta/qwen-runtime-persistence-draft-source-split-import-1/qwen-runtime-persistence-draft-source-split-import-record.json')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-runtime-persistence-local-harness-validation-retry-12.md')
+allowedChangedFiles.add('database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql')
+allowedChangedFiles.add('database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1-diagnostics.mjs')
 
 const blockedPrefixes = [
   'package-lock.json',
@@ -123,13 +134,6 @@ if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
 for (const [key, value] of Object.entries(record.safety ?? {})) {
   if (value !== false) fail(`safety flag must be false: ${key}`)
-}
-
-if (fs.existsSync('database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql')) {
-  fail('QWEN draft SQL unexpectedly exists in current integration')
-}
-if (fs.existsSync('database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql')) {
-  fail('QWEN local SQL tests unexpectedly exist in current integration')
 }
 
 const packageJson = JSON.parse(read('package.json'))

@@ -33,5 +33,6 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY dist-server ./dist-server
+COPY server/workers/timeline/hyperframe-timeline-bridge.ts ./server/workers/timeline/hyperframe-timeline-bridge.ts
 
 CMD ["node", "dist-server/server.js"]

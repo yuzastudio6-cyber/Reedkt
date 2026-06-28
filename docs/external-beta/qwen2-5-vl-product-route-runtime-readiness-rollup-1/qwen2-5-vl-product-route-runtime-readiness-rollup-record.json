@@ -1,0 +1,53 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN2_5_VL_PRODUCT_ROUTE_RUNTIME_READINESS_ROLLUP_1",
+  "decision": "completed_qwen2_5_vl_product_route_runtime_readiness_rollup",
+  "execution": "completed_docs_only_runtime_readiness_rollup_no_runtime_execution",
+  "base": "01202d5d746954c895a13540a2b38a3feb9f81b8",
+  "sourceChain": {
+    "backendJobHandoffPr": 1380,
+    "guardedProviderRuntimeFixturePr": 1387,
+    "confirmedColdStartBlockerPr": 1394,
+    "coldStartRetrySuccessPr": 1403,
+    "excludedRemotionPr": 577
+  },
+  "readiness": {
+    "qwenProductRouteProviderRuntime": "ready_for_external_beta_backend_orchestration_integration_planning",
+    "externalBetaUnlocked": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN2_5_VL_APPROVED_SNAPSHOT_JOB_ORCHESTRATION_E2E_1"
+  },
+  "acceptedRuntimeEvidence": {
+    "coldStartRetryRunId": "qwen25-product-route-provider-runtime-fixture-cold-start-retry-1-2026-06-28T04-59-27-073Z-f334595a",
+    "productRouteRunId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-28T04-59-27-133Z-37e1aba2",
+    "adapterRunId": "qwen25-adapter-runtime-fixture-2026-06-28T04-59-27-623Z-37144e9c",
+    "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-8rnk9",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "structuredMetadataOutputAccepted": true,
+    "schemaValid": true,
+    "objectCount": 3,
+    "textLikeRegionCount": 1,
+    "rawOutputStoredInRepo": false,
+    "failClosedRestorePassed": true
+  },
+  "safety": {
+    "runtimeExecutedInThisRollup": false,
+    "providerModelCallInThisRollup": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "frontendProviderCall": false,
+    "rawPromptExecution": false,
+    "arbitraryPrivateMediaProcessing": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "workerDispatchFromProductRoute": false,
+    "creditMutation": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

@@ -20,6 +20,15 @@ beta, and production gates still false.
 
 Source packet GPU policy: exactly eight GPU/model gate checks, exactly eight nested GPU/model source job payloads, on-demand-only GPU runtime, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and no enqueue/dispatch/runtime/beta/production approval.
 
+The rollup can also ingest a source
+`--external-beta-native-gpu-proof-collection-packet` only when that packet
+reports `external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`,
+all eight GPU/model tools accepted with provided native GPU proof evidence, all
+six native GPU proof profiles accepted, all five private model manifests
+accepted, `readyForPerToolRuntimeProofRecheck=true`, on-demand-only GPU runtime,
+no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and
+all execution/runtime/beta/production gates still false.
+
 ## Current Result
 
 - AI graphics tools covered: 21
@@ -34,6 +43,11 @@ Source packet GPU policy: exactly eight GPU/model gate checks, exactly eight nes
 - Production worker gate checks accepted with provided evidence: 21
 - Capability production worker gate scenarios accepted with provided evidence: 12
 - Hard failed production worker gates with provided evidence: 0
+- Native GPU proof collection accepted with provided evidence: true
+- Native GPU proof collection ready for per-tool runtime proof recheck: true
+- Native GPU runtime proof accepted tools with provided evidence: 8
+- Native GPU runtime proof profiles accepted with provided evidence: 6
+- Model-weight manifest review accepted with provided evidence: 5
 - Internal beta ready now: 0
 - External beta ready now: 0
 - Production ready now: 0
@@ -96,6 +110,15 @@ GPU runtime remains on-demand only. The rollup does not approve idle GPU workers
 live queue dispatch, or live GPU runtime before an approved worker job calls a
 GPU tool.
 
+## Native GPU Proof Collection Gate
+
+Accepted native GPU collection evidence means the eight GPU/model tools have
+provided evidence for the next per-tool runtime proof recheck. It does not mean
+the GPU runtime may start now. The accepted source packet must preserve
+`gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`,
+`modelWeightsLoaded=false`, `modelInferencePerformed=false`,
+`externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## Final Go/No-Go Gates
 
 - accepted all-21 install and production mapping audit
@@ -135,10 +158,11 @@ GPU tool.
 
 ## Next Milestones
 
-1. Provide reviewed private model-weight manifest packet and redacted native NVIDIA L4 GPU proof results.
-2. Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures.
-3. Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.
-4. After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself.
+1. Feed an accepted external beta native GPU proof collection packet into the rollup before the final external-beta go/no-go.
+2. Re-run the external per-tool runtime proof gate after accepted native GPU collection evidence is available.
+3. Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.
+4. Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.
+5. After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself.
 
 ## No Runtime Unlock
 

@@ -9,6 +9,9 @@ import type {
 import type {
   AiGraphicsInternalBetaProductionWorkerGateReadiness,
 } from '../tool-registry/ai-graphics-internal-beta-production-worker-gate-readiness'
+import type {
+  AiGraphicsExternalBetaNativeGpuProofCollection,
+} from '../tool-registry/ai-graphics-external-beta-native-gpu-proof-collection'
 
 const expectedGpuRuntimeTargets: Record<string, string> = {
   torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
@@ -251,6 +254,12 @@ function readSourceProductionWorkerGateReadinessPacket(): {
   }
 }
 
+function readSourceExternalBetaNativeGpuProofCollectionPacket():
+  AiGraphicsExternalBetaNativeGpuProofCollection | undefined {
+  return readJsonFile('--external-beta-native-gpu-proof-collection-packet') as
+    AiGraphicsExternalBetaNativeGpuProofCollection | undefined
+}
+
 const allTechnicalGatesPassed = hasFlag('--all-technical-gates-passed')
 const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
   approvedPlanSnapshotGatePassed: allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
@@ -276,10 +285,13 @@ const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
 }
 
 const sourcePacket = readSourceProductionWorkerGateReadinessPacket()
+const sourceExternalBetaNativeGpuProofCollectionPacket =
+  readSourceExternalBetaNativeGpuProofCollectionPacket()
 const readiness = buildAiGraphicsBetaProductionReadinessRollup({
   evidenceBundleInput,
   sourceProductionWorkerGateReadinessPacket:
     sourcePacket.sourceProductionWorkerGateReadinessPacket,
+  sourceExternalBetaNativeGpuProofCollectionPacket,
   ownerApprovalGranted: hasFlag('--owner-approval-granted'),
   ownerApprovalRef: valueAfterFlag('--owner-approval-ref'),
   ownerApproverRole: valueAfterFlag('--owner-approver-role') ?? 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER',
@@ -292,6 +304,8 @@ const output = {
     sourceEvidenceMode: sourcePacket.sourceEvidenceMode,
     sourceProductionWorkerGateReadinessPacketRead:
       Boolean(sourcePacket.sourceProductionWorkerGateReadinessPacket),
+    sourceExternalBetaNativeGpuProofCollectionPacketRead:
+      Boolean(sourceExternalBetaNativeGpuProofCollectionPacket),
     ownerApprovalRefProvided: Boolean(valueAfterFlag('--owner-approval-ref')),
     committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
     dependencyInstallPerformed: false,

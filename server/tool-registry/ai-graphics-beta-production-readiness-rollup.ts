@@ -14,6 +14,10 @@ import {
   type AiGraphicsInternalBetaProductionWorkerGateReadiness,
   type AiGraphicsInternalBetaProductionWorkerGateReadinessInput,
 } from './ai-graphics-internal-beta-production-worker-gate-readiness'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
+  type AiGraphicsExternalBetaNativeGpuProofCollection,
+} from './ai-graphics-external-beta-native-gpu-proof-collection'
 
 export const AI_GRAPHICS_BETA_PRODUCTION_READINESS_ROLLUP_DECISION =
   'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks'
@@ -26,6 +30,7 @@ export type AiGraphicsBetaProductionReadinessRollupStatus =
 export interface AiGraphicsBetaProductionReadinessRollupInput
   extends AiGraphicsInternalBetaProductionWorkerGateReadinessInput {
   sourceProductionWorkerGateReadinessPacket?: AiGraphicsInternalBetaProductionWorkerGateReadiness
+  sourceExternalBetaNativeGpuProofCollectionPacket?: AiGraphicsExternalBetaNativeGpuProofCollection
 }
 
 export interface AiGraphicsBetaProductionReadinessRollup {
@@ -33,6 +38,8 @@ export interface AiGraphicsBetaProductionReadinessRollup {
   sourceActivationGapDecision: typeof AI_GRAPHICS_BETA_ACTIVATION_GAP_REPORT_DECISION
   sourceCrossOwnerCoordinationDecision: typeof AI_GRAPHICS_CROSS_OWNER_COORDINATION_DECISION
   sourceProductionWorkerGateDecision: typeof AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_GATE_READINESS_DECISION
+  sourceExternalBetaNativeGpuProofCollectionDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION
   status: AiGraphicsBetaProductionReadinessRollupStatus
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -47,6 +54,12 @@ export interface AiGraphicsBetaProductionReadinessRollup {
   productionWorkerGateChecksAcceptedWithProvidedEvidence: number
   capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence: number
   hardFailedProductionWorkerGateChecksWithProvidedEvidence: number
+  nativeGpuProofCollectionAcceptedWithProvidedEvidence: boolean
+  nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck: boolean
+  nativeGpuProofCollectionStatus: AiGraphicsExternalBetaNativeGpuProofCollection['decision'] | null
+  nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence: number
+  nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence: number
+  modelWeightManifestReviewAcceptedWithProvidedEvidence: number
   internalBetaReadyNowTools: 0
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
@@ -61,6 +74,9 @@ export interface AiGraphicsBetaProductionReadinessRollup {
     sourceActivationGapAccepted: true
     sourceCrossOwnerCoordinationAccepted: boolean
     sourceProductionWorkerGateAcceptedWithProvidedEvidence: boolean
+    sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence: boolean
+    nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck: boolean
+    nativeGpuRuntimeProofAcceptedForAll8GpuToolsWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     all21ToolsProperlyInstalledForPlannedSurface: boolean
@@ -147,8 +163,9 @@ const stillBlockedRuntimeActions = [
 ]
 
 const nextMilestones = [
-  'Provide reviewed private model-weight manifest packet and redacted native NVIDIA L4 GPU proof results.',
-  'Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures.',
+  'Feed an accepted external beta native GPU proof collection packet into the rollup before the final external-beta go/no-go.',
+  'Re-run the external per-tool runtime proof gate after accepted native GPU collection evidence is available.',
+  'Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.',
   'Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.',
   'After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself.',
 ]
@@ -159,6 +176,29 @@ function statusFromGate(
   if (gate.status === 'missing_technical_evidence') return 'missing_technical_evidence'
   if (gate.status === 'awaiting_owner_approval') return 'awaiting_owner_approval'
   return 'owner_approved_worker_gates_ready_runtime_still_blocked'
+}
+
+function nativeGpuProofCollectionAccepted(
+  packet?: AiGraphicsExternalBetaNativeGpuProofCollection,
+): boolean {
+  return Boolean(packet) &&
+    packet?.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION &&
+    packet?.decision === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' &&
+    packet?.counts.nativeGpuRuntimeProofAcceptedTools === 8 &&
+    packet?.counts.nativeGpuRuntimeProofProfilesAccepted === 6 &&
+    packet?.counts.modelWeightManifestReviewAccepted === 5 &&
+    packet?.counts.blockedPendingNativeGpuRuntimeProofTools === 0 &&
+    packet?.booleans.readyForPerToolRuntimeProofRecheck === true &&
+    packet?.booleans.gpuRuntimeOnDemandOnly === true &&
+    packet?.booleans.noIdleGpuRuntimeApproved === true &&
+    packet?.booleans.cpuFallbackAllowedForHeavyTools === false &&
+    packet?.booleans.agentCanExecuteToolsNow === false &&
+    packet?.booleans.gpuRuntimeApprovedNow === false &&
+    packet?.booleans.gpuRuntimeShouldStartNow === false &&
+    packet?.booleans.modelWeightsLoaded === false &&
+    packet?.booleans.modelInferencePerformed === false &&
+    packet?.booleans.externalBetaReadyNow === false &&
+    packet?.booleans.productionReadyNow === false
 }
 
 export function buildAiGraphicsBetaProductionReadinessRollup(
@@ -191,6 +231,23 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
     crossOwnerCoordination.booleans.allAiGraphicsProductionMappingsUnique &&
     crossOwnerCoordination.booleans.trackAExcludedToolsNotClaimed &&
     crossOwnerCoordination.booleans.nonAiGraphicsReservedToolIdsNotClaimed
+  const sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence =
+    nativeGpuProofCollectionAccepted(input.sourceExternalBetaNativeGpuProofCollectionPacket)
+  const nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck =
+    sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence &&
+    input.sourceExternalBetaNativeGpuProofCollectionPacket?.booleans.readyForPerToolRuntimeProofRecheck === true
+  const nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence =
+    sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence
+      ? input.sourceExternalBetaNativeGpuProofCollectionPacket?.counts.nativeGpuRuntimeProofAcceptedTools ?? 0
+      : 0
+  const nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence =
+    sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence
+      ? input.sourceExternalBetaNativeGpuProofCollectionPacket?.counts.nativeGpuRuntimeProofProfilesAccepted ?? 0
+      : 0
+  const modelWeightManifestReviewAcceptedWithProvidedEvidence =
+    sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence
+      ? input.sourceExternalBetaNativeGpuProofCollectionPacket?.counts.modelWeightManifestReviewAccepted ?? 0
+      : 0
 
   return {
     decision: AI_GRAPHICS_BETA_PRODUCTION_READINESS_ROLLUP_DECISION,
@@ -198,6 +255,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
     sourceCrossOwnerCoordinationDecision: AI_GRAPHICS_CROSS_OWNER_COORDINATION_DECISION,
     sourceProductionWorkerGateDecision:
       AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_GATE_READINESS_DECISION,
+    sourceExternalBetaNativeGpuProofCollectionDecision:
+      AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
     status,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -215,6 +274,14 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       productionWorkerGateReadiness.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence,
     hardFailedProductionWorkerGateChecksWithProvidedEvidence:
       productionWorkerGateReadiness.hardFailedGateChecksWithProvidedEvidence,
+    nativeGpuProofCollectionAcceptedWithProvidedEvidence:
+      sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence,
+    nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck,
+    nativeGpuProofCollectionStatus:
+      input.sourceExternalBetaNativeGpuProofCollectionPacket?.decision ?? null,
+    nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence,
+    nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence,
+    modelWeightManifestReviewAcceptedWithProvidedEvidence,
     internalBetaReadyNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -229,6 +296,10 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       sourceActivationGapAccepted: true,
       sourceCrossOwnerCoordinationAccepted,
       sourceProductionWorkerGateAcceptedWithProvidedEvidence,
+      sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence,
+      nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck,
+      nativeGpuRuntimeProofAcceptedForAll8GpuToolsWithProvidedEvidence:
+        nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence === 8,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all21ToolsProperlyInstalledForPlannedSurface:

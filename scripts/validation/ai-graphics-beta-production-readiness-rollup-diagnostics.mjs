@@ -202,10 +202,101 @@ function writeAcceptedEvidencePackets() {
   return { manifestPacketPath, gpuPacketPath }
 }
 
+function acceptedPerToolRuntimeProofFixture() {
+  return {
+    decision: 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    gpuRuntimeTargetedTools: 8,
+    runtimeProofRecordsPrepared: 21,
+    runtimeProofAcceptedWithProvidedEvidenceTools: 13,
+    jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
+    nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
+    blockedPendingNativeGpuRuntimeProofTools: 8,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    booleans: {
+      gpuRuntimeOnDemandOnly: true,
+      gpuRuntimeShouldStartNow: false,
+      agentCanExecuteToolsNow: false,
+    },
+  }
+}
+
+function acceptedChecksumEvidenceFixture() {
+  return {
+    decision: 'ai_graphics_model_weight_checksum_evidence_prepared_with_no_private_records',
+    totalAiGraphicsTools: 21,
+    modelWeightChecksumEvidenceRequiredTools: [
+      'sam2',
+      'birefnet',
+      'real_esrgan',
+      'rembg',
+      'transparent_background',
+    ],
+    checksumEvidenceRecordsProvided: 5,
+    checksumEvidenceRecordsAccepted: 5,
+    manifestAuthoringEligibleRecords: 5,
+    privateArtifactRefsLogged: 0,
+    betaReadyModelWeightTools: 0,
+    booleans: {
+      all5ModelWeightToolsCovered: true,
+      privateArtifactRefsNotLogged: true,
+    },
+  }
+}
+
 function writeJsonPacket(root, fileName, packet) {
   const packetPath = path.join(root, fileName)
   fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
   return packetPath
+}
+
+function writeAcceptedNativeGpuProofCollectionPacket(root, manifestPacketPath, gpuPacketPath) {
+  const perToolPath = writeJsonPacket(
+    root,
+    'accepted-external-beta-per-tool-runtime-proof.json',
+    acceptedPerToolRuntimeProofFixture(),
+  )
+  const checksumPath = writeJsonPacket(
+    root,
+    'accepted-model-weight-checksum-evidence.json',
+    acceptedChecksumEvidenceFixture(),
+  )
+  const collectionOutput = parseJsonOutput(runNpm(nativeGpuProofCollectionScriptName, [
+    '--external-beta-per-tool-runtime-proof-packet',
+    perToolPath,
+    '--gpu-runtime-proof-command-plan-packet',
+    path.join(process.cwd(), 'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json'),
+    '--model-weight-checksum-evidence-packet',
+    checksumPath,
+    '--model-weight-manifest-review-packet',
+    manifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-policy-ref',
+    'external-beta-evidence://ai-graphics/native-gpu-proof/policy',
+    '--external-beta-native-gpu-proof-collection-schema-ref',
+    'external-beta-evidence://ai-graphics/native-gpu-proof/schema',
+    '--external-beta-native-gpu-proof-collection-host-pool-ref',
+    'backend-evidence://ai-graphics/native-gpu-proof/nvidia-l4-host-pool',
+    '--external-beta-native-gpu-proof-collection-private-artifact-namespace-ref',
+    'private://ai-graphics/model-weight-artifacts',
+    '--external-beta-native-gpu-proof-collection-telemetry-ref',
+    'backend-evidence://ai-graphics/native-gpu-proof/telemetry',
+    '--external-beta-native-gpu-proof-collection-rollback-ref',
+    'backend-evidence://ai-graphics/native-gpu-proof/rollback',
+  ]), 'accepted_native_gpu_proof_collection')
+
+  if (collectionOutput.decision !== 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready') {
+    fail(`native_gpu_collection_fixture_status:${collectionOutput.decision}`)
+  }
+
+  return writeJsonPacket(
+    root,
+    'external-beta-native-gpu-proof-collection-packet.json',
+    collectionOutput,
+  )
 }
 
 function deepMerge(base, patch) {
@@ -259,6 +350,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/beta-activation-gap-report.json',
   'docs/tool-intelligence/ai-graphics/cross-owner-coordination.json',
   'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-collection.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
 
@@ -284,11 +376,13 @@ for (const decision of [
   'ai_graphics_beta_activation_gap_report_prepared_with_remaining_blocks',
   'ai_graphics_cross_owner_coordination_verified_without_duplicate_owner_claims',
   'ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime',
+  'ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks',
 ]) {
   if (!docs.sourceDecisions?.includes(decision)) fail(`docs_missing_source_decision:${decision}`)
 }
 for (const [key, expected] of Object.entries({
   acceptsProductionWorkerGateReadinessPacket: true,
+  acceptsExternalBetaNativeGpuProofCollectionPacket: true,
   sourceProductionWorkerGatePacketMustReportOwnerApprovedGateChecksReady: true,
   sourceProductionWorkerGatePacketMustCoverAll21Tools: true,
   sourceProductionWorkerGatePacketMustCoverAll12Capabilities: true,
@@ -298,6 +392,9 @@ for (const [key, expected] of Object.entries({
   sourceProductionWorkerGatePacketMustKeepNoIdleGpuRuntime: true,
   sourceProductionWorkerGatePacketMustBlockCpuFallbackForHeavyTools: true,
   sourceProductionWorkerGatePacketMustKeepEnqueueDispatchRuntimeGpuAndProductionFalse: true,
+  sourceNativeGpuProofCollectionPacketMustBeReadyForPerToolRuntimeProofRecheck: true,
+  sourceNativeGpuProofCollectionPacketMustAcceptAll8GpuRuntimeToolsWithProvidedEvidence: true,
+  sourceNativeGpuProofCollectionPacketMustKeepGpuRuntimeExecutionFalse: true,
   rollupStillDoesNotApproveExecutionOrRuntime: true,
 })) {
   if (docs.sourceEvidencePolicy?.[key] !== expected) {
@@ -313,14 +410,26 @@ if (!moduleSource.includes('AI_GRAPHICS_CROSS_OWNER_COORDINATION_DECISION')) {
 if (!moduleSource.includes('AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_GATE_READINESS_DECISION')) {
   fail('module_missing_production_worker_gate_decision_constant')
 }
+if (!moduleSource.includes('AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION')) {
+  fail('module_missing_native_gpu_proof_collection_decision_constant')
+}
 if (!moduleSource.includes('sourceProductionWorkerGateReadinessPacket')) {
   fail('module_missing_source_production_worker_gate_packet_input')
+}
+if (!moduleSource.includes('sourceExternalBetaNativeGpuProofCollectionPacket')) {
+  fail('module_missing_source_native_gpu_proof_collection_packet_input')
 }
 if (!cliSource.includes('--internal-beta-production-worker-gate-readiness-packet')) {
   fail('cli_missing_production_worker_gate_readiness_packet_flag')
 }
+if (!cliSource.includes('--external-beta-native-gpu-proof-collection-packet')) {
+  fail('cli_missing_native_gpu_proof_collection_packet_flag')
+}
 if (!cliSource.includes('sourceProductionWorkerGateReadinessPacketRead')) {
   fail('cli_missing_production_worker_gate_packet_read_marker')
+}
+if (!cliSource.includes('sourceExternalBetaNativeGpuProofCollectionPacketRead')) {
+  fail('cli_missing_native_gpu_proof_collection_packet_read_marker')
 }
 for (const status of [
   'missing_technical_evidence',
@@ -365,6 +474,9 @@ for (const [key, expected] of Object.entries({
   productionWorkerGateChecksAcceptedWithProvidedEvidence: 21,
   capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence: 12,
   hardFailedProductionWorkerGateChecksWithProvidedEvidence: 0,
+  nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence: 8,
+  nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence: 6,
+  modelWeightManifestReviewAcceptedWithProvidedEvidence: 5,
   internalBetaReadyNowTools: 0,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
@@ -373,6 +485,18 @@ for (const [key, expected] of Object.entries({
 }
 if (docs.gpuRuntimeTargetsExact !== true) fail('docs_gpu_runtime_targets_not_exact')
 if (docs.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_runtime_not_on_demand')
+if (docs.nativeGpuProofCollection?.acceptedWithProvidedEvidence !== true) {
+  fail('docs_native_gpu_collection_not_accepted')
+}
+if (docs.nativeGpuProofCollection?.readyForPerToolRuntimeProofRecheck !== true) {
+  fail('docs_native_gpu_collection_not_ready_for_recheck')
+}
+if (docs.nativeGpuProofCollection?.status !== 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready') {
+  fail(`docs_native_gpu_collection_status:${docs.nativeGpuProofCollection?.status}`)
+}
+if (docs.nativeGpuProofCollection?.sourcePacketFlag !== '--external-beta-native-gpu-proof-collection-packet') {
+  fail(`docs_native_gpu_collection_flag:${docs.nativeGpuProofCollection?.sourcePacketFlag}`)
+}
 for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   if (docs.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
     fail(`docs_expected_gpu_runtime_target_mismatch:${tool}:${docs.expectedGpuRuntimeTargets?.[tool]}`)
@@ -397,6 +521,9 @@ for (const key of [
   'sourceActivationGapAccepted',
   'sourceCrossOwnerCoordinationAccepted',
   'sourceProductionWorkerGateAcceptedWithProvidedEvidence',
+  'sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence',
+  'nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck',
+  'nativeGpuRuntimeProofAcceptedForAll8GpuToolsWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all21ToolsProperlyInstalledForPlannedSurface',
@@ -426,6 +553,12 @@ if (defaultOutput.booleans?.internalBetaGoNoGoReadyWithProvidedEvidence !== fals
 }
 
 const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
+const packetRoot = path.dirname(manifestPacketPath)
+const nativeGpuProofCollectionPacketPath = writeAcceptedNativeGpuProofCollectionPacket(
+  packetRoot,
+  manifestPacketPath,
+  gpuPacketPath,
+)
 let awaitingExited = false
 let awaitingOutputText = ''
 try {
@@ -437,6 +570,8 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-internal-beta-go-no-go-ready',
   ])
 } catch (error) {
@@ -455,13 +590,14 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
   '--require-internal-beta-go-no-go-ready',
 ]), 'approved_rollup')
 
-const packetRoot = path.dirname(manifestPacketPath)
 const sourceGatePacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-production-worker-gate-readiness', [
   '--use-committed-js-runtime-proofs',
   '--all-technical-gates-passed',
@@ -483,6 +619,8 @@ const sourceGatePacketPath = writeJsonPacket(
 const packetFedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--internal-beta-production-worker-gate-readiness-packet',
   sourceGatePacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--require-internal-beta-go-no-go-ready',
 ]), 'packet_fed_rollup')
 
@@ -508,6 +646,21 @@ if (approvedOutput.capabilityProductionWorkerGateScenariosAcceptedWithProvidedEv
 }
 if (approvedOutput.hardFailedProductionWorkerGateChecksWithProvidedEvidence !== 0) {
   fail('approved_hard_failed_gate_checks_not_0')
+}
+if (approvedOutput.nativeGpuProofCollectionAcceptedWithProvidedEvidence !== true) {
+  fail('approved_native_gpu_collection_not_accepted')
+}
+if (approvedOutput.nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck !== true) {
+  fail('approved_native_gpu_collection_not_ready_for_recheck')
+}
+if (approvedOutput.nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('approved_native_gpu_accepted_tools_not_8')
+}
+if (approvedOutput.nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence !== 6) {
+  fail('approved_native_gpu_accepted_profiles_not_6')
+}
+if (approvedOutput.modelWeightManifestReviewAcceptedWithProvidedEvidence !== 5) {
+  fail('approved_model_manifest_review_not_5')
 }
 if (approvedOutput.internalBetaReadyNowTools !== 0) fail('approved_internal_beta_now_tools_not_0')
 if (approvedOutput.externalBetaReadyNowTools !== 0) fail('approved_external_beta_now_tools_not_0')
@@ -558,6 +711,15 @@ if (packetFedOutput.hardFailedProductionWorkerGateChecksWithProvidedEvidence !==
 }
 if (packetFedOutput.booleans?.sourceProductionWorkerGateAcceptedWithProvidedEvidence !== true) {
   fail('packet_fed_source_gate_not_accepted')
+}
+if (packetFedOutput.input?.sourceExternalBetaNativeGpuProofCollectionPacketRead !== true) {
+  fail('packet_fed_native_gpu_collection_packet_not_read')
+}
+if (packetFedOutput.booleans?.sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence !== true) {
+  fail('packet_fed_native_gpu_collection_not_accepted')
+}
+if (packetFedOutput.nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('packet_fed_native_gpu_accepted_tools_not_8')
 }
 if (packetFedOutput.booleans?.internalBetaGoNoGoReadyWithProvidedEvidence !== true) {
   fail('packet_fed_internal_beta_go_no_go_not_true')
@@ -819,6 +981,12 @@ console.log(JSON.stringify({
     packetFedOutput.productionWorkerGateChecksAcceptedWithProvidedEvidence,
   hardFailedProductionWorkerGateChecksWithProvidedEvidence:
     approvedOutput.hardFailedProductionWorkerGateChecksWithProvidedEvidence,
+  nativeGpuProofCollectionAcceptedWithProvidedEvidence:
+    approvedOutput.nativeGpuProofCollectionAcceptedWithProvidedEvidence,
+  nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck:
+    approvedOutput.nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck,
+  nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence:
+    approvedOutput.nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence,
   internalBetaReadyNowTools: approvedOutput.internalBetaReadyNowTools,
   externalBetaReadyNowTools: approvedOutput.externalBetaReadyNowTools,
   productionReadyNowTools: approvedOutput.productionReadyNowTools,

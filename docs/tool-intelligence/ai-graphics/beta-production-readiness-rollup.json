@@ -5,10 +5,12 @@
   "sourceDecisions": [
     "ai_graphics_beta_activation_gap_report_prepared_with_remaining_blocks",
     "ai_graphics_cross_owner_coordination_verified_without_duplicate_owner_claims",
-    "ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime"
+    "ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime",
+    "ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks"
   ],
   "sourceEvidencePolicy": {
     "acceptsProductionWorkerGateReadinessPacket": true,
+    "acceptsExternalBetaNativeGpuProofCollectionPacket": true,
     "sourceProductionWorkerGatePacketMustReportOwnerApprovedGateChecksReady": true,
     "sourceProductionWorkerGatePacketMustCoverAll21Tools": true,
     "sourceProductionWorkerGatePacketMustCoverAll12Capabilities": true,
@@ -18,6 +20,9 @@
     "sourceProductionWorkerGatePacketMustKeepNoIdleGpuRuntime": true,
     "sourceProductionWorkerGatePacketMustBlockCpuFallbackForHeavyTools": true,
     "sourceProductionWorkerGatePacketMustKeepEnqueueDispatchRuntimeGpuAndProductionFalse": true,
+    "sourceNativeGpuProofCollectionPacketMustBeReadyForPerToolRuntimeProofRecheck": true,
+    "sourceNativeGpuProofCollectionPacketMustAcceptAll8GpuRuntimeToolsWithProvidedEvidence": true,
+    "sourceNativeGpuProofCollectionPacketMustKeepGpuRuntimeExecutionFalse": true,
     "rollupStillDoesNotApproveExecutionOrRuntime": true
   },
   "tools": [
@@ -68,9 +73,21 @@
     "productionWorkerGateChecksAcceptedWithProvidedEvidence": 21,
     "capabilityProductionWorkerGateScenariosAcceptedWithProvidedEvidence": 12,
     "hardFailedProductionWorkerGateChecksWithProvidedEvidence": 0,
+    "nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence": 8,
+    "nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence": 6,
+    "modelWeightManifestReviewAcceptedWithProvidedEvidence": 5,
     "internalBetaReadyNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
+  },
+  "nativeGpuProofCollection": {
+    "acceptedWithProvidedEvidence": true,
+    "readyForPerToolRuntimeProofRecheck": true,
+    "status": "external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready",
+    "sourcePacketFlag": "--external-beta-native-gpu-proof-collection-packet",
+    "runtimeExecutionApprovedNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false
   },
   "gpuRuntimeTargetsExact": true,
   "gpuRuntimeOnDemandOnly": true,
@@ -130,6 +147,9 @@
     "sourceActivationGapAccepted": true,
     "sourceCrossOwnerCoordinationAccepted": true,
     "sourceProductionWorkerGateAcceptedWithProvidedEvidence": true,
+    "sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence": true,
+    "nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck": true,
+    "nativeGpuRuntimeProofAcceptedForAll8GpuToolsWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all21ToolsProperlyInstalledForPlannedSurface": true,

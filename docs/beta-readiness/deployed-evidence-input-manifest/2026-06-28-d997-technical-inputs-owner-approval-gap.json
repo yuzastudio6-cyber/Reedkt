@@ -105,5 +105,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Collect the non-secret owner approval notes named by docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
+  "nextSafeAction": "Collect the non-secret owner approval booleans and evidence notes named by docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md, run npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
 }

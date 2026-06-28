@@ -28,9 +28,9 @@ Tool evidence should use `reeditpro-tool-readiness-staging` because it contains 
 
 The latest report-only platform probe is still recorded at `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.md`: 8 of 9 technical checks passed on the normal API, and the remaining non-passing probe is billing-owner Stripe-boundary approval. That probe has not been rerun at `d997d567d40853f59741763c8e9ca8b2c361148a`; authenticated current-source preflight/probe and every owner approval remain required before recording a platform evidence packet.
 
-Current owner approval collection should start with `npm run beta:readiness:owner-approval-packet` or `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md`. That packet names every platform and launch owner approval input and the non-secret evidence notes required before this manifest can become ready.
+Current owner approval collection should start with `npm run beta:readiness:owner-approval-packet` or `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md`. That packet names every platform and launch owner approval input and the non-secret evidence notes required before this manifest can become ready. Before rerunning this manifest with owner-provided values, run `npm run beta:readiness:owner-approval-intake-preflight`; it requires approval/attestation booleans to be explicitly `true`, rejects secret-like evidence notes, rejects real-user-media or paid-production scope flags, and avoids echoing evidence note values.
 
-Run `npm run beta:readiness:deployed-evidence-input-manifest` first. It prints only input presence, expected non-secret values, gaps, and blocked scopes. It does not print bearer tokens and it fails closed until all required inputs and approvals are present.
+After the intake preflight passes, run `npm run beta:readiness:deployed-evidence-input-manifest`. It prints only input presence, expected non-secret values, gaps, and blocked scopes. It does not print bearer tokens and it fails closed until all required inputs and approvals are present.
 
 After the manifest is ready, run `npm run beta:readiness:external-beta-evidence-collector`, then verify with `npm run beta:readiness:operator-status-api`.
 

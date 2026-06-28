@@ -48,7 +48,7 @@ assert.ok(ready.recommendedCommands.some((command) => command.includes('gh workf
 assert.ok(ready.recommendedCommands.some((command) => command.includes('--ref codex/reeditpro-web-ui-shell')), 'workflow command should run from the default branch')
 assert.ok(ready.recommendedCommands.some((command) => command.includes('source_ref=codex/sound-music-audio-1abc-checkpoint')), 'workflow command should deploy the tools source branch')
 assert.equal(ready.recommendedCommands.some((command) => command.includes('scripts/gcp/prod/08-deploy-api-service.example.sh')), false, 'ready report should not point at the older local gcloud template as the primary deploy path')
-assert.ok(ready.warnings.some((warning) => warning.includes('read-only default-branch staging input discovery workflow')), 'ready report should warn that discovery precedes deploy')
+assert.ok(ready.warnings.some((warning) => warning.includes('Artifact Registry repository access')), 'ready report should warn that exact input discovery precedes deploy')
 assert.ok(ready.warnings.some((warning) => warning.includes('workflow_dispatch-only')), 'ready report should describe the guarded workflow boundary')
 assert.deepEqual(ready.missingConfiguration, [])
 assert.deepEqual(ready.missingConfirmations, [])

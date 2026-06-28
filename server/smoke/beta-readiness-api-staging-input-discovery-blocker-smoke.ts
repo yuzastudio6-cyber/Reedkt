@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 
 const jsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-input-discovery-iam-blocker.json'
 const markdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-input-discovery-iam-blocker.md'
+const exactJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-exact-input-validation-blocker.json'
+const exactMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-exact-input-validation-blocker.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -42,6 +44,44 @@ const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
   }
 }
 const markdown = readFileSync(markdownPath, 'utf8')
+const exactReport = JSON.parse(readFileSync(exactJsonPath, 'utf8')) as {
+  decision: string
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  defaultBranchWorkflow: {
+    exactInputWorkflowPr: number
+    exactInputWorkflowMergeSha: string
+    latestRun: {
+      runId: number
+      headSha: string
+      conclusion: string
+    }
+  }
+  readOnlyPreflight: {
+    mode: string
+    exactInputsProvided: boolean
+    probeFailures: string[]
+    broadProbeFailures: string[]
+    ownerSuppliedInputs: {
+      artifactRegion: string
+      artifactRepository: string
+      deployerServiceAccount: string
+      runtimeServiceAccount: string
+      serviceName: string
+    }
+    probes: Record<string, { ok: boolean; permission?: string; resource?: string; reason?: string; requiredForInputValidation?: boolean }>
+  }
+  blockedAction: string
+  safeForwardProgress: string[]
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const exactMarkdown = readFileSync(exactMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -99,10 +139,52 @@ assert.equal(markdown.includes('DEPLOY_STAGING_BETA_READINESS_API'), false, 'inp
 assert.equal(JSON.stringify(report).includes('SERVICE_ROLE_KEY'), false, 'report must not include secret names or values')
 assert.equal(JSON.stringify(report).includes('gha-creds'), false, 'report must not include credential-file paths')
 
+assert.equal(exactReport.decision, 'beta_readiness_api_staging_exact_input_validation_blocked_by_artifact_registry_get_and_runtime_service_account')
+assert.equal(exactReport.defaultBranchWorkflow.exactInputWorkflowPr, 1374)
+assert.equal(exactReport.defaultBranchWorkflow.exactInputWorkflowMergeSha, '02e1b325f4c62c0e0d92d95d948aaab2052a57e6')
+assert.equal(exactReport.defaultBranchWorkflow.latestRun.runId, 28309751101)
+assert.equal(exactReport.defaultBranchWorkflow.latestRun.conclusion, 'failure')
+assert.equal(exactReport.readOnlyPreflight.mode, 'read_only_staging_api_exact_input_validation')
+assert.equal(exactReport.readOnlyPreflight.exactInputsProvided, true)
+assert.deepEqual(exactReport.readOnlyPreflight.probeFailures, [
+  'exactArtifactRepository',
+  'exactRuntimeServiceAccount',
+])
+assert.equal(exactReport.readOnlyPreflight.ownerSuppliedInputs.artifactRegion, 'us-central1')
+assert.equal(exactReport.readOnlyPreflight.ownerSuppliedInputs.artifactRepository, 'reeditpro-staging-workers')
+assert.equal(exactReport.readOnlyPreflight.ownerSuppliedInputs.runtimeServiceAccount, 'reeditpro-api-staging@reeditpro.iam.gserviceaccount.com')
+assert.equal(exactReport.readOnlyPreflight.ownerSuppliedInputs.serviceName, 'reeditpro-api-staging')
+assert.equal(exactReport.readOnlyPreflight.probes.exactArtifactRepository?.permission, 'artifactregistry.repositories.get')
+assert.equal(exactReport.readOnlyPreflight.probes.exactArtifactRepository?.resource, 'projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers')
+assert.equal(exactReport.readOnlyPreflight.probes.exactArtifactRepository?.reason, 'IAM_PERMISSION_DENIED')
+assert.equal(exactReport.readOnlyPreflight.probes.exactDeployerServiceAccount?.ok, true)
+assert.equal(exactReport.readOnlyPreflight.probes.exactRuntimeServiceAccount?.reason, 'NOT_FOUND')
+assert.equal(exactReport.readOnlyPreflight.probes.exactCloudRunService?.requiredForInputValidation, false)
+assert.equal(exactReport.blockedAction, 'staging_api_deploy_until_artifact_registry_repository_access_and_runtime_service_account_are_proven')
+assert.ok(exactReport.safeForwardProgress.includes('owner_grants_or_confirms_artifact_registry_repository_access'))
+assert.ok(exactReport.safeForwardProgress.includes('owner_creates_or_selects_staging_api_runtime_service_account'))
+assert.equal(exactReport.productReadyLocalOssCount, 0)
+assert.equal(exactReport.externalBetaEnabled, false)
+assert.equal(exactReport.productionEnabled, false)
+assert.deepEqual(exactReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(exactMarkdown.includes('This is not a blanket beta-readiness blocker.'))
+assert.ok(exactMarkdown.includes('artifactregistry.repositories.get'))
+assert.ok(exactMarkdown.includes('reeditpro-api-staging@reeditpro.iam.gserviceaccount.com'))
+assert.equal(JSON.stringify(exactReport).includes('gha-creds'), false, 'exact report must not include credential-file paths')
+assert.equal(JSON.stringify(exactReport).includes('SERVICE_ROLE_KEY'), false, 'exact report must not include secret names or values')
+
 console.log(JSON.stringify({
   ok: true,
-  decision: report.decision,
+  decisions: [report.decision, exactReport.decision],
   runId: report.defaultBranchWorkflow.latestRun.runId,
+  exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
   probeFailures: report.readOnlyPreflight.probeFailures,
+  exactProbeFailures: exactReport.readOnlyPreflight.probeFailures,
   blockedAction: report.blockedAction,
+  exactBlockedAction: exactReport.blockedAction,
 }, null, 2))

@@ -1,0 +1,120 @@
+{
+  "reportId": "beta-readiness-api-staging-current-source-deploy-d997-2026-06-28",
+  "createdAt": "2026-06-28T21:05:00Z",
+  "decision": "beta_readiness_api_staging_deploy_current_source_passed_ready_for_current_source_api_preflight",
+  "sourceTruth": {
+    "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+    "sourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+    "previousPlatformProbeSourceSha": "a735228445fc267784fa561188cd4721b4d12fff",
+    "previousPlatformProbePacket": "docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json",
+    "currentOwnerApprovalPacket": "docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json"
+  },
+  "workflowRun": {
+    "workflowName": "Beta Readiness API Staging Deploy",
+    "runId": "28335776268",
+    "runUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268",
+    "event": "workflow_dispatch",
+    "triggerBranch": "codex/reeditpro-web-ui-shell",
+    "triggerHeadSha": "c2c99bb1d3da714d382e9016dda29d22d46b5bdd",
+    "conclusion": "success",
+    "startedAt": "2026-06-28T20:58:12Z",
+    "completedAt": "2026-06-28T20:59:36Z",
+    "jobs": [
+      {
+        "name": "Guarded staging API deploy preflight",
+        "conclusion": "success"
+      },
+      {
+        "name": "Build and deploy private staging API service",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "deployInputs": {
+    "sourceRef": "codex/sound-music-audio-1abc-checkpoint",
+    "sourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+    "imageTag": "api-staging-d997d567d408-20260628T2058Z",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "cloudRunRegion": "us-east1",
+    "serviceName": "reeditpro-api-staging",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "unauthenticatedAccessPolicy": "no-allow-unauthenticated"
+  },
+  "artifact": {
+    "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-d997d567d408-20260628T2058Z",
+    "digest": "sha256:b3c5a028ad5385683c9beed7ef8b8fc96a0c2b7342849864ceb843db60f323bf"
+  },
+  "deployedService": {
+    "service": "reeditpro-api-staging",
+    "region": "us-east1",
+    "revision": "reeditpro-api-staging-00010-c6h",
+    "trafficPercent": 100,
+    "serviceUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+    "canonicalServiceUrl": "https://reeditpro-api-staging-390722338345.us-east1.run.app"
+  },
+  "publicUnauthenticatedReadback": [
+    {
+      "url": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app/health",
+      "method": "GET",
+      "status": 403,
+      "server": "Google Frontend",
+      "result": "public_unauthenticated_access_forbidden"
+    },
+    {
+      "url": "https://reeditpro-api-staging-390722338345.us-east1.run.app/health",
+      "method": "GET",
+      "status": 403,
+      "server": "Google Frontend",
+      "result": "public_unauthenticated_access_forbidden"
+    }
+  ],
+  "limitations": {
+    "authenticatedHealthReadback": "not_rerun",
+    "reason": "local_cloud_cli_auth_expired_non_interactive_refresh_failed",
+    "platformTechnicalProbeAtD997": "not_rerun",
+    "platformTechnicalProbeAtD997Reason": "owner approval and authenticated preflight path still required before recording final platform evidence"
+  },
+  "currentEvidenceState": {
+    "normalApiCurrentSourceDeploy": "passed",
+    "publicUnauthenticatedHealthBlocked": true,
+    "platformTechnicalProbePacketStillAtA735": true,
+    "ownerApprovalsStillRequired": [
+      "billing_stripe_boundary",
+      "deployment",
+      "security",
+      "storage_privacy",
+      "legal",
+      "monitoring",
+      "support",
+      "model_license_launch"
+    ],
+    "externalBetaReady": false,
+    "realUserMediaBetaReady": false,
+    "paidProductionReady": false
+  },
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeActions": [
+    "Run npm run beta:readiness:owner-approval-packet for the current non-secret owner approval request packet.",
+    "After owners provide approvals and authenticated access is available, run the current-source API deployment preflight and platform technical probe against d997.",
+    "Do not run external beta, real-user-media beta, or paid production until their named evidence collectors and owner gates pass."
+  ]
+}

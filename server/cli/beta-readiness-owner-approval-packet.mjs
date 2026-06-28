@@ -1,5 +1,5 @@
-const DEFAULT_SOURCE_SHA = 'ea10a0bc8104968cd0a8d48bcaa860024d0a59b6'
-const DEFAULT_CREATED_AT = '2026-06-28T20:35:00Z'
+const DEFAULT_SOURCE_SHA = 'd997d567d40853f59741763c8e9ca8b2c361148a'
+const DEFAULT_CREATED_AT = '2026-06-28T21:05:00Z'
 
 const platformApprovalItems = [
   {
@@ -182,8 +182,19 @@ export function buildBetaReadinessOwnerApprovalPacket(options = {}) {
       sourceBranch: 'codex/sound-music-audio-1abc-checkpoint',
       sourceSha,
       platformTechnicalProbePacket: 'docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json',
+      currentSourceApiDeployPacket: 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json',
       normalApiService: 'reeditpro-api-staging',
-      normalApiRevision: 'reeditpro-api-staging-00009-bzf',
+      normalApiRegion: 'us-east1',
+      normalApiRevision: 'reeditpro-api-staging-00010-c6h',
+      normalApiServiceUrl: 'https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app',
+      normalApiCanonicalServiceUrl: 'https://reeditpro-api-staging-390722338345.us-east1.run.app',
+      normalApiImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-d997d567d408-20260628T2058Z',
+      normalApiImageDigest: 'sha256:b3c5a028ad5385683c9beed7ef8b8fc96a0c2b7342849864ceb843db60f323bf',
+      normalApiArtifactRegion: 'us-central1',
+      normalApiDeployRunId: '28335776268',
+      normalApiDeployRunUrl: 'https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268',
+      normalApiPublicUnauthenticatedHealthStatus: 403,
+      normalApiAuthenticatedHealthReadback: 'not_rerun_local_cloud_cli_auth_expired',
       toolReadinessService: 'reeditpro-tool-readiness-staging',
       toolReadinessRevision: 'reeditpro-tool-readiness-staging-00002-qdp',
       productReadyLocalOssCount: 14,
@@ -257,7 +268,13 @@ export function renderBetaReadinessOwnerApprovalPacketMarkdown(packet) {
     '## Current Evidence',
     '',
     `- Platform technical probe packet: \`${packet.sourceTruth.platformTechnicalProbePacket}\``,
-    `- Normal API: \`${packet.sourceTruth.normalApiService}\` revision \`${packet.sourceTruth.normalApiRevision}\``,
+    `- Current-source API deploy packet: \`${packet.sourceTruth.currentSourceApiDeployPacket}\``,
+    `- Normal API: \`${packet.sourceTruth.normalApiService}\` revision \`${packet.sourceTruth.normalApiRevision}\` in \`${packet.sourceTruth.normalApiRegion}\``,
+    `- Normal API image: \`${packet.sourceTruth.normalApiImage}\``,
+    `- Normal API image digest: \`${packet.sourceTruth.normalApiImageDigest}\``,
+    `- Normal API deploy run: [${packet.sourceTruth.normalApiDeployRunId}](${packet.sourceTruth.normalApiDeployRunUrl})`,
+    `- Normal API public unauthenticated \`/health\`: HTTP \`${packet.sourceTruth.normalApiPublicUnauthenticatedHealthStatus}\``,
+    `- Normal API authenticated health readback: \`${packet.sourceTruth.normalApiAuthenticatedHealthReadback}\``,
     `- Tool-readiness API: \`${packet.sourceTruth.toolReadinessService}\` revision \`${packet.sourceTruth.toolReadinessRevision}\``,
     `- Product-ready local OSS count in stored evidence: \`${packet.sourceTruth.productReadyLocalOssCount}\``,
     `- Platform technical probe: \`${packet.sourceTruth.platformProbePassedChecks}/${packet.sourceTruth.platformProbeTotalChecks}\` checks passed`,

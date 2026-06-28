@@ -3,12 +3,18 @@
 Decision: `beta_readiness_owner_approval_packet_passed_ready_for_owner_review`
 
 Source branch: `codex/sound-music-audio-1abc-checkpoint`
-Source SHA: `ea10a0bc8104968cd0a8d48bcaa860024d0a59b6`
+Source SHA: `d997d567d40853f59741763c8e9ca8b2c361148a`
 
 ## Current Evidence
 
 - Platform technical probe packet: `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json`
-- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00009-bzf`
+- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json`
+- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00010-c6h` in `us-east1`
+- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-d997d567d408-20260628T2058Z`
+- Normal API image digest: `sha256:b3c5a028ad5385683c9beed7ef8b8fc96a0c2b7342849864ceb843db60f323bf`
+- Normal API deploy run: [28335776268](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268)
+- Normal API public unauthenticated `/health`: HTTP `403`
+- Normal API authenticated health readback: `not_rerun_local_cloud_cli_auth_expired`
 - Tool-readiness API: `reeditpro-tool-readiness-staging` revision `reeditpro-tool-readiness-staging-00002-qdp`
 - Product-ready local OSS count in stored evidence: `14`
 - Platform technical probe: `8/9` checks passed
@@ -88,6 +94,7 @@ This packet does not approve anything. It defines the exact non-secret owner evi
   - Support owner confirms there is an external-beta support and rollback contact path.
   - Support owner confirms paid production remains blocked.
 
+
 ## External Beta Launch Approvals
 
 ### launch_model_license_owner
@@ -159,6 +166,7 @@ This packet does not approve anything. It defines the exact non-secret owner evi
 - Required evidence:
   - Support owner confirms support coverage for limited external beta.
   - Support owner confirms rollback and incident intake path is defined.
+
 
 ## Post-Approval Commands
 

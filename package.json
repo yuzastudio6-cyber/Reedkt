@@ -296,6 +296,7 @@
     "worker-runtime-jobs:sound-cpu-launch-core-dependency-install-proof-owner-review-after-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-dependency-install-proof-owner-review-after-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-launch-core-persistent-manifest-plan-after-proof-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-persistent-manifest-plan-after-proof-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-launch-core-persistent-manifest-source-plan-after-manifest-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-persistent-manifest-source-plan-after-manifest-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-launch-core-persistent-manifest-source-creation-after-source-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-persistent-manifest-source-creation-after-source-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",
@@ -1044,6 +1045,8 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0",
+    "remotion": "4.0.484",
+    "sharp": "0.35.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

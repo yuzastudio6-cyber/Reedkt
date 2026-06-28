@@ -1,0 +1,6 @@
+av==17.1.0
+scenedetect==0.7
+opencv-python-headless==4.13.0.92
+duckdb==1.5.4
+polars==1.42.0
+opentimelineio==0.18.1

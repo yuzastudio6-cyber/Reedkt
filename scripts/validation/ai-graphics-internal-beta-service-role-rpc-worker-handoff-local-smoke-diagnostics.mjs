@@ -623,6 +623,8 @@ const packageJsonDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json
 const allowedPackageJsonDiff = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-evidence-admission-bundle": "tsx server/cli/ai-graphics-external-beta-evidence-admission-bundle.ts",',
+  '+    "ai-graphics:external-beta-evidence-admission-bundle:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-admission-bundle-diagnostics.mjs",',
 ])
 for (const line of packageJsonDiff) {
   if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue

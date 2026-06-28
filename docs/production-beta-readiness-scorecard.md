@@ -1292,3 +1292,11 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the collector reads one saved log file per native proof profile, extracts exactly one approved `reeditpro_ai_graphics_gpu_runtime_readiness` JSON record for each profile, writes extracted JSON under `.local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results/`, and leaves final validation to `ai-graphics:gpu-runtime-proof-result:validate`.
 - GPU policy: the collector does not deploy Cloud Run, execute jobs, start GPU runtime, download/load models, run inference, or process media. It only parses already-saved local proof logs.
 - Runtime/beta/production: no unlock; the collector reports `cloudRunDeploymentPerformed=false`, `cloudRunJobExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `agentCanExecuteToolsNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
+## AI Graphics External-Beta Evidence Admission Bundle
+
+- Decision: `ai_graphics_external_beta_evidence_admission_bundle_prepared_with_runtime_blocks`.
+- Scope: external-beta admission bridge after all-21 technical proof and private external-beta evidence refs, before launch go/no-go and runtime admission.
+- Result: the evaluator accepts an external-beta admission candidate only when the beta technical evidence bundle is accepted for all 21 tools and the external-beta evidence packet contains accepted private/backend refs for all 21 tools. With full provided evidence, it reports 21 admission-candidate tools, 0 external-beta-ready-now tools, and 0 production-ready tools.
+- GPU policy: the 8 GPU/model tools remain native NVIDIA L4 targeted and on-demand only. No idle GPU runtime is approved; GPU can start only for a later accepted worker/tool call after launch and runtime-admission gates pass.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.

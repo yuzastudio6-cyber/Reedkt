@@ -39,7 +39,34 @@ const followOnProductRouteHandlerSourceFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs',
 ]
 
-const readbackFiles = new Set([...requiredFiles, ...followOnProductRouteHandlerSourceFiles])
+const followOnProductRouteHandlerFailClosedRuntimeValidationFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1/fail-closed-runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1/qwen2-5-vl-product-route-handler-fail-closed-runtime-validation-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-results.md',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-diagnostics.mjs',
+]
+
+const followOnProductRouteReadbackValidationConfirmedFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/confirmed-readback-reference-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/qwen2-5-vl-product-route-readback-validation-confirmed-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-results.md',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-diagnostics.mjs',
+]
+
+const readbackFiles = new Set([
+  ...requiredFiles,
+  ...followOnProductRouteHandlerSourceFiles,
+  ...followOnProductRouteHandlerFailClosedRuntimeValidationFiles,
+  ...followOnProductRouteReadbackValidationConfirmedFiles,
+])
 
 const requiredText = [
   packet,

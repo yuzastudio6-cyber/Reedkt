@@ -218,6 +218,18 @@ if (
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
 const allowedFiles = new Set(requiredFiles)
+const followOnProductRouteReadbackValidationConfirmedFiles = [
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-1-diagnostics.mjs',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/confirmed-readback-reference-gate.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/qwen2-5-vl-product-route-readback-validation-confirmed-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-results.md',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-diagnostics.mjs',
+]
+for (const file of followOnProductRouteReadbackValidationConfirmedFiles) allowedFiles.add(file)
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (forbiddenFilePatterns.some((pattern) => pattern.test(file))) fail(`forbidden file changed: ${file}`)

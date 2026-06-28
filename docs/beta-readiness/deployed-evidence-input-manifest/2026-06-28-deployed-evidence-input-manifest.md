@@ -22,6 +22,10 @@ The local accepted snapshot remains `docs/beta-readiness/local-accepted-evidence
 
 The operator must provide the deployed staging API URL, bearer token, workspace/project IDs, separate idempotency keys for core tool evidence, libass evidence, platform evidence, and launch approval evidence, the wallet-settlement fixture event ID, platform attestations, and launch owner evidence notes.
 
+Current evidence after source `a735228445fc267784fa561188cd4721b4d12fff` uses two staging services. Tool evidence should use `reeditpro-tool-readiness-staging` because it contains the safe command/import dependencies for the 13 core checks. Platform evidence, launch approval evidence, and final status readback can use `reeditpro-api-staging`. Both services are authenticated-only and staging-only.
+
+The latest report-only platform probe is recorded at `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.md`: 8 of 9 technical checks passed on the normal API, and the remaining non-passing probe is billing-owner Stripe-boundary approval. The platform packet still must not be recorded until every owner approval is present.
+
 Run `npm run beta:readiness:deployed-evidence-input-manifest` first. It prints only input presence, expected non-secret values, gaps, and blocked scopes. It does not print bearer tokens and it fails closed until all required inputs and approvals are present.
 
 After the manifest is ready, run `npm run beta:readiness:external-beta-evidence-collector`, then verify with `npm run beta:readiness:operator-status-api`.

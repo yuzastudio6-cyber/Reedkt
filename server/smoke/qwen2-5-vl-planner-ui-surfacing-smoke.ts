@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix_required',
-  'Private invoke client status must record the retry-after-QA-reports-approved-snapshot-fix blocker.',
+    'backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
+  'Private invoke client status must record the RLS function parameter baseline blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -169,9 +169,9 @@ check(
     docText.includes('controlled_backend_dispatch_dry_run_required') ||
     docText.includes('backend_runtime_persistence_plan_required') ||
     docText.includes('backend_runtime_persistence_schema_draft_required') ||
-    docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix_required') ||
+    docText.includes('backend_runtime_persistence_rls_function_parameter_baseline_fix_required') ||
     data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_local_harness_validation_retry_after_qa_reports_approved_snapshot_fix_required',
+      'backend_runtime_persistence_rls_function_parameter_baseline_fix_required',
   'Doc/data must record backend runtime persistence local harness validation-retry blocker status.',
 )
 check(docText.includes('`parsedJson=false`'), 'Doc must record the non-JSON fixture output metadata.')
@@ -298,8 +298,11 @@ check(
 check(
   docText.includes('The QA reports approved-snapshot baseline fix is now recorded') &&
     docText.includes('`qa_reports_approved_plan_snapshot_id_fkey`') &&
-    docText.includes('Retry 11 is required'),
-  'Doc must record the QA reports approved-snapshot fix and retry-11 requirement.',
+    docText.includes('Retry 11 verified that QA reports fix') &&
+    docText.includes('`public.is_workspace_member(uuid)`') &&
+    docText.includes('`target_workspace_id`') &&
+    docText.includes('`workspace_uuid`'),
+  'Doc must record the QA reports approved-snapshot fix and retry-11 RLS parameter blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

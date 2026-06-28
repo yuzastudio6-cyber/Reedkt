@@ -1497,3 +1497,17 @@ External beta source contract: `ready_for_explicit_staging_flag_application`. Ex
 Paid production, public artifacts, broad media, signed URL source-of-truth, final delivery/export, production unlock, and unapproved provider/model calls remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next milestone: `RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1`.
+
+## RP External Beta Active Lane Current State After QWEN Gate 1
+
+`RP-EXTERNAL-BETA-ACTIVE-LANE-CURRENT-STATE-AFTER-QWEN-GATE-1` records decision `completed_external_beta_active_single_tester_lane_current_state_after_qwen_gate_reconciliation` and execution `completed_docs_only_active_lane_current_state_reconciliation_no_runtime_execution`.
+
+The active controlled external beta lane remains `active_single_tester_external_beta_for_aiediting_reeditpro_com` for `aiediting@reeditpro.com` through `external-beta-testers@reeditpro.com` on `reeditpro-staging-api` / `controlled_private_preview`. The post-#1505 QWEN route gate is source-recorded as `satisfied_by_existing_qwen_route_readback_runtime_and_controlled_single_tester_qwen_product_flow_evidence`.
+
+Safe gate burn-down: `completed`. Feedback loop: `ready_for_safe_runtime_issue_intake`. Additional tester expansion remains `blocked_no_additional_named_tester_list`, but that blocks only adding more testers, not continued owner-tester usage.
+
+Open stacked QWEN persistence PRs remain subject to `fresh_source_import_required_no_blind_stack_merge`; they are not an active-lane blocker without actionable single-tester feedback.
+
+Broad external beta audience, public artifacts, signed URL source-of-truth, paid billing, final delivery/export, broad media, and production remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
+Next milestone: `RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1` only when actionable owner-tester feedback exists; otherwise continue controlled owner-tester usage.

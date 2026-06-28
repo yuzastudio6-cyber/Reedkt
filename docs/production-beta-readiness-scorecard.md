@@ -332,6 +332,13 @@ dispatch readiness copies that marker into its records while keeping
 `workerLeaseCreated=false`, `workerDispatchPerformed=false`,
 `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
+AI Graphics External-Beta Service-Role Queue Smoke Harness now requires a source
+service-role smoke readiness ref, a runtime queue service proof bridge ref, and
+`--source-runtime-queue-service-proof-bridge-accepted` before any future live
+non-production smoke can run. Future smoke job payloads preserve
+`sourceRuntimeQueueServiceProofBridgeAccepted=true`, so the live smoke cannot be
+used as a disconnected queue exercise outside the 21-tool/native-GPU proof chain.
+
 AI graphics internal beta queue-adapter readiness decision
 `ai_graphics_internal_beta_queue_adapter_readiness_contract_prepared_with_runtime_blocks`
 shapes the all-21 queue-admission packets into backend queue adapter submission
@@ -1247,7 +1254,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_harness_prepared_with_runtime_blocks`.
 - Scope: future-runnable external-beta service-role queue/claim smoke harness across all 21 AI graphics tools and all 12 product-facing capabilities.
-- Result: default mode is prepared-not-executed. The live path requires explicit non-production confirmation, server-only Supabase service-role env, approved snapshot, credit reservation, idempotency prefix, `E2E_RUNTIME_MODE=local`, and `WORKER_RUNTIME_MODE=mock`. It uses the existing runtime queue service to enqueue and claim jobs, record smoke events, and cleanup smoke rows.
+- Result: default mode is prepared-not-executed. The live path requires explicit non-production confirmation, server-only Supabase service-role env, approved snapshot, credit reservation, idempotency prefix, accepted service-role smoke readiness ref, accepted runtime queue service proof bridge ref, `--source-runtime-queue-service-proof-bridge-accepted`, `E2E_RUNTIME_MODE=local`, and `WORKER_RUNTIME_MODE=mock`. It uses the existing runtime queue service to enqueue and claim jobs, record smoke events, and cleanup smoke rows.
 - GPU policy: all eight GPU/model tools remain future GPU-targeted, while `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `workerDispatchPerformed=false`, and `toolExecutionPerformed=false` remain enforced in the committed default.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `serviceRoleQueueSmokeApprovedNow=false`, `liveServiceRoleQueueSmokeExecutedNow=false`, `liveQueueWriteApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `browserWebglCanvasRuntimeApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 

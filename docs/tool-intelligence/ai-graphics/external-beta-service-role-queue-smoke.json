@@ -67,7 +67,10 @@
       "--project-id",
       "--approved-plan-snapshot-id",
       "--credit-reservation-id",
-      "--idempotency-prefix"
+      "--idempotency-prefix",
+      "--service-role-queue-smoke-readiness-ref",
+      "--runtime-queue-service-proof-bridge-ref",
+      "--source-runtime-queue-service-proof-bridge-accepted"
     ],
     "serviceRoleRpcs": [
       "enqueue_ai_graphics_tool_runtime_jobs",
@@ -106,6 +109,8 @@
     "serviceRoleCredentialsServerOnly": true,
     "nonProductionEnvironmentRequired": true,
     "cleanupRequired": true,
+    "serviceRoleQueueSmokeReadinessRefRequired": true,
+    "sourceRuntimeQueueServiceProofBridgeRequired": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
     "routeExecutionApprovedNow": false,

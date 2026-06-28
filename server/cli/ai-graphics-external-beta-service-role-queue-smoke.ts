@@ -53,7 +53,15 @@ function gpuToolCount(): number {
     .length
 }
 
-function buildExternalBetaSmokeJobs(idempotencyPrefix: string) {
+interface ExternalBetaSmokeSourceRefs {
+  serviceRoleQueueSmokeReadinessRef: string
+  runtimeQueueServiceProofBridgeRef: string
+}
+
+function buildExternalBetaSmokeJobs(
+  idempotencyPrefix: string,
+  sourceRefs: ExternalBetaSmokeSourceRefs,
+) {
   return listAiGraphicsToolCallReadiness()
     .filter((record) => Boolean(record.productionToolId))
     .map((record) => ({
@@ -78,6 +86,11 @@ function buildExternalBetaSmokeJobs(idempotencyPrefix: string) {
         aiGraphicsCanonicalToolId: record.toolId,
         productionToolId: record.productionToolId,
         runtimeTarget: record.runtimeTarget,
+        serviceRoleQueueSmokeReadinessRef:
+          sourceRefs.serviceRoleQueueSmokeReadinessRef,
+        runtimeQueueServiceProofBridgeRef:
+          sourceRefs.runtimeQueueServiceProofBridgeRef,
+        sourceRuntimeQueueServiceProofBridgeAccepted: true,
         toolExecutionApprovedNow: false,
         workerExecutionApprovedNow: false,
         gpuRuntimeShouldStartNow: false,
@@ -99,6 +112,9 @@ function preparedContract() {
       '--approved-plan-snapshot-id',
       '--credit-reservation-id',
       '--idempotency-prefix',
+      '--service-role-queue-smoke-readiness-ref',
+      '--runtime-queue-service-proof-bridge-ref',
+      '--source-runtime-queue-service-proof-bridge-accepted',
     ],
     requiredServiceRoleRpcs,
     toolsCovered: 21,
@@ -120,6 +136,8 @@ function preparedContract() {
       serviceRoleCredentialsServerOnly: true,
       nonProductionEnvironmentRequired: true,
       cleanupRequired: true,
+      serviceRoleQueueSmokeReadinessRefRequired: true,
+      sourceRuntimeQueueServiceProofBridgeRequired: true,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,
@@ -180,6 +198,11 @@ function assertAllowedToExecute(): void {
   if (process.env.WORKER_RUNTIME_MODE !== 'mock') {
     throw new Error('External-beta service-role queue smoke requires WORKER_RUNTIME_MODE=mock.')
   }
+  if (!hasFlag('--source-runtime-queue-service-proof-bridge-accepted')) {
+    throw new Error(
+      'External-beta service-role queue smoke requires --source-runtime-queue-service-proof-bridge-accepted from the accepted service-role smoke readiness packet.',
+    )
+  }
 }
 
 async function deleteRows(
@@ -228,6 +251,10 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
   const approvedPlanSnapshotId = requiredFlag('--approved-plan-snapshot-id')
   const creditReservationId = requiredFlag('--credit-reservation-id')
   const idempotencyPrefix = requiredFlag('--idempotency-prefix')
+  const serviceRoleQueueSmokeReadinessRef =
+    requiredFlag('--service-role-queue-smoke-readiness-ref')
+  const runtimeQueueServiceProofBridgeRef =
+    requiredFlag('--runtime-queue-service-proof-bridge-ref')
   const workerInstanceId =
     valueAfterFlag('--worker-instance-id') ??
     'ai-graphics-external-beta-service-role-queue-smoke-worker'
@@ -242,7 +269,10 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
     },
   }
   const service = createAiGraphicsToolRuntimeQueueService(context)
-  const jobs = buildExternalBetaSmokeJobs(idempotencyPrefix)
+  const jobs = buildExternalBetaSmokeJobs(idempotencyPrefix, {
+    serviceRoleQueueSmokeReadinessRef,
+    runtimeQueueServiceProofBridgeRef,
+  })
   const queue = await service.enqueueToolRuntimeJobs({
     workspaceId,
     projectId,
@@ -280,6 +310,9 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
           idempotencyPrefix,
           toolId: job.toolId,
           runtimeTarget: job.runtimeTarget,
+          serviceRoleQueueSmokeReadinessRef,
+          runtimeQueueServiceProofBridgeRef,
+          sourceRuntimeQueueServiceProofBridgeAccepted: true,
           toolExecutionApprovedNow: false,
           gpuRuntimeShouldStartNow: false,
         },
@@ -292,6 +325,9 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
       eventType: 'ai_graphics_external_beta_service_role_queue_smoke',
       eventJson: {
         idempotencyPrefix,
+        serviceRoleQueueSmokeReadinessRef,
+        runtimeQueueServiceProofBridgeRef,
+        sourceRuntimeQueueServiceProofBridgeAccepted: true,
         jobBatchId: queueResult.jobBatchId,
         jobCount: jobIds.length,
         toolExecutionApprovedNow: false,
@@ -317,6 +353,7 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
     jobIdsReturned: jobIds.length,
     workerClaimsReturned: claims.length,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuToolCount(),
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,
     liveSupabaseQueueWritesNow: jobIds.length,
     liveWorkerClaimRowsNow: claims.length,

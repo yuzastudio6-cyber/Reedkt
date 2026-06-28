@@ -19,14 +19,19 @@ npm run --silent ai-graphics:external-beta-service-role-queue-smoke -- \
   --project-id <project-id> \
   --approved-plan-snapshot-id <approved-plan-snapshot-id> \
   --credit-reservation-id <credit-reservation-id> \
-  --idempotency-prefix ai-graphics-external-beta-service-role-queue-smoke
+  --idempotency-prefix ai-graphics-external-beta-service-role-queue-smoke \
+  --service-role-queue-smoke-readiness-ref <accepted-readiness-ref> \
+  --runtime-queue-service-proof-bridge-ref <accepted-runtime-queue-service-proof-bridge-ref> \
+  --source-runtime-queue-service-proof-bridge-accepted
 ```
 
-Do not use production credentials. Service-role credentials stay server-only.
+Do not use production credentials. Service-role credentials stay server-only. The live smoke is also blocked unless it names the accepted service-role queue smoke readiness source and the accepted runtime queue service proof bridge source.
 
 ## What The Live Smoke Will Prove
 
 The later live smoke will submit all 21 canonical `ai_graphics_tool_runtime` jobs through `enqueue_ai_graphics_tool_runtime_jobs`, claim returned jobs through `claim_ai_graphics_tool_runtime_job`, record worker-event and audit-event smoke rows, and clean up smoke-created job events, worker claims, jobs, job batch, and audit rows. The server queue service uses the current Supabase JavaScript RPC shape `supabase.rpc(fn, args)`.
+
+Each future smoke job payload carries the accepted service-role queue smoke readiness ref, the accepted runtime queue service proof bridge ref, and `sourceRuntimeQueueServiceProofBridgeAccepted=true`. That preserves the 21-tool/native-GPU proof chain without approving worker dispatch or tool execution.
 
 ## Current Result
 

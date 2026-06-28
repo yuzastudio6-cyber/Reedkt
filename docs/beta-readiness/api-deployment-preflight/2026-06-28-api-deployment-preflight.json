@@ -27,8 +27,10 @@
       "REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA"
     ],
     "githubDeploymentRecordsFound": false,
-    "githubWorkflowsDirectoryPresent": false
+    "githubWorkflowsDirectoryPresent": false,
+    "followUpWorkflowAddedByLaterSourceTruth": ".github/workflows/beta-readiness-api-staging-deploy.yml"
   },
+  "manualStagingDeployWorkflow": "docs/beta-readiness/api-staging-deploy-workflow/2026-06-28-api-staging-deploy-workflow.json",
   "requiredPreflightCommand": "npm run beta:readiness:api-deployment-preflight",
   "requiredBefore": [
     "npm run beta:readiness:deployed-evidence-input-manifest",
@@ -53,5 +55,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Populate staging API deployment inputs, run npm run beta:readiness:api-deployment-preflight, then run the deployed evidence input manifest only after the API preflight passes."
+  "nextSafeAction": "Use the guarded manual staging API deploy workflow or an equivalent owner-approved staging deploy path, populate staging API deployment inputs, run npm run beta:readiness:api-deployment-preflight, then run the deployed evidence input manifest only after the API preflight passes."
 }

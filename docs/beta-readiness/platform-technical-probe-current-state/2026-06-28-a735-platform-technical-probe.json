@@ -1,0 +1,137 @@
+{
+  "packetId": "beta-platform-technical-probe-current-state-2026-06-28-a735",
+  "createdAt": "2026-06-28T18:58:13Z",
+  "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "sourceSha": "a735228445fc267784fa561188cd4721b4d12fff",
+  "decision": "beta_platform_technical_probe_passed_except_owner_stripe_and_human_approvals_ready_for_owner_approval_packet_collection",
+  "deployedServices": {
+    "api": {
+      "service": "reeditpro-api-staging",
+      "revision": "reeditpro-api-staging-00009-bzf",
+      "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-a735228445fc-20260628T1839Z",
+      "authenticatedOnly": true,
+      "stagingOnly": true
+    },
+    "toolReadiness": {
+      "service": "reeditpro-tool-readiness-staging",
+      "revision": "reeditpro-tool-readiness-staging-00002-qdp",
+      "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-tool-readiness-staging:tool-readiness-staging-5d7bb4337a50-20260628T1451Z",
+      "authenticatedOnly": true,
+      "stagingOnly": true
+    }
+  },
+  "toolEvidenceReadback": {
+    "evidenceSource": "stored_workspace_evidence",
+    "evidencePacketCountBeforeNormalApiProbe": 16,
+    "productReadyLocalOssCount": 14,
+    "acceptedCoreToolIds": [
+      "ffmpeg",
+      "ffprobe",
+      "pyav",
+      "opentimelineio",
+      "hyperframe",
+      "remotion",
+      "sharp",
+      "duckdb",
+      "polars",
+      "pyscenedetect",
+      "opencv",
+      "opencolorio",
+      "openimageio"
+    ],
+    "acceptedAdditionalToolIds": [
+      "libass"
+    ],
+    "externalBetaToolExecutionAllowed": false,
+    "productionToolExecutionAllowed": false
+  },
+  "platformTechnicalProbe": {
+    "normalApiReportOnlyProbe": true,
+    "evidencePacketReady": false,
+    "externalBetaAllowed": false,
+    "productionAllowed": false,
+    "checkStatuses": {
+      "tool_cost_events_migration_deployed": "passed",
+      "beta_readiness_evidence_migration_deployed": "passed",
+      "service_role_write_path_verified": "passed",
+      "authenticated_rls_member_readback_verified": "passed",
+      "idempotent_replay_verified": "passed",
+      "wallet_settlement_verified": "passed",
+      "stripe_boundary_owner_verified": "failed",
+      "monitoring_deployment_verified": "passed",
+      "staging_billing_qa_verified": "passed"
+    },
+    "rlsReadbackEvidence": {
+      "memberToolCostEventsHttpStatus": 200,
+      "memberToolCostEventsScopedRows": 3,
+      "anonToolCostEventsHttpStatus": 200,
+      "anonToolCostEventsRows": 0,
+      "memberBetaEvidencePacketsHttpStatus": 200,
+      "memberBetaEvidencePacketsClientVisibleRows": 0
+    },
+    "billingQaEvidence": {
+      "reportId": "beta-platform-billing-qa-1758c655",
+      "toolEventId": "tool-cost-platform-qa-76d20892",
+      "billableEventCount": 0,
+      "summaryCredits": 0,
+      "walletSettlementId": "65929de9-641b-4385-b096-684fb4d87e59"
+    },
+    "monitoringEvidence": {
+      "logMetrics": 7,
+      "alertPolicies": 6,
+      "dashboard": "projects/390722338345/dashboards/e60d0a5c-8618-432b-999e-0c07ffec58bc"
+    },
+    "missingEvidence": [
+      "stripe boundary owner verified: Record billing-owner Stripe-boundary approval for the deployed staging tool-cost surfaces."
+    ],
+    "ownerApprovalGaps": [
+      "Billing owner Stripe-boundary approval is missing.",
+      "Deployment owner approval is missing.",
+      "Security owner approval is missing.",
+      "Storage/privacy owner approval is missing.",
+      "Legal owner approval is missing.",
+      "Monitoring owner approval is missing.",
+      "Support owner approval is missing."
+    ]
+  },
+  "blockedScopes": [
+    "external_beta_tool_execution",
+    "paid_production_tool_execution",
+    "external_beta_launch",
+    "real_user_media_beta",
+    "paid_production_launch"
+  ],
+  "allowedForwardProgressScopes": [
+    "source_review",
+    "local_dependency_install_proof",
+    "bounded_command_import_container_proof",
+    "safe_blocker_reduction_preview",
+    "diagnostics_and_qa_packets",
+    "deployment_preflight_and_platform_evidence_collection",
+    "owner_approval_packet_collection",
+    "rollback_monitoring_support_planning"
+  ],
+  "nextActions": [
+    "Collect billing-owner Stripe-boundary approval for deployed staging tool-cost surfaces.",
+    "Collect deployment, security, storage/privacy, legal, monitoring, and support owner approvals with non-secret evidence notes.",
+    "After approvals are present, rerun beta:platform:staging-evidence-probe with recordEvidence=true and confirmRecordEvidence=true.",
+    "After platform evidence is recorded, run launch approval evidence and final external-beta operator-status readback.",
+    "Keep real-user-media beta and paid production blocked until their separate scope approval evidence lanes pass."
+  ],
+  "supabaseClassification": {
+    "write": "staging_probe_writes_only",
+    "environment": "staging",
+    "sql": "none",
+    "migration": "no"
+  },
+  "forbiddenActionsNotRun": [
+    "provider_calls",
+    "user_media_processing",
+    "public_artifact_delivery",
+    "signed_url_delivery",
+    "stripe_calls",
+    "external_beta_enablement",
+    "real_user_media_beta_enablement",
+    "paid_production_enablement"
+  ]
+}

@@ -13,6 +13,8 @@ const ownerRemediationPermissionBlockerJsonPath = 'docs/beta-readiness/api-stagi
 const ownerRemediationPermissionBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-permission-blocker.md'
 const ownerRemediationPartialResultsBlockerJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-partial-results-blocker.json'
 const ownerRemediationPartialResultsBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-partial-results-blocker.md'
+const ownerIdentityScanBlockerJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-identity-scan-blocker.json'
+const ownerIdentityScanBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-identity-scan-blocker.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -199,6 +201,29 @@ const ownerRemediationPartialResultsBlockerReport = JSON.parse(readFileSync(owne
   }
 }
 const ownerRemediationPartialResultsBlockerMarkdown = readFileSync(ownerRemediationPartialResultsBlockerMarkdownPath, 'utf8')
+const ownerIdentityScanBlockerReport = JSON.parse(readFileSync(ownerIdentityScanBlockerJsonPath, 'utf8')) as {
+  decision: string
+  repoVariablesObserved: string[]
+  repoSecretsObservedByNameOnly: string[]
+  stagingEnvironmentVariablesObserved: string[]
+  stagingEnvironmentSecretsObservedByNameOnly: string[]
+  configuredDeployerServiceAccount: string
+  higherPrivilegeOwnerIdentityConfigured: boolean
+  secretValuesRead: boolean
+  blockedAction: string
+  safeForwardProgress: string[]
+  blockedScopes: string[]
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const ownerIdentityScanBlockerMarkdown = readFileSync(ownerIdentityScanBlockerMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -448,6 +473,34 @@ assert.ok(ownerRemediationPartialResultsBlockerMarkdown.includes('secretmanager.
 assert.equal(JSON.stringify(ownerRemediationPartialResultsBlockerReport).includes('gha-creds'), false, 'partial remediation report must not include credential-file paths')
 assert.equal(JSON.stringify(ownerRemediationPartialResultsBlockerReport).includes('SERVICE_ROLE_KEY'), false, 'partial remediation report must not include secret values')
 
+assert.equal(ownerIdentityScanBlockerReport.decision, 'beta_readiness_api_staging_owner_identity_scan_blocked_no_higher_privilege_identity_configured')
+assert.ok(ownerIdentityScanBlockerReport.repoVariablesObserved.includes('GCP_SERVICE_ACCOUNT'))
+assert.ok(ownerIdentityScanBlockerReport.repoVariablesObserved.includes('GCP_WORKLOAD_IDENTITY_PROVIDER'))
+assert.ok(ownerIdentityScanBlockerReport.repoSecretsObservedByNameOnly.includes('GCP_SERVICE_ACCOUNT'))
+assert.deepEqual(ownerIdentityScanBlockerReport.stagingEnvironmentVariablesObserved, [])
+assert.deepEqual(ownerIdentityScanBlockerReport.stagingEnvironmentSecretsObservedByNameOnly, [])
+assert.equal(ownerIdentityScanBlockerReport.configuredDeployerServiceAccount, 'sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com')
+assert.equal(ownerIdentityScanBlockerReport.higherPrivilegeOwnerIdentityConfigured, false)
+assert.equal(ownerIdentityScanBlockerReport.secretValuesRead, false)
+assert.equal(ownerIdentityScanBlockerReport.blockedAction, 'staging_api_owner_remediation_via_alternate_github_identity_until_owner_configures_or_runs_higher_privilege_path')
+assert.ok(ownerIdentityScanBlockerReport.safeForwardProgress.includes('higher_privilege_gcp_owner_applies_exact_iam_prerequisites_outside_github_deployer_identity'))
+assert.ok(ownerIdentityScanBlockerReport.safeForwardProgress.includes('rerun_exact_input_validation_after_owner_side_remediation'))
+assert.ok(ownerIdentityScanBlockerReport.blockedScopes.includes('no_alternate_owner_service_account_configured'))
+assert.ok(ownerIdentityScanBlockerReport.blockedScopes.includes('external_beta_not_enabled'))
+assert.equal(ownerIdentityScanBlockerReport.productReadyLocalOssCount, 0)
+assert.equal(ownerIdentityScanBlockerReport.externalBetaEnabled, false)
+assert.equal(ownerIdentityScanBlockerReport.productionEnabled, false)
+assert.deepEqual(ownerIdentityScanBlockerReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(ownerIdentityScanBlockerMarkdown.includes('No `staging` environment variables or secrets'))
+assert.ok(ownerIdentityScanBlockerMarkdown.includes('secret names only'))
+assert.ok(ownerIdentityScanBlockerMarkdown.includes('higher-privilege GCP owner'))
+assert.equal(JSON.stringify(ownerIdentityScanBlockerReport).includes('gha-creds'), false, 'identity scan report must not include credential-file paths')
+
 console.log(JSON.stringify({
   ok: true,
   decisions: [
@@ -457,6 +510,7 @@ console.log(JSON.stringify({
     workflowReadyReport.decision,
     ownerRemediationPermissionBlockerReport.decision,
     ownerRemediationPartialResultsBlockerReport.decision,
+    ownerIdentityScanBlockerReport.decision,
   ],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
@@ -466,6 +520,7 @@ console.log(JSON.stringify({
   exactProbeFailures: exactReport.readOnlyPreflight.probeFailures,
   ownerRemediationPermissionDenied: ownerRemediationPermissionBlockerReport.observedResult.permissionDenied,
   ownerRemediationPrerequisites: ownerRemediationPartialResultsBlockerReport.prerequisiteResults.map((result) => `${result.id}:${result.status}`),
+  higherPrivilegeOwnerIdentityConfigured: ownerIdentityScanBlockerReport.higherPrivilegeOwnerIdentityConfigured,
   blockedAction: report.blockedAction,
   exactBlockedAction: exactReport.blockedAction,
   ownerRemediationBlockedAction: ownerRemediationPermissionBlockerReport.blockedAction,

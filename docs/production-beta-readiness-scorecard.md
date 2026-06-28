@@ -210,6 +210,10 @@ examples can form a worker enqueue candidate, but `workerEnqueuePerformed=false`
 This is a side-effect-free gateway check and does not execute tools, enqueue
 workers, start GPU runtime, create artifacts, unlock external beta, or unlock
 production.
+The gateway also rejects source all-tools runtime-admission packets that strip
+or weaken the native GPU runtime-proof bridge before creating a worker enqueue
+candidate, preserving the same bridge guard from launch go/no-go through user
+request admission.
 
 AI graphics external beta worker enqueue adapter decision
 `ai_graphics_external_beta_worker_enqueue_adapter_contract_prepared_with_runtime_blocks`

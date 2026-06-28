@@ -239,6 +239,9 @@ if (!index.includes("export * from './ai-graphics-external-beta-tool-call-gatewa
 if (docs.decision !== 'ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks') {
   fail(`unexpected_docs_decision:${docs.decision}`)
 }
+if (docs.sourceAllToolsRuntimeAdmissionProofBridgeAccepted !== true) {
+  fail('docs_source_all_tools_runtime_admission_proof_bridge_not_true')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
@@ -275,6 +278,7 @@ for (const gate of [
   'external beta idempotency key',
   'external beta worker enqueue candidate reference',
   'accepted external-beta runtime admission packet',
+  'accepted external-beta runtime admission packet preserving the native GPU runtime-proof bridge',
   'accepted external-beta CPU/static runtime admission packet for the first cohort',
 ]) {
   if (!docs.requiredGatewayControls?.includes(gate)) fail(`docs_missing_gateway_control:${gate}`)
@@ -282,6 +286,7 @@ for (const gate of [
 for (const key of [
   'externalBetaToolCallGatewayPrepared',
   'sourceExternalBetaRuntimeAdmissionAccepted',
+  'sourceExternalBetaRuntimeAdmissionProofBridgeAccepted',
   'sourceExternalBetaCpuStaticRuntimeAdmissionAccepted',
   'externalBetaGatewayControlsSatisfied',
   'externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence',
@@ -327,6 +332,9 @@ for (const needle of [
   'sourceExternalBetaRuntimeAdmissionPacket',
   'sourceExternalBetaCpuStaticRuntimeAdmissionPacket',
   'sourceRuntimeAdmissionMode',
+  'allToolsRuntimeAdmissionProofBridgeAccepted',
+  'sourceExternalBetaRuntimeAdmissionProofBridgeAccepted',
+  'sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted',
   'externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence',
   'externalBetaWorkerEnqueueCandidate',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
@@ -354,6 +362,7 @@ for (const needle of [
 }
 for (const needle of [
   'External-Beta Tool-Call Gateway',
+  'Source all-tools runtime admission proof bridge accepted: `true`',
   'Worker enqueue performed now: `0`',
   'GPU remains on-demand only',
   'If no one is using the tool, no GPU runtime should be running',
@@ -362,6 +371,7 @@ for (const needle of [
 }
 for (const needle of [
   'AI graphics external beta tool-call gateway decision',
+  'rejects source all-tools runtime-admission packets that strip',
   'worker enqueue candidate',
   '`workerEnqueuePerformed=false`',
 ]) {
@@ -525,6 +535,17 @@ const d3CpuStaticRuntimeAdmission = parseJsonOutput(runNpm(cpuStaticRuntimeAdmis
   'private://ai-graphics/node-static-proof/d3.json',
 ]), 'd3_cpu_static_runtime_admission')
 const sam2RuntimeAdmissionPath = writeJson(path.join(tmpRoot, 'sam2-runtime-admission.json'), sam2RuntimeAdmission)
+const weakenedSam2RuntimeAdmissionPath = writeJson(
+  path.join(tmpRoot, 'weakened-sam2-runtime-admission.json'),
+  {
+    ...sam2RuntimeAdmission,
+    sourceLaunchGoNoGoRuntimeProofBridgeAccepted: false,
+    booleans: {
+      ...sam2RuntimeAdmission.booleans,
+      sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted: false,
+    },
+  },
+)
 const d3RuntimeAdmissionPath = writeJson(path.join(tmpRoot, 'd3-runtime-admission.json'), d3RuntimeAdmission)
 const d3CpuStaticRuntimeAdmissionPath = writeJson(
   path.join(tmpRoot, 'd3-cpu-static-runtime-admission.json'),
@@ -585,6 +606,11 @@ const readySam2Gateway = parseJsonOutput(runNpm(runScriptName, [
   sam2RuntimeAdmissionPath,
   ...gatewayControls,
 ]), 'ready_sam2_gateway')
+const weakenedRuntimeAdmissionGateway = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-runtime-admission-packet',
+  weakenedSam2RuntimeAdmissionPath,
+  ...gatewayControls,
+]), 'weakened_runtime_admission_gateway')
 const readyD3Gateway = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-runtime-admission-packet',
   d3RuntimeAdmissionPath,
@@ -611,6 +637,18 @@ if (blockedMissingRateLimit.decision !== 'missing_external_beta_gateway_controls
 }
 if (!blockedMissingRateLimit.missingGatewayControls?.includes('external beta rate-limit decision reference is missing')) {
   fail('blocked_missing_rate_limit_not_reported')
+}
+if (weakenedRuntimeAdmissionGateway.decision !== 'missing_external_beta_runtime_admission') {
+  fail(`weakened_runtime_admission_gateway_decision_unexpected:${weakenedRuntimeAdmissionGateway.decision}`)
+}
+if (weakenedRuntimeAdmissionGateway.sourceExternalBetaRuntimeAdmissionAccepted !== false) {
+  fail('weakened_runtime_admission_gateway_source_runtime_accepted_not_false')
+}
+if (weakenedRuntimeAdmissionGateway.sourceExternalBetaRuntimeAdmissionProofBridgeAccepted !== false) {
+  fail('weakened_runtime_admission_gateway_proof_bridge_not_false')
+}
+if (weakenedRuntimeAdmissionGateway.externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence !== false) {
+  fail('weakened_runtime_admission_gateway_candidate_ready_not_false')
 }
 for (const [label, output] of Object.entries({
   readySam2Gateway,
@@ -789,6 +827,7 @@ console.log(JSON.stringify({
   planningGatewayDecision: planningGateway.decision,
   blockedMissingRuntimeDecision: blockedMissingRuntime.decision,
   blockedMissingRateLimitDecision: blockedMissingRateLimit.decision,
+  weakenedRuntimeAdmissionGatewayDecision: weakenedRuntimeAdmissionGateway.decision,
   readySam2GatewayDecision: readySam2Gateway.decision,
   readyD3GatewayDecision: readyD3Gateway.decision,
   readyD3CpuStaticGatewayDecision: readyD3CpuStaticGateway.decision,

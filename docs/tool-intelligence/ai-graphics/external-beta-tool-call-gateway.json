@@ -32,6 +32,7 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "sourceAllToolsRuntimeAdmissionProofBridgeAccepted": true,
   "requiredGatewayControls": [
     "external beta user id",
     "external beta workspace id",
@@ -45,8 +46,8 @@
     "external beta trace id",
     "external beta idempotency key",
     "external beta worker enqueue candidate reference",
-    "accepted external-beta runtime admission packet"
-    ,
+    "accepted external-beta runtime admission packet",
+    "accepted external-beta runtime admission packet preserving the native GPU runtime-proof bridge",
     "accepted external-beta CPU/static runtime admission packet for the first cohort"
   ],
   "gatewayPolicy": {
@@ -150,6 +151,7 @@
   "booleans": {
     "externalBetaToolCallGatewayPrepared": true,
     "sourceExternalBetaRuntimeAdmissionAccepted": true,
+    "sourceExternalBetaRuntimeAdmissionProofBridgeAccepted": true,
     "sourceExternalBetaCpuStaticRuntimeAdmissionAccepted": true,
     "externalBetaGatewayControlsSatisfied": true,
     "externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence": true,

@@ -78,6 +78,7 @@ export interface AiGraphicsExternalBetaToolCallGateway {
     | AiGraphicsExternalBetaRuntimeAdmission
     | AiGraphicsExternalBetaCpuStaticRuntimeAdmission
   sourceExternalBetaRuntimeAdmissionAccepted: boolean
+  sourceExternalBetaRuntimeAdmissionProofBridgeAccepted: boolean
   sourceExternalBetaCpuStaticRuntimeAdmissionAccepted: boolean
   missingGatewayControls: string[]
   externalBetaGatewayControlsSatisfied: boolean
@@ -103,6 +104,7 @@ export interface AiGraphicsExternalBetaToolCallGateway {
   booleans: {
     externalBetaToolCallGatewayPrepared: true
     sourceExternalBetaRuntimeAdmissionAccepted: boolean
+    sourceExternalBetaRuntimeAdmissionProofBridgeAccepted: boolean
     externalBetaGatewayControlsSatisfied: boolean
     externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -173,8 +175,16 @@ type AiGraphicsExternalBetaGatewayRuntimeAdmission =
   | AiGraphicsExternalBetaRuntimeAdmission
   | AiGraphicsExternalBetaCpuStaticRuntimeAdmission
 
+function allToolsRuntimeAdmissionProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaRuntimeAdmission,
+): boolean {
+  return packet.sourceLaunchGoNoGoRuntimeProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted === true
+}
+
 function allToolsRuntimeAdmissionAccepted(packet: AiGraphicsExternalBetaRuntimeAdmission): boolean {
   return packet.decision === 'external_beta_runtime_admission_ready_for_worker_enqueue' &&
+    allToolsRuntimeAdmissionProofBridgeAccepted(packet) &&
     packet.externalBetaRuntimeAdmissionReadyWithProvidedEvidence === true &&
     packet.externalBetaWorkerEnqueueAllowedWithProvidedEvidence === true &&
     packet.externalBetaReadyNowTools === 0 &&
@@ -204,6 +214,14 @@ function runtimeAdmissionAccepted(packet: AiGraphicsExternalBetaGatewayRuntimeAd
   return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
     ? cpuStaticRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaCpuStaticRuntimeAdmission)
     : allToolsRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaRuntimeAdmission)
+}
+
+function runtimeAdmissionProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaGatewayRuntimeAdmission,
+): boolean {
+  return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
+    ? cpuStaticRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaCpuStaticRuntimeAdmission)
+    : allToolsRuntimeAdmissionProofBridgeAccepted(packet as AiGraphicsExternalBetaRuntimeAdmission)
 }
 
 function missingGatewayControls(input: AiGraphicsExternalBetaToolCallGatewayInput): string[] {
@@ -303,6 +321,7 @@ export function evaluateAiGraphicsExternalBetaToolCallGateway(
       : 'all_tools_external_beta'
   const executionRequested =
     input.executionRequested === true || runtimeAdmission.executionRequested === true
+  const runtimeProofBridgeAccepted = runtimeAdmissionProofBridgeAccepted(runtimeAdmission)
   const runtimeAccepted = runtimeAdmissionAccepted(runtimeAdmission)
   const missingGateway = executionRequested ? missingGatewayControls(input) : []
   const gatewayReady =
@@ -329,6 +348,7 @@ export function evaluateAiGraphicsExternalBetaToolCallGateway(
     executionRequested,
     sourceExternalBetaRuntimeAdmission: runtimeAdmission,
     sourceExternalBetaRuntimeAdmissionAccepted: runtimeAccepted,
+    sourceExternalBetaRuntimeAdmissionProofBridgeAccepted: runtimeProofBridgeAccepted,
     sourceExternalBetaCpuStaticRuntimeAdmissionAccepted:
       sourceRuntimeAdmissionMode === 'cpu_static_first_cohort' && runtimeAccepted,
     missingGatewayControls: missingGateway,
@@ -343,6 +363,7 @@ export function evaluateAiGraphicsExternalBetaToolCallGateway(
     booleans: {
       externalBetaToolCallGatewayPrepared: true,
       sourceExternalBetaRuntimeAdmissionAccepted: runtimeAccepted,
+      sourceExternalBetaRuntimeAdmissionProofBridgeAccepted: runtimeProofBridgeAccepted,
       externalBetaGatewayControlsSatisfied: gatewayReady,
       externalBetaWorkerEnqueueCandidateReadyWithProvidedEvidence: gatewayReady,
       all21ToolsCovered: true,

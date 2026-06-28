@@ -9,6 +9,7 @@ This contract is the external-beta request gateway for AI graphics tool calls. I
 - Tools covered: `21`
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
+- Source all-tools runtime admission proof bridge accepted: `true`
 - Full gateway worker enqueue candidate examples ready with provided evidence: `2`
 - CPU/static first-cohort gateway worker enqueue candidate examples ready with provided evidence: `1`
 - GPU runtime start allowed for accepted external-beta job examples: `1`
@@ -21,7 +22,7 @@ This contract is the external-beta request gateway for AI graphics tool calls. I
 
 An external-beta tool-call request can become a worker enqueue candidate with provided evidence only when:
 
-1. The source external-beta runtime admission packet is accepted, or the source CPU/static first-cohort runtime admission packet is accepted.
+1. The source external-beta runtime admission packet is accepted and preserves the native GPU runtime-proof bridge, or the source CPU/static first-cohort runtime admission packet is accepted.
 2. The request has an external beta user id, workspace id, request id, idempotency key, and trace id.
 3. Feature flag evaluation, rollout assignment, rate limit, cost ceiling, and audit event refs are present.
 4. A worker enqueue candidate ref is prepared.

@@ -14,6 +14,9 @@ import type {
 import type {
   AiGraphicsExternalBetaServiceRoleQueueSmokePreflight,
 } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-preflight'
+import type {
+  AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
+} from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-proof'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -50,6 +53,10 @@ const input: AiGraphicsExternalBetaLaunchGoNoGoInput = {
   sourceExternalBetaServiceRoleQueueSmokePreflightPacket:
     readJsonFile<AiGraphicsExternalBetaServiceRoleQueueSmokePreflight>(
       '--external-beta-service-role-queue-smoke-preflight-packet',
+    ),
+  sourceExternalBetaServiceRoleQueueSmokeProofPacket:
+    readJsonFile<AiGraphicsExternalBetaServiceRoleQueueSmokeProof>(
+      '--external-beta-service-role-queue-smoke-proof-packet',
     ),
   externalBetaEvidenceAdmissionBundle:
     readJsonFile<AiGraphicsExternalBetaEvidenceAdmissionBundle>(
@@ -142,6 +149,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--external-beta-evidence-admission-bundle-packet')),
     sourceServiceRoleQueueSmokePreflightPacketRead:
       Boolean(stringFlag('--external-beta-service-role-queue-smoke-preflight-packet')),
+    sourceServiceRoleQueueSmokeProofPacketRead:
+      Boolean(stringFlag('--external-beta-service-role-queue-smoke-proof-packet')),
     externalBetaEvidenceAdmissionBundleRead:
       Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
     externalBetaWorkerDispatchSmokeProofRead:

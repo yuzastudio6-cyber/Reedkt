@@ -2,9 +2,9 @@
 
 Decision: `ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks`
 
-This contract is the live-user launch decision layer for the 21 AI graphics tools. It consumes the external-beta launch gap report, the external-beta readiness gate, private/backend evidence packet state, and the service-role queue smoke preflight, then requires explicit launch controls before any external beta candidate can be launch-approved with provided evidence.
+This contract is the live-user launch decision layer for the 21 AI graphics tools. It consumes the external-beta launch gap report, the external-beta readiness gate, private/backend evidence packet state, the service-role queue smoke preflight, and the saved service-role queue smoke proof, then requires explicit launch controls before any external beta candidate can be launch-approved with provided evidence.
 
-It can also consume `external-beta-evidence-admission-bundle.json` directly. That packet is the preferred bridge from all-21 technical proof plus all-21 private external-beta evidence refs into this launch go/no-go layer. A ready `external-beta-service-role-queue-smoke-preflight.json` packet is still required before launch approval can accept the candidate path.
+It can also consume `external-beta-evidence-admission-bundle.json` directly. That packet is the preferred bridge from all-21 technical proof plus all-21 private external-beta evidence refs into this launch go/no-go layer. A ready `external-beta-service-role-queue-smoke-preflight.json` packet and an accepted `external-beta-service-role-queue-smoke-proof.json` packet are still required before launch approval can accept the candidate path.
 
 ## Current Result
 
@@ -15,6 +15,7 @@ It can also consume `external-beta-evidence-admission-bundle.json` directly. Tha
 - Full private/backend evidence launch candidates with provided evidence: `21`
 - Admission-bundle launch candidates with provided evidence: `21`
 - Service-role queue smoke preflight accepted: `true`
+- Service-role queue smoke proof accepted: `true`
 - Source launch-gap runtime proof bridge accepted: `true`
 - Full launch approval tools with provided evidence: `21`
 - External-beta-ready now: `0`

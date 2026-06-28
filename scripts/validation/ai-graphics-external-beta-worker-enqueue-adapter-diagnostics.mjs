@@ -35,6 +35,8 @@ const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-worker-enqueue-adapter-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const launchGoNoGoScriptName = 'ai-graphics:external-beta-launch-go-no-go'
+const serviceRoleQueueSmokeProofScriptName =
+  'ai-graphics:external-beta-service-role-queue-smoke-proof'
 const runtimeAdmissionScriptName = 'ai-graphics:external-beta-runtime-admission'
 const cpuStaticRuntimeAdmissionScriptName =
   'ai-graphics:external-beta-cpu-static-runtime-admission'
@@ -277,6 +279,46 @@ function readyServiceRoleQueueSmokePreflightFixture() {
       publicArtifactCreated: false,
       signedUrlCreated: false,
     },
+  }
+}
+
+function serviceRoleQueueSmokeReadinessFixture() {
+  return {
+    decision: 'external_beta_service_role_queue_smoke_prepared_not_executed',
+    serviceRoleQueueSmokePreparedWithProvidedEvidence: true,
+    sourceExternalBetaRuntimeQueueServiceBridgeAccepted: true,
+    sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: true,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    booleans: {
+      sourceExternalBetaRuntimeQueueServiceBridgeProofBridgeAccepted: true,
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+    },
+  }
+}
+
+function serviceRoleQueueSmokeResultFixture() {
+  return {
+    ok: true,
+    decision: 'ai_graphics_external_beta_service_role_queue_smoke_passed_with_cleanup',
+    status: 'external_beta_service_role_queue_smoke_passed_with_cleanup_no_tool_execution',
+    toolsSubmitted: 21,
+    toolsSubmittedIds: allTools,
+    jobIdsReturned: 21,
+    workerClaimsReturned: 21,
+    gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    liveServiceRoleQueueSmokeExecutedNow: true,
+    liveSupabaseQueueWritesNow: 21,
+    liveWorkerClaimRowsNow: 21,
+    liveWorkerDispatchesNow: 0,
+    liveToolExecutionsNow: 0,
+    gpuRuntimeShouldStartNow: false,
+    fixtureRowsPersistedAfterCleanup: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
   }
 }
 
@@ -551,6 +593,29 @@ const readyServiceRolePreflightPath = writeJson(
   path.join(tmpRoot, 'ready-service-role-queue-smoke-preflight.json'),
   readyServiceRoleQueueSmokePreflightFixture(),
 )
+const serviceRoleQueueSmokeReadinessPath = writeJson(
+  path.join(tmpRoot, 'service-role-queue-smoke-readiness.json'),
+  serviceRoleQueueSmokeReadinessFixture(),
+)
+const serviceRoleQueueSmokeResultPath = writeJson(
+  path.join(tmpRoot, 'service-role-queue-smoke-result.json'),
+  serviceRoleQueueSmokeResultFixture(),
+)
+const serviceRoleQueueSmokeProofPath = writeJson(
+  path.join(tmpRoot, 'service-role-queue-smoke-proof.json'),
+  parseJsonOutput(runNpm(serviceRoleQueueSmokeProofScriptName, [
+    '--external-beta-service-role-queue-smoke-readiness-packet',
+    serviceRoleQueueSmokeReadinessPath,
+    '--external-beta-service-role-queue-smoke-result',
+    serviceRoleQueueSmokeResultPath,
+    '--external-beta-service-role-queue-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke-proof/evidence.json',
+    '--external-beta-service-role-queue-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke-proof/telemetry.json',
+    '--external-beta-service-role-queue-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke-proof/cleanup.json',
+  ]), 'service_role_queue_smoke_proof_source'),
+)
 const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   ...fullEvidenceArgs,
   '--external-beta-evidence-packet',
@@ -558,6 +623,8 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   '--external-beta-worker-dispatch-smoke-proof-accepted',
   '--external-beta-service-role-queue-smoke-preflight-packet',
   readyServiceRolePreflightPath,
+  '--external-beta-service-role-queue-smoke-proof-packet',
+  serviceRoleQueueSmokeProofPath,
   ...launchApprovalArgs,
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
@@ -565,6 +632,9 @@ if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_stil
 }
 if (launchGoNoGo.booleans?.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted !== true) {
   fail('launch_go_no_go_service_role_preflight_not_accepted')
+}
+if (launchGoNoGo.booleans?.sourceExternalBetaServiceRoleQueueSmokeProofAccepted !== true) {
+  fail('launch_go_no_go_service_role_proof_not_accepted')
 }
 const launchGoNoGoPath = writeJson(path.join(tmpRoot, 'launch-go-no-go.json'), launchGoNoGo)
 

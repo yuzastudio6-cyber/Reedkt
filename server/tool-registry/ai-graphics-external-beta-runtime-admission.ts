@@ -144,6 +144,10 @@ function sourceLaunchGoNoGoAccepted(packet: AiGraphicsExternalBetaLaunchGoNoGo):
     packet.sourceServiceRoleQueueSmokePreflight?.status ===
       'ready_to_execute_non_production_service_role_queue_smoke' &&
     packet.sourceServiceRoleQueueSmokePreflight?.readyToExecuteLiveNonProductionSmoke === true &&
+    packet.booleans.sourceExternalBetaServiceRoleQueueSmokeProofAccepted === true &&
+    packet.sourceServiceRoleQueueSmokeProof?.decision ===
+      'external_beta_service_role_queue_smoke_proof_accepted_with_runtime_blocks' &&
+    packet.sourceServiceRoleQueueSmokeProof?.proofAcceptedWithProvidedEvidence === true &&
     packet.status === 'external_beta_launch_go_no_go_approved_runtime_still_blocked' &&
     packet.externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence === 21 &&
     packet.booleans.all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence === true &&

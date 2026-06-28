@@ -11,6 +11,10 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION,
   type AiGraphicsExternalBetaServiceRoleQueueSmokePreflight,
 } from './ai-graphics-external-beta-service-role-queue-smoke-preflight'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION,
+  type AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
+} from './ai-graphics-external-beta-service-role-queue-smoke-proof'
 import type { AiGraphicsExternalBetaReadinessEvidence } from './ai-graphics-external-beta-readiness-gate'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION =
@@ -19,6 +23,7 @@ export const AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION =
 export type AiGraphicsExternalBetaLaunchGoNoGoStatus =
   | 'missing_external_beta_candidate_evidence'
   | 'missing_external_beta_service_role_queue_smoke_preflight'
+  | 'missing_external_beta_service_role_queue_smoke_proof'
   | 'awaiting_external_beta_launch_go_no_go_approval'
   | 'external_beta_launch_go_no_go_approved_runtime_still_blocked'
 
@@ -28,6 +33,8 @@ export interface AiGraphicsExternalBetaLaunchGoNoGoInput
   sourceExternalBetaEvidenceAdmissionBundlePacket?: AiGraphicsExternalBetaEvidenceAdmissionBundle
   sourceExternalBetaServiceRoleQueueSmokePreflightPacket?:
     AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
+  sourceExternalBetaServiceRoleQueueSmokeProofPacket?:
+    AiGraphicsExternalBetaServiceRoleQueueSmokeProof
   externalBetaLaunchSwitchApproved?: boolean
   externalBetaLaunchRef?: string
   externalBetaRolloutCohortApproved?: boolean
@@ -48,6 +55,8 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
     typeof AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION
   sourceExternalBetaServiceRoleQueueSmokePreflightDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION
+  sourceExternalBetaServiceRoleQueueSmokeProofDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION
   status: AiGraphicsExternalBetaLaunchGoNoGoStatus
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -64,6 +73,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
   sourceEvidenceAdmissionBundle: AiGraphicsExternalBetaEvidenceAdmissionBundle | null
   sourceServiceRoleQueueSmokePreflight:
     AiGraphicsExternalBetaServiceRoleQueueSmokePreflight | null
+  sourceServiceRoleQueueSmokeProof: AiGraphicsExternalBetaServiceRoleQueueSmokeProof | null
   requiredLaunchApprovalRecord: {
     required: true
     approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER'
@@ -84,6 +94,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
     sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: boolean
     sourceExternalBetaEvidenceAdmissionBundleAccepted: boolean
     sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: boolean
+    sourceExternalBetaServiceRoleQueueSmokeProofAccepted: boolean
     externalBetaLaunchCandidateWithProvidedEvidence: boolean
     externalBetaLaunchGoNoGoApprovalRecordAccepted: boolean
     all21ToolsCovered: true
@@ -124,6 +135,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
 const allowedLaunchGoNoGoActions = [
   'accept all-21 install, mapping, private evidence, and external-beta readiness evidence',
   'accept service-role queue smoke preflight readiness metadata without running the smoke',
+  'accept saved service-role queue smoke proof metadata without rerunning the smoke',
   'record external beta launch switch approval metadata',
   'record external beta rollout cohort approval metadata',
   'record external beta cost and concurrency ceiling approval metadata',
@@ -178,11 +190,15 @@ function launchApprovalRecordAccepted(input: AiGraphicsExternalBetaLaunchGoNoGoI
 function statusFromInput(input: {
   candidateSourceEvidenceAccepted: boolean
   serviceRoleQueueSmokePreflightAccepted: boolean
+  serviceRoleQueueSmokeProofAccepted: boolean
   approvalRecordAccepted: boolean
 }): AiGraphicsExternalBetaLaunchGoNoGoStatus {
   if (!input.candidateSourceEvidenceAccepted) return 'missing_external_beta_candidate_evidence'
   if (!input.serviceRoleQueueSmokePreflightAccepted) {
     return 'missing_external_beta_service_role_queue_smoke_preflight'
+  }
+  if (!input.serviceRoleQueueSmokeProofAccepted) {
+    return 'missing_external_beta_service_role_queue_smoke_proof'
   }
   if (!input.approvalRecordAccepted) return 'awaiting_external_beta_launch_go_no_go_approval'
   return 'external_beta_launch_go_no_go_approved_runtime_still_blocked'
@@ -276,6 +292,48 @@ function serviceRoleQueueSmokePreflightAccepted(
   )
 }
 
+function serviceRoleQueueSmokeProofAccepted(
+  packet: AiGraphicsExternalBetaServiceRoleQueueSmokeProof | undefined,
+): packet is AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
+  return Boolean(
+    packet &&
+      packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION &&
+      packet.decision === 'external_beta_service_role_queue_smoke_proof_accepted_with_runtime_blocks' &&
+      packet.sourceReadinessAccepted === true &&
+      packet.proofAcceptedWithProvidedEvidence === true &&
+      packet.counts?.toolsCovered === 21 &&
+      packet.counts?.productFacingCapabilitiesCovered === 12 &&
+      packet.counts?.gpuToolsCovered === 8 &&
+      packet.counts?.heavyToolsIncorrectlyTargetingCpu === 0 &&
+      packet.counts?.serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
+      packet.counts?.sourceLiveQueueWritesAcceptedWithProvidedEvidence === 21 &&
+      packet.counts?.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21 &&
+      packet.counts?.sourceWorkerDispatchesAcceptedWithProvidedEvidence === 0 &&
+      packet.counts?.sourceToolExecutionsAcceptedWithProvidedEvidence === 0 &&
+      packet.counts?.cleanupPersistedRowsAfterSmoke === 0 &&
+      packet.counts?.externalBetaReadyNowTools === 0 &&
+      packet.counts?.productionReadyNowTools === 0 &&
+      packet.evidence?.sourceLiveServiceRoleQueueSmokeExecutedWithProvidedEvidence === true &&
+      packet.policy?.noLiveSupabaseWriteByProofValidator === true &&
+      packet.policy?.noWorkerDispatchByProofValidator === true &&
+      packet.policy?.noToolExecutionByProofValidator === true &&
+      packet.policy?.noGpuRuntimeStartByProofValidator === true &&
+      packet.booleans?.serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence === true &&
+      packet.booleans?.sourceQueueWritesAcceptedWithProvidedEvidence === true &&
+      packet.booleans?.sourceWorkerClaimsAcceptedWithProvidedEvidence === true &&
+      packet.booleans?.cleanupVerifiedWithProvidedEvidence === true &&
+      packet.booleans?.liveServiceRoleQueueSmokeExecutedNow === false &&
+      packet.booleans?.agentCanExecuteToolsNow === false &&
+      packet.booleans?.routeExecutionApprovedNow === false &&
+      packet.booleans?.workerExecutionApprovedNow === false &&
+      packet.booleans?.workerQueueApprovedNow === false &&
+      packet.booleans?.gpuRuntimeApprovedNow === false &&
+      packet.booleans?.gpuRuntimeShouldStartNow === false &&
+      packet.booleans?.externalBetaReadyNow === false &&
+      packet.booleans?.productionReadyNow === false,
+  )
+}
+
 export function buildAiGraphicsExternalBetaLaunchGoNoGo(
   input: AiGraphicsExternalBetaLaunchGoNoGoInput = {},
 ): AiGraphicsExternalBetaLaunchGoNoGo {
@@ -285,6 +343,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
   const sourceEvidenceAdmissionBundle = input.sourceExternalBetaEvidenceAdmissionBundlePacket ?? null
   const sourceServiceRoleQueueSmokePreflight =
     input.sourceExternalBetaServiceRoleQueueSmokePreflightPacket ?? null
+  const sourceServiceRoleQueueSmokeProof =
+    input.sourceExternalBetaServiceRoleQueueSmokeProofPacket ?? null
   const sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted =
     launchGapRuntimeProofBridgeAccepted(sourceLaunchGapReport)
   const sourceLaunchGapAccepted = launchGapCandidateAccepted(sourceLaunchGapReport)
@@ -295,16 +355,23 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     serviceRoleQueueSmokePreflightAccepted(
       input.sourceExternalBetaServiceRoleQueueSmokePreflightPacket,
     )
+  const sourceExternalBetaServiceRoleQueueSmokeProofAccepted =
+    serviceRoleQueueSmokeProofAccepted(
+      input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
+    )
   const candidateSourceEvidenceAccepted =
     sourceLaunchGapAccepted || sourceEvidenceAdmissionBundleAccepted
   const candidateWithProvidedEvidence =
     candidateSourceEvidenceAccepted &&
-    sourceExternalBetaServiceRoleQueueSmokePreflightAccepted
+    sourceExternalBetaServiceRoleQueueSmokePreflightAccepted &&
+    sourceExternalBetaServiceRoleQueueSmokeProofAccepted
   const approvalRecordAccepted = launchApprovalRecordAccepted(input)
   const status = statusFromInput({
     candidateSourceEvidenceAccepted,
     serviceRoleQueueSmokePreflightAccepted:
       sourceExternalBetaServiceRoleQueueSmokePreflightAccepted,
+    serviceRoleQueueSmokeProofAccepted:
+      sourceExternalBetaServiceRoleQueueSmokeProofAccepted,
     approvalRecordAccepted,
   })
   const approvedToolsWithProvidedEvidence =
@@ -313,6 +380,9 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     !candidateSourceEvidenceAccepted ? 'all_21_external_beta_candidates_with_private_provided_evidence' : undefined,
     !sourceExternalBetaServiceRoleQueueSmokePreflightAccepted
       ? 'external_beta_service_role_queue_smoke_preflight_ready'
+      : undefined,
+    !sourceExternalBetaServiceRoleQueueSmokeProofAccepted
+      ? 'external_beta_service_role_queue_smoke_proof_accepted'
       : undefined,
     !input.externalBetaLaunchSwitchApproved ? 'external_beta_launch_switch_approval' : undefined,
     !hasNonEmptyRef(input.externalBetaLaunchRef) ? 'external_beta_launch_ref' : undefined,
@@ -337,6 +407,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
       AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION,
     sourceExternalBetaServiceRoleQueueSmokePreflightDecision:
       AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION,
+    sourceExternalBetaServiceRoleQueueSmokeProofDecision:
+      AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION,
     status,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -354,6 +426,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     sourceLaunchGapReport,
     sourceEvidenceAdmissionBundle,
     sourceServiceRoleQueueSmokePreflight,
+    sourceServiceRoleQueueSmokeProof,
     requiredLaunchApprovalRecord: {
       required: true,
       approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
@@ -376,6 +449,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
         sourceEvidenceAdmissionBundleAccepted,
       sourceExternalBetaServiceRoleQueueSmokePreflightAccepted:
         sourceExternalBetaServiceRoleQueueSmokePreflightAccepted,
+      sourceExternalBetaServiceRoleQueueSmokeProofAccepted:
+        sourceExternalBetaServiceRoleQueueSmokeProofAccepted,
       externalBetaLaunchCandidateWithProvidedEvidence: candidateWithProvidedEvidence,
       externalBetaLaunchGoNoGoApprovalRecordAccepted: approvalRecordAccepted,
       all21ToolsCovered: true,

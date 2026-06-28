@@ -1,5 +1,6 @@
 import type { ProductionToolId } from '../../tool-registry'
 import { getProductionToolProfile } from '../../tool-registry'
+import { existsSync, readFileSync } from 'node:fs'
 import { productionToolReadinessSpecs } from './production-tool-readiness-specs'
 import { summarizeProductionToolReadiness } from './production-tool-readiness-summary'
 import {
@@ -44,16 +45,103 @@ export interface RunProductionToolReadinessResult {
   gpuToolReadiness?: RunGpuAiReadinessResult
 }
 
+const launchCoreRequirementsPath = 'server/workers/sound-cpu/requirements.launch-core.txt'
+const manifestBackedPythonPackages = new Map<ProductionToolId, string>([
+  ['pyav', 'av==17.1.0'],
+  ['pyscenedetect', 'scenedetect==0.7'],
+  ['opencv', 'opencv-python-headless==4.13.0.92'],
+  ['duckdb', 'duckdb==1.5.4'],
+  ['polars', 'polars==1.42.0'],
+  ['opentimelineio', 'opentimelineio==0.18.1'],
+])
+const manifestBackedNodePackages = new Map<ProductionToolId, [string, string]>([
+  ['sharp', ['sharp', '0.35.2']],
+  ['remotion', ['remotion', '4.0.484']],
+])
+
 function dryRunStatusForSpec(specStatus: ProductionReadinessStatus): ProductionReadinessStatus {
   if (specStatus === 'passed' || specStatus === 'warning') return 'not_checked'
   return specStatus
 }
 
-function buildDryRunWarnings(specToolId: ProductionToolId): string[] {
+function readLaunchCoreRequirementsLines(): Set<string> {
+  if (!existsSync(launchCoreRequirementsPath)) return new Set()
+  return new Set(readFileSync(launchCoreRequirementsPath, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#')))
+}
+
+function readPackageJsonDependencies(): Record<string, string> {
+  if (!existsSync('package.json')) return {}
+
+  try {
+    const parsed = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      dependencies?: Record<string, string>
+    }
+    return parsed.dependencies ?? {}
+  } catch {
+    return {}
+  }
+}
+
+function readPackageLockRootDependencies(): Record<string, string> {
+  if (!existsSync('package-lock.json')) return {}
+
+  try {
+    const parsed = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
+      packages?: Record<string, { dependencies?: Record<string, string> }>
+    }
+    return parsed.packages?.['']?.dependencies ?? {}
+  } catch {
+    return {}
+  }
+}
+
+function buildManifestBackedToolSet(): Set<ProductionToolId> {
+  const backedToolIds = new Set<ProductionToolId>()
+  const requirementLines = readLaunchCoreRequirementsLines()
+
+  for (const [toolId, requirementLine] of manifestBackedPythonPackages) {
+    if (requirementLines.has(requirementLine)) backedToolIds.add(toolId)
+  }
+
+  const packageJsonDependencies = readPackageJsonDependencies()
+  const packageLockRootDependencies = readPackageLockRootDependencies()
+
+  for (const [toolId, [packageName, version]] of manifestBackedNodePackages) {
+    if (packageJsonDependencies[packageName] === version && packageLockRootDependencies[packageName] === version) {
+      backedToolIds.add(toolId)
+    }
+  }
+
+  return backedToolIds
+}
+
+function dryRunStatusForTool(
+  specToolId: ProductionToolId,
+  specStatus: ProductionReadinessStatus,
+  manifestBackedToolIds: Set<ProductionToolId>,
+): ProductionReadinessStatus {
+  const baseStatus = dryRunStatusForSpec(specStatus)
+  if (
+    manifestBackedToolIds.has(specToolId) &&
+    (baseStatus === 'missing' || baseStatus === 'not_installed')
+  ) {
+    return 'source_install_review_required'
+  }
+  return baseStatus
+}
+
+function buildDryRunWarnings(specToolId: ProductionToolId, manifestBackedToolIds: Set<ProductionToolId>): string[] {
   const profile = getProductionToolProfile(specToolId)
   const warnings = [
     'Dry-run readiness does not execute command version checks, Python imports, Node imports, media tools, or model downloads.',
   ]
+
+  if (manifestBackedToolIds.has(specToolId)) {
+    warnings.push('Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
+  }
 
   if (profile?.modelWeightsRequired) {
     warnings.push('Model weights are placeholders only and block production readiness until reviewed.')
@@ -85,17 +173,18 @@ export function runProductionToolReadiness(
   })
 
   const checkedAt = new Date().toISOString()
+  const manifestBackedToolIds = buildManifestBackedToolSet()
   const results: ProductionToolReadinessResult[] = specs.map((spec) => ({
     toolId: spec.toolId,
     displayName: spec.displayName,
-    status: dryRunStatusForSpec(spec.readinessStatusWhenMissing),
+    status: dryRunStatusForTool(spec.toolId, spec.readinessStatusWhenMissing, manifestBackedToolIds),
     dryRun: true,
     commandChecks: spec.commandChecks,
     pythonImportChecks: spec.pythonImportChecks,
     nodePackageChecks: spec.nodePackageChecks,
     modelWeightChecks: spec.modelWeightChecks,
     environmentChecks: spec.environmentChecks,
-    warnings: buildDryRunWarnings(spec.toolId),
+    warnings: buildDryRunWarnings(spec.toolId, manifestBackedToolIds),
     blocksProduction: spec.blocksProductionIfMissing,
     checkedAt,
   }))
@@ -115,6 +204,7 @@ function statusPriority(status: ProductionReadinessStatus): number {
     not_installed: 80,
     needs_license_review: 70,
     pending_manual_review: 65,
+    source_install_review_required: 64,
     evaluation_only: 60,
     future_only: 50,
     warning: 40,

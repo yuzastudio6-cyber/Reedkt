@@ -160,6 +160,8 @@ function writeJson(filePath, value) {
 
 function buildLocalQueueStoragePacket(profile) {
   const [toolId, productionToolId, capabilityId, workerType, runtimeTarget, gpu] = profile
+  const sourceGatewayRuntimeAdmissionMode =
+    toolId === 'd3' ? 'cpu_static_first_cohort' : 'all_tools_external_beta'
   const workspaceId = 'workspace-fixture'
   const projectId = 'project-fixture'
   const approvedSnapshotId = 'approved_snapshot_external_beta_fixture'
@@ -190,6 +192,7 @@ function buildLocalQueueStoragePacket(profile) {
       idempotencyKey,
       executionMode: 'production_blocked',
       metadata: {
+        sourceGatewayRuntimeAdmissionMode,
         serviceRoleTransactionPerformed: false,
         workerDispatchPerformed: false,
         gpuRuntimeShouldStartNow: false,
@@ -212,6 +215,7 @@ function buildLocalQueueStoragePacket(profile) {
     productionToolId,
     workerType,
     runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode,
     capabilityId,
     queueName: sourceQueueSubmissionEnvelope.queueName,
     transactionId: `external-beta-service-role-queue-tx-${jobId}`,
@@ -241,6 +245,7 @@ function buildLocalQueueStoragePacket(profile) {
       toolExecutionPlanId,
       workerType,
       runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode,
       idempotencyKey,
       status: 'prepared_not_inserted',
       liveInsertPerformed: false,
@@ -289,6 +294,7 @@ function buildLocalQueueStoragePacket(profile) {
       productionToolId,
       workerType,
       runtimeTarget,
+      sourceGatewayRuntimeAdmissionMode,
       capabilityId,
       sourceTransactionId: envelope.transactionId,
       sourceJobId: jobId,
@@ -446,6 +452,7 @@ for (const [key, expected] of Object.entries({
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
   runtimeQueueServicePayloadsReadyWithProvidedEvidence: 21,
+  cpuStaticFirstCohortRuntimeQueueServicePayloadsReadyWithProvidedEvidence: 1,
   canonicalRuntimeQueueServiceValidationPassedTools: 21,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
   heavyToolsIncorrectlyTargetingCpu: 0,
@@ -477,11 +484,17 @@ if (docs.booleans?.usesExistingAiGraphicsRuntimeQueueService !== true) {
 if (!docsMd.includes('createAiGraphicsToolRuntimeQueueService')) {
   fail('docs_md_missing_runtime_queue_service')
 }
+if (!docsMd.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
+  fail('docs_md_missing_cpu_static_source_mode')
+}
 if (!docsMd.includes('No idle GPU runtime is approved')) {
   fail('docs_md_missing_no_idle_gpu_policy')
 }
 if (!scorecard.includes('AI graphics external beta local queue storage decision')) {
   fail('scorecard_missing_previous_local_queue_storage_checkpoint')
+}
+if (!scorecard.includes('sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort')) {
+  fail('scorecard_missing_cpu_static_runtime_queue_source_mode')
 }
 
 const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-runtime-queue-service-bridge-'))
@@ -566,6 +579,12 @@ if (sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.runtimeTarget !== 'n
 }
 if (d3Result.externalBetaRuntimeQueueServiceBridgeRecord?.runtimeTarget !== 'node_cpu_static') {
   fail('d3_runtime_target_unexpected')
+}
+if (
+  d3Result.externalBetaRuntimeQueueServiceBridgeRecord?.sourceGatewayRuntimeAdmissionMode !==
+  'cpu_static_first_cohort'
+) {
+  fail('d3_source_gateway_runtime_admission_mode_unexpected')
 }
 if (sam2Result.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
   fail('sam2_gpu_not_start_allowed_for_future_job')
@@ -713,6 +732,8 @@ console.log(JSON.stringify({
   heavyToolsIncorrectlyTargetingCpu: heavyCpuFallbacks.length,
   sam2RuntimeTarget: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.runtimeTarget,
   d3RuntimeTarget: d3Result.externalBetaRuntimeQueueServiceBridgeRecord?.runtimeTarget,
+  d3SourceGatewayRuntimeAdmissionMode:
+    d3Result.externalBetaRuntimeQueueServiceBridgeRecord?.sourceGatewayRuntimeAdmissionMode,
   sam2QueueServiceMockOnly: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.queueServiceMockOnly,
   sam2EnqueueRpcName: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.enqueueRpcName,
   sam2ClaimRpcName: sam2Result.externalBetaRuntimeQueueServiceBridgeRecord?.claimRpcName,

@@ -37,6 +37,7 @@ export interface AiGraphicsExternalBetaRuntimeQueueServiceBridgeRecord {
   productionToolId: ProductionToolId
   workerType: ProductionWorkerRuntimeType
   runtimeTarget: string
+  sourceGatewayRuntimeAdmissionMode: string
   capabilityIds: string[]
   sourceLocalQueueJobBatchId: string
   sourceLocalQueueJobId: string
@@ -309,6 +310,7 @@ async function createRuntimeQueueServiceBridgeRecord(
         sourceTransactionId: localRecord.sourceTransactionId,
         sourceLocalQueueJobBatchId: localRecord.jobBatchId,
         sourceLocalQueueJobId: localRecord.jobId,
+        sourceGatewayRuntimeAdmissionMode: localRecord.sourceGatewayRuntimeAdmissionMode,
         runtimeTarget: localRecord.runtimeTarget,
         liveRuntimeAllowedNow: false,
         serviceRoleTransactionPerformed: false,
@@ -338,6 +340,7 @@ async function createRuntimeQueueServiceBridgeRecord(
     productionToolId: localRecord.productionToolId,
     workerType: localRecord.workerType,
     runtimeTarget: localRecord.runtimeTarget,
+    sourceGatewayRuntimeAdmissionMode: localRecord.sourceGatewayRuntimeAdmissionMode,
     capabilityIds,
     sourceLocalQueueJobBatchId: localRecord.jobBatchId,
     sourceLocalQueueJobId: localRecord.jobId,

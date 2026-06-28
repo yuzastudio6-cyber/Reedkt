@@ -11,12 +11,15 @@ This bridge connects the external-beta local queue storage proof to ReeditPro's 
 
 The bridge runs in forced mock mode. It validates that all 21 AI graphics tools can be shaped as canonical `ai_graphics_tool_runtime` queue payloads through the real runtime queue service without writing to Supabase, claiming a worker, creating a lease, dispatching a worker, executing a tool, or starting GPU runtime.
 
+The CPU/static `d3` path preserves `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` into the runtime queue service bridge record and queue input payload. That keeps the first safe external-beta cohort traceable after local queue storage while all live queue and worker gates remain closed.
+
 ## External-Beta Result
 
 - Tools covered: 21
 - Product-facing capabilities covered: 12
 - GPU/model tools covered: 8
 - Canonical runtime queue service validations: 21
+- CPU/static first-cohort runtime queue service payloads: 1
 - Heavy/model tools incorrectly targeting CPU: 0
 - Live Supabase queue writes now: 0
 - Live worker claim rows now: 0

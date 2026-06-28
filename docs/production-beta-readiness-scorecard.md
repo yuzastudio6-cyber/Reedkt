@@ -275,8 +275,10 @@ bridges the external-beta local queue storage packet into the existing
 Diagnostics validate all 21 AI graphics tools through the runtime queue service
 that owns `enqueue_ai_graphics_tool_runtime_jobs` and
 `claim_ai_graphics_tool_runtime_job`, including the eight GPU/model tools on
-GPU-targeted runtime lanes and zero heavy-tool CPU fallbacks. This is still not
-a live Supabase queue write or worker claim: `liveQueueWriteApprovedNow=false`,
+GPU-targeted runtime lanes and zero heavy-tool CPU fallbacks. The CPU/static D3
+queue service bridge record carries
+`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. This is still not a
+live Supabase queue write or worker claim: `liveQueueWriteApprovedNow=false`,
 `supabaseMutationPerformed=false`, `liveWorkerClaimInsertApprovedNow=false`,
 `workerLeaseCreated=false`, `workerDispatchPerformed=false`,
 `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`,

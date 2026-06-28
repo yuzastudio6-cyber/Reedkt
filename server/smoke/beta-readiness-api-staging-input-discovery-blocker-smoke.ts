@@ -9,6 +9,8 @@ const remediationJsonPath = 'docs/beta-readiness/api-staging-input-discovery/202
 const remediationMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-request.md'
 const workflowReadyJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-workflow-ready.json'
 const workflowReadyMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-workflow-ready.md'
+const ownerRemediationPermissionBlockerJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-permission-blocker.json'
+const ownerRemediationPermissionBlockerMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-permission-blocker.md'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const report = JSON.parse(readFileSync(jsonPath, 'utf8')) as {
@@ -120,6 +122,55 @@ const workflowReadyReport = JSON.parse(readFileSync(workflowReadyJsonPath, 'utf8
   productionEnabled: boolean
 }
 const workflowReadyMarkdown = readFileSync(workflowReadyMarkdownPath, 'utf8')
+const ownerRemediationPermissionBlockerReport = JSON.parse(readFileSync(ownerRemediationPermissionBlockerJsonPath, 'utf8')) as {
+  decision: string
+  defaultBranchWorkflow: {
+    path: string
+    workflowPr: number
+    workflowMergeSha: string
+    latestRun: {
+      runId: number
+      headSha: string
+      conclusion: string
+      failedStep: string
+    }
+    requiredConfirmations: string[]
+  }
+  lockedInputs: {
+    artifactRegion: string
+    artifactRepository: string
+    deployerServiceAccount: string
+    runtimeServiceAccount: string
+    serviceName: string
+  }
+  observedResult: {
+    wifAuthSucceeded: boolean
+    setupGcloudSucceeded: boolean
+    permissionDenied: string
+    resource: string
+    reason: string
+    verificationStepRan: boolean
+    runtimeServiceAccountCreatedByWorkflow: boolean
+    artifactRegistryWriterGrantedByWorkflow: boolean
+    runAdminGrantedByWorkflow: boolean
+    secretAccessorGrantedByWorkflow: boolean
+  }
+  blockedAction: string
+  notABlanketBlocker: boolean
+  safeForwardProgress: string[]
+  nextSafeActions: string[]
+  blockedScopes: string[]
+  productReadyLocalOssCount: number
+  externalBetaEnabled: boolean
+  productionEnabled: boolean
+  supabase: {
+    write: string
+    environment: string
+    sql: string
+    migration: string
+  }
+}
+const ownerRemediationPermissionBlockerMarkdown = readFileSync(ownerRemediationPermissionBlockerMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
@@ -270,15 +321,76 @@ assert.ok(workflowReadyMarkdown.includes('APPLY_STAGING_BETA_API_OWNER_REMEDIATI
 assert.ok(workflowReadyMarkdown.includes('MUTATE_STAGING_IAM_ONLY'))
 assert.ok(workflowReadyMarkdown.includes('Product-ready local OSS count remains `0`'))
 
+assert.equal(ownerRemediationPermissionBlockerReport.decision, 'beta_readiness_api_staging_owner_remediation_blocked_by_artifact_registry_iam_policy_permission')
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.path, '.github/workflows/beta-readiness-api-staging-owner-remediation.yml')
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.workflowPr, 1382)
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.workflowMergeSha, 'e818b5c6cdd200b6e6c06c517f5f2e3f557388f6')
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.latestRun.runId, 28310493040)
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.latestRun.headSha, 'e818b5c6cdd200b6e6c06c517f5f2e3f557388f6')
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.latestRun.conclusion, 'failure')
+assert.equal(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.latestRun.failedStep, 'Apply staging API IAM and runtime account prerequisites')
+assert.deepEqual(ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.requiredConfirmations, [
+  'APPLY_STAGING_BETA_API_OWNER_REMEDIATION',
+  'MUTATE_STAGING_IAM_ONLY',
+])
+assert.equal(ownerRemediationPermissionBlockerReport.lockedInputs.artifactRegion, 'us-central1')
+assert.equal(ownerRemediationPermissionBlockerReport.lockedInputs.artifactRepository, 'reeditpro-staging-workers')
+assert.equal(ownerRemediationPermissionBlockerReport.lockedInputs.deployerServiceAccount, 'sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com')
+assert.equal(ownerRemediationPermissionBlockerReport.lockedInputs.runtimeServiceAccount, 'reeditpro-api-staging@reeditpro.iam.gserviceaccount.com')
+assert.equal(ownerRemediationPermissionBlockerReport.lockedInputs.serviceName, 'reeditpro-api-staging')
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.wifAuthSucceeded, true)
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.setupGcloudSucceeded, true)
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.permissionDenied, 'artifactregistry.repositories.getIamPolicy')
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.resource, 'projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers')
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.reason, 'IAM_PERMISSION_DENIED')
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.verificationStepRan, false)
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.runtimeServiceAccountCreatedByWorkflow, false)
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.artifactRegistryWriterGrantedByWorkflow, false)
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.runAdminGrantedByWorkflow, false)
+assert.equal(ownerRemediationPermissionBlockerReport.observedResult.secretAccessorGrantedByWorkflow, false)
+assert.equal(ownerRemediationPermissionBlockerReport.notABlanketBlocker, true)
+assert.equal(ownerRemediationPermissionBlockerReport.blockedAction, 'staging_api_deploy_until_repository_iam_policy_admin_or_higher_privilege_owner_grants_exact_staging_permissions')
+assert.ok(ownerRemediationPermissionBlockerReport.safeForwardProgress.includes('owner_or_repository_iam_admin_grants_deployer_artifact_registry_writer_on_us_central1_reeditpro_staging_workers'))
+assert.ok(ownerRemediationPermissionBlockerReport.safeForwardProgress.includes('rerun_exact_input_validation_after_owner_side_iam_remediation'))
+assert.ok(ownerRemediationPermissionBlockerReport.nextSafeActions.some((action) => action.includes('higher-privilege owner')))
+assert.ok(ownerRemediationPermissionBlockerReport.nextSafeActions.some((action) => action.includes('exact validation passes')))
+assert.ok(ownerRemediationPermissionBlockerReport.blockedScopes.includes('cloud_run_deploy_not_run'))
+assert.ok(ownerRemediationPermissionBlockerReport.blockedScopes.includes('artifact_registry_writer_not_granted_by_workflow'))
+assert.ok(ownerRemediationPermissionBlockerReport.blockedScopes.includes('external_beta_not_enabled'))
+assert.equal(ownerRemediationPermissionBlockerReport.productReadyLocalOssCount, 0)
+assert.equal(ownerRemediationPermissionBlockerReport.externalBetaEnabled, false)
+assert.equal(ownerRemediationPermissionBlockerReport.productionEnabled, false)
+assert.deepEqual(ownerRemediationPermissionBlockerReport.supabase, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+assert.ok(ownerRemediationPermissionBlockerMarkdown.includes('artifactregistry.repositories.getIamPolicy'))
+assert.ok(ownerRemediationPermissionBlockerMarkdown.includes('This is not a blanket blocker.'))
+assert.ok(ownerRemediationPermissionBlockerMarkdown.includes('higher-privilege owner or repository IAM admin'))
+assert.ok(ownerRemediationPermissionBlockerMarkdown.includes('Product-ready local OSS count remains `0`'))
+assert.equal(JSON.stringify(ownerRemediationPermissionBlockerReport).includes('gha-creds'), false, 'owner remediation blocker report must not include credential-file paths')
+assert.equal(JSON.stringify(ownerRemediationPermissionBlockerReport).includes('SERVICE_ROLE_KEY'), false, 'owner remediation blocker report must not include secret values')
+
 console.log(JSON.stringify({
   ok: true,
-  decisions: [report.decision, exactReport.decision, remediationReport.decision, workflowReadyReport.decision],
+  decisions: [
+    report.decision,
+    exactReport.decision,
+    remediationReport.decision,
+    workflowReadyReport.decision,
+    ownerRemediationPermissionBlockerReport.decision,
+  ],
   runId: report.defaultBranchWorkflow.latestRun.runId,
   exactRunId: exactReport.defaultBranchWorkflow.latestRun.runId,
+  ownerRemediationRunId: ownerRemediationPermissionBlockerReport.defaultBranchWorkflow.latestRun.runId,
   probeFailures: report.readOnlyPreflight.probeFailures,
   exactProbeFailures: exactReport.readOnlyPreflight.probeFailures,
+  ownerRemediationPermissionDenied: ownerRemediationPermissionBlockerReport.observedResult.permissionDenied,
   blockedAction: report.blockedAction,
   exactBlockedAction: exactReport.blockedAction,
+  ownerRemediationBlockedAction: ownerRemediationPermissionBlockerReport.blockedAction,
   ownerActions: remediationReport.requiredOwnerActions.map((action) => action.id),
   ownerWorkflow: workflowReadyReport.defaultBranchWorkflow.path,
 }, null, 2))

@@ -2,42 +2,52 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_HANDLER_FAIL_CLOSED_RUNTIME_VALIDATION_1'
-const packetDir = 'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1'
+const packet = 'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_RUNTIME_VALIDATION_1'
+const packetDir = 'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/fail-closed-runtime-result.md`,
+  `${packetDir}/readback-runtime-result.md`,
   `${packetDir}/safety-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/qwen2-5-vl-product-route-handler-fail-closed-runtime-validation-record.json`,
-  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-results.md',
-  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1.md',
-  'server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts',
+  `${packetDir}/qwen2-5-vl-product-route-readback-runtime-validation-record.json`,
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1.md',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-smoke.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-diagnostics.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-diagnostics.mjs',
   'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-diagnostics.mjs',
-  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs',
   'package.json',
 ]
 
 const requiredText = [
   packet,
-  'completed_qwen2_5_vl_product_route_handler_fail_closed_runtime_validation',
-  'completed_local_in_process_route_fail_closed_runtime_validation_no_provider_or_remote_execution',
-  'e1cdaa2625a9112cd9e2b3121b346a2929a74398',
-  '#1354',
+  'completed_qwen2_5_vl_product_route_readback_runtime_validation_fail_closed',
+  'completed_local_in_process_route_readback_runtime_validation_no_provider_or_remote_execution',
+  '1eb45f3ec695d827de26ab4bec06e5bd7442235d',
+  '#1358',
+  '#1361',
   '#577 remains open/draft/blocked/excluded',
+  'Reeditpro',
+  'wmyyttnynmteqgcdishd',
+  'staging',
   'providers.qwen25Vl.structuredVisualMetadataPlan',
   '/api/providers/qwen2-5-vl/structured-visual-metadata',
   'local_in_process_express_app',
+  'REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION=true',
   'PROVIDER_ROUTE_BLOCKED',
   'HTTP `424`',
-  'IDEMPOTENCY_KEY_REQUIRED',
-  'blocked_pending_route_readback_validation_gate',
-  'blocked_product_route_handler_unsafe_runtime_request',
   'blocked_provider_runtime_not_enabled',
+  'ready_for_confirmed_qwen2_5_vl_product_route_readback_validation_runtime_packet',
+  'IDEMPOTENCY_KEY_REQUIRED',
+  'blocked_product_route_handler_unsafe_runtime_request',
+  'Local product route readback runtime validation: `passed`',
   'Route handler fail-closed: `true`',
-  'Route readback execution allowed now: `false`',
+  'Readback validation gate observed by route: `true`',
+  'Actual remote readback allowed now: `false`',
+  'Supabase readback execution allowed now: `false`',
+  'Service-role readback execution allowed now: `false`',
   'Provider/model call allowed now: `false`',
   'Worker dispatch allowed now: `false`',
   'Media processing allowed now: `false`',
@@ -48,12 +58,12 @@ const requiredText = [
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_CONFIRMED_1',
+  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_ENABLEMENT_REVIEW_1',
 ]
 
 const forbiddenPatterns = [
   /External beta unlocked in this phase:\s*`?true`?/i,
-  /(?:Route readback execution|Provider\/model call|Worker dispatch|Media processing|Signed URL creation|Public artifact|Final render\/export|External beta unlock|Paid production unlock|Production unlock) allowed now:\s*`?true`?/i,
+  /(?:Actual remote readback|Supabase readback execution|Service-role readback execution|Provider\/model call|Worker dispatch|Media processing|Signed URL creation|Public artifact|Final render\/export|External beta unlock|Paid production unlock|Production unlock) allowed now:\s*`?true`?/i,
   /remoteRouteExecution"?\s*:\s*true/i,
   /routeReadbackExecution"?\s*:\s*true/i,
   /supabaseReadbackExecution"?\s*:\s*true/i,
@@ -61,6 +71,7 @@ const forbiddenPatterns = [
   /qwenRuntimeExecuted(?:InThisPhase)?"?\s*:\s*true/i,
   /providerCall"?\s*:\s*true/i,
   /modelCall"?\s*:\s*true/i,
+  /frontendProviderModelCall"?\s*:\s*true/i,
   /workerExecution"?\s*:\s*true/i,
   /workerDispatch(?:AllowedNow)?"?\s*:\s*true/i,
   /supabaseMutation"?\s*:\s*true/i,
@@ -127,15 +138,22 @@ for (const pattern of forbiddenPatterns) {
   if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = JSON.parse(read(`${packetDir}/qwen2-5-vl-product-route-handler-fail-closed-runtime-validation-record.json`))
+const record = JSON.parse(read(`${packetDir}/qwen2-5-vl-product-route-readback-runtime-validation-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'completed_qwen2_5_vl_product_route_handler_fail_closed_runtime_validation') fail('decision mismatch')
-if (record.execution !== 'completed_local_in_process_route_fail_closed_runtime_validation_no_provider_or_remote_execution') {
+if (record.decision !== 'completed_qwen2_5_vl_product_route_readback_runtime_validation_fail_closed') {
+  fail('decision mismatch')
+}
+if (record.execution !== 'completed_local_in_process_route_readback_runtime_validation_no_provider_or_remote_execution') {
   fail('execution mismatch')
 }
-if (record.integrationBase !== 'e1cdaa2625a9112cd9e2b3121b346a2929a74398') fail('integration base mismatch')
-if (record.sourceEvidence?.productRouteHandlerSourcePr !== 1354) fail('missing #1354 source evidence')
+if (record.integrationBase !== '1eb45f3ec695d827de26ab4bec06e5bd7442235d') fail('integration base mismatch')
+if (record.sourceEvidence?.productRouteHandlerFailClosedRuntimeValidationPr !== 1358) fail('missing #1358 evidence')
+if (record.sourceEvidence?.productRouteReadbackValidationConfirmedPr !== 1361) fail('missing #1361 evidence')
 if (record.sourceEvidence?.excludedPr !== 577) fail('missing #577 exclusion')
+if (record.target?.projectName !== 'Reeditpro') fail('target name mismatch')
+if (record.target?.projectRef !== 'wmyyttnynmteqgcdishd') fail('target ref mismatch')
+if (record.target?.class !== 'staging') fail('target class mismatch')
+if (record.target?.secretMetadataOnly !== true) fail('target must remain non-secret metadata only')
 if (record.route?.localRuntimeTarget !== 'local_in_process_express_app') fail('runtime target mismatch')
 if (record.route?.routeHandlerRegisteredNow !== true) fail('route handler must be registered')
 if (record.route?.routeHandlerFailClosed !== true) fail('route handler must fail closed')
@@ -143,56 +161,63 @@ if (record.route?.validatedProviderRouteBlocked !== true) fail('PROVIDER_ROUTE_B
 if (record.route?.validatedHttpStatus !== 424) fail('HTTP 424 must be validated')
 if (record.route?.idempotencyDatabaseMutationInThisPhase !== false) fail('idempotency DB mutation must be false')
 
+if (record.confirmationGate?.env !== 'REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION') {
+  fail('confirmation env mismatch')
+}
+if (record.confirmationGate?.requiredValue !== 'true') fail('confirmation value mismatch')
+if (record.confirmationGate?.confirmationPresentInRuntime !== true) fail('confirmation must be present')
+if (record.confirmationGate?.remoteReadbackExecuted !== false) fail('remote readback must not execute')
+
 if (record.runtimeValidation?.missingIdempotencyHeader?.status !== 400) fail('missing idempotency status mismatch')
 if (record.runtimeValidation?.missingIdempotencyHeader?.code !== 'IDEMPOTENCY_KEY_REQUIRED') {
   fail('missing idempotency code mismatch')
 }
-for (const [key, expectedStatus] of Object.entries({
-  validRefsWithoutReadbackGate: 'blocked_pending_route_readback_validation_gate',
-  unsafeProviderModelRequestFlag: 'blocked_product_route_handler_unsafe_runtime_request',
-  confirmedReadbackGateStillProviderBlocked: 'blocked_provider_runtime_not_enabled',
-})) {
-  const item = record.runtimeValidation?.[key]
-  if (item?.status !== 424) fail(`${key} HTTP status mismatch`)
-  if (item?.code !== 'PROVIDER_ROUTE_BLOCKED') fail(`${key} code mismatch`)
-  if (item?.handlerStatus !== expectedStatus) fail(`${key} handler status mismatch`)
+const confirmed = record.runtimeValidation?.confirmedReadbackGateWithGeneratedRefs
+if (confirmed?.status !== 424) fail('confirmed readback route status mismatch')
+if (confirmed?.code !== 'PROVIDER_ROUTE_BLOCKED') fail('confirmed readback route code mismatch')
+if (confirmed?.handlerStatus !== 'blocked_provider_runtime_not_enabled') fail('confirmed handler status mismatch')
+if (confirmed?.readbackValidationOk !== true) fail('readback validation ok mismatch')
+if (confirmed?.readbackValidationStatus !== 'ready_for_confirmed_qwen2_5_vl_product_route_readback_validation_runtime_packet') {
+  fail('readback validation status mismatch')
 }
+const unsafe = record.runtimeValidation?.unsafeRemoteReadbackRequestFlag
+if (unsafe?.status !== 424) fail('unsafe remote readback status mismatch')
+if (unsafe?.code !== 'PROVIDER_ROUTE_BLOCKED') fail('unsafe remote readback code mismatch')
+if (unsafe?.handlerStatus !== 'blocked_product_route_handler_unsafe_runtime_request') fail('unsafe handler status mismatch')
 
 for (const [key, value] of Object.entries(record.allowedExecution ?? {})) {
-  if (key === 'localFailClosedRouteRuntimeValidation') {
-    if (value !== true) fail('local fail-closed route runtime validation must be true')
+  if (key === 'localProductRouteReadbackRuntimeValidation' || key === 'routeHandlerFailClosed') {
+    if (value !== true) fail(`${key} must be true`)
     continue
   }
   if (value !== false) fail(`allowed execution flag must be false: ${key}`)
 }
 for (const [key, value] of Object.entries(record.safety ?? {})) {
-  if (key === 'localInProcessRouteRuntimeValidation') {
-    if (value !== true) fail('local in-process route runtime validation must be true')
+  if (key === 'localInProcessRouteReadbackRuntimeValidation') {
+    if (value !== true) fail('local in-process route readback validation must be true')
     continue
   }
   if (value !== false) fail(`safety flag must be false: ${key}`)
 }
-if (
-  record.readiness?.qwenProductRouteHandlerFailClosedRuntimeValidation !==
-  'ready_for_guarded_qwen2_5_vl_external_beta_product_route_readback_validation_confirmed_1'
-) {
+if (record.readiness?.qwenProductRouteReadbackRuntimeValidation !== 'completed_fail_closed_ready_for_provider_runtime_enablement_review') {
   fail('readiness status mismatch')
 }
 if (record.readiness?.externalBetaUnlockedInThisPhase !== false) fail('external beta must remain locked')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.readiness?.nextMilestone !== 'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_CONFIRMED_1') {
+if (record.readiness?.nextMilestone !== 'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_ENABLEMENT_REVIEW_1') {
   fail('next milestone mismatch')
 }
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 
-const smoke = read('server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts')
+const smoke = read('server/smoke/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-smoke.ts')
 for (const text of [
   'createReeditProApiApp',
-  'local_mock_qwen_route_fail_closed_runtime_validation_target',
-  "assertProviderRouteBlocked(failClosed, 'blocked_pending_route_readback_validation_gate')",
-  "assertProviderRouteBlocked(unsafeRequest, 'blocked_product_route_handler_unsafe_runtime_request')",
-  "assertProviderRouteBlocked(confirmedReadbackGateStillProviderBlocked, 'blocked_provider_runtime_not_enabled')",
+  "const targetRef = 'wmyyttnynmteqgcdishd'",
+  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_CONFIRM_ENV',
+  "assert.equal(result.body.error?.details?.status, 'blocked_provider_runtime_not_enabled')",
+  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_READY_STATUS',
+  "assert.equal(unsafeRemoteReadbackRequest.body.error?.details?.status, 'blocked_product_route_handler_unsafe_runtime_request')",
   "assert.equal(result.body.error?.details?.safety?.providerCall, false)",
   "assert.equal(result.body.error?.details?.safety?.modelCall, false)",
   "assert.equal(result.body.error?.details?.safety?.supabaseMutation, false)",
@@ -203,45 +228,21 @@ for (const text of [
 
 const packageJson = JSON.parse(read('package.json'))
 if (
-  packageJson.scripts?.['smoke:qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1'] !==
-  'tsx server/smoke/qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-smoke.ts'
+  packageJson.scripts?.['smoke:qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1'] !==
+  'tsx server/smoke/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-smoke.ts'
 ) {
-  fail('missing runtime validation smoke script')
+  fail('missing runtime smoke script')
 }
 if (
-  packageJson.scripts?.['rp-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1:diagnostics'] !==
-  'node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1:diagnostics'] !==
+  'node scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-diagnostics.mjs'
 ) {
-  fail('missing runtime validation diagnostics script')
+  fail('missing runtime diagnostics script')
 }
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
 const allowedFiles = new Set(requiredFiles)
-const followOnProductRouteReadbackValidationConfirmedFiles = [
-  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-1-diagnostics.mjs',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/source-audit.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/confirmed-readback-reference-gate.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/safety-boundary.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/validation-results.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1/qwen2-5-vl-product-route-readback-validation-confirmed-record.json',
-  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-results.md',
-  'server/smoke/qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-smoke.ts',
-  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-validation-confirmed-1-diagnostics.mjs',
-]
-const followOnProductRouteReadbackRuntimeValidationFiles = [
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1/source-audit.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1/readback-runtime-result.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1/safety-boundary.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1/validation-results.md',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1/qwen2-5-vl-product-route-readback-runtime-validation-record.json',
-  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-results.md',
-  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-provider-runtime-enablement-review-1.md',
-  'server/smoke/qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-smoke.ts',
-  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-readback-runtime-validation-1-diagnostics.mjs',
-]
-for (const file of followOnProductRouteReadbackValidationConfirmedFiles) allowedFiles.add(file)
-for (const file of followOnProductRouteReadbackRuntimeValidationFiles) allowedFiles.add(file)
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (forbiddenFilePatterns.some((pattern) => pattern.test(file))) fail(`forbidden file changed: ${file}`)
@@ -260,5 +261,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: completed_qwen2_5_vl_product_route_handler_fail_closed_runtime_validation')
-console.log('Next milestone: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION_CONFIRMED_1')
+console.log('Decision: completed_qwen2_5_vl_product_route_readback_runtime_validation_fail_closed')
+console.log('Next milestone: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_ENABLEMENT_REVIEW_1')

@@ -25,7 +25,21 @@ const requiredFiles = [
   'package.json',
 ]
 
-const readbackFiles = new Set(requiredFiles)
+const followOnProductRouteHandlerSourceFiles = [
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-source-1/source-audit.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-source-1/route-handler-contract.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-source-1/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-source-1/validation-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-handler-source-1/qwen2-5-vl-product-route-handler-source-record.json',
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-handler-source-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-handler-fail-closed-runtime-validation-1.md',
+  'server/services/qwen2-5-vl-external-beta-product-route-handler-source.ts',
+  'server/smoke/qwen2-5-vl-external-beta-product-route-handler-source-1-smoke.ts',
+  'server/routes/provider-gateway-routes.ts',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-handler-source-1-diagnostics.mjs',
+]
+
+const readbackFiles = new Set([...requiredFiles, ...followOnProductRouteHandlerSourceFiles])
 
 const requiredText = [
   packet,

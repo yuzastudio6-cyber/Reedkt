@@ -25,6 +25,26 @@ export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_HANDLER_SOURCE_READY_STATUS 
 export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_HANDLER_SOURCE_NEXT_MILESTONE =
   'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_HANDLER_FAIL_CLOSED_RUNTIME_VALIDATION_1' as const
 
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_PACKET =
+  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1' as const
+
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_DECISION =
+  'completed_qwen2_5_vl_product_route_backend_job_handoff_source_contract' as const
+
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_EXECUTION =
+  'completed_backend_only_handoff_source_no_provider_or_model_execution' as const
+
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV =
+  'REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF' as const
+
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE = 'true' as const
+
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_READY_STATUS =
+  'ready_for_guarded_qwen2_5_vl_product_route_provider_runtime_fixture' as const
+
+export const QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_NEXT_MILESTONE =
+  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R' as const
+
 export interface Qwen25VlExternalBetaProductRouteHandlerSourceInput {
   workspaceId: string
   projectId: string
@@ -54,6 +74,111 @@ export interface Qwen25VlExternalBetaProductRouteHandlerSourceInput {
   publicArtifactRequested?: boolean
   finalRenderExportRequested?: boolean
   externalBetaUnlockRequested?: boolean
+}
+
+export interface Qwen25VlExternalBetaProductRouteBackendJobHandoffResult {
+  packet: typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_PACKET
+  decision: typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_DECISION
+  execution: typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_EXECUTION
+  ok: boolean
+  status:
+    | typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_READY_STATUS
+    | 'blocked_pending_backend_job_handoff_confirmation'
+    | 'blocked_pending_route_readback_validation_gate'
+    | 'blocked_product_route_handler_unsafe_runtime_request'
+  httpStatus: 202 | 424
+  route: {
+    routeId: 'providers.qwen25Vl.structuredVisualMetadataPlan'
+    method: 'POST'
+    path: '/api/providers/qwen2-5-vl/structured-visual-metadata'
+    routeHandlerRegisteredNow: true
+    routeHandlerFailClosedByDefault: true
+    routeBehaviorChangedInThisPhase: false
+  }
+  auth: {
+    authenticatedUserRef: string | null
+    workspaceMembershipRef: string | null
+    routeIdempotencyKey: string | null
+  }
+  routeReadbackValidation: Qwen25VlExternalBetaProductRouteReadbackValidationResult
+  confirmationGate: {
+    env: typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV
+    requiredValue: typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE
+    confirmed: boolean
+  }
+  backendHandoff: {
+    backendOnly: true
+    sourceContractOnly: true
+    handoffPrepared: boolean
+    executeNow: false
+    providerRuntimeExecutedNow: false
+    workerDispatchAllowedNow: false
+    cloudRunExecutionAllowedNow: false
+    adapterRuntimeLane: 'qwen2_5_vl_confirmed_private_adapter_runtime_fixture'
+    handoffId: string | null
+    adapterRequestId: string | null
+    approvedSnapshotRef: string | null
+    creditReservationRef: string | null
+    queueLeaseRef: string | null
+    idempotencyKey: string | null
+    privateInputManifestRef: string | null
+    privateArtifactManifestRef: string | null
+    privateArtifactChecksumRef: string | null
+    sourceSequenceMapRef: string | null
+    compiledIntentRef: string | null
+    editPlanVersionRef: string | null
+    modelRoutingPolicyRef: string | null
+    qaPolicyRef: string | null
+  }
+  allowedExecution: {
+    backendJobHandoffPreparedNow: boolean
+    routeExecutionAcceptedNow: false
+    providerModelCallAllowedNow: false
+    workerDispatchAllowedNow: false
+    cloudRunServiceUpdateAllowedNow: false
+    cloudRunJobExecutionAllowedNow: false
+    identityTokenFetchAllowedNow: false
+    secretPayloadAccessAllowedNow: false
+    mediaProcessingAllowedNow: false
+    signedUrlCreationAllowedNow: false
+    publicArtifactAllowedNow: false
+    finalRenderExportAllowedNow: false
+    externalBetaUnlockAllowedNow: false
+    paidProductionUnlockAllowedNow: false
+    productionUnlockAllowedNow: false
+  }
+  safety: {
+    backendOnlyHandoffSource: true
+    sourceContractOnly: true
+    routeBehaviorChanged: false
+    qwenRuntimeExecutedInThisPhase: false
+    productRouteProviderRuntimeExecution: false
+    providerCall: false
+    modelCall: false
+    frontendProviderModelCall: false
+    workerExecution: false
+    workerDispatch: false
+    cloudRunServiceUpdate: false
+    cloudRunJobExecution: false
+    identityTokenFetch: false
+    secretPayloadAccess: false
+    supabaseMutation: false
+    sqlExecution: false
+    signedUrlCreation: false
+    publicArtifactCreation: false
+    mediaProcessing: false
+    privateUserMediaProcessing: false
+    rawPromptExecution: false
+    finalRenderExport: false
+    externalBetaUnlockAppliedToEnvironment: false
+    paidProductionUnlock: false
+    productionUnlock: false
+    creditMutation: false
+    packageLockMutation: false
+  }
+  warnings: string[]
+  blockers: string[]
+  nextMilestone: typeof QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_NEXT_MILESTONE
 }
 
 export interface Qwen25VlExternalBetaProductRouteHandlerSourceResult {
@@ -297,10 +422,151 @@ export function buildQwen25VlExternalBetaProductRouteHandlerSourceResult(
   }
 }
 
+function buildHandoffId(input: Qwen25VlExternalBetaProductRouteHandlerSourceInput): string {
+  return `qwen_product_route_backend_handoff_${input.requestId}`
+}
+
+export function buildQwen25VlExternalBetaProductRouteBackendJobHandoff(
+  context: ServiceContext,
+  input: Qwen25VlExternalBetaProductRouteHandlerSourceInput,
+): Qwen25VlExternalBetaProductRouteBackendJobHandoffResult {
+  const routeReadbackValidation = buildQwen25VlExternalBetaProductRouteReadbackValidation(
+    buildReadbackValidationInput(context, input),
+  )
+  assertQwen25VlExternalBetaProductRouteReadbackValidationResult(routeReadbackValidation)
+
+  const confirmed =
+    process.env[QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV] ===
+    QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE
+  const unsafeRequest = hasUnsafeRequest(input)
+  const ok = confirmed && routeReadbackValidation.ok && !unsafeRequest
+  const status = unsafeRequest
+    ? 'blocked_product_route_handler_unsafe_runtime_request'
+    : !confirmed
+      ? 'blocked_pending_backend_job_handoff_confirmation'
+      : !routeReadbackValidation.ok
+        ? 'blocked_pending_route_readback_validation_gate'
+        : QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_READY_STATUS
+
+  const blockers = [
+    !confirmed ? 'qwen_product_route_backend_job_handoff_requires_explicit_confirmation' : null,
+    ...routeReadbackValidation.blockers,
+    unsafeRequest ? 'qwen_product_route_backend_job_handoff_rejects_unsafe_runtime_request_flags' : null,
+  ].filter((value): value is string => Boolean(value))
+
+  return {
+    packet: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_PACKET,
+    decision: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_DECISION,
+    execution: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_EXECUTION,
+    ok,
+    status,
+    httpStatus: ok ? 202 : 424,
+    route: {
+      routeId: 'providers.qwen25Vl.structuredVisualMetadataPlan',
+      method: 'POST',
+      path: '/api/providers/qwen2-5-vl/structured-visual-metadata',
+      routeHandlerRegisteredNow: true,
+      routeHandlerFailClosedByDefault: true,
+      routeBehaviorChangedInThisPhase: false,
+    },
+    auth: {
+      authenticatedUserRef: context.auth?.userId ?? null,
+      workspaceMembershipRef: normalize(input.workspaceMembershipRef),
+      routeIdempotencyKey: normalize(input.routeIdempotencyKey),
+    },
+    routeReadbackValidation,
+    confirmationGate: {
+      env: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV,
+      requiredValue: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE,
+      confirmed,
+    },
+    backendHandoff: {
+      backendOnly: true,
+      sourceContractOnly: true,
+      handoffPrepared: ok,
+      executeNow: false,
+      providerRuntimeExecutedNow: false,
+      workerDispatchAllowedNow: false,
+      cloudRunExecutionAllowedNow: false,
+      adapterRuntimeLane: 'qwen2_5_vl_confirmed_private_adapter_runtime_fixture',
+      handoffId: ok ? buildHandoffId(input) : null,
+      adapterRequestId: normalize(input.adapterRequestId) ?? `qwen_route_handler_adapter_${input.requestId}`,
+      approvedSnapshotRef: normalize(input.approvedSnapshotReadbackRef),
+      creditReservationRef: normalize(input.creditReservationReadbackRef),
+      queueLeaseRef: normalize(input.queueLeaseReadbackRef),
+      idempotencyKey: normalize(input.routeIdempotencyKey),
+      privateInputManifestRef: normalize(input.privateInputManifestReadbackRef),
+      privateArtifactManifestRef: normalize(input.privateArtifactManifestReadbackRef),
+      privateArtifactChecksumRef: normalize(input.privateArtifactChecksumReadbackRef),
+      sourceSequenceMapRef: normalize(input.sourceSequenceMapReadbackRef),
+      compiledIntentRef: normalize(input.compiledIntentReadbackRef),
+      editPlanVersionRef: normalize(input.editPlanVersionReadbackRef),
+      modelRoutingPolicyRef: normalize(input.modelRoutingPolicyReadbackRef),
+      qaPolicyRef: normalize(input.qaPolicyReadbackRef),
+    },
+    allowedExecution: {
+      backendJobHandoffPreparedNow: ok,
+      routeExecutionAcceptedNow: false,
+      providerModelCallAllowedNow: false,
+      workerDispatchAllowedNow: false,
+      cloudRunServiceUpdateAllowedNow: false,
+      cloudRunJobExecutionAllowedNow: false,
+      identityTokenFetchAllowedNow: false,
+      secretPayloadAccessAllowedNow: false,
+      mediaProcessingAllowedNow: false,
+      signedUrlCreationAllowedNow: false,
+      publicArtifactAllowedNow: false,
+      finalRenderExportAllowedNow: false,
+      externalBetaUnlockAllowedNow: false,
+      paidProductionUnlockAllowedNow: false,
+      productionUnlockAllowedNow: false,
+    },
+    safety: {
+      backendOnlyHandoffSource: true,
+      sourceContractOnly: true,
+      routeBehaviorChanged: false,
+      qwenRuntimeExecutedInThisPhase: false,
+      productRouteProviderRuntimeExecution: false,
+      providerCall: false,
+      modelCall: false,
+      frontendProviderModelCall: false,
+      workerExecution: false,
+      workerDispatch: false,
+      cloudRunServiceUpdate: false,
+      cloudRunJobExecution: false,
+      identityTokenFetch: false,
+      secretPayloadAccess: false,
+      supabaseMutation: false,
+      sqlExecution: false,
+      signedUrlCreation: false,
+      publicArtifactCreation: false,
+      mediaProcessing: false,
+      privateUserMediaProcessing: false,
+      rawPromptExecution: false,
+      finalRenderExport: false,
+      externalBetaUnlockAppliedToEnvironment: false,
+      paidProductionUnlock: false,
+      productionUnlock: false,
+      creditMutation: false,
+      packageLockMutation: false,
+    },
+    warnings: [
+      'QWEN product route backend job handoff is source-only and backend-only.',
+      'No QWEN provider/model call, Cloud Run execution, worker dispatch, Supabase mutation, media processing, signed/public artifact, or beta unlock was performed.',
+    ],
+    blockers,
+    nextMilestone: QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_NEXT_MILESTONE,
+  }
+}
+
 export function createQwen25VlExternalBetaProductRouteHandlerSource(context: ServiceContext) {
   return {
     buildBlockedResult(input: Qwen25VlExternalBetaProductRouteHandlerSourceInput) {
       return buildQwen25VlExternalBetaProductRouteHandlerSourceResult(context, input)
+    },
+
+    buildBackendJobHandoff(input: Qwen25VlExternalBetaProductRouteHandlerSourceInput) {
+      return buildQwen25VlExternalBetaProductRouteBackendJobHandoff(context, input)
     },
 
     throwFailClosed(input: Qwen25VlExternalBetaProductRouteHandlerSourceInput): never {
@@ -312,6 +578,50 @@ export function createQwen25VlExternalBetaProductRouteHandlerSource(context: Ser
         result,
       )
     },
+  }
+}
+
+export function assertQwen25VlExternalBetaProductRouteBackendJobHandoffResult(
+  result: Qwen25VlExternalBetaProductRouteBackendJobHandoffResult,
+): void {
+  if (result.decision !== QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_DECISION) {
+    throw new Error('QWEN product route backend job handoff decision mismatch.')
+  }
+  if (result.execution !== QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_EXECUTION) {
+    throw new Error('QWEN product route backend job handoff execution mismatch.')
+  }
+  assertQwen25VlExternalBetaProductRouteReadbackValidationResult(result.routeReadbackValidation)
+  if (!result.route.routeHandlerFailClosedByDefault) {
+    throw new Error('QWEN product route must remain fail-closed by default.')
+  }
+  if (result.route.routeBehaviorChangedInThisPhase) {
+    throw new Error('QWEN product route behavior must not change in the handoff source phase.')
+  }
+  if (!result.backendHandoff.backendOnly || !result.backendHandoff.sourceContractOnly) {
+    throw new Error('QWEN product route handoff must remain backend-only source contract.')
+  }
+  if (result.backendHandoff.executeNow || result.backendHandoff.providerRuntimeExecutedNow) {
+    throw new Error('QWEN product route backend handoff must not execute provider runtime now.')
+  }
+  if (result.ok && !result.backendHandoff.handoffPrepared) {
+    throw new Error('QWEN product route backend handoff ok result must prepare a handoff envelope.')
+  }
+  if (!result.ok && result.backendHandoff.handoffPrepared) {
+    throw new Error('QWEN product route backend handoff blocked result must not prepare handoff.')
+  }
+  for (const [key, value] of Object.entries(result.allowedExecution)) {
+    if (key === 'backendJobHandoffPreparedNow') {
+      if (value !== result.ok) throw new Error('QWEN backend handoff prepared flag must match ok status.')
+      continue
+    }
+    if (value !== false) throw new Error(`QWEN backend handoff allowed execution flag ${key} must be false.`)
+  }
+  for (const [key, value] of Object.entries(result.safety)) {
+    if (key === 'backendOnlyHandoffSource' || key === 'sourceContractOnly') {
+      if (value !== true) throw new Error(`QWEN backend handoff safety flag ${key} must be true.`)
+      continue
+    }
+    if (value !== false) throw new Error(`QWEN backend handoff safety flag ${key} must be false.`)
   }
 }
 

@@ -1,0 +1,86 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1",
+  "decision": "completed_qwen2_5_vl_product_route_backend_job_handoff_source_contract",
+  "execution": "completed_backend_only_handoff_source_no_provider_or_model_execution",
+  "integrationBase": "c0f7d05020dedc0d63e43d293d68a6fb893ff3e8",
+  "sourceEvidence": {
+    "productRouteReadbackRuntimeValidationPr": 1368,
+    "productRouteReadbackRuntimeValidationMergeSha": "d9f214786b40acef7664c1904130f0e4ac6bfc00",
+    "productRouteProviderRuntimeEnablementReviewPr": 1370,
+    "productRouteProviderRuntimeEnablementReviewMergeSha": "12b52c2f7fb33bee5dc391a9131a1f19576071e1",
+    "productRouteProviderRuntimeFixturePr": 1376,
+    "productRouteProviderRuntimeFixtureMergeSha": "c0f7d05020dedc0d63e43d293d68a6fb893ff3e8",
+    "excludedPr": 577
+  },
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF",
+    "requiredValue": "true",
+    "defaultConfirmed": false
+  },
+  "route": {
+    "routeId": "providers.qwen25Vl.structuredVisualMetadataPlan",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "defaultStatus": "fail_closed_before_provider_runtime",
+    "routeBehaviorChangedInThisPhase": false
+  },
+  "backendHandoff": {
+    "sourceContractImplemented": true,
+    "backendOnly": true,
+    "handoffEnvelopeValidatedBySmoke": true,
+    "adapterRuntimeLane": "qwen2_5_vl_confirmed_private_adapter_runtime_fixture",
+    "providerRuntimeExecutedNow": false,
+    "workerDispatchAllowedNow": false,
+    "cloudRunExecutionAllowedNow": false,
+    "requiredRefs": [
+      "approvedSnapshotReadbackRef",
+      "creditReservationReadbackRef",
+      "queueLeaseReadbackRef",
+      "routeIdempotencyKey",
+      "privateInputManifestReadbackRef",
+      "privateArtifactManifestReadbackRef",
+      "privateArtifactChecksumReadbackRef",
+      "sourceSequenceMapReadbackRef",
+      "compiledIntentReadbackRef",
+      "editPlanVersionReadbackRef",
+      "modelRoutingPolicyReadbackRef",
+      "qaPolicyReadbackRef"
+    ]
+  },
+  "safety": {
+    "backendOnlyHandoffSource": true,
+    "sourceContractOnly": true,
+    "routeBehaviorChanged": false,
+    "qwenRuntimeExecutedInThisPhase": false,
+    "productRouteProviderRuntimeExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "frontendProviderModelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "cloudRunServiceUpdate": false,
+    "cloudRunJobExecution": false,
+    "identityTokenFetch": false,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "qwenProductRouteBackendJobHandoff": "ready_for_guarded_qwen2_5_vl_product_route_provider_runtime_fixture",
+    "externalBetaUnlockedInThisPhase": false,
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

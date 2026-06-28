@@ -23,3 +23,11 @@ Add the backend-only job handoff needed for the QWEN product route to safely rea
 - explicit confirmation gate for any future bounded runtime fixture;
 - sanitized `/tmp` evidence only if the packet runs a bounded fixture;
 - package-lock unchanged.
+
+## Source Closure
+
+`QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1` implemented the backend-only source handoff contract and local smoke coverage. It did not execute QWEN, Cloud Run, providers, models, workers, Supabase, SQL, media, signed/public artifacts, or unlock external beta.
+
+Next prompt:
+
+`QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R`

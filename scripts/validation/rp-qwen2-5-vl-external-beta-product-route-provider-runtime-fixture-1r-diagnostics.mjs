@@ -22,6 +22,18 @@ const requiredFiles = [
   'package.json',
 ]
 
+const followupAllowedFiles = [
+  'docs/activation-phase-rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed-results.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/confirmed-runtime-result.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/fail-closed-restore.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/qwen2-5-vl-product-route-provider-runtime-fixture-1r-confirmed-record.json',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/runtime-evidence.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/safety-boundary.md',
+  'docs/external-beta/qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed/validation-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-cold-start-retry-1.md',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r-confirmed-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'blocked_pending_product_route_provider_runtime_fixture_confirmation',
@@ -173,7 +185,7 @@ for (const text of [
   "const backendHandoffEnv = 'REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF'",
   "const adapterFixtureConfirmEnv = 'REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_CONFIRMED_ADAPTER_RUNTIME_FIXTURE'",
   'blocked_pending_product_route_provider_runtime_fixture_confirmation',
-  'smoke:qwen2-5-vl-external-beta-product-route-backend-job-handoff-1',
+  'smoke:qwen2-5-vl-external-beta-product-route-provider-runtime-fixture-1r',
   'rp-qwen2-5-vl-external-beta-confirmed-adapter-runtime-fixture-1-confirmed.mjs',
   'finalize(report, 2)',
 ]) {
@@ -214,7 +226,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...followupAllowedFiles])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (forbiddenFilePatterns.some((pattern) => pattern.test(file))) fail(`forbidden file changed: ${file}`)

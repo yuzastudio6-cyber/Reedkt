@@ -1,0 +1,71 @@
+{
+  "packet": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R_CONFIRMED",
+  "decision": "blocked_qwen_adapter_runtime_fixture_http_502_during_model_cold_start",
+  "execution": "confirmed_product_route_provider_runtime_fixture_attempted_fail_closed_restore_passed",
+  "base": "62a9700bacef02153097f0dd37ac973ed914fbca",
+  "sourceEvidence": {
+    "productRouteProviderRuntimeFixture1rPr": 1387,
+    "productRouteProviderRuntimeFixture1rMergeSha": "62a9700bacef02153097f0dd37ac973ed914fbca",
+    "backendJobHandoffPr": 1380,
+    "excludedPr": 577
+  },
+  "confirmedGates": {
+    "providerRuntimeFixture": true,
+    "backendJobHandoff": true,
+    "routeReadbackValidation": true,
+    "runtimeGate": true,
+    "targetRef": "wmyyttnynmteqgcdishd",
+    "runtimeScope": "approved_snapshot_structured_metadata_only"
+  },
+  "runtimeAttempt": {
+    "runId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-28T04-04-09-287Z-6e6e6f3d",
+    "decision": "blocked_product_route_provider_runtime_fixture_failed",
+    "backendHandoffValidated": true,
+    "delegatedAdapterRunId": "qwen25-adapter-runtime-fixture-2026-06-28T04-04-09-756Z-ddcd534d",
+    "delegatedAdapterDecision": "blocked_qwen2_5_vl_external_beta_confirmed_adapter_runtime_fixture_failed",
+    "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-h2hdk",
+    "cloudRunJobExitCode": 3,
+    "callerHttpStatus": 502,
+    "serviceLogFinding": "qwen_service_loading_checkpoint_shard_0_of_5_when_cpu_caller_failed",
+    "failClosedRestorePassed": true
+  },
+  "artifacts": {
+    "productRouteReport": {
+      "fileName": "qwen2-5-vl-product-route-provider-runtime-fixture-1r-report.json",
+      "bytes": 7711,
+      "sha256": "0593c89a091d1e09284355c1f6a26d3cd93c073055bff75d427f12a113cf486b"
+    },
+    "productRouteManifest": {
+      "fileName": "qwen2-5-vl-product-route-provider-runtime-fixture-1r-manifest.json",
+      "bytes": 633,
+      "sha256": "d62ad62bd866598010a0014cb6a41f9fc5b2d260f6f2e035ffd242d5484185b9"
+    },
+    "productRouteChecksums": {
+      "fileName": "qwen2-5-vl-product-route-provider-runtime-fixture-1r-checksums.json",
+      "bytes": 837,
+      "sha256": "4fc09406c34814820ae2aa36d4830d5741e663a4cc94382ba1680834f8bf5a25"
+    }
+  },
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "frontendProviderModelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "finalRenderExport": false,
+    "privateUserMediaProcessing": false,
+    "packageLockMutation": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "readiness": {
+    "qwenProductRouteProviderRuntimeFixture1rConfirmed": "blocked_qwen_adapter_runtime_fixture_http_502_during_model_cold_start",
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R_COLD_START_RETRY_1"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

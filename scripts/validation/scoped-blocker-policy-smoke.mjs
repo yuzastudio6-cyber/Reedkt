@@ -30,9 +30,12 @@ for (const [label, text] of [
   ['production blocker policy', policy],
 ]) {
   assert.match(text, /intentional blanket blockers are not allowed/i, `${label} must ban intentional blanket blockers`)
+  assert.match(text, /scoped guardrails?, not global stop signs?/i, `${label} must require scoped blockers instead of global stops`)
+  assert.match(text, /freeze unrelated safe work/i, `${label} must forbid freezing unrelated safe work`)
   assert.match(text, /unsafe action/i, `${label} must require blocked unsafe-action scope`)
   assert.match(text, /missing proof|missing proof, approval|missing proof or approval/i, `${label} must require missing evidence`)
   assert.match(text, /next smallest safe|next safe action|safe lane/i, `${label} must require safe forward progress`)
+  assert.match(text, /blocked.*does not mean|blocked.*not that all|not a reason to stop all safe work/is, `${label} must state blocked does not stop all safe work`)
   assert.match(text, /approval/i, `${label} must preserve approval gates`)
   assert.match(text, /credit/i, `${label} must preserve credit gates`)
   assert.match(text, /Supabase/i, `${label} must preserve Supabase gates`)
@@ -42,6 +45,9 @@ for (const [label, text] of [
 for (const token of [
   'intentionalBlanketBlocksAllowed: false',
   'safeBlockerReductionAllowed: true',
+  'blockerScopeType: "unsafe_action_only"',
+  'mustContinueSafeProgressWhenAvailable: true',
+  'blockedDoesNotMeanStopAllWork: true',
   'blockedActionScope',
   'allowedForwardProgressScopes',
 ]) {
@@ -157,6 +163,9 @@ for (const [label, workflow] of [
 console.log(JSON.stringify({
   ok: true,
   policy: 'intentional_blanket_blockers_disallowed',
+  blockerScopeType: 'unsafe_action_only',
+  blockedDoesNotMeanStopAllWork: true,
+  mustContinueSafeProgressWhenAvailable: true,
   ownerPrerequisiteAuditWorkflow: 'fixed_secret_inputs_masked_and_redacted',
   ownerRemediationWorkflow: 'fixed_secret_inputs_masked_and_redacted',
   safeBlockerReductionAllowed: true,

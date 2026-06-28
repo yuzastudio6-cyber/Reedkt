@@ -6,17 +6,31 @@ Production, beta, provider, billing, Supabase, storage, worker, media, and credi
 
 Intentional blanket blockers are not allowed.
 
+Blockers are scoped guardrails, not global stop signs. A valid blocker
+blocks only the unsafe action it names; it must not intentionally freeze unrelated safe work,
+including source review, planning, diagnostics, QA, owner approval, deployment
+preflight, monitoring, rollback, or mock-safe implementation work that can
+reduce the blocker while preserving the gate.
+
 A valid blocker must name:
 
 - the exact unsafe action that remains blocked;
 - the missing proof, approval, deployment, license, persistence, owner decision, runtime evidence, or QA evidence;
 - the next smallest safe lane that can reduce or retire the blocker without bypassing the gate.
 
-If any blocker report omits those details, the blocker report is incomplete. Repair the blocker metadata first, then continue the smallest safe review, proof, planning, diagnostics, or QA lane.
+If any blocker report omits those details, the blocker report is incomplete.
+Repair the blocker metadata first, then continue the smallest safe review,
+proof, planning, diagnostics, QA, owner-approval, preflight, rollback,
+monitoring, or mock-safe implementation lane. The missing metadata is not a
+valid reason to stop all safe work.
 
 ## Allowed Safe Progress
 
 Blocked means "do not perform the unsafe action yet." It does not mean "stop reducing the blocker."
+
+Forward progress is required when a safe lane exists. Agents and automation
+should choose the smallest useful lane that shrinks the evidence gap, records
+the remaining unsafe-action boundary, and leaves unrelated scopes untouched.
 
 Safe blocker-reduction lanes include:
 
@@ -26,6 +40,7 @@ Safe blocker-reduction lanes include:
 - mock-safe backend skeletons;
 - diagnostics and QA packets;
 - deployment preflight and read-only prerequisite audit;
+- scoped owner/environment remediation when explicitly approved;
 - owner-approval packet collection;
 - rollback, monitoring, incident-response, and support planning.
 
@@ -37,11 +52,15 @@ Readiness and blocker reports should expose the distinction between blocked unsa
 
 - `intentionalBlanketBlocksAllowed: false`
 - `safeBlockerReductionAllowed: true`
+- `blockerScopeType: "unsafe_action_only"`
+- `mustContinueSafeProgressWhenAvailable: true`
+- `blockedDoesNotMeanStopAllWork: true`
 - `blockedActionScope`, limited to the unsafe launch, runtime, billing, storage, provider, worker, media, or delivery action that remains closed
 - `allowedForwardProgressScopes`, listing the safe review/proof/diagnostics/QA/preflight/approval/planning lanes that may continue
 - `nextSafeAction`, naming the next smallest useful step
 
-Missing scoped-forward-progress metadata is a metadata defect, not a reason to stop all safe work.
+Missing scoped-forward-progress metadata is a metadata defect, not a reason to
+stop all safe work.
 
 ## Preserved Safety Gates
 

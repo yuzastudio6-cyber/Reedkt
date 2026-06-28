@@ -179,7 +179,7 @@ function productCapabilityCount(): 12 {
   return productCapabilities().length as 12
 }
 
-function hasValue(value?: string): boolean {
+function hasValue(value?: string): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
@@ -246,7 +246,7 @@ function missingPrivateArtifactControls(
 }
 
 function normalizeRoot(ref?: string): string | null {
-  if (!isSafePrivateRef(ref)) return null
+  if (!ref || !isSafePrivateRef(ref)) return null
   return ref.trim().replace(/\/+$/, '')
 }
 

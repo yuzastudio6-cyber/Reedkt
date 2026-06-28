@@ -23,6 +23,30 @@ const gpuTools = [
   'transparent_background',
 ]
 
+const allTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+]
+
 const modelWeightTools = [
   'sam2',
   'birefnet',
@@ -132,17 +156,24 @@ function parseJsonOutput(output, label) {
 function acceptedPerToolRuntimeProofFixture() {
   return {
     decision: 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
+    sourceToolRouteRuntimeProofBridgeAccepted: true,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     runtimeProofRecordsPrepared: 21,
     runtimeProofAcceptedWithProvidedEvidenceTools: 13,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
     jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
     nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
     blockedPendingNativeGpuRuntimeProofTools: 8,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
+    records: allTools.map((toolId) => ({
+      toolId,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    })),
     booleans: {
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
       gpuRuntimeOnDemandOnly: true,
       gpuRuntimeShouldStartNow: false,
       agentCanExecuteToolsNow: false,
@@ -274,6 +305,7 @@ for (const profile of runtimeProfiles) {
 
 for (const [key, expected] of Object.entries({
   gpuRuntimeTargetedTools: 8,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   modelWeightChecksumEvidenceRequiredTools: 5,
   modelWeightChecksumEvidenceAccepted: 0,
   modelWeightManifestRequiredTools: 5,
@@ -292,6 +324,7 @@ for (const [key, expected] of Object.entries({
 for (const key of [
   'externalBetaNativeGpuProofCollectionPrepared',
   'sourcePerToolRuntimeProofAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
   'commandPlanAccepted',
   'all8GpuRuntimeToolsCovered',
   'all5ModelWeightToolsCovered',
@@ -320,6 +353,9 @@ if (docs.booleans?.cpuFallbackAllowedForHeavyTools !== false) {
   fail('docs_cpu_fallback_allowed_for_heavy_tools')
 }
 if (!markdown.includes('GPU runtime is on-demand only')) fail('markdown_missing_on_demand_policy')
+if (!markdown.includes('sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21')) {
+  fail('markdown_missing_source_bridge_policy')
+}
 if (!markdown.includes('Current accepted private checksum evidence: `0 / 5`')) {
   fail('markdown_missing_checksum_block')
 }
@@ -457,6 +493,40 @@ if (unsafePacket.decision !== 'missing_external_beta_native_gpu_proof_collection
 }
 if (!unsafePacket.missingNativeGpuProofCollectionControls?.includes('externalBetaNativeGpuProofCollectionPolicyRef')) {
   fail('unsafe_collection_did_not_reject_public_policy_ref')
+}
+
+const strippedBridgePerToolPath = writeJson(path.join(tempDir, 'stripped-bridge-per-tool.json'), {
+  ...acceptedPerToolRuntimeProofFixture(),
+  sourceToolRouteRuntimeProofBridgeAccepted: false,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+  records: allTools.map((toolId) => ({
+    toolId,
+    sourceRuntimeQueueServiceProofBridgeAccepted: false,
+  })),
+  booleans: {
+    ...acceptedPerToolRuntimeProofFixture().booleans,
+    sourceRuntimeQueueServiceProofBridgeAccepted: false,
+  },
+})
+const strippedBridgeOutput = runNpm(runScriptName, [
+  '--external-beta-per-tool-runtime-proof-packet',
+  strippedBridgePerToolPath,
+  '--gpu-runtime-proof-command-plan-packet',
+  commandPlanPath,
+  '--model-weight-checksum-evidence-packet',
+  acceptedChecksumPath,
+  '--model-weight-manifest-review-packet',
+  acceptedManifestPath,
+  '--gpu-runtime-proof-result-packet',
+  acceptedGpuResultPath,
+  ...safeRefArgs,
+])
+const strippedBridgePacket = parseJsonOutput(strippedBridgeOutput, 'stripped_bridge_collection')
+if (strippedBridgePacket.decision !== 'external_beta_per_tool_runtime_proof_rejected') {
+  fail(`stripped_bridge_collection_decision_mismatch:${strippedBridgePacket.decision}`)
+}
+if (strippedBridgePacket.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== false) {
+  fail('stripped_bridge_collection_source_bridge_not_false')
 }
 
 const packageLockDiff = git(['diff', '--name-only', baseRef, '--', 'package-lock.json'])

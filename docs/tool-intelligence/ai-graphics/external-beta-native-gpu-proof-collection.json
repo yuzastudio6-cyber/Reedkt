@@ -63,6 +63,7 @@
   "counts": {
     "totalAiGraphicsTools": 21,
     "gpuRuntimeTargetedTools": 8,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "modelWeightChecksumEvidenceRequiredTools": 5,
     "modelWeightChecksumEvidenceAccepted": 0,
     "modelWeightManifestRequiredTools": 5,
@@ -128,6 +129,7 @@
   "booleans": {
     "externalBetaNativeGpuProofCollectionPrepared": true,
     "sourcePerToolRuntimeProofAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": true,
     "commandPlanAccepted": true,
     "checksumEvidenceAcceptedForAll5ModelTools": false,
     "privateModelManifestsAcceptedForAll5ModelTools": false,

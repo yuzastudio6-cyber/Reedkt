@@ -59,6 +59,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
   decision: AiGraphicsExternalBetaNativeGpuProofCollectionStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION
   sourcePerToolRuntimeProofAccepted: boolean
+  sourcePerToolRuntimeProofBridgeAccepted: boolean
   missingNativeGpuProofCollectionControls: string[]
   totalAiGraphicsTools: 21
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
@@ -74,7 +75,9 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
   }
   proofCollectionRequirements: AiGraphicsExternalBetaNativeGpuProofCollectionRequirement[]
   counts: {
+    totalAiGraphicsTools: 21
     gpuRuntimeTargetedTools: 8
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
     modelWeightChecksumEvidenceRequiredTools: 5
     modelWeightChecksumEvidenceAccepted: number
     modelWeightManifestRequiredTools: 5
@@ -106,6 +109,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
   booleans: {
     externalBetaNativeGpuProofCollectionPrepared: true
     sourcePerToolRuntimeProofAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     commandPlanAccepted: boolean
     checksumEvidenceAcceptedForAll5ModelTools: boolean
     privateModelManifestsAcceptedForAll5ModelTools: boolean
@@ -214,6 +218,16 @@ function sourcePerToolRuntimeProofAccepted(
   packet?: AiGraphicsExternalBetaPerToolRuntimeProof,
 ): boolean {
   const counts = (packet as unknown as { counts?: Record<string, number> } | undefined)?.counts
+  const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
+    packet?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence ??
+    counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence ??
+    0
+  const sourceRuntimeQueueServiceProofBridgeAccepted =
+    packet?.sourceToolRouteRuntimeProofBridgeAccepted === true &&
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet?.records?.length === 21 &&
+    packet.records.every((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted === true) &&
+    packet?.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true
   return Boolean(packet) &&
     (
       packet?.decision === 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks' ||
@@ -229,9 +243,26 @@ function sourcePerToolRuntimeProofAccepted(
       packet?.blockedPendingNativeGpuRuntimeProofTools === 8 ||
       counts?.blockedPendingNativeGpuRuntimeProofTools === 8
     ) &&
+    sourceRuntimeQueueServiceProofBridgeAccepted &&
     packet?.booleans?.gpuRuntimeOnDemandOnly === true &&
     packet?.booleans?.gpuRuntimeShouldStartNow === false &&
     packet?.booleans?.agentCanExecuteToolsNow === false
+}
+
+function sourcePerToolRuntimeProofBridgeAccepted(
+  packet?: AiGraphicsExternalBetaPerToolRuntimeProof,
+): boolean {
+  const counts = (packet as unknown as { counts?: Record<string, number> } | undefined)?.counts
+  const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
+    packet?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence ??
+    counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence ??
+    0
+  return Boolean(packet) &&
+    packet?.sourceToolRouteRuntimeProofBridgeAccepted === true &&
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet?.records?.length === 21 &&
+    packet.records.every((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted === true) &&
+    packet?.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true
 }
 
 function commandPlanAccepted(packet?: AiGraphicsGpuRuntimeProofCommandPlan): boolean {
@@ -287,6 +318,8 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
   input: AiGraphicsExternalBetaNativeGpuProofCollectionInput = {},
 ): AiGraphicsExternalBetaNativeGpuProofCollection {
   const sourceAccepted = sourcePerToolRuntimeProofAccepted(input.sourcePerToolRuntimeProofPacket)
+  const sourceBridgeAccepted =
+    sourcePerToolRuntimeProofBridgeAccepted(input.sourcePerToolRuntimeProofPacket)
   const missingNativeGpuProofCollectionControls = missingControls(input)
   const commandAccepted = commandPlanAccepted(input.gpuRuntimeProofCommandPlanPacket)
   const checksumAccepted = checksumEvidenceAccepted(input.modelWeightChecksumEvidencePacket)
@@ -342,6 +375,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
     decision,
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
     sourcePerToolRuntimeProofAccepted: sourceAccepted,
+    sourcePerToolRuntimeProofBridgeAccepted: sourceBridgeAccepted,
     missingNativeGpuProofCollectionControls,
     totalAiGraphicsTools: 21,
     gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
@@ -357,7 +391,10 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
     },
     proofCollectionRequirements,
     counts: {
+      totalAiGraphicsTools: 21,
       gpuRuntimeTargetedTools: 8,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        sourceBridgeAccepted ? 21 : 0,
       modelWeightChecksumEvidenceRequiredTools: 5,
       modelWeightChecksumEvidenceAccepted: checksumAccepted,
       modelWeightManifestRequiredTools: 5,
@@ -397,6 +434,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
     booleans: {
       externalBetaNativeGpuProofCollectionPrepared: true,
       sourcePerToolRuntimeProofAccepted: sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted: sourceBridgeAccepted,
       commandPlanAccepted: commandAccepted,
       checksumEvidenceAcceptedForAll5ModelTools: checksumAccepted === 5,
       privateModelManifestsAcceptedForAll5ModelTools: manifestAccepted === 5,

@@ -15,6 +15,8 @@ This checkpoint connects the external per-tool runtime proof gate to the native 
 
 The current external-beta state remains blocked for these tools. The 13 JavaScript graphics tools already have accepted runtime proof evidence, but the 8 GPU/model tools still require private model-weight evidence and native linux/amd64 NVIDIA L4 proof before they can be rechecked by the per-tool runtime gate.
 
+The source per-tool runtime proof must also preserve the runtime queue service proof bridge: `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`. This prevents stale or stripped proof packets from feeding the native GPU collection path.
+
 ## Runtime Targets
 
 | Tool | Runtime Target |
@@ -79,6 +81,7 @@ The only accepted ready state from this checkpoint is `external_beta_native_gpu_
 ## Current Result
 
 - Source per-tool runtime proof accepted: `true`
+- Source runtime queue service proof bridge accepted with provided evidence: `21 / 21`
 - GPU command plan accepted: `true`
 - Private checksum evidence accepted for all five model tools: `false`
 - Private model manifests accepted for all five model tools: `false`

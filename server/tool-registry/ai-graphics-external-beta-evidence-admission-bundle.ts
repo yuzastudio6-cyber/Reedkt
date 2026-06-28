@@ -208,8 +208,8 @@ export function buildAiGraphicsExternalBetaEvidenceAdmissionBundle(
       externalBetaPrivateEvidenceAcceptedForTool,
       externalBetaAdmissionCandidateWithProvidedEvidence:
         technicalEvidenceAccepted && externalBetaPrivateEvidenceAcceptedForTool,
-      externalBetaReadyNow: false,
-      productionReadyNow: false,
+      externalBetaReadyNow: false as false,
+      productionReadyNow: false as false,
       missingEvidenceBeforeExternalBetaAdmission: toolMissingEvidence({
         toolId,
         technicalEvidenceAccepted,

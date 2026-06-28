@@ -274,7 +274,7 @@ function decisionFromInput(input: {
 
 function buildWorkerCandidate(input: {
   input: AiGraphicsExternalBetaToolCallGatewayInput
-  runtimeAdmission: AiGraphicsExternalBetaRuntimeAdmission
+  runtimeAdmission: AiGraphicsExternalBetaGatewayRuntimeAdmission
   ready: boolean
 }): AiGraphicsExternalBetaWorkerEnqueueCandidate | null {
   if (!input.ready) return null

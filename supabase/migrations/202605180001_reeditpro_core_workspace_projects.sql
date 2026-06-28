@@ -59,6 +59,72 @@ create table if not exists public.projects (
   updated_at timestamptz not null default now()
 );
 
+-- Earlier active baseline migrations create workspace/project/chat shells with
+-- slightly different column names. Keep this migration idempotent when it is
+-- loaded after that baseline instead of recreating those tables.
+alter table public.workspaces
+  add column if not exists owner_id uuid references auth.users(id) on delete cascade;
+
+alter table public.workspaces
+  add column if not exists metadata_json jsonb not null default '{}'::jsonb;
+
+alter table public.projects
+  add column if not exists owner_id uuid references auth.users(id) on delete cascade;
+
+alter table public.projects
+  add column if not exists editing_category text;
+
+alter table public.projects
+  add column if not exists current_edit_session_id uuid;
+
+alter table public.projects
+  add column if not exists metadata_json jsonb not null default '{}'::jsonb;
+
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'workspaces'
+      and column_name = 'owner_user_id'
+  ) then
+    -- owner_user_id_to_owner_id compatibility backfill for earlier baseline shells.
+    execute 'update public.workspaces set owner_id = owner_user_id where owner_id is null';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'workspaces'
+      and column_name = 'metadata'
+  ) then
+    execute 'update public.workspaces set metadata_json = metadata where metadata_json = ''{}''::jsonb and metadata is not null';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'projects'
+      and column_name = 'created_by'
+  ) then
+    -- created_by_to_owner_id compatibility backfill for earlier baseline shells.
+    execute 'update public.projects set owner_id = created_by where owner_id is null and created_by is not null';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'projects'
+      and column_name = 'metadata'
+  ) then
+    execute 'update public.projects set metadata_json = metadata where metadata_json = ''{}''::jsonb and metadata is not null';
+  end if;
+end $$;
+
 create table if not exists public.edit_sessions (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
@@ -92,6 +158,18 @@ create table if not exists public.chat_messages (
   metadata_json jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table public.chat_messages
+  add column if not exists edit_session_id uuid references public.edit_sessions(id) on delete cascade;
+
+alter table public.chat_messages
+  add column if not exists attachments_json jsonb not null default '[]'::jsonb;
+
+alter table public.chat_messages
+  add column if not exists related_clip_ids_json jsonb not null default '[]'::jsonb;
+
+alter table public.chat_messages
+  add column if not exists metadata_json jsonb not null default '{}'::jsonb;
 
 create table if not exists public.user_confirmations (
   id uuid primary key default gen_random_uuid(),

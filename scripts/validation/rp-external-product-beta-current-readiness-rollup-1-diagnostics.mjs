@@ -35,6 +35,8 @@ const mainTargetMigrationSyncFiles = [
 ]
 
 const relatedDiagnosticsAllowlist = [
+  'scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs',
   'scripts/validation/rp-internal-beta-supabase-target-owner-decision-1-diagnostics.mjs',
   'scripts/validation/supabase-staging-migration-history-owner-decision-1-diagnostics.mjs',
   'scripts/validation/supabase-clean-staging-target-owner-approval-1-diagnostics.mjs',
@@ -482,6 +484,20 @@ const followOnBoundedTesterExpansionDecision1Files = [
   'docs/activation-phase-rp-external-beta-bounded-tester-expansion-decision-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-additional-named-tester-list-owner-input-1.md',
   'scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs',
+  'package.json',
+]
+
+const followOnSingleTesterActiveLaneClosure1Files = [
+  'docs/external-beta/single-tester-active-lane-closure-1/source-audit.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/lane-decision.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/expansion-boundary.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/readiness-gate.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/safety-boundary.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/validation-results.md',
+  'docs/external-beta/single-tester-active-lane-closure-1/single-tester-active-lane-closure-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-active-lane-closure-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-usage-qa-1.md',
+  'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -1494,6 +1510,7 @@ const allowed = new Set([
   ...followOnControlledOwnerGoNoGo1Files,
   ...followOnNamedInvitedTesterWalkthrough1Files,
   ...followOnBoundedTesterExpansionDecision1Files,
+  ...followOnSingleTesterActiveLaneClosure1Files,
   ...followOnToolReadinessStatusReconciliation1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,

@@ -299,6 +299,7 @@
     "worker-runtime-jobs:sound-cpu-launch-core-persistent-manifest-source-creation-after-source-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-persistent-manifest-source-creation-after-source-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-launch-core-persistent-manifest-owner-review-after-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-persistent-manifest-owner-review-after-source-creation-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-launch-core-readiness-reconciliation-after-persistent-manifest-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-readiness-reconciliation-after-persistent-manifest-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-launch-core-source-install-review-after-readiness-reconciliation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-source-install-review-after-readiness-reconciliation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

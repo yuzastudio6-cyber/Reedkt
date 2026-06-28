@@ -100,6 +100,15 @@ alter table if exists public.generation_requests
 
 comment on table public.generation_requests is 'Provider generation requests must reference approved_plan_snapshot_id before worker execution starts.';
 comment on column public.generation_requests.approved_plan_snapshot_id is 'Compatibility reference to immutable approved plan snapshots. Added nullable for older local baselines before project-snapshot indexes; no backfill is invented here.';
+-- Compatibility guard for older active baselines where generated_asset_versions
+-- already exists with version_number but without the newer version index column.
+-- This adds the nullable index compatibility column only; it does not backfill
+-- from version_number or invent generated asset versions, storage objects, jobs,
+-- worker rows, provider outputs, credit records, or Qwen runtime records.
+alter table if exists public.generated_asset_versions
+  add column if not exists version integer;
+
+comment on column public.generated_asset_versions.version is 'Compatibility index column for older local baselines before idx_generated_asset_versions_asset_version; no backfill from version_number is invented here.';
 comment on table public.editing_jobs is 'Editing jobs execute approved snapshots, not raw chat or mutable current plan state.';
 comment on table public.job_steps is 'Worker-controlled job steps. Normal users must not directly insert or update job_steps in production.';
 comment on table public.worker_events is 'Worker and fallback events should be audited through backend/service-role paths.';

@@ -1,0 +1,128 @@
+name: Beta Readiness API Staging Input Discovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_staging_api_input_discovery:
+        description: "Type READ_STAGING_BETA_API_DEPLOY_INPUTS to run read-only staging API deploy input discovery"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: beta-readiness-api-staging-input-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover-staging-api-inputs:
+    name: Discover read-only staging API deploy inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+    steps:
+      - name: Fail closed unless this is read-only staging input discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ inputs.confirm_staging_api_input_discovery }}" = "READ_STAGING_BETA_API_DEPLOY_INPUTS"
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test -n "${GCP_REGION}"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          test -n "${GCP_SERVICE_ACCOUNT}"
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Read staging deploy input candidates
+        id: discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+
+          gcloud artifacts repositories list \
+            --project="${GCP_PROJECT_ID}" \
+            --location=us-central1 \
+            --format='value(name)' > "${tmp}/artifact-us-central1.txt"
+
+          gcloud artifacts repositories list \
+            --project="${GCP_PROJECT_ID}" \
+            --location=us-east1 \
+            --format='value(name)' > "${tmp}/artifact-us-east1.txt"
+
+          gcloud iam service-accounts list \
+            --project="${GCP_PROJECT_ID}" \
+            --format='value(email)' > "${tmp}/service-accounts.txt"
+
+          gcloud run services list \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --format='value(metadata.name,status.url)' > "${tmp}/cloud-run-services.txt"
+
+          python - "${tmp}" "${GCP_PROJECT_ID}" "${GCP_REGION}" "${GCP_SERVICE_ACCOUNT}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          root = pathlib.Path(sys.argv[1])
+          project_id = sys.argv[2]
+          region = sys.argv[3]
+          wif_service_account = sys.argv[4]
+
+          def read_lines(name):
+              return [line.strip() for line in (root / name).read_text(encoding='utf-8').splitlines() if line.strip()]
+
+          artifact_repositories = {
+              'us-central1': read_lines('artifact-us-central1.txt'),
+              'us-east1': read_lines('artifact-us-east1.txt'),
+          }
+          service_accounts = read_lines('service-accounts.txt')
+          cloud_run_services = read_lines('cloud-run-services.txt')
+
+          summary = {
+              'ok': True,
+              'mode': 'read_only_staging_api_deploy_input_discovery',
+              'projectId': project_id,
+              'region': region,
+              'wifServiceAccount': wif_service_account,
+              'artifactRepositories': artifact_repositories,
+              'serviceAccounts': service_accounts,
+              'cloudRunServices': cloud_run_services,
+              'suggestedDeploySourceRef': 'codex/sound-music-audio-1abc-checkpoint',
+              'candidateServiceName': 'reeditpro-api-staging',
+              'blockedScopes': [
+                  'cloud_run_deploy_not_run',
+                  'docker_build_not_run',
+                  'docker_push_not_run',
+                  'api_runtime_not_called',
+                  'supabase_gcs_not_written',
+                  'external_beta_not_enabled',
+                  'paid_production_not_enabled',
+              ],
+          }
+          print(json.dumps(summary, indent=2, sort_keys=True))
+
+          step_summary = pathlib.Path(__import__('os').environ['GITHUB_STEP_SUMMARY'])
+          step_summary.write_text(
+              '# Beta Readiness API Staging Input Discovery\\n\\n'
+              'Read-only discovery completed. No deploy/build/push/runtime call was made.\\n\\n'
+              '```json\\n' + json.dumps(summary, indent=2, sort_keys=True) + '\\n```\\n',
+              encoding='utf-8',
+          )
+          PY

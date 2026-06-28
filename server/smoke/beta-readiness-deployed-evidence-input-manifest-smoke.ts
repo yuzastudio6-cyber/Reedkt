@@ -43,6 +43,7 @@ assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TOOLS_LOC
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
 assert.equal(emptyManifest.secretLikeInputPaths.length, 0)
+assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(emptyManifest.remainingBlockedScopes.includes('paid_production_until_separate_paid_production_evidence_collector_passes'))
 

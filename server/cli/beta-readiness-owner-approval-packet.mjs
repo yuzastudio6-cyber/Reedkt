@@ -210,6 +210,7 @@ export function buildBetaReadinessOwnerApprovalPacket(options = {}) {
     platformApprovalItems,
     launchApprovalItems,
     postApprovalCommands: [
+      'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:platform:staging-evidence-preflight',
       'npm run beta:readiness:launch-approval-evidence-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',

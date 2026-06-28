@@ -49,7 +49,7 @@ export interface RuntimeEnv {
 
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
-  API_PORT: z.coerce.number().int().positive().max(65535).default(8787),
+  API_PORT: z.coerce.number().int().positive().max(65535).optional(),
   PORT: z.coerce.number().int().positive().max(65535).optional(),
   E2E_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
   API_ALLOW_MOCK_WITHOUT_SUPABASE: z.string().optional(),

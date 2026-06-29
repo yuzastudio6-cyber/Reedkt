@@ -1,3 +1,6 @@
+import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
+
 export interface BetaReadinessOwnerCommandHandoffReport {
   ok: true
   decision: 'beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application'
@@ -58,8 +61,10 @@ const lockedInputs = {
   serviceName: 'reeditpro-api-staging',
 } as const
 
+const FALLBACK_CURRENT_SOURCE_SHA = '9b04cfc513125c50baae859a6154746cf0461cf3'
+
 export function buildBetaReadinessOwnerCommandHandoffReport(
-  sourceSha = 'd7534c53649a1ddf4cf064854088a4fc92531adc',
+  sourceSha = resolveCurrentSourceSha(),
 ): BetaReadinessOwnerCommandHandoffReport {
   const commandPlan: BetaReadinessOwnerCommandHandoffReport['commandPlan'] = [
     {
@@ -175,6 +180,27 @@ export function buildBetaReadinessOwnerCommandHandoffReport(
       'The owner must supply fixed staging API secret names in their own shell; the repo must not commit secret names or values.',
       'After owner-side remediation, rerun read-only audits before any staging deploy or evidence collector runs.',
     ],
+  }
+}
+
+function resolveCurrentSourceSha(): string {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      env: gitExecEnv(),
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return FALLBACK_CURRENT_SOURCE_SHA
+  }
+}
+
+function gitExecEnv() {
+  if (process.platform !== 'darwin') return process.env
+  if (process.env.DEVELOPER_DIR && existsSync(process.env.DEVELOPER_DIR)) return process.env
+  return {
+    ...process.env,
+    DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
   }
 }
 

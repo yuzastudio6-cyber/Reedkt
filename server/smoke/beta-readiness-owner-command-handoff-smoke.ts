@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 import { buildBetaReadinessOwnerCommandHandoffReport } from '../cli/beta-readiness-owner-command-handoff'
 
-const handoffJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-command-handoff.json'
-const handoffMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-command-handoff.md'
+const handoffJsonPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-29-current-api-staging-owner-command-handoff.json'
+const handoffMarkdownPath = 'docs/beta-readiness/api-staging-input-discovery/2026-06-29-current-api-staging-owner-command-handoff.md'
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> }
 const handoffDoc = JSON.parse(readFileSync(handoffJsonPath, 'utf8')) as {
   decision: string
@@ -38,13 +39,16 @@ assert.equal(
   'package script should expose the owner command handoff smoke',
 )
 
-const report = buildBetaReadinessOwnerCommandHandoffReport()
+const currentSourceSha = resolveCurrentSourceSha()
+const defaultReport = buildBetaReadinessOwnerCommandHandoffReport()
+const report = buildBetaReadinessOwnerCommandHandoffReport(handoffDoc.toolsSourceSha)
 const serialized = JSON.stringify(report)
 
+assert.equal(defaultReport.sourceTruth.latestMergedSourceSha, currentSourceSha)
 assert.equal(report.ok, true)
 assert.equal(report.decision, 'beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application')
 assert.equal(report.sourceTruth.toolsBranch, 'codex/sound-music-audio-1abc-checkpoint')
-assert.equal(report.sourceTruth.latestMergedSourceSha, 'd7534c53649a1ddf4cf064854088a4fc92531adc')
+assert.equal(report.sourceTruth.latestMergedSourceSha, '9b04cfc513125c50baae859a6154746cf0461cf3')
 assert.equal(report.sourceTruth.currentWorkflowScopeFixPr, 1441)
 assert.equal(report.sourceTruth.currentWorkflowScopeFixRunId, 28321557589)
 assert.equal(report.sourceTruth.currentOwnerCommandPacket, 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md')
@@ -110,6 +114,7 @@ assert.equal(handoffDoc.productionEnabled, false)
 assert.deepEqual(handoffDoc.supabase, report.supabase)
 assert.ok(handoffMarkdown.includes('npm run beta:readiness:owner-command-handoff'))
 assert.ok(handoffMarkdown.includes('REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV'))
+assert.ok(handoffMarkdown.includes('resolve current checkout `HEAD` by default'))
 assert.ok(handoffMarkdown.includes('Workflow scope fix PR: `#1441`'))
 assert.ok(handoffMarkdown.includes('Product-ready local OSS count remains `0`'))
 assert.equal(JSON.stringify(handoffDoc).includes('SERVICE_ROLE_KEY'), false, 'handoff doc must not print secret names or values')
@@ -125,7 +130,25 @@ assert.equal(serialized.includes('owner/editor'), true, 'handoff should explicit
 console.log(JSON.stringify({
   ok: true,
   decision: report.decision,
+  defaultSourceSha: defaultReport.sourceTruth.latestMergedSourceSha,
   currentWorkflowScopeFixRunId: report.sourceTruth.currentWorkflowScopeFixRunId,
   commandIds: report.commandPlan.map((command) => command.id),
   blockedScopes: report.blockedScopes,
 }, null, 2))
+
+function resolveCurrentSourceSha(): string {
+  return execFileSync('git', ['rev-parse', 'HEAD'], {
+    encoding: 'utf8',
+    env: gitExecEnv(),
+    stdio: ['ignore', 'pipe', 'ignore'],
+  }).trim()
+}
+
+function gitExecEnv() {
+  if (process.platform !== 'darwin') return process.env
+  if (process.env.DEVELOPER_DIR && existsSync(process.env.DEVELOPER_DIR)) return process.env
+  return {
+    ...process.env,
+    DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+  }
+}

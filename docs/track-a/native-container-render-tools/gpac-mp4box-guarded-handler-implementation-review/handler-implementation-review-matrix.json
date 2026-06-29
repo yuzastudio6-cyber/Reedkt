@@ -1,0 +1,32 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-IMPLEMENTATION-REVIEW-1",
+  "futureAllowedScope": "disabled_handler_implementation_contract_only",
+  "requiredGuards": [
+    "backend_service_role_ownership_required",
+    "disabled_by_default_required",
+    "feature_flag_default_false_required",
+    "approved_snapshot_guard_required",
+    "route_idempotency_guard_required",
+    "private_artifact_manifest_guard_required",
+    "command_allowlist_guard_required",
+    "negative_tests_must_remain_passing",
+    "cleanup_audit_reference_required",
+    "operator_confirmation_required_before_execution"
+  ],
+  "blocked": {
+    "executableHandlerRegistration": "blocked",
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-IMPLEMENTATION-CONTRACT-1"
+}

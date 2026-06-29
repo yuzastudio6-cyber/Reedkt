@@ -32,10 +32,26 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-scaffold-diagnostics.mjs',
 ]
 
+const implementationReviewDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-handler-implementation-review'
+const implementationReviewFiles = [
+  `${implementationReviewDir}/gpac-mp4box-guarded-handler-implementation-review-decision.json`,
+  `${implementationReviewDir}/gpac-mp4box-guarded-handler-implementation-review-decision.md`,
+  `${implementationReviewDir}/handler-implementation-review-matrix.json`,
+  `${implementationReviewDir}/handler-implementation-review-matrix.md`,
+  `${implementationReviewDir}/readiness-report.json`,
+  `${implementationReviewDir}/source-of-truth-audit.json`,
+  `${implementationReviewDir}/source-of-truth-audit.md`,
+  `${implementationReviewDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-implementation-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-implementation-contract-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-handler-implementation-review-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...implementationReviewFiles,
   'docs/activation-phase-tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-handler-implementation-review-1.md',
   'server/smoke/tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-smoke.ts',

@@ -28,9 +28,30 @@ const sourceFiles = [
   'server/smoke/tracka-gpac-mp4box-mock-worker-interface-smoke.ts',
 ]
 
+const guardedRouteMockImplementationFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/gpac-mp4box-guarded-service-role-route-mock-implementation-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/gpac-mp4box-guarded-service-role-route-mock-implementation-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/route-mock-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/route-mock-contract.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-service-role-route-mock-implementation/validation-results.md',
+  'src/backend/contracts/gpac-mp4box-guarded-service-role-route-mock-contracts.ts',
+  'src/backend/api/routes/gpac-mp4box-api-routes.ts',
+  'src/backend/api/api-route-registry.ts',
+  'src/backend/api/index.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...sourceFiles,
+  ...guardedRouteMockImplementationFiles,
   'docs/activation-phase-tracka-gpac-mp4box-mock-worker-interface-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-mock-worker-interface-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-service-role-route-implementation-plan-1.md',
@@ -284,8 +305,8 @@ const changedFiles = [...new Set([
 
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (/^src\//.test(file) && !file.startsWith('src/backend/contracts/')) fail(`forbidden src path changed ${file}`)
-  if (/^server\//.test(file) && !file.startsWith('server/smoke/')) fail(`forbidden server path changed ${file}`)
+  if (/^src\//.test(file) && !sourceFiles.includes(file) && !guardedRouteMockImplementationFiles.includes(file)) fail(`forbidden src path changed ${file}`)
+  if (/^server\//.test(file) && !sourceFiles.includes(file) && !guardedRouteMockImplementationFiles.includes(file)) fail(`forbidden server path changed ${file}`)
   if (/^supabase\/|^database\/|^public\//.test(file)) fail(`forbidden changed path ${file}`)
   if (/^docker\//.test(file)) fail(`Docker path changed ${file}`)
   if (/\.(mp4|mov|mkv|webm|srt|ass|png|jpg|jpeg|gif|wav|mp3|deb|gpg|asc)$/i.test(file)) fail(`artifact changed ${file}`)

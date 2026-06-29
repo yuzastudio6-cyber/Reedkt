@@ -1,0 +1,28 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-SERVICE-ROLE-ROUTE-MOCK-IMPLEMENTATION-1",
+  "sourceChain": [
+    "TRACKA-GPAC-MP4BOX-CONTROLLED-SYNTHETIC-MEDIA-COMMAND-QA-1",
+    "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+    "TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1",
+    "TRACKA-GPAC-MP4BOX-WORKER-ROUTE-CONTRACT-1",
+    "TRACKA-GPAC-MP4BOX-MOCK-WORKER-INTERFACE-1",
+    "TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1"
+  ],
+  "sourceOfTruthFor": "guarded_backend_route_metadata_and_typescript_route_mock_contract_only",
+  "notSourceOfTruthFor": [
+    "route_execution",
+    "worker_execution",
+    "gpac_mp4box_execution",
+    "media_processing",
+    "storage_transfer",
+    "supabase_mutation",
+    "sql_execution",
+    "signed_public_artifacts",
+    "external_beta",
+    "production"
+  ],
+  "excluded": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "productReadyLocalOssTools": 0
+}

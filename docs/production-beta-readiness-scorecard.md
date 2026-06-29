@@ -1463,6 +1463,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted route-boundary and backend-queue source packets plus route-to-queue policy, schema, service-role authorization, binding, audit, rollback, poison queue, non-production environment, and private network refs, it records one API-route-to-queue insertion proof candidate. The candidate requires the route and queue envelope to match on tool, capability, approved snapshot, credit reservation, idempotency key, runtime target, and worker type. The queue job remains `prepared_not_submitted`.
 - Runtime/beta/production: no unlock; this packet does not mount or execute an API route, write queue rows, run a service-role transaction, enqueue workers, create leases, dispatch workers, execute tools, start GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta API Route Queue Smoke Authorization
+
+- Decision: `ai_graphics_external_beta_api_route_queue_smoke_authorization_prepared_with_runtime_blocks`.
+- Scope: private non-production authorization metadata after the API-route-to-queue insertion proof and the all-21 service-role queue smoke authorization packet.
+- Result: with accepted source packets and private operator, route-execution-window, queue-write-window, cleanup, rollback, telemetry, cost, private network, and incident-response refs, it records one API route queue smoke authorization request with provided evidence. The authorization remains metadata only and does not approve the smoke itself.
+- Runtime/beta/production: no unlock; this packet does not mount or execute an API route, write queue rows, run a service-role transaction, enqueue workers, create leases, dispatch workers, execute tools, start GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

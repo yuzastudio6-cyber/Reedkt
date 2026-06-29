@@ -1,0 +1,231 @@
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_RESULT_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-result-review'
+
+const DECISION =
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_plan_recorded_runtime_implementation_required' as const
+const NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58BO-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-IMPLEMENTATION: implement controlled persisted Qwen worker dispatch runtime fail-closed, no Cloud Run invocation/no inference/no assets/no beta' as const
+
+const resultReview = QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_RESULT_REVIEW
+
+export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_PLAN = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_plan_only',
+  decision: DECISION,
+  upstreamControlledPersistedWorkerDispatchSmokeResultReviewDecision: resultReview.decision,
+  selectedRuntime: {
+    platform: 'google_cloud_run_gpu',
+    gpu: 'nvidia_l4',
+    region: 'us-central1',
+    service: 'reeditpro-qwen2-5-vl-l4-worker',
+    costPosture: 'scale_to_zero_required',
+    minInstances: 0,
+    maxInstancesForInitialRuntime: 1,
+    cpuFallbackAllowed: false,
+    runtimeUse:
+      'Qwen visual-understanding and visual-QA metadata for approved snapshot worker jobs only.',
+  },
+  acceptedPrerequisites: {
+    smokeResultReviewAccepted:
+      resultReview.runtimeFlags.controlledPersistedWorkerDispatchSmokeResultReviewAccepted,
+    runtimePersistenceRemoteSatisfied: true,
+    approvedSnapshotQueueContractAccepted: true,
+    failClosedCoordinatorAccepted: true,
+    privateInvokeEnvelopeAcceptedForFutureTransport: true,
+    privateInvokeTransportPreviewAccepted: true,
+    l4ScaleToZeroCostPostureAccepted: true,
+  },
+  runtimeImplementationPlan: [
+    {
+      id: 'approved_snapshot_intake',
+      owner: 'backend_runtime',
+      requiredBehavior:
+        'Load only approved snapshot, credit reservation, private source refs, manifest refs, checksums, and bounded Qwen use-case metadata from persisted job payloads.',
+      mustBlock: [
+        'raw_chat_execution',
+        'raw_prompt_payload_fields',
+        'missing_approved_snapshot',
+        'missing_credit_reservation',
+        'signed_url_source_of_truth',
+      ],
+    },
+    {
+      id: 'idempotency_and_job_claim',
+      owner: 'backend_runtime',
+      requiredBehavior:
+        'Check idempotency before lease claim, persist deterministic conflicts, and permit only one active Qwen claim per approved snapshot/job scope.',
+      mustBlock: [
+        'idempotency_conflict',
+        'duplicate_active_worker_claim',
+        'lease_claim_without_service_role_backend',
+      ],
+    },
+    {
+      id: 'lease_lifecycle',
+      owner: 'worker_runtime',
+      requiredBehavior:
+        'Use backend-only transactional claim, heartbeat, renewal, completion, failure, expiry, stale recovery, and cleanup semantics.',
+      mustBlock: [
+        'frontend_lease_claim',
+        'stale_claim_without_cleanup',
+        'orphaned_worker_state',
+      ],
+    },
+    {
+      id: 'qwen_adapter_and_envelope',
+      owner: 'qwen_runtime',
+      requiredBehavior:
+        'Build Qwen private invoke envelope from persisted source-of-truth refs and bounded visual-analysis use case; never expose service URL, auth header, identity token, or raw model prompt to browser/UI.',
+      mustBlock: [
+        'frontend_cloud_run_invocation',
+        'direct_service_url_exposure',
+        'token_or_bearer_header_persistence',
+        'provider_secret_persistence',
+      ],
+    },
+    {
+      id: 'private_invoke_transport_boundary',
+      owner: 'backend_runtime',
+      requiredBehavior:
+        'Keep runtime transport dependencies injected and disabled until a later approved execution gate revalidates IAM, service URL, audience, token fetch, timeout, response classification, and cleanup.',
+      mustBlock: [
+        'cloud_run_invocation_now',
+        'identity_token_fetch_now',
+        'service_runtime_request_now',
+      ],
+    },
+    {
+      id: 'qa_audit_cost_credit',
+      owner: 'observability_billing',
+      requiredBehavior:
+        'Record only sanitized plan metadata now; future implementation must attach QA, audit, cost, credit reservation, failure release/refund, and cleanup evidence before runtime acceptance.',
+      mustBlock: [
+        'credit_spend_without_approved_result',
+        'qa_report_without_generated_asset_review',
+        'audit_event_with_secret_values',
+      ],
+    },
+    {
+      id: 'result_and_cleanup',
+      owner: 'backend_runtime',
+      requiredBehavior:
+        'Future runtime must finalize job state, release lease, record sanitized events, preserve private artifact/source refs, and fail closed on every partial failure.',
+      mustBlock: [
+        'generated_asset_row_before_qa_storage_acceptance',
+        'public_artifact_creation',
+        'signed_url_creation',
+        'beta_or_production_readiness_claim',
+      ],
+    },
+  ],
+  requiredRuntimeStatuses: [
+    'queued_approved_snapshot_job',
+    'blocked_invalid_worker_job_schema',
+    'blocked_missing_approved_snapshot',
+    'blocked_missing_credit_reservation',
+    'blocked_missing_source_of_truth_refs',
+    'blocked_idempotency_conflict',
+    'blocked_real_lease_backend_required',
+    'blocked_qwen_dispatch_adapter_fail_closed',
+    'blocked_private_invoke_transport_dependencies',
+    'blocked_private_invoke_transport_preview_only',
+    'blocked_runtime_approval_missing',
+    'blocked_cleanup_required',
+    'blocked_qa_audit_cost_evidence_required',
+  ],
+  implementationInputs: {
+    approvedSnapshotRefRequired: true,
+    structuredFindingsRequired: true,
+    editIntentRefsRequired: true,
+    creditReservationRefRequired: true,
+    privateStoragePathRefRequired: true,
+    manifestRefRequired: true,
+    checksumRefRequired: true,
+    runtimeConfigRefRequired: true,
+    idempotencyKeyRequired: true,
+    rawPromptAllowed: false,
+    signedUrlSourceOfTruthAllowed: false,
+    publicUrlSourceOfTruthAllowed: false,
+  },
+  blockedBypasses: [
+    'raw_chat_worker_input',
+    'raw_prompt_payload_fields',
+    'raw_model_output_persistence',
+    'signed_url_source_of_truth',
+    'public_url_source_of_truth',
+    'frontend_browser_invocation',
+    'direct_cloud_run_service_url_exposure',
+    'token_or_bearer_header_persistence',
+    'provider_secret_persistence',
+    'service_role_key_value_persistence',
+    'database_url_persistence',
+    'duplicate_active_worker_claims',
+    'missing_credit_reservation',
+    'missing_approved_snapshot',
+    'missing_private_storage_checksum_manifest',
+    'generated_asset_row_before_qa_storage_acceptance',
+    'beta_or_production_readiness_claim',
+  ],
+  readinessDecision: {
+    controlledPersistedWorkerDispatchRuntimePlanRecorded: true,
+    controlledPersistedWorkerDispatchRuntimeImplementationRequired: true,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    cloudRunInvocationAccepted: false,
+    inferenceAccepted: false,
+    generatedAssetCreationAccepted: false,
+    betaReady: false,
+    productionReady: false,
+  },
+  runtimeFlags: {
+    controlledPersistedWorkerDispatchRuntimePlanRecorded: true,
+    controlledPersistedWorkerDispatchRuntimePlanRequired: false,
+    controlledPersistedWorkerDispatchRuntimeImplementationRequired: true,
+    controlledPersistedWorkerDispatchRuntimeImplemented: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    creditMutationCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseCloudTouched: false,
+    stagingTouched: false,
+    productionTouched: false,
+    sqlExecuted: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt: NEXT_PROMPT,
+} as const
+
+export type Qwen25VlControlledPersistedWorkerDispatchRuntimePlan =
+  typeof QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_PLAN

@@ -25,6 +25,17 @@ const packetFiles = [
   `${packetDir}/validation-results.md`,
 ]
 
+const dispatchScaffoldDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold'
+const dispatchScaffoldFiles = [
+  `${dispatchScaffoldDir}/gpac-mp4box-guarded-runtime-dispatch-scaffold-decision.json`,
+  `${dispatchScaffoldDir}/gpac-mp4box-guarded-runtime-dispatch-scaffold-decision.md`,
+  `${dispatchScaffoldDir}/fail-closed-scaffold.json`,
+  `${dispatchScaffoldDir}/fail-closed-scaffold.md`,
+  `${dispatchScaffoldDir}/source-of-truth-audit.json`,
+  `${dispatchScaffoldDir}/readiness-report.json`,
+  `${dispatchScaffoldDir}/validation-results.md`,
+]
+
 const statusFiles = [
   'docs/production-beta-blocker-inventory.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -42,13 +53,17 @@ const sourceFiles = [
 
 const requiredFiles = [
   ...packetFiles,
+  ...dispatchScaffoldFiles,
   ...statusFiles,
   ...sourceFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-1-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-1.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1.md',
   'scripts/validation/tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
   'package.json',
 ]
 

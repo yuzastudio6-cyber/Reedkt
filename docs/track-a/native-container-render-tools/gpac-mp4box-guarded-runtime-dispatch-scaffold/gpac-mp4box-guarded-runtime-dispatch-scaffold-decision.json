@@ -1,0 +1,35 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1",
+  "decision": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation",
+  "execution": "blocked_confirmation_absent_no_route_worker_or_tool_execution",
+  "confirmationGate": {
+    "name": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH",
+    "requiredValue": "true",
+    "observed": "absent",
+    "runtimeDispatchAllowed": false
+  },
+  "sourceTruth": {
+    "guardedRuntimeDispatchEnablementPlan": "tracka_gpac_mp4box_guarded_runtime_dispatch_enablement_plan_passed_ready_for_guarded_runtime_dispatch_scaffold",
+    "currentRuntimeGateRollup": "tracka_gpac_mp4box_current_runtime_gate_readiness_rollup_passed_ready_for_guarded_runtime_dispatch_enablement_plan",
+    "pr577": "open_draft_blocked_excluded"
+  },
+  "runtimeAuthorization": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1"
+}

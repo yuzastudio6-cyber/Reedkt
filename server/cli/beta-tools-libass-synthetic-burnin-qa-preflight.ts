@@ -26,6 +26,8 @@ export interface BetaToolsLibassSyntheticBurninQaPreflightEnv {
   REEDITPRO_BETA_LIBASS_BURNIN_QA_TIMEOUT_MS?: string
   REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCTION_READINESS?: string
   REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE?: string
+  REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE?: string
+  REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE?: string
   REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCT_READY_LOCAL_OSS?: string
   REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE?: string
   REEDITPRO_BETA_LIBASS_BURNIN_QA_REQUIRE_ACCEPTED_EVIDENCE?: string
@@ -158,13 +160,16 @@ function buildReport(input: {
     input.proof.outputVideo.exists &&
     input.proof.outputVideo.sizeBytes > 0 &&
     input.proof.tempRootRemoved
-  const accepted = proofPassed &&
+  const boundedAccepted = proofPassed &&
+    parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE) &&
+    parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE)
+  const productReadyAccepted = proofPassed &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCTION_READINESS) &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE) &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCT_READY_LOCAL_OSS) &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)
-  const acceptedToolEvidence = accepted
-    ? [buildAcceptedEvidence(input.env, input.proof)]
+  const acceptedToolEvidence = boundedAccepted || productReadyAccepted
+    ? [buildAcceptedEvidence(input.env, input.proof, productReadyAccepted)]
     : []
   const evidencePacket = acceptedToolEvidence.length > 0
     ? {
@@ -208,7 +213,9 @@ function buildReport(input: {
       'Preview only; no backend evidence was recorded.',
       'This preflight creates only temp synthetic color video and ASS caption files, burns them through libass, probes the output, and removes temp artifacts.',
       'No user media, private media, GCS object, provider call, Supabase write, beta activation, production activation, or public artifact is allowed by this preflight.',
-      'Product-ready local OSS acceptance applies only to the bounded local libass burn-in capability for synthetic/private-caption-safe operation; deployed evidence and platform billing remain separate gates.',
+      productReadyAccepted
+        ? 'Product-ready local OSS acceptance applies only to the bounded local libass burn-in capability for synthetic/private-caption-safe operation; deployed evidence and platform billing remain separate gates.'
+        : 'Bounded accepted evidence reduces real-execution and production-readiness blockers only; product-ready local OSS remains false.',
     ],
   }
 }
@@ -216,6 +223,7 @@ function buildReport(input: {
 function buildAcceptedEvidence(
   env: BetaToolsLibassSyntheticBurninQaPreflightEnv,
   proof: LibassSyntheticBurninQaProof,
+  productReadyLocalOss: boolean,
 ): ToolBetaAcceptedExecutionEvidence {
   const sourceId = clean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_SOURCE_ID) ?? 'beta-tools-libass-synthetic-burnin-qa'
   return {
@@ -225,7 +233,7 @@ function buildAcceptedEvidence(
     readinessStatus: 'passed',
     realExecutionVerified: true,
     productionReadinessAccepted: true,
-    productReadyLocalOss: true,
+    productReadyLocalOss,
     modelWeightsApproved: true,
     notes: [
       clean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_NOTES) ?? 'Bounded synthetic libass burn-in QA proof.',
@@ -233,6 +241,9 @@ function buildAcceptedEvidence(
       proof.containerImage ? `Container image ${proof.containerImage}.` : 'Host command proof; use container mode for worker-image evidence.',
       `Output ${proof.outputVideo.fileName} size ${proof.outputVideo.sizeBytes} bytes sha256 ${proof.outputVideo.checksumSha256 ?? 'unavailable'}.`,
       `Duration ${proof.outputVideo.durationSeconds ?? 'unavailable'} seconds; safe ASS style preset accepted: ${proof.captionFile.safeStylePresetAccepted}.`,
+      productReadyLocalOss
+        ? 'Product-ready local OSS was explicitly accepted for this synthetic/private-caption-safe local proof.'
+        : 'Product-ready local OSS remains false; this is bounded accepted evidence only.',
       'Historical PR #73 is duplicate-adjacent activation/private-media context only, not the current beta source-truth lane.',
       'No user media, private media, GCS object, provider call, Supabase write, beta activation, production activation, public artifact, or signed URL occurred.',
     ],
@@ -535,16 +546,21 @@ function missingRequiredConfiguration(
 
 function confirmationGapsFor(env: BetaToolsLibassSyntheticBurninQaPreflightEnv): string[] {
   const gaps: string[] = []
-  if (!parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCTION_READINESS)) {
+  const boundedAccepted = parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE)
+  const productReadyAccepted = parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCT_READY_LOCAL_OSS)
+  if (boundedAccepted && !parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE)) {
+    gaps.push('REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true is required to confirm bounded accepted evidence.')
+  }
+  if (!boundedAccepted && !parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCTION_READINESS)) {
     gaps.push('REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCTION_READINESS=true is required to reduce production-readiness blockers.')
   }
-  if (!parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE)) {
+  if (!boundedAccepted && !parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE)) {
     gaps.push('REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true is required to confirm production-readiness acceptance.')
   }
-  if (!parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCT_READY_LOCAL_OSS)) {
+  if (!boundedAccepted && !productReadyAccepted) {
     gaps.push('REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCT_READY_LOCAL_OSS=true is required to reduce product-ready local OSS blockers for libass.')
   }
-  if (!parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)) {
+  if (productReadyAccepted && !parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)) {
     gaps.push('REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true is required to confirm product-ready local OSS acceptance.')
   }
   if (parseBoolean(env.REEDITPRO_BETA_LIBASS_BURNIN_QA_RETAIN_TEMP_OUTPUTS)) {

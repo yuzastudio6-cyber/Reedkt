@@ -16,6 +16,8 @@ export interface BetaToolsCoreRealCheckPreviewEnv {
   REEDITPRO_BETA_TOOLS_PREVIEW_INCLUDE_WARNINGS?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE?: string
+  REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE?: string
+  REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE?: string
@@ -44,12 +46,16 @@ export function runBetaToolsCoreRealCheckPreview(
 ): BetaToolsCoreRealCheckPreviewReport {
   const missingConfiguration = missingRequiredConfiguration(env)
   const invalidToolIds = findInvalidToolIds(env.REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS)
-  const acceptProductionReadiness = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS)
+  const acceptBoundedAcceptedEvidence = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE)
+  const acceptProductionReadiness = effectiveProductionReadinessAcceptance(env)
   const acceptProductReadyLocalOss = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS)
   const requireAcceptedEvidence = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE)
   const confirmationGaps = [
-    ...(acceptProductionReadiness && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE)
+    ...(parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS) && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE)
       ? ['REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true is required when previewing production-readiness acceptance.']
+      : []),
+    ...(acceptBoundedAcceptedEvidence && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE)
+      ? ['REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true is required when previewing bounded accepted evidence.']
       : []),
     ...(acceptProductReadyLocalOss && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)
       ? ['REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true is required when previewing product-ready local OSS acceptance.']
@@ -122,7 +128,7 @@ function buildPreviewInput(env: BetaToolsCoreRealCheckPreviewEnv): CoreRealCheck
       clean(env.REEDITPRO_BETA_TOOLS_PREVIEW_NOTES) ?? 'Collected through beta tools core real-check preview CLI.',
       'Local preview only; no backend evidence was recorded and no beta/production gate was opened.',
     ],
-    acceptProductionReadiness: parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS),
+    acceptProductionReadiness: effectiveProductionReadinessAcceptance(env),
     acceptProductReadyLocalOss: parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS),
     includeWarnings: parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_INCLUDE_WARNINGS),
     toolIds: parseToolIds(env.REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS),
@@ -223,19 +229,23 @@ function previewWarnings(): string[] {
 }
 
 function missingRequiredConfiguration(env: BetaToolsCoreRealCheckPreviewEnv): string[] {
+  const hasAcceptedEvidenceMode = effectiveProductionReadinessAcceptance(env) ||
+    parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS)
   return [
     missingEnv(env, 'REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID'),
     missingEnv(env, 'REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_SHA'),
-    parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS)
+    hasAcceptedEvidenceMode
       ? undefined
-      : 'REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS=true is required to preview blocker-reducing production readiness evidence.',
-    parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS)
-      ? undefined
-      : 'REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS=true is required to preview product-ready local OSS evidence.',
+      : 'REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=true or REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS=true is required to preview blocker-reducing accepted evidence.',
     parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE)
       ? undefined
       : 'REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE=true is required so the preview fails closed when no tools pass.',
   ].filter((item): item is string => Boolean(item))
+}
+
+function effectiveProductionReadinessAcceptance(env: BetaToolsCoreRealCheckPreviewEnv): boolean {
+  return parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS) ||
+    parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE)
 }
 
 function missingEnv(env: BetaToolsCoreRealCheckPreviewEnv, name: keyof BetaToolsCoreRealCheckPreviewEnv): string | undefined {

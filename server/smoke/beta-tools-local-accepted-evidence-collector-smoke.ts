@@ -20,15 +20,14 @@ const baseEnv: BetaToolsLocalAcceptedEvidenceCollectorEnv = {
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA: '9b8d512139ebdcca550345ab49087f3faac72267',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES: 'Smoke records deployed evidence for a local accepted evidence bundle.',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS: 'hyperframe',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE: 'host',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '2',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT: '2',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '0',
   REEDITPRO_READINESS_PYTHON_BIN: findPythonPath(),
 }
 
@@ -52,10 +51,17 @@ assert.deepEqual(result.localBundle.locallyAcceptedToolIds.sort(), ['hyperframe'
 assert.equal(result.coreEvidence.acceptedToolCount, 1, 'collector should record one scoped core tool in smoke')
 assert.deepEqual(result.coreEvidence.acceptedToolIds, ['hyperframe'], 'collector should read back scoped core evidence')
 assert.deepEqual(result.libassEvidence.acceptedToolIds, ['libass'], 'collector should read back libass evidence')
-assert.equal(result.operatorReadback.currentGate.productReadyLocalOssCount, 2, 'operator readback should confirm combined tool count')
-assert.equal(result.readbackRequirements.productReadyLocalOssCountSatisfied, true, 'readback requirement should be satisfied')
+assert.equal(result.operatorReadback.currentGate.productReadyLocalOssCount, 0, 'bounded evidence must not claim product-ready local OSS')
+assert.equal(result.readbackRequirements.productReadyLocalOssCountSatisfied, true, 'zero product-ready readback requirement should be satisfied')
 assert.equal(result.operatorReadback.currentGate.externalBetaToolExecutionAllowed, false, 'collector must not claim external beta tool execution is enabled')
 assert.equal(result.operatorReadback.currentGate.productionToolExecutionAllowed, false, 'collector must not claim production tool execution is enabled')
+assert.equal(calls[0]?.body?.acceptProductionReadiness, true, 'bounded evidence should reduce production-readiness blockers')
+assert.equal(calls[0]?.body?.acceptProductReadyLocalOss, false, 'bounded evidence must not request product-ready local OSS')
+assert.equal(
+  ((calls[1]?.body?.acceptedToolEvidence as Array<{ productReadyLocalOss?: boolean }> | undefined) ?? [])[0]?.productReadyLocalOss,
+  false,
+  'bounded libass evidence must keep product-ready local OSS false',
+)
 assert.ok(result.remainingGateBlockers.includes('platform_billing_deployment_evidence_pending'), 'collector must preserve platform evidence blocker')
 assert.ok(result.remainingGateBlockers.includes('launch_owner_approval_evidence_pending'), 'collector must preserve launch approval blocker')
 assert.equal(JSON.stringify(result).includes('local-bundle-bearer-token-secret-for-smoke'), false, 'summary must not print bearer token')
@@ -73,9 +79,9 @@ assert.equal(calls[2]?.method, 'GET')
 await assert.rejects(
   () => runBetaToolsLocalAcceptedEvidenceCollectorFromEnv({
     ...baseEnv,
-    REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '3',
+    REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '1',
   }, fakeFetch([]), fakeLibassRunner()),
-  /below required count 3/,
+  /below required count 1/,
   'collector should fail closed when operator readback is below the required count',
 )
 
@@ -110,7 +116,7 @@ function fakeFetch(calls: Array<{ url: string; method: string; idempotencyKey?: 
           readinessSummary: { totalSpecs: 1, statuses: { passed: 1 } },
           report: {
             toolExecutionReadiness: {
-              productReadyLocalOssCount: 1,
+              productReadyLocalOssCount: 0,
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
               blockers: [],
@@ -133,7 +139,7 @@ function fakeFetch(calls: Array<{ url: string; method: string; idempotencyKey?: 
           },
           report: {
             toolExecutionReadiness: {
-              productReadyLocalOssCount: 2,
+              productReadyLocalOssCount: 0,
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
             },
@@ -160,7 +166,7 @@ function fakeFetch(calls: Array<{ url: string; method: string; idempotencyKey?: 
               readinessSpecToolCount: 49,
               toolBlockers: 168,
               platformBlockers: 1,
-              productReadyLocalOssCount: 2,
+              productReadyLocalOssCount: 0,
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
               blockerPolicy: 'evidence_driven_block_unsafe_actions_only',

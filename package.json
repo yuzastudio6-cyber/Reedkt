@@ -336,6 +336,7 @@
     "worker-runtime-jobs:sound-cpu-paddleocr-activation-lane-reconciliation-after-model-license-live-refresh:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-paddleocr-activation-lane-reconciliation-after-model-license-live-refresh-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-paddleocr-source-readiness-adjustment-after-activation-merge:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-paddleocr-source-readiness-adjustment-after-activation-merge-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-ocr-activation-chain-reconciliation-after-source-readiness:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-ocr-activation-chain-reconciliation-after-source-readiness-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase37f-caption-render-runtime-hook-plan-after-ocr-chain-reconciliation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase37f-caption-render-runtime-hook-plan-after-ocr-chain-reconciliation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

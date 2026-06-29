@@ -1,0 +1,33 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1",
+  "allowedNextScope": "guarded_runtime_enablement_plan_only",
+  "forbiddenInThisPhase": {
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "supabaseMutation": "blocked",
+    "sqlExecution": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  },
+  "requiredFutureGuards": [
+    "backend_service_role_ownership",
+    "disabled_by_default_state",
+    "feature_flag_default_false",
+    "approved_snapshot_guard",
+    "route_idempotency_guard",
+    "private_artifact_manifest_guard",
+    "exact_command_allowlist_guard",
+    "negative_tests",
+    "storage_public_artifact_gates",
+    "cleanup_audit_references",
+    "operator_confirmation"
+  ]
+}

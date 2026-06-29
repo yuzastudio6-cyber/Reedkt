@@ -1,6 +1,6 @@
 # Phase 37D OCR Safe-Zone Handoff
 
-Phase 37D now records a metadata-only controlled real-video OCR/caption safe-zone planning gate because Phase 37C generated OCR runtime QA passed for `phase37c-20260530T230413`.
+Phase 37D records a metadata-only controlled real-video OCR/caption safe-zone planning gate because Phase 37C generated OCR runtime QA passed for `phase37c-20260530T230413`. The follow-up controlled execution run `phase37d-20260531T002046` then processed only the selected private sample/window.
 
 Phase 37D selects exactly one future controlled sample from approved private media only:
 
@@ -9,13 +9,22 @@ Phase 37D selects exactly one future controlled sample from approved private med
 - Window: `6.9s`-`8.9s`
 - Future offsets: `6.9, 7.3, 7.7, 8.1, 8.5, 8.9`
 
+Execution result:
+
+- Extracted frames: `6`
+- OCR text regions: `11`
+- Frames with lower-third collision: `0`
+- Caption recommendations available: `6`
+- Private JSON QA artifacts: `10`
+- Private prefix: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37d/controlled-real-video-ocr-safe-zone/phase37d-20260531T002046/`
+
 Phase 37D inherits these limits:
 
 - No arbitrary uploads or broad real-user media.
-- No media byte reads.
-- No frame extraction.
-- No real-video OCR execution.
-- No artifact upload.
+- No media byte reads outside the approved private sample.
+- No frame extraction outside the six approved offsets.
+- No real-video OCR outside the approved sample/window.
+- No raw frame or overlay upload.
 - No IAM/GCP mutation.
 - No provider calls.
 - No public artifacts.
@@ -24,4 +33,4 @@ Phase 37D inherits these limits:
 - No textline orientation model auto-download.
 - No caption/render integration until Phase 37E.
 
-Phase 37D focuses on controlled real-video OCR/caption safe-zone planning and schema evidence only. It is not final caption QA integration, real-video OCR execution, or a production OCR runtime.
+Phase 37D is now ready only to plan Phase 37E caption/render QA integration. It is not final caption QA integration, broad real-video OCR, arbitrary media OCR, or a production OCR runtime.

@@ -1,8 +1,11 @@
 # Controlled Real-Video OCR Safe-Zone Policy
 
-Phase 37D is a metadata-only planning gate. It may validate private GCS paths, controlled-chain run IDs, approved OCR evidence, selected sample bounds, and future artifact schemas.
+Phase 37D has two separate surfaces:
 
-It must not:
+- The metadata-only planning gate validates private GCS paths, controlled-chain run IDs, approved OCR evidence, selected sample bounds, and future artifact schemas.
+- The guarded execution follow-up runs only after current-shell confirmations are set and may process exactly the one approved private sample/window.
+
+The metadata-only gate must not:
 
 - read or download media bytes
 - extract frames
@@ -18,6 +21,6 @@ It must not:
 - touch Track A execution code
 - unlock internal beta, external beta, paid production, or broad real-user media
 
-The only selected source is the private Phase 32 color-corrected export. Any public URL, signed URL, alternate bucket, alternate source object, extra window, or extra sample blocks the gate.
+The execution follow-up must not process anything beyond the approved source, `6.9s`-`8.9s` window, and six offsets. It may upload private JSON QA artifacts only; raw frames and overlays remain local temp only.
 
-Future real-video OCR execution requires a separate explicit phase and separate confirmations. Phase 37D defines those confirmations as future-only and blocks if they are set during this metadata gate.
+The only selected source is the private Phase 32 color-corrected export. Any public URL, signed URL, alternate bucket, alternate source object, extra window, or extra sample blocks both gate and execution paths.

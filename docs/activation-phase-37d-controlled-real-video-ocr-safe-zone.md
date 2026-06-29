@@ -1,6 +1,6 @@
 # Phase 37D Controlled Real-Video OCR Safe-Zone Gate
 
-Status: `metadata_planning_gate_passed`
+Status: `metadata_planning_gate_passed`; controlled execution follow-up passed for `phase37d-20260531T002046`
 
 Phase 37D defines the controlled real-video OCR/caption safe-zone planning gate after the Phase 37C generated OCR runtime pass. It selects one approved private controlled sample and defines future frame/OCR/report schemas. It does not read media bytes, extract frames, run OCR on real video, upload artifacts, mutate IAM/GCP, build Docker, deploy Cloud Run, touch Track A execution code, or unlock beta/production.
 
@@ -22,7 +22,7 @@ Phase 37D defines the controlled real-video OCR/caption safe-zone planning gate 
 - Maximum future sampled frames: `6`
 - Global Phase 37D cap: one window and no more than `12` future sampled frames
 
-The 6.9s-8.9s window is recorded as metadata only. No frame extraction or OCR execution occurred in Phase 37D.
+The metadata gate recorded the 6.9s-8.9s window without reading media. The controlled execution follow-up then used only that same window and offsets, extracted exactly six local temp frames, ran CPU-only PaddleOCR, and uploaded private JSON QA artifacts only.
 
 ## Outputs Defined
 
@@ -41,6 +41,19 @@ Phase 37D defines these future private artifacts and schemas:
 Future private artifact prefix:
 
 `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37d/controlled-real-video-ocr-safe-zone/<run-id>/`
+
+Completed execution prefix:
+
+`gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37d/controlled-real-video-ocr-safe-zone/phase37d-20260531T002046/`
+
+Execution summary:
+
+- Extracted frames: `6`
+- OCR text regions: `11`
+- Frames with OCR text: `6`
+- Lower-third collision frames: `0`
+- Caption recommendations available: `6`
+- Private JSON artifact objects: `10`
 
 ## Commands
 
@@ -61,9 +74,9 @@ The Phase 37D planning gate rejects those confirmations if they are set.
 
 ## Still Blocked
 
-- Real-video OCR execution
-- Frame extraction and media byte reads/downloads
-- Artifact upload
+- Arbitrary real-video OCR and broad media OCR
+- Full-video OCR and unapproved windows
+- Raw frame upload and overlay upload
 - IAM/GCP mutation
 - Docker build/push and Cloud Run deploy/job execution
 - Provider execution

@@ -534,6 +534,18 @@ for (const [key, expected] of Object.entries({
 })) {
   if (docs.counts?.[key] !== expected) fail(`unexpected_docs_count:${key}:${docs.counts?.[key]}`)
 }
+for (const [key, expected] of Object.entries({
+  externalBetaEvidenceAdmissionBundleMustUseSourceProofPackets: true,
+  technicalEvidenceSourceModeRequired: 'source_proof_packets',
+  sourceTechnicalProofPacketsRequired: true,
+  sourceTechnicalProofPacketsProvided: true,
+  sourceTechnicalProofPacketsAccepted: true,
+  prebuiltSummaryOnlyAdmissionBundleAccepted: false,
+})) {
+  if (docs.sourceAdmissionRequirements?.[key] !== expected) {
+    fail(`unexpected_docs_source_admission_requirement:${key}:${docs.sourceAdmissionRequirements?.[key]}`)
+  }
+}
 for (const tool of allTools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
 }
@@ -612,6 +624,13 @@ for (const key of falseGateKeys) {
 if (!docsMd.includes('External-beta-ready now: `0`')) fail('markdown_missing_external_beta_ready_zero')
 if (!docsMd.includes('Source launch-gap runtime proof bridge accepted: `true`')) {
   fail('markdown_missing_source_runtime_bridge_acceptance')
+}
+for (const needle of [
+  'Admission bundle must use source proof packets: `true`',
+  'Prebuilt summary-only admission bundle accepted: `false`',
+  'technicalEvidenceSourceMode: source_proof_packets',
+]) {
+  if (!docsMd.includes(needle)) fail(`markdown_missing_source_admission_requirement:${needle}`)
 }
 if (!scorecard.includes('ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks')) {
   fail('scorecard_missing_external_beta_launch_go_no_go_decision')

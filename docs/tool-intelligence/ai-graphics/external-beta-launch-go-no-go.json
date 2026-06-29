@@ -34,6 +34,14 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "sourceAdmissionRequirements": {
+    "externalBetaEvidenceAdmissionBundleMustUseSourceProofPackets": true,
+    "technicalEvidenceSourceModeRequired": "source_proof_packets",
+    "sourceTechnicalProofPacketsRequired": true,
+    "sourceTechnicalProofPacketsProvided": true,
+    "sourceTechnicalProofPacketsAccepted": true,
+    "prebuiltSummaryOnlyAdmissionBundleAccepted": false
+  },
   "requiredLaunchApprovalRecord": {
     "approverRole": "AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER",
     "launchRefRequired": true,

@@ -1,0 +1,42 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-SCAFFOLD-1",
+  "decision": "tracka_gpac_mp4box_disabled_handler_registration_scaffold_passed_ready_for_handler_registration_scaffold_negative_tests",
+  "execution": "completed_disabled_handler_registration_scaffold_no_route_or_worker_execution",
+  "prior": {
+    "guardedHandlerRegistrationPlan": "tracka_gpac_mp4box_guarded_handler_registration_plan_passed_ready_for_disabled_handler_registration_scaffold",
+    "guardedHandlerRegistrationPlanMergeSha": "86a14cd98a91700e3a607787198dc2ce4fcc92d0"
+  },
+  "scaffold": {
+    "scaffoldId": "handlerRegistrationScaffold.gpacMp4box.disabled",
+    "routeId": "render.gpacMp4box.disabledHandlerRegistrationScaffold",
+    "handlerRegistrationMode": "disabled_handler_registration_scaffold_only",
+    "scaffoldStatus": "disabled_handler_registration_scaffold_registered_no_executable_handler"
+  },
+  "safety": {
+    "executableHandlerRegistration": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-HANDLER-REGISTRATION-SCAFFOLD-NEGATIVE-TESTS-1"
+}

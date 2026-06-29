@@ -1702,6 +1702,18 @@ Next required gate: `TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-SCAFFOLD-1
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Disabled Handler Registration Scaffold
+
+`TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-SCAFFOLD-1` records decision `tracka_gpac_mp4box_disabled_handler_registration_scaffold_passed_ready_for_handler_registration_scaffold_negative_tests` and execution `completed_disabled_handler_registration_scaffold_no_route_or_worker_execution`.
+
+The TypeScript-only scaffold id is `handlerRegistrationScaffold.gpacMp4box.disabled`; route id is `render.gpacMp4box.disabledHandlerRegistrationScaffold`; handler registration mode is `disabled_handler_registration_scaffold_only`; scaffold status is `disabled_handler_registration_scaffold_registered_no_executable_handler`. It does not register an executable HTTP handler.
+
+Executable handler registration, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-HANDLER-REGISTRATION-SCAFFOLD-NEGATIVE-TESTS-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records decision `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

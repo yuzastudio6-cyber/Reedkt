@@ -159,12 +159,13 @@ function buildBatches(
         `${EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH} (${requiredOperatorInputs} required inputs, ${pendingOperatorInputsInBlankEnv} pending in blank env)`,
       ],
       nextCommands: [
+        'npm run beta:readiness:external-beta-operator-input-template -- --status',
         'npm run beta:readiness:external-beta-operator-input-template',
         'npm run beta:readiness:owner-approval-intake-preflight',
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],
       blockedUntil: [
-        'Bearer token, workspace/project IDs, idempotency keys, non-secret owner evidence notes, and explicit owner approval booleans are supplied by an operator shell or secret manager session.',
+        'Operators review the value-free pending-input status, then supply bearer token, workspace/project IDs, idempotency keys, non-secret owner evidence notes, and explicit owner approval booleans from an operator shell or secret manager session.',
       ],
     },
     {

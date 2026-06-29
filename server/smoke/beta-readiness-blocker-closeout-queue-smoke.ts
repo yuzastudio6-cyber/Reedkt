@@ -39,6 +39,12 @@ assert.equal(report.blockerCounts.byClearanceType.deployed_platform_evidence, 5)
 assert.equal(report.batches.length, 7)
 assert.deepEqual(report.batches.map((batch) => batch.order), [1, 2, 3, 4, 5, 6, 7])
 assert.equal(report.batches[0]?.batchId, 'operator_value_collection')
+assert.equal(report.batches[0]?.nextCommands[0], 'npm run beta:readiness:external-beta-operator-input-template -- --status')
+assert.equal(report.batches[0]?.nextCommands[1], 'npm run beta:readiness:external-beta-operator-input-template')
+assert.equal(
+  report.batches[0]?.blockedUntil[0]?.includes('value-free pending-input status'),
+  true,
+)
 assert.equal(
   report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('2026-06-29-184f-external-beta-operator-input-template.json')),
   true,

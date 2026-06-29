@@ -60,7 +60,13 @@ assert.equal(ready.readyForOwnerApprovalIntake, true)
 assert.equal(ready.decision, 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence')
 assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template -- --status') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template'),
+  'safe status review should precede the full operator template command',
+)
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))
 assert.equal(ready.recommendedCommands.some((command) => command.includes('gcloud ')), false)
 assert.equal(ready.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'), false)

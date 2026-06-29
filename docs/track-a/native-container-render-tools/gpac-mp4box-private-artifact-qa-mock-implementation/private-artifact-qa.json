@@ -1,0 +1,17 @@
+{
+  "qaId": "qa.gpacMp4box.privateArtifact.mock",
+  "qaMode": "private_artifact_qa_metadata_only",
+  "requiredChecks": [
+    "manifest_integrity",
+    "checksum_references",
+    "private_artifact_boundary",
+    "cleanup_reference",
+    "audit_reference"
+  ],
+  "storageTransfer": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "workerExecution": false,
+  "gpacMp4boxExecution": false,
+  "mediaProcessing": false
+}

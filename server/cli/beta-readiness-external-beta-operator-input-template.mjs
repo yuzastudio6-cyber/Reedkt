@@ -207,6 +207,13 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# npm run beta:readiness:source-freshness-preflight')
   lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
+  lines.push('')
+  lines.push('# After collector execution:')
+  lines.push('# npm run beta:readiness:external-beta-evidence-collector')
+  lines.push('# npm run beta:readiness:operator-status-api')
+  lines.push('# operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL,')
+  lines.push('# REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN, and REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID')
+  lines.push('# when the matching REEDITPRO_BETA_STATUS_* aliases are unset.')
   return lines.join('\n')
 }
 

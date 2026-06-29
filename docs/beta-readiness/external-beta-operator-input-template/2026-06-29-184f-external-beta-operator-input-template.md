@@ -105,6 +105,13 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 # npm run beta:readiness:source-freshness-preflight
 # npm run beta:readiness:owner-approval-intake-preflight
 # npm run beta:readiness:deployed-evidence-input-manifest
+
+# After collector execution:
+# npm run beta:readiness:external-beta-evidence-collector
+# npm run beta:readiness:operator-status-api
+# operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL,
+# REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN, and REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID
+# when the matching REEDITPRO_BETA_STATUS_* aliases are unset.
 ```
 
 ## Validation Commands

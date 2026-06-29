@@ -22,9 +22,17 @@ export async function runBetaReadinessOperatorStatusApiFromEnv(
   env,
   fetchImpl = fetch,
 ) {
-  const baseUrl = requiredEnv(env, 'REEDITPRO_BETA_STATUS_API_BASE_URL').replace(/\/+$/, '')
-  const bearerToken = requiredEnv(env, 'REEDITPRO_BETA_STATUS_BEARER_TOKEN')
-  const workspaceId = clean(env.REEDITPRO_BETA_STATUS_WORKSPACE_ID)
+  const baseUrl = requiredEnvAny(env, [
+    'REEDITPRO_BETA_STATUS_API_BASE_URL',
+    'REEDITPRO_BETA_EXTERNAL_API_BASE_URL',
+  ]).replace(/\/+$/, '')
+  const bearerToken = requiredEnvAny(env, [
+    'REEDITPRO_BETA_STATUS_BEARER_TOKEN',
+    'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN',
+  ])
+  const workspaceId =
+    clean(env.REEDITPRO_BETA_STATUS_WORKSPACE_ID) ??
+    clean(env.REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID)
   assertNoSecretLikeStatusQuery({ workspaceId })
   const endpoint = buildOperatorStatusEndpoint(baseUrl, workspaceId)
 
@@ -38,7 +46,10 @@ export async function runBetaReadinessOperatorStatusApiFromEnv(
   const payload = await response.json()
   const result = summarizeOperatorStatusApiResponse(endpoint, response.status, payload)
 
-  if (parseBoolean(env.REEDITPRO_BETA_STATUS_REQUIRE_EXTERNAL_BETA_READY) && result.readyForExternalBeta !== true) {
+  const requireExternalBetaReady =
+    env.REEDITPRO_BETA_STATUS_REQUIRE_EXTERNAL_BETA_READY ??
+    env.REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY
+  if (parseBoolean(requireExternalBetaReady) && result.readyForExternalBeta !== true) {
     throw new Error('Operator status reports external beta is not ready.')
   }
   if (parseBoolean(env.REEDITPRO_BETA_STATUS_REQUIRE_REAL_USER_MEDIA_BETA_READY) && result.readyForRealUserMediaBeta !== true) {
@@ -126,6 +137,14 @@ function requiredEnv(env, name) {
   const value = clean(env[name])
   if (!value) throw new Error(`${name} is required.`)
   return value
+}
+
+function requiredEnvAny(env, names) {
+  for (const name of names) {
+    const value = clean(env[name])
+    if (value) return value
+  }
+  throw new Error(`${names.join(' or ')} is required.`)
 }
 
 function parseBoolean(value) {

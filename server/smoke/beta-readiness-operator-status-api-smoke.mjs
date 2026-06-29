@@ -128,6 +128,43 @@ await runBetaReadinessOperatorStatusApiFromEnv({
 })
 assert.equal(noWorkspaceUrl, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status', 'CLI should support default source-truth status without workspaceId')
 
+let externalAliasUrl = ''
+let externalAliasAuth = ''
+const externalAliasResult = await runBetaReadinessOperatorStatusApiFromEnv({
+  REEDITPRO_BETA_EXTERNAL_API_BASE_URL: 'https://external-api.staging.reeditpro.example/',
+  REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN: 'external-status-secret-token',
+  REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID: 'workspace-external-alias',
+}, async (url, init) => {
+  externalAliasUrl = url
+  externalAliasAuth = init.headers.authorization
+  return blockedFetch(url, init)
+})
+assert.equal(
+  externalAliasUrl,
+  'https://external-api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-alias',
+  'CLI should reuse external beta operator template API/workspace values when status-specific values are absent',
+)
+assert.equal(
+  externalAliasAuth,
+  'Bearer external-status-secret-token',
+  'CLI should reuse the external beta bearer token only in the authorization header',
+)
+assert.equal(
+  JSON.stringify(externalAliasResult).includes('external-status-secret-token'),
+  false,
+  'external alias summary must not include bearer token',
+)
+
+await assert.rejects(
+  runBetaReadinessOperatorStatusApiFromEnv({
+    REEDITPRO_BETA_EXTERNAL_API_BASE_URL: 'https://external-api.staging.reeditpro.example/',
+    REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN: 'external-status-secret-token',
+    REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',
+  }, blockedFetch),
+  /external beta is not ready/,
+  'CLI should fail closed when the external beta template requires ready status but backend status is not ready',
+)
+
 const readySummary = summarizeOperatorStatusApiResponse('https://api.example/status', 200, {
   ok: true,
   data: {
@@ -165,4 +202,5 @@ console.log(JSON.stringify({
   tokenInSummary: JSON.stringify(blockedResult).includes('status-api-secret-token'),
   requireReadyFailsClosed: true,
   defaultStatusUrl: noWorkspaceUrl,
+  externalAliasUrl,
 }, null, 2))

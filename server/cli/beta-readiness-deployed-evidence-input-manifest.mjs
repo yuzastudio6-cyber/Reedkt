@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs'
-import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
 const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json'
 const DEFAULT_SOURCE_ID = 'beta-tools-current-source-local-accepted-evidence-bundle'
@@ -8,79 +7,32 @@ const CURRENT_TRACKB_TOOL_TOTALS = {
   boundedAcceptedProven: 16,
   blockedNotInstalledProven: 0,
   productReady: 0,
-} as const
-
-export type BetaReadinessDeployedEvidenceInputManifestEnv = Record<string, string | undefined>
-
-export interface DeployedEvidenceInputRecord {
-  name: string
-  group: 'shared' | 'tool_evidence' | 'platform_evidence' | 'launch_approval' | 'status_readback'
-  secret: boolean
-  requiredFor: 'external_beta_evidence_sequence' | 'platform_packet' | 'launch_packet' | 'operator_readback'
-  present: boolean
-  expectedValue?: string
-  notes?: string
 }
 
-export interface BetaReadinessDeployedEvidenceInputManifest {
-  ok: boolean
-  readyToRunExternalBetaEvidenceCollector: boolean
-  decision: string
-  manifestId: string
-  sourceTruth: {
-    localAcceptedEvidenceSnapshotPath: string
-    localAcceptedEvidenceSourceSha: string
-    currentSourceSha?: string
-    currentSourceDerivedFromSnapshot: boolean
-    locallyAcceptedToolCount: number
-    locallyAcceptedToolIds: string[]
-    coreToolIds: string[]
-    libassToolIds: string[]
-    trackBToolTotals: typeof CURRENT_TRACKB_TOOL_TOTALS
-  }
-  fixedInputs: {
-    coreToolIdsCsv: string
-    libassMode: 'docker'
-    libassContainerImage: string
-    requiredBoundedAcceptedToolCount: number
-    requiredProductReadyLocalOssCount: number
-    platformEnvironment: 'staging'
-    externalBetaReadyRequired: true
-    deployedEvidenceSourceShaRequired: true
-  }
-  requiredInputs: DeployedEvidenceInputRecord[]
-  pendingRequiredInputs: string[]
-  valueGaps: string[]
-  secretLikeInputPaths: string[]
-  recommendedCommands: string[]
-  remainingBlockedScopes: string[]
-  warnings: string[]
-}
+const SECRET_KEY_PATTERNS = [
+  /api[_-]?key/i,
+  /secret/i,
+  /service[_-]?role/i,
+  /credential/i,
+  /(^|[_-])token($|[_-])/i,
+  /authorization/i,
+  /signed[_-]?url/i,
+  /signedUrl/,
+  /raw[_-]?prompt/i,
+]
 
-interface LocalAcceptedEvidenceSnapshot {
-  sourceSha?: string
-  readyToRecordDeployedEvidence?: boolean
-  locallyAcceptedToolCount?: number
-  locallyAcceptedToolIds?: string[]
-  coreAcceptedToolIds?: string[]
-  libassAcceptedToolIds?: string[]
-  libassEvidence?: {
-    containerImage?: string
-    mode?: string
-    network?: string
-    syntheticBurninQa?: {
-      syntheticOnly?: boolean
-      noPrivateOrUserMedia?: boolean
-      noNetwork?: boolean
-      tempRootRemoved?: boolean
-    }
-  }
-}
+const SECRET_VALUE_PATTERNS = [
+  /x-goog-signature=/i,
+  /x-amz-signature=/i,
+  /^bearer\s+/i,
+  /^sk-[a-z0-9_-]+/i,
+  /service_role_key/i,
+]
 
 export function buildBetaReadinessDeployedEvidenceInputManifest(
-  env: BetaReadinessDeployedEvidenceInputManifestEnv = process.env,
-  options: { snapshotPath?: string; currentSourceSha?: string } = {},
-): BetaReadinessDeployedEvidenceInputManifest {
+  env = process.env,
+  options = {},
+) {
   const snapshotPath = options.snapshotPath ?? DEFAULT_SNAPSHOT_PATH
   const currentSourceSha = clean(options.currentSourceSha) ?? clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA)
   const snapshot = loadSnapshot(snapshotPath)
@@ -195,17 +147,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   }
 }
 
-function buildRequiredInputs(
-  env: BetaReadinessDeployedEvidenceInputManifestEnv,
-  fixed: {
-    currentSourceSha?: string
-    localAcceptedEvidenceSourceSha: string
-    coreToolIdsCsv: string
-    libassContainerImage: string
-    requiredBoundedAcceptedToolCount: string
-    requiredProductReadyLocalOssCount: string
-  },
-): DeployedEvidenceInputRecord[] {
+function buildRequiredInputs(env, fixed) {
   return [
     input(env, 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL', 'shared', true, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN', 'shared', true, 'external_beta_evidence_sequence'),
@@ -270,18 +212,8 @@ function buildRequiredInputs(
   ]
 }
 
-function buildValueGaps(
-  env: BetaReadinessDeployedEvidenceInputManifestEnv,
-  fixed: {
-    currentSourceSha?: string
-    localAcceptedEvidenceSourceSha: string
-    coreToolIds: string[]
-    libassContainerImage: string
-    requiredBoundedAcceptedToolCount: number
-    requiredProductReadyLocalOssCount: number
-  },
-): string[] {
-  const gaps: string[] = []
+function buildValueGaps(env, fixed) {
+  const gaps = []
   if (fixed.currentSourceSha) {
     requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA', fixed.currentSourceSha)
     requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_SOURCE_SHA', fixed.currentSourceSha)
@@ -361,14 +293,7 @@ function buildValueGaps(
   return gaps
 }
 
-function input(
-  env: BetaReadinessDeployedEvidenceInputManifestEnv,
-  name: string,
-  group: DeployedEvidenceInputRecord['group'],
-  secret: boolean,
-  requiredFor: DeployedEvidenceInputRecord['requiredFor'],
-  expectedValue?: string,
-): DeployedEvidenceInputRecord {
+function input(env, name, group, secret, requiredFor, expectedValue) {
   return {
     name,
     group,
@@ -379,63 +304,83 @@ function input(
   }
 }
 
-function requireEqualIfPresent(
-  env: BetaReadinessDeployedEvidenceInputManifestEnv,
-  gaps: string[],
-  name: string,
-  expected: string,
-): void {
+function requireEqualIfPresent(env, gaps, name, expected) {
   const value = clean(env[name])
   if (value && value !== expected) {
     gaps.push(`${name} must be ${expected}.`)
   }
 }
 
-function requireNotTrueIfPresent(
-  env: BetaReadinessDeployedEvidenceInputManifestEnv,
-  gaps: string[],
-  name: string,
-): void {
+function requireNotTrueIfPresent(env, gaps, name) {
   const value = clean(env[name])
   if (value === 'true' || value === '1') {
     gaps.push(`${name} must not be true in the external-beta deployed evidence lane.`)
   }
 }
 
-function loadSnapshot(path: string): LocalAcceptedEvidenceSnapshot {
-  return JSON.parse(readFileSync(path, 'utf8')) as LocalAcceptedEvidenceSnapshot
+function loadSnapshot(path) {
+  return JSON.parse(readFileSync(path, 'utf8'))
 }
 
-function required(value: string | undefined, label: string): string {
+function required(value, label) {
   const cleaned = clean(value)
   if (!cleaned) throw new Error(`${label} is required.`)
   return cleaned
 }
 
-function requiredNumber(value: number | undefined, label: string): number {
+function requiredNumber(value, label) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 1) {
     throw new Error(`${label} must be a positive number.`)
   }
   return value
 }
 
-function requiredArray(value: string[] | undefined, label: string): string[] {
+function requiredArray(value, label) {
   if (!Array.isArray(value) || value.length === 0 || value.some((item) => !clean(item))) {
     throw new Error(`${label} must be a non-empty string array.`)
   }
   return value
 }
 
-function parseCsv(value: string | undefined): string[] {
+function parseCsv(value) {
   return (value ?? '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
 }
 
-function clean(value: string | undefined): string | undefined {
+function clean(value) {
   const trimmed = value?.trim()
   return trimmed || undefined
+}
+
+function collectSecretLikePaths(value, rootPath = 'payload') {
+  const matches = []
+  visitSecretPaths(value, rootPath, matches)
+  return matches
+}
+
+function visitSecretPaths(value, path, matches) {
+  if (typeof value === 'string') {
+    if (SECRET_VALUE_PATTERNS.some((pattern) => pattern.test(value))) matches.push(path)
+    return
+  }
+
+  if (!value || typeof value !== 'object') return
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => visitSecretPaths(item, `${path}[${index}]`, matches))
+    return
+  }
+
+  for (const [key, nestedValue] of Object.entries(value)) {
+    const nestedPath = `${path}.${key}`
+    if (SECRET_KEY_PATTERNS.some((pattern) => pattern.test(key))) {
+      matches.push(nestedPath)
+      continue
+    }
+    visitSecretPaths(nestedValue, nestedPath, matches)
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

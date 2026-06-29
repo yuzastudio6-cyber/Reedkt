@@ -7,6 +7,10 @@ const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-ev
 
 const PASS_DECISION = 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence'
 const BLOCKED_DECISION = 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale'
+const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
+  'beta:readiness:deployed-evidence-input-manifest',
+  'smoke:beta-readiness-deployed-evidence-input-manifest',
+]
 
 export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, options = {}) {
   const apiDeployPacketPath = clean(options.apiDeployPacketPath) ??
@@ -44,7 +48,11 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
   const changedFiles = sourceShaMismatch ? resolveChangedFiles(deployedSourceSha, currentSourceSha, options) : []
   const metadataOnlySourceDriftAllowed = sourceShaMismatch &&
     changedFiles.length > 0 &&
-    changedFiles.every(isAllowedMetadataOnlyDriftPath)
+    changedFiles.every((path) => isAllowedMetadataOnlyDriftPath(path, {
+      deployedSourceSha,
+      currentSourceSha,
+      options,
+    }))
   const sourceDriftGap = sourceShaMismatch && !metadataOnlySourceDriftAllowed
     ? [`Current source SHA ${currentSourceSha} does not match deployed evidence source SHA ${deployedSourceSha}.`]
     : []
@@ -91,8 +99,15 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
+        'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+        'server/cli/beta-readiness-operator-status.ts',
+        `package.json scripts only: ${ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.join(', ')}`,
       ],
-      blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path)),
+      blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path, {
+        deployedSourceSha,
+        currentSourceSha,
+        options,
+      })),
     },
     sourceTruth: {
       sourceBranch: 'codex/sound-music-audio-1abc-checkpoint',
@@ -160,14 +175,40 @@ function resolveChangedFiles(deployedSourceSha, currentSourceSha, options) {
   }
 }
 
-function isAllowedMetadataOnlyDriftPath(path) {
+function isAllowedMetadataOnlyDriftPath(path, context = {}) {
   return path.startsWith('docs/') ||
     path.startsWith('server/smoke/') ||
     path === 'server/cli/beta-readiness-source-freshness-preflight.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-packet.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-intake-preflight.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs' ||
-    path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts'
+    path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts' ||
+    path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
+    path === 'server/cli/beta-readiness-operator-status.ts' ||
+    (path === 'package.json' && isAllowedPackageJsonScriptOnlyDrift(context))
+}
+
+function isAllowedPackageJsonScriptOnlyDrift({ deployedSourceSha, currentSourceSha, options = {} }) {
+  if (Array.isArray(options.packageJsonChangedScriptNames)) {
+    return options.packageJsonChangedScriptNames.length > 0 &&
+      options.packageJsonChangedScriptNames.every((name) => ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.includes(name))
+  }
+  if (options.resolveGit === false) return false
+  if (!validSha(deployedSourceSha) || !validSha(currentSourceSha)) return false
+  try {
+    const output = execFileSync('git', ['diff', '--unified=0', '--no-ext-diff', deployedSourceSha, currentSourceSha, '--', 'package.json'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    const changedLines = output
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => (line.startsWith('+') || line.startsWith('-')) && !line.startsWith('+++') && !line.startsWith('---'))
+    return changedLines.length > 0 &&
+      changedLines.every((line) => ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.some((scriptName) => line.includes(`"${scriptName}"`)))
+  } catch {
+    return false
+  }
 }
 
 function readJson(path) {

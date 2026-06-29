@@ -1,9 +1,9 @@
 {
   "reportId": "beta-readiness-blocker-closeout-queue-2026-06-29",
-  "createdAt": "2026-06-29T14:08:43.988Z",
+  "createdAt": "2026-06-29T17:58:22.680Z",
   "decision": "beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection",
   "sourceTruth": {
-    "currentCentralSha": "582301ab43ff073a5ba9dd7f96fb3e3ca81a1614",
+    "currentCentralSha": "fd4d0278d4a547526fcdd9672c6f0f3f0dd11ef0",
     "blockerLedgerRows": 197,
     "duplicateBlockerRows": 0,
     "toolRows": 184,
@@ -35,7 +35,7 @@
       "libass"
     ],
     "readyToRecordDeployedEvidence": true,
-    "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-aa49-external-beta-operator-input-template.json",
+    "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json",
     "requiredOperatorInputs": 60,
     "pendingOperatorInputsInBlankEnv": 57
   },

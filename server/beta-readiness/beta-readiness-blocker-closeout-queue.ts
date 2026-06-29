@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { buildBetaReadinessBlockerLedger } from './beta-readiness-blocker-ledger'
 
 const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
-const EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH = 'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-aa49-external-beta-operator-input-template.json'
+const EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH = 'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json'
 
 export interface BetaReadinessBlockerCloseoutQueueBatch {
   batchId: string

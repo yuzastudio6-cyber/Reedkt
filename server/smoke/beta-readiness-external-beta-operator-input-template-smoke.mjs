@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import {
+  buildBetaReadinessExternalBetaOperatorInputTemplate,
+  renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown,
+} from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
+
+const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+
+assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-input-template'],
+  'node server/cli/beta-readiness-external-beta-operator-input-template.mjs',
+)
+assert.equal(
+  packageJson.scripts['smoke:beta-readiness-external-beta-operator-input-template'],
+  'node server/smoke/beta-readiness-external-beta-operator-input-template-smoke.mjs',
+)
+
+const report = buildBetaReadinessExternalBetaOperatorInputTemplate()
+const markdown = renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report)
+const serialized = JSON.stringify(report)
+
+assert.equal(report.ok, true)
+assert.equal(
+  report.decision,
+  'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection',
+)
+assert.equal(report.sourceTruth.deployedSourceSha, 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67')
+assert.deepEqual(report.sourceTruth.trackBToolTotals, {
+  owned: 16,
+  boundedAcceptedProven: 16,
+  blockedNotInstalledProven: 0,
+  productReady: 0,
+})
+assert.equal(report.inputCounts.required, 60)
+assert.equal(report.inputCounts.currentlyPendingInBlankEnvironment, 57)
+assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
+assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), true)
+assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS'), true)
+assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'), true)
+assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), true)
+
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL="https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app"'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN="<secret value supplied only in the operator shell>"'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="aa49cef9ed6dad971f0163ea80ebb34de0e65d67"'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
+
+assert.equal(serialized.includes('secret-token'), false)
+assert.equal(serialized.includes('Bearer secret'), false)
+assert.equal(serialized.includes('service_role_key'), false)
+assert.equal(serialized.includes('x-goog-signature='), false)
+assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
+assert.equal(markdown.includes('enable external beta'), true)
+
+console.log(JSON.stringify({
+  ok: true,
+  decision: report.decision,
+  requiredInputs: report.inputCounts.required,
+  pendingRequiredInputs: report.inputCounts.currentlyPendingInBlankEnvironment,
+  trackBToolTotals: report.sourceTruth.trackBToolTotals,
+  productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
+}, null, 2))

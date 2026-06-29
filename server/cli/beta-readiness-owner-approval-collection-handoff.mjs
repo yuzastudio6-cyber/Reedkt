@@ -74,6 +74,7 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
     },
     commands: [
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',

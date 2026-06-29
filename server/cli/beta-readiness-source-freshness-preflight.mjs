@@ -11,6 +11,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:deployed-evidence-input-manifest',
   'beta:readiness:api-deployment-preflight',
   'beta:readiness:blocker-ledger',
+  'beta:readiness:external-beta-operator-input-template',
   'beta:readiness:external-beta-evidence-collector',
   'beta:readiness:launch-approval-evidence',
   'beta:readiness:launch-approval-evidence-preflight',
@@ -39,6 +40,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'smoke:beta-readiness-api-staging-deploy-workflow',
   'smoke:beta-readiness-api-staging-input-discovery-blocker',
   'smoke:beta-readiness-blocker-ledger',
+  'smoke:beta-readiness-external-beta-operator-input-template',
   'smoke:beta-readiness-external-beta-evidence-collector',
   'smoke:beta-readiness-launch-approval-evidence-cli',
   'smoke:beta-readiness-launch-approval-evidence-preflight',
@@ -160,6 +162,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+        'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
         'server/cli/beta-readiness-node-ts-register.mjs',
         'server/cli/beta-readiness-operator-status-api.ts',
         'server/cli/beta-readiness-operator-status-api.mjs',
@@ -186,6 +189,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
     valueGaps,
     recommendedCommands: readyForDeployedEvidenceInputManifest ? [
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
@@ -195,6 +199,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:api-deployment-preflight',
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-preflight',
     ],
     blockedScopes: readyForDeployedEvidenceInputManifest ? [
@@ -253,6 +258,7 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
+    path === 'server/cli/beta-readiness-external-beta-operator-input-template.mjs' ||
     path === 'server/cli/beta-readiness-node-ts-register.mjs' ||
     path === 'server/cli/beta-readiness-operator-status-api.ts' ||
     path === 'server/cli/beta-readiness-operator-status-api.mjs' ||

@@ -125,7 +125,12 @@ function buildToolBlockers(toolId: ProductionToolId, status: ReadinessValidation
     candidates.push({ kind: 'required_launch_core_missing', toolId, detail: `${profile.displayName} requires a passing readiness check.` })
   }
 
-  if (profile?.modelWeightsRequired) {
+  if (profile?.modelWeightsRequired && [
+    'needs_model_weight_review',
+    'model_weight_missing',
+    'model_weight_blocked',
+    'needs_license_review',
+  ].includes(status)) {
     candidates.push({ kind: 'model_weight_missing', toolId, detail: `${profile.displayName} requires approved model-weight metadata and runtime mounts before production.` })
   }
 
@@ -155,9 +160,10 @@ function buildToolSummaries(): ReadinessToolSummary[] {
   return listProductionToolProfiles().map((profile) => {
     const spec = getProductionReadinessSpec(profile.toolId)
     const result = resultByTool.get(profile.toolId)
-    const baseStatus = profile.modelWeightsRequired
+    const mappedStatus = mapReadinessStatus(result?.status ?? spec?.readinessStatusWhenMissing ?? 'not_checked')
+    const baseStatus = profile.modelWeightsRequired && !['passed', 'warning'].includes(mappedStatus)
       ? 'needs_model_weight_review'
-      : mapReadinessStatus(result?.status ?? spec?.readinessStatusWhenMissing ?? 'not_checked')
+      : mappedStatus
     const status = profile.productionStatus === 'evaluation_only' ? 'evaluation_only' : baseStatus
     const blockers = buildToolBlockers(profile.toolId, status)
 
@@ -249,7 +255,7 @@ function buildImageSummaries(toolSummaries: ReadinessToolSummary[]): ReadinessIm
         .filter((tool) => toolBlocksProduction(tool))
         .map((tool) => tool.toolId),
       modelWeightBlockedTools: expectedSummaries
-        .filter((tool) => tool.modelWeightsRequired)
+        .filter((tool) => tool.modelWeightsRequired && toolBlocksProduction(tool))
         .map((tool) => tool.toolId),
       evaluationOnlyTools: expectedSummaries
         .filter((tool) => tool.evaluationOnly)

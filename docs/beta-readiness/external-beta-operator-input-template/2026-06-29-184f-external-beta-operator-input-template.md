@@ -103,6 +103,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 
 # Validate before collector execution:
 # npm run beta:readiness:source-freshness-preflight
+# npm run beta:readiness:owner-approval-intake-status
 # npm run beta:readiness:owner-approval-intake-preflight
 # npm run beta:readiness:deployed-evidence-input-manifest
 
@@ -117,6 +118,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 ## Validation Commands
 
 - `npm run beta:readiness:source-freshness-preflight`
+- `npm run beta:readiness:owner-approval-intake-status`
 - `npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 - `npm run beta:readiness:external-beta-evidence-collector`

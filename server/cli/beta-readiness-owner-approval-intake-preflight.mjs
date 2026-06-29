@@ -1,5 +1,7 @@
 import { buildBetaReadinessOwnerApprovalPacket } from './beta-readiness-owner-approval-packet.mjs'
 
+const STATUS_DECISION = 'beta_readiness_owner_approval_intake_status_passed_ready_for_owner_input_collection'
+
 const PLATFORM_ATTESTATION_INPUTS = [
   'REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED',
   'REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE',
@@ -142,6 +144,110 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
   }
 }
 
+export function buildBetaReadinessOwnerApprovalIntakeStatus(
+  report = buildBetaReadinessOwnerApprovalIntakePreflight({}),
+) {
+  const requiredInputs = report.requiredInputs.map((input) => ({
+    name: input.name,
+    present: input.present,
+    inputClass: ownerApprovalInputClass(input.name),
+    operatorAction: ownerApprovalOperatorAction(input.name),
+  }))
+  const pendingInputs = requiredInputs.filter((input) => !input.present)
+
+  return {
+    ok: true,
+    decision: STATUS_DECISION,
+    preflightDecision: report.decision,
+    readyForDeployedEvidenceInputManifest: report.readyForDeployedEvidenceInputManifest,
+    packetId: report.packetId,
+    sourceTruth: report.sourceTruth,
+    inputCounts: {
+      required: report.requiredInputCount,
+      present: requiredInputs.length - pendingInputs.length,
+      pending: pendingInputs.length,
+      pendingOwnerApprovalConfirmations: pendingInputs.filter((input) => input.inputClass === 'owner_approval_confirmation').length,
+      pendingTechnicalVerificationConfirmations: pendingInputs.filter((input) => input.inputClass === 'technical_verification_confirmation').length,
+      pendingOwnerEvidenceNotes: pendingInputs.filter((input) => input.inputClass === 'owner_evidence_note').length,
+      invalidBooleanInputs: report.invalidBooleanInputs.length,
+      rejectedScopeInputs: report.rejectedScopeInputs.length,
+      secretLikeEvidenceInputs: report.secretLikeInputPaths.length,
+    },
+    pendingInputs,
+    invalidBooleanInputs: report.invalidBooleanInputs,
+    rejectedScopeInputs: report.rejectedScopeInputs,
+    secretLikeInputPaths: report.secretLikeInputPaths,
+    validationCommands: [
+      'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:owner-approval-intake-status',
+      'npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest',
+    ],
+    blockedScopes: report.blockedScopes,
+    supabaseClassification: report.supabaseClassification,
+    warnings: [
+      'This status report is value-free; it prints input names, classes, and operator actions only.',
+      'It does not grant approval, echo evidence notes, call deployed services, write Supabase/GCS, run tools, enable beta, or enable production.',
+      'Run the hard owner approval intake preflight after owners fill values outside source control.',
+    ],
+  }
+}
+
+export function renderBetaReadinessOwnerApprovalIntakeStatusMarkdown(status) {
+  const lines = [
+    '# Beta Readiness Owner Approval Intake Status',
+    '',
+    `Decision: \`${status.decision}\``,
+    `Preflight decision: \`${status.preflightDecision}\``,
+    `Ready for deployed evidence input manifest: \`${status.readyForDeployedEvidenceInputManifest}\``,
+    '',
+    '## Counts',
+    '',
+    `- Required inputs: \`${status.inputCounts.required}\``,
+    `- Present inputs: \`${status.inputCounts.present}\``,
+    `- Pending inputs: \`${status.inputCounts.pending}\``,
+    `- Pending owner approval confirmations: \`${status.inputCounts.pendingOwnerApprovalConfirmations}\``,
+    `- Pending technical verification confirmations: \`${status.inputCounts.pendingTechnicalVerificationConfirmations}\``,
+    `- Pending owner evidence notes: \`${status.inputCounts.pendingOwnerEvidenceNotes}\``,
+    `- Invalid boolean inputs: \`${status.inputCounts.invalidBooleanInputs}\``,
+    `- Rejected wider-scope inputs: \`${status.inputCounts.rejectedScopeInputs}\``,
+    `- Secret-like evidence inputs: \`${status.inputCounts.secretLikeEvidenceInputs}\``,
+    '',
+    '## Pending Inputs',
+    '',
+    ...status.pendingInputs.map((input) => `- \`${input.name}\` (${input.inputClass}, ${input.operatorAction})`),
+    '',
+    '## Validation Commands',
+    '',
+    ...status.validationCommands.map((command) => `- \`${command}\``),
+    '',
+    '## Boundary',
+    '',
+    'This status report printed no owner evidence text, bearer tokens, service-role keys, signed URLs, raw prompts, private media references, or deploy secrets.',
+    'It did not grant approval, call the deployed backend, record evidence, write Supabase, run SQL, write GCS, dispatch workers, call providers, process media, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.',
+    '',
+    'Supabase classification: no write / environment none / SQL none / migration no.',
+  ]
+  return lines.join('\n')
+}
+
+function ownerApprovalInputClass(name) {
+  if (name.endsWith('_EVIDENCE')) return 'owner_evidence_note'
+  if (name.endsWith('_VERIFIED')) return 'technical_verification_confirmation'
+  if (name.startsWith('REEDITPRO_BETA_PLATFORM_APPROVE_') || name.startsWith('REEDITPRO_BETA_LAUNCH_APPROVE_')) {
+    return 'owner_approval_confirmation'
+  }
+  return 'operator_confirmation'
+}
+
+function ownerApprovalOperatorAction(name) {
+  const inputClass = ownerApprovalInputClass(name)
+  if (inputClass === 'owner_evidence_note') return 'supply_non_secret_owner_evidence_note'
+  if (inputClass === 'technical_verification_confirmation') return 'confirm_technical_verification'
+  if (inputClass === 'owner_approval_confirmation') return 'confirm_named_owner_approval'
+  return 'confirm_operator_gate_intent'
+}
+
 function inputNameFromAssignment(value) {
   return String(value).split('=')[0]
 }
@@ -177,6 +283,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0)
   }
   const report = buildBetaReadinessOwnerApprovalIntakePreflight(process.env)
+  if (process.argv.includes('--status')) {
+    console.log(JSON.stringify(buildBetaReadinessOwnerApprovalIntakeStatus(report), null, 2))
+    process.exit(0)
+  }
+  if (process.argv.includes('--status-markdown')) {
+    console.log(renderBetaReadinessOwnerApprovalIntakeStatusMarkdown(buildBetaReadinessOwnerApprovalIntakeStatus(report)))
+    process.exit(0)
+  }
   console.log(JSON.stringify(report, null, 2))
   if (!report.readyForDeployedEvidenceInputManifest) {
     process.exitCode = 1

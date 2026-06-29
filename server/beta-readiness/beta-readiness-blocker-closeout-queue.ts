@@ -178,6 +178,7 @@ function buildBatches(
       nextCommands: [
         'npm run beta:readiness:external-beta-operator-input-template -- --status',
         'npm run beta:readiness:external-beta-operator-input-template',
+        'npm run beta:readiness:owner-approval-intake-status',
         'npm run beta:readiness:owner-approval-intake-preflight',
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],

@@ -53,6 +53,7 @@ assert.ok(handoff.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_
 assert.ok(handoff.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
 assert.equal(handoff.redactedTemplate.storesCompletedValuesInSourceControl, false)
 assert.ok(handoff.commands.includes('npm run beta:readiness:external-beta-operator-input-template'))
+assert.ok(handoff.commands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(handoff.commands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
 assert.equal(handoff.scopedBlockerForwardProgressPolicy.intentionalBlanketBlocksAllowed, false)
 assert.equal(handoff.scopedBlockerForwardProgressPolicy.safeBlockerReductionAllowed, true)

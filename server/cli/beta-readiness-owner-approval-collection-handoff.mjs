@@ -76,6 +76,7 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:source-freshness-preflight',
+      'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
@@ -120,7 +121,7 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
       signedUrlsCreated: false,
     },
     supabaseClassification: packet.supabaseClassification,
-    nextSafeAction: 'Owners fill the generated non-secret approval template outside source control, then run source freshness, owner approval intake preflight, and deployed evidence input manifest before any collector.',
+    nextSafeAction: 'Owners fill the generated non-secret approval template outside source control, then run source freshness, owner approval intake status, owner approval intake preflight, and deployed evidence input manifest before any collector.',
     outputPaths: {
       json: HANDOFF_JSON_PATH,
       markdown: HANDOFF_MD_PATH,

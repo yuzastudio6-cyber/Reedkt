@@ -53,6 +53,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
     envTemplate: renderEnvTemplate(requiredInputs),
     validationCommands: [
       'npm run beta:readiness:source-freshness-preflight',
+      'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
@@ -80,7 +81,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
       sql: 'none',
       migration: 'no',
     },
-    nextSafeAction: 'Operators fill this template outside source control, then run source freshness, owner approval intake preflight, deployed evidence input manifest, and only then the external beta evidence collector.',
+    nextSafeAction: 'Operators fill this template outside source control, then run source freshness, owner approval intake status, owner approval intake preflight, deployed evidence input manifest, and only then the external beta evidence collector.',
     warnings: [
       'This template is a local operator input aid only; it does not call the deployed backend or record evidence.',
       'Do not commit completed templates, bearer tokens, workspace/project identifiers if private, evidence notes, signed URLs, raw prompts, or private media references.',
@@ -311,6 +312,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('')
   lines.push('# Validate before collector execution:')
   lines.push('# npm run beta:readiness:source-freshness-preflight')
+  lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   lines.push('')

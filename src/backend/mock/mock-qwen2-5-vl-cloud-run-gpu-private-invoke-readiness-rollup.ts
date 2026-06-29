@@ -54,6 +54,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_OBJECTS_POLICY_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_14_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-14-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX } from './mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_15_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT_REVIEW } from './mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -113,6 +114,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required'
   | 'blocked_backend_runtime_persistence_local_harness_validation_result_review_required'
+  | 'blocked_backend_runtime_persistence_active_migration_plan_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -129,7 +131,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_validation_retry_15_passed_result_review_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_result_review_accepted_active_migration_plan_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -242,6 +244,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX.decision,
   upstreamBackendRuntimePersistenceLocalHarnessValidationRetry15Decision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_15_RESULT.decision,
+  upstreamBackendRuntimePersistenceLocalHarnessValidationResultReviewDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT_REVIEW.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -969,15 +973,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_local_harness_validation_result_review',
       label: 'Backend runtime persistence local harness validation result review',
-      status: 'blocked_backend_runtime_persistence_local_harness_validation_result_review_required',
+      status: 'ready',
       evidence: [
         'Backend runtime persistence local harness validation retry 15 result is recorded.',
         'Qwen draft SQL applied locally and Qwen SQL tests passed locally.',
+        'Backend runtime persistence local harness validation result review is recorded.',
+        'The review accepts retry-15 local harness evidence, cleanup evidence, private storage boundary evidence, signed URL source-of-truth rejection, and raw prompt rejection.',
         'No active Qwen migration was created and no Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated asset, public artifact, signed URL, credit mutation, beta, or production unlock occurred.',
       ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_active_migration_plan',
+      label: 'Backend runtime persistence active migration plan',
+      status: 'blocked_backend_runtime_persistence_active_migration_plan_required',
+      evidence: [
+        'Backend runtime persistence local harness validation result review accepted the validated draft SQL and local SQL tests.',
+        'The validated Qwen persistence SQL is still draft-only.',
+      ],
       missingEvidence: [
-        'Review the passed retry-15 result and decide whether the local persistence evidence is sufficient for the next backend runtime readiness gate.',
-        'Keep private invoke, real worker dispatch, generated assets, public artifacts, signed URLs, beta, and production blocked until the review accepts this evidence.',
+        'Plan how to promote the validated Qwen backend runtime persistence draft into an active migration without deploying it.',
+        'Keep private invoke, real worker dispatch, generated assets, public artifacts, signed URLs, beta, and production blocked until active migration planning and deployment approvals are complete.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -1298,7 +1314,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceLocalHarnessValidationRetry15ResultRecorded: true,
     backendRuntimePersistenceLocalHarnessValidationRetry15Attempted: true,
     backendRuntimePersistenceLocalHarnessValidationRetry15Passed: true,
-    backendRuntimePersistenceLocalHarnessValidationResultReviewRequired: true,
+    backendRuntimePersistenceLocalHarnessValidationResultReviewRequired: false,
+    backendRuntimePersistenceLocalHarnessValidationResultReviewRecorded: true,
+    backendRuntimePersistenceLocalHarnessValidationResultReviewAccepted: true,
+    backendRuntimePersistenceActiveMigrationPlanRequired: true,
+    qwenActiveMigrationCreated: false,
     backendRuntimePersistenceStorageUploadPipelinePolicyCommentFixVerified: true,
     qwenDraftSqlApplyAttempted: true,
     qwenDraftSqlApplied: true,
@@ -1334,11 +1354,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_local_harness_validation_result_review_required',
+    'backend_runtime_persistence_active_migration_plan_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58AY-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RESULT-REVIEW: review passed Qwen local harness validation result, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58AZ-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-PLAN: promote validated Qwen persistence draft to active migration plan, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

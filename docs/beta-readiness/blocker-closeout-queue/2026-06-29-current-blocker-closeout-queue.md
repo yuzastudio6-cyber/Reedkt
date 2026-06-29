@@ -2,7 +2,7 @@
 
 Decision: `beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection`
 
-Current central SHA: `d973dbfd70ceab9ac5d910c1c196e324130e4bb4`
+Current central SHA: `fa5d04a19f116723e17ab1832ded7cde7ef78481`
 Blocker ledger rows: `197`
 Product-ready local OSS count: `0`
 External beta allowed: `false`
@@ -22,6 +22,7 @@ Auto-fillable pending inputs: `12`
    - Can enable beta/production: `false`
    - Next command: `npm run beta:readiness:external-beta-operator-input-template -- --status`
    - Next command: `npm run beta:readiness:external-beta-operator-autofill-env`
+   - Next command: `npm run beta:readiness:external-beta-operator-human-input-checklist`
    - Next command: `npm run beta:readiness:external-beta-operator-input-template`
    - Next command: `npm run beta:readiness:owner-approval-intake-status`
    - Next command: `npm run beta:readiness:owner-approval-intake-preflight`

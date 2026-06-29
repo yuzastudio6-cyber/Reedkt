@@ -19,6 +19,7 @@ The source freshness guard now passes for the current staging API deploy evidenc
 - `npm run beta:readiness:owner-approval-env-template`
 - `npm run beta:readiness:external-beta-operator-input-template -- --status`
 - `npm run beta:readiness:external-beta-operator-autofill-env`
+- `npm run beta:readiness:external-beta-operator-human-input-checklist`
 - `npm run beta:readiness:external-beta-operator-input-template`
 - `npm run beta:readiness:owner-approval-intake-status`
 - `npm run beta:readiness:owner-approval-intake-preflight`

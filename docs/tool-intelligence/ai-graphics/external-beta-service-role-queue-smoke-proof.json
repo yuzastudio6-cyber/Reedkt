@@ -75,6 +75,7 @@
     "workerClaimsReturned": 21,
     "serviceRoleQueueSmokeAuthorizationRefRequired": true,
     "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,

@@ -70,6 +70,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: number
     sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: number
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
     sourceLiveQueueWritesAcceptedWithProvidedEvidence: number
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
     sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0
@@ -84,6 +85,8 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     serviceRoleQueueSmokeCleanupProofRef: string | null
     sanitizedSourceStatus: string | null
     sanitizedSourceDecision: string | null
+    serviceRoleQueueSmokeAuthorizationRef: string | null
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: boolean
     sourceGatewayRuntimeAdmissionModesByTool:
       Record<AiGraphicsCanonicalToolId, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: boolean
@@ -107,6 +110,7 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeProof {
     externalBetaServiceRoleQueueSmokeProofPrepared: true
     sourceRuntimeQueueServiceBridgeAccepted: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     sourceServiceRoleQueueSmokeReadinessAccepted: boolean
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -282,6 +286,7 @@ function buildBooleans(input: {
   sourceQueueWritesAccepted: boolean
   sourceWorkerClaimsAccepted: boolean
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   cleanupVerified: boolean
 }) {
   return {
@@ -289,6 +294,8 @@ function buildBooleans(input: {
     sourceRuntimeQueueServiceBridgeAccepted: input.readiness,
     sourceRuntimeQueueServiceProofBridgeAccepted:
       input.sourceRuntimeQueueServiceProofBridgeAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted:
+      input.sourceServiceRoleQueueSmokeAuthorizationAccepted,
     sourceServiceRoleQueueSmokeReadinessAccepted: input.readiness,
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: input.accepted,
     all21ToolsCovered: true,
@@ -349,6 +356,9 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
   const sourceRuntimeQueueServiceProofBridgeAccepted =
     readiness &&
     input.serviceRoleQueueSmokeResult?.sourceRuntimeQueueServiceProofBridgeAccepted === true
+  const sourceServiceRoleQueueSmokeAuthorizationAccepted =
+    input.serviceRoleQueueSmokeResult?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    hasValue(input.serviceRoleQueueSmokeResult.serviceRoleQueueSmokeAuthorizationRef)
   const evidenceRefsMissing = [
     !hasValue(input.serviceRoleQueueSmokeEvidenceRef)
       ? 'service-role queue smoke evidence ref is missing'
@@ -401,6 +411,8 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
         cpuStaticFirstCohortTools.length,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
         accepted ? tools.length : 0,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
+        accepted ? tools.length : 0,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: accepted ? 21 : 0,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: accepted ? 21 : 0,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -418,6 +430,10 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
         input.serviceRoleQueueSmokeCleanupProofRef ?? null,
       sanitizedSourceStatus: input.serviceRoleQueueSmokeResult?.status ?? null,
       sanitizedSourceDecision: input.serviceRoleQueueSmokeResult?.decision ?? null,
+      serviceRoleQueueSmokeAuthorizationRef:
+        input.serviceRoleQueueSmokeResult?.serviceRoleQueueSmokeAuthorizationRef ?? null,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
+        accepted && sourceServiceRoleQueueSmokeAuthorizationAccepted,
       sourceGatewayRuntimeAdmissionModesByTool: sourceModes,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
         accepted && sourceRuntimeQueueServiceProofBridgeAccepted,
@@ -443,6 +459,7 @@ export function evaluateAiGraphicsExternalBetaServiceRoleQueueSmokeProof(
       sourceQueueWritesAccepted: accepted,
       sourceWorkerClaimsAccepted: accepted,
       sourceRuntimeQueueServiceProofBridgeAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
       cleanupVerified: accepted,
     }),
   }

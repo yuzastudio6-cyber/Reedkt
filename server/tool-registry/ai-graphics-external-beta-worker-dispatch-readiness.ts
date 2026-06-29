@@ -86,6 +86,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     sourceLiveQueueWritesAcceptedWithProvidedEvidence: number
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
     sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0
     sourceToolExecutionsAcceptedWithProvidedEvidence: 0
     cleanupPersistedRowsAfterSmoke: 0
@@ -198,6 +199,7 @@ function sourceProofAccepted(
     packet.counts.sourceLiveQueueWritesAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence === 1 &&
     packet.acceptedCpuStaticFirstCohortTools?.length === 1 &&
@@ -205,11 +207,14 @@ function sourceProofAccepted(
     packet.evidence.sourceGatewayRuntimeAdmissionModesByTool?.d3 ===
       'cpu_static_first_cohort' &&
     packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
+    packet.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+    Boolean(packet.evidence.serviceRoleQueueSmokeAuthorizationRef) &&
     packet.counts.sourceWorkerDispatchesAcceptedWithProvidedEvidence === 0 &&
     packet.counts.sourceToolExecutionsAcceptedWithProvidedEvidence === 0 &&
     packet.counts.cleanupPersistedRowsAfterSmoke === 0 &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.workerDispatchPerformed === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
 }
@@ -370,6 +375,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: proofAccepted ? 21 : 0,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: proofAccepted ? 21 : 0,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+        proofAccepted ? 21 : 0,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
         proofAccepted ? 21 : 0,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
       sourceToolExecutionsAcceptedWithProvidedEvidence: 0,

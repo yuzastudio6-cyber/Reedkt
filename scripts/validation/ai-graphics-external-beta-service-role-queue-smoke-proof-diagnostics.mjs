@@ -233,6 +233,12 @@ if (docs.acceptanceCriteria?.serviceRoleQueueSmokeAuthorizationRefRequired !== t
 if (docs.acceptanceCriteria?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
   fail('docs_source_service_role_queue_smoke_authorization_not_accepted')
 }
+if (
+  docs.acceptanceCriteria
+    ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
+) {
+  fail('docs_source_service_role_queue_smoke_authorization_count_not_21')
+}
 if (docs.acceptanceCriteria?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
   fail('docs_source_modes_not_21')
 }
@@ -318,6 +324,12 @@ try {
   if (accepted.counts?.sourceWorkerClaimRowsAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_claims_not_21')
   }
+  if (
+    accepted.counts
+      ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_source_service_role_queue_smoke_authorization_not_21')
+  }
   if (accepted.counts?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_modes_not_21')
   }
@@ -339,8 +351,17 @@ try {
   if (accepted.evidence?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== true) {
     fail('accepted_source_runtime_queue_service_proof_bridge_evidence_missing')
   }
+  if (accepted.evidence?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_evidence_missing')
+  }
+  if (!accepted.evidence?.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_service_role_queue_smoke_authorization_ref_missing')
+  }
   if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
     fail('accepted_source_runtime_queue_service_proof_bridge_boolean_missing')
+  }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_boolean_missing')
   }
   if (accepted.counts?.sourceWorkerDispatchesAcceptedWithProvidedEvidence !== 0) {
     fail('accepted_dispatches_not_0')

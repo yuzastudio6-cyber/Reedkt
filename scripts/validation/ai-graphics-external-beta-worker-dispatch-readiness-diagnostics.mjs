@@ -232,6 +232,7 @@ for (const [key, expected] of Object.entries({
   sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
   sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
   sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
   sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -312,6 +313,7 @@ try {
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
       sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
       sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -321,10 +323,14 @@ try {
     evidence: {
       sourceGatewayRuntimeAdmissionModesByTool,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+      serviceRoleQueueSmokeAuthorizationRef:
+        'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
     },
     booleans: {
       agentCanExecuteToolsNow: false,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
     },
@@ -365,6 +371,12 @@ try {
       ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21
   ) {
     fail('accepted_source_runtime_queue_service_proof_bridge_evidence_not_21')
+  }
+  if (
+    accepted.acceptedSourceEvidence
+      ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_source_service_role_queue_smoke_authorization_evidence_not_21')
   }
   const d3Record = (accepted.records ?? []).find((record) => record.toolId === 'd3')
   if (d3Record?.sourceGatewayRuntimeAdmissionMode !== 'cpu_static_first_cohort') {
@@ -407,6 +419,7 @@ try {
         sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
         sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
         sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
         sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
         sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -416,10 +429,14 @@ try {
       evidence: {
         sourceGatewayRuntimeAdmissionModesByTool,
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: false,
+        serviceRoleQueueSmokeAuthorizationRef:
+          'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
       },
       booleans: {
         agentCanExecuteToolsNow: false,
         sourceRuntimeQueueServiceProofBridgeAccepted: false,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
         workerDispatchPerformed: false,
         gpuRuntimeShouldStartNow: false,
       },
@@ -446,6 +463,59 @@ try {
   }
   if (strippedProofBridge.sourceServiceRoleQueueSmokeProofBridgeAccepted !== false) {
     fail('stripped_proof_bridge_unexpectedly_accepted')
+  }
+
+  const strippedAuthorizationPacketPath = writeJson(
+    path.join(tmpRoot, 'service-role-queue-smoke-proof-stripped-authorization.json'),
+    {
+      decision: 'external_beta_service_role_queue_smoke_proof_accepted_with_runtime_blocks',
+      proofAcceptedWithProvidedEvidence: true,
+      acceptedCpuStaticFirstCohortTools: ['d3'],
+      counts: {
+        serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: 21,
+        sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
+        sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+        sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
+        sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
+        sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
+        sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
+        cleanupPersistedRowsAfterSmoke: 0,
+      },
+      evidence: {
+        sourceGatewayRuntimeAdmissionModesByTool,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+        serviceRoleQueueSmokeAuthorizationRef: null,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: false,
+      },
+      booleans: {
+        agentCanExecuteToolsNow: false,
+        sourceRuntimeQueueServiceProofBridgeAccepted: true,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+        workerDispatchPerformed: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    },
+  )
+  const strippedAuthorization = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-service-role-queue-smoke-proof-packet',
+    strippedAuthorizationPacketPath,
+    '--external-beta-worker-lease-policy-ref',
+    'private://ai-graphics/external-beta/worker-lease-policy.json',
+    '--external-beta-worker-dispatch-policy-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-policy.json',
+    '--external-beta-worker-idempotency-namespace-ref',
+    'ai_graphics_external_beta_worker_dispatch',
+    '--external-beta-worker-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-telemetry.json',
+    '--external-beta-gpu-on-demand-policy-ref',
+    'private://ai-graphics/external-beta/gpu-on-demand-policy.json',
+    '--external-beta-private-artifact-policy-ref',
+    'private://ai-graphics/external-beta/private-artifact-policy.json',
+  ]), 'stripped_authorization')
+  if (strippedAuthorization.decision !== 'external_beta_service_role_queue_smoke_proof_rejected') {
+    fail(`stripped_authorization_decision:${strippedAuthorization.decision}`)
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })

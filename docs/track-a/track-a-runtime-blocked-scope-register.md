@@ -175,6 +175,16 @@ Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, stora
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Runtime Scaffold Negative Tests
+
+`TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1` records `tracka_gpac_mp4box_runtime_scaffold_negative_tests_passed_ready_for_guarded_live_registration_review` and execution `completed_runtime_scaffold_negative_tests_no_runtime_execution`.
+
+The negative tests prove the disabled scaffold blocks rejected inputs, runtime attempts, storage/public delivery attempts, beta/production unlock attempts, invalid enablement plan references, enabled runtime flags, and missing approved snapshot/service-role route/worker dispatch/private artifact/command allowlist/QA/cleanup/audit/rollback/residue references.
+
+Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, storage transfer, signed/public artifacts, media processing, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked pending `TRACKA-GPAC-MP4BOX-GUARDED-LIVE-REGISTRATION-REVIEW-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

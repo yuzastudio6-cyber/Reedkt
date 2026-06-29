@@ -1608,6 +1608,16 @@ Next required gate: `TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1`.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Runtime Scaffold Negative Tests
+
+`TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1` records decision `tracka_gpac_mp4box_runtime_scaffold_negative_tests_passed_ready_for_guarded_live_registration_review` and execution `completed_runtime_scaffold_negative_tests_no_runtime_execution`.
+
+Negative tests cover every rejected input class, runtime attempt class, storage/public delivery attempt class, beta/production unlock attempt class, and required-reference failure class in the disabled scaffold. They do not register a live HTTP handler, dispatch a worker, execute GPAC/MP4Box, process media, transfer storage, create signed URLs, create public artifacts, mutate Supabase, run SQL, or unlock external beta, paid production, production, or final delivery.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-LIVE-REGISTRATION-REVIEW-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records decision `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

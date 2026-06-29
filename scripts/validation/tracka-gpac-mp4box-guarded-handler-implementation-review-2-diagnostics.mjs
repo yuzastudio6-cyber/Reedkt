@@ -36,10 +36,26 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-handler-implementation-scaffold-negative-tests-diagnostics.mjs',
 ]
 
+const followOnPlanDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-executable-handler-implementation-plan'
+const followOnPlanFiles = [
+  `${followOnPlanDir}/gpac-mp4box-guarded-executable-handler-implementation-plan-decision.json`,
+  `${followOnPlanDir}/gpac-mp4box-guarded-executable-handler-implementation-plan-decision.md`,
+  `${followOnPlanDir}/handler-executable-implementation-plan.json`,
+  `${followOnPlanDir}/handler-executable-implementation-plan.md`,
+  `${followOnPlanDir}/readiness-report.json`,
+  `${followOnPlanDir}/source-of-truth-audit.json`,
+  `${followOnPlanDir}/source-of-truth-audit.md`,
+  `${followOnPlanDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-implementation-plan-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-executable-handler-implementation-plan-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...followOnPlanFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-implementation-review-2-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-implementation-plan-1.md',
   'package.json',

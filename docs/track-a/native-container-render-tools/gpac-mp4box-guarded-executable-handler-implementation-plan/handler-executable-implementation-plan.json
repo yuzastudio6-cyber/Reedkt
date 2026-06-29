@@ -1,0 +1,34 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-PLAN-1",
+  "allowedFutureScope": "guarded_executable_handler_implementation_scaffold_only",
+  "nextAllowedImplementation": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1",
+  "handlerImplementationReadiness": "ready_for_guarded_executable_handler_implementation_scaffold_only",
+  "requiredGuards": [
+    "backend_service_role_owner_required",
+    "disabled_by_default_handler_implementation_required",
+    "feature_flag_default_false_required",
+    "approved_snapshot_guard_required",
+    "route_idempotency_guard_required",
+    "private_artifact_manifest_guard_required",
+    "command_allowlist_guard_required",
+    "negative_tests_must_remain_passing",
+    "cleanup_audit_reference_required",
+    "storage_public_artifact_gates_required",
+    "operator_confirmation_required_before_any_execution"
+  ],
+  "blocked": {
+    "executableHandlerImplementationThisPhase": "blocked",
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  }
+}

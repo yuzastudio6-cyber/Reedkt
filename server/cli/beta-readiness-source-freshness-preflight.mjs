@@ -19,6 +19,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:operator-status-api',
   'beta:readiness:operator-status',
   'beta:readiness:owner-command-handoff',
+  'beta:readiness:owner-approval-intake-status',
   'beta:readiness:paid-production-evidence-collector',
   'beta:readiness:scope-approval-evidence',
   'beta:readiness:scope-approval-evidence-preflight',
@@ -203,6 +204,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-input-template',
+      'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
@@ -214,6 +216,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-input-template',
+      'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
     ],
     blockedScopes: readyForDeployedEvidenceInputManifest ? [

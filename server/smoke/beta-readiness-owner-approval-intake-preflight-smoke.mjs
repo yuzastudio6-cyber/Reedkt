@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 import {
   buildBetaReadinessOwnerApprovalEnvTemplate,
   buildBetaReadinessOwnerApprovalIntakePreflight,
+  buildBetaReadinessOwnerApprovalIntakeStatus,
+  renderBetaReadinessOwnerApprovalIntakeStatusMarkdown,
 } from '../cli/beta-readiness-owner-approval-intake-preflight.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
@@ -18,6 +20,10 @@ const staticIntakeMarkdown = readFileSync(
 assert.equal(
   packageJson.scripts['beta:readiness:owner-approval-intake-preflight'],
   'node server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
+)
+assert.equal(
+  packageJson.scripts['beta:readiness:owner-approval-intake-status'],
+  'node server/cli/beta-readiness-owner-approval-intake-preflight.mjs --status',
 )
 assert.equal(
   packageJson.scripts['beta:readiness:owner-approval-env-template'],
@@ -47,6 +53,50 @@ assert.deepEqual(empty.sourceTruth.trackBToolTotals, {
 assert.equal(empty.requiredInputCount, 29)
 assert.ok(empty.pendingInputs.includes('REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY'))
 assert.ok(empty.pendingInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
+
+const emptyStatus = buildBetaReadinessOwnerApprovalIntakeStatus(empty)
+const emptyStatusMarkdown = renderBetaReadinessOwnerApprovalIntakeStatusMarkdown(emptyStatus)
+const serializedEmptyStatus = JSON.stringify(emptyStatus)
+assert.equal(emptyStatus.ok, true)
+assert.equal(emptyStatus.decision, 'beta_readiness_owner_approval_intake_status_passed_ready_for_owner_input_collection')
+assert.equal(emptyStatus.preflightDecision, empty.decision)
+assert.equal(emptyStatus.readyForDeployedEvidenceInputManifest, false)
+assert.deepEqual(emptyStatus.inputCounts, {
+  required: 29,
+  present: 0,
+  pending: 29,
+  pendingOwnerApprovalConfirmations: 14,
+  pendingTechnicalVerificationConfirmations: 4,
+  pendingOwnerEvidenceNotes: 11,
+  invalidBooleanInputs: 0,
+  rejectedScopeInputs: 0,
+  secretLikeEvidenceInputs: 0,
+})
+assert.ok(emptyStatus.pendingInputs.some((input) => (
+  input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY' &&
+  input.inputClass === 'owner_approval_confirmation' &&
+  input.operatorAction === 'confirm_named_owner_approval'
+)))
+assert.ok(emptyStatus.pendingInputs.some((input) => (
+  input.name === 'REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED' &&
+  input.inputClass === 'technical_verification_confirmation' &&
+  input.operatorAction === 'confirm_technical_verification'
+)))
+assert.ok(emptyStatus.pendingInputs.some((input) => (
+  input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE' &&
+  input.inputClass === 'owner_evidence_note' &&
+  input.operatorAction === 'supply_non_secret_owner_evidence_note'
+)))
+assert.ok(emptyStatus.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
+assert.ok(emptyStatus.validationCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
+assert.equal(serializedEmptyStatus.includes('Support owner approved incident intake'), false)
+assert.equal(serializedEmptyStatus.includes('Bearer '), false)
+assert.equal(serializedEmptyStatus.includes('service_role_key'), false)
+assert.equal(serializedEmptyStatus.includes('x-goog-signature='), false)
+assert.ok(emptyStatusMarkdown.includes('Pending owner approval confirmations: `14`'))
+assert.ok(emptyStatusMarkdown.includes('Pending technical verification confirmations: `4`'))
+assert.ok(emptyStatusMarkdown.includes('Pending owner evidence notes: `11`'))
+assert.ok(emptyStatusMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'))
 
 assert.equal(staticIntakePacket.decision, 'beta_readiness_owner_approval_intake_preflight_passed_ready_for_owner_input_collection')
 assert.equal(staticIntakePacket.currentNoInputPreflightDecision, empty.decision)
@@ -101,6 +151,11 @@ assert.deepEqual(ready.invalidBooleanInputs, [])
 assert.deepEqual(ready.rejectedScopeInputs, [])
 assert.deepEqual(ready.secretLikeInputPaths, [])
 assert.equal(JSON.stringify(ready).includes('Support owner approved incident intake'), false, 'report must not echo owner evidence note values')
+const readyStatus = buildBetaReadinessOwnerApprovalIntakeStatus(ready)
+assert.equal(readyStatus.readyForDeployedEvidenceInputManifest, true)
+assert.equal(readyStatus.inputCounts.present, 29)
+assert.equal(readyStatus.inputCounts.pending, 0)
+assert.deepEqual(readyStatus.pendingInputs, [])
 
 const falseApproval = buildBetaReadinessOwnerApprovalIntakePreflight({
   ...completeEnv,

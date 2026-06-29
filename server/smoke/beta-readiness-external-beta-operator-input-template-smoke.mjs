@@ -115,6 +115,8 @@ assert.ok(report.envTemplate.includes(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(report.envTemplate.includes('operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL'))
+assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-intake-status'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 for (const staleSourceSha of staleLocalEvidenceSourceShas) {
   assert.equal(report.envTemplate.includes(staleSourceSha), false)

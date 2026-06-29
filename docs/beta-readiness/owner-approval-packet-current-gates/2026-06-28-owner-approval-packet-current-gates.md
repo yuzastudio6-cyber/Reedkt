@@ -28,7 +28,7 @@ Deployed evidence source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
 
 This packet does not approve anything. It defines the exact non-secret owner evidence needed before the existing evidence collectors can run.
 
-Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, then generate the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, then validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
+Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, then generate the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, review value-free owner input progress with `npm run beta:readiness:owner-approval-intake-status`, then validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
 
 ## Platform Evidence Packet Approvals
 
@@ -180,6 +180,7 @@ Generate an owner input template with `npm run beta:readiness:owner-approval-env
 ## Post-Approval Commands
 
 - `npm run beta:readiness:source-freshness-preflight`
+- `npm run beta:readiness:owner-approval-intake-status`
 - `npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:platform:staging-evidence-preflight`
 - `npm run beta:readiness:launch-approval-evidence-preflight`

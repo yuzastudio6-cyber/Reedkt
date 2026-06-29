@@ -23,7 +23,9 @@ This packet groups the current beta/production blockers into an actionable close
 ## Closeout Order
 
 1. `operator_value_collection`
+   - Review value-free pending inputs with `npm run beta:readiness:external-beta-operator-input-template -- --status`.
    - Fill the external beta operator input template outside source control.
+   - Review owner approval progress with `npm run beta:readiness:owner-approval-intake-status`, then run the hard owner approval intake preflight after values are present.
    - Pending in blank environment: `57` of `60` required inputs.
 
 2. `trackb_deployed_tool_evidence_recording`

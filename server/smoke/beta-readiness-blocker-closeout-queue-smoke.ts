@@ -43,6 +43,8 @@ assert.deepEqual(report.batches.map((batch) => batch.order), [1, 2, 3, 4, 5, 6, 
 assert.equal(report.batches[0]?.batchId, 'operator_value_collection')
 assert.equal(report.batches[0]?.nextCommands[0], 'npm run beta:readiness:external-beta-operator-input-template -- --status')
 assert.equal(report.batches[0]?.nextCommands[1], 'npm run beta:readiness:external-beta-operator-input-template')
+assert.equal(report.batches[0]?.nextCommands[2], 'npm run beta:readiness:owner-approval-intake-status')
+assert.equal(report.batches[0]?.nextCommands[3], 'npm run beta:readiness:owner-approval-intake-preflight')
 assert.equal(
   report.batches[0]?.blockedUntil[0]?.includes('value-free pending-input status'),
   true,

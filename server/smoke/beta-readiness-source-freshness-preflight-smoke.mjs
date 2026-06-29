@@ -62,10 +62,17 @@ assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template -- --status') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template'),
   'safe status review should precede the full operator template command',
+)
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:owner-approval-intake-status') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:owner-approval-intake-preflight'),
+  'owner approval status review should precede the hard owner approval intake preflight',
 )
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))
 assert.equal(ready.recommendedCommands.some((command) => command.includes('gcloud ')), false)

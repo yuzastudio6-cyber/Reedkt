@@ -21,6 +21,8 @@ assert.equal(template.valuePolicy.productReadyLocalOss, false, 'preview template
 assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE="true"'))
 assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS="false"'))
 assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE="true"'))
+assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_INCLUDE_WARNINGS="false"'))
+assert.ok(template.envTemplate.includes('Warning-status tools such as libass are handled by their separate QA/bundle lane'))
 assert.ok(template.envTemplate.includes('npm run beta:tools:core-real-check-preview'))
 assert.equal(template.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
 assert.equal(template.envTemplate.includes('service_role'), false)

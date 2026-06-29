@@ -414,7 +414,7 @@ const ownerRemediationAfterWorkflowScopeFixMarkdown = readFileSync(ownerRemediat
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-input-discovery-blocker'],
-  'tsx server/smoke/beta-readiness-api-staging-input-discovery-blocker-smoke.ts',
+  'node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/beta-readiness-api-staging-input-discovery-blocker-smoke.ts',
   'package script should expose the input discovery blocker smoke',
 )
 

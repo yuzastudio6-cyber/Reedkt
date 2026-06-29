@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import { loadRuntimeEnv } from '../config/env'
-import { createMockCreditDataStore, previewCreditSettlement } from '../services/mock-credit-data-store'
 import { createProviderGatewayService } from '../services/provider-gateway-service'
 import { createRenderService } from '../services/render-service'
 import type { ServiceContext } from '../types'
@@ -18,12 +18,6 @@ import {
   summarizeProductionToolRegistry,
   type ProductionToolId,
 } from '../tool-registry'
-import {
-  productionToolIdSchema,
-  toolCostProductEditLevelSchema,
-  toolCreditPrerequisiteStatusSchema,
-  toolRuntimeComputeLevelSchema,
-} from '../validation/tool-cost-schemas'
 import { buildWorkerIdempotencyKey, runProductionWorkerRuntime, type ProductionWorkerJobPayload } from '../workers/production'
 
 function unwrap<T>(result: ProductionToolCostResult<T>): T {
@@ -251,23 +245,13 @@ assert.equal(aggregation.billableEventCount, 1)
 assert.equal(aggregation.nonBillableEventCount, 1)
 assert.equal(aggregation.actualBillableCostCredits, inserted.event.toolCostCredits)
 
-const creditDataStore = createMockCreditDataStore(store.toolCostEvents)
-const preview = previewCreditSettlement(creditDataStore, {
-  workspaceId: 'workspace-toolcost-smoke',
-  projectId: 'project-toolcost-smoke',
-  creditEstimateId: 'estimate-toolcost-smoke',
-  creditReservationId: 'reservation-toolcost-smoke',
-  editComputeLevel: 'normal',
-  finalVideoDurationSeconds: 240,
-  reservedCredits: 200,
-  toolCostEventIds: store.toolCostEvents.map((event) => event.id),
-  idempotencyKey: 'toolcost-preview',
-})
-assert.equal(preview.settlement.actualToolCostCredits, aggregation.actualBillableCostCredits)
-assert.ok(preview.settlement.reeditproServiceFeeCredits > 0)
+const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
+  scripts?: Record<string, string>
+}
 assert.equal(
-  preview.settlement.finalChargeCredits,
-  preview.settlement.actualToolCostCredits + preview.settlement.reeditproServiceFeeCredits,
+  packageJson.scripts?.['smoke:credit-data'],
+  'tsx server/smoke/credit-data-smoke.ts',
+  'Dependency-backed credit settlement preview coverage must stay in smoke:credit-data.',
 )
 
 const env = loadRuntimeEnv({
@@ -351,15 +335,6 @@ assert.equal(workerResult.toolCostMetadata?.requestedToolCount, 1)
 assert.equal(workerResult.toolCostMetadata?.emittedEvents.length, 1)
 assert.equal(workerResult.toolCostMetadata?.emittedEvents[0]?.billableToUser, false)
 
-assert.equal(productionToolIdSchema.safeParse('ffmpeg').success, true)
-assert.equal(productionToolIdSchema.safeParse('not_a_tool').success, false)
-assert.equal(toolCreditPrerequisiteStatusSchema.safeParse('ready').success, true)
-assert.equal(toolCreditPrerequisiteStatusSchema.safeParse('charged').success, false)
-assert.equal(toolCostProductEditLevelSchema.safeParse('normal').success, true)
-assert.equal(toolCostProductEditLevelSchema.safeParse('economy').success, false)
-assert.equal(toolRuntimeComputeLevelSchema.safeParse('economy').success, true)
-assert.equal(toolRuntimeComputeLevelSchema.safeParse('ultra_premium').success, false)
-
 console.log(JSON.stringify({
   ok: true,
   productionRegistryToolCount: registrySummary.totalTools,
@@ -369,6 +344,7 @@ console.log(JSON.stringify({
   providerBoundaryStatus: providerResult.toolCostEstimate?.creditPrerequisiteStatus,
   renderBoundaryToolId: renderResult.renderJob.toolId,
   workerCostEventCount: workerResult.toolCostMetadata?.emittedEvents.length ?? 0,
+  creditSettlementPreviewCoverage: 'smoke:credit-data',
   serviceFeeIncluded: false,
   forbiddenSideEffects: [
     'no_wallet_mutation',

@@ -1,8 +1,9 @@
 {
   "reportId": "beta-tools-current-source-16-tool-local-accepted-evidence-bundle-2026-06-29",
   "createdAt": "2026-06-29T11:29:30Z",
+  "refreshedAt": "2026-06-29T14:46:55Z",
   "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
-  "sourceSha": "e8821759a10a43a60795accb596b3b83c15f9dfb",
+  "sourceSha": "94c37bb492a584c087247625dcb1fb53398c17f4",
   "decision": "beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording",
   "evidenceMode": "local_no_write_preview",
   "blockerPolicy": "evidence_driven_block_unsafe_actions_only",
@@ -53,6 +54,7 @@
     "hydratedPythonRequired": true,
     "hydratedPythonDirectory": ".reeditpro-tool-readiness-python",
     "ignoredSignalsmithBinaryDirectory": ".reeditpro-tool-readiness-bin",
+    "readinessBinIncludedInPath": true,
     "acceptedToolCount": 15,
     "audiofluxEvidence": {
       "status": "passed",
@@ -70,7 +72,7 @@
     },
     "guardrailObserved": {
       "missingSignalsmithBinaryFailedClosed": true,
-      "summary": "A first current-source local bundle rerun reported 15 accepted tools when the ignored Signalsmith readiness binary was absent. After rerunning the bounded source-build proof and adding .reeditpro-tool-readiness-bin to PATH, the bundle accepted all 15 core tools plus libass."
+      "summary": "A first current-source local bundle rerun reported 15 accepted tools when the ignored Signalsmith readiness binary was absent. After rerunning the bounded source-build proof, the hydrated preview automatically prepended .reeditpro-tool-readiness-bin to PATH and accepted all 15 core tools plus libass."
     }
   },
   "libassEvidence": {
@@ -84,7 +86,7 @@
       "command": "docker run --rm --network none <approved-libass-image> ffmpeg -hide_banner -filters"
     },
     "syntheticBurninQa": {
-      "runId": "libass-burnin-qa-2026-06-29T11-29-23-772Z",
+      "runId": "libass-burnin-qa-2026-06-29T14-46-55-131Z",
       "syntheticOnly": true,
       "fontDiscoveryOk": true,
       "burninCommandOk": true,
@@ -112,7 +114,7 @@
       "REEDITPRO_CONFIRM_SIGNALSMITH_STRETCH_SOURCE_BUILD=true npm run tools:readiness:build-signalsmith-stretch",
       "npm run beta:tools:libass-container-proof-preflight",
       "npm run beta:tools:libass-synthetic-burnin-qa-preflight",
-      "npm run beta:tools:local-accepted-evidence-bundle"
+      "npm run beta:tools:local-accepted-evidence-bundle with REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE=docker and approved libass validation image"
     ],
     "localEvidenceBundleOutput": {
       "ok": true,
@@ -121,7 +123,11 @@
       "readyToRecordDeployedEvidence": true,
       "locallyAcceptedToolCount": 16,
       "coreAcceptedToolCount": 15,
-      "libassAcceptedToolCount": 1
+      "libassAcceptedToolCount": 1,
+      "readinessBinIncludedInPath": true,
+      "libassMode": "docker",
+      "libassNoNetwork": true,
+      "libassTempRootRemoved": true
     }
   },
   "duplicateContext": {
@@ -141,7 +147,7 @@
     "final_operator_status_readback_pending"
   ],
   "nextSafeActions": [
-    "Run npm run beta:tools:core-real-check-evidence-preflight, then npm run beta:tools:core-real-check-evidence against deployed staging with source SHA e8821759a10a43a60795accb596b3b83c15f9dfb.",
+    "Run npm run beta:tools:core-real-check-evidence-preflight, then npm run beta:tools:core-real-check-evidence against deployed staging with source SHA 94c37bb492a584c087247625dcb1fb53398c17f4 or a newer deployed source SHA verified by npm run beta:readiness:api-deployment-preflight.",
     "Run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging using the accepted libass QA inputs.",
     "Run npm run beta:platform:staging-evidence-preflight only after the remaining owner-side staging API prerequisites are remediated and platform probe inputs exist.",
     "Run npm run beta:readiness:launch-approval-evidence-preflight after launch owner approvals and evidence notes exist.",

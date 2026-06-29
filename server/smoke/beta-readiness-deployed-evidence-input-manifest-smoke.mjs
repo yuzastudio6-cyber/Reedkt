@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
-const expectedLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
+const expectedLocalEvidenceSourceSha = '94c37bb492a584c087247625dcb1fb53398c17f4'
 const expectedDeployedSourceSha = 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67'
 const expectedCoreToolIds = [
   'ffmpeg',

@@ -14,6 +14,10 @@ const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
   locallyAcceptedToolIds?: string[]
   coreAcceptedToolIds?: string[]
   libassAcceptedToolIds?: string[]
+  coreEvidence?: {
+    readinessBinIncludedInPath?: boolean
+    guardrailObserved?: { missingSignalsmithBinaryFailedClosed?: boolean; summary?: string }
+  }
   libassEvidence?: {
     containerImage?: string
     network?: string
@@ -58,7 +62,7 @@ const expectedTools = [
 ]
 
 assert.equal(report.decision, 'beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording')
-assert.equal(report.sourceSha, 'e8821759a10a43a60795accb596b3b83c15f9dfb')
+assert.equal(report.sourceSha, '94c37bb492a584c087247625dcb1fb53398c17f4')
 assert.equal(report.previewOnly, true)
 assert.equal(report.noBackendEvidenceRecorded, true)
 assert.equal(report.readyToRecordDeployedEvidence, true)
@@ -69,6 +73,9 @@ assert.equal(report.coreAcceptedToolIds?.includes('pyav'), true)
 assert.equal(report.coreAcceptedToolIds?.includes('pyscenedetect'), true)
 assert.equal(report.coreAcceptedToolIds?.includes('audioflux'), true)
 assert.equal(report.coreAcceptedToolIds?.includes('signalsmith_stretch'), true)
+assert.equal(report.coreEvidence?.readinessBinIncludedInPath, true)
+assert.equal(report.coreEvidence?.guardrailObserved?.missingSignalsmithBinaryFailedClosed, true)
+assert.equal(report.coreEvidence?.guardrailObserved?.summary?.includes('automatically prepended .reeditpro-tool-readiness-bin'), true)
 assert.equal(report.libassEvidence?.network, 'none')
 assert.equal(report.libassEvidence?.syntheticBurninQa?.syntheticOnly, true)
 assert.equal(report.libassEvidence?.syntheticBurninQa?.fontDiscoveryOk, true)

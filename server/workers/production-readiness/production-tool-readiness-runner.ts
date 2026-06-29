@@ -47,6 +47,7 @@ export interface RunProductionToolReadinessResult {
 
 const launchCoreRequirementsPath = 'server/workers/sound-cpu/requirements.launch-core.txt'
 const soundCpuDockerfilePath = 'server/workers/sound-cpu/Dockerfile'
+const soundCpuControlledRequirementsPath = 'server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt'
 const manifestBackedPythonPackages = new Map<ProductionToolId, string>([
   ['pyav', 'av==17.1.0'],
   ['pyscenedetect', 'scenedetect==0.7'],
@@ -63,6 +64,9 @@ const dockerfileBackedSystemPackages = new Map<ProductionToolId, string[]>([
   ['ffmpeg', ['ffmpeg']],
   ['ffprobe', ['ffmpeg']],
   ['libass', ['libass9', 'fontconfig', 'fonts-dejavu-core']],
+])
+const dockerfileBackedPythonRequirementPackages = new Map<ProductionToolId, string>([
+  ['audioflux', 'audioflux==0.1.9'],
 ])
 const sourceInstallReviewedToolIds = new Set<ProductionToolId>([
   'duckdb',
@@ -89,6 +93,9 @@ const dockerfileBackedStaticReviewClosedToolIds = new Set<ProductionToolId>([
   'ffprobe',
   'libass',
 ])
+const dockerfilePipStaticReviewClosedToolIds = new Set<ProductionToolId>([
+  'audioflux',
+])
 const internalPreviewBoundaryWarningToolIds = new Set<ProductionToolId>([
   'hyperframe',
 ])
@@ -101,6 +108,14 @@ function dryRunStatusForSpec(specStatus: ProductionReadinessStatus): ProductionR
 function readLaunchCoreRequirementsLines(): Set<string> {
   if (!existsSync(launchCoreRequirementsPath)) return new Set()
   return new Set(readFileSync(launchCoreRequirementsPath, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#')))
+}
+
+function readSoundCpuControlledRequirementsLines(): Set<string> {
+  if (!existsSync(soundCpuControlledRequirementsPath)) return new Set()
+  return new Set(readFileSync(soundCpuControlledRequirementsPath, 'utf8')
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith('#')))
@@ -152,6 +167,11 @@ function buildManifestBackedToolSet(): Set<ProductionToolId> {
   return backedToolIds
 }
 
+function dockerfileInstallsSoundCpuControlledRequirements(dockerfile: string): boolean {
+  return dockerfile.includes('server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt') &&
+    dockerfile.includes('pip install --no-cache-dir --requirement ./requirements.sound-oss-tools.txt')
+}
+
 function packageNamePattern(packageName: string): RegExp {
   const escaped = packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   return new RegExp(`\\b${escaped}\\b`)
@@ -171,11 +191,27 @@ function buildDockerfileBackedToolSet(): Set<ProductionToolId> {
   return backedToolIds
 }
 
+function buildDockerfilePipBackedToolSet(): Set<ProductionToolId> {
+  const backedToolIds = new Set<ProductionToolId>()
+  if (!existsSync(soundCpuDockerfilePath)) return backedToolIds
+
+  const dockerfile = readFileSync(soundCpuDockerfilePath, 'utf8')
+  if (!dockerfileInstallsSoundCpuControlledRequirements(dockerfile)) return backedToolIds
+
+  const requirementLines = readSoundCpuControlledRequirementsLines()
+  for (const [toolId, requirementLine] of dockerfileBackedPythonRequirementPackages) {
+    if (requirementLines.has(requirementLine)) backedToolIds.add(toolId)
+  }
+
+  return backedToolIds
+}
+
 function dryRunStatusForTool(
   specToolId: ProductionToolId,
   specStatus: ProductionReadinessStatus,
   manifestBackedToolIds: Set<ProductionToolId>,
   dockerfileBackedToolIds: Set<ProductionToolId>,
+  dockerfilePipBackedToolIds: Set<ProductionToolId>,
 ): ProductionReadinessStatus {
   const baseStatus = dryRunStatusForSpec(specStatus)
   if (internalPreviewBoundaryWarningToolIds.has(specToolId)) return 'warning'
@@ -196,6 +232,13 @@ function dryRunStatusForTool(
     if (dockerfileBackedStaticReviewClosedToolIds.has(specToolId)) return 'warning'
     return 'source_install_review_required'
   }
+  if (
+    dockerfilePipBackedToolIds.has(specToolId) &&
+    (baseStatus === 'missing' || baseStatus === 'not_installed')
+  ) {
+    if (dockerfilePipStaticReviewClosedToolIds.has(specToolId)) return 'warning'
+    return 'source_install_review_required'
+  }
   return baseStatus
 }
 
@@ -203,6 +246,7 @@ function buildDryRunWarnings(
   specToolId: ProductionToolId,
   manifestBackedToolIds: Set<ProductionToolId>,
   dockerfileBackedToolIds: Set<ProductionToolId>,
+  dockerfilePipBackedToolIds: Set<ProductionToolId>,
 ): string[] {
   const profile = getProductionToolProfile(specToolId)
   const warnings = [
@@ -224,6 +268,14 @@ function buildDryRunWarnings(
       warnings.push('SOUND CPU Dockerfile system-package declaration, static validation, and owner review passed; static readiness records warning until controlled command proof, media policy, and runtime policy close.')
     } else {
       warnings.push('SOUND CPU Dockerfile system-package declaration exists; static readiness records source_install_review_required until static validation and owner review close.')
+    }
+  }
+
+  if (dockerfilePipBackedToolIds.has(specToolId)) {
+    if (dockerfilePipStaticReviewClosedToolIds.has(specToolId)) {
+      warnings.push('SOUND CPU Dockerfile pip requirements declaration, controlled install/import proof, and source-fix owner review passed; static readiness records warning until controlled tool-call, media policy, and runtime policy close.')
+    } else {
+      warnings.push('SOUND CPU Dockerfile pip requirements declaration exists; static readiness records source_install_review_required until controlled install/import proof and owner review close.')
     }
   }
 
@@ -263,6 +315,7 @@ export function runProductionToolReadiness(
   const checkedAt = new Date().toISOString()
   const manifestBackedToolIds = buildManifestBackedToolSet()
   const dockerfileBackedToolIds = buildDockerfileBackedToolSet()
+  const dockerfilePipBackedToolIds = buildDockerfilePipBackedToolSet()
   const results: ProductionToolReadinessResult[] = specs.map((spec) => ({
     toolId: spec.toolId,
     displayName: spec.displayName,
@@ -271,6 +324,7 @@ export function runProductionToolReadiness(
       spec.readinessStatusWhenMissing,
       manifestBackedToolIds,
       dockerfileBackedToolIds,
+      dockerfilePipBackedToolIds,
     ),
     dryRun: true,
     commandChecks: spec.commandChecks,
@@ -278,7 +332,12 @@ export function runProductionToolReadiness(
     nodePackageChecks: spec.nodePackageChecks,
     modelWeightChecks: spec.modelWeightChecks,
     environmentChecks: spec.environmentChecks,
-    warnings: buildDryRunWarnings(spec.toolId, manifestBackedToolIds, dockerfileBackedToolIds),
+    warnings: buildDryRunWarnings(
+      spec.toolId,
+      manifestBackedToolIds,
+      dockerfileBackedToolIds,
+      dockerfilePipBackedToolIds,
+    ),
     blocksProduction: spec.blocksProductionIfMissing,
     checkedAt,
   }))

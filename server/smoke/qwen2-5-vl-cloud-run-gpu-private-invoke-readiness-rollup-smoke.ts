@@ -75,6 +75,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_PLAN } f
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_APPROVAL } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-approval'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_EXECUTE_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-execute-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_RECONCILIATION } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_ADOPTION } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -83,9 +84,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_history_reconciled_adoption_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_history_adopted_local_validation_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58BG-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-HISTORY-ADOPTION: align local Qwen active migration history with remote 20260628000100, no deploy/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58BH-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-ADOPTED-LOCAL-VALIDATION: validate adopted remote-version Qwen migration locally, no deploy/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -366,11 +367,18 @@ for (const file of [
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-active-migration-history-reconciliation.md',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation-smoke.ts',
-  'supabase/migrations/20260629011700_qwen2_5_vl_backend_runtime_persistence.sql',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-active-migration-history-adoption.md',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption.ts',
+  'server/smoke/qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption-smoke.ts',
+  'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
   'package.json',
 ]) {
   check(fs.existsSync(path.join(ROOT, file)), `Missing required file: ${file}`)
 }
+check(
+  !fs.existsSync(path.join(ROOT, 'supabase/migrations/20260629011700_qwen2_5_vl_backend_runtime_persistence.sql')),
+  'Superseded duplicate local Qwen active migration must be removed.',
+)
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -1070,7 +1078,7 @@ for (const phrase of [
   'backend runtime persistence active migration validation: ready, active migration applies locally and Qwen SQL tests pass',
   'backend runtime persistence active migration deploy plan: ready, plan recorded',
   'backend runtime persistence active migration deploy approval: ready, target-class approval recorded',
-  'backend runtime persistence active migration deploy execution: blocked, local migration-history adoption required',
+  'backend runtime persistence active migration deploy execution: blocked, adopted active-migration local validation required',
   '`backendRuntimePersistenceActiveMigrationPlanRequired=false`',
   '`backendRuntimePersistenceActiveMigrationPlanRecorded=true`',
   '`backendRuntimePersistenceActiveMigrationCreateRequired=false`',
@@ -1091,8 +1099,11 @@ for (const phrase of [
   '`backendRuntimePersistenceActiveMigrationHistoryReconciliationRecorded=true`',
   '`backendRuntimePersistenceActiveMigrationReadOnlySqlMetadataQueryExecuted=true`',
   '`backendRuntimePersistenceActiveMigrationRemoteSchemaEquivalentForRequiredGuards=true`',
-  '`backendRuntimePersistenceActiveMigrationRemoteMigrationFilePresentLocally=false`',
-  '`backendRuntimePersistenceActiveMigrationLocalHistoryAlignmentRequired=true`',
+  '`backendRuntimePersistenceActiveMigrationHistoryAdoptionRecorded=true`',
+  '`backendRuntimePersistenceActiveMigrationAdoptedRemoteVersion=20260628000100`',
+  '`backendRuntimePersistenceActiveMigrationAdoptedFilePresent=true`',
+  '`backendRuntimePersistenceActiveMigrationSupersededLocalVersionRemoved=true`',
+  '`backendRuntimePersistenceActiveMigrationAdoptedLocalValidationRequired=true`',
   '`backendRuntimePersistenceActiveMigrationDeployShouldBeSkippedNow=true`',
   '`backendRuntimePersistenceActiveMigrationRemoteQwenMigrationObserved=true`',
   '`backendRuntimePersistenceActiveMigrationRemoteQwenVersion=20260628000100`',
@@ -1361,6 +1372,10 @@ assert.equal(
   rollup.upstreamBackendRuntimePersistenceActiveMigrationHistoryReconciliationDecision,
   QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_RECONCILIATION.decision,
 )
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceActiveMigrationHistoryAdoptionDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_ADOPTION.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1426,7 +1441,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'backend_runtime_persistence_active_migration_history_adoption_required',
+  'backend_runtime_persistence_active_migration_adopted_local_validation_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1742,7 +1757,11 @@ assert.equal(
   0,
 )
 assert.equal(
-  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_active_migration_history_adoption_required').length,
+  rollup.readinessGates.filter(
+    (gate) =>
+      String(gate.status) ===
+      'blocked_backend_runtime_persistence_active_migration_adopted_local_validation_required',
+  ).length,
   1,
 )
 assert.equal(
@@ -2115,8 +2134,14 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployH
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationHistoryReconciliationRecorded, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationReadOnlySqlMetadataQueryExecuted, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationRemoteSchemaEquivalentForRequiredGuards, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationRemoteMigrationFilePresentLocally, false)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationLocalHistoryAlignmentRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationHistoryAdoptionRecorded, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationAdoptedRemoteVersion, '20260628000100')
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationAdoptedFilePresent, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationSupersededLocalVersionRemoved, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDuplicateSemanticHistoryAvoided, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationRemoteMigrationFilePresentLocally, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationLocalHistoryAlignmentRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationAdoptedLocalValidationRequired, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployShouldBeSkippedNow, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationRemoteQwenMigrationObserved, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationRemoteQwenVersion, '20260628000100')

@@ -553,6 +553,7 @@
     "smoke:qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-approval": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-approval-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-execute-result": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-execute-result-smoke.ts",
     "smoke:qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation-smoke.ts",
+    "smoke:qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption": "tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

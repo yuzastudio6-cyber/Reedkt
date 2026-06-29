@@ -1,0 +1,15 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-MANIFEST-MOCK-IMPLEMENTATION-1",
+  "sources": {
+    "privateArtifactPolicyMock": {
+      "pr": 1551,
+      "mergeSha": "6e579d6ef1cbb46e108e89b7f8e4ef7166c645b7",
+      "decision": "tracka_gpac_mp4box_private_artifact_policy_mock_implementation_passed_ready_for_private_artifact_manifest_mock"
+    },
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "current": {
+    "decision": "tracka_gpac_mp4box_private_artifact_manifest_mock_implementation_passed_ready_for_private_artifact_qa_mock",
+    "execution": "completed_private_artifact_manifest_metadata_no_storage_or_tool_execution"
+  }
+}

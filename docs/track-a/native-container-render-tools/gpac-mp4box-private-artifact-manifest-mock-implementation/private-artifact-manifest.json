@@ -1,0 +1,25 @@
+{
+  "manifestId": "artifactManifest.gpacMp4box.private.mock",
+  "manifestMode": "private_artifact_manifest_metadata_only",
+  "artifactScope": "worker_temp_private_only",
+  "checksumAlgorithm": "sha256",
+  "entryPolicy": {
+    "storageDisposition": "worker_temp_private_only",
+    "sourceClass": "generated_private_fixture_output_metadata",
+    "publicArtifact": false,
+    "signedUrl": false,
+    "committedToRepo": false,
+    "mediaArtifact": false
+  },
+  "requiredReferences": {
+    "qaReportRef": "planned_required",
+    "cleanupPolicyRef": "approved_cleanup_required",
+    "auditRecordRef": "planned_required"
+  },
+  "storageTransfer": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "workerExecution": false,
+  "gpacMp4boxExecution": false,
+  "mediaProcessing": false
+}

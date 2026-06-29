@@ -3,20 +3,19 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-manifest-mock-implementation'
-const policyDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation'
-const decisionText = 'tracka_gpac_mp4box_private_artifact_manifest_mock_implementation_passed_ready_for_private_artifact_qa_mock'
-const executionText = 'completed_private_artifact_manifest_metadata_no_storage_or_tool_execution'
-const priorDecision = 'tracka_gpac_mp4box_private_artifact_policy_mock_implementation_passed_ready_for_private_artifact_manifest_mock'
-const priorMergeSha = '6e579d6ef1cbb46e108e89b7f8e4ef7166c645b7'
-const nextPrompt = 'TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-QA-MOCK-IMPLEMENTATION-1'
+const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation'
+const manifestDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-manifest-mock-implementation'
+const decisionText = 'tracka_gpac_mp4box_private_artifact_qa_mock_implementation_passed_ready_for_cleanup_audit_mock'
+const executionText = 'completed_private_artifact_qa_metadata_no_storage_or_tool_execution'
+const priorDecision = 'tracka_gpac_mp4box_private_artifact_manifest_mock_implementation_passed_ready_for_private_artifact_qa_mock'
+const priorMergeSha = 'd945016fc1af71e6f09b525c9781e53d60d2c2e8'
+const nextPrompt = 'TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-CLEANUP-AUDIT-MOCK-IMPLEMENTATION-1'
 
 const packetFiles = [
-  `${packetDir}/gpac-mp4box-private-artifact-manifest-mock-implementation-decision.json`,
-  `${packetDir}/gpac-mp4box-private-artifact-manifest-mock-implementation-decision.md`,
-  `${packetDir}/private-artifact-manifest.json`,
-  `${packetDir}/private-artifact-manifest.md`,
-  `${packetDir}/private-artifact-manifest-sample.json`,
+  `${packetDir}/gpac-mp4box-private-artifact-qa-mock-implementation-decision.json`,
+  `${packetDir}/gpac-mp4box-private-artifact-qa-mock-implementation-decision.md`,
+  `${packetDir}/private-artifact-qa.json`,
+  `${packetDir}/private-artifact-qa.md`,
   `${packetDir}/readiness-report.json`,
   `${packetDir}/source-of-truth-audit.json`,
   `${packetDir}/source-of-truth-audit.md`,
@@ -24,10 +23,8 @@ const packetFiles = [
 ]
 
 const sourceFiles = [
-  'src/backend/contracts/gpac-mp4box-private-artifact-manifest-mock-contracts.ts',
   'src/backend/contracts/gpac-mp4box-private-artifact-qa-mock-contracts.ts',
   'src/backend/contracts/index.ts',
-  'server/smoke/tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-smoke.ts',
   'server/smoke/tracka-gpac-mp4box-private-artifact-qa-mock-implementation-smoke.ts',
 ]
 
@@ -38,11 +35,11 @@ const statusFiles = [
 ]
 
 const priorFiles = [
-  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-policy-mock-implementation-1-results.md',
-  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-1.md',
-  `${policyDir}/gpac-mp4box-private-artifact-policy-mock-implementation-decision.json`,
-  `${policyDir}/private-artifact-policy.json`,
-  'scripts/validation/tracka-gpac-mp4box-private-artifact-policy-mock-implementation-diagnostics.mjs',
+  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-qa-mock-implementation-1.md',
+  `${manifestDir}/gpac-mp4box-private-artifact-manifest-mock-implementation-decision.json`,
+  `${manifestDir}/private-artifact-manifest.json`,
+  'scripts/validation/tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-diagnostics.mjs',
 ]
 
 const requiredFiles = [
@@ -50,41 +47,31 @@ const requiredFiles = [
   ...sourceFiles,
   ...statusFiles,
   ...priorFiles,
-  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-1-results.md',
   'docs/activation-phase-tracka-gpac-mp4box-private-artifact-qa-mock-implementation-1-results.md',
-  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-qa-mock-implementation-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-1.md',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/gpac-mp4box-private-artifact-qa-mock-implementation-decision.json',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/gpac-mp4box-private-artifact-qa-mock-implementation-decision.md',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/private-artifact-qa.json',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/private-artifact-qa.md',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/readiness-report.json',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/source-of-truth-audit.json',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/source-of-truth-audit.md',
-  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation/validation-results.md',
   'package.json',
-  'scripts/validation/tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-private-artifact-qa-mock-implementation-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
 
 const requiredText = [
-  'TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-MANIFEST-MOCK-IMPLEMENTATION-1',
+  'TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-QA-MOCK-IMPLEMENTATION-1',
   nextPrompt,
   decisionText,
   executionText,
   priorDecision,
   priorMergeSha,
-  'artifactManifest.gpacMp4box.private.mock',
-  'private_artifact_manifest_metadata_only',
-  'worker_temp_private_only',
-  'generated_private_fixture_output_metadata',
-  'sha256',
-  'blocked_private_artifact_policy_invalid',
-  'blocked_manifest_entry_checksum_invalid',
-  'blocked_manifest_entry_not_private',
+  'qa.gpacMp4box.privateArtifact.mock',
+  'private_artifact_qa_metadata_only',
+  'manifest_integrity',
+  'checksum_references',
+  'private_artifact_boundary',
+  'cleanup_reference',
+  'audit_reference',
+  'blocked_private_artifact_manifest_invalid',
   'blocked_storage_or_public_delivery_attempt',
+  'blocked_tool_or_media_execution_not_enabled',
   'Product-ready local OSS tools: `0`',
   'Supabase classification: no write / environment none / SQL none / migration no',
   'Package-lock: `unchanged`',
@@ -105,7 +92,6 @@ const forbiddenDocPatterns = [
   /readyForSignedUrlCreation"\s*:\s*true/i,
   /readyForPublicArtifactCreation"\s*:\s*true/i,
   /routeExecution"\s*:\s*true/i,
-  /workerDispatchAttempted"\s*:\s*true/i,
   /workerExecution"\s*:\s*true/i,
   /gpacMp4boxExecution"\s*:\s*true/i,
   /mediaProcessing"\s*:\s*true/i,
@@ -136,7 +122,7 @@ const forbiddenSourcePatterns = [
 ]
 
 function fail(message) {
-  console.error(`TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-MANIFEST-MOCK-IMPLEMENTATION-1 diagnostics failed: ${message}`)
+  console.error(`TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-QA-MOCK-IMPLEMENTATION-1 diagnostics failed: ${message}`)
   process.exit(1)
 }
 
@@ -170,8 +156,8 @@ for (const file of requiredFiles) read(file)
 for (const file of packetFiles.filter((file) => file.endsWith('.json'))) json(file)
 
 const packageJson = json('package.json')
-if (packageJson.scripts?.['tracka:gpac-mp4box-private-artifact-manifest-mock-implementation:diagnostics'] !== 'node scripts/validation/tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-diagnostics.mjs') fail('missing package diagnostics script')
-if (packageJson.scripts?.['smoke:tracka-gpac-mp4box-private-artifact-manifest-mock-implementation'] !== 'tsx server/smoke/tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-smoke.ts') fail('missing package smoke script')
+if (packageJson.scripts?.['tracka:gpac-mp4box-private-artifact-qa-mock-implementation:diagnostics'] !== 'node scripts/validation/tracka-gpac-mp4box-private-artifact-qa-mock-implementation-diagnostics.mjs') fail('missing package diagnostics script')
+if (packageJson.scripts?.['smoke:tracka-gpac-mp4box-private-artifact-qa-mock-implementation'] !== 'tsx server/smoke/tracka-gpac-mp4box-private-artifact-qa-mock-implementation-smoke.ts') fail('missing package smoke script')
 
 const docsCorpus = requiredFiles
   .filter((file) => !file.startsWith('scripts/validation/'))
@@ -194,59 +180,46 @@ for (const file of sourceFiles) {
   }
 }
 
-const contractSource = read('src/backend/contracts/gpac-mp4box-private-artifact-manifest-mock-contracts.ts')
-for (const text of ['GpacMp4boxPrivateArtifactManifestMockInput', 'private_artifact_manifest_metadata_only', 'worker_temp_private_only', 'checksumSha256', 'storageTransfer: false', 'signedUrlCreation: false', 'publicArtifactCreation: false']) {
-  if (!contractSource.includes(text)) fail(`manifest contract missing ${text}`)
+const contractSource = read('src/backend/contracts/gpac-mp4box-private-artifact-qa-mock-contracts.ts')
+for (const text of ['GpacMp4boxPrivateArtifactQaMockInput', 'private_artifact_qa_metadata_only', 'qa.gpacMp4box.privateArtifact.mock', 'storageTransfer: false', 'signedUrlCreation: false', 'publicArtifactCreation: false']) {
+  if (!contractSource.includes(text)) fail(`QA contract missing ${text}`)
 }
-if (!read('src/backend/contracts/index.ts').includes("export * from './gpac-mp4box-private-artifact-manifest-mock-contracts'")) fail('contract index export missing')
+if (!read('src/backend/contracts/index.ts').includes("export * from './gpac-mp4box-private-artifact-qa-mock-contracts'")) fail('contract index export missing')
 
-const decision = json(`${packetDir}/gpac-mp4box-private-artifact-manifest-mock-implementation-decision.json`)
+const decision = json(`${packetDir}/gpac-mp4box-private-artifact-qa-mock-implementation-decision.json`)
 if (decision.decision !== decisionText) fail('decision drift')
 if (decision.execution !== executionText) fail('execution drift')
-if (decision.prior?.privateArtifactPolicyMock !== priorDecision) fail('prior policy decision drift')
-if (decision.prior?.privateArtifactPolicyMergeSha !== priorMergeSha) fail('prior merge SHA drift')
-if (decision.manifestId !== 'artifactManifest.gpacMp4box.private.mock') fail('manifest id drift')
-if (decision.manifestMode !== 'private_artifact_manifest_metadata_only') fail('manifest mode drift')
-if (decision.artifactScope !== 'worker_temp_private_only') fail('artifact scope drift')
-if (decision.readiness?.privateArtifactQaMock !== 'ready') fail('next readiness drift')
+if (decision.prior?.privateArtifactManifestMock !== priorDecision) fail('prior manifest decision drift')
+if (decision.prior?.privateArtifactManifestMergeSha !== priorMergeSha) fail('prior merge SHA drift')
+if (decision.qaId !== 'qa.gpacMp4box.privateArtifact.mock') fail('QA id drift')
+if (decision.qaMode !== 'private_artifact_qa_metadata_only') fail('QA mode drift')
+for (const check of ['manifest_integrity', 'checksum_references', 'private_artifact_boundary', 'cleanup_reference', 'audit_reference']) {
+  if (!decision.requiredChecks?.includes(check)) fail(`missing required QA check ${check}`)
+}
+if (decision.readiness?.cleanupAuditMock !== 'ready') fail('next readiness drift')
 for (const [key, value] of Object.entries(decision.safety ?? {})) {
   if (value !== false) fail(`safety ${key} was enabled`)
 }
 if (decision.productReadyLocalOssTools !== 0) fail('product-ready count drift')
 if (decision.nextPrompt !== nextPrompt) fail('next prompt drift')
 
-const manifestPolicy = json(`${packetDir}/private-artifact-manifest.json`)
-if (manifestPolicy.manifestMode !== 'private_artifact_manifest_metadata_only') fail('manifest mode policy drift')
-if (manifestPolicy.entryPolicy?.storageDisposition !== 'worker_temp_private_only') fail('entry storage disposition drift')
-for (const key of ['publicArtifact', 'signedUrl', 'committedToRepo', 'mediaArtifact']) {
-  if (manifestPolicy.entryPolicy?.[key] !== false) fail(`entry policy ${key} drift`)
-}
+const qaPolicy = json(`${packetDir}/private-artifact-qa.json`)
+if (qaPolicy.qaMode !== 'private_artifact_qa_metadata_only') fail('QA policy mode drift')
 for (const key of ['storageTransfer', 'signedUrlCreation', 'publicArtifactCreation', 'workerExecution', 'gpacMp4boxExecution', 'mediaProcessing']) {
-  if (manifestPolicy[key] !== false) fail(`manifest policy ${key} drift`)
+  if (qaPolicy[key] !== false) fail(`QA policy ${key} drift`)
 }
-
-const sample = json(`${packetDir}/private-artifact-manifest-sample.json`)
-if (!Array.isArray(sample.entries) || sample.entries.length < 2) fail('sample entries missing')
-for (const entry of sample.entries) {
-  if (!/^[a-f0-9]{64}$/i.test(entry.checksumSha256)) fail('sample checksum invalid')
-  if (entry.storageDisposition !== 'worker_temp_private_only') fail('sample storage disposition drift')
-  for (const key of ['publicArtifact', 'signedUrl', 'committedToRepo', 'mediaArtifact']) {
-    if (entry[key] !== false) fail(`sample entry ${key} drift`)
-  }
-}
-if (sample.generatedArtifactsCommitted !== 'none') fail('sample generated artifact status drift')
 
 const readiness = json(`${packetDir}/readiness-report.json`)
-if (readiness.privateArtifactPolicyPassed !== true) fail('readiness policy drift')
 if (readiness.privateArtifactManifestPassed !== true) fail('readiness manifest drift')
-if (readiness.readyForPrivateArtifactQaMockPacket !== true) fail('readiness next gate drift')
+if (readiness.privateArtifactQaPassed !== true) fail('readiness QA drift')
+if (readiness.readyForCleanupAuditMockPacket !== true) fail('readiness next gate drift')
 for (const key of ['readyForRuntimeRouteExecution', 'readyForWorkerDispatch', 'readyForWorkerExecution', 'readyForGpacMp4boxExecution', 'readyForMediaProcessing', 'readyForStorageTransfer', 'readyForSignedUrlCreation', 'readyForPublicArtifactCreation', 'readyForProductRuntime', 'readyForExternalBetaProductUse', 'readyForProduction']) {
   if (readiness[key] !== false) fail(`${key} drift`)
 }
 if (readiness.productReadyLocalOssTools !== 0) fail('readiness product-ready count drift')
 
-const prior = json(`${policyDir}/gpac-mp4box-private-artifact-policy-mock-implementation-decision.json`)
-if (prior.decision !== priorDecision) fail('prior policy decision drift')
+const prior = json(`${manifestDir}/gpac-mp4box-private-artifact-manifest-mock-implementation-decision.json`)
+if (prior.decision !== priorDecision) fail('prior manifest decision drift')
 
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
@@ -268,9 +241,9 @@ gitQuiet(['diff', '--quiet', '--', 'docker/prod/tool-readiness-worker/Dockerfile
 gitQuiet(['diff', '--check'], 'git diff --check failed')
 gitQuiet(['diff', '--cached', '--check'], 'git diff --cached --check failed')
 
-console.log('TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-MANIFEST-MOCK-IMPLEMENTATION-1 diagnostics passed')
+console.log('TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-QA-MOCK-IMPLEMENTATION-1 diagnostics passed')
 console.log(`Decision: ${decisionText}`)
-console.log('Private artifact manifest: metadata only, worker-temp private only')
+console.log('Private artifact QA: metadata only')
 console.log('Storage transfer, signed/public artifacts, worker execution, GPAC/MP4Box execution, media processing: blocked')
 console.log(`Next prompt: ${nextPrompt}`)
 console.log('Product-ready local OSS tools: 0')

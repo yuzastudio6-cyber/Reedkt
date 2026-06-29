@@ -59,11 +59,14 @@ assert.equal(status.inputCounts.required, 60)
 assert.equal(status.inputCounts.currentlyPendingInBlankEnvironment, 57)
 assert.equal(status.pendingInputs.length, 57)
 assert.deepEqual(status.actionabilityCounts, {
-  humanActionablePending: 15,
-  autoFillablePending: 42,
-  pendingPrefilledConstants: 38,
+  humanActionablePending: 45,
+  autoFillablePending: 12,
+  pendingPrefilledConstants: 8,
   pendingOperatorGeneratedIds: 4,
   pendingOwnerEvidenceNotes: 11,
+  pendingOwnerApprovalConfirmations: 15,
+  pendingOperatorConfirmations: 11,
+  pendingTechnicalVerificationConfirmations: 4,
   pendingSecretOrSensitiveInputs: 1,
   pendingNonSecretOperatorValues: 3,
 })
@@ -76,22 +79,29 @@ assert.deepEqual(status.pendingInputGroups, {
 assert.deepEqual(status.pendingValuePolicies, {
   operator_secret_or_sensitive: 1,
   operator_non_secret_value: 3,
-  prefilled_non_secret_constant: 38,
+  operator_confirmation: 11,
   operator_unique_id: 4,
+  prefilled_non_secret_constant: 8,
+  owner_approval_confirmation: 15,
+  technical_verification_confirmation: 4,
   owner_evidence_note: 11,
 })
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN' && input.secret), true)
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), true)
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), true)
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), true)
-assert.equal(status.humanActionablePendingInputs.length, 15)
-assert.equal(status.autoFillablePendingInputs.length, 42)
+assert.equal(status.humanActionablePendingInputs.length, 45)
+assert.equal(status.autoFillablePendingInputs.length, 12)
 assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN' && input.secret), true)
 assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), true)
 assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'), true)
 assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), true)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY' && input.valuePolicy === 'owner_approval_confirmation'), true)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED' && input.valuePolicy === 'technical_verification_confirmation'), true)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE' && input.valuePolicy === 'operator_confirmation'), true)
 assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), true)
 assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT'), true)
+assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS'), true)
@@ -124,8 +134,8 @@ assert.equal(serializedStatus.includes('x-goog-signature='), false)
 assert.equal(statusMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(statusMarkdown.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
 assert.equal(statusMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
-assert.equal(statusMarkdown.includes('Human-actionable pending inputs: `15`'), true)
-assert.equal(statusMarkdown.includes('Auto-fillable pending inputs: `42`'), true)
+assert.equal(statusMarkdown.includes('Human-actionable pending inputs: `45`'), true)
+assert.equal(statusMarkdown.includes('Auto-fillable pending inputs: `12`'), true)
 assert.equal(statusMarkdown.includes('## Human-Actionable Pending Inputs'), true)
 assert.equal(statusMarkdown.includes('## Auto-Fillable Pending Inputs'), true)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)

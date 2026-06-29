@@ -106,6 +106,9 @@ export function buildBetaReadinessExternalBetaOperatorInputStatus(report = build
       pendingPrefilledConstants: pendingInputs.filter((input) => input.valuePolicy === 'prefilled_non_secret_constant').length,
       pendingOperatorGeneratedIds: pendingInputs.filter((input) => input.valuePolicy === 'operator_unique_id').length,
       pendingOwnerEvidenceNotes: pendingInputs.filter((input) => input.valuePolicy === 'owner_evidence_note').length,
+      pendingOwnerApprovalConfirmations: pendingInputs.filter((input) => input.valuePolicy === 'owner_approval_confirmation').length,
+      pendingOperatorConfirmations: pendingInputs.filter((input) => input.valuePolicy === 'operator_confirmation').length,
+      pendingTechnicalVerificationConfirmations: pendingInputs.filter((input) => input.valuePolicy === 'technical_verification_confirmation').length,
       pendingSecretOrSensitiveInputs: pendingInputs.filter((input) => input.valuePolicy === 'operator_secret_or_sensitive').length,
       pendingNonSecretOperatorValues: pendingInputs.filter((input) => input.valuePolicy === 'operator_non_secret_value').length,
     },
@@ -280,9 +283,12 @@ function templateValue(input, context) {
 
 function valuePolicy(input) {
   if (input.secret) return 'operator_secret_or_sensitive'
-  if (input.expectedValue || input.present) return 'prefilled_non_secret_constant'
+  if (isOwnerApprovalConfirmationName(input.name)) return 'owner_approval_confirmation'
+  if (isTechnicalVerificationConfirmationName(input.name)) return 'technical_verification_confirmation'
+  if (isOperatorConfirmationName(input.name)) return 'operator_confirmation'
   if (input.name.endsWith('_EVIDENCE')) return 'owner_evidence_note'
   if (input.name.endsWith('_IDEMPOTENCY_KEY')) return 'operator_unique_id'
+  if (input.expectedValue || input.present) return 'prefilled_non_secret_constant'
   return 'operator_non_secret_value'
 }
 
@@ -336,6 +342,9 @@ function operatorAction(input) {
   if (input.secret) return 'supply_secret_in_operator_shell'
   if (input.valuePolicy === 'operator_unique_id') return 'generate_unique_idempotency_key'
   if (input.valuePolicy === 'owner_evidence_note') return 'supply_non_secret_owner_evidence_note'
+  if (input.valuePolicy === 'owner_approval_confirmation') return 'confirm_named_owner_approval'
+  if (input.valuePolicy === 'operator_confirmation') return 'confirm_operator_gate_intent'
+  if (input.valuePolicy === 'technical_verification_confirmation') return 'confirm_technical_verification'
   if (input.valuePolicy === 'prefilled_non_secret_constant') return 'export_prefilled_constant_from_template'
   return 'supply_non_secret_operator_value'
 }
@@ -344,7 +353,28 @@ function isHumanActionableInput(input) {
   return (
     input.valuePolicy === 'operator_secret_or_sensitive' ||
     input.valuePolicy === 'operator_non_secret_value' ||
-    input.valuePolicy === 'owner_evidence_note'
+    input.valuePolicy === 'owner_evidence_note' ||
+    input.valuePolicy === 'owner_approval_confirmation' ||
+    input.valuePolicy === 'operator_confirmation' ||
+    input.valuePolicy === 'technical_verification_confirmation'
+  )
+}
+
+function isOwnerApprovalConfirmationName(name) {
+  return name.includes('_APPROVE_') || name === 'REEDITPRO_BETA_LAUNCH_CONFIRM_EXTERNAL_BETA_APPROVAL'
+}
+
+function isTechnicalVerificationConfirmationName(name) {
+  return name.endsWith('_VERIFIED')
+}
+
+function isOperatorConfirmationName(name) {
+  return (
+    name.includes('_CONFIRM_') ||
+    name.includes('_REQUIRE_') ||
+    name.includes('_ACCEPT_') ||
+    name.endsWith('_RECORD_EVIDENCE') ||
+    name === 'REEDITPRO_BETA_PLATFORM_ALLOW_PERSISTENT_PROBE_WRITES'
   )
 }
 

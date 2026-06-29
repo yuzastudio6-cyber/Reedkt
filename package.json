@@ -325,6 +325,7 @@
     "worker-runtime-jobs:sound-cpu-dockerfile-backed-readiness-reconciliation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-dockerfile-backed-readiness-reconciliation-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-audioflux-dockerfile-pip-readiness-reconciliation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-audioflux-dockerfile-pip-readiness-reconciliation-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-signalsmith-bounded-readiness-reconciliation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-signalsmith-bounded-readiness-reconciliation-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-launch-core-readiness-recheck-after-signalsmith-bounded-reconciliation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-readiness-recheck-after-signalsmith-bounded-reconciliation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

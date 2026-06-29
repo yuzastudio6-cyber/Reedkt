@@ -4,6 +4,10 @@ Decision: `beta_readiness_owner_approval_intake_preflight_passed_ready_for_owner
 
 This packet adds a dependency-free intake preflight for the 29 owner approval and attestation inputs that currently block the deployed evidence manifest. It is a safer handoff for collecting owner notes because it requires approval/attestation booleans to be explicitly `true`, checks evidence-note presence, rejects wider-scope launch flags, rejects secret-like evidence notes, and does not echo evidence note values.
 
+Current no-input preflight decision: `beta_readiness_owner_approval_intake_preflight_blocked_missing_or_unsafe_owner_inputs`
+
+The packet is ready for owner input collection, but the actual preflight remains blocked until all 29 non-secret owner approval and attestation inputs are provided outside source control.
+
 Commands:
 
 - `npm run beta:readiness:owner-approval-env-template`
@@ -18,9 +22,22 @@ Commands:
 - External-beta launch owner approval booleans explicitly `true`: 7
 - External-beta launch evidence notes: 7
 
-The source lists remain:
+Current no-input pending count: `29`
+
+## Current Source Truth
+
+- Source branch: `codex/sound-music-audio-1abc-checkpoint`
+- Source SHA at refresh: `26c04e800eba4e5fe80a77ad3ad13bd38b4797b1`
+- Deployed evidence source SHA: `769fc2d922b37a9eebb8b0ca29fa2447a6f8f127`
+- Source freshness decision: `beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift`
+- Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
+- Product-ready local OSS count: `0`
+
+The source lists are:
 
 - `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json`
+- `docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.json`
+- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json`
 - `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json`
 
 ## Boundary

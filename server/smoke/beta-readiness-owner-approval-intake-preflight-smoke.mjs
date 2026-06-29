@@ -6,6 +6,14 @@ import {
 } from '../cli/beta-readiness-owner-approval-intake-preflight.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+const staticIntakePacket = JSON.parse(readFileSync(
+  'docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-intake-preflight.json',
+  'utf8',
+))
+const staticIntakeMarkdown = readFileSync(
+  'docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-intake-preflight.md',
+  'utf8',
+)
 
 assert.equal(
   packageJson.scripts['beta:readiness:owner-approval-intake-preflight'],
@@ -39,6 +47,19 @@ assert.deepEqual(empty.sourceTruth.trackBToolTotals, {
 assert.equal(empty.requiredInputCount, 29)
 assert.ok(empty.pendingInputs.includes('REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY'))
 assert.ok(empty.pendingInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
+
+assert.equal(staticIntakePacket.decision, 'beta_readiness_owner_approval_intake_preflight_passed_ready_for_owner_input_collection')
+assert.equal(staticIntakePacket.currentNoInputPreflightDecision, empty.decision)
+assert.equal(staticIntakePacket.deployedEvidenceSourceSha, empty.sourceTruth.deployedEvidenceSourceSha)
+assert.equal(staticIntakePacket.deployedEvidenceInputManifest, empty.sourceTruth.deployedEvidenceInputManifest)
+assert.equal(staticIntakePacket.ownerApprovalCollectionHandoff, 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.json')
+assert.equal(staticIntakePacket.currentNoInputPendingCount, 29)
+assert.deepEqual(staticIntakePacket.trackBToolTotals, empty.sourceTruth.trackBToolTotals)
+assert.equal(staticIntakePacket.productReadyLocalOssCount, 0)
+assert.ok(staticIntakeMarkdown.includes('Current no-input preflight decision'))
+assert.ok(staticIntakeMarkdown.includes('26c04e800eba4e5fe80a77ad3ad13bd38b4797b1'))
+assert.ok(staticIntakeMarkdown.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready'))
+assert.ok(staticIntakeMarkdown.includes('Product-ready local OSS count: `0`'))
 
 const completeEnv = {
   REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY: 'true',

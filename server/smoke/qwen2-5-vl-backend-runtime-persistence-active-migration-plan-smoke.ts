@@ -111,7 +111,17 @@ const activeQwenMigration = fs.existsSync(path.join(ROOT, 'supabase/migrations')
       file.includes('qwen2_5_vl_backend_runtime_persistence'),
     )
   : undefined
-assert.equal(activeQwenMigration, undefined, 'Qwen active runtime persistence migration must not exist in this plan step.')
+if (activeQwenMigration) {
+  assert.equal(
+    activeQwenMigration,
+    '20260629011700_qwen2_5_vl_backend_runtime_persistence.sql',
+    'Only the expected follow-on Qwen active migration may exist after the create step.',
+  )
+  check(
+    fs.existsSync(path.join(ROOT, 'docs/qwen2-5-vl-7b-backend-runtime-persistence-active-migration-create.md')),
+    'Follow-on active migration create doc must exist when active migration exists.',
+  )
+}
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(

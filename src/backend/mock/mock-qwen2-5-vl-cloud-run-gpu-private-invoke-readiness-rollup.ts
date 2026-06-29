@@ -82,6 +82,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_EXECUTION_ATTEM
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_EXECUTION_ATTEMPT_RESULT_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-execution-attempt-result-review'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approval-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_DECISION } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approval-decision'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -169,6 +170,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_plan_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_decision_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_plan_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -185,7 +187,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approval_decision_accepted_execution_plan_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_execution_plan_recorded_execution_approval_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -356,6 +358,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_PLAN.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecisionDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_DECISION.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_PLAN.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1389,15 +1393,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_plan',
       label: 'Controlled persisted worker dispatch runtime real-dispatch execution plan',
-      status: 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_plan_required',
+      status: 'ready',
       evidence: [
         'Controlled persisted worker dispatch runtime real-dispatch approval decision is recorded.',
         'The decision accepts the approval plan for execution planning only.',
+        'The controlled real-dispatch execution plan is recorded with approved snapshot, credit, private refs, idempotency, service-role lease, Qwen envelope, private invoke, Cloud Run L4, result validation, QA, audit, cost, cleanup, and credit handoff steps.',
         'The approved runtime posture remains NVIDIA L4, scale-to-zero, minimum instances 0, initial max instances 1.',
-        'Real worker dispatch, Cloud Run invocation, Qwen inference, generated assets, beta, and production remain blocked now.',
+        'Real worker dispatch, Cloud Run invocation, Qwen inference, generated assets, beta, and production remain blocked until execution approval is recorded.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval',
+      label: 'Controlled persisted worker dispatch runtime real-dispatch execution approval',
+      status: 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval_required',
+      evidence: [
+        'Controlled persisted worker dispatch runtime real-dispatch execution plan is recorded.',
+        'The plan keeps all current runtime side-effect gates false.',
+        'The plan requires a separate execution approval before any real persisted Qwen worker dispatch attempt can run.',
       ],
       missingEvidence: [
-        'Record a controlled real-dispatch execution plan before any real persisted Qwen worker dispatch attempt can run.',
+        'Record controlled real-dispatch execution approval before any real persisted Qwen worker dispatch attempt can run.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -1815,7 +1831,9 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecisionRequired: false,
     controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecisionRecorded: true,
     controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecisionAcceptedForExecutionPlanning: true,
-    controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRequired: true,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRequired: false,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRecorded: true,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRequired: true,
     approvedSnapshotFixtureScopePlanned: true,
     creditReservationNoSpendPreconditionPlanned: true,
     serviceRoleJobLeaseClaimScopePlanned: true,
@@ -1893,11 +1911,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_plan_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58CB-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-EXECUTION-PLAN: plan first real persisted Qwen worker dispatch attempt, no generated assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58CC-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-EXECUTION-APPROVAL: approve first real persisted Qwen worker dispatch execution plan, no Cloud Run invocation/no inference/no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

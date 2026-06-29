@@ -245,6 +245,16 @@ Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifac
 
 Next prompt: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1`.
 
+## Track A GPAC/MP4Box Guarded Runtime Dispatch Enablement Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1` records `tracka_gpac_mp4box_guarded_runtime_dispatch_enablement_plan_passed_ready_for_guarded_runtime_dispatch_scaffold` and execution `completed_docs_only_guarded_runtime_dispatch_enablement_plan_no_runtime_execution`.
+
+The future confirmation gate is `REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true`, but this phase does not use it to execute anything. Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta, paid production, production, and final delivery/export remain blocked.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. PR #577 remains open/draft/blocked/excluded.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1`.
+
 `TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1` records `tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests` and execution `completed_disabled_runtime_scaffold_contract_no_runtime_execution`.
 
 The TypeScript scaffold id is `runtimeScaffold.gpacMp4box.disabled`; mode is `disabled_scaffold_only`; success status is `disabled_scaffold_registered_no_runtime`. It requires approved snapshot refs, disabled service-role route refs, disabled worker dispatch refs, private artifact manifest/checksum refs, command allowlist refs, QA, cleanup, audit, rollback, and residue refs.

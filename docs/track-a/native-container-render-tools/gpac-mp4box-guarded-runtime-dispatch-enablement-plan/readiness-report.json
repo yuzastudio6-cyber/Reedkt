@@ -1,0 +1,19 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1",
+  "readyForGuardedRuntimeDispatchScaffold": true,
+  "readyForRouteExecution": false,
+  "readyForWorkerDispatch": false,
+  "readyForWorkerExecution": false,
+  "readyForGpacMp4boxExecution": false,
+  "readyForMediaProcessing": false,
+  "readyForStorageTransfer": false,
+  "readyForSignedUrlCreation": false,
+  "readyForPublicArtifactCreation": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForProduction": false,
+  "readyForFinalDeliveryExport": false,
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1"
+}

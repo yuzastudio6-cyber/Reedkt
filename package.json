@@ -641,6 +641,7 @@
     "tracka:gpac-mp4box-guarded-runtime-enablement-plan:diagnostics": "node scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-diagnostics.mjs",
     "tracka:gpac-mp4box-guarded-runtime-enablement-plan-1r:diagnostics": "node scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-1r-diagnostics.mjs",
     "tracka:gpac-mp4box-current-runtime-gate-readiness-rollup:diagnostics": "node scripts/validation/tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-diagnostics.mjs",
+    "tracka:gpac-mp4box-guarded-runtime-dispatch-enablement-plan:diagnostics": "node scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-diagnostics.mjs",
     "tracka:gpac-mp4box-disabled-runtime-scaffold:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-runtime-scaffold-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-disabled-runtime-scaffold": "tsx server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts",
     "tracka:gpac-mp4box-runtime-scaffold-negative-tests:diagnostics": "node scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs",

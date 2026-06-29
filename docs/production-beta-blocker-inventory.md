@@ -1547,3 +1547,15 @@ Open stacked QWEN persistence PRs remain subject to `fresh_source_import_require
 Broad external beta audience, public artifacts, signed URL source-of-truth, paid billing, final delivery/export, broad media, and production remain blocked. Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
 
 Next milestone: `RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1` only when actionable owner-tester feedback exists; otherwise continue controlled owner-tester usage.
+
+## Track A GPAC/MP4Box Mock Worker Interface
+
+`TRACKA-GPAC-MP4BOX-MOCK-WORKER-INTERFACE-1` records decision `tracka_gpac_mp4box_mock_worker_interface_passed_ready_for_service_role_route_implementation_plan` and execution `completed_typescript_only_mock_worker_interface_no_runtime_execution`.
+
+The TypeScript-only contract defines future GPAC/MP4Box worker envelopes with approved snapshot refs, approval records, worker leases, route idempotency keys, source sequence refs, compiled intent refs, model routing policy refs, QA policy refs, private input manifests, private artifact manifests, checksums, tool runtime policy refs, route/worker contract refs, cleanup policy refs, audit refs, command template ids, and structured blockers.
+
+No worker, route, GPAC/MP4Box, media, storage, Supabase, SQL, provider, model, Docker, render/export, beta expansion, paid production, or production path is enabled by this packet.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
+Next milestone: `TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1`.

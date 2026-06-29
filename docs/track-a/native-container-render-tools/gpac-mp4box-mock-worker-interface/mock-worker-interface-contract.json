@@ -1,0 +1,47 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-MOCK-WORKER-INTERFACE-1",
+  "typeScriptContract": "src/backend/contracts/gpac-mp4box-mock-worker-interface-contracts.ts",
+  "smoke": "server/smoke/tracka-gpac-mp4box-mock-worker-interface-smoke.ts",
+  "executionMode": "mock_contract_only",
+  "runtimeExecution": false,
+  "workerExecution": false,
+  "routeExecution": false,
+  "approvedCommandTemplateIds": [
+    "mp4box_add_generated_subtitle_only_v1",
+    "mp4box_info_generated_subtitle_only_v1",
+    "mp4box_package_validation_metadata_v1"
+  ],
+  "requiredRefs": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "jobRef",
+    "workerLeaseRef",
+    "routeIdempotencyKey",
+    "sourceSequenceMapRef",
+    "compiledIntentRef",
+    "modelRoutingPolicyRef",
+    "qaPolicyRef",
+    "privateInputManifestRef",
+    "privateArtifactManifestRef",
+    "privateArtifactChecksumRef",
+    "toolRuntimePolicyRef",
+    "gpacMp4boxWorkerContractRef",
+    "gpacMp4boxRouteContractRef",
+    "cleanupPolicyRef",
+    "auditRecordRef"
+  ],
+  "structuredBlockers": [
+    "blocked_missing_approved_snapshot",
+    "blocked_missing_approval_record",
+    "blocked_missing_private_input_manifest",
+    "blocked_input_checksum_mismatch",
+    "blocked_unapproved_command_template",
+    "blocked_idempotency_conflict",
+    "blocked_worker_lease_unavailable",
+    "blocked_public_or_signed_artifact_attempt",
+    "blocked_cleanup_policy_missing",
+    "blocked_runtime_execution_not_enabled"
+  ],
+  "packageDependencyChangeAllowed": false,
+  "packageLockMutationAllowed": false
+}

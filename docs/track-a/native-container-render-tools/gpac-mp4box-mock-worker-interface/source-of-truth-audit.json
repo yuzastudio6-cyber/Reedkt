@@ -1,0 +1,33 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-MOCK-WORKER-INTERFACE-1",
+  "sourceChain": [
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-WORKER-CONTRACT-REVIEW-1",
+      "mergeSha": "a2a4b1160a32b4a37f2e5f7fd7c1d98ce9ffc9c4"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-WORKER-INTEGRATION-PLAN-1",
+      "mergeSha": "df9bf699accd6b07c3fa75ea4352a71b2b850fbe"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-WORKER-ROUTE-CONTRACT-1",
+      "mergeSha": "d16c85ac6ca002a371bc8e4c33afab033ce95212"
+    }
+  ],
+  "acceptedEvidence": [
+    "official_apt_install_source_and_qa",
+    "controlled_non_media_runtime_proof",
+    "controlled_generated_synthetic_subtitle_only_mp4box_command_proof",
+    "controlled_synthetic_command_qa",
+    "worker_contract_review",
+    "worker_integration_plan",
+    "worker_route_contract"
+  ],
+  "excludedSources": [
+    {
+      "pr": "#577",
+      "status": "open_draft_blocked_conflicting_excluded"
+    }
+  ],
+  "sourceOfTruthScope": "typescript_only_mock_worker_interface_contracts"
+}

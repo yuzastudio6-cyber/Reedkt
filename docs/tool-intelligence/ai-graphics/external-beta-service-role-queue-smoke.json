@@ -68,6 +68,7 @@
       "--approved-plan-snapshot-id",
       "--credit-reservation-id",
       "--idempotency-prefix",
+      "--external-beta-service-role-queue-smoke-authorization-packet",
       "--service-role-queue-smoke-readiness-ref",
       "--runtime-queue-service-proof-bridge-ref",
       "--source-runtime-queue-service-proof-bridge-accepted"
@@ -109,6 +110,7 @@
     "serviceRoleCredentialsServerOnly": true,
     "nonProductionEnvironmentRequired": true,
     "cleanupRequired": true,
+    "serviceRoleQueueSmokeAuthorizationPacketRequired": true,
     "serviceRoleQueueSmokeReadinessRefRequired": true,
     "sourceRuntimeQueueServiceProofBridgeRequired": true,
     "agentCanSelectForPlanning": true,

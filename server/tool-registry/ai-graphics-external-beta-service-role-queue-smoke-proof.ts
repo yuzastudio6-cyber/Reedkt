@@ -28,6 +28,8 @@ export interface AiGraphicsExternalBetaServiceRoleQueueSmokeResult {
   toolsSubmittedIds: AiGraphicsCanonicalToolId[]
   jobIdsReturned: number
   workerClaimsReturned: number
+  serviceRoleQueueSmokeAuthorizationRef: string
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: true
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: number
   sourceRuntimeQueueServiceProofBridgeAccepted: true
   liveServiceRoleQueueSmokeExecutedNow: true
@@ -232,6 +234,12 @@ function validateSmokeResult(
       : undefined,
     result.jobIdsReturned !== 21 ? 'smoke result must return 21 job ids' : undefined,
     result.workerClaimsReturned !== 21 ? 'smoke result must return 21 worker claims' : undefined,
+    !hasValue(result.serviceRoleQueueSmokeAuthorizationRef)
+      ? 'smoke result must include service-role queue smoke authorization ref'
+      : undefined,
+    result.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true
+      ? 'smoke result must preserve the service-role queue smoke authorization chain'
+      : undefined,
     result.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools !== 8
       ? 'smoke result must preserve eight GPU-targeted tools'
       : undefined,

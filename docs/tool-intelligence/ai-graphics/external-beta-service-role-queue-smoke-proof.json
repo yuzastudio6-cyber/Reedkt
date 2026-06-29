@@ -73,6 +73,8 @@
     "toolsSubmittedIdsCoverAll21": true,
     "jobIdsReturned": 21,
     "workerClaimsReturned": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,

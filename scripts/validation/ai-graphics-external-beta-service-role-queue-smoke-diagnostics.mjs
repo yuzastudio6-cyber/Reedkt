@@ -188,6 +188,8 @@ function runExpectedProofBridgeFailure(expectedText) {
     'credit_reservation_external_beta_smoke',
     '--idempotency-prefix',
     'ai-graphics-external-beta-service-role-queue-smoke',
+    '--external-beta-service-role-queue-smoke-authorization-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
     '--service-role-queue-smoke-readiness-ref',
     'external-beta-service-role://queue-smoke-readiness',
     '--runtime-queue-service-proof-bridge-ref',
@@ -211,11 +213,53 @@ function runExpectedProofBridgeFailure(expectedText) {
   }
 }
 
+function runExpectedAuthorizationFailure(expectedText) {
+  const result = spawnSync('npm', [
+    'run',
+    '--silent',
+    runScriptName,
+    '--',
+    '--execute-external-beta-service-role-queue-smoke',
+    '--workspace-id',
+    'workspace_external_beta_smoke',
+    '--project-id',
+    'project_external_beta_smoke',
+    '--approved-plan-snapshot-id',
+    'approved_plan_snapshot_external_beta_smoke',
+    '--credit-reservation-id',
+    'credit_reservation_external_beta_smoke',
+    '--idempotency-prefix',
+    'ai-graphics-external-beta-service-role-queue-smoke',
+    '--service-role-queue-smoke-readiness-ref',
+    'external-beta-service-role://queue-smoke-readiness',
+    '--runtime-queue-service-proof-bridge-ref',
+    'external-beta-service-role://runtime-queue-service-proof-bridge',
+    '--source-runtime-queue-service-proof-bridge-accepted',
+  ], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE: 'true',
+      REEDITPRO_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_ENV:
+        'non_production',
+      E2E_RUNTIME_MODE: 'local',
+      WORKER_RUNTIME_MODE: 'mock',
+    },
+  })
+  if (result.status === 0) fail('execute_without_authorization_unexpectedly_succeeded')
+  const text = `${result.stdout}\n${result.stderr}`
+  if (!text.includes(expectedText)) {
+    fail(`execute_without_authorization_missing_error:${expectedText}`)
+  }
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-beta-service-role-queue-smoke.ts',
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
@@ -242,9 +286,12 @@ for (const phrase of [
   'E2E_RUNTIME_MODE=local',
   'WORKER_RUNTIME_MODE=mock',
   '--execute-external-beta-service-role-queue-smoke',
+  '--external-beta-service-role-queue-smoke-authorization-packet',
   '--service-role-queue-smoke-readiness-ref',
   '--runtime-queue-service-proof-bridge-ref',
   '--source-runtime-queue-service-proof-bridge-accepted',
+  'serviceRoleQueueSmokeAuthorizationRef',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'enqueue_ai_graphics_tool_runtime_jobs',
   'claim_ai_graphics_tool_runtime_job',
   'record_ai_graphics_worker_event',
@@ -288,10 +335,14 @@ for (const key of falseGateKeys) {
 if (docs.booleans?.serviceRoleQueueSmokeReadinessRefRequired !== true) {
   fail('docs_missing_service_role_queue_smoke_readiness_ref_required')
 }
+if (docs.booleans?.serviceRoleQueueSmokeAuthorizationPacketRequired !== true) {
+  fail('docs_missing_service_role_queue_smoke_authorization_packet_required')
+}
 if (docs.booleans?.sourceRuntimeQueueServiceProofBridgeRequired !== true) {
   fail('docs_missing_source_runtime_queue_service_proof_bridge_required')
 }
 for (const flag of [
+  '--external-beta-service-role-queue-smoke-authorization-packet',
   '--service-role-queue-smoke-readiness-ref',
   '--runtime-queue-service-proof-bridge-ref',
   '--source-runtime-queue-service-proof-bridge-accepted',
@@ -315,10 +366,14 @@ for (const key of falseGateKeys) {
 if (prepared.booleans?.serviceRoleQueueSmokeReadinessRefRequired !== true) {
   fail('prepared_missing_service_role_queue_smoke_readiness_ref_required')
 }
+if (prepared.booleans?.serviceRoleQueueSmokeAuthorizationPacketRequired !== true) {
+  fail('prepared_missing_service_role_queue_smoke_authorization_packet_required')
+}
 if (prepared.booleans?.sourceRuntimeQueueServiceProofBridgeRequired !== true) {
   fail('prepared_missing_source_runtime_queue_service_proof_bridge_required')
 }
 for (const flag of [
+  '--external-beta-service-role-queue-smoke-authorization-packet',
   '--service-role-queue-smoke-readiness-ref',
   '--runtime-queue-service-proof-bridge-ref',
   '--source-runtime-queue-service-proof-bridge-accepted',
@@ -328,6 +383,9 @@ for (const flag of [
   }
 }
 runExpectedFailure('Set REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE=true')
+runExpectedAuthorizationFailure(
+  'Missing required flag for live smoke: --external-beta-service-role-queue-smoke-authorization-packet',
+)
 runExpectedProofBridgeFailure('--source-runtime-queue-service-proof-bridge-accepted')
 
 const combinedText = [JSON.stringify(docs), docsMd, JSON.stringify(prepared)].join('\n')

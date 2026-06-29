@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import { loadRuntimeEnv } from '../config/env'
 import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
 import { createSupabaseAdminClient } from '../supabase/admin-client'
@@ -5,6 +6,9 @@ import {
   AI_GRAPHICS_TOOL_CALL_CAPABILITY_IDS,
   listAiGraphicsToolCallReadiness,
 } from '../tool-registry/ai-graphics-tool-call-readiness'
+import type {
+  AiGraphicsExternalBetaServiceRoleQueueSmokeAuthorization,
+} from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-authorization'
 import type { ServiceContext } from '../types'
 
 const RUN_DECISION =
@@ -54,6 +58,7 @@ function gpuToolCount(): number {
 }
 
 interface ExternalBetaSmokeSourceRefs {
+  serviceRoleQueueSmokeAuthorizationRef: string
   serviceRoleQueueSmokeReadinessRef: string
   runtimeQueueServiceProofBridgeRef: string
 }
@@ -88,8 +93,11 @@ function buildExternalBetaSmokeJobs(
         runtimeTarget: record.runtimeTarget,
         serviceRoleQueueSmokeReadinessRef:
           sourceRefs.serviceRoleQueueSmokeReadinessRef,
+        serviceRoleQueueSmokeAuthorizationRef:
+          sourceRefs.serviceRoleQueueSmokeAuthorizationRef,
         runtimeQueueServiceProofBridgeRef:
           sourceRefs.runtimeQueueServiceProofBridgeRef,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
         sourceRuntimeQueueServiceProofBridgeAccepted: true,
         toolExecutionApprovedNow: false,
         workerExecutionApprovedNow: false,
@@ -112,6 +120,7 @@ function preparedContract() {
       '--approved-plan-snapshot-id',
       '--credit-reservation-id',
       '--idempotency-prefix',
+      '--external-beta-service-role-queue-smoke-authorization-packet',
       '--service-role-queue-smoke-readiness-ref',
       '--runtime-queue-service-proof-bridge-ref',
       '--source-runtime-queue-service-proof-bridge-accepted',
@@ -136,6 +145,7 @@ function preparedContract() {
       serviceRoleCredentialsServerOnly: true,
       nonProductionEnvironmentRequired: true,
       cleanupRequired: true,
+      serviceRoleQueueSmokeAuthorizationPacketRequired: true,
       serviceRoleQueueSmokeReadinessRefRequired: true,
       sourceRuntimeQueueServiceProofBridgeRequired: true,
       agentCanSelectForPlanning: true,
@@ -205,6 +215,52 @@ function assertAllowedToExecute(): void {
   }
 }
 
+function readRequiredJsonFlag<T>(flag: string): T {
+  const filePath = requiredFlag(flag)
+  return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T
+}
+
+function requireAcceptedServiceRoleQueueSmokeAuthorization(
+  packet: AiGraphicsExternalBetaServiceRoleQueueSmokeAuthorization,
+): string {
+  const authorizationRef =
+    packet.serviceRoleQueueSmokeAuthorizationRecord?.authorizationRef
+  const accepted =
+    packet.decision ===
+      'ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks' &&
+    packet.status ===
+      'external_beta_service_role_queue_smoke_authorization_recorded_execution_still_blocked' &&
+    packet.serviceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence === 21 &&
+    packet.serviceRoleQueueSmokeAuthorizationCandidateToolsWithProvidedEvidence === 21 &&
+    packet.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools === 8 &&
+    packet.serviceRoleQueueSmokeApprovedNowTools === 0 &&
+    packet.liveQueueWritesApprovedNowTools === 0 &&
+    packet.liveQueueWritesPerformedNowTools === 0 &&
+    packet.workerDispatchApprovedNowTools === 0 &&
+    packet.toolExecutionApprovedNowTools === 0 &&
+    packet.externalBetaReadyNowTools === 0 &&
+    packet.productionReadyNowTools === 0 &&
+    packet.booleans?.sourceExternalBetaLiveEnqueueAuthorizationAccepted === true &&
+    packet.booleans?.sourceExternalBetaServiceRoleQueueSmokeReadinessAccepted === true &&
+    packet.booleans?.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted === true &&
+    packet.booleans?.serviceRoleQueueSmokeAuthorizationRecordAccepted === true &&
+    packet.booleans?.all21ServiceRoleQueueSmokeAuthorizationScopesRecordedWithProvidedEvidence === true &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.serviceRoleQueueSmokeApprovedNow === false &&
+    packet.booleans?.liveQueueWriteApprovedNow === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    typeof authorizationRef === 'string' &&
+    authorizationRef.trim().length > 0
+
+  if (!accepted) {
+    throw new Error(
+      'External-beta service-role queue smoke requires an accepted service-role queue smoke authorization packet for all 21 tools.',
+    )
+  }
+  return authorizationRef
+}
+
 async function deleteRows(
   admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   table: string,
@@ -234,6 +290,12 @@ async function cleanupSmokeRows(
 
 async function executeExternalBetaServiceRoleQueueSmoke() {
   assertAllowedToExecute()
+  const serviceRoleQueueSmokeAuthorizationRef =
+    requireAcceptedServiceRoleQueueSmokeAuthorization(
+      readRequiredJsonFlag<AiGraphicsExternalBetaServiceRoleQueueSmokeAuthorization>(
+        '--external-beta-service-role-queue-smoke-authorization-packet',
+      ),
+    )
   const runtimeEnv = loadRuntimeEnv({
     ...process.env,
     E2E_RUNTIME_MODE: 'local',
@@ -270,6 +332,7 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
   }
   const service = createAiGraphicsToolRuntimeQueueService(context)
   const jobs = buildExternalBetaSmokeJobs(idempotencyPrefix, {
+    serviceRoleQueueSmokeAuthorizationRef,
     serviceRoleQueueSmokeReadinessRef,
     runtimeQueueServiceProofBridgeRef,
   })
@@ -310,8 +373,10 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
           idempotencyPrefix,
           toolId: job.toolId,
           runtimeTarget: job.runtimeTarget,
+          serviceRoleQueueSmokeAuthorizationRef,
           serviceRoleQueueSmokeReadinessRef,
           runtimeQueueServiceProofBridgeRef,
+          sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
           sourceRuntimeQueueServiceProofBridgeAccepted: true,
           toolExecutionApprovedNow: false,
           gpuRuntimeShouldStartNow: false,
@@ -325,8 +390,10 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
       eventType: 'ai_graphics_external_beta_service_role_queue_smoke',
       eventJson: {
         idempotencyPrefix,
+        serviceRoleQueueSmokeAuthorizationRef,
         serviceRoleQueueSmokeReadinessRef,
         runtimeQueueServiceProofBridgeRef,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
         sourceRuntimeQueueServiceProofBridgeAccepted: true,
         jobBatchId: queueResult.jobBatchId,
         jobCount: jobIds.length,
@@ -352,6 +419,8 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
     toolsSubmittedIds: jobs.map((job) => job.toolId),
     jobIdsReturned: jobIds.length,
     workerClaimsReturned: claims.length,
+    serviceRoleQueueSmokeAuthorizationRef,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuToolCount(),
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,

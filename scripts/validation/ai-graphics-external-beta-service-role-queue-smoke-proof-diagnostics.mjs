@@ -227,6 +227,12 @@ for (const key of falseGateKeys) {
 if (docs.acceptanceCriteria?.toolsSubmitted !== 21) fail('docs_tools_submitted_not_21')
 if (docs.acceptanceCriteria?.jobIdsReturned !== 21) fail('docs_jobs_not_21')
 if (docs.acceptanceCriteria?.workerClaimsReturned !== 21) fail('docs_claims_not_21')
+if (docs.acceptanceCriteria?.serviceRoleQueueSmokeAuthorizationRefRequired !== true) {
+  fail('docs_authorization_ref_not_required')
+}
+if (docs.acceptanceCriteria?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+  fail('docs_source_service_role_queue_smoke_authorization_not_accepted')
+}
 if (docs.acceptanceCriteria?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
   fail('docs_source_modes_not_21')
 }
@@ -270,6 +276,9 @@ try {
     toolsSubmittedIds: allTools,
     jobIdsReturned: 21,
     workerClaimsReturned: 21,
+    serviceRoleQueueSmokeAuthorizationRef:
+      'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,
@@ -314,6 +323,9 @@ try {
   }
   if (accepted.counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_runtime_queue_service_proof_bridge_not_21')
+  }
+  if (accepted.rejectionReasons?.some((reason) => reason.includes('authorization'))) {
+    fail('accepted_authorization_chain_rejected')
   }
   if (accepted.counts?.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence !== 1) {
     fail('accepted_cpu_static_first_cohort_not_1')

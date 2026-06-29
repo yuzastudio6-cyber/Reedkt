@@ -1,0 +1,46 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-HANDLER-REGISTRATION-SCAFFOLD-NEGATIVE-TESTS-1",
+  "decision": "tracka_gpac_mp4box_handler_registration_scaffold_negative_tests_passed_ready_for_guarded_handler_implementation_review",
+  "execution": "completed_handler_registration_scaffold_negative_tests_no_route_or_worker_execution",
+  "prior": {
+    "disabledHandlerRegistrationScaffold": "tracka_gpac_mp4box_disabled_handler_registration_scaffold_passed_ready_for_handler_registration_scaffold_negative_tests",
+    "disabledHandlerRegistrationScaffoldMergeSha": "2978ac0ad4926b32e063336c9e154406f578e821"
+  },
+  "negativeCoverage": {
+    "rejectedInputs": "blocked_rejected_input_present",
+    "runtimeAttempts": "blocked_runtime_execution_attempt",
+    "deliveryAttempts": "blocked_storage_or_public_artifact_attempt",
+    "guardedPlan": "blocked_guarded_handler_registration_plan_invalid",
+    "handlerRegistration": "blocked_handler_registration_not_disabled",
+    "featureFlag": "blocked_feature_flag_enabled",
+    "cleanupAudit": "blocked_missing_cleanup_audit_reference",
+    "operatorConfirmation": "blocked_missing_operator_confirmation_guard"
+  },
+  "safety": {
+    "executableHandlerRegistration": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-IMPLEMENTATION-REVIEW-1"
+}

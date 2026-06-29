@@ -1420,3 +1420,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: single-source candidate handoff after the accepted external-beta end-to-end readiness packet and accepted private artifact manifest packet.
 - Result: default committed evidence remains blocked with 0 assembled candidates. With accepted provided evidence from both source packets, it assembles 21 candidate tools, keeps all 8 GPU/model tools on native GPU runtime targets, reports 0 heavy tools incorrectly targeting CPU, and keeps `externalBetaReadyNowTools=0` plus `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this packet does not execute tools, enqueue workers, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool call.
+
+## AI Graphics External-Beta Controlled Runtime Execution Approval
+
+- Decision: `ai_graphics_external_beta_controlled_runtime_execution_approval_prepared_with_runtime_blocks`.
+- Scope: controlled runtime execution approval contract after candidate evidence assembly and side-effect-free runtime admission.
+- Result: default committed evidence remains blocked with 0 approved controlled-runtime scopes. With accepted candidate evidence, accepted runtime admission, and a private `AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_OWNER` approval reference, it can approve 21 controlled-runtime scopes with provided evidence while keeping all live queue, worker dispatch, tool execution, runtime, beta, and production counters at 0.
+- Runtime/beta/production: no unlock; this packet does not enqueue workers, create leases, dispatch workers, execute tools, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job after live enqueue authorization and operator confirmation.

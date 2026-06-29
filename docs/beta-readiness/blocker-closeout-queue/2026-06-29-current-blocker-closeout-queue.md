@@ -6,7 +6,7 @@ This packet groups the current beta/production blockers into an actionable close
 
 ## Current State
 
-- Central source SHA: `582301ab43ff073a5ba9dd7f96fb3e3ca81a1614`
+- Central source SHA: `fd4d0278d4a547526fcdd9672c6f0f3f0dd11ef0`
 - Blocker ledger rows: `197`
 - Duplicate blocker rows: `0`
 - Tool rows: `184`
@@ -14,6 +14,7 @@ This packet groups the current beta/production blockers into an actionable close
 - Checklist rows: `2`
 - Go/no-go rows: `10`
 - Track B local accepted evidence: `16` tools, ready for deployed staging evidence recording
+- Operator input template: `docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json`
 - External beta: `false`
 - Real-user-media beta: `false`
 - Paid production: `false`

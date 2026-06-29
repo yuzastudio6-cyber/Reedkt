@@ -21,6 +21,10 @@ assert.equal(report.sourceTruth.goNoGoRows, 10)
 assert.equal(report.sourceTruth.locallyAcceptedToolCount, 16)
 assert.equal(report.sourceTruth.locallyAcceptedToolIds.includes('libass'), true)
 assert.equal(report.sourceTruth.readyToRecordDeployedEvidence, true)
+assert.equal(
+  report.sourceTruth.operatorTemplatePath,
+  'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json',
+)
 assert.equal(report.sourceTruth.requiredOperatorInputs, 60)
 assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)
 assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
@@ -35,6 +39,10 @@ assert.equal(report.blockerCounts.byClearanceType.deployed_platform_evidence, 5)
 assert.equal(report.batches.length, 7)
 assert.deepEqual(report.batches.map((batch) => batch.order), [1, 2, 3, 4, 5, 6, 7])
 assert.equal(report.batches[0]?.batchId, 'operator_value_collection')
+assert.equal(
+  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('2026-06-29-184f-external-beta-operator-input-template.json')),
+  true,
+)
 assert.equal(report.batches[1]?.batchId, 'trackb_deployed_tool_evidence_recording')
 assert.equal(report.batches[1]?.rowCount, 16)
 assert.equal(report.batches.every((batch) => batch.canEnableBetaOrProduction === false), true)

@@ -251,6 +251,8 @@ for (const [key, expected] of Object.entries({
 for (const [key, expected] of Object.entries({
   sourceToolRouteRuntimeProofAccepted: true,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   sourceExternalBetaNativeGpuProofCollectionAcceptedForRecheck: true,
   runtimeProofRecordsPrepared: 21,
   runtimeProofAcceptedWithProvidedEvidenceTools: 13,
@@ -286,6 +288,7 @@ for (const key of [
 }
 for (const key of [
   'sourceRuntimeQueueServiceProofBridgeAccepted',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceExternalBetaNativeGpuProofCollectionAccepted',
   'all8NativeGpuRuntimeProofsAccepted',
   'nativeGpuRuntimeProofResultsAcceptedForOwnerReview',
@@ -325,6 +328,7 @@ for (const phrase of [
   'external_beta_per_tool_runtime_proof_ready_with_runtime_blocks',
   'blocked_pending_native_gpu_runtime_proof',
   'runtimeProofOnlyNoToolExecution',
+  'service-role queue-smoke authorization',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -475,6 +479,12 @@ try {
   if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
   }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_service_role_queue_smoke_authorization_count_not_21')
+  }
+  if (!accepted.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_missing_service_role_queue_smoke_authorization_ref')
+  }
   if (accepted.jsRuntimeProofAcceptedWithProvidedEvidenceTools !== 13) {
     fail(`accepted_js_tools_not_13:${accepted.jsRuntimeProofAcceptedWithProvidedEvidenceTools}`)
   }
@@ -493,6 +503,9 @@ try {
     if (record?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`accepted_js_source_runtime_queue_service_proof_bridge_not_true:${tool}`)
     }
+    if (record?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`accepted_js_source_service_role_queue_smoke_authorization_not_true:${tool}`)
+    }
     if (record?.runtimeProofStatus !== 'runtime_proof_accepted_with_provided_evidence') {
       fail(`accepted_js_status:${tool}:${record?.runtimeProofStatus}`)
     }
@@ -502,6 +515,9 @@ try {
     if (!record) fail(`accepted_missing_gpu_record:${tool}`)
     if (record?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`accepted_gpu_source_runtime_queue_service_proof_bridge_not_true:${tool}`)
+    }
+    if (record?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`accepted_gpu_source_service_role_queue_smoke_authorization_not_true:${tool}`)
     }
     if (record?.runtimeProofStatus !== 'blocked_pending_native_gpu_runtime_proof') {
       fail(`accepted_gpu_status:${tool}:${record?.runtimeProofStatus}`)
@@ -513,6 +529,9 @@ try {
   for (const record of accepted.records ?? []) {
     if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
+    }
+    if (record.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`record_source_service_role_queue_smoke_authorization_not_true:${record.toolId}`)
     }
     if (record.routeExecutionApprovedNow !== false) fail(`record_route_execution_not_false:${record.toolId}`)
     if (record.workerDispatchApprovedNow !== false) fail(`record_worker_dispatch_not_false:${record.toolId}`)
@@ -526,6 +545,9 @@ try {
   }
   if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
     fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_boolean_not_true')
   }
 
   const collection = acceptedNativeGpuProofCollectionPacket()
@@ -591,6 +613,14 @@ try {
   ) {
     fail('accepted_after_native_gpu_collection_source_runtime_queue_service_proof_bridge_count_not_21')
   }
+  if (
+    acceptedAfterNativeGpuCollection.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_after_native_gpu_collection_source_service_role_queue_smoke_authorization_count_not_21')
+  }
+  if (!acceptedAfterNativeGpuCollection.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_after_native_gpu_collection_missing_service_role_queue_smoke_authorization_ref')
+  }
   if (acceptedAfterNativeGpuCollection.booleans?.sourceExternalBetaNativeGpuProofCollectionAccepted !== true) {
     fail('accepted_after_native_gpu_collection_source_collection_not_accepted')
   }
@@ -599,6 +629,9 @@ try {
     if (!record) fail(`accepted_after_native_gpu_collection_missing_gpu_record:${tool}`)
     if (record?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`accepted_after_native_gpu_collection_source_runtime_queue_service_proof_bridge_not_true:${tool}`)
+    }
+    if (record?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`accepted_after_native_gpu_collection_source_service_role_queue_smoke_authorization_not_true:${tool}`)
     }
     if (record?.runtimeProofStatus !== 'runtime_proof_accepted_with_provided_evidence') {
       fail(`accepted_after_native_gpu_collection_gpu_status:${tool}:${record?.runtimeProofStatus}`)
@@ -614,6 +647,11 @@ try {
     acceptedAfterNativeGpuCollection.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true
   ) {
     fail('accepted_after_native_gpu_collection_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+  if (
+    acceptedAfterNativeGpuCollection.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true
+  ) {
+    fail('accepted_after_native_gpu_collection_source_service_role_queue_smoke_authorization_boolean_not_true')
   }
 
   const strippedBridgeRouteProofPath = writeJson(
@@ -659,6 +697,51 @@ try {
   }
   if (strippedBridge.sourceToolRouteRuntimeProofBridgeAccepted !== false) {
     fail('stripped_bridge_source_tool_route_runtime_proof_bridge_not_false')
+  }
+
+  const strippedAuthorizationRouteProofPath = writeJson(
+    path.join(tmpRoot, 'stripped-authorization-tool-route-runtime-proof.json'),
+    {
+      ...routeProof,
+      serviceRoleQueueSmokeAuthorizationRef: null,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+      records: routeProof.records.map((record) => ({
+        ...record,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      })),
+      booleans: {
+        ...routeProof.booleans,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      },
+    },
+  )
+  const strippedAuthorization = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-tool-route-runtime-proof-packet',
+    strippedAuthorizationRouteProofPath,
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+    '--gpu-runtime-proof-result-packet',
+    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
+    '--external-beta-per-tool-runtime-proof-policy-ref',
+    'private://ai-graphics/external-beta/runtime-proof/policy.json',
+    '--external-beta-per-tool-runtime-proof-schema-ref',
+    'private://ai-graphics/external-beta/runtime-proof/schema.json',
+    '--external-beta-runtime-proof-evidence-ref',
+    'backend-evidence://ai-graphics/external-beta/runtime-proof/evidence.json',
+    '--external-beta-runtime-proof-telemetry-ref',
+    'external-beta-evidence://ai-graphics/runtime-proof/telemetry.json',
+    '--external-beta-runtime-proof-rollback-ref',
+    'private://ai-graphics/external-beta/runtime-proof/rollback.json',
+  ]), 'stripped-authorization')
+  if (strippedAuthorization.decision !== 'external_beta_tool_route_runtime_proof_rejected') {
+    fail(`stripped_authorization_decision:${strippedAuthorization.decision}`)
+  }
+  if (strippedAuthorization.sourceToolRouteRuntimeProofBridgeAccepted !== false) {
+    fail('stripped_authorization_source_tool_route_runtime_proof_bridge_not_false')
   }
 
   const publicBlocked = parseJsonOutput(runNpm(runScriptName, [

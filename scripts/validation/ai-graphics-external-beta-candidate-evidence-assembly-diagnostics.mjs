@@ -63,6 +63,7 @@ const requiredFiles = [
 
 const trueBooleanKeys = [
   'externalBetaCandidateEvidenceAssemblyPrepared',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all21ToolsInstalledForPlannedSurface',
@@ -255,11 +256,17 @@ if (docs.counts?.defaultAssembledExternalBetaCandidateToolsWithProvidedEvidence 
 if (docs.counts?.fullAssembledExternalBetaCandidateToolsWithProvidedEvidence !== 21) {
   fail('docs_full_assembled_not_21')
 }
+if (docs.counts?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_source_service_role_queue_smoke_authorization_not_21')
+}
 if (docs.counts?.externalBetaReadyNowTools !== 0) fail('docs_external_beta_ready_now_not_0')
 if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_ready_now_not_0')
 if (docs.policy?.gpuRuntimeOnDemandOnly !== true) fail('docs_gpu_on_demand_not_true')
 if (docs.policy?.noIdleGpuRuntimeApproved !== true) fail('docs_no_idle_gpu_not_true')
 if (docs.policy?.cpuFallbackAllowedForHeavyTools !== false) fail('docs_cpu_fallback_not_false')
+if (docs.policy?.requiresServiceRoleQueueSmokeAuthorizationEvidence !== true) {
+  fail('docs_requires_service_role_queue_smoke_authorization_not_true')
+}
 
 for (const key of trueBooleanKeys) {
   if (docs.booleans?.[key] !== true) fail(`docs_boolean_${key}_not_true:${docs.booleans?.[key]}`)
@@ -278,6 +285,7 @@ const acceptedEndToEndPacket = {
     serviceRoleQueueSmokePreflightReadyToExecute: 1,
     serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: 21,
     workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: 21,
+    workerDispatchSmokeProofAuthorizationAcceptedWithProvidedEvidence: 21,
     externalBetaLaunchControlsAcceptedWithProvidedEvidence: 1,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -300,10 +308,14 @@ const acceptedPrivateArtifactManifestPacket = {
   privateArtifactManifestReadyWithProvidedEvidence: true,
   manifestRecordsReadyWithProvidedEvidence: 21,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRef:
+    'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
   booleans: {
     privateArtifactManifestReadyWithProvidedEvidence: true,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     publicArtifactRefsRejected: true,
     signedUrlRefsRejected: true,
     agentCanExecuteToolsNow: false,

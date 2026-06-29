@@ -141,6 +141,7 @@ function endToEndReadinessAccepted(
     packet.counts.serviceRoleQueueSmokePreflightReadyToExecute === 1 &&
     packet.counts.serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
     packet.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
+    packet.counts.workerDispatchSmokeProofAuthorizationAcceptedWithProvidedEvidence === 21 &&
     packet.counts.externalBetaLaunchControlsAcceptedWithProvidedEvidence === 1 &&
     packet.counts.externalBetaReadyNowTools === 0 &&
     packet.counts.productionReadyNowTools === 0 &&
@@ -163,9 +164,12 @@ function privateArtifactManifestAccepted(
     packet.privateArtifactManifestReadyWithProvidedEvidence === true &&
     packet.manifestRecordsReadyWithProvidedEvidence === 21 &&
     packet.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    Boolean(packet.serviceRoleQueueSmokeAuthorizationRef) &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     packet.booleans.privateArtifactManifestReadyWithProvidedEvidence === true &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.publicArtifactRefsRejected === true &&
     packet.booleans.signedUrlRefsRejected === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&

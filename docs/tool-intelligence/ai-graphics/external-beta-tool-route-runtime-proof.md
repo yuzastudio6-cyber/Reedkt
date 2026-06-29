@@ -13,6 +13,7 @@ It does not execute Tool Routes, dispatch Workers, run tools, start GPU runtime,
 - GPU/model tools covered: `8`
 - Source private artifact manifest accepted in committed docs: `false`
 - Source runtime queue service proof bridge accepted in committed docs: `false`
+- Source service-role queue-smoke authorization accepted in committed docs: `false`
 - Tool Route runtime proof ready in committed docs: `false`
 - Tool Route records prepared by the evaluator: `21`
 - External-beta-ready now: `0`
@@ -31,7 +32,7 @@ The CLI can report `external_beta_tool_route_runtime_proof_ready_with_runtime_bl
 7. `--external-beta-tool-route-audit-ref`
 8. `--external-beta-tool-route-rollback-ref`
 
-Accepted refs must use private/backend namespaces such as `private://`, `reeditpro-private://`, `backend-evidence://`, or `external-beta-evidence://`. The accepted source private artifact manifest must also preserve the 21-tool runtime queue service proof bridge.
+Accepted refs must use private/backend namespaces such as `private://`, `reeditpro-private://`, `backend-evidence://`, or `external-beta-evidence://`. The accepted source private artifact manifest must also preserve the 21-tool runtime queue service proof bridge and the private service-role queue-smoke authorization ref.
 
 ## What The Gate Prepares
 
@@ -44,6 +45,7 @@ For each of the 21 AI graphics tools, the proof prepares a runtime-proof-only To
 - telemetry and lease audit refs
 - model-weight/cache manifest refs for the 8 GPU/model tools
 - the preserved source runtime queue service proof bridge marker
+- the preserved service-role queue-smoke authorization marker
 - route policy, schema, admission, authz, rate-limit, audit, and rollback refs
 
 These are route proof records only. They are not route executions and they are not worker enqueue operations.

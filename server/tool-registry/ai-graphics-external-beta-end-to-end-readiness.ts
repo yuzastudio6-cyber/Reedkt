@@ -86,6 +86,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: number
     serviceRoleQueueSmokeProofLiveQueueWritesAcceptedWithProvidedEvidence: number
     workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: number
+    workerDispatchSmokeProofAuthorizationAcceptedWithProvidedEvidence: number
     workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: number
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: number
     externalBetaLaunchControlsAcceptedWithProvidedEvidence: 0 | 1
@@ -266,13 +267,17 @@ function workerDispatchSmokeProofAccepted(
       packet.counts.sourceInMemoryLeaseRecordsCreated === 21 &&
       packet.counts.sourceInMemoryLeaseRecordsReleased === 21 &&
       packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+      packet.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
       packet.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
       packet.counts.sourceLiveWorkerDispatchesNow === 0 &&
       packet.counts.sourceLiveToolExecutionsNow === 0 &&
       packet.counts.externalBetaReadyNowTools === 0 &&
       packet.counts.productionReadyNowTools === 0 &&
       packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
+      packet.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+      Boolean(packet.evidence.serviceRoleQueueSmokeAuthorizationRef) &&
       packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+      packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
       packet.booleans.agentCanExecuteToolsNow === false &&
       packet.booleans.workerDispatchPerformed === false &&
       packet.booleans.gpuRuntimeShouldStartNow === false &&
@@ -422,6 +427,10 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence:
         sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof
           ? workerDispatchSmokeProof.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence
+          : 0,
+      workerDispatchSmokeProofAuthorizationAcceptedWithProvidedEvidence:
+        sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof
+          ? workerDispatchSmokeProof.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence
           : 0,
       workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence:
         sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof

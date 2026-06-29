@@ -347,6 +347,7 @@ function serviceRoleQueueSmokeProofAccepted(
       packet.counts?.gpuToolsCovered === 8 &&
       packet.counts?.heavyToolsIncorrectlyTargetingCpu === 0 &&
       packet.counts?.serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
+      packet.counts?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
       packet.counts?.sourceLiveQueueWritesAcceptedWithProvidedEvidence === 21 &&
       packet.counts?.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21 &&
       packet.counts?.sourceWorkerDispatchesAcceptedWithProvidedEvidence === 0 &&
@@ -354,12 +355,15 @@ function serviceRoleQueueSmokeProofAccepted(
       packet.counts?.cleanupPersistedRowsAfterSmoke === 0 &&
       packet.counts?.externalBetaReadyNowTools === 0 &&
       packet.counts?.productionReadyNowTools === 0 &&
+      packet.evidence?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+      hasPrivateEvidenceRef(packet.evidence?.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
       packet.evidence?.sourceLiveServiceRoleQueueSmokeExecutedWithProvidedEvidence === true &&
       packet.policy?.noLiveSupabaseWriteByProofValidator === true &&
       packet.policy?.noWorkerDispatchByProofValidator === true &&
       packet.policy?.noToolExecutionByProofValidator === true &&
       packet.policy?.noGpuRuntimeStartByProofValidator === true &&
       packet.booleans?.serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence === true &&
+      packet.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
       packet.booleans?.sourceQueueWritesAcceptedWithProvidedEvidence === true &&
       packet.booleans?.sourceWorkerClaimsAcceptedWithProvidedEvidence === true &&
       packet.booleans?.cleanupVerifiedWithProvidedEvidence === true &&

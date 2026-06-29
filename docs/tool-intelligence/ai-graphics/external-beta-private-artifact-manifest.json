@@ -84,6 +84,8 @@
   "acceptanceCriteria": {
     "sourceWorkerDispatchSmokeProofAccepted": true,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "manifestRecordsPrepared": 21,
     "manifestRecordsReadyWithProvidedEvidence": 21,
     "gpuRuntimeTargetedTools": 8,
@@ -102,6 +104,7 @@
     "externalBetaPrivateArtifactManifestPrepared": true,
     "sourceWorkerDispatchSmokeProofAccepted": false,
     "sourceRuntimeQueueServiceProofBridgeAccepted": false,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": false,
     "privateArtifactManifestControlsAccepted": false,
     "privateArtifactManifestReadyWithProvidedEvidence": false,
     "all21ToolsCovered": true,

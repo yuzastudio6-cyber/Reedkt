@@ -241,6 +241,8 @@ for (const forbidden of ['http://', 'https://', 'signed-url://', 'public://', 'g
 for (const [key, expected] of Object.entries({
   sourcePrivateArtifactManifestAccepted: true,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   toolRouteRecordsPrepared: 21,
   toolRouteRecordsReadyWithProvidedEvidence: 21,
   gpuRuntimeTargetedTools: 8,
@@ -297,6 +299,9 @@ for (const key of falseGateKeys) {
 if (docs.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== false) {
   fail('docs_source_runtime_queue_service_proof_bridge_not_false')
 }
+if (docs.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== false) {
+  fail('docs_source_service_role_queue_smoke_authorization_not_false')
+}
 
 for (const phrase of [
   '--external-beta-private-artifact-manifest-packet',
@@ -311,6 +316,7 @@ for (const phrase of [
   'runtimeProofOnlyNoRouteExecution',
   'publicArtifactAllowed: false',
   'signedUrlAllowed: false',
+  'service-role queue-smoke authorization',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -433,6 +439,12 @@ try {
   if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
   }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_service_role_queue_smoke_authorization_count_not_21')
+  }
+  if (!accepted.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_missing_service_role_queue_smoke_authorization_ref')
+  }
   if (accepted.gpuRuntimeTargetedTools !== 8) fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
   if (accepted.records?.length !== 21) fail(`accepted_records_not_21:${accepted.records?.length}`)
   if ((accepted.records ?? []).filter((record) => record.gpuRuntimeTargeted).length !== 8) {
@@ -443,6 +455,9 @@ try {
     if (record.privateArtifactManifestAccepted !== true) fail(`record_manifest_not_accepted:${record.toolId}`)
     if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
+    }
+    if (record.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`record_source_service_role_queue_smoke_authorization_not_true:${record.toolId}`)
     }
     if (record.routeMode !== 'runtime_proof_only') fail(`record_route_mode_unexpected:${record.toolId}`)
     if (record.publicArtifactAllowed !== false) fail(`record_public_allowed:${record.toolId}`)
@@ -473,6 +488,9 @@ try {
   }
   if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
     fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_boolean_not_true')
   }
 
   const strippedBridgeManifestPath = writeJson(
@@ -514,6 +532,47 @@ try {
   }
   if (strippedBridge.sourcePrivateArtifactManifestProofBridgeAccepted !== false) {
     fail('stripped_bridge_source_private_artifact_manifest_proof_bridge_not_false')
+  }
+
+  const strippedAuthorizationManifestPath = writeJson(
+    path.join(tmpRoot, 'stripped-authorization-private-artifact-manifest.json'),
+    {
+      ...manifest,
+      serviceRoleQueueSmokeAuthorizationRef: null,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+      records: manifest.records.map((record) => ({
+        ...record,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      })),
+      booleans: {
+        ...manifest.booleans,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      },
+    },
+  )
+  const strippedAuthorization = parseJsonOutput(runNpm(routeScriptName, [
+    '--external-beta-private-artifact-manifest-packet',
+    strippedAuthorizationManifestPath,
+    '--external-beta-tool-route-policy-ref',
+    'private://ai-graphics/external-beta/tool-route/policy.json',
+    '--external-beta-tool-route-schema-ref',
+    'private://ai-graphics/external-beta/tool-route/schema.json',
+    '--external-beta-tool-route-admission-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/admission.json',
+    '--external-beta-tool-route-authz-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/authz.json',
+    '--external-beta-tool-route-rate-limit-ref',
+    'backend-evidence://ai-graphics/external-beta/tool-route/rate-limit.json',
+    '--external-beta-tool-route-audit-ref',
+    'external-beta-evidence://ai-graphics/tool-route/audit.json',
+    '--external-beta-tool-route-rollback-ref',
+    'private://ai-graphics/external-beta/tool-route/rollback.json',
+  ]), 'stripped-authorization')
+  if (strippedAuthorization.decision !== 'external_beta_private_artifact_manifest_rejected') {
+    fail(`stripped_authorization_decision:${strippedAuthorization.decision}`)
+  }
+  if (strippedAuthorization.sourcePrivateArtifactManifestProofBridgeAccepted !== false) {
+    fail('stripped_authorization_source_private_artifact_manifest_proof_bridge_not_false')
   }
 
   const publicBlocked = parseJsonOutput(runNpm(routeScriptName, [

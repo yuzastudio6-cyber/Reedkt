@@ -122,6 +122,8 @@
   "acceptanceCriteria": {
     "sourceToolRouteRuntimeProofAccepted": true,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "sourceExternalBetaNativeGpuProofCollectionAcceptedForRecheck": true,
     "runtimeProofRecordsPrepared": 21,
     "runtimeProofAcceptedWithProvidedEvidenceTools": 13,
@@ -144,6 +146,7 @@
     "externalBetaPerToolRuntimeProofPrepared": true,
     "sourceToolRouteRuntimeProofAccepted": false,
     "sourceRuntimeQueueServiceProofBridgeAccepted": false,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": false,
     "sourceExternalBetaNativeGpuProofCollectionAccepted": false,
     "perToolRuntimeProofControlsAccepted": false,
     "all21ToolsCovered": true,

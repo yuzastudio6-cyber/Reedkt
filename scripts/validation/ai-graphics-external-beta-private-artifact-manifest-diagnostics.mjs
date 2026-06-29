@@ -230,6 +230,8 @@ for (const forbidden of ['http://', 'https://', 'signed-url://', 'public://', 'g
 }
 for (const [key, expected] of Object.entries({
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   manifestRecordsPrepared: 21,
   manifestRecordsReadyWithProvidedEvidence: 21,
   gpuRuntimeTargetedTools: 8,
@@ -276,6 +278,9 @@ for (const key of falseGateKeys) {
 if (docs.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== false) {
   fail('docs_source_runtime_queue_service_proof_bridge_not_false')
 }
+if (docs.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== false) {
+  fail('docs_source_service_role_queue_smoke_authorization_not_false')
+}
 
 for (const phrase of [
   '--external-beta-worker-dispatch-smoke-proof-packet',
@@ -290,6 +295,7 @@ for (const phrase of [
   'publicArtifactAllowed: false',
   'signedUrlAllowed: false',
   'manifestOnlyNoStorageMutation',
+  'service-role queue-smoke authorization',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -393,6 +399,12 @@ try {
   if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
   }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_service_role_queue_smoke_authorization_count_not_21')
+  }
+  if (!accepted.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_missing_service_role_queue_smoke_authorization_ref')
+  }
   if (accepted.gpuRuntimeTargetedTools !== 8) fail(`accepted_gpu_tools_not_8:${accepted.gpuRuntimeTargetedTools}`)
   if (accepted.records?.length !== 21) fail(`accepted_records_not_21:${accepted.records?.length}`)
   if ((accepted.records ?? []).filter((record) => record.gpuRuntimeTargeted).length !== 8) {
@@ -406,6 +418,9 @@ try {
     if (record.signedUrlAllowed !== false) fail(`record_signed_allowed:${record.toolId}`)
     if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
+    }
+    if (record.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`record_source_service_role_queue_smoke_authorization_not_true:${record.toolId}`)
     }
     if (record.toolExecutionApprovedNow !== false) fail(`record_tool_execution_not_false:${record.toolId}`)
     if (record.workerDispatchApprovedNow !== false) fail(`record_worker_dispatch_not_false:${record.toolId}`)
@@ -425,6 +440,9 @@ try {
   }
   if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
     fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_boolean_not_true')
   }
 
   const strippedBridgeProofPath = writeJson(
@@ -468,6 +486,50 @@ try {
   }
   if (strippedBridge.sourceWorkerDispatchSmokeProofBridgeAccepted !== false) {
     fail('stripped_bridge_source_worker_dispatch_smoke_proof_bridge_not_false')
+  }
+
+  const strippedAuthorizationProofPath = writeJson(
+    path.join(tmpRoot, 'stripped-authorization-worker-dispatch-smoke-proof.json'),
+    {
+      ...proof,
+      counts: {
+        ...proof.counts,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+      },
+      evidence: {
+        ...proof.evidence,
+        serviceRoleQueueSmokeAuthorizationRef: null,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: false,
+      },
+      booleans: {
+        ...proof.booleans,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      },
+    },
+  )
+  const strippedAuthorization = parseJsonOutput(runNpm(manifestScriptName, [
+    '--external-beta-worker-dispatch-smoke-proof-packet',
+    strippedAuthorizationProofPath,
+    '--external-beta-private-artifact-policy-ref',
+    'private://ai-graphics/external-beta/artifacts/policy.json',
+    '--external-beta-artifact-manifest-schema-ref',
+    'private://ai-graphics/external-beta/artifacts/schema.json',
+    '--external-beta-storage-namespace-ref',
+    'private://ai-graphics/external-beta/private-artifacts',
+    '--external-beta-access-boundary-ref',
+    'backend-evidence://ai-graphics/external-beta/artifacts/access-boundary.json',
+    '--external-beta-encryption-policy-ref',
+    'private://ai-graphics/external-beta/artifacts/encryption.json',
+    '--external-beta-retention-policy-ref',
+    'private://ai-graphics/external-beta/artifacts/retention.json',
+    '--external-beta-artifact-telemetry-ref',
+    'external-beta-evidence://ai-graphics/artifacts/telemetry.json',
+  ]), 'stripped-authorization')
+  if (strippedAuthorization.decision !== 'external_beta_worker_dispatch_smoke_proof_rejected') {
+    fail(`stripped_authorization_decision:${strippedAuthorization.decision}`)
+  }
+  if (strippedAuthorization.sourceWorkerDispatchSmokeProofBridgeAccepted !== false) {
+    fail('stripped_authorization_source_worker_dispatch_smoke_proof_bridge_not_false')
   }
 
   const publicBlocked = parseJsonOutput(runNpm(manifestScriptName, [

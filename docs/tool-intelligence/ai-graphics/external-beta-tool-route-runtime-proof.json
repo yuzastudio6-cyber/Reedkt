@@ -84,6 +84,8 @@
   "acceptanceCriteria": {
     "sourcePrivateArtifactManifestAccepted": true,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "toolRouteRecordsPrepared": 21,
     "toolRouteRecordsReadyWithProvidedEvidence": 21,
     "gpuRuntimeTargetedTools": 8,
@@ -106,6 +108,7 @@
     "externalBetaToolRouteRuntimeProofPrepared": true,
     "sourcePrivateArtifactManifestAccepted": false,
     "sourceRuntimeQueueServiceProofBridgeAccepted": false,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": false,
     "toolRouteRuntimeProofControlsAccepted": false,
     "toolRouteRuntimeProofReadyWithProvidedEvidence": false,
     "all21ToolsCovered": true,

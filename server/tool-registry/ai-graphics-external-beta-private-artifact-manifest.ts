@@ -48,6 +48,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactRecord {
   publicArtifactAllowed: false
   signedUrlAllowed: false
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   refsAcceptedWithProvidedEvidence: boolean
   manifestReadyWithProvidedEvidence: boolean
   toolExecutionApprovedNow: false
@@ -60,6 +61,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_PRIVATE_ARTIFACT_MANIFEST_DECISION
   sourceWorkerDispatchSmokeProofAccepted: boolean
   sourceWorkerDispatchSmokeProofBridgeAccepted: boolean
+  serviceRoleQueueSmokeAuthorizationRef: string | null
   missingPrivateArtifactControls: string[]
   privateArtifactManifestReadyWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -68,6 +70,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
   manifestRecordsPrepared: 21
   manifestRecordsReadyWithProvidedEvidence: number
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   acceptedPrivateRefNamespaces: string[]
@@ -75,6 +78,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
   records: AiGraphicsExternalBetaPrivateArtifactRecord[]
   policy: {
     sourceWorkerDispatchSmokeProofRequired: true
+    sourceServiceRoleQueueSmokeAuthorizationRequired: true
     privateArtifactManifestSchemaRequired: true
     privateStorageNamespaceRequired: true
     accessBoundaryRequired: true
@@ -92,6 +96,7 @@ export interface AiGraphicsExternalBetaPrivateArtifactManifest {
     externalBetaPrivateArtifactManifestPrepared: true
     sourceWorkerDispatchSmokeProofAccepted: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     privateArtifactManifestControlsAccepted: boolean
     privateArtifactManifestReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -207,7 +212,10 @@ function sourceProofAccepted(
     packet.counts.sourceInMemoryLeaseRecordsCreated === 21 &&
     packet.counts.sourceInMemoryLeaseRecordsReleased === 21 &&
     packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
     packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
+    packet.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+    isSafePrivateRef(packet.evidence.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
     packet.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
     packet.counts.sourceLiveWorkerDispatchesNow === 0 &&
     packet.counts.sourceLiveToolExecutionsNow === 0 &&
@@ -275,6 +283,10 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
   input: AiGraphicsExternalBetaPrivateArtifactManifestInput = {},
 ): AiGraphicsExternalBetaPrivateArtifactManifest {
   const sourceAccepted = sourceProofAccepted(input.sourceWorkerDispatchSmokeProofPacket)
+  const serviceRoleQueueSmokeAuthorizationRef = sourceAccepted
+    ? input.sourceWorkerDispatchSmokeProofPacket?.evidence
+      .serviceRoleQueueSmokeAuthorizationRef ?? null
+    : null
   const missingControls = sourceAccepted ? missingPrivateArtifactControls(input) : []
   const controlsAccepted = sourceAccepted && missingControls.length === 0
   const storageRoot = normalizeRoot(input.externalBetaStorageNamespaceRef)
@@ -339,6 +351,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
       publicArtifactAllowed: false,
       signedUrlAllowed: false,
       sourceRuntimeQueueServiceProofBridgeAccepted: sourceAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: sourceAccepted,
       refsAcceptedWithProvidedEvidence: controlsAccepted && refsAccepted,
       manifestReadyWithProvidedEvidence: controlsAccepted && refsAccepted && sourceAccepted,
       toolExecutionApprovedNow: false,
@@ -349,10 +362,15 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
   const readyRecords = records.filter((record) => record.manifestReadyWithProvidedEvidence)
   const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
     records.filter((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted).length
+  const sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence =
+    records.filter((record) => (
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted
+    )).length
   const manifestReadyWithProvidedEvidence =
     controlsAccepted &&
     readyRecords.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length &&
-    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21
 
   return {
     decision: statusFromInput({
@@ -363,6 +381,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_PRIVATE_ARTIFACT_MANIFEST_DECISION,
     sourceWorkerDispatchSmokeProofAccepted: sourceAccepted,
     sourceWorkerDispatchSmokeProofBridgeAccepted: sourceAccepted,
+    serviceRoleQueueSmokeAuthorizationRef,
     missingPrivateArtifactControls: missingControls,
     privateArtifactManifestReadyWithProvidedEvidence: manifestReadyWithProvidedEvidence,
     totalAiGraphicsTools: 21,
@@ -371,6 +390,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
     manifestRecordsPrepared: records.length as 21,
     manifestRecordsReadyWithProvidedEvidence: readyRecords.length,
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence,
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     acceptedPrivateRefNamespaces,
@@ -378,6 +398,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
     records,
     policy: {
       sourceWorkerDispatchSmokeProofRequired: true,
+      sourceServiceRoleQueueSmokeAuthorizationRequired: true,
       privateArtifactManifestSchemaRequired: true,
       privateStorageNamespaceRequired: true,
       accessBoundaryRequired: true,
@@ -395,6 +416,7 @@ export function buildAiGraphicsExternalBetaPrivateArtifactManifest(
       externalBetaPrivateArtifactManifestPrepared: true,
       sourceWorkerDispatchSmokeProofAccepted: sourceAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted: sourceAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: sourceAccepted,
       privateArtifactManifestControlsAccepted: controlsAccepted,
       privateArtifactManifestReadyWithProvidedEvidence: manifestReadyWithProvidedEvidence,
       all21ToolsCovered: true,

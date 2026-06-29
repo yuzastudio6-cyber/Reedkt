@@ -36,6 +36,7 @@
     "admissionBundleExternalBetaReadyWithProvidedEvidenceTools": 0,
     "admissionBundlePlusLaunchControlsExternalBetaReadyWithProvidedEvidenceTools": 21,
     "workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
+    "workerDispatchSmokeProofAuthorizationAcceptedWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "externalBetaBlockedNowTools": 21,
     "productionReadyNowTools": 0
@@ -46,6 +47,7 @@
     "sourceTechnicalProofPacketsRequired": true,
     "sourceTechnicalProofPacketsProvided": true,
     "sourceTechnicalProofPacketsAccepted": true,
+    "serviceRoleQueueSmokeAuthorizationEvidenceRequired": true,
     "externalBetaLaunchControlsPacketRequired": true,
     "admissionBundleAloneAcceptedAsLaunchControls": false,
     "prebuiltBetaEvidenceSummaryRejectedForReadiness": true
@@ -106,6 +108,7 @@
     "sourceBetaToolCallReadinessAccepted": true,
     "sourceExternalBetaEvidenceAdmissionBundleAccepted": true,
     "sourceExternalBetaWorkerDispatchSmokeProofAccepted": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
     "sourceExternalBetaLaunchControlsAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

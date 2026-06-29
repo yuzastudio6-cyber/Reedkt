@@ -46,6 +46,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProofRecord {
   modelWeightOrCacheManifestRef: string | null
   gpuRuntimeTargeted: boolean
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   toolRoutePolicyRef: string | null
   toolRouteSchemaRef: string | null
   toolRouteAdmissionRef: string | null
@@ -68,6 +69,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_ROUTE_RUNTIME_PROOF_DECISION
   sourcePrivateArtifactManifestAccepted: boolean
   sourcePrivateArtifactManifestProofBridgeAccepted: boolean
+  serviceRoleQueueSmokeAuthorizationRef: string | null
   missingToolRouteRuntimeProofControls: string[]
   toolRouteRuntimeProofReadyWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -76,6 +78,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
   toolRouteRecordsPrepared: 21
   toolRouteRecordsReadyWithProvidedEvidence: number
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   acceptedPrivateRefNamespaces: string[]
@@ -83,6 +86,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
   records: AiGraphicsExternalBetaToolRouteRuntimeProofRecord[]
   policy: {
     sourcePrivateArtifactManifestRequired: true
+    sourceServiceRoleQueueSmokeAuthorizationRequired: true
     toolRoutePolicyRequired: true
     toolRouteSchemaRequired: true
     toolRouteAdmissionRequired: true
@@ -102,6 +106,7 @@ export interface AiGraphicsExternalBetaToolRouteRuntimeProof {
     externalBetaToolRouteRuntimeProofPrepared: true
     sourcePrivateArtifactManifestAccepted: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     toolRouteRuntimeProofControlsAccepted: boolean
     toolRouteRuntimeProofReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -221,14 +226,18 @@ function sourceManifestAccepted(
     packet.manifestRecordsReadyWithProvidedEvidence === 21 &&
     packet.sourceWorkerDispatchSmokeProofBridgeAccepted === true &&
     packet.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    isSafePrivateRef(packet.serviceRoleQueueSmokeAuthorizationRef) &&
     packet.records.length === 21 &&
     packet.records.every((record) => (
-      record.sourceRuntimeQueueServiceProofBridgeAccepted === true
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
     )) &&
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.routeExecutionApprovedNow === false &&
     packet.booleans.workerDispatchApprovedNow === false &&
@@ -288,6 +297,9 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
   input: AiGraphicsExternalBetaToolRouteRuntimeProofInput = {},
 ): AiGraphicsExternalBetaToolRouteRuntimeProof {
   const sourceAccepted = sourceManifestAccepted(input.sourcePrivateArtifactManifestPacket)
+  const serviceRoleQueueSmokeAuthorizationRef = sourceAccepted
+    ? input.sourcePrivateArtifactManifestPacket?.serviceRoleQueueSmokeAuthorizationRef ?? null
+    : null
   const missingControls = sourceAccepted ? missingToolRouteRuntimeProofControls(input) : []
   const controlsAccepted = sourceAccepted && missingControls.length === 0
 
@@ -309,6 +321,9 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     const proofBridgeAccepted =
       sourceAccepted &&
       manifestRecord?.sourceRuntimeQueueServiceProofBridgeAccepted === true
+    const sourceAuthorizationAccepted =
+      sourceAccepted &&
+      manifestRecord?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
 
     return {
       toolId: record.toolId,
@@ -331,6 +346,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
       modelWeightOrCacheManifestRef: manifestRecord?.modelWeightOrCacheManifestRef ?? null,
       gpuRuntimeTargeted: record.gpuRequiredForRuntime,
       sourceRuntimeQueueServiceProofBridgeAccepted: proofBridgeAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: sourceAuthorizationAccepted,
       toolRoutePolicyRef: controlsAccepted ? input.externalBetaToolRoutePolicyRef?.trim() ?? null : null,
       toolRouteSchemaRef: controlsAccepted ? input.externalBetaToolRouteSchemaRef?.trim() ?? null : null,
       toolRouteAdmissionRef: controlsAccepted ? input.externalBetaToolRouteAdmissionRef?.trim() ?? null : null,
@@ -339,7 +355,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
       toolRouteAuditRef: controlsAccepted ? input.externalBetaToolRouteAuditRef?.trim() ?? null : null,
       toolRouteRollbackRef: controlsAccepted ? input.externalBetaToolRouteRollbackRef?.trim() ?? null : null,
       toolRouteRuntimeProofReadyWithProvidedEvidence:
-        controlsAccepted && manifestAccepted && proofBridgeAccepted,
+        controlsAccepted && manifestAccepted && proofBridgeAccepted && sourceAuthorizationAccepted,
       routeExecutionApprovedNow: false,
       workerDispatchApprovedNow: false,
       toolExecutionApprovedNow: false,
@@ -355,10 +371,15 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
   ))
   const sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence =
     records.filter((record) => record.sourceRuntimeQueueServiceProofBridgeAccepted).length
+  const sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence =
+    records.filter((record) => (
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted
+    )).length
   const readyWithProvidedEvidence =
     controlsAccepted &&
     readyRecords.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length &&
-    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21
 
   return {
     decision: statusFromInput({
@@ -369,6 +390,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_TOOL_ROUTE_RUNTIME_PROOF_DECISION,
     sourcePrivateArtifactManifestAccepted: sourceAccepted,
     sourcePrivateArtifactManifestProofBridgeAccepted: sourceAccepted,
+    serviceRoleQueueSmokeAuthorizationRef,
     missingToolRouteRuntimeProofControls: missingControls,
     toolRouteRuntimeProofReadyWithProvidedEvidence: readyWithProvidedEvidence,
     totalAiGraphicsTools: 21,
@@ -377,6 +399,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     toolRouteRecordsPrepared: records.length as 21,
     toolRouteRecordsReadyWithProvidedEvidence: readyRecords.length,
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence,
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     acceptedPrivateRefNamespaces,
@@ -384,6 +407,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
     records,
     policy: {
       sourcePrivateArtifactManifestRequired: true,
+      sourceServiceRoleQueueSmokeAuthorizationRequired: true,
       toolRoutePolicyRequired: true,
       toolRouteSchemaRequired: true,
       toolRouteAdmissionRequired: true,
@@ -403,6 +427,7 @@ export function buildAiGraphicsExternalBetaToolRouteRuntimeProof(
       externalBetaToolRouteRuntimeProofPrepared: true,
       sourcePrivateArtifactManifestAccepted: sourceAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted: sourceAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: sourceAccepted,
       toolRouteRuntimeProofControlsAccepted: controlsAccepted,
       toolRouteRuntimeProofReadyWithProvidedEvidence: readyWithProvidedEvidence,
       all21ToolsCovered: true,

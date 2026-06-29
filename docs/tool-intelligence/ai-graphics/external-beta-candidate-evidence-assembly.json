@@ -60,12 +60,14 @@
     "fullAssembledExternalBetaCandidateToolsWithProvidedEvidence": 21,
     "sourceEndToEndCandidateAcceptedToolsWithProvidedEvidence": 21,
     "sourcePrivateArtifactManifestAcceptedToolsWithProvidedEvidence": 21,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "policy": {
     "requiresAcceptedExternalBetaEndToEndReadiness": true,
     "requiresAcceptedPrivateArtifactManifest": true,
+    "requiresServiceRoleQueueSmokeAuthorizationEvidence": true,
     "candidateAssemblyDoesNotStartRuntime": true,
     "candidateAssemblyDoesNotWriteStorage": true,
     "gpuRuntimeOnDemandOnly": true,
@@ -77,6 +79,7 @@
     "externalBetaCandidateEvidenceAssemblyPrepared": true,
     "sourceExternalBetaEndToEndReadinessAccepted": true,
     "sourceExternalBetaPrivateArtifactManifestAccepted": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all21ToolsInstalledForPlannedSurface": true,

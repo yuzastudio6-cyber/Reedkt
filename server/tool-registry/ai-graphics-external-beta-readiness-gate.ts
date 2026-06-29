@@ -211,11 +211,15 @@ function normalizeEvidence(
     workerDispatchSmokeProof.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
     workerDispatchSmokeProof.counts.sourceCapabilityScenariosCompletedWithProvidedEvidence === 12 &&
     workerDispatchSmokeProof.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    workerDispatchSmokeProof.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
     workerDispatchSmokeProof.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
     workerDispatchSmokeProof.counts.sourceLiveWorkerDispatchesNow === 0 &&
     workerDispatchSmokeProof.counts.sourceLiveToolExecutionsNow === 0 &&
     workerDispatchSmokeProof.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
+    workerDispatchSmokeProof.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+    Boolean(workerDispatchSmokeProof.evidence.serviceRoleQueueSmokeAuthorizationRef) &&
     workerDispatchSmokeProof.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    workerDispatchSmokeProof.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     workerDispatchSmokeProof.booleans.agentCanExecuteToolsNow === false &&
     workerDispatchSmokeProof.booleans.workerDispatchPerformed === false &&
     workerDispatchSmokeProof.booleans.gpuRuntimeShouldStartNow === false

@@ -13,6 +13,7 @@ It does not upload to storage, create signed URLs, create public artifacts, exec
 - GPU/model tools covered: `8`
 - Source worker-dispatch-smoke proof accepted in committed docs: `false`
 - Source runtime queue service proof bridge accepted in committed docs: `false`
+- Source service-role queue-smoke authorization accepted in committed docs: `false`
 - Private artifact manifest ready in committed docs: `false`
 - Manifest records prepared by the evaluator: `21`
 - External-beta-ready now: `0`
@@ -31,7 +32,7 @@ The CLI can report `external_beta_private_artifact_manifest_ready_with_runtime_b
 7. `--external-beta-retention-policy-ref`
 8. `--external-beta-artifact-telemetry-ref`
 
-Accepted refs must use private/backend namespaces such as `private://`, `reeditpro-private://`, `backend-evidence://`, or `external-beta-evidence://`. The source worker-dispatch-smoke proof must also preserve the 21-tool runtime queue service proof bridge.
+Accepted refs must use private/backend namespaces such as `private://`, `reeditpro-private://`, `backend-evidence://`, or `external-beta-evidence://`. The source worker-dispatch-smoke proof must also preserve the 21-tool runtime queue service proof bridge and the private service-role queue-smoke authorization ref.
 
 ## What The Gate Prepares
 
@@ -43,6 +44,7 @@ For each of the 21 AI graphics tools, the manifest prepares private refs for:
 - lease audit
 - model-weight or cache manifest when the tool is one of the 8 GPU/model tools
 - the preserved source runtime queue service proof bridge marker
+- the preserved service-role queue-smoke authorization marker
 
 The refs are manifest records only. They are not storage writes.
 

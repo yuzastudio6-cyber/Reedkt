@@ -471,6 +471,8 @@ function verifyPackageJson() {
   const allowedPackageAdditions = [
     `+    "${runScriptName}": "${runScriptCommand}",`,
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+    '+    "ai-graphics:external-beta-per-tool-traffic-enablement-gate": "tsx server/cli/ai-graphics-external-beta-per-tool-traffic-enablement-gate.ts",',
+    '+    "ai-graphics:external-beta-per-tool-traffic-enablement-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-per-tool-traffic-enablement-gate-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')

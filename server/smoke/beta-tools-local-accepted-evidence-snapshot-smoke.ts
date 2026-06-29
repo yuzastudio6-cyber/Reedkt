@@ -62,7 +62,7 @@ const expectedTools = [
 ]
 
 assert.equal(report.decision, 'beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording')
-assert.equal(report.sourceSha, '94c37bb492a584c087247625dcb1fb53398c17f4')
+assert.equal(report.sourceSha, 'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca')
 assert.equal(report.previewOnly, true)
 assert.equal(report.noBackendEvidenceRecorded, true)
 assert.equal(report.readyToRecordDeployedEvidence, true)
@@ -75,6 +75,7 @@ assert.equal(report.coreAcceptedToolIds?.includes('audioflux'), true)
 assert.equal(report.coreAcceptedToolIds?.includes('signalsmith_stretch'), true)
 assert.equal(report.coreEvidence?.readinessBinIncludedInPath, true)
 assert.equal(report.coreEvidence?.guardrailObserved?.missingSignalsmithBinaryFailedClosed, true)
+assert.equal(report.coreEvidence?.guardrailObserved?.summary?.includes('14 accepted tools'), true)
 assert.equal(report.coreEvidence?.guardrailObserved?.summary?.includes('automatically prepended .reeditpro-tool-readiness-bin'), true)
 assert.equal(report.libassEvidence?.network, 'none')
 assert.equal(report.libassEvidence?.syntheticBurninQa?.syntheticOnly, true)

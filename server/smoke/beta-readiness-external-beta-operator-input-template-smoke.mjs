@@ -6,8 +6,11 @@ import {
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
-const expectedLocalEvidenceSourceSha = '94c37bb492a584c087247625dcb1fb53398c17f4'
-const staleLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
+const expectedLocalEvidenceSourceSha = 'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca'
+const staleLocalEvidenceSourceShas = [
+  '94c37bb492a584c087247625dcb1fb53398c17f4',
+  'e8821759a10a43a60795accb596b3b83c15f9dfb',
+]
 const committedMarkdown = readFileSync(
   'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-aa49-external-beta-operator-input-template.md',
   'utf8',
@@ -53,7 +56,9 @@ assert.ok(report.envTemplate.includes(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
-assert.equal(report.envTemplate.includes(staleLocalEvidenceSourceSha), false)
+for (const staleSourceSha of staleLocalEvidenceSourceShas) {
+  assert.equal(report.envTemplate.includes(staleSourceSha), false)
+}
 
 assert.equal(serialized.includes('secret-token'), false)
 assert.equal(serialized.includes('Bearer secret'), false)
@@ -62,9 +67,13 @@ assert.equal(serialized.includes('x-goog-signature='), false)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 assert.equal(markdown.includes('enable external beta'), true)
 assert.equal(markdown.includes(expectedLocalEvidenceSourceSha), true)
-assert.equal(markdown.includes(staleLocalEvidenceSourceSha), false)
+for (const staleSourceSha of staleLocalEvidenceSourceShas) {
+  assert.equal(markdown.includes(staleSourceSha), false)
+}
 assert.equal(committedMarkdown.includes(expectedLocalEvidenceSourceSha), true)
-assert.equal(committedMarkdown.includes(staleLocalEvidenceSourceSha), false)
+for (const staleSourceSha of staleLocalEvidenceSourceShas) {
+  assert.equal(committedMarkdown.includes(staleSourceSha), false)
+}
 
 console.log(JSON.stringify({
   ok: true,

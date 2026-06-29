@@ -22,7 +22,7 @@ The missing inputs include bearer/token-bearing values, workspace/project IDs, i
 
 Track B current totals are `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
 
-The current local accepted evidence snapshot remains prerequisite evidence from source `94c37bb492a584c087247625dcb1fb53398c17f4`. It is not a product-ready authorization and it is not a deployed backend collector result.
+The current local accepted evidence snapshot remains prerequisite evidence from source `d47015e88943dd4760dd9eb6ee45ad0f8ead15ca`. It is not a product-ready authorization and it is not a deployed backend collector result.
 
 The deployed evidence input manifest must require bounded evidence, not production readiness:
 

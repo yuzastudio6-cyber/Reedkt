@@ -85,5 +85,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Collect owner approvals through the current owner approval packet, generate the local fill-in template with npm run beta:readiness:owner-approval-env-template, run npm run beta:readiness:owner-approval-intake-preflight, then run npm run beta:readiness:deployed-evidence-input-manifest with the current deployed source SHA and required owner approval inputs; it must fail closed until owner approvals and evidence notes are present."
+  "nextSafeAction": "Collect owner approvals through the current owner approval packet, generate the local fill-in template with npm run beta:readiness:owner-approval-env-template, run npm run beta:readiness:source-freshness-preflight, run npm run beta:readiness:owner-approval-intake-preflight, then run npm run beta:readiness:deployed-evidence-input-manifest with the current deployed source SHA and required owner approval inputs; it must fail closed until source freshness, owner approvals, and evidence notes are present."
 }

@@ -7,6 +7,7 @@ This packet adds a dependency-free intake preflight for the 29 owner approval an
 Commands:
 
 - `npm run beta:readiness:owner-approval-env-template`
+- `npm run beta:readiness:source-freshness-preflight`
 - `npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run smoke:beta-readiness-owner-approval-intake-preflight`
 
@@ -28,4 +29,4 @@ This preflight does not grant approval, call the deployed backend, record eviden
 
 Supabase classification: no write / environment none / SQL none / migration no.
 
-Next safe action: generate the owner input template with `npm run beta:readiness:owner-approval-env-template`, have owners fill non-secret approval booleans and evidence notes outside source control, run `npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.
+Next safe action: generate the owner input template with `npm run beta:readiness:owner-approval-env-template`, have owners fill non-secret approval booleans and evidence notes outside source control, run `npm run beta:readiness:source-freshness-preflight`, run `npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.

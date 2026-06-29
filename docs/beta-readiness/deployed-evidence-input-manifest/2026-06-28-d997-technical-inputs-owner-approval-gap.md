@@ -66,4 +66,4 @@ This classification did not call the deployed backend, record evidence, write Su
 
 Supabase classification: no write / environment none / SQL none / migration no.
 
-Next safe action: collect the non-secret owner approval notes named by `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md`, generate the local fill-in template with `npm run beta:readiness:owner-approval-env-template`, validate filled values with `npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.
+Next safe action: collect the non-secret owner approval notes named by `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md`, generate the local fill-in template with `npm run beta:readiness:owner-approval-env-template`, run `npm run beta:readiness:source-freshness-preflight`, validate filled values with `npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.

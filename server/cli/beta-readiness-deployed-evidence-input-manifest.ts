@@ -159,6 +159,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
     recommendedCommands: [
       'npm run beta:readiness:owner-approval-packet',
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',

@@ -47,6 +47,7 @@ export interface AiGraphicsExternalBetaRuntimeAdmission {
   executionRequested: boolean
   sourceLaunchGoNoGoAccepted: boolean
   sourceLaunchGoNoGoRuntimeProofBridgeAccepted: boolean
+  sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: boolean
   onDemandRuntimeAdmission: AiGraphicsOnDemandRuntimeAdmission
   sourceLaunchGoNoGo: AiGraphicsExternalBetaLaunchGoNoGo
   missingExternalBetaRuntimeGates: string[]
@@ -73,6 +74,7 @@ export interface AiGraphicsExternalBetaRuntimeAdmission {
     externalBetaRuntimeAdmissionContractPrepared: true
     sourceExternalBetaLaunchGoNoGoAccepted: boolean
     sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted: boolean
+    sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: boolean
     sourceOnDemandRuntimeAdmissionAccepted: boolean
     externalBetaRuntimeAdmissionReadyWithProvidedEvidence: boolean
     externalBetaWorkerEnqueueAllowedWithProvidedEvidence: boolean
@@ -140,6 +142,9 @@ function launchGoNoGoRuntimeProofBridgeAccepted(packet: AiGraphicsExternalBetaLa
 
 function sourceLaunchGoNoGoAccepted(packet: AiGraphicsExternalBetaLaunchGoNoGo): boolean {
   return launchGoNoGoRuntimeProofBridgeAccepted(packet) &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    packet.sourceServiceRoleQueueSmokeProof?.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    hasValue(packet.sourceServiceRoleQueueSmokeProof?.evidence?.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
     packet.booleans.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted === true &&
     packet.sourceServiceRoleQueueSmokePreflight?.status ===
       'ready_to_execute_non_production_service_role_queue_smoke' &&
@@ -221,6 +226,14 @@ export function evaluateAiGraphicsExternalBetaRuntimeAdmission(
   const onDemandAdmission = evaluateAiGraphicsOnDemandRuntimeAdmission(input)
   const launchRuntimeProofBridgeAccepted =
     launchGoNoGoRuntimeProofBridgeAccepted(sourceLaunchGoNoGo)
+  const sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted =
+    sourceLaunchGoNoGo.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    sourceLaunchGoNoGo.sourceServiceRoleQueueSmokeProof?.booleans
+      ?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    hasValue(
+      sourceLaunchGoNoGo.sourceServiceRoleQueueSmokeProof?.evidence
+        ?.serviceRoleQueueSmokeAuthorizationRef ?? undefined,
+    )
   const launchAccepted = sourceLaunchGoNoGoAccepted(sourceLaunchGoNoGo)
   const missingExternalBetaRuntimeGates = input.executionRequested === true
     ? missingExternalRuntimeGates({ input, launchAccepted, onDemandAdmission })
@@ -249,6 +262,7 @@ export function evaluateAiGraphicsExternalBetaRuntimeAdmission(
     executionRequested: input.executionRequested === true,
     sourceLaunchGoNoGoAccepted: launchAccepted,
     sourceLaunchGoNoGoRuntimeProofBridgeAccepted: launchRuntimeProofBridgeAccepted,
+    sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted,
     onDemandRuntimeAdmission: onDemandAdmission,
     sourceLaunchGoNoGo,
     missingExternalBetaRuntimeGates,
@@ -265,6 +279,8 @@ export function evaluateAiGraphicsExternalBetaRuntimeAdmission(
       sourceExternalBetaLaunchGoNoGoAccepted: launchAccepted,
       sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted:
         launchRuntimeProofBridgeAccepted,
+      sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted:
+        sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted,
       sourceOnDemandRuntimeAdmissionAccepted:
         onDemandAdmission.runtimeJobAdmissionReadyWithProvidedEvidence,
       externalBetaRuntimeAdmissionReadyWithProvidedEvidence,

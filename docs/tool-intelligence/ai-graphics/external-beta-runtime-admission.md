@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_runtime_admission_contract_prepared_with_ru
 
 This contract is the external-beta runtime admission wrapper for AI graphics tool calls. It consumes the external-beta launch go/no-go record and the on-demand runtime admission contract, then adds live-user controls: feature flag, rollout scope, tool allowlist, telemetry, support ownership, cost guardrail, worker pool, private artifact manifest, and GPU concurrency limits.
 
-Runtime admission accepts only launch go/no-go packets that preserve the native GPU runtime-proof bridge, the ready service-role queue smoke preflight evidence, and the accepted saved service-role queue smoke proof. A stale launch packet that omits either queue-smoke packet stays blocked before worker enqueue admission.
+Runtime admission accepts only launch go/no-go packets that preserve the native GPU runtime-proof bridge, the ready service-role queue smoke preflight evidence, the accepted saved service-role queue smoke proof, and the private service-role queue-smoke authorization chain. A stale launch packet that omits either queue-smoke packet or its authorization evidence stays blocked before worker enqueue admission.
 
 ## Current Result
 
@@ -14,6 +14,7 @@ Runtime admission accepts only launch go/no-go packets that preserve the native 
 - Source launch go/no-go runtime proof bridge accepted: `true`
 - Source launch go/no-go service-role queue smoke preflight accepted: `true`
 - Source launch go/no-go service-role queue smoke proof accepted: `true`
+- Source launch go/no-go service-role queue smoke authorization accepted: `true`
 - Full external-beta runtime admission examples ready with provided evidence: `2`
 - GPU runtime start allowed for accepted external-beta job examples: `1`
 - GPU runtime should start now: `0`
@@ -24,7 +25,7 @@ Runtime admission accepts only launch go/no-go packets that preserve the native 
 
 External beta runtime admission can become ready with provided evidence only when:
 
-1. External-beta launch go/no-go is approved with provided evidence and preserves the native GPU runtime-proof bridge, ready service-role queue smoke preflight, and accepted saved service-role queue smoke proof.
+1. External-beta launch go/no-go is approved with provided evidence and preserves the native GPU runtime-proof bridge, ready service-role queue smoke preflight, accepted saved service-role queue smoke proof, and private service-role queue-smoke authorization ref.
 2. The selected tool passes on-demand runtime admission with approved plan snapshot, credit reservation, Tool Route, Worker, runtime enqueue, owner runtime approval, private artifact manifest, and required runtime proof refs.
 3. External beta feature flag, tool allowlist, traffic scope, telemetry, support, cost guardrail, worker pool, and GPU concurrency controls are present.
 

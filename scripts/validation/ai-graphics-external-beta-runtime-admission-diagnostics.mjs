@@ -513,6 +513,9 @@ if (docs.sourceLaunchGoNoGoRuntimeProofBridgeAccepted !== true) {
 if (docs.sourceLaunchGoNoGoServiceRoleQueueSmokeProofAccepted !== true) {
   fail('docs_source_launch_go_no_go_service_role_queue_smoke_proof_not_true')
 }
+if (docs.sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+  fail('docs_source_launch_go_no_go_service_role_queue_smoke_authorization_not_true')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,
@@ -541,6 +544,7 @@ for (const gate of [
   'external beta launch go/no-go approval',
   'external beta service-role queue smoke preflight acceptance',
   'external beta service-role queue smoke proof acceptance',
+  'external beta service-role queue smoke authorization acceptance',
   'external beta feature flag approval',
   'external beta runtime admission reference',
   'external beta tool allowlist reference',
@@ -559,6 +563,7 @@ for (const key of [
   'externalBetaRuntimeAdmissionContractPrepared',
   'sourceExternalBetaLaunchGoNoGoAccepted',
   'sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted',
+  'sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceOnDemandRuntimeAdmissionAccepted',
   'externalBetaRuntimeAdmissionReadyWithProvidedEvidence',
   'externalBetaWorkerEnqueueAllowedWithProvidedEvidence',
@@ -597,7 +602,9 @@ for (const needle of [
   'buildAiGraphicsExternalBetaLaunchGoNoGo',
   'launchGoNoGoRuntimeProofBridgeAccepted',
   'sourceLaunchGoNoGoRuntimeProofBridgeAccepted',
+  'sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted',
+  'sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceExternalBetaServiceRoleQueueSmokePreflightAccepted',
   'sourceServiceRoleQueueSmokePreflight?.status',
   'sourceExternalBetaServiceRoleQueueSmokeProofAccepted',
@@ -631,6 +638,7 @@ for (const needle of [
 for (const needle of [
   'External-Beta Runtime Admission',
   'Source launch go/no-go runtime proof bridge accepted: `true`',
+  'Source launch go/no-go service-role queue smoke authorization accepted: `true`',
   'GPU remains on-demand only',
   'If no one is using the tool, no GPU runtime should be running',
   'External-beta-ready now: `0`',

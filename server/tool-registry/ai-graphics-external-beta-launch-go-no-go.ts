@@ -104,6 +104,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
     sourceExternalBetaEvidenceAdmissionBundleAccepted: boolean
     sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: boolean
     sourceExternalBetaServiceRoleQueueSmokeProofAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     sourceExternalBetaLaunchControlsAccepted: boolean
     externalBetaLaunchCandidateWithProvidedEvidence: boolean
     externalBetaLaunchGoNoGoApprovalRecordAccepted: boolean
@@ -406,6 +407,12 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     serviceRoleQueueSmokeProofAccepted(
       input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
     )
+  const sourceServiceRoleQueueSmokeAuthorizationAccepted =
+    sourceExternalBetaServiceRoleQueueSmokeProofAccepted &&
+    sourceServiceRoleQueueSmokeProof?.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    hasPrivateEvidenceRef(
+      sourceServiceRoleQueueSmokeProof.evidence?.serviceRoleQueueSmokeAuthorizationRef ?? undefined,
+    )
   const sourceExternalBetaLaunchControlsAccepted =
     acceptedAiGraphicsExternalBetaLaunchControls(input.sourceExternalBetaLaunchControlsPacket)
   const candidateSourceEvidenceAccepted =
@@ -506,6 +513,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
         sourceExternalBetaServiceRoleQueueSmokePreflightAccepted,
       sourceExternalBetaServiceRoleQueueSmokeProofAccepted:
         sourceExternalBetaServiceRoleQueueSmokeProofAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
       sourceExternalBetaLaunchControlsAccepted:
         sourceExternalBetaLaunchControlsAccepted,
       externalBetaLaunchCandidateWithProvidedEvidence: candidateWithProvidedEvidence,

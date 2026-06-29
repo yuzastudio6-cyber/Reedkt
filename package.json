@@ -152,6 +152,7 @@
     "smoke:rate-card": "tsx server/smoke/rate-card-smoke.ts",
     "smoke:production-tool-cost": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/production-tool-cost-smoke.ts",
     "smoke:credit-estimate": "tsx server/smoke/credit-estimate-smoke.ts",
+    "smoke:credit-reservation": "tsx server/smoke/credit-reservation-smoke.ts",
     "smoke:edit-level-surface-audit": "tsx server/smoke/edit-level-surface-audit-smoke.ts",
     "smoke:edit-level-architecture": "tsx server/smoke/edit-level-architecture-smoke.ts",
     "smoke:edit-level-types": "tsx server/smoke/edit-level-types-smoke.ts",

@@ -37,3 +37,7 @@ The preview deterministically suggests lower-cost options for product-level down
 RP-ESTIMATE-01 does not approve estimates, reserve credits, spend credits, settle final charges, call providers, execute workers, render/export, create migrations, run Supabase, or change frontend UI. Future approval, reservation, top-up, and visible estimate card wiring remain separate milestones.
 
 `smoke:credit-estimate` covers level validation, production tool estimate reuse, service-fee separation, line-item payloads, idempotency, latest lookup, top-up/custom behavior, lower-cost options, secret-like metadata rejection, settlement-preview separation, and no side effects.
+
+## RP-RESERVATION-01 Handoff
+
+RP-RESERVATION-01 consumes ready estimate previews and creates a mock max-hold reservation through `POST /v1/credit-estimates/:creditEstimateId/reservations/max`. The reservation holds `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, and reuses high-credit estimate line payloads for reservation line items. It remains mock-only: no live billing, no Stripe, no Supabase, no provider, no production ledger write, no render/export, no checkout/top-up, and no settlement.

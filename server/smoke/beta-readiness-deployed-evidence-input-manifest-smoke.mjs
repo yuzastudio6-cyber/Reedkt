@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
 const expectedLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
-const expectedDeployedSourceSha = '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'
+const expectedDeployedSourceSha = 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67'
 const expectedCoreToolIds = [
   'ffmpeg',
   'ffprobe',
@@ -27,7 +27,7 @@ assert.equal(emptyManifest.ok, true)
 assert.equal(emptyManifest.readyToRunExternalBetaEvidenceCollector, false, 'empty env should not be ready to run deployed evidence')
 assert.equal(emptyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
 assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 16)
-assert.equal(emptyManifest.sourceTruth.currentSourceSha, undefined)
+assert.equal(emptyManifest.sourceTruth.currentSourceSha, expectedDeployedSourceSha)
 assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedLocalEvidenceSourceSha)
 assert.deepEqual(emptyManifest.sourceTruth.trackBToolTotals, {
   owned: 16,
@@ -43,9 +43,10 @@ assert.equal(emptyManifest.fixedInputs.requiredBoundedAcceptedToolCount, 16)
 assert.equal(emptyManifest.fixedInputs.requiredProductReadyLocalOssCount, 0)
 assert.equal(emptyManifest.fixedInputs.platformEnvironment, 'staging')
 assert.equal(emptyManifest.fixedInputs.externalBetaReadyRequired, true)
-assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL'))
+assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), false)
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'))
-assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA'))
+assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA'), false)
+assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA'), false)
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))

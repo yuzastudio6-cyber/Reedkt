@@ -75,6 +75,9 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json',
     'docs/production-beta-readiness-runbook.md',
     'server/smoke/beta-readiness-source-freshness-preflight-smoke.mjs',
+    'server/cli/beta-readiness-owner-approval-packet.mjs',
+    'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
+    'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
   ],
   resolveGit: false,
 })
@@ -82,6 +85,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
 assert.equal(metadataOnly.readyForDeployedEvidenceInputManifest, true)
 assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift')
 assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
 assert.deepEqual(metadataOnly.valueGaps, [])
 
 const runtimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {

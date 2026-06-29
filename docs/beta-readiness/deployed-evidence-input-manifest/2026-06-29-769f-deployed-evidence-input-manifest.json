@@ -19,7 +19,7 @@
     "apiDeploymentPreflightDecision": "beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest",
     "sourceFreshnessPreflightReport": "docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json",
     "sourceFreshnessPreflightDecision": "beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence",
-    "ownerApprovalCollectionHandoff": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-17a9-owner-approval-collection-handoff.json",
+    "ownerApprovalCollectionHandoff": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.json",
     "publicUnauthenticatedHealthStatus": 403,
     "authenticatedHealthReadback": "not_rerun_local_cloud_cli_auth_expired",
     "platformTechnicalProbeAt769f": "not_rerun_owner_approval_and_authenticated_preflight_still_required",

@@ -112,9 +112,14 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
     sourceTruth: {
       ownerApprovalPacket: 'docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json',
       manifestOwnerGapPacket: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json',
+      deployedEvidenceInputManifest: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json',
+      sourceFreshnessPreflightPacket: 'docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json',
+      sourceFreshnessDecision: packet.sourceTruth.sourceFreshnessDecision,
       sourceSha: packet.sourceTruth.sourceSha,
+      deployedEvidenceSourceSha: packet.sourceTruth.deployedEvidenceSourceSha,
       normalApiRevision: packet.sourceTruth.normalApiRevision,
       productReadyLocalOssCount: packet.productReadyLocalOssCount,
+      trackBToolTotals: packet.sourceTruth.trackBToolTotals,
     },
     requiredInputCount: uniqueRequiredInputs.length,
     requiredInputs: uniqueRequiredInputs.map((name) => ({

@@ -3,20 +3,27 @@
 Decision: `beta_readiness_owner_approval_packet_passed_ready_for_owner_review`
 
 Source branch: `codex/sound-music-audio-1abc-checkpoint`
-Source SHA: `17a9a2d2b015ab325cf13ce5135d083af070ab00`
+Source SHA: `ba5bc11778db7c3e2efd6b56941949f64b2c9684`
+Deployed evidence source SHA: `769fc2d922b37a9eebb8b0ca29fa2447a6f8f127`
 
 ## Current Evidence
 
+- Source freshness preflight packet: `docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json`
+- Source freshness decision: `beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift`
+- Source freshness policy: current ba5 source differs from deployed 769f only by approved metadata/readiness files; runtime-affecting drift remains blocked.
 - Platform technical probe packet: `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json`
-- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json`
-- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00011-cts` in `us-east1`
-- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-17a9a2d2b015-20260629T0034Z`
-- Normal API image digest: `sha256:35fcf6401f15baab8206fc7b3bf5436416c6ef24419f545f8e813504a7c1ab4c`
-- Normal API deploy run: [28341446109](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28341446109)
+- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-769f-api-staging-deploy.json`
+- Deployed evidence input manifest: `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json`
+- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00012-ncd` in `us-east1`
+- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-769fc2d922b3-20260629T0129Z-retry1`
+- Normal API image digest: `sha256:9a5bcb232c17b5a0eba14158063d5d2828d56be06d56fb7bdf66caf9d1a042d5`
+- Normal API deploy run: [28343028750](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28343028750)
 - Normal API public unauthenticated `/health`: HTTP `403`
 - Normal API authenticated health readback: `not_rerun_local_cloud_cli_auth_expired`
 - Tool-readiness API: `reeditpro-tool-readiness-staging` revision `reeditpro-tool-readiness-staging-00002-qdp`
-- Product-ready local OSS count in stored evidence: `14`
+- Track B tool totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
+- Product-ready local OSS count: `0`
+- Historical stored platform-probe product-ready local OSS count: `14`
 - Platform technical probe: `8/9` checks passed
 
 This packet does not approve anything. It defines the exact non-secret owner evidence needed before the existing evidence collectors can run.

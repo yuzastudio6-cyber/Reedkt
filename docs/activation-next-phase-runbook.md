@@ -330,3 +330,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm default plan/report/smoke modes did not download model files, mutate GCS, run OCR, process media, or create public artifacts.
 5. Confirm the approved Phase 37B evidence records 12 verified private GCS objects, aggregate SHA-256 `6c4fbb9986bc5fdc97a363ab41124feb835656388cb6d51f17986f70e14a5a7b`, and no downloaded textline-orientation classifier.
 6. Proceed to Phase 37C only as generated UI/text-frame OCR runtime verification planning against the verified private PP-OCRv5 assets. OCR runtime execution, real-media OCR, real-video OCR, caption/render integration, production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.
+
+## After Phase 37C
+
+1. Review `activation:ocr-runtime:report` and `docs/activation-phase-37c-generated-ocr-runtime-verification.md`.
+2. Confirm the verified run is `phase37c-20260530T230413` and artifacts are private under `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37c/generated-ocr-runtime/phase37c-20260530T230413/`.
+3. Confirm Phase 37C copied only the three verified Phase 37B PP-OCRv5 assets, matched SHA-256, safely extracted tar archives, and used local detection/recognition model paths.
+4. Confirm generated fixtures only were processed and required OCR recall, confidence, broad-region, and lower caption conflict-zone checks passed.
+5. Confirm runtime model auto-download, textline orientation auto-download, real media OCR, providers, Cloud Run deploy, Docker push, GPU jobs, public output, Track A, beta, production, and broad media remained blocked.
+6. Proceed to Phase 37D only as one controlled real-video OCR/caption safe-zone planning gate. Do not integrate caption/render QA until Phase 37E.

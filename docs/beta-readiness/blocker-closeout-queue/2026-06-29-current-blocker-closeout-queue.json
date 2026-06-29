@@ -1,0 +1,151 @@
+{
+  "reportId": "beta-readiness-blocker-closeout-queue-2026-06-29",
+  "createdAt": "2026-06-29T14:08:43.988Z",
+  "decision": "beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection",
+  "sourceTruth": {
+    "currentCentralSha": "582301ab43ff073a5ba9dd7f96fb3e3ca81a1614",
+    "blockerLedgerRows": 197,
+    "duplicateBlockerRows": 0,
+    "toolRows": 184,
+    "platformRows": 1,
+    "checklistRows": 2,
+    "goNoGoRows": 10,
+    "productReadyLocalOssCount": 0,
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false,
+    "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json",
+    "locallyAcceptedToolCount": 16,
+    "locallyAcceptedToolIds": [
+      "ffmpeg",
+      "ffprobe",
+      "pyav",
+      "opentimelineio",
+      "hyperframe",
+      "remotion",
+      "sharp",
+      "duckdb",
+      "polars",
+      "pyscenedetect",
+      "opencv",
+      "opencolorio",
+      "openimageio",
+      "audioflux",
+      "signalsmith_stretch",
+      "libass"
+    ],
+    "readyToRecordDeployedEvidence": true,
+    "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-aa49-external-beta-operator-input-template.json",
+    "requiredOperatorInputs": 60,
+    "pendingOperatorInputsInBlankEnv": 57
+  },
+  "blockerCounts": {
+    "byClearanceType": {
+      "bounded_local_proof": 99,
+      "owner_approval": 44,
+      "diagnostics_or_qa": 49,
+      "deployed_platform_evidence": 5
+    },
+    "byBlockerId": {
+      "readiness_not_passed": 49,
+      "real_execution_not_verified": 49,
+      "production_readiness_blocked": 25,
+      "product_ready_acceptance_missing": 49,
+      "model_weight_approval_missing": 12,
+      "production_billing_deployment_unverified": 1,
+      "external_beta_checklist_item_blocked": 2,
+      "beta_go_no_go_blocker": 10
+    }
+  },
+  "batches": [
+    {
+      "batchId": "operator_value_collection",
+      "order": 1,
+      "rowCount": 57,
+      "nextCommands": [
+        "npm run beta:readiness:external-beta-operator-input-template",
+        "npm run beta:readiness:owner-approval-intake-preflight",
+        "npm run beta:readiness:deployed-evidence-input-manifest"
+      ]
+    },
+    {
+      "batchId": "trackb_deployed_tool_evidence_recording",
+      "order": 2,
+      "rowCount": 16,
+      "nextCommands": [
+        "npm run beta:tools:local-accepted-evidence-collector",
+        "npm run beta:readiness:external-beta-evidence-collector",
+        "npm run beta:readiness:operator-status-api"
+      ]
+    },
+    {
+      "batchId": "registry_bounded_runtime_evidence",
+      "order": 3,
+      "rowCount": 98,
+      "nextCommands": [
+        "npm run beta:tools:core-real-check-preview",
+        "npm run beta:tools:core-real-check-preview:hydrated",
+        "npm run beta:tools:local-accepted-evidence-bundle"
+      ]
+    },
+    {
+      "batchId": "product_ready_qa_acceptance",
+      "order": 4,
+      "rowCount": 49,
+      "nextCommands": [
+        "npm run smoke:tool-beta-execution-readiness",
+        "npm run smoke:beta-readiness",
+        "npm run smoke:beta-readiness-api"
+      ]
+    },
+    {
+      "batchId": "deployed_platform_evidence",
+      "order": 5,
+      "rowCount": 5,
+      "nextCommands": [
+        "npm run beta:platform:staging-evidence-preflight",
+        "npm run beta:platform:staging-evidence-probe",
+        "npm run beta:readiness:operator-status-api"
+      ]
+    },
+    {
+      "batchId": "owner_launch_approvals",
+      "order": 6,
+      "rowCount": 44,
+      "nextCommands": [
+        "npm run beta:readiness:owner-approval-env-template",
+        "npm run beta:readiness:launch-approval-evidence-preflight",
+        "npm run beta:readiness:launch-approval-evidence"
+      ]
+    },
+    {
+      "batchId": "post_external_beta_scope_escalation",
+      "order": 7,
+      "rowCount": 2,
+      "nextCommands": [
+        "REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta npm run beta:readiness:scope-approval-evidence-preflight",
+        "REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production npm run beta:readiness:scope-approval-evidence-preflight",
+        "npm run beta:readiness:paid-production-evidence-collector"
+      ]
+    }
+  ],
+  "blockedScopeConfirmations": {
+    "deployedBackendCalled": false,
+    "toolExecutionRan": false,
+    "dockerRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "gcsWritesRan": false,
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

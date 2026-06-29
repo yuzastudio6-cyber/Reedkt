@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_plan_required'
+  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_decision_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58BZ-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVAL-PLAN: plan real persisted Qwen worker dispatch runtime approval, no generated assets/no beta'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58CA-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVAL-DECISION: decide real persisted Qwen worker dispatch runtime approval, no generated assets/no beta'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-      currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_plan_required',
+      currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_decision_required',
       currentBlocker:
-        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, structured-output retry/result review passed, private runtime and approved worker integration reviews are accepted, fail-closed backend dispatch and controlled dispatch dry-run are recorded, backend runtime persistence has advanced through local harness validation, active migration creation, active migration validation, deploy planning, target-class deploy approval, deploy-execution metadata preflight, read-only migration-history reconciliation, local history adoption to remote version 20260628000100, adopted active-migration local validation, remote satisfaction/no-deploy review, persisted worker dispatch readiness review, controlled persisted worker dispatch smoke planning, controlled persisted worker dispatch smoke execution, controlled persisted worker dispatch smoke result review, controlled persisted worker dispatch runtime planning, controlled persisted worker dispatch runtime implementation, controlled persisted worker dispatch runtime smoke planning, controlled persisted worker dispatch runtime smoke execution, controlled persisted worker dispatch runtime smoke result review, controlled persisted worker dispatch runtime approval planning, controlled persisted worker dispatch runtime approval decision, controlled persisted worker dispatch runtime execution plan, controlled persisted worker dispatch runtime execution approval, controlled persisted worker dispatch runtime execution preflight, controlled approved-fixture runtime execution attempt result, and controlled attempt result review are recorded. User-facing readiness remains blocked until the real-dispatch approval plan is recorded; generated assets, signed URLs, beta, and production remain blocked.',
+        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, structured-output retry/result review passed, private runtime and approved worker integration reviews are accepted, fail-closed backend dispatch and controlled dispatch dry-run are recorded, backend runtime persistence has advanced through local harness validation, active migration creation, active migration validation, deploy planning, target-class deploy approval, deploy-execution metadata preflight, read-only migration-history reconciliation, local history adoption to remote version 20260628000100, adopted active-migration local validation, remote satisfaction/no-deploy review, persisted worker dispatch readiness review, controlled persisted worker dispatch smoke planning, controlled persisted worker dispatch smoke execution, controlled persisted worker dispatch smoke result review, controlled persisted worker dispatch runtime planning, controlled persisted worker dispatch runtime implementation, controlled persisted worker dispatch runtime smoke planning, controlled persisted worker dispatch runtime smoke execution, controlled persisted worker dispatch runtime smoke result review, controlled persisted worker dispatch runtime approval planning, controlled persisted worker dispatch runtime approval decision, controlled persisted worker dispatch runtime execution plan, controlled persisted worker dispatch runtime execution approval, controlled persisted worker dispatch runtime execution preflight, controlled approved-fixture runtime execution attempt result, controlled attempt result review, and controlled real-dispatch approval planning are recorded. User-facing readiness remains blocked until the real-dispatch approval decision is recorded; generated assets, signed URLs, beta, and production remain blocked.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The next runtime gate is the controlled persisted worker dispatch runtime real-dispatch approval plan; it must keep generated assets, published artifacts, signed URLs, beta, and production blocked now.',
+        'The next runtime gate is the controlled persisted worker dispatch runtime real-dispatch approval decision; it must keep generated assets, published artifacts, signed URLs, beta, and production blocked now.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58BZ-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVAL-PLAN: plan real persisted Qwen worker dispatch runtime approval, no generated assets/no beta',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58CA-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVAL-DECISION: decide real persisted Qwen worker dispatch runtime approval, no generated assets/no beta',
   }
 }

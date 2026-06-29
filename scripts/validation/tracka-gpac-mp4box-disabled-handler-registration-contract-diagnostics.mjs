@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const lane = 'TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-CONTRACT-1'
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-contract'
+const negativeTestsDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-contract-negative-tests'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-review'
 const decisionText = 'tracka_gpac_mp4box_disabled_handler_registration_contract_passed_ready_for_handler_registration_contract_negative_tests'
 const executionText = 'completed_disabled_handler_registration_contract_no_route_or_worker_execution'
@@ -41,11 +42,23 @@ const statusFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
 ]
 
+const negativeTestFiles = [
+  `${negativeTestsDir}/gpac-mp4box-disabled-handler-registration-contract-negative-tests-decision.json`,
+  `${negativeTestsDir}/gpac-mp4box-disabled-handler-registration-contract-negative-tests-decision.md`,
+  `${negativeTestsDir}/readiness-report.json`,
+  `${negativeTestsDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-handler-registration-plan-1.md',
+  'server/smoke/tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...contractFiles,
   ...priorFiles,
   ...statusFiles,
+  ...negativeTestFiles,
   'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-registration-contract-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-contract-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-1.md',
@@ -252,10 +265,10 @@ for (const text of [
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  const isContractOrSmoke = contractFiles.includes(file)
+  const isContractOrSmoke = contractFiles.includes(file) || negativeTestFiles.includes(file)
   if (!isContractOrSmoke && forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
   if (/^src\//.test(file) && !contractFiles.includes(file)) fail(`unexpected source path ${file}`)
-  if (/^server\//.test(file) && !contractFiles.includes(file)) fail(`unexpected server path ${file}`)
+  if (/^server\//.test(file) && !isContractOrSmoke) fail(`unexpected server path ${file}`)
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock changed')

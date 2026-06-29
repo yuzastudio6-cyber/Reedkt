@@ -1,0 +1,21 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-CONTRACT-NEGATIVE-TESTS-1",
+  "negativeTestsPassed": true,
+  "readyForGuardedHandlerRegistrationPlan": true,
+  "readyForExecutableHttpHandler": false,
+  "readyForRouteExecution": false,
+  "readyForWorkerDispatch": false,
+  "readyForWorkerExecution": false,
+  "readyForGpacMp4boxExecution": false,
+  "readyForMediaProcessing": false,
+  "readyForStorageTransfer": false,
+  "readyForSignedUrlCreation": false,
+  "readyForPublicArtifactCreation": false,
+  "readyForProductRuntime": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForPaidProduction": false,
+  "readyForProduction": false,
+  "readyForFinalDeliveryExport": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-REGISTRATION-PLAN-1"
+}

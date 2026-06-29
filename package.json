@@ -651,6 +651,8 @@
     "tracka:gpac-mp4box-disabled-handler-registration-review:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-review-diagnostics.mjs",
     "tracka:gpac-mp4box-disabled-handler-registration-contract:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-contract-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-disabled-handler-registration-contract": "tsx server/smoke/tracka-gpac-mp4box-disabled-handler-registration-contract-smoke.ts",
+    "tracka:gpac-mp4box-disabled-handler-registration-contract-negative-tests:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-diagnostics.mjs",
+    "smoke:tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests": "tsx server/smoke/tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-smoke.ts",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

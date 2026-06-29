@@ -16,6 +16,11 @@ This audit answers the narrow install question for the 21 AI graphics tools: whe
 - Production registry mappings: 21.
 - Unmapped planning wrappers: 0.
 - Heavy tools incorrectly targeting CPU runtime: 0.
+- Runtime-proofed JS tools that remain tool-call blocked: 13.
+- GPU install targets prepared but native NVIDIA proof pending: 8.
+- Model-weight manifest tools still pending before external beta: 5.
+- Properly installed for external-beta runtime now: 0.
+- External-beta callable install-ready now: 0.
 - Agent can select tools for planning/study metadata: true.
 - Agent can execute tools now: false.
 - Runtime-ready now: false.
@@ -64,6 +69,8 @@ The Docker install-proof evidence is recorded in `docs/tool-intelligence/ai-grap
 ## Runtime Blocks
 
 The install position is good enough to say the tools are correctly installed for their planned ReeditPro surfaces. It is not enough to say they are beta-executable.
+
+`properlyInstalledForPlannedSurface` means the package or Docker install target is represented in the correct ReeditPro lane. It does not mean the tool can be called by an external-beta user. External-beta callability remains `0/21` until runtime proof, private model manifest proof where required, Tool Route/Worker gates, approved snapshot, credit gate, and artifact policy are accepted together.
 
 Remaining blockers:
 

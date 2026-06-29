@@ -90,6 +90,28 @@ const expectedGpuTools = [
   'rembg',
   'transparent_background',
 ]
+const expectedRuntimeProofPassedBlockedTools = [
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+]
+const expectedModelWeightManifestTools = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+]
 
 const expectedRuntimeTargets = {
   torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
@@ -162,8 +184,47 @@ if (audit.counts?.unmappedPlanningWrappers !== 0) fail('unmapped_planning_wrappe
 if (audit.counts?.heavyToolsTargetingGpu !== 8) fail('heavy_gpu_target_count_not_8')
 if (audit.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('heavy_tools_cpu_target_count_not_zero')
 if (audit.counts?.aiGraphicsModelWeightTemplateTypes !== 5) fail('ai_graphics_model_template_count_not_5')
+if (audit.counts?.runtimeProofPassedButToolCallBlocked !== 13) fail('runtime_proof_passed_blocked_count_not_13')
+if (audit.counts?.externalBetaCallableInstallReadyNow !== 0) fail('external_beta_callable_install_ready_not_zero')
+if (audit.counts?.properlyInstalledForExternalBetaRuntimeNow !== 0) {
+  fail('properly_installed_for_external_beta_runtime_not_zero')
+}
 if (audit.counts?.runtimeReadyNow !== 0) fail('runtime_ready_count_not_zero')
 if (audit.counts?.betaTestingReadyNow !== 0) fail('beta_testing_ready_count_not_zero')
+
+function assertSameSet(label, actual, expected) {
+  const actualValues = [...(actual || [])].sort()
+  const expectedValues = [...expected].sort()
+  if (JSON.stringify(actualValues) !== JSON.stringify(expectedValues)) {
+    fail(`${label}_mismatch:${JSON.stringify(actualValues)}`)
+  }
+}
+
+assertSameSet(
+  'planned_surface_install_declared_or_locked_tools',
+  audit.installMaturitySummary?.plannedSurfaceInstallDeclaredOrLockedTools,
+  allTools,
+)
+assertSameSet(
+  'runtime_proof_passed_but_tool_call_blocked_tools',
+  audit.installMaturitySummary?.runtimeProofPassedButToolCallBlockedTools,
+  expectedRuntimeProofPassedBlockedTools,
+)
+assertSameSet(
+  'gpu_install_targets_prepared_native_proof_pending_tools',
+  audit.installMaturitySummary?.gpuInstallTargetsPreparedNativeProofPendingTools,
+  expectedGpuTools,
+)
+assertSameSet(
+  'model_weight_manifest_required_before_external_beta_tools',
+  audit.installMaturitySummary?.modelWeightManifestRequiredBeforeExternalBetaTools,
+  expectedModelWeightManifestTools,
+)
+assertSameSet(
+  'external_beta_callable_install_ready_now_tools',
+  audit.installMaturitySummary?.externalBetaCallableInstallReadyNowTools,
+  [],
+)
 
 const auditRows = new Map((audit.toolRows || []).map((row) => [row.toolId, row]))
 if (auditRows.size !== 21) fail(`audit_row_count_not_21:${auditRows.size}`)
@@ -237,6 +298,8 @@ const requiredTrue = [
   'all8GpuModelToolsHaveDockerInstallProof',
   'aiGraphicsModelWeightTemplateTypesAligned',
   'gpuHeavyToolsTargetGpuRuntime',
+  'properInstallAuditSeparatesPlannedSurfaceFromRuntimeCallable',
+  'all21ToolsInstalledForPlannedSurfaceOnly',
   'agentCanSelectForPlanning',
 ]
 for (const key of requiredTrue) if (audit.booleans?.[key] !== true) fail(`required_true_boolean_not_true:${key}`)
@@ -292,6 +355,16 @@ for (const pattern of [
 ]) {
   if (pattern.test(combinedText)) fail(`forbidden_claim_detected:${pattern}`)
 }
+for (const needle of [
+  'Runtime-proofed JS tools that remain tool-call blocked: 13.',
+  'GPU install targets prepared but native NVIDIA proof pending: 8.',
+  'Model-weight manifest tools still pending before external beta: 5.',
+  'Properly installed for external-beta runtime now: 0.',
+  'External-beta callable install-ready now: 0.',
+  'It does not mean the tool can be called by an external-beta user.',
+]) {
+  if (!auditMd.includes(needle)) fail(`audit_markdown_missing_maturity_needle:${needle}`)
+}
 
 let basePackage = {}
 try {
@@ -329,6 +402,8 @@ console.log(JSON.stringify({
   properlyInstalledForPlannedSurface: audit.counts.properlyInstalledForPlannedSurface,
   nodeLockfileTools: audit.counts.nodeLockfileTools,
   gpuDockerInstallProofTools: audit.counts.gpuDockerInstallProofTools,
+  runtimeProofPassedButToolCallBlocked: audit.counts.runtimeProofPassedButToolCallBlocked,
+  externalBetaCallableInstallReadyNow: audit.counts.externalBetaCallableInstallReadyNow,
   heavyToolsIncorrectlyTargetingCpu: audit.counts.heavyToolsIncorrectlyTargetingCpu,
   agentCanExecuteToolsNow: audit.booleans.agentCanExecuteToolsNow,
   runtimeReadyNow: audit.booleans.runtimeReadyNow,

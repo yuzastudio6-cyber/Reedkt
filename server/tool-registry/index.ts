@@ -43,6 +43,7 @@ export * from './ai-graphics-external-beta-api-route-worker-artifact-tool-route-
 export * from './ai-graphics-external-beta-api-route-controlled-worker-runtime-proof'
 export * from './ai-graphics-external-beta-api-route-worker-runtime-smoke-authorization'
 export * from './ai-graphics-external-beta-api-route-worker-runtime-smoke-proof'
+export * from './ai-graphics-external-beta-per-tool-callable-result-gate'
 export * from './ai-graphics-external-beta-service-role-queue-smoke-authorization'
 export * from './ai-graphics-external-beta-launch-gap-report'
 export * from './ai-graphics-external-beta-launch-go-no-go'

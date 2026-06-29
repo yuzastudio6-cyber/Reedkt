@@ -1512,6 +1512,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with an accepted authorization packet and saved sanitized smoke result, it accepts one worker lease lifecycle and one worker dispatch with provided evidence, while requiring zero tool executions, zero private artifact writes, zero route executions, no public artifacts, and no signed URLs. For GPU/model tools, saved evidence may prove GPU started only for the accepted job and was released/idle after cleanup; for CPU/static tools, saved evidence must prove no GPU startup.
 - Runtime/beta/production: no unlock; this validator does not run the smoke, create leases, dispatch workers, execute tools, write artifacts, execute Tool Routes, call providers/models, start GPU runtime, unlock external beta traffic, or unlock production. `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta Per-Tool Callable Result Gate
+
+- Decision: `ai_graphics_external_beta_per_tool_callable_result_gate_prepared_with_runtime_blocks`.
+- Scope: saved-result gate for one private non-production per-tool callable result envelope after the accepted worker-runtime smoke proof.
+- Result: with an accepted source smoke proof and saved callable-result envelope, it accepts one per-tool callable result with provided evidence while preserving the accepted source worker lease lifecycle and dispatch. This gate requires zero route executions by the gate, zero worker dispatches by the gate, zero tool executions, zero private artifact writes, no public artifacts, and no signed URLs.
+- Runtime/beta/production: no unlock; this gate does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, enable external beta traffic, or unlock production. GPU evidence may only come from the accepted source worker-runtime smoke proof, and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

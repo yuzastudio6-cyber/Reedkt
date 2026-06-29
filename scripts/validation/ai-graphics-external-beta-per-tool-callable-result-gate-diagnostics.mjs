@@ -5,22 +5,21 @@ import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const decision =
-  'ai_graphics_external_beta_api_route_worker_runtime_smoke_proof_prepared_with_runtime_blocks'
+  'ai_graphics_external_beta_per_tool_callable_result_gate_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'external_beta_api_route_worker_runtime_smoke_proof_accepted_with_runtime_blocks'
-const runScriptName =
-  'ai-graphics:external-beta-api-route-worker-runtime-smoke-proof'
+  'external_beta_per_tool_callable_result_gate_accepted_runtime_still_blocked'
+const runScriptName = 'ai-graphics:external-beta-per-tool-callable-result-gate'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof.ts'
+  'tsx server/cli/ai-graphics-external-beta-per-tool-callable-result-gate.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-api-route-worker-runtime-smoke-proof:diagnostics'
+  'ai-graphics:external-beta-per-tool-callable-result-gate:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-per-tool-callable-result-gate-diagnostics.mjs'
 
-const sourceAuthorizationDecision =
-  'ai_graphics_external_beta_api_route_worker_runtime_smoke_authorization_prepared_with_runtime_blocks'
-const sourceAuthorizationStatus =
-  'external_beta_api_route_worker_runtime_smoke_authorization_ready_runtime_still_blocked'
+const sourceSmokeProofDecision =
+  'ai_graphics_external_beta_api_route_worker_runtime_smoke_proof_prepared_with_runtime_blocks'
+const sourceSmokeProofStatus =
+  'external_beta_api_route_worker_runtime_smoke_proof_accepted_with_runtime_blocks'
 
 const tools = [
   'torch_torchvision',
@@ -84,8 +83,7 @@ const capabilityByTool = {
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'externalBetaCallableNow',
-  'workerRuntimeSmokeApprovedNow',
-  'workerRuntimeSmokeExecutedByValidator',
+  'externalBetaTrafficEnabledNow',
   'apiRouteExecutionApprovedNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
@@ -115,11 +113,11 @@ const falseGateKeys = [
   'privateArtifactWritePerformed',
   'serviceRoleQueueSmokePerformed',
   'supabaseMutationPerformed',
-  'workerLeaseCreatedByValidator',
-  'workerDispatchPerformedByValidator',
+  'workerLeaseCreatedByResultGate',
+  'workerDispatchPerformedByResultGate',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
-  'gpuRuntimePerformedByValidator',
+  'gpuRuntimePerformedByResultGate',
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
@@ -129,14 +127,13 @@ const falseGateKeys = [
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof.ts',
-  'server/cli/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof.ts',
-  'scripts/validation/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-beta-per-tool-callable-result-gate.ts',
+  'server/cli/ai-graphics-external-beta-per-tool-callable-result-gate.ts',
+  'scripts/validation/ai-graphics-external-beta-per-tool-callable-result-gate-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.md',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.md',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-authorization.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-api-route-controlled-worker-runtime-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-live-enqueue-authorization.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
   'server/tool-registry/index.ts',
@@ -148,16 +145,16 @@ const generatedArtifactPathPattern =
 const forbiddenDocPatterns = [
   /agentCanExecuteToolsNow["`:\s=]+true/i,
   /externalBetaCallableNow["`:\s=]+true/i,
-  /workerRuntimeSmokeApprovedNow["`:\s=]+true/i,
-  /workerRuntimeSmokeExecutedByValidator["`:\s=]+true/i,
-  /workerLeaseCreatedByValidator["`:\s=]+true/i,
-  /workerDispatchPerformedByValidator["`:\s=]+true/i,
+  /externalBetaTrafficEnabledNow["`:\s=]+true/i,
+  /apiRouteExecutionApprovedNow["`:\s=]+true/i,
+  /routeExecutionApprovedNow["`:\s=]+true/i,
+  /workerDispatchApprovedNow["`:\s=]+true/i,
+  /toolExecutionApprovedNow["`:\s=]+true/i,
   /toolExecutionPerformed["`:\s=]+true/i,
-  /privateArtifactWritePerformed["`:\s=]+true/i,
   /routeExecutionPerformed["`:\s=]+true/i,
-  /providerRuntimePerformed["`:\s=]+true/i,
-  /browserWebglCanvasRuntimePerformed["`:\s=]+true/i,
-  /gpuRuntimePerformedByValidator["`:\s=]+true/i,
+  /privateArtifactWritePerformed["`:\s=]+true/i,
+  /gpuRuntimeStartedForCallableResult["`:\s=]+true/i,
+  /gpuRuntimePerformedByResultGate["`:\s=]+true/i,
   /gpuRuntimeShouldStartNow["`:\s=]+true/i,
   /runtimeReadyNow["`:\s=]+true/i,
   /internalBetaReadyNow["`:\s=]+true/i,
@@ -231,7 +228,7 @@ function runtimeForTool(toolId) {
     }
 }
 
-function authorizationPacketFixture(toolId) {
+function sourceSmokeProofFixture(toolId) {
   const runtime = runtimeForTool(toolId)
   const capabilityId = capabilityByTool[toolId]
   const candidate = {
@@ -261,106 +258,17 @@ function authorizationPacketFixture(toolId) {
     modelWeightOrCacheManifestRef: runtime.gpuRequiredForRuntime
       ? `private://ai-graphics/external-beta/artifacts/${toolId}/model-weight-or-cache-manifest.json`
       : null,
-    sourceControlledWorkerRuntimeProofAccepted: true,
-    sourceLiveEnqueueAuthorizationAccepted: true,
-    workerRuntimeSmokeAuthorizationPreparedWithProvidedEvidence: true,
-    operatorConfirmationRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/operator-confirmation.json`,
-    nonProductionEnvironmentRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/environment.json`,
-    runbookRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/runbook.md`,
-    leaseTtlPolicyRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/lease-ttl-policy.json`,
-    claimIsolationRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/claim-isolation.json`,
-    privateArtifactSandboxRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/artifact-sandbox.json`,
-    resultCaptureRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/result-capture.json`,
-    gpuOnDemandPolicyRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/gpu-on-demand-policy.json`,
-    costGuardrailRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/cost-guardrail.json`,
-    qaGateRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/qa-gate.json`,
-    telemetryRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/telemetry.json`,
-    rollbackPlanRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/rollback-plan.json`,
-    gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
-      runtime.gpuRequiredForRuntime,
-    gpuRuntimeShouldStartNow: false,
-    liveWorkerRuntimeSmokeAuthorizedNow: false,
-    liveWorkerLeaseCreationApprovedNow: false,
-    workerDispatchApprovedNow: false,
-    toolExecutionApprovedNow: false,
-    privateArtifactWriteApprovedNow: false,
-    routeExecutionApprovedNow: false,
-    publicArtifactCreatedNow: false,
-    signedUrlCreatedNow: false,
   }
-
-  return {
-    decision: sourceAuthorizationDecision,
-    status: sourceAuthorizationStatus,
-    requestedToolId: toolId,
-    capabilityId,
-    sourceControlledWorkerRuntimeProofAccepted: true,
-    sourceLiveEnqueueAuthorizationAccepted: true,
-    sourceControlledWorkerRuntimeProofCoversRequestedTool: true,
-    missingWorkerRuntimeSmokeAuthorizationControls: [],
-    workerRuntimeSmokeAuthorizationPreparedWithProvidedEvidence: true,
-    workerRuntimeSmokeAuthorizationPreparedRequestsWithProvidedEvidence: 1,
-    totalAiGraphicsTools: 21,
-    totalProductFacingCapabilities: 12,
-    gpuRuntimeTargetedTools: 8,
-    sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence: 21,
-    externalBetaReadyNowTools: 0,
-    productionReadyNowTools: 0,
-    gpuRuntimeShouldStartNow: false,
-    authorizationCandidate: candidate,
-    booleans: {
-      liveWorkerRuntimeSmokeAuthorizedNow: false,
-      workerRuntimeSmokeExecutedNow: false,
-      agentCanExecuteToolsNow: false,
-      workerLeaseCreationApprovedNow: false,
-      workerDispatchApprovedNow: false,
-      toolExecutionApprovedNow: false,
-      gpuRuntimeShouldStartNow: false,
-    },
-  }
-}
-
-function smokeResultFixture(authorizationPacket) {
-  const candidate = authorizationPacket.authorizationCandidate
-  const gpuRequired = candidate.gpuRequiredForRuntime === true
-  return {
+  const savedWorkerRuntimeSmokeResult = {
     ok: true,
     decision:
       'ai_graphics_external_beta_api_route_worker_runtime_smoke_passed_with_cleanup',
     status:
       'external_beta_api_route_worker_runtime_smoke_passed_private_non_production_no_tool_execution',
     sourceWorkerRuntimeSmokeAuthorizationRef:
-      `private://ai-graphics/external-beta/worker-runtime-smoke/${candidate.toolId}/authorization.json`,
+      `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/authorization.json`,
     sourceWorkerRuntimeSmokeAuthorizationAccepted: true,
-    toolId: candidate.toolId,
-    capabilityId: candidate.capabilityId,
-    routePath: candidate.routePath,
-    routeId: candidate.routeId,
-    queueName: candidate.queueName,
-    queueJobType: candidate.queueJobType,
-    approvedPlanSnapshotId: candidate.approvedPlanSnapshotId,
-    creditReservationId: candidate.creditReservationId,
-    idempotencyKey: candidate.idempotencyKey,
-    runtimeTarget: candidate.runtimeTarget,
-    workerType: candidate.workerType,
-    gpuRequiredForRuntime: gpuRequired,
-    privateInputManifestRef: candidate.privateInputManifestRef,
-    privateOutputManifestRef: candidate.privateOutputManifestRef,
-    privateTelemetryRef: candidate.privateTelemetryRef,
-    privateLeaseAuditRef: candidate.privateLeaseAuditRef,
-    modelWeightOrCacheManifestRef: candidate.modelWeightOrCacheManifestRef,
+    ...candidate,
     workerRuntimeSmokeExecutedInPrivateNonProduction: true,
     workerLeaseCreatedCount: 1,
     workerLeaseReleasedCount: 1,
@@ -369,8 +277,8 @@ function smokeResultFixture(authorizationPacket) {
     privateArtifactWriteCount: 0,
     routeExecutionCount: 0,
     providerRuntimeCount: 0,
-    gpuRuntimeStartedForAcceptedJob: gpuRequired,
-    gpuRuntimeReleasedAfterAcceptedJob: gpuRequired,
+    gpuRuntimeStartedForAcceptedJob: runtime.gpuRequiredForRuntime,
+    gpuRuntimeReleasedAfterAcceptedJob: runtime.gpuRequiredForRuntime,
     gpuRuntimeIdleAfterCleanup: true,
     gpuRuntimeShouldStartNow: false,
     modelWeightsDownloaded: false,
@@ -387,32 +295,133 @@ function smokeResultFixture(authorizationPacket) {
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
   }
+
+  return {
+    decision: sourceSmokeProofDecision,
+    sourceWorkerRuntimeSmokeAuthorizationDecision:
+      'ai_graphics_external_beta_api_route_worker_runtime_smoke_authorization_prepared_with_runtime_blocks',
+    status: sourceSmokeProofStatus,
+    sourceAuthorizationAccepted: true,
+    proofAcceptedWithProvidedEvidence: true,
+    rejectionReasons: [],
+    requestedToolId: toolId,
+    capabilityId,
+    workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence: 1,
+    sourceAuthorizationAcceptedRequestsWithProvidedEvidence: 1,
+    workerRuntimeSmokeAcceptedWithProvidedEvidence: 1,
+    workerLeaseLifecycleAcceptedWithProvidedEvidence: 1,
+    workerDispatchAcceptedWithProvidedEvidence: 1,
+    toolExecutionAcceptedWithProvidedEvidence: 0,
+    gpuRuntimeStartedWithProvidedEvidence: runtime.gpuRequiredForRuntime ? 1 : 0,
+    gpuRuntimeReleasedWithProvidedEvidence: runtime.gpuRequiredForRuntime ? 1 : 0,
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    gpuRuntimeTargetedTools: 8,
+    gpuRuntimeShouldStartNow: false,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    sourceAuthorizationCandidate: candidate,
+    savedWorkerRuntimeSmokeResult,
+    booleans: {
+      sourceWorkerRuntimeSmokeAuthorizationAccepted: true,
+      savedWorkerRuntimeSmokeResultAcceptedWithProvidedEvidence: true,
+      workerLeaseLifecycleAcceptedWithProvidedEvidence: true,
+      workerDispatchAcceptedWithProvidedEvidence: true,
+      toolExecutionAcceptedWithProvidedEvidence: false,
+      gpuRuntimeShouldStartNow: false,
+      agentCanExecuteToolsNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
+function callableResultFixture(sourceProof) {
+  const candidate = sourceProof.sourceAuthorizationCandidate
+  const sourceGpuStarted = sourceProof.gpuRuntimeStartedWithProvidedEvidence === 1
+  const sourceGpuReleased = sourceProof.gpuRuntimeReleasedWithProvidedEvidence === 1
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_external_beta_per_tool_callable_result_recorded_with_runtime_blocks',
+    status:
+      'external_beta_per_tool_callable_result_recorded_private_non_production_runtime_still_blocked',
+    sourceWorkerRuntimeSmokeProofRef:
+      `private://ai-graphics/external-beta/callable-result/${candidate.toolId}/worker-runtime-smoke-proof.json`,
+    sourceWorkerRuntimeSmokeProofAccepted: true,
+    toolId: candidate.toolId,
+    capabilityId: candidate.capabilityId,
+    routePath: candidate.routePath,
+    routeId: candidate.routeId,
+    queueName: candidate.queueName,
+    queueJobType: candidate.queueJobType,
+    approvedPlanSnapshotId: candidate.approvedPlanSnapshotId,
+    creditReservationId: candidate.creditReservationId,
+    idempotencyKey: candidate.idempotencyKey,
+    runtimeTarget: candidate.runtimeTarget,
+    workerType: candidate.workerType,
+    gpuRequiredForRuntime: candidate.gpuRequiredForRuntime,
+    privateInputManifestRef: candidate.privateInputManifestRef,
+    privateOutputManifestRef: candidate.privateOutputManifestRef,
+    privateTelemetryRef: candidate.privateTelemetryRef,
+    privateLeaseAuditRef: candidate.privateLeaseAuditRef,
+    modelWeightOrCacheManifestRef: candidate.modelWeightOrCacheManifestRef,
+    callableEnvelopeRecordedInPrivateNonProduction: true,
+    callableEnvelopeValidated: true,
+    workerRuntimeSmokeProofAcceptedCount: 1,
+    workerLeaseLifecycleAcceptedCount: 1,
+    workerDispatchAcceptedCount: 1,
+    requestAdmittedCount: 1,
+    toolExecutionCount: 0,
+    routeExecutionCount: 0,
+    workerDispatchCount: 0,
+    privateArtifactWriteCount: 0,
+    providerRuntimeCount: 0,
+    sourceGpuRuntimeStartedForAcceptedSmoke: sourceGpuStarted,
+    sourceGpuRuntimeReleasedAfterAcceptedSmoke: sourceGpuReleased,
+    gpuRuntimeStartedForCallableResult: false,
+    gpuRuntimeReleasedAfterCallableResult: false,
+    gpuRuntimeIdleAfterCleanup: true,
+    gpuRuntimeShouldStartNow: false,
+    modelWeightsDownloaded: false,
+    modelWeightsLoaded: false,
+    qaGatePassedWithProvidedEvidence: true,
+    telemetryCaptured: true,
+    costWithinCeiling: true,
+    rollbackReady: true,
+    secretsRedactedFromOutput: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    externalBetaCallableNowTools: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+  }
 }
 
 function privateRefs(toolId) {
   return [
-    '--external-beta-worker-runtime-smoke-evidence-ref',
-    `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/evidence.json`,
-    '--external-beta-worker-runtime-smoke-telemetry-ref',
-    `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/telemetry.json`,
-    '--external-beta-worker-runtime-smoke-cleanup-proof-ref',
-    `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/cleanup-proof.json`,
-    '--external-beta-worker-runtime-smoke-qa-proof-ref',
-    `private://ai-graphics/external-beta/worker-runtime-smoke/${toolId}/qa-proof.json`,
+    '--external-beta-per-tool-callable-result-evidence-ref',
+    `private://ai-graphics/external-beta/callable-result/${toolId}/evidence.json`,
+    '--external-beta-per-tool-callable-result-qa-ref',
+    `private://ai-graphics/external-beta/callable-result/${toolId}/qa.json`,
+    '--external-beta-per-tool-callable-result-cost-ref',
+    `private://ai-graphics/external-beta/callable-result/${toolId}/cost.json`,
+    '--external-beta-per-tool-callable-result-rollback-ref',
+    `private://ai-graphics/external-beta/callable-result/${toolId}/rollback.json`,
   ]
 }
 
-function runProof(toolId, mutateResult, extraArgs = privateRefs(toolId)) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-worker-smoke-proof-'))
-  const authorization = authorizationPacketFixture(toolId)
-  const result = smokeResultFixture(authorization)
+function runGate(toolId, mutateResult, extraArgs = privateRefs(toolId)) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-callable-result-gate-'))
+  const sourceProof = sourceSmokeProofFixture(toolId)
+  const result = callableResultFixture(sourceProof)
   if (mutateResult) mutateResult(result)
-  const authorizationPath = writeJson(path.join(tempDir, 'authorization.json'), authorization)
-  const resultPath = writeJson(path.join(tempDir, 'result.json'), result)
+  const sourcePath = writeJson(path.join(tempDir, 'source-proof.json'), sourceProof)
+  const resultPath = writeJson(path.join(tempDir, 'callable-result.json'), result)
   return npmJson(runScriptName, [
-    '--external-beta-worker-runtime-smoke-authorization-packet',
-    authorizationPath,
-    '--external-beta-worker-runtime-smoke-result',
+    '--external-beta-worker-runtime-smoke-proof-packet',
+    sourcePath,
+    '--external-beta-per-tool-callable-result',
     resultPath,
     ...extraArgs,
   ])
@@ -438,6 +447,10 @@ function verifyFalseGates(packet, label) {
   }
 }
 
+function verifyRequiredFiles() {
+  requiredFiles.forEach(read)
+}
+
 function verifyPackageJson() {
   const packageJson = json('package.json')
   requireEqual(packageJson.scripts?.[runScriptName], runScriptCommand, 'package_run_script')
@@ -458,8 +471,6 @@ function verifyPackageJson() {
   const allowedPackageAdditions = [
     `+    "${runScriptName}": "${runScriptCommand}",`,
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-    '+    "ai-graphics:external-beta-per-tool-callable-result-gate": "tsx server/cli/ai-graphics-external-beta-per-tool-callable-result-gate.ts",',
-    '+    "ai-graphics:external-beta-per-tool-callable-result-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-per-tool-callable-result-gate-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')
@@ -491,14 +502,17 @@ function verifyTrackedAndChangedPaths() {
 }
 
 function verifyDocs() {
-  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.json')
+  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json')
   requireEqual(docJson.decision, decision, 'doc_json_decision')
   requireEqual(docJson.status, acceptedStatus, 'doc_json_status')
   requireEqual(docJson.scope?.totalAiGraphicsTools, 21, 'doc_json_tool_count')
   requireEqual(docJson.scope?.productFacingCapabilities, 12, 'doc_json_capability_count')
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
-  requireEqual(docJson.scope?.workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence, 1, 'doc_json_proof_count')
+  requireEqual(docJson.scope?.perToolCallableResultGateAcceptedRequestsWithProvidedEvidence, 1, 'doc_json_gate_count')
   requireEqual(docJson.scope?.toolExecutionAcceptedWithProvidedEvidence, 0, 'doc_json_tool_execution_count')
+  requireEqual(docJson.scope?.routeExecutionAcceptedWithProvidedEvidence, 0, 'doc_json_route_execution_count')
+  requireEqual(docJson.scope?.privateArtifactWriteAcceptedWithProvidedEvidence, 0, 'doc_json_private_write_count')
+  requireEqual(docJson.scope?.externalBetaCallableNowTools, 0, 'doc_json_callable_now_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 0, 'doc_json_external_beta_count')
   requireEqual(docJson.scope?.productionReadyNowTools, 0, 'doc_json_production_count')
   for (const tool of tools) {
@@ -508,18 +522,21 @@ function verifyDocs() {
     if (!docJson.gpuTools?.includes(tool)) fail(`doc_json_missing_gpu_tool:${tool}`)
   }
   for (const key of [
-    'externalBetaApiRouteWorkerRuntimeSmokeProofPrepared',
-    'sourceWorkerRuntimeSmokeAuthorizationAccepted',
-    'workerRuntimeSmokeProofAcceptedWithProvidedEvidence',
-    'savedWorkerRuntimeSmokeResultAcceptedWithProvidedEvidence',
+    'externalBetaPerToolCallableResultGatePrepared',
+    'sourceWorkerRuntimeSmokeProofAccepted',
+    'perToolCallableResultAcceptedWithProvidedEvidence',
+    'savedPerToolCallableResultAcceptedWithProvidedEvidence',
     'all21ToolsCovered',
     'all12CapabilitiesCovered',
     'all8GpuToolsTargetGpuRuntime',
     'gpuRuntimeOnDemandOnly',
     'noIdleGpuRuntimeApproved',
     'gpuStartsOnlyForApprovedWorkerOrToolCall',
-    'gpuRuntimeReleasedAfterAcceptedJob',
+    'sourceGpuRuntimeStartedForAcceptedSmoke',
+    'sourceGpuRuntimeReleasedAfterAcceptedSmoke',
     'gpuRuntimeIdleAfterCleanup',
+    'callableEnvelopeAcceptedWithProvidedEvidence',
+    'workerRuntimeSmokeProofAcceptedWithProvidedEvidence',
     'workerLeaseLifecycleAcceptedWithProvidedEvidence',
     'workerDispatchAcceptedWithProvidedEvidence',
     'qaGateAcceptedWithProvidedEvidence',
@@ -532,31 +549,31 @@ function verifyDocs() {
     requireFalse(docJson.booleans?.[key], `doc_json_boolean_${key}`)
   }
 
-  const md = read('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.md')
+  const md = read('docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.md')
   for (const required of [
     decision,
-    'saved private non-production worker-runtime smoke result',
-    'For CPU/static tools, no GPU startup.',
-    'For GPU/model tools, GPU startup only for the accepted job',
+    'private non-production per-tool callable result envelope',
+    'No GPU startup by this callable-result gate.',
+    '`gpuRuntimeStartedForCallableResult=false`',
     '`gpuRuntimeShouldStartNow=false`',
-    'Tool execution still requires explicit private non-production execution proof',
+    'User traffic and production execution remain blocked',
   ]) {
-    if (!md.includes(required)) fail(`proof_md_missing:${required}`)
+    if (!md.includes(required)) fail(`gate_md_missing:${required}`)
   }
 
   const scorecard = read('docs/production-beta-readiness-scorecard.md')
   for (const required of [
-    'AI Graphics External-Beta API Route Worker Runtime Smoke Proof',
+    'AI Graphics External-Beta Per-Tool Callable Result Gate',
     decision,
-    'saved-result validator for one private non-production worker-runtime smoke',
+    'one private non-production per-tool callable result envelope',
     '`gpuRuntimeShouldStartNow` remains false',
   ]) {
     if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
   }
 
   for (const file of [
-    'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.json',
-    'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.md',
+    'docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json',
+    'docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.md',
     'docs/production-beta-readiness-scorecard.md',
   ]) {
     const content = read(file)
@@ -568,18 +585,19 @@ function verifyDocs() {
 
 function verifySourceWiring() {
   const registry = read('server/tool-registry/index.ts')
-  if (!registry.includes("export * from './ai-graphics-external-beta-api-route-worker-runtime-smoke-proof'")) {
+  if (!registry.includes("export * from './ai-graphics-external-beta-per-tool-callable-result-gate'")) {
     fail('missing_registry_export')
   }
-  const evaluator = read('server/tool-registry/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof.ts')
+  const evaluator = read('server/tool-registry/ai-graphics-external-beta-per-tool-callable-result-gate.ts')
   for (const required of [
     decision,
-    'saved_worker_runtime_smoke_result_only',
-    'gpuMayStartOnlyInAcceptedSavedGpuSmokeResult: true',
-    'gpuMustBeReleasedAfterAcceptedSavedGpuSmokeResult: true',
-    'cleanupMustLeaveGpuIdle: true',
-    'workerRuntimeSmokeExecutedByValidator: false',
-    'gpuRuntimePerformedByValidator: false',
+    'saved_per_tool_callable_result_only',
+    'gpuRuntimeMayOnlyAppearInAcceptedSourceSmokeProof: true',
+    'gpuRuntimeMustRemainIdleAfterSourceSmokeCleanup: true',
+    'noLiveApiRouteExecutionByResultGate: true',
+    'noToolExecutionByResultGate: true',
+    'gpuRuntimeStartedForCallableResult: false',
+    'gpuRuntimePerformedByResultGate: false',
     'gpuRuntimeShouldStartNow: false',
     'toolExecutionAcceptedWithProvidedEvidence: false',
   ]) {
@@ -591,72 +609,68 @@ function verifyCliBehavior() {
   const missing = npmJson(runScriptName)
   requireEqual(
     missing.status,
-    'missing_external_beta_api_route_worker_runtime_smoke_authorization',
+    'missing_external_beta_api_route_worker_runtime_smoke_proof',
     'missing_cli_status',
   )
-  requireFalse(missing.input?.liveWorkerRuntimeSmokeExecutedByThisCommand, 'missing_cli_no_smoke')
-  requireFalse(missing.input?.workerLeaseCreatedByThisCommand, 'missing_cli_no_lease')
+  requireFalse(missing.input?.liveApiRouteExecutionPerformedByThisCommand, 'missing_cli_no_route')
   requireFalse(missing.input?.workerDispatchPerformedByThisCommand, 'missing_cli_no_dispatch')
+  requireFalse(missing.input?.toolExecutionPerformed, 'missing_cli_no_tool')
   requireFalse(missing.input?.gpuRuntimePerformedByThisCommand, 'missing_cli_no_gpu')
 
-  const cpu = runProof('d3')
+  const cpu = runGate('d3')
   requireEqual(cpu.status, acceptedStatus, 'cpu_status')
-  requireTruthy(cpu.proofAcceptedWithProvidedEvidence, 'cpu_proof_accepted')
-  requireEqual(cpu.workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence, 1, 'cpu_proof_count')
-  requireEqual(cpu.workerLeaseLifecycleAcceptedWithProvidedEvidence, 1, 'cpu_lease_count')
-  requireEqual(cpu.workerDispatchAcceptedWithProvidedEvidence, 1, 'cpu_dispatch_count')
+  requireTruthy(cpu.callableResultGateAcceptedWithProvidedEvidence, 'cpu_gate_accepted')
+  requireEqual(cpu.perToolCallableResultGateAcceptedRequestsWithProvidedEvidence, 1, 'cpu_gate_count')
+  requireEqual(cpu.callableEnvelopeAcceptedWithProvidedEvidence, 1, 'cpu_envelope_count')
   requireEqual(cpu.toolExecutionAcceptedWithProvidedEvidence, 0, 'cpu_tool_execution_count')
-  requireEqual(cpu.gpuRuntimeStartedWithProvidedEvidence, 0, 'cpu_gpu_started_count')
-  requireEqual(cpu.gpuRuntimeReleasedWithProvidedEvidence, 0, 'cpu_gpu_released_count')
-  requireFalse(cpu.booleans?.gpuRuntimeStartedForAcceptedJob, 'cpu_gpu_started_bool')
-  requireFalse(cpu.booleans?.gpuRuntimeReleasedAfterAcceptedJob, 'cpu_gpu_released_bool')
+  requireEqual(cpu.routeExecutionAcceptedWithProvidedEvidence, 0, 'cpu_route_execution_count')
+  requireEqual(cpu.sourceGpuRuntimeStartedWithProvidedEvidence, 0, 'cpu_source_gpu_started_count')
+  requireFalse(cpu.booleans?.sourceGpuRuntimeStartedForAcceptedSmoke, 'cpu_source_gpu_started_bool')
+  requireFalse(cpu.booleans?.gpuRuntimeStartedForCallableResult, 'cpu_gate_gpu_started_bool')
   verifyFalseGates(cpu, 'cpu')
 
-  const gpu = runProof('sam2')
+  const gpu = runGate('sam2')
   requireEqual(gpu.status, acceptedStatus, 'gpu_status')
-  requireTruthy(gpu.proofAcceptedWithProvidedEvidence, 'gpu_proof_accepted')
-  requireEqual(gpu.workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence, 1, 'gpu_proof_count')
-  requireEqual(gpu.gpuRuntimeStartedWithProvidedEvidence, 1, 'gpu_started_count')
-  requireEqual(gpu.gpuRuntimeReleasedWithProvidedEvidence, 1, 'gpu_released_count')
-  requireTruthy(gpu.booleans?.gpuRuntimeStartedForAcceptedJob, 'gpu_started_bool')
-  requireTruthy(gpu.booleans?.gpuRuntimeReleasedAfterAcceptedJob, 'gpu_released_bool')
-  requireTruthy(gpu.booleans?.gpuRuntimeIdleAfterCleanup, 'gpu_idle_after_cleanup')
+  requireTruthy(gpu.callableResultGateAcceptedWithProvidedEvidence, 'gpu_gate_accepted')
+  requireEqual(gpu.perToolCallableResultGateAcceptedRequestsWithProvidedEvidence, 1, 'gpu_gate_count')
+  requireEqual(gpu.sourceGpuRuntimeStartedWithProvidedEvidence, 1, 'gpu_source_started_count')
+  requireEqual(gpu.sourceGpuRuntimeReleasedWithProvidedEvidence, 1, 'gpu_source_released_count')
+  requireTruthy(gpu.booleans?.sourceGpuRuntimeStartedForAcceptedSmoke, 'gpu_source_started_bool')
+  requireTruthy(gpu.booleans?.sourceGpuRuntimeReleasedAfterAcceptedSmoke, 'gpu_source_released_bool')
+  requireFalse(gpu.booleans?.gpuRuntimeStartedForCallableResult, 'gpu_gate_gpu_started_bool')
+  requireFalse(gpu.booleans?.gpuRuntimeReleasedAfterCallableResult, 'gpu_gate_gpu_released_bool')
   verifyFalseGates(gpu, 'gpu')
 
-  const badToolExecution = runProof('d3', (result) => {
+  const badToolExecution = runGate('d3', (result) => {
     result.toolExecutionCount = 1
   })
   requireEqual(
     badToolExecution.status,
-    'external_beta_api_route_worker_runtime_smoke_result_rejected',
+    'external_beta_per_tool_callable_result_rejected',
     'bad_tool_execution_status',
   )
   if (!badToolExecution.rejectionReasons?.some((reason) => reason.includes('must not execute tools'))) {
     fail('bad_tool_execution_missing_rejection_reason')
   }
 
-  const badPublicEvidence = runProof('d3', undefined, [
-    '--external-beta-worker-runtime-smoke-evidence-ref',
+  const badPublicEvidence = runGate('d3', undefined, [
+    '--external-beta-per-tool-callable-result-evidence-ref',
     'https://example.invalid/public/evidence.json',
-    '--external-beta-worker-runtime-smoke-telemetry-ref',
-    'private://ai-graphics/external-beta/worker-runtime-smoke/d3/telemetry.json',
-    '--external-beta-worker-runtime-smoke-cleanup-proof-ref',
-    'private://ai-graphics/external-beta/worker-runtime-smoke/d3/cleanup-proof.json',
-    '--external-beta-worker-runtime-smoke-qa-proof-ref',
-    'private://ai-graphics/external-beta/worker-runtime-smoke/d3/qa-proof.json',
+    '--external-beta-per-tool-callable-result-qa-ref',
+    'private://ai-graphics/external-beta/callable-result/d3/qa.json',
+    '--external-beta-per-tool-callable-result-cost-ref',
+    'private://ai-graphics/external-beta/callable-result/d3/cost.json',
+    '--external-beta-per-tool-callable-result-rollback-ref',
+    'private://ai-graphics/external-beta/callable-result/d3/rollback.json',
   ])
   requireEqual(
     badPublicEvidence.status,
-    'external_beta_api_route_worker_runtime_smoke_result_rejected',
+    'external_beta_per_tool_callable_result_rejected',
     'bad_public_evidence_status',
   )
   if (!badPublicEvidence.rejectionReasons?.some((reason) => reason.includes('evidence ref'))) {
     fail('bad_public_evidence_missing_rejection_reason')
   }
-}
-
-function verifyRequiredFiles() {
-  requiredFiles.forEach(read)
 }
 
 verifyRequiredFiles()
@@ -671,7 +685,7 @@ if (failures.length > 0) {
   console.error(JSON.stringify({
     ok: false,
     decision,
-    status: 'ai_graphics_external_beta_api_route_worker_runtime_smoke_proof_diagnostics_failed',
+    status: 'ai_graphics_external_beta_per_tool_callable_result_gate_diagnostics_failed',
     failures,
   }, null, 2))
   process.exit(1)
@@ -680,13 +694,15 @@ if (failures.length > 0) {
 console.log(JSON.stringify({
   ok: true,
   decision,
-  status: 'ai_graphics_external_beta_api_route_worker_runtime_smoke_proof_diagnostics_passed',
+  status: 'ai_graphics_external_beta_per_tool_callable_result_gate_diagnostics_passed',
   checkedFiles: requiredFiles.length,
   totalAiGraphicsTools: tools.length,
   gpuRuntimeTargetedTools: gpuTools.length,
-  cpuStaticFixtureAccepted: true,
-  gpuRuntimeFixtureAcceptedWithOnDemandRelease: true,
-  workerRuntimeSmokeExecutedByValidator: false,
+  cpuCallableResultFixtureAccepted: true,
+  gpuCallableResultFixtureAcceptedWithSourceGpuOnly: true,
+  callableResultGateExecutedRoutes: false,
+  callableResultGateExecutedTools: false,
+  callableResultGateStartedGpu: false,
   agentCanExecuteToolsNow: false,
   gpuRuntimeShouldStartNow: false,
   externalBetaReadyNow: false,

@@ -140,9 +140,15 @@ function buildToolBlockers(toolId: ProductionToolId, status: ReadinessValidation
   return candidates.map(classifyProductionReadinessBlocker)
 }
 
-function buildToolSummaries(): ReadinessToolSummary[] {
+function buildToolSummaries(mode: BuildProductionReadinessReportOptions['mode']): ReadinessToolSummary[] {
   const dryRun = runProductionToolReadiness({ dryRun: true })
+  const hostOptional = mode === 'host_optional'
+    ? runProductionToolReadiness({ realCheckMode: true })
+    : undefined
   const resultByTool = new Map(dryRun.results.map((result) => [result.toolId, result]))
+  for (const result of hostOptional?.results ?? []) {
+    resultByTool.set(result.toolId, result)
+  }
 
   return listProductionToolProfiles().map((profile) => {
     const spec = getProductionReadinessSpec(profile.toolId)
@@ -164,6 +170,7 @@ function buildToolSummaries(): ReadinessToolSummary[] {
       modelWeightsRequired: profile.modelWeightsRequired,
       evaluationOnly: profile.productionStatus === 'evaluation_only',
       warnings: [
+        ...(hostOptional && result && !result.dryRun ? ['Host optional mode used bounded local command/import metadata checks; this does not approve production execution.'] : []),
         ...(result?.warnings ?? []),
         ...(statusIsWarning(status) ? [`${profile.displayName} is ${status} in static readiness.`] : []),
       ],
@@ -307,8 +314,11 @@ function buildModelWeightSummaries(): ReadinessModelWeightSummary[] {
   })
 }
 
-function buildLicenseSummaries(modelWeightSummaries: ReadinessModelWeightSummary[]): ReadinessLicenseSummary[] {
-  const core = runCoreCpuRenderReadinessChecks({ realCheckMode: false })
+function buildLicenseSummaries(
+  modelWeightSummaries: ReadinessModelWeightSummary[],
+  mode: BuildProductionReadinessReportOptions['mode'],
+): ReadinessLicenseSummary[] {
+  const core = runCoreCpuRenderReadinessChecks({ realCheckMode: mode === 'host_optional' })
   const gpu = runGpuAiReadinessChecks({ dryRun: true })
   return [
     {
@@ -386,11 +396,11 @@ export function buildProductionReadinessReport(
   options: BuildProductionReadinessReportOptions = {},
 ): ProductionReadinessReport {
   const mode = options.mode ?? 'static_only'
-  const toolSummaries = buildToolSummaries()
+  const toolSummaries = buildToolSummaries(mode)
   const imageSummaries = buildImageSummaries(toolSummaries)
   const workerSummaries = buildWorkerSummaries(imageSummaries)
   const modelWeightSummaries = buildModelWeightSummaries()
-  const licenseSummaries = buildLicenseSummaries(modelWeightSummaries)
+  const licenseSummaries = buildLicenseSummaries(modelWeightSummaries, mode)
   const blockerSummaries = buildGlobalBlockers(toolSummaries, imageSummaries, modelWeightSummaries, licenseSummaries)
   const warnings = dedupeBlockers(blockerSummaries)
     .filter((blocker) => blocker.severity === 'warning')
@@ -411,7 +421,9 @@ export function buildProductionReadinessReport(
     warnings,
     nextActions: [
       'Review hard blockers before enabling production execution.',
-      'Run static readiness before any human-built container readiness checks.',
+      mode === 'host_optional'
+        ? 'Review host_optional local checks as bounded evidence only; they do not replace container, legal, model-weight, or owner approvals.'
+        : 'Run static readiness before any human-built container readiness checks.',
       'Build production images manually in a later approved step; M12 does not build or push images.',
       'Complete FFmpeg LGPL, libass, source-install, and model-weight license reviews before production-ready execution.',
     ],

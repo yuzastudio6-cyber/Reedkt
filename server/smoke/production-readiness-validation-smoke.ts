@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import {
   classifyProductionReadinessBlocker,
   buildDryRunProductionReadinessReport,
+  buildUnifiedProductionReadinessReport,
   buildReadinessCommandPlans,
   buildStaticProductionReadinessReport,
   containerImageReadinessManifest,
@@ -50,12 +51,19 @@ for (const file of requiredFiles) {
 
 const staticReport = buildStaticProductionReadinessReport()
 const dryRunReport = buildDryRunProductionReadinessReport()
+const hostOptionalReport = buildUnifiedProductionReadinessReport({ mode: 'host_optional' })
 
 check(staticReport.mode === 'static_only', 'Static readiness report must use static_only mode.')
 check(dryRunReport.mode === 'dry_run', 'Dry-run readiness report must use dry_run mode.')
+check(hostOptionalReport.mode === 'host_optional', 'Host-optional readiness report must use host_optional mode.')
 check(staticReport.workerSummaries.length === 6, 'Readiness report must contain all six worker summaries.')
 check(staticReport.imageSummaries.length === 6, 'Readiness report must contain all six image summaries.')
 check(staticReport.toolSummaries.length > 0, 'Readiness report must contain tool summaries.')
+check(hostOptionalReport.overallStatus === 'blocked', 'Host-optional readiness must not unlock production.')
+check(
+  hostOptionalReport.nextActions.some((action) => action.includes('bounded evidence only')),
+  'Host-optional readiness must remind operators that local checks are bounded evidence only.',
+)
 
 const requiredWorkers: ProductionRegistryWorkerType[] = [
   'api_service',
@@ -151,7 +159,15 @@ check(
 )
 
 check(staticReport.licenseSummaries.some((summary) => summary.id === 'ffmpeg_lgpl_commercial_build' && summary.status === 'pending_manual_review'), 'FFmpeg LGPL commercial verification must remain pending/manual.')
+check(hostOptionalReport.licenseSummaries.some((summary) => summary.id === 'ffmpeg_lgpl_commercial_build' && summary.status === 'pending_manual_review'), 'Host-optional readiness must keep FFmpeg LGPL commercial verification pending/manual.')
 check(staticReport.licenseSummaries.some((summary) => summary.id === 'libass_subtitle_support' && summary.manualReviewRequired), 'libass support must be represented as manual/pending-capable.')
+
+const hostFfmpegTool = hostOptionalReport.toolSummaries.find((tool) => tool.toolId === 'ffmpeg')
+const hostFfprobeTool = hostOptionalReport.toolSummaries.find((tool) => tool.toolId === 'ffprobe')
+check(Boolean(hostFfmpegTool), 'Host-optional report must include FFmpeg.')
+check(Boolean(hostFfprobeTool), 'Host-optional report must include ffprobe.')
+check(hostFfmpegTool?.blockers.every((blocker) => !blocker.id.includes('required_launch_core_missing')) === true, 'Host-optional FFmpeg must not retain the missing launch-core blocker after a bounded local pass.')
+check(hostFfprobeTool?.blockers.every((blocker) => !blocker.id.includes('required_launch_core_missing')) === true, 'Host-optional ffprobe must not retain the missing launch-core blocker after a bounded local pass.')
 
 const plans = buildReadinessCommandPlans()
 for (const id of [

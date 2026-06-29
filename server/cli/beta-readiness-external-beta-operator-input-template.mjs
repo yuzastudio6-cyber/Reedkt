@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readiness-deployed-evidence-input-manifest.mjs'
 
-const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json'
+const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
 const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection'
 
 const SECRET_PLACEHOLDER = '<secret value supplied only in the operator shell>'
@@ -29,13 +29,13 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
   return {
     ok: true,
     decision: DECISION,
-    templateId: 'beta-readiness-external-beta-operator-input-template-aa49-2026-06-29',
+    templateId: 'beta-readiness-external-beta-operator-input-template-184f-2026-06-29',
     sourceTruth: {
       deployedEvidenceManifestPath: DEPLOYED_EVIDENCE_MANIFEST_PATH,
       deployedEvidenceManifestDecision: deployedEvidence.decision,
       deployedApiRevision: deployReadback.normalApiRevision,
       deployedSourceSha: currentSourceSha,
-      defaultApiBaseUrlSource: 'committed_aa49_deploy_readback',
+      defaultApiBaseUrlSource: 'committed_184f_deploy_readback',
       trackBToolTotals: manifest.sourceTruth.trackBToolTotals,
       productReadyLocalOssCount: manifest.sourceTruth.trackBToolTotals.productReady,
     },
@@ -90,7 +90,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
 
 export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report) {
   const lines = [
-    '# Beta Readiness External Beta Operator Input Template - aa49',
+    '# Beta Readiness External Beta Operator Input Template - 184f',
     '',
     `Decision: \`${report.decision}\``,
     '',
@@ -188,7 +188,7 @@ function valuePolicy(input) {
 
 function renderEnvTemplate(requiredInputs) {
   const lines = [
-    '# ReEditPro external beta evidence input template - aa49',
+    '# ReEditPro external beta evidence input template - 184f',
     '# Fill in an operator shell or secret manager session only. Do not commit completed values.',
     '# Bearer tokens must remain in authorization headers/env only. Evidence notes must be non-secret summaries.',
     '',

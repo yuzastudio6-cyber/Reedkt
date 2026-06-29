@@ -5,11 +5,11 @@ import {
   buildBetaReadinessOwnerApprovalIntakePreflight,
 } from './beta-readiness-owner-approval-intake-preflight.mjs'
 
-const DETAILED_OWNER_GAP_PACKET_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json'
-const CURRENT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json'
-const SOURCE_FRESHNESS_PACKET_PATH = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-aa49-source-freshness-passed.json'
-const HANDOFF_JSON_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-aa49-owner-approval-collection-handoff.json'
-const HANDOFF_MD_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-aa49-owner-approval-collection-handoff.md'
+const DETAILED_OWNER_GAP_PACKET_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
+const CURRENT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
+const SOURCE_FRESHNESS_PACKET_PATH = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-184f-source-freshness-passed.json'
+const HANDOFF_JSON_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.json'
+const HANDOFF_MD_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.md'
 
 export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
   const packet = buildBetaReadinessOwnerApprovalPacket()
@@ -29,8 +29,8 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
 
   return {
     ok: true,
-    handoffId: 'beta-readiness-owner-approval-collection-handoff-aa49-2026-06-29',
-    createdAt: '2026-06-29T01:55:00Z',
+    handoffId: 'beta-readiness-owner-approval-collection-handoff-184f-2026-06-29',
+    createdAt: '2026-06-29T16:58:00Z',
     decision: 'beta_readiness_owner_approval_collection_handoff_passed_ready_for_owner_input_collection',
     sourceTruth: {
       sourceBranch: packet.sourceTruth.sourceBranch,
@@ -130,7 +130,7 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
 
 export function renderBetaReadinessOwnerApprovalCollectionHandoffMarkdown(handoff) {
   const lines = [
-    '# Beta Readiness Owner Approval Collection Handoff - aa49',
+    '# Beta Readiness Owner Approval Collection Handoff - 184f',
     '',
     `Decision: \`${handoff.decision}\``,
     '',
@@ -180,7 +180,6 @@ export function renderBetaReadinessOwnerApprovalCollectionHandoffMarkdown(handof
     'Supabase classification: no write / environment none / SQL none / migration no.',
     '',
     `Next safe action: ${handoff.nextSafeAction}`,
-    '',
   ]
   return lines.join('\n')
 }

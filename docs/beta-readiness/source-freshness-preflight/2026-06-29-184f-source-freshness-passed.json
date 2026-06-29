@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "preflightId": "beta-readiness-source-freshness-preflight-2026-06-29-184f",
+  "decision": "beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence",
+  "readyForOwnerApprovalIntake": true,
+  "readyForDeployedEvidenceInputManifest": true,
+  "currentSourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+  "deployedSourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+  "sourceTruth": {
+    "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+    "apiDeployPacketPath": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-184f-api-staging-deploy.json",
+    "apiDeploySourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+    "apiDeploymentPreflightPacketPath": "docs/beta-readiness/api-deployment-preflight/2026-06-29-184f-api-deployment-preflight-passed.json",
+    "apiDeploymentPreflightSourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+    "deployedEvidenceManifestPath": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json",
+    "manifestRecordedDeployedSourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+    "deployedEvidenceManifestSourceShaPolicy": "operator_supplied_current_deployed_source_sha_required"
+  },
+  "valueGaps": [],
+  "recommendedCommands": [
+    "npm run beta:readiness:owner-approval-env-template",
+    "npm run beta:readiness:owner-approval-intake-preflight",
+    "npm run beta:readiness:deployed-evidence-input-manifest",
+    "npm run beta:readiness:external-beta-evidence-collector",
+    "npm run beta:readiness:operator-status-api"
+  ],
+  "blockedScopes": [
+    "external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass",
+    "real_user_media_beta_until_separate_scope_approval_evidence_passes",
+    "paid_production_until_separate_paid_production_evidence_collector_passes"
+  ],
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "warnings": [
+    "This preflight does not deploy, call gcloud, call the deployed backend, record evidence, run tools, process media, write Supabase/GCS, enable beta, or enable production.",
+    "Owner notes may be drafted, but external beta evidence collection still requires operator inputs and final readback.",
+    "This guard blocks only stale source evidence; external beta remains blocked by owner approval and final operator-status evidence gates."
+  ]
+}

@@ -7,7 +7,7 @@ const staleLocalEvidenceSourceShas = [
   '94c37bb492a584c087247625dcb1fb53398c17f4',
   'e8821759a10a43a60795accb596b3b83c15f9dfb',
 ]
-const expectedDeployedSourceSha = 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67'
+const expectedDeployedSourceSha = '184f8b225d01d5bb38c7d3a09d8461bcf8e325dc'
 const expectedCoreToolIds = [
   'ffmpeg',
   'ffprobe',
@@ -27,11 +27,11 @@ const expectedCoreToolIds = [
 ]
 const expectedLibassImage = 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
 const committedManifestJson = readFileSync(
-  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json',
+  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json',
   'utf8',
 )
 const committedManifestMarkdown = readFileSync(
-  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.md',
+  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.md',
   'utf8',
 )
 

@@ -96,6 +96,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_EXECUTION_ATTEM
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approval-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_DECISION } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approval-decision'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_APPROVAL } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
@@ -105,9 +106,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_execution_plan_recorded_execution_approval_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_execution_approval_accepted_preflight_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58CC-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-EXECUTION-APPROVAL: approve first real persisted Qwen worker dispatch execution plan, no Cloud Run invocation/no inference/no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58CD-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-EXECUTION-PREFLIGHT: verify first real persisted Qwen worker dispatch execution preflight, no Cloud Run invocation/no inference/no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -455,6 +456,9 @@ for (const file of [
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan.ts',
   'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan-smoke.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval-smoke.ts',
   'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
   'package.json',
 ]) {
@@ -780,6 +784,11 @@ assert.equal(
   packageJson.scripts?.['smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan'],
   'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan-smoke.ts',
   'controlled persisted worker dispatch runtime real-dispatch execution plan package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval'],
+  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval-smoke.ts',
+  'controlled persisted worker dispatch runtime real-dispatch execution approval package script mismatch',
 )
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
@@ -1371,7 +1380,8 @@ for (const phrase of [
   'controlled persisted worker dispatch runtime real-dispatch approval plan: ready, approval plan recorded',
   'controlled persisted worker dispatch runtime real-dispatch approval decision: ready, decision accepted for execution planning',
   'controlled persisted worker dispatch runtime real-dispatch execution plan: ready, execution plan recorded',
-  'controlled persisted worker dispatch runtime real-dispatch execution approval: blocked, execution approval required',
+  'controlled persisted worker dispatch runtime real-dispatch execution approval: ready, execution approval recorded',
+  'controlled persisted worker dispatch runtime real-dispatch execution preflight: blocked, execution preflight required',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalPlanRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalPlanRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecisionRequired=false`',
@@ -1379,7 +1389,10 @@ for (const phrase of [
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecisionAcceptedForExecutionPlanning=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRecorded=true`',
-  '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRequired=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRequired=false`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRecorded=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalAcceptedForPreflight=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPreflightRequired=true`',
   '`approvedSnapshotFixtureScopePlanned=true`',
   '`creditReservationNoSpendPreconditionPlanned=true`',
   '`serviceRoleJobLeaseClaimScopePlanned=true`',
@@ -1768,6 +1781,10 @@ assert.equal(
   rollup.upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanDecision,
   QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_PLAN.decision,
 )
+assert.equal(
+  rollup.upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalDecision,
+  QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_APPROVAL.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1833,7 +1850,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_preflight_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1942,8 +1959,9 @@ assert.deepEqual(gateIds, [
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approval_decision',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_plan',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_preflight',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 87)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 88)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -2298,6 +2316,13 @@ assert.equal(
   rollup.readinessGates.filter(
     (gate) => String(gate.status) ===
       'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_approval_required',
+  ).length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter(
+    (gate) => String(gate.status) ===
+      'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_execution_preflight_required',
   ).length,
   1,
 )
@@ -2754,7 +2779,13 @@ assert.equal(
 )
 assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRequired, false)
 assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlanRecorded, true)
-assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRequired, true)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRequired, false)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalRecorded, true)
+assert.equal(
+  rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApprovalAcceptedForPreflight,
+  true,
+)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPreflightRequired, true)
 assert.equal(rollup.runtimeFlags.approvedSnapshotFixtureScopePlanned, true)
 assert.equal(rollup.runtimeFlags.creditReservationNoSpendPreconditionPlanned, true)
 assert.equal(rollup.runtimeFlags.serviceRoleJobLeaseClaimScopePlanned, true)
@@ -2929,6 +2960,8 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approval-decision.ts',
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-plan.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-execution-approval.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -3032,7 +3065,10 @@ const forbiddenDataFindings = scanValues({
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_PLAN,
   controlledPersistedWorkerDispatchRuntimeRealDispatchApprovalDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVAL_DECISION,
+  controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionPlan:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_PLAN,
+  controlledPersistedWorkerDispatchRuntimeRealDispatchExecutionApproval:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_EXECUTION_APPROVAL,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

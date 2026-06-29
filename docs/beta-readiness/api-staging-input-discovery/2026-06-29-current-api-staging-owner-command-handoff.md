@@ -2,7 +2,7 @@
 
 Decision: `beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application`.
 
-This packet refreshes the owner command handoff after the current 16-tool deployed-evidence manifest refresh. The handoff command now resolves the current checkout `HEAD` by default so it does not keep pointing owners at stale source truth after metadata-only beta readiness merges.
+This packet refreshes the owner command handoff after the current 16-tool deployed-evidence manifest refresh and the PR #1666 current-source local bundle refresh. The handoff command resolves the current checkout `HEAD` by default so it does not keep pointing owners at stale source truth after metadata-only beta readiness merges.
 
 ```bash
 npm run beta:readiness:owner-command-handoff
@@ -12,7 +12,8 @@ The command prints a deterministic JSON report containing the exact higher-privi
 
 ## Current Source Truth
 
-- Tools branch source SHA at this packet: `9b04cfc513125c50baae859a6154746cf0461cf3`
+- Tools branch source SHA at this packet: `367897d909b901f517177ac697c51680448375b1`
+- Latest refresh reason: `post_pr_1666_current_source_16_tool_local_bundle_refresh`
 - CLI source SHA policy: resolve current checkout `HEAD` by default
 - Current command packet: `docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md`
 - Workflow scope fix PR: `#1441`

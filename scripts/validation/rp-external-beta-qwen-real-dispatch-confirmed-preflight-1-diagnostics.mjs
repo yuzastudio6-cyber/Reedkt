@@ -2,44 +2,34 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-QWEN-REAL-DISPATCH-PREFLIGHT-1'
-const packetDir = 'docs/external-beta/qwen-real-dispatch-preflight-1'
-const decision = 'blocked_pending_qwen_real_dispatch_preflight_confirmation'
-const execution = 'completed_qwen_real_dispatch_preflight_gate_source_no_runtime_execution'
+const packet = 'RP-EXTERNAL-BETA-QWEN-REAL-DISPATCH-CONFIRMED-PREFLIGHT-1'
+const packetDir = 'docs/external-beta/qwen-real-dispatch-confirmed-preflight-1'
+const decision =
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_confirmed_preflight_passed_runtime_invocation_still_blocked'
+const execution = 'completed_confirmed_source_preflight_no_runtime_invocation'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/preflight-gate.md`,
+  `${packetDir}/confirmed-preflight-result.md`,
   `${packetDir}/runtime-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/qwen-real-dispatch-preflight-record.json`,
-  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-preflight-1-results.md',
-  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1.md',
-  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1.ts',
-  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1-smoke.ts',
+  `${packetDir}/qwen-real-dispatch-confirmed-preflight-record.json`,
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-confirmed-preflight-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1.md',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1-smoke.ts',
 ]
 
 const requiredExistingFiles = [
-  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/qwen-real-dispatch-source-import-scope-record.json',
-  'docs/external-beta/qwen-real-dispatch-mock-only-source-import-1/qwen-real-dispatch-mock-only-source-import-record.json',
-  'scripts/validation/rp-external-beta-qwen-real-dispatch-source-import-scope-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-qwen-real-dispatch-mock-only-source-import-1-diagnostics.mjs',
+  'docs/external-beta/qwen-real-dispatch-preflight-1/qwen-real-dispatch-preflight-record.json',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1.ts',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-preflight-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-confirmed-preflight-1-diagnostics.mjs',
   'package.json',
 ]
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
-  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1.md',
-  'docs/external-beta/qwen-real-dispatch-confirmed-preflight-1/source-audit.md',
-  'docs/external-beta/qwen-real-dispatch-confirmed-preflight-1/confirmed-preflight-result.md',
-  'docs/external-beta/qwen-real-dispatch-confirmed-preflight-1/runtime-boundary.md',
-  'docs/external-beta/qwen-real-dispatch-confirmed-preflight-1/validation-results.md',
-  'docs/external-beta/qwen-real-dispatch-confirmed-preflight-1/qwen-real-dispatch-confirmed-preflight-record.json',
-  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-confirmed-preflight-1-results.md',
-  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1.md',
-  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1-smoke.ts',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-source-import-scope-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-mock-only-source-import-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-preflight-1-diagnostics.mjs',
@@ -54,27 +44,21 @@ const requiredText = [
   packet,
   decision,
   execution,
+  'ef186e690eb85ffd246f367107cf9ad2bb54333b',
   '135999b39498688da2002c2f5dbc68acda3b1bb0',
-  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_mock_only_source_import_recorded_preflight_required',
-  '6dce0272d56fb83a90e3ced99d1ee0d811a7c52c',
-  'PR #1695',
-  '634d4a81ed720834d67622291c6e4fc810ef61d5',
-  'PR #1702',
-  '89d7a9ddde85cff3cd4abd4547a3abb65b570d18',
-  'PR #1707',
-  '9ce808b38b7aee4bdafeacd0dde70f99f2525c3c',
   'blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa',
   'REEDITPRO_CONFIRM_QWEN_REAL_DISPATCH_PREFLIGHT=true',
-  'Confirmation provided: `false`',
+  'Confirmation provided: `true`',
+  'validated envelope steps: `10`',
+  'Runtime invocation still blocked: `true`',
   'Cloud Run invocation: `false`',
   'identity token fetch: `false`',
   'QWEN2.5-VL execution: `false`',
   'worker dispatch: `false`',
-  'Runtime invocation still blocked: `true`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_CONFIRMED_PREFLIGHT_1',
+  'QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_DRY_RUN_ATTEMPT_1',
   noScopeStatement,
 ]
 
@@ -130,8 +114,6 @@ const blockedPrefixes = [
 ]
 
 const forbiddenClaims = [
-  /\bfull draft stack import:\s*`?(true|enabled|completed|passed)\b/i,
-  /\bworker runtime source import:\s*`?(true|enabled|completed|passed)\b/i,
   /\bQWEN2\.5-VL execution:\s*`?(true|enabled|completed|passed)\b/i,
   /\bCloud Run invocation:\s*`?(true|enabled|completed|passed)\b/i,
   /\bCloud Run deployment:\s*`?(true|enabled|completed|passed)\b/i,
@@ -140,7 +122,6 @@ const forbiddenClaims = [
   /\bmodel call:\s*`?(true|enabled|completed|passed)\b/i,
   /\bworker execution:\s*`?(true|enabled|completed|passed)\b/i,
   /\bworker dispatch:\s*`?(true|enabled|completed|passed)\b/i,
-  /\broute execution:\s*`?(true|enabled|completed|passed)\b/i,
   /\bSupabase mutation:\s*`?(true|enabled|completed|passed)\b/i,
   /\bSQL execution:\s*`?(true|enabled|completed|passed)\b/i,
   /\bsigned URL creation:\s*`?(true|enabled|completed|passed)\b/i,
@@ -196,52 +177,50 @@ for (const pattern of forbiddenClaims) {
   if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = parseJson(`${packetDir}/qwen-real-dispatch-preflight-record.json`)
+const record = parseJson(`${packetDir}/qwen-real-dispatch-confirmed-preflight-record.json`)
 if (record.packet !== packet) fail('packet mismatch')
 if (record.decision !== decision) fail('decision mismatch')
 if (record.execution !== execution) fail('execution mismatch')
-if (record.integrationBase !== '135999b39498688da2002c2f5dbc68acda3b1bb0') fail('integration base mismatch')
+if (record.integrationBase !== 'ef186e690eb85ffd246f367107cf9ad2bb54333b') fail('integration base mismatch')
 if (record.confirmationGate?.env !== 'REEDITPRO_CONFIRM_QWEN_REAL_DISPATCH_PREFLIGHT') fail('confirmation env mismatch')
-if (record.confirmationGate?.confirmationProvided !== false) fail('confirmation must be false')
-if (record.confirmationGate?.absentGateBlocker !== decision) fail('absent gate blocker mismatch')
-if (record.preflightScope?.approvedPlanSnapshotRequired !== true) fail('approved snapshot requirement missing')
-if (record.preflightScope?.creditReservationRequired !== true) fail('credit reservation requirement missing')
-if (record.preflightScope?.creditSpendAllowed !== false) fail('credit spend must be false')
-if (record.preflightScope?.privateStorageReferenceRequired !== true) fail('private storage requirement missing')
-if (record.preflightScope?.preflightEnvelopeStepCount !== 10) fail('preflight envelope step count mismatch')
-if (record.preflightScope?.runtimeInvocationStillBlocked !== true) fail('runtime invocation must remain blocked')
+if (record.confirmationGate?.confirmationProvided !== true) fail('confirmation must be true')
+if (record.confirmationGate?.confirmedSourcePreflightResult !== 'passed') fail('confirmed preflight result mismatch')
+if (record.preflightResult?.validatedEnvelopeStepCount !== 10) fail('validated step count mismatch')
+if (record.preflightResult?.missingRequiredFields?.length !== 0) fail('missing required fields must be empty')
+if (record.preflightResult?.runtimeInvocationStillBlocked !== true) fail('runtime invocation must remain blocked')
+if (record.preflightResult?.creditSpendAllowed !== false) fail('credit spend must be false')
+if (record.preflightResult?.frontendServiceRoleExposure !== false) fail('frontend service role exposure must be false')
+if (record.preflightResult?.workerLeaseExecutionAllowed !== false) fail('worker lease execution must be false')
 if (record.runtimePosture?.cloudRunInvocation !== false) fail('Cloud Run invocation must be false')
 if (record.runtimePosture?.identityTokenFetch !== false) fail('identity token fetch must be false')
 if (record.runtimePosture?.qwen25VlExecution !== false) fail('QWEN execution must be false')
 if (record.runtimePosture?.workerDispatch !== false) fail('worker dispatch must be false')
 if (record.runtimePosture?.supabaseMutation !== false) fail('Supabase mutation must be false')
 if (record.runtimePosture?.creditMutation !== false) fail('credit mutation must be false')
-if (record.readiness?.qwenRealDispatchPreflight !== decision) fail('preflight readiness mismatch')
+if (record.readiness?.qwenRealDispatchConfirmedPreflight !== 'passed_runtime_invocation_still_blocked') fail('confirmed preflight readiness mismatch')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
-if (record.nextMilestone !== 'QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_CONFIRMED_PREFLIGHT_1') fail('next milestone mismatch')
+if (record.nextMilestone !== 'QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_DRY_RUN_ATTEMPT_1') fail('next milestone mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
-if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
+if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
 }
-if (record.safety?.sourceGateOnly !== true) fail('source gate flag must be true')
+if (record.safety?.confirmedSourcePreflightOnly !== true) fail('confirmed preflight source flag must be true')
 
-const mockOnly = parseJson('docs/external-beta/qwen-real-dispatch-mock-only-source-import-1/qwen-real-dispatch-mock-only-source-import-record.json')
-if (mockOnly.decision !== 'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_mock_only_source_import_recorded_preflight_required') fail('mock-only source drift')
-if (mockOnly.nextMilestone !== 'QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PREFLIGHT_1') fail('mock-only next milestone drift')
-const sourceScope = parseJson('docs/external-beta/qwen-real-dispatch-source-import-scope-1/qwen-real-dispatch-source-import-scope-record.json')
-if (sourceScope.decision !== 'completed_qwen_real_dispatch_source_import_scope_review_surgical_mock_import_required') fail('source scope drift')
+const preflight = parseJson('docs/external-beta/qwen-real-dispatch-preflight-1/qwen-real-dispatch-preflight-record.json')
+if (preflight.decision !== 'blocked_pending_qwen_real_dispatch_preflight_confirmation') fail('preflight gate source drift')
+if (preflight.nextMilestone !== 'QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_CONFIRMED_PREFLIGHT_1') fail('preflight gate next milestone drift')
 
 const packageJson = parseJson('package.json')
 if (
-  packageJson.scripts?.['smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1'] !==
-  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1-smoke.ts'
+  packageJson.scripts?.['smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1'] !==
+  'REEDITPRO_CONFIRM_QWEN_REAL_DISPATCH_PREFLIGHT=true tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1-smoke.ts'
 ) {
   fail('missing smoke package script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-qwen-real-dispatch-preflight-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-qwen-real-dispatch-preflight-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-qwen-real-dispatch-confirmed-preflight-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-qwen-real-dispatch-confirmed-preflight-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }
@@ -278,5 +257,5 @@ for (const file of changedFiles) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_pending_qwen_real_dispatch_preflight_confirmation')
-console.log('Next milestone: QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_CONFIRMED_PREFLIGHT_1')
+console.log('Decision: qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_confirmed_preflight_passed_runtime_invocation_still_blocked')
+console.log('Next milestone: QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_DRY_RUN_ATTEMPT_1')

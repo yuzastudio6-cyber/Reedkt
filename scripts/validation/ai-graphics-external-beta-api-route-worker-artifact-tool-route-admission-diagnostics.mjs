@@ -5,17 +5,17 @@ import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const decision =
-  'ai_graphics_external_beta_api_route_worker_dispatch_handoff_proof_prepared_with_runtime_blocks'
+  'ai_graphics_external_beta_api_route_worker_artifact_tool_route_admission_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'external_beta_api_route_worker_dispatch_handoff_proof_ready_runtime_still_blocked'
+  'external_beta_api_route_worker_artifact_tool_route_admission_ready_runtime_still_blocked'
 const runScriptName =
-  'ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof'
+  'ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts'
+  'tsx server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof:diagnostics'
+  'ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -55,17 +55,14 @@ const gpuTools = [
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'externalBetaCallableNow',
-  'apiRouteQueueSmokeApprovedNow',
-  'apiRouteMountedNow',
+  'artifactToolRouteAdmissionApprovedNow',
   'apiRouteExecutionApprovedNow',
-  'apiRouteExecutionPerformed',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
   'backendQueueSubmissionApprovedNow',
-  'serviceRoleQueueTransactionApprovedNow',
   'liveQueueWriteApprovedNow',
-  'liveQueueWritePerformed',
+  'privateArtifactWriteApprovedNow',
   'workerLeaseCreationApprovedNow',
   'workerDispatchApprovedNow',
   'productionWorkerDispatchApprovedNow',
@@ -85,8 +82,8 @@ const falseGateKeys = [
   'workerEnqueuePerformed',
   'routeExecutionPerformed',
   'backendQueueSubmissionPerformed',
+  'privateArtifactWritePerformed',
   'serviceRoleQueueSmokePerformed',
-  'serviceRoleTransactionPerformed',
   'supabaseMutationPerformed',
   'workerLeaseCreated',
   'workerDispatchPerformed',
@@ -102,6 +99,7 @@ const falseGateKeys = [
 ]
 
 const failures = []
+
 function fail(message) {
   failures.push(message)
 }
@@ -133,8 +131,8 @@ function git(args) {
   })
 }
 
-function runJson(args) {
-  const output = childProcess.execFileSync('npm', ['run', '--silent', runScriptName, '--', ...args], {
+function npmJson(scriptName, args = []) {
+  const output = childProcess.execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
     cwd: process.cwd(),
     encoding: 'utf8',
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
@@ -144,7 +142,8 @@ function runJson(args) {
 }
 
 function writeJson(file, value) {
-  fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`)
+  fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+  return file
 }
 
 function runtimeForTool(toolId) {
@@ -239,7 +238,14 @@ function workerDispatchSmokeProofFixture(overrides = {}) {
       externalBetaReadyNowTools: 0,
       productionReadyNowTools: 0,
     },
+    evidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
+      serviceRoleQueueSmokeAuthorizationRef:
+        'external-beta-evidence://service-role-queue-smoke/authorization',
+    },
     booleans: {
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
@@ -251,6 +257,7 @@ function workerDispatchSmokeProofFixture(overrides = {}) {
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuRuntimeShouldStartNow: false,
+      agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       toolExecutionPerformed: false,
       externalBetaReadyNow: false,
@@ -260,7 +267,7 @@ function workerDispatchSmokeProofFixture(overrides = {}) {
   }
 }
 
-function controlArgs() {
+function handoffControls() {
   return [
     '--external-beta-route-worker-dispatch-handoff-policy-ref',
     'external-beta-route-worker-dispatch://policy/handoff',
@@ -281,11 +288,75 @@ function controlArgs() {
   ]
 }
 
-function proofArgs(routePath, workerPath, includeControls = true) {
+function privateArtifactControls() {
   return [
-    ...(routePath ? ['--external-beta-api-route-queue-smoke-proof-packet', routePath] : []),
-    ...(workerPath ? ['--external-beta-worker-dispatch-smoke-proof-packet', workerPath] : []),
-    ...(includeControls ? controlArgs() : []),
+    '--external-beta-private-artifact-policy-ref',
+    'external-beta-evidence://private-artifacts/policy',
+    '--external-beta-artifact-manifest-schema-ref',
+    'external-beta-evidence://private-artifacts/schema',
+    '--external-beta-storage-namespace-ref',
+    'private://ai-graphics/external-beta/artifacts',
+    '--external-beta-access-boundary-ref',
+    'external-beta-evidence://private-artifacts/access-boundary',
+    '--external-beta-encryption-policy-ref',
+    'external-beta-evidence://private-artifacts/encryption',
+    '--external-beta-retention-policy-ref',
+    'external-beta-evidence://private-artifacts/retention',
+    '--external-beta-artifact-telemetry-ref',
+    'external-beta-evidence://private-artifacts/telemetry',
+  ]
+}
+
+function toolRouteControls() {
+  return [
+    '--external-beta-tool-route-policy-ref',
+    'external-beta-evidence://tool-route/policy',
+    '--external-beta-tool-route-schema-ref',
+    'external-beta-evidence://tool-route/schema',
+    '--external-beta-tool-route-admission-ref',
+    'external-beta-evidence://tool-route/admission',
+    '--external-beta-tool-route-authz-ref',
+    'external-beta-evidence://tool-route/authz',
+    '--external-beta-tool-route-rate-limit-ref',
+    'external-beta-evidence://tool-route/rate-limit',
+    '--external-beta-tool-route-audit-ref',
+    'external-beta-evidence://tool-route/audit',
+    '--external-beta-tool-route-rollback-ref',
+    'external-beta-evidence://tool-route/rollback',
+  ]
+}
+
+function admissionControls() {
+  return [
+    '--external-beta-artifact-tool-route-admission-policy-ref',
+    'external-beta-admission://artifact-tool-route/policy',
+    '--external-beta-private-artifact-write-policy-ref',
+    'external-beta-admission://private-artifact/write-policy',
+    '--external-beta-private-artifact-retention-policy-ref',
+    'external-beta-admission://private-artifact/retention-policy',
+    '--external-beta-tool-route-admission-policy-ref',
+    'external-beta-admission://tool-route/admission-policy',
+    '--external-beta-tool-route-execution-block-policy-ref',
+    'external-beta-admission://tool-route/execution-block-policy',
+    '--external-beta-approved-snapshot-binding-ref',
+    'external-beta-admission://approved-snapshot/binding',
+    '--external-beta-credit-reservation-binding-ref',
+    'external-beta-admission://credit-reservation/binding',
+    '--external-beta-gpu-on-demand-policy-ref',
+    'external-beta-admission://gpu/on-demand-policy',
+    '--external-beta-telemetry-ref',
+    'external-beta-admission://telemetry/admission',
+    '--external-beta-rollback-plan-ref',
+    'external-beta-admission://rollback/plan',
+  ]
+}
+
+function admissionArgs(handoffPath, manifestPath, toolRoutePath, includeControls = true) {
+  return [
+    ...(handoffPath ? ['--external-beta-api-route-worker-dispatch-handoff-proof-packet', handoffPath] : []),
+    ...(manifestPath ? ['--external-beta-private-artifact-manifest-packet', manifestPath] : []),
+    ...(toolRoutePath ? ['--external-beta-tool-route-runtime-proof-packet', toolRoutePath] : []),
+    ...(includeControls ? admissionControls() : []),
   ]
 }
 
@@ -296,23 +367,24 @@ function assertFalseBooleans(label, booleans) {
 }
 
 for (const file of [
-  'server/tool-registry/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts',
-  'server/cli/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts',
-  'scripts/validation/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts',
+  'server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts',
+  'scripts/validation/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-artifact-tool-route-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-artifact-tool-route-admission.md',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json',
   'docs/production-beta-readiness-scorecard.md',
 ]) {
   read(file)
 }
 
 const pkg = json('package.json')
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.md')
-const source = read('server/tool-registry/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts')
-const cli = read('server/cli/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-artifact-tool-route-admission.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-artifact-tool-route-admission.md')
+const source = read('server/tool-registry/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts')
+const cli = read('server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts')
 const index = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
@@ -320,21 +392,23 @@ if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_scr
 if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail(`missing_package_script:${diagnosticScriptName}`)
 }
-if (!index.includes("export * from './ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof'")) {
+if (!index.includes("export * from './ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission'")) {
   fail('missing_tool_registry_export')
 }
 if (docs.decision !== decision) fail(`docs_decision_mismatch:${docs.decision}`)
 if (docs.status !== acceptedStatus) fail(`docs_status_mismatch:${docs.status}`)
 
 for (const phrase of [
-  'external_beta_api_route_worker_dispatch_handoff_proof_ready_runtime_still_blocked',
-  '--external-beta-api-route-queue-smoke-proof-packet',
-  '--external-beta-worker-dispatch-smoke-proof-packet',
+  'external_beta_api_route_worker_artifact_tool_route_admission_ready_runtime_still_blocked',
+  '--external-beta-api-route-worker-dispatch-handoff-proof-packet',
+  '--external-beta-private-artifact-manifest-packet',
+  '--external-beta-tool-route-runtime-proof-packet',
   'validatesSavedProofPacketsOnly',
-  'noLiveWorkerLeaseByHandoffProof',
-  'noLiveWorkerDispatchByHandoffProof',
-  'noGpuRuntimeStartByHandoffProof',
-  'sourceWorkerDispatchSmokeProofCoversRequestedTool',
+  'noPrivateArtifactWriteByAdmissionProof',
+  'noToolRouteExecutionByAdmissionProof',
+  'noGpuRuntimeStartByAdmissionProof',
+  'privateArtifactManifestCoversRequestedTool',
+  'toolRouteRuntimeProofCoversRequestedTool',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
@@ -342,7 +416,14 @@ for (const phrase of [
   }
 }
 
+for (const tool of tools) {
+  const combined = `${JSON.stringify(docs)}\n${source}`
+  if (!combined.includes(tool)) fail(`missing_tool:${tool}`)
+}
+
 for (const block of [
+  'private artifact write',
+  'Tool Route execution',
   'live worker lease creation',
   'worker dispatch',
   'tool execution',
@@ -361,95 +442,172 @@ for (const block of [
   }
 }
 assertFalseBooleans('docs', docs.booleans)
-if (!scorecard.includes('AI Graphics External-Beta API Route Worker Dispatch Handoff Proof')) {
+if (!scorecard.includes('AI Graphics External-Beta API Route Worker Artifact Tool Route Admission')) {
   fail('scorecard_missing_section')
 }
 
-const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-route-worker-handoff-'))
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-artifact-route-admission-'))
 try {
   const d3RoutePath = path.join(tmpRoot, 'd3-route-proof.json')
   const sam2RoutePath = path.join(tmpRoot, 'sam2-route-proof.json')
-  const rejectedRoutePath = path.join(tmpRoot, 'rejected-route-proof.json')
   const workerPath = path.join(tmpRoot, 'worker-proof.json')
-  const rejectedWorkerPath = path.join(tmpRoot, 'rejected-worker-proof.json')
-  const missingToolWorkerPath = path.join(tmpRoot, 'missing-tool-worker-proof.json')
+  const d3HandoffPath = path.join(tmpRoot, 'd3-handoff-proof.json')
+  const sam2HandoffPath = path.join(tmpRoot, 'sam2-handoff-proof.json')
+  const manifestPath = path.join(tmpRoot, 'private-artifact-manifest.json')
+  const toolRoutePath = path.join(tmpRoot, 'tool-route-runtime-proof.json')
+  const rejectedHandoffPath = path.join(tmpRoot, 'rejected-handoff-proof.json')
+  const rejectedManifestPath = path.join(tmpRoot, 'rejected-private-artifact-manifest.json')
+  const rejectedToolRoutePath = path.join(tmpRoot, 'rejected-tool-route-runtime-proof.json')
 
   writeJson(d3RoutePath, routeQueueSmokeProofFixture('d3', 'chart_overlay'))
   writeJson(sam2RoutePath, routeQueueSmokeProofFixture('sam2', 'background_removal'))
-  writeJson(rejectedRoutePath, routeQueueSmokeProofFixture('d3', 'chart_overlay', {
-    status: 'external_beta_api_route_queue_smoke_result_rejected',
-    proofAcceptedWithProvidedEvidence: false,
-  }))
   writeJson(workerPath, workerDispatchSmokeProofFixture())
-  writeJson(rejectedWorkerPath, workerDispatchSmokeProofFixture({
-    decision: 'external_beta_worker_dispatch_smoke_proof_rejected',
-    proofAcceptedWithProvidedEvidence: false,
-  }))
-  writeJson(missingToolWorkerPath, workerDispatchSmokeProofFixture({
-    acceptedTools: tools.filter((tool) => tool !== 'sam2'),
-  }))
 
-  const missingRoute = runJson([])
-  if (missingRoute.status !== 'missing_external_beta_api_route_queue_smoke_proof') {
-    fail('missing_route_wrong_status')
+  writeJson(d3HandoffPath, npmJson(
+    'ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof',
+    [
+      '--external-beta-api-route-queue-smoke-proof-packet',
+      d3RoutePath,
+      '--external-beta-worker-dispatch-smoke-proof-packet',
+      workerPath,
+      ...handoffControls(),
+    ],
+  ))
+  writeJson(sam2HandoffPath, npmJson(
+    'ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof',
+    [
+      '--external-beta-api-route-queue-smoke-proof-packet',
+      sam2RoutePath,
+      '--external-beta-worker-dispatch-smoke-proof-packet',
+      workerPath,
+      ...handoffControls(),
+    ],
+  ))
+  writeJson(manifestPath, npmJson(
+    'ai-graphics:external-beta-private-artifact-manifest',
+    [
+      '--external-beta-worker-dispatch-smoke-proof-packet',
+      workerPath,
+      ...privateArtifactControls(),
+    ],
+  ))
+  writeJson(toolRoutePath, npmJson(
+    'ai-graphics:external-beta-tool-route-runtime-proof',
+    [
+      '--external-beta-private-artifact-manifest-packet',
+      manifestPath,
+      ...toolRouteControls(),
+    ],
+  ))
+
+  const rejectedHandoff = JSON.parse(fs.readFileSync(d3HandoffPath, 'utf8'))
+  rejectedHandoff.status = 'external_beta_api_route_worker_dispatch_handoff_proof_rejected'
+  rejectedHandoff.apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence = false
+  writeJson(rejectedHandoffPath, rejectedHandoff)
+
+  const rejectedManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+  rejectedManifest.decision = 'external_beta_private_artifact_manifest_rejected'
+  rejectedManifest.privateArtifactManifestReadyWithProvidedEvidence = false
+  writeJson(rejectedManifestPath, rejectedManifest)
+
+  const rejectedToolRoute = JSON.parse(fs.readFileSync(toolRoutePath, 'utf8'))
+  rejectedToolRoute.decision = 'external_beta_tool_route_runtime_proof_rejected'
+  rejectedToolRoute.toolRouteRuntimeProofReadyWithProvidedEvidence = false
+  writeJson(rejectedToolRoutePath, rejectedToolRoute)
+
+  const missingHandoff = npmJson(runScriptName, [])
+  if (missingHandoff.status !== 'missing_external_beta_api_route_worker_dispatch_handoff_proof') {
+    fail('missing_handoff_wrong_status')
   }
 
-  const rejectedRoute = runJson(proofArgs(rejectedRoutePath, workerPath))
-  if (rejectedRoute.status !== 'external_beta_api_route_queue_smoke_proof_rejected') {
-    fail('rejected_route_wrong_status')
+  const rejectedHandoffResult = npmJson(
+    runScriptName,
+    admissionArgs(rejectedHandoffPath, manifestPath, toolRoutePath),
+  )
+  if (rejectedHandoffResult.status !== 'external_beta_api_route_worker_dispatch_handoff_proof_rejected') {
+    fail('rejected_handoff_wrong_status')
   }
 
-  const missingWorker = runJson(proofArgs(d3RoutePath, null))
-  if (missingWorker.status !== 'missing_external_beta_worker_dispatch_smoke_proof') {
-    fail('missing_worker_wrong_status')
+  const missingManifest = npmJson(
+    runScriptName,
+    admissionArgs(d3HandoffPath, null, toolRoutePath),
+  )
+  if (missingManifest.status !== 'missing_external_beta_private_artifact_manifest') {
+    fail('missing_manifest_wrong_status')
   }
 
-  const rejectedWorker = runJson(proofArgs(d3RoutePath, rejectedWorkerPath))
-  if (rejectedWorker.status !== 'external_beta_worker_dispatch_smoke_proof_rejected') {
-    fail('rejected_worker_wrong_status')
+  const rejectedManifestResult = npmJson(
+    runScriptName,
+    admissionArgs(d3HandoffPath, rejectedManifestPath, toolRoutePath),
+  )
+  if (rejectedManifestResult.status !== 'external_beta_private_artifact_manifest_rejected') {
+    fail('rejected_manifest_wrong_status')
   }
 
-  const missingControls = runJson(proofArgs(d3RoutePath, workerPath, false))
-  if (missingControls.status !== 'missing_external_beta_route_worker_dispatch_handoff_controls') {
+  const missingToolRoute = npmJson(
+    runScriptName,
+    admissionArgs(d3HandoffPath, manifestPath, null),
+  )
+  if (missingToolRoute.status !== 'missing_external_beta_tool_route_runtime_proof') {
+    fail('missing_tool_route_wrong_status')
+  }
+
+  const rejectedToolRouteResult = npmJson(
+    runScriptName,
+    admissionArgs(d3HandoffPath, manifestPath, rejectedToolRoutePath),
+  )
+  if (rejectedToolRouteResult.status !== 'external_beta_tool_route_runtime_proof_rejected') {
+    fail('rejected_tool_route_wrong_status')
+  }
+
+  const missingControls = npmJson(
+    runScriptName,
+    admissionArgs(d3HandoffPath, manifestPath, toolRoutePath, false),
+  )
+  if (missingControls.status !== 'missing_external_beta_artifact_tool_route_admission_controls') {
     fail('missing_controls_wrong_status')
   }
 
-  const acceptedD3 = runJson(proofArgs(d3RoutePath, workerPath))
+  const acceptedD3 = npmJson(
+    runScriptName,
+    admissionArgs(d3HandoffPath, manifestPath, toolRoutePath),
+  )
   if (acceptedD3.decision !== decision) fail('accepted_d3_decision_mismatch')
   if (acceptedD3.status !== acceptedStatus) fail('accepted_d3_status_mismatch')
   if (acceptedD3.requestedToolId !== 'd3') fail('accepted_d3_tool_mismatch')
-  if (acceptedD3.apiRouteWorkerDispatchHandoffPreparedRequestsWithProvidedEvidence !== 1) {
-    fail('accepted_d3_handoff_count_not_1')
+  if (acceptedD3.artifactToolRouteAdmissionPreparedRequestsWithProvidedEvidence !== 1) {
+    fail('accepted_d3_admission_count_not_1')
   }
-  if (acceptedD3.sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
-    fail('accepted_d3_worker_tools_not_21')
+  if (acceptedD3.sourcePrivateArtifactRecordsReadyWithProvidedEvidence !== 21) {
+    fail('accepted_d3_private_records_not_21')
   }
-  if (acceptedD3.handoffCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
+  if (acceptedD3.sourceToolRouteRecordsReadyWithProvidedEvidence !== 21) {
+    fail('accepted_d3_tool_route_records_not_21')
+  }
+  if (acceptedD3.admissionCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
     fail('accepted_d3_gpu_start_allowed_should_be_false')
+  }
+  if (!String(acceptedD3.admissionCandidate?.privateInputManifestRef).startsWith('private://')) {
+    fail('accepted_d3_private_input_ref_missing')
   }
   assertFalseBooleans('accepted_d3', acceptedD3.booleans)
 
-  const acceptedSam2 = runJson(proofArgs(sam2RoutePath, workerPath))
+  const acceptedSam2 = npmJson(
+    runScriptName,
+    admissionArgs(sam2HandoffPath, manifestPath, toolRoutePath),
+  )
   if (acceptedSam2.status !== acceptedStatus) fail('accepted_sam2_status_mismatch')
   if (acceptedSam2.requestedToolId !== 'sam2') fail('accepted_sam2_tool_mismatch')
-  if (acceptedSam2.handoffCandidate?.workerType !== 'gpu_ai_worker') {
+  if (acceptedSam2.admissionCandidate?.workerType !== 'gpu_ai_worker') {
     fail('accepted_sam2_worker_type_mismatch')
   }
-  if (acceptedSam2.handoffCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
+  if (acceptedSam2.admissionCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
     fail('accepted_sam2_gpu_start_allowed_not_true')
   }
   if (acceptedSam2.booleans?.gpuRuntimeShouldStartNow !== false) {
     fail('accepted_sam2_gpu_should_start_not_false')
   }
   assertFalseBooleans('accepted_sam2', acceptedSam2.booleans)
-
-  const missingTool = runJson(proofArgs(sam2RoutePath, missingToolWorkerPath))
-  if (missingTool.status !== 'external_beta_worker_dispatch_smoke_proof_rejected') {
-    fail('missing_tool_wrong_status')
-  }
-  if (missingTool.booleans?.sourceWorkerDispatchSmokeProofCoversRequestedTool !== false) {
-    fail('missing_tool_cover_boolean_not_false')
-  }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
 }
@@ -457,6 +615,9 @@ try {
 const combinedDocs = [JSON.stringify(docs), docsMd].join('\n')
 for (const pattern of [
   /agentCanExecuteToolsNow["'`\s:]*true/i,
+  /artifactToolRouteAdmissionApprovedNow["'`\s:]*true/i,
+  /privateArtifactWriteApprovedNow["'`\s:]*true/i,
+  /routeExecutionApprovedNow["'`\s:]*true/i,
   /workerLeaseCreationApprovedNow["'`\s:]*true/i,
   /workerDispatchApprovedNow["'`\s:]*true/i,
   /toolExecutionApprovedNow["'`\s:]*true/i,
@@ -476,8 +637,6 @@ const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission": "tsx server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts",',
   '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission-diagnostics.mjs",',
-  '+    "ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof": "tsx server/cli/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts",',
-  '+    "ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof-diagnostics.mjs",',
 ])
 for (const rawLine of packageDiff.split('\n')) {
   const line = rawLine.trimEnd()
@@ -501,7 +660,7 @@ for (const file of changedFiles) {
 }
 
 if (failures.length > 0) {
-  console.error(`AI graphics external-beta API route worker dispatch handoff proof diagnostics failed:\n- ${failures.join('\n- ')}`)
+  console.error(`AI graphics external-beta API route worker artifact Tool Route admission diagnostics failed:\n- ${failures.join('\n- ')}`)
   process.exit(1)
 }
 
@@ -512,13 +671,9 @@ console.log(JSON.stringify({
   toolsCovered: tools.length,
   capabilitiesCovered: 12,
   gpuRuntimeTargetedTools: gpuTools.length,
-  apiRouteWorkerDispatchHandoffPreparedRequestsWithProvidedEvidence: 1,
-  sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: 21,
-  sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence: 1,
-  sourceRouteQueueRowsPersistedAfterCleanup: 0,
-  sourceWorkerDispatchSmokeInMemoryLeasesAcceptedWithProvidedEvidence: 21,
-  liveWorkerDispatchesNow: 0,
-  liveToolExecutionsNow: 0,
+  artifactToolRouteAdmissionPreparedRequestsWithProvidedEvidence: 1,
+  sourcePrivateArtifactRecordsReadyWithProvidedEvidence: 21,
+  sourceToolRouteRecordsReadyWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
   gpuRuntimeShouldStartNow: false,

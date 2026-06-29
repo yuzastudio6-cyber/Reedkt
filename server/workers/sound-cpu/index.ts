@@ -16,6 +16,16 @@ export {
 } from './runtime/soundCpuOcrCaptionRenderSafeZoneHook.ts'
 
 export {
+  SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_BLOCKED_STATE_INTEGRATION_BLOCKED_REASON,
+  SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_BLOCKED_STATE_INTEGRATION_NAME,
+  SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_BLOCKED_STATE_INTEGRATION_STATUS,
+  assertSoundCpuOcrCaptionRenderSafeZoneBlockedStateIntegrationExecutionBlocked,
+  createSoundCpuOcrCaptionRenderSafeZoneBlockedStateIntegrationResult,
+  type SoundCpuOcrCaptionRenderSafeZoneBlockedStateIntegrationInput,
+  type SoundCpuOcrCaptionRenderSafeZoneBlockedStateIntegrationResult,
+} from './runtime/soundCpuOcrCaptionRenderSafeZoneHookBlockedStateIntegration.ts'
+
+export {
   SOUND_CPU_SYNTHETIC_IMAGES,
   SOUND_CPU_SYNTHETIC_JOB_TYPES,
   SOUND_CPU_SYNTHETIC_REJECTED_PAYLOAD_FIELDS,

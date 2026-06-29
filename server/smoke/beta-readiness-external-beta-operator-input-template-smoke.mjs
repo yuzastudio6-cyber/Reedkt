@@ -6,6 +6,12 @@ import {
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+const expectedLocalEvidenceSourceSha = '94c37bb492a584c087247625dcb1fb53398c17f4'
+const staleLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
+const committedMarkdown = readFileSync(
+  'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-aa49-external-beta-operator-input-template.md',
+  'utf8',
+)
 
 assert.equal(
   packageJson.scripts['beta:readiness:external-beta-operator-input-template'],
@@ -43,9 +49,11 @@ assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BET
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL="https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN="<secret value supplied only in the operator shell>"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="aa49cef9ed6dad971f0163ea80ebb34de0e65d67"'))
+assert.ok(report.envTemplate.includes(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="${expectedLocalEvidenceSourceSha}"`))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
+assert.equal(report.envTemplate.includes(staleLocalEvidenceSourceSha), false)
 
 assert.equal(serialized.includes('secret-token'), false)
 assert.equal(serialized.includes('Bearer secret'), false)
@@ -53,6 +61,10 @@ assert.equal(serialized.includes('service_role_key'), false)
 assert.equal(serialized.includes('x-goog-signature='), false)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 assert.equal(markdown.includes('enable external beta'), true)
+assert.equal(markdown.includes(expectedLocalEvidenceSourceSha), true)
+assert.equal(markdown.includes(staleLocalEvidenceSourceSha), false)
+assert.equal(committedMarkdown.includes(expectedLocalEvidenceSourceSha), true)
+assert.equal(committedMarkdown.includes(staleLocalEvidenceSourceSha), false)
 
 console.log(JSON.stringify({
   ok: true,

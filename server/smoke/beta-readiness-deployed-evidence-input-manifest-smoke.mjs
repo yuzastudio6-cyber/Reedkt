@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
 const expectedLocalEvidenceSourceSha = '94c37bb492a584c087247625dcb1fb53398c17f4'
+const staleLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
 const expectedDeployedSourceSha = 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67'
 const expectedCoreToolIds = [
   'ffmpeg',
@@ -21,6 +23,19 @@ const expectedCoreToolIds = [
   'signalsmith_stretch',
 ]
 const expectedLibassImage = 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
+const committedManifestJson = readFileSync(
+  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json',
+  'utf8',
+)
+const committedManifestMarkdown = readFileSync(
+  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.md',
+  'utf8',
+)
+
+assert.equal(committedManifestJson.includes(expectedLocalEvidenceSourceSha), true)
+assert.equal(committedManifestJson.includes(staleLocalEvidenceSourceSha), false)
+assert.equal(committedManifestMarkdown.includes(expectedLocalEvidenceSourceSha), true)
+assert.equal(committedManifestMarkdown.includes(staleLocalEvidenceSourceSha), false)
 
 const emptyManifest = buildBetaReadinessDeployedEvidenceInputManifest({})
 assert.equal(emptyManifest.ok, true)

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { buildBetaPlatformEvidenceManifest } from '../beta-readiness/platform-evidence-manifest'
 import { buildToolBetaExecutionReadinessReport } from '../beta-readiness/tool-beta-execution-readiness'
 import {
@@ -16,6 +17,8 @@ import type { BetaPlatformStagingEvidenceProbeEnv } from './beta-platform-stagin
 import type { BetaToolsCoreRealCheckEvidenceEnv } from './beta-tools-core-real-check-evidence'
 import type { BetaReadinessLaunchApprovalEvidenceEnv } from './beta-readiness-launch-approval-evidence'
 
+const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+
 export interface BetaReadinessOperatorStatusEnv extends
   BetaPlatformStagingEvidenceProbeEnv,
   BetaToolsCoreRealCheckEvidenceEnv,
@@ -27,6 +30,18 @@ export interface BetaReadinessOperatorStatusReport {
   toolEvidenceReady: boolean
   platformEvidenceReady: boolean
   launchApprovalEvidenceReady: boolean
+  sourceTruth: {
+    localAcceptedEvidence: {
+      bundlePath: string
+      decision: string
+      evidenceMode: string
+      locallyAcceptedToolCount: number
+      locallyAcceptedToolIds: string[]
+      readyToRecordDeployedEvidence: boolean
+      productReadyLocalOssCount: 0
+      productReadyLocalOssRequiredForCurrentTrackB: 0
+    }
+  }
   currentGate: {
     totalTools: number
     ownerCoverageToolCount: number
@@ -101,6 +116,7 @@ export function buildBetaReadinessOperatorStatus(
   const launchApprovalEvidence = buildBetaReadinessLaunchApprovalEvidencePreflight(env)
   const readiness = buildToolBetaExecutionReadinessReport()
   const manifest = buildBetaPlatformEvidenceManifest()
+  const localAcceptedEvidence = readLocalAcceptedEvidence()
   const toolEvidenceReady = toolEvidence.readyToRecordAcceptedEvidence
   const platformEvidenceReady = platformEvidence.readyToRecordEvidencePacket
   const launchApprovalEvidenceReady = launchApprovalEvidence.readyToRecordLaunchApprovalEvidence
@@ -112,6 +128,9 @@ export function buildBetaReadinessOperatorStatus(
     toolEvidenceReady,
     platformEvidenceReady,
     launchApprovalEvidenceReady,
+    sourceTruth: {
+      localAcceptedEvidence,
+    },
     currentGate: {
       totalTools: readiness.totalTools,
       ownerCoverageToolCount: readiness.ownerCoverageToolCount,
@@ -138,7 +157,7 @@ export function buildBetaReadinessOperatorStatus(
       localProofCommands: manifest.localProofCommands,
       blockersAreEvidenceGaps: manifest.policy.blockersAreEvidenceGaps,
     },
-    nextActions: buildNextActions(toolEvidence, platformEvidence, launchApprovalEvidence),
+    nextActions: buildNextActions(toolEvidence, platformEvidence, launchApprovalEvidence, localAcceptedEvidence),
     warnings: [
       'This operator status is no-network and does not call the deployed backend, run tool checks, write evidence, enable external beta, or enable production.',
       'External beta and production remain disabled until accepted tool evidence, deployed platform evidence, and launch approvals are complete.',
@@ -203,18 +222,25 @@ function buildNextActions(
   toolEvidence: BetaToolsCoreRealCheckEvidencePreflightReport,
   platformEvidence: BetaPlatformStagingEvidencePreflightReport,
   launchApprovalEvidence: BetaReadinessLaunchApprovalEvidencePreflightReport,
+  localAcceptedEvidence: BetaReadinessOperatorStatusReport['sourceTruth']['localAcceptedEvidence'],
 ): string[] {
   const actions: string[] = []
 
   if (!toolEvidence.readyToRecordAcceptedEvidence) {
-    actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
-    actions.push('For the remaining libass subtitle-filter warning, run npm run beta:tools:libass-container-proof-preflight against an approved render/tool-readiness image; this can reduce libass execution evidence without claiming product-ready caption burn-in.')
-    actions.push('After libass filter proof passes, run npm run beta:tools:libass-synthetic-burnin-qa-preflight to collect synthetic-only caption burn-in/font QA evidence before product-ready local OSS acceptance is recorded.')
-    actions.push('After core hydrated preview and libass synthetic QA pass, run npm run beta:tools:local-accepted-evidence-bundle to confirm the combined local accepted tool set and remaining staging gates before recording deployed evidence.')
-    actions.push('After the local accepted evidence bundle passes, run npm run beta:tools:local-accepted-evidence-collector against deployed staging to record core and libass evidence and verify operator-status readback.')
-    actions.push('After synthetic libass QA passes, run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging to record accepted libass evidence.')
+    if (localAcceptedEvidence.readyToRecordDeployedEvidence) {
+      actions.push(`Current source truth already has ${localAcceptedEvidence.locallyAcceptedToolCount} bounded accepted-proven Track B tools in ${localAcceptedEvidence.bundlePath}; do not rerun old core/libass proof lanes unless refreshing evidence for a new source SHA.`)
+      actions.push('Set the REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_* deployed-staging values, including API base URL, bearer token, workspace ID, source SHA, core/libass idempotency keys, bounded accepted evidence confirmations, and REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0; then run npm run beta:tools:local-accepted-evidence-collector to record the 16-tool bundle and verify operator-status readback.')
+      actions.push('If the source SHA changes or the local bundle is intentionally refreshed, rerun npm run beta:tools:local-accepted-evidence-bundle with bounded accepted evidence confirmations before any deployed recording; product-ready local OSS must remain 0 unless a later explicit QA gate accepts product-ready scope.')
+    } else {
+      actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
+      actions.push('For the remaining libass subtitle-filter warning, run npm run beta:tools:libass-container-proof-preflight against an approved render/tool-readiness image; this can reduce libass execution evidence without claiming product-ready caption burn-in.')
+      actions.push('After libass filter proof passes, run npm run beta:tools:libass-synthetic-burnin-qa-preflight to collect synthetic-only caption burn-in/font QA evidence before product-ready local OSS acceptance is recorded.')
+      actions.push('After core hydrated preview and libass synthetic QA pass, run npm run beta:tools:local-accepted-evidence-bundle to confirm the combined local accepted tool set and remaining staging gates before recording deployed evidence.')
+      actions.push('After the local accepted evidence bundle passes, run npm run beta:tools:local-accepted-evidence-collector against deployed staging to record core and libass evidence and verify operator-status readback.')
+      actions.push('After synthetic libass QA passes, run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging to record accepted libass evidence.')
+    }
   } else {
-    actions.push('Run npm run beta:tools:core-real-check-preview locally first; use npm run beta:tools:core-real-check-preview:hydrated after npm run tools:readiness:install-core-python for Python-backed core tools. Then run npm run beta:tools:local-accepted-evidence-bundle before running npm run beta:tools:local-accepted-evidence-collector against deployed staging. If recording individually instead of as a bundle, run npm run beta:tools:core-real-check-evidence for core tools and npm run beta:tools:libass-synthetic-burnin-qa-evidence for libass.')
+    actions.push('Tool evidence inputs are complete. Prefer npm run beta:tools:local-accepted-evidence-collector for the current 16-tool bounded bundle; if recording individually instead of as a bundle, run npm run beta:tools:core-real-check-evidence for core tools and npm run beta:tools:libass-synthetic-burnin-qa-evidence for libass.')
   }
 
   actions.push('Use npm run beta:readiness:owner-approval-packet plus docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md as the current non-secret source for platform and launch owner approval inputs; the packet does not grant approval by itself. Generate the exact local fill-in template with npm run beta:readiness:owner-approval-env-template.')
@@ -240,6 +266,32 @@ function buildNextActions(
   actions.push('After deployed operator status reports external beta ready, use npm run beta:readiness:scope-approval-evidence-preflight with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta; after real-user-media beta is ready, repeat with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production, or run npm run beta:readiness:scope-approval-sequence when both later approvals and evidence notes are ready.')
   actions.push('When all external-beta, real-user-media beta, and paid-production approval evidence inputs are available, run npm run beta:readiness:paid-production-evidence-collector to sequence the full evidence/readback path and require final paid-production operator-status readiness.')
   return actions
+}
+
+function readLocalAcceptedEvidence(): BetaReadinessOperatorStatusReport['sourceTruth']['localAcceptedEvidence'] {
+  const payload = JSON.parse(readFileSync(LOCAL_ACCEPTED_BUNDLE_PATH, 'utf8')) as Record<string, unknown>
+  return {
+    bundlePath: LOCAL_ACCEPTED_BUNDLE_PATH,
+    decision: stringValue(payload.decision),
+    evidenceMode: stringValue(payload.evidenceMode),
+    locallyAcceptedToolCount: numberValue(payload.locallyAcceptedToolCount),
+    locallyAcceptedToolIds: stringArray(payload.locallyAcceptedToolIds),
+    readyToRecordDeployedEvidence: payload.readyToRecordDeployedEvidence === true,
+    productReadyLocalOssCount: 0,
+    productReadyLocalOssRequiredForCurrentTrackB: 0,
+  }
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

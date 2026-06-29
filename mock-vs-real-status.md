@@ -47,3 +47,10 @@
 - Real provider integrations. Mirelo/MMAudio are wired into the project flow in mock mode and have readiness reporting only; live provider transport remains future backend work.
 - Rendering/export workers.
 - Remote Supabase migration or validation.
+
+## RP-RESERVATION-01 Mock Reservation Status
+
+- Real: local in-memory mock wallet available credits can move to reserved credits after an approved estimate.
+- Real: local in-memory mock credit reservation and reservation line-item records can be created idempotently.
+- Mock-only: reservation holds `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, and is validated by `smoke:credit-reservation`.
+- Not implemented: live billing, Stripe/payment, Supabase writes, production wallet mutation, production ledger writes, provider calls, settlement, reservation spend/release/refund, render/export, export unlock, and checkout/top-up.

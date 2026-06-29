@@ -177,3 +177,11 @@ The repository now includes readiness reporting for future real Mirelo SFX V1.5 
 The implementation reports provider mode, backend/frontend runtime safety, Secret Manager reference readiness, approval/credit/request/job prerequisites, storage/provenance readiness, block reasons, warnings, required backend capabilities, and safe next steps. It also adds `sfx.providerReadiness.check` to the mock route surface.
 
 It does not call real Mirelo or MMAudio, add provider SDKs, add raw keys, resolve Secret Manager values, deploy Cloud Run, connect to Supabase, upload audio, spend credits, call Stripe, process audio, render media, or build mobile screens.
+
+## RP-RESERVATION-01
+
+Status: mock-safe foundation implemented.
+
+The credit foundation now includes a max estimate reservation step. `POST /v1/credit-estimates/:creditEstimateId/reservations/max` reserves `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, against local in-memory mock wallet/reservation state. It blocks missing, unapproved, expired, custom/blocked, insufficient, or duplicate reservation requests without live side effects.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export, export unlock, or checkout/top-up. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.

@@ -237,8 +237,30 @@ export function reserveCredits(
     return fail('CREDIT_APPROVAL_NOT_FOUND', 'Approved credit approval is required before reservation.')
   }
 
-  wallet.cachedAvailableCredits -= estimate.totalEstimatedCredits
-  wallet.cachedReservedCredits += estimate.totalEstimatedCredits
+  const requiredHold = resolveMaximumEstimateHold(estimate)
+  if (!requiredHold.ok) {
+    return fail(requiredHold.error.code, requiredHold.error.message, requiredHold.error.details)
+  }
+
+  const idempotencyKey = `mock-reservation-${estimate.id}`
+  const existing = db.creditReservations.find((reservation) =>
+    reservation.workspaceId === input.workspaceId &&
+    reservation.creditWalletId === wallet.id &&
+    reservation.creditEstimateId === estimate.id &&
+    reservation.idempotencyKey === idempotencyKey)
+  if (existing) return ok(existing)
+
+  if (wallet.cachedAvailableCredits < requiredHold.data) {
+    return fail('GENERATION_NOT_ALLOWED', 'Available mock credits are lower than the maximum estimate hold.', {
+      availableCredits: wallet.cachedAvailableCredits,
+      requiredHoldCredits: requiredHold.data,
+      totalEstimatedCredits: estimate.totalEstimatedCredits,
+      maximumEstimatedCredits: estimate.maximumEstimatedCredits,
+    })
+  }
+
+  wallet.cachedAvailableCredits -= requiredHold.data
+  wallet.cachedReservedCredits += requiredHold.data
   wallet.updatedAt = nowIso()
 
   const reservation: CreditReservationRecord = {
@@ -251,31 +273,26 @@ export function reserveCredits(
     creditApprovalId: approval.id,
     editPlanId: estimate.editPlanId,
     status: 'reserved',
-    reservedCredits: estimate.totalEstimatedCredits,
+    reservedCredits: requiredHold.data,
     spentCredits: 0,
     releasedCredits: 0,
     refundedCredits: 0,
-    reservationReason: 'Mock reservation after plan and credit approval.',
-    idempotencyKey: `mock-reservation-${estimate.id}`,
+    reservationReason: 'Mock max-estimate reservation after plan and credit approval.',
+    idempotencyKey,
     reservedAt: nowIso(),
     createdAt: nowIso(),
     updatedAt: nowIso(),
-    metadata: { generationMayQueueAfterReservation: true },
+    metadata: {
+      generationMayQueueAfterReservation: true,
+      mockOnly: true,
+      milestone: 'RP-RESERVATION-01',
+      requiredHoldCredits: requiredHold.data,
+      maximumEstimatedCredits: estimate.maximumEstimatedCredits ?? 0,
+      totalEstimatedCredits: estimate.totalEstimatedCredits,
+      reserveMaximumEstimateOnly: true,
+      noReservationLedgerWrite: true,
+    },
   }
-
-  insertLedgerEntry(db, {
-    creditWalletId: wallet.id,
-    workspaceId: wallet.workspaceId,
-    userId: wallet.userId,
-    entryType: 'reservation',
-    amount: estimate.totalEstimatedCredits,
-    balanceAfter: wallet.cachedAvailableCredits,
-    relatedProjectId: input.projectId,
-    relatedEditPlanId: estimate.editPlanId,
-    relatedReservationId: reservation.id,
-    relatedEstimateId: estimate.id,
-    description: 'Mock credit reservation.',
-  })
 
   return ok(insertMockRecord(db, 'creditReservations', reservation))
 }
@@ -385,4 +402,15 @@ function insertLedgerEntry(
   }
 
   return insertMockRecord(db, 'creditLedgerEntries', entry)
+}
+
+function resolveMaximumEstimateHold(estimate: CreditEstimateRecord): ServiceResult<number> {
+  if (
+    !Number.isInteger(estimate.maximumEstimatedCredits) ||
+    (estimate.maximumEstimatedCredits ?? 0) <= 0
+  ) {
+    return fail('CREDIT_ESTIMATE_NOT_READY', 'Credit reservation requires a positive maximumEstimatedCredits value.')
+  }
+
+  return ok(estimate.maximumEstimatedCredits as number)
 }

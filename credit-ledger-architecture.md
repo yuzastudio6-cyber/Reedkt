@@ -173,3 +173,7 @@ The existing credit tables remain the target schema. The skeleton does not add m
 ## RP-FIX-10 Job Recovery Link
 
 RP-FIX-10 connects mock job completion/failure flows to the RP-FIX-09 credit skeleton. Successful mock jobs can spend a reserved credit record. Failed mock jobs can release or refund reserved credits. Production behavior still requires transactional backend enforcement around job status and ledger mutation.
+
+## RP-RESERVATION-01 Max Hold Foundation
+
+RP-RESERVATION-01 updates the mock reservation foundation so the pre-work hold reserves `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`. The new server route and corrected mock helpers create only local in-memory wallet/reservation state for the hold; they do not write reservation ledger entries, run settlement, spend/release/refund credits, call providers, run render/export, unlock export, start checkout/top-up, write Supabase, or wire live billing/Stripe behavior. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.

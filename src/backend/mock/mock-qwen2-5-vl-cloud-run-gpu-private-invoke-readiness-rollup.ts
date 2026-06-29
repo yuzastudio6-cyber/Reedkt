@@ -67,6 +67,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_ADOPTED_LOCAL_V
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-remote-satisfaction-review'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_EXECUTION_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-execution-result'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_RESULT_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-result-review'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -139,6 +140,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_smoke_plan_required'
   | 'blocked_controlled_persisted_worker_dispatch_smoke_execution_required'
   | 'blocked_controlled_persisted_worker_dispatch_smoke_result_review_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_plan_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -155,7 +157,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_smoke_executed_result_review_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_smoke_result_review_accepted_runtime_plan_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -296,6 +298,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN.decision,
   upstreamControlledPersistedWorkerDispatchSmokeExecutionDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_EXECUTION_RESULT.decision,
+  upstreamControlledPersistedWorkerDispatchSmokeResultReviewDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_RESULT_REVIEW.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1147,14 +1151,25 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'controlled_persisted_worker_dispatch_smoke_result_review',
       label: 'Controlled persisted worker dispatch smoke result review',
-      status: 'blocked_controlled_persisted_worker_dispatch_smoke_result_review_required',
+      status: 'ready',
       evidence: [
         'Controlled persisted worker dispatch smoke execution produced deterministic mock-only result evidence.',
         'All real runtime, Cloud Run, inference, Supabase, generated asset, signed URL, credit, beta, and production side-effect gates remain false.',
+        'Controlled persisted worker dispatch smoke result review accepts the smoke evidence and keeps real worker dispatch blocked.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_plan',
+      label: 'Controlled persisted worker dispatch runtime plan',
+      status: 'blocked_controlled_persisted_worker_dispatch_runtime_plan_required',
+      evidence: [
+        'Controlled persisted worker dispatch smoke result review is accepted.',
+        'The next gate must define exact runtime preconditions before any real persisted worker dispatch attempt.',
       ],
       missingEvidence: [
-        'Review and accept the controlled persisted worker dispatch smoke result before any real worker dispatch readiness claim.',
-        'Define the next approved gate while keeping Cloud Run invocation, Qwen inference, generated assets, signed URLs, beta, and production blocked.',
+        'Plan the controlled persisted Qwen worker dispatch runtime path, including backend-only lease/claim mutation, service-role boundaries, private invoke envelope handling, source-of-truth refs, idempotency, QA/audit/cost evidence, and rollback/fail-closed behavior.',
+        'Keep Cloud Run invocation, Qwen inference, generated assets, signed URLs, beta, and production blocked until later approved execution gates.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -1533,7 +1548,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     controlledPersistedWorkerDispatchSmokeExecutionRequired: false,
     controlledPersistedWorkerDispatchSmokeExecuted: true,
     controlledPersistedWorkerDispatchSmokePassed: true,
-    controlledPersistedWorkerDispatchSmokeResultReviewRequired: true,
+    controlledPersistedWorkerDispatchSmokeResultReviewRequired: false,
+    controlledPersistedWorkerDispatchSmokeResultReviewRecorded: true,
+    controlledPersistedWorkerDispatchSmokeResultReviewAccepted: true,
+    controlledPersistedWorkerDispatchRuntimePlanRequired: true,
     mockQueueFixtureValidated: true,
     mockCoordinatorDefaultPathExecuted: true,
     mockCoordinatorAdapterPreviewPathExecuted: true,
@@ -1580,11 +1598,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_smoke_result_review_required',
+    'controlled_persisted_worker_dispatch_runtime_plan_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58BM-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-RESULT-REVIEW: review controlled persisted Qwen worker dispatch smoke result, no Cloud Run invocation/no inference/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58BN-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-PLAN: plan controlled persisted Qwen worker dispatch runtime, no Cloud Run invocation/no inference/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

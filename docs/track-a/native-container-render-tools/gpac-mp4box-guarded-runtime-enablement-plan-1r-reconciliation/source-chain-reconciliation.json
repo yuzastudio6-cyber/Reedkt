@@ -1,0 +1,19 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1R",
+  "sourceChainStatus": "post_1658_source_chain_reconciled",
+  "requiredEvidence": [
+    "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1",
+    "TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1",
+    "TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1",
+    "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-NEGATIVE-TESTS-1",
+    "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1"
+  ],
+  "mergeShas": {
+    "guardedRuntimeEnablementPlan1": "fd44ba5c394cf6fa61856f4c66c16d0509b70f6a",
+    "disabledRuntimeScaffold1": "9f3d7afc8eb33d93bae0c8728e2666ffbcccceeb",
+    "executableHandlerScaffoldNegativeTests1": "ec9d2d70ea90ffdbfe431d94f715066614efb15b",
+    "executableHandlerRuntimeEnablementReview1": "719b8690358d199e723db7fca1dc137b84ca2237"
+  },
+  "duplicatePlanPolicy": "do_not_recreate_tracka_gpac_mp4box_guarded_runtime_enablement_plan_1",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-CURRENT-RUNTIME-GATE-READINESS-ROLLUP-1"
+}

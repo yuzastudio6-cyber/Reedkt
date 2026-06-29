@@ -37,10 +37,26 @@ const statusFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
 ]
 
+const reconciliationFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1r-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/runtime-boundary.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/runtime-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/source-chain-reconciliation.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/source-chain-reconciliation.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan-1r-reconciliation/validation-results.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-1r-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...priorFiles,
   ...statusFiles,
+  ...reconciliationFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-runtime-enablement-review-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1.md',
   'package.json',

@@ -46,6 +46,7 @@ export interface RunProductionToolReadinessResult {
 }
 
 const launchCoreRequirementsPath = 'server/workers/sound-cpu/requirements.launch-core.txt'
+const soundCpuDockerfilePath = 'server/workers/sound-cpu/Dockerfile'
 const manifestBackedPythonPackages = new Map<ProductionToolId, string>([
   ['pyav', 'av==17.1.0'],
   ['pyscenedetect', 'scenedetect==0.7'],
@@ -57,6 +58,11 @@ const manifestBackedPythonPackages = new Map<ProductionToolId, string>([
 const manifestBackedNodePackages = new Map<ProductionToolId, [string, string]>([
   ['sharp', ['sharp', '0.35.2']],
   ['remotion', ['remotion', '4.0.484']],
+])
+const dockerfileBackedSystemPackages = new Map<ProductionToolId, string[]>([
+  ['ffmpeg', ['ffmpeg']],
+  ['ffprobe', ['ffmpeg']],
+  ['libass', ['libass9', 'fontconfig', 'fonts-dejavu-core']],
 ])
 const sourceInstallReviewedToolIds = new Set<ProductionToolId>([
   'duckdb',
@@ -77,6 +83,11 @@ const pendingManualReviewClosedToolIds = new Set<ProductionToolId>([
   'opencv',
   'sharp',
   'remotion',
+])
+const dockerfileBackedStaticReviewClosedToolIds = new Set<ProductionToolId>([
+  'ffmpeg',
+  'ffprobe',
+  'libass',
 ])
 const internalPreviewBoundaryWarningToolIds = new Set<ProductionToolId>([
   'hyperframe',
@@ -141,10 +152,30 @@ function buildManifestBackedToolSet(): Set<ProductionToolId> {
   return backedToolIds
 }
 
+function packageNamePattern(packageName: string): RegExp {
+  const escaped = packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`\\b${escaped}\\b`)
+}
+
+function buildDockerfileBackedToolSet(): Set<ProductionToolId> {
+  const backedToolIds = new Set<ProductionToolId>()
+  if (!existsSync(soundCpuDockerfilePath)) return backedToolIds
+
+  const dockerfile = readFileSync(soundCpuDockerfilePath, 'utf8')
+  for (const [toolId, packageNames] of dockerfileBackedSystemPackages) {
+    if (packageNames.every((packageName) => packageNamePattern(packageName).test(dockerfile))) {
+      backedToolIds.add(toolId)
+    }
+  }
+
+  return backedToolIds
+}
+
 function dryRunStatusForTool(
   specToolId: ProductionToolId,
   specStatus: ProductionReadinessStatus,
   manifestBackedToolIds: Set<ProductionToolId>,
+  dockerfileBackedToolIds: Set<ProductionToolId>,
 ): ProductionReadinessStatus {
   const baseStatus = dryRunStatusForSpec(specStatus)
   if (internalPreviewBoundaryWarningToolIds.has(specToolId)) return 'warning'
@@ -158,10 +189,21 @@ function dryRunStatusForTool(
     }
     return 'source_install_review_required'
   }
+  if (
+    dockerfileBackedToolIds.has(specToolId) &&
+    (baseStatus === 'missing' || baseStatus === 'not_installed')
+  ) {
+    if (dockerfileBackedStaticReviewClosedToolIds.has(specToolId)) return 'warning'
+    return 'source_install_review_required'
+  }
   return baseStatus
 }
 
-function buildDryRunWarnings(specToolId: ProductionToolId, manifestBackedToolIds: Set<ProductionToolId>): string[] {
+function buildDryRunWarnings(
+  specToolId: ProductionToolId,
+  manifestBackedToolIds: Set<ProductionToolId>,
+  dockerfileBackedToolIds: Set<ProductionToolId>,
+): string[] {
   const profile = getProductionToolProfile(specToolId)
   const warnings = [
     'Dry-run readiness does not execute command version checks, Python imports, Node imports, media tools, or model downloads.',
@@ -174,6 +216,14 @@ function buildDryRunWarnings(specToolId: ProductionToolId, manifestBackedToolIds
       warnings.push(sourceInstallReviewedToolIds.has(specToolId)
         ? 'Persistent launch-core manifest source passed source-install review; static readiness records pending_manual_review until runtime policy closes.'
         : 'Persistent launch-core manifest source exists; static readiness records source_install_review_required until runtime/install policy closes.')
+    }
+  }
+
+  if (dockerfileBackedToolIds.has(specToolId)) {
+    if (dockerfileBackedStaticReviewClosedToolIds.has(specToolId)) {
+      warnings.push('SOUND CPU Dockerfile system-package declaration, static validation, and owner review passed; static readiness records warning until controlled command proof, media policy, and runtime policy close.')
+    } else {
+      warnings.push('SOUND CPU Dockerfile system-package declaration exists; static readiness records source_install_review_required until static validation and owner review close.')
     }
   }
 
@@ -212,17 +262,23 @@ export function runProductionToolReadiness(
 
   const checkedAt = new Date().toISOString()
   const manifestBackedToolIds = buildManifestBackedToolSet()
+  const dockerfileBackedToolIds = buildDockerfileBackedToolSet()
   const results: ProductionToolReadinessResult[] = specs.map((spec) => ({
     toolId: spec.toolId,
     displayName: spec.displayName,
-    status: dryRunStatusForTool(spec.toolId, spec.readinessStatusWhenMissing, manifestBackedToolIds),
+    status: dryRunStatusForTool(
+      spec.toolId,
+      spec.readinessStatusWhenMissing,
+      manifestBackedToolIds,
+      dockerfileBackedToolIds,
+    ),
     dryRun: true,
     commandChecks: spec.commandChecks,
     pythonImportChecks: spec.pythonImportChecks,
     nodePackageChecks: spec.nodePackageChecks,
     modelWeightChecks: spec.modelWeightChecks,
     environmentChecks: spec.environmentChecks,
-    warnings: buildDryRunWarnings(spec.toolId, manifestBackedToolIds),
+    warnings: buildDryRunWarnings(spec.toolId, manifestBackedToolIds, dockerfileBackedToolIds),
     blocksProduction: spec.blocksProductionIfMissing,
     checkedAt,
   }))

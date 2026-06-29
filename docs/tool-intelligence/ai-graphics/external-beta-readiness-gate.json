@@ -31,11 +31,20 @@
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "defaultExternalBetaReadyWithProvidedEvidenceTools": 0,
     "overrideFlagExternalBetaReadyWithProvidedEvidenceTools": 0,
+    "prebuiltAdmissionBundleExternalBetaReadyWithProvidedEvidenceTools": 0,
     "admissionBundleExternalBetaReadyWithProvidedEvidenceTools": 21,
     "workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "externalBetaBlockedNowTools": 21,
     "productionReadyNowTools": 0
+  },
+  "sourceAdmissionRequirements": {
+    "externalBetaEvidenceAdmissionBundleMustUseSourceProofPackets": true,
+    "requiredTechnicalEvidenceSourceMode": "source_proof_packets",
+    "sourceTechnicalProofPacketsRequired": true,
+    "sourceTechnicalProofPacketsProvided": true,
+    "sourceTechnicalProofPacketsAccepted": true,
+    "prebuiltBetaEvidenceSummaryRejectedForReadiness": true
   },
   "requiredExternalBetaGates": [
     "all 21 tools properly installed for the planned ReeditPro surface",

@@ -175,9 +175,16 @@ function normalizeEvidence(
       AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION &&
     admissionBundle.status ===
       'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked' &&
+    admissionBundle.technicalEvidenceSourceMode === 'source_proof_packets' &&
     admissionBundle.externalBetaAdmissionCandidateToolsWithProvidedEvidence === 21 &&
+    admissionBundle.sourceTechnicalProofPacketsRequired === true &&
+    admissionBundle.sourceTechnicalProofPacketsProvided === true &&
+    admissionBundle.sourceTechnicalProofPacketsAccepted === true &&
     admissionBundle.externalBetaReadyNowTools === 0 &&
     admissionBundle.productionReadyNowTools === 0 &&
+    admissionBundle.booleans.sourceTechnicalProofPacketsRequiredForAdmission === true &&
+    admissionBundle.booleans.sourceTechnicalProofPacketsProvided === true &&
+    admissionBundle.booleans.sourceTechnicalProofPacketsAcceptedForAdmission === true &&
     admissionBundle.booleans.externalBetaAdmissionCandidateWithProvidedEvidence === true &&
     admissionBundle.booleans.agentCanExecuteToolsNow === false &&
     admissionBundle.booleans.externalBetaReadyNow === false &&

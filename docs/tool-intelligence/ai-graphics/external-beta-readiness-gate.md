@@ -20,14 +20,15 @@ This gate is the product-facing external-beta checkpoint for the 21 AI graphics 
 
 - Default evidence keeps `0` of `21` tools external-beta ready.
 - Override flags and a standalone external-beta evidence packet keep `0` of `21` tools external-beta ready.
-- An accepted external-beta evidence admission bundle plus accepted worker-dispatch smoke proof can make `21` of `21` tools external-beta candidates with provided evidence, but that still does not mark tools ready now.
+- A prebuilt beta-evidence summary does not count for this readiness gate unless the admission bundle was built in strict source-proof mode.
+- An accepted source-proof external-beta evidence admission bundle plus accepted worker-dispatch smoke proof can make `21` of `21` tools external-beta candidates with provided evidence, but that still does not mark tools ready now.
 - Current runtime, worker, route, provider/model, browser/WebGL/canvas, GPU/model, public artifact, signed URL, internal beta, external beta, and production gates remain false.
 
 ## External-Beta Evidence Packet
 
 The readiness gate can consume `--external-beta-evidence-packet` from `ai-graphics:external-beta-evidence-packet:validate`. That packet accepts only private/backend/owner evidence refs for internal runtime soak, external QA, cost/concurrency/privacy/rollback, incident response, and external-beta owner approval. Public URLs, signed URL refs, public artifact refs, and raw HTTP refs are rejected before the readiness gate can count a tool as an external-beta candidate with provided evidence.
 
-The readiness gate must consume `--external-beta-evidence-admission-bundle` from `ai-graphics:external-beta-evidence-admission-bundle` and `--external-beta-worker-dispatch-smoke-proof` from `ai-graphics:external-beta-worker-dispatch-smoke-proof` before it can count external-beta candidates with provided evidence. The admission bundle joins all-21 technical proof with private/backend external-beta evidence refs. The dispatch-smoke proof accepts the queue-to-worker handoff shape only when all 21 in-memory worker leases are created and released with no live worker dispatch, no tool execution, no GPU startup, and no public artifacts.
+The readiness gate must consume `--external-beta-evidence-admission-bundle` from `ai-graphics:external-beta-evidence-admission-bundle` and `--external-beta-worker-dispatch-smoke-proof` from `ai-graphics:external-beta-worker-dispatch-smoke-proof` before it can count external-beta candidates with provided evidence. The admission bundle must report `technicalEvidenceSourceMode: source_proof_packets`, `sourceTechnicalProofPacketsRequired: true`, `sourceTechnicalProofPacketsProvided: true`, and `sourceTechnicalProofPacketsAccepted: true`; a prebuilt summary-only admission bundle is rejected for readiness. The dispatch-smoke proof accepts the queue-to-worker handoff shape only when all 21 in-memory worker leases are created and released with no live worker dispatch, no tool execution, no GPU startup, and no public artifacts.
 
 ## Required External-Beta Gates
 

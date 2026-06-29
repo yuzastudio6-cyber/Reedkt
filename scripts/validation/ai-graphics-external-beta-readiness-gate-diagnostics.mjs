@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const scriptName = 'ai-graphics:external-beta-readiness-gate:diagnostics'
@@ -313,6 +315,10 @@ for (const needle of [
   'externalBetaEvidencePacket',
   'externalBetaEvidenceAdmissionBundle',
   'externalBetaWorkerDispatchSmokeProof',
+  'technicalEvidenceSourceMode ===',
+  'sourceTechnicalProofPacketsRequired === true',
+  'sourceTechnicalProofPacketsProvided === true',
+  'sourceTechnicalProofPacketsAccepted === true',
   'AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION',
   'AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION',
   'externalBetaEvidenceAdmissionBundleAccepted',
@@ -354,6 +360,9 @@ if (docs.counts?.defaultExternalBetaReadyWithProvidedEvidenceTools !== 0) {
 if (docs.counts?.overrideFlagExternalBetaReadyWithProvidedEvidenceTools !== 0) {
   fail('docs_override_flag_external_beta_ready_with_evidence_not_0')
 }
+if (docs.counts?.prebuiltAdmissionBundleExternalBetaReadyWithProvidedEvidenceTools !== 0) {
+  fail('docs_prebuilt_admission_bundle_ready_with_evidence_not_0')
+}
 if (docs.counts?.admissionBundleExternalBetaReadyWithProvidedEvidenceTools !== 21) {
   fail('docs_admission_bundle_external_beta_ready_with_evidence_not_21')
 }
@@ -365,6 +374,15 @@ if (docs.counts?.externalBetaBlockedNowTools !== 21) fail('docs_external_beta_bl
 if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_ready_now_not_0')
 if (evidencePacketDocs.counts?.fullEvidenceRecordsAcceptedWithProvidedEvidence !== 21) {
   fail('evidence_packet_full_records_not_21')
+}
+if (docs.sourceAdmissionRequirements?.externalBetaEvidenceAdmissionBundleMustUseSourceProofPackets !== true) {
+  fail('docs_source_admission_requirement_missing')
+}
+if (docs.sourceAdmissionRequirements?.requiredTechnicalEvidenceSourceMode !== 'source_proof_packets') {
+  fail(`docs_required_source_mode_unexpected:${docs.sourceAdmissionRequirements?.requiredTechnicalEvidenceSourceMode}`)
+}
+if (docs.sourceAdmissionRequirements?.prebuiltBetaEvidenceSummaryRejectedForReadiness !== true) {
+  fail('docs_prebuilt_summary_not_rejected_for_readiness')
 }
 
 for (const key of [
@@ -452,6 +470,14 @@ const betaEvidenceBundlePath = writeJson(
   path.join(tempRoot, 'accepted-beta-evidence-bundle.json'),
   acceptedBetaEvidenceBundleFixture(),
 )
+const modelWeightManifestReviewPacketPath = writeJson(
+  path.join(tempRoot, 'model-weight-manifest-review-packet.json'),
+  acceptedModelWeightManifestReviewPacket(),
+)
+const gpuRuntimeProofResultPacketPath = writeJson(
+  path.join(tempRoot, 'gpu-runtime-proof-result-packet.json'),
+  acceptedGpuRuntimeProofResultPacket(),
+)
 const fullEvidenceRecordsPath = path.join(tempRoot, 'full-external-beta-evidence-records.json')
 const fullEvidencePacketPath = path.join(tempRoot, 'full-external-beta-evidence-packet.json')
 fs.writeFileSync(
@@ -467,11 +493,26 @@ fs.writeFileSync(
 const admissionBundlePath = writeJson(
   path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
   parseJsonOutput(runNpm(admissionBundleScriptName, [
+    '--require-source-proof-packets',
+    '--all-shared-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--use-committed-js-runtime-proofs',
+    '--model-weight-manifest-review-packet',
+    modelWeightManifestReviewPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuRuntimeProofResultPacketPath,
+    '--external-beta-evidence-packet',
+    fullEvidencePacketPath,
+  ]), 'external_beta_evidence_admission_bundle'),
+)
+const prebuiltAdmissionBundlePath = writeJson(
+  path.join(tempRoot, 'prebuilt-external-beta-evidence-admission-bundle.json'),
+  parseJsonOutput(runNpm(admissionBundleScriptName, [
     '--beta-evidence-bundle-packet',
     betaEvidenceBundlePath,
     '--external-beta-evidence-packet',
     fullEvidencePacketPath,
-  ]), 'external_beta_evidence_admission_bundle'),
+  ]), 'prebuilt_external_beta_evidence_admission_bundle'),
 )
 const workerDispatchReadinessPath = writeJson(
   path.join(tempRoot, 'worker-dispatch-readiness.json'),
@@ -590,7 +631,31 @@ if (admissionBundleFedOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProo
   fail('admission_bundle_fed_worker_dispatch_smoke_proof_not_accepted')
 }
 
-for (const output of [defaultOutput, overrideFlagOutput, packetFedOutput, admissionBundleFedOutput]) {
+const prebuiltAdmissionBundleFedOutput = parseJsonOutput(runEvaluator([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--external-beta-evidence-admission-bundle',
+  prebuiltAdmissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+]), 'external_beta_prebuilt_admission_bundle_fed_evidence')
+if (prebuiltAdmissionBundleFedOutput.externalBetaReadyWithProvidedEvidenceTools !== 0) {
+  fail('prebuilt_admission_bundle_unexpectedly_ready_with_evidence')
+}
+if (prebuiltAdmissionBundleFedOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== false) {
+  fail('prebuilt_admission_bundle_unexpectedly_accepted')
+}
+
+for (const output of [
+  defaultOutput,
+  overrideFlagOutput,
+  packetFedOutput,
+  admissionBundleFedOutput,
+  prebuiltAdmissionBundleFedOutput,
+]) {
   for (const tool of allTools) {
     const row = output.tools?.find((entry) => entry.toolId === tool)
     if (!row) fail(`output_missing_tool:${tool}`)

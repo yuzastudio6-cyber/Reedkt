@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -627,12 +629,26 @@ const betaEvidenceBundlePath = writeJson(
   path.join(tempRoot, 'accepted-beta-evidence-bundle.json'),
   acceptedBetaEvidenceBundleFixture(),
 )
+const modelWeightManifestReviewPacketPath = writeJson(
+  path.join(tempRoot, 'model-weight-manifest-review-packet.json'),
+  acceptedModelWeightManifestReviewPacket(),
+)
+const gpuRuntimeProofResultPacketPath = writeJson(
+  path.join(tempRoot, 'gpu-runtime-proof-result-packet.json'),
+  acceptedGpuRuntimeProofResultPacket(),
+)
 const admissionBundlePath = writeJson(
   path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
   parseJsonOutput(
     runNpm(admissionBundleScriptName, [
-      '--beta-evidence-bundle-packet',
-      betaEvidenceBundlePath,
+      '--require-source-proof-packets',
+      '--all-shared-gates-passed',
+      '--browser-canvas-webgl-sandbox-passed',
+      '--use-committed-js-runtime-proofs',
+      '--model-weight-manifest-review-packet',
+      modelWeightManifestReviewPacketPath,
+      '--gpu-runtime-proof-result-packet',
+      gpuRuntimeProofResultPacketPath,
       '--external-beta-evidence-packet',
       fullPacketPath,
     ]),

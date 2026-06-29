@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 
 const runScriptName = 'ai-graphics:external-beta-end-to-end-readiness'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-end-to-end-readiness.ts'
@@ -628,6 +630,16 @@ fs.writeFileSync(
   betaEvidenceBundlePath,
   `${JSON.stringify(acceptedBetaEvidenceBundleFixture(), null, 2)}\n`,
 )
+const modelWeightManifestReviewPacketPath = path.join(tmpDir, 'model-weight-manifest-review-packet.json')
+fs.writeFileSync(
+  modelWeightManifestReviewPacketPath,
+  `${JSON.stringify(acceptedModelWeightManifestReviewPacket(), null, 2)}\n`,
+)
+const gpuRuntimeProofResultPacketPath = path.join(tmpDir, 'gpu-runtime-proof-result-packet.json')
+fs.writeFileSync(
+  gpuRuntimeProofResultPacketPath,
+  `${JSON.stringify(acceptedGpuRuntimeProofResultPacket(), null, 2)}\n`,
+)
 const externalBetaEvidenceRecordsPath = path.join(tmpDir, 'external-beta-evidence-records.json')
 fs.writeFileSync(
   externalBetaEvidenceRecordsPath,
@@ -645,8 +657,14 @@ fs.writeFileSync(
 const externalBetaEvidenceAdmissionBundle = runNpm(
   'ai-graphics:external-beta-evidence-admission-bundle',
   [
-    '--beta-evidence-bundle-packet',
-    betaEvidenceBundlePath,
+    '--require-source-proof-packets',
+    '--all-shared-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--use-committed-js-runtime-proofs',
+    '--model-weight-manifest-review-packet',
+    modelWeightManifestReviewPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuRuntimeProofResultPacketPath,
     '--external-beta-evidence-packet',
     externalBetaEvidencePacketPath,
   ],

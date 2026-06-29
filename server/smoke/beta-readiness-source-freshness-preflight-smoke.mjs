@@ -78,6 +78,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-owner-approval-packet.mjs',
     'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
     'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
+    'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
   ],
   resolveGit: false,
 })
@@ -86,6 +87,7 @@ assert.equal(metadataOnly.readyForDeployedEvidenceInputManifest, true)
 assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift')
 assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
 assert.deepEqual(metadataOnly.valueGaps, [])
 
 const runtimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {

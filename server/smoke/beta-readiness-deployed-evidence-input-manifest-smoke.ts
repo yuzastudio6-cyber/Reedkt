@@ -4,7 +4,8 @@ import {
   type BetaReadinessDeployedEvidenceInputManifestEnv,
 } from '../cli/beta-readiness-deployed-evidence-input-manifest'
 
-const expectedCurrentSourceSha = 'a1943442b794f7ae5216adf501a617a9f4478185'
+const expectedLocalEvidenceSourceSha = 'a1943442b794f7ae5216adf501a617a9f4478185'
+const expectedDeployedSourceSha = '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'
 const expectedCoreToolIds = [
   'ffmpeg',
   'ffprobe',
@@ -28,12 +29,19 @@ assert.equal(emptyManifest.readyToRunExternalBetaEvidenceCollector, false, 'empt
 assert.equal(emptyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
 assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 14)
 assert.equal(emptyManifest.sourceTruth.currentSourceSha, undefined)
-assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedCurrentSourceSha)
+assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedLocalEvidenceSourceSha)
+assert.deepEqual(emptyManifest.sourceTruth.trackBToolTotals, {
+  owned: 16,
+  boundedAcceptedProven: 16,
+  blockedNotInstalledProven: 0,
+  productReady: 0,
+})
 assert.deepEqual([...emptyManifest.sourceTruth.coreToolIds].sort(), [...expectedCoreToolIds].sort())
 assert.deepEqual(emptyManifest.sourceTruth.libassToolIds, ['libass'])
 assert.equal(emptyManifest.fixedInputs.libassMode, 'docker')
 assert.equal(emptyManifest.fixedInputs.libassContainerImage, expectedLibassImage)
-assert.equal(emptyManifest.fixedInputs.requiredProductReadyLocalOssCount, 14)
+assert.equal(emptyManifest.fixedInputs.requiredBoundedAcceptedToolCount, 16)
+assert.equal(emptyManifest.fixedInputs.requiredProductReadyLocalOssCount, 0)
 assert.equal(emptyManifest.fixedInputs.platformEnvironment, 'staging')
 assert.equal(emptyManifest.fixedInputs.externalBetaReadyRequired, true)
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL'))
@@ -54,26 +62,25 @@ const readyEnv: BetaReadinessDeployedEvidenceInputManifestEnv = {
   REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN: 'secret-token-not-reported',
   REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID: 'workspace-deployed-evidence-input-manifest-smoke',
   REEDITPRO_BETA_EXTERNAL_PROJECT_ID: 'project-deployed-evidence-input-manifest-smoke',
-  REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA: expectedCurrentSourceSha,
-  REEDITPRO_BETA_EXTERNAL_SOURCE_SHA: expectedCurrentSourceSha,
+  REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA: expectedDeployedSourceSha,
+  REEDITPRO_BETA_EXTERNAL_SOURCE_SHA: expectedDeployedSourceSha,
   REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE: 'true',
   REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'tool-core-idempotency-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'tool-libass-idempotency-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'beta-tools-current-source-local-accepted-evidence-bundle',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA: expectedCurrentSourceSha,
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA: expectedLocalEvidenceSourceSha,
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS: expectedCoreToolIds.join(','),
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '14',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT: '16',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '0',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE: 'docker',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE: expectedLibassImage,
-  REEDITPRO_BETA_PLATFORM_SOURCE_SHA: expectedCurrentSourceSha,
+  REEDITPRO_BETA_PLATFORM_SOURCE_SHA: expectedDeployedSourceSha,
   REEDITPRO_BETA_PLATFORM_IDEMPOTENCY_KEY: 'platform-idempotency-smoke',
   REEDITPRO_BETA_PLATFORM_ENVIRONMENT: 'staging',
   REEDITPRO_BETA_PLATFORM_ALLOW_PERSISTENT_PROBE_WRITES: 'true',
@@ -96,7 +103,7 @@ const readyEnv: BetaReadinessDeployedEvidenceInputManifestEnv = {
   REEDITPRO_BETA_PLATFORM_MONITORING_EVIDENCE: 'Monitoring dashboard and alert routing verified for staging.',
   REEDITPRO_BETA_PLATFORM_BILLING_QA_VERIFIED: 'true',
   REEDITPRO_BETA_PLATFORM_BILLING_QA_EVIDENCE: 'Billing QA verified staged evidence only.',
-  REEDITPRO_BETA_LAUNCH_SOURCE_SHA: expectedCurrentSourceSha,
+  REEDITPRO_BETA_LAUNCH_SOURCE_SHA: expectedDeployedSourceSha,
   REEDITPRO_BETA_LAUNCH_IDEMPOTENCY_KEY: 'launch-idempotency-smoke',
   REEDITPRO_BETA_LAUNCH_CONFIRM_EXTERNAL_BETA_APPROVAL: 'true',
   REEDITPRO_BETA_LAUNCH_APPROVE_DEPLOYMENT: 'true',
@@ -118,6 +125,9 @@ const readyEnv: BetaReadinessDeployedEvidenceInputManifestEnv = {
 const readyManifest = buildBetaReadinessDeployedEvidenceInputManifest(readyEnv)
 assert.equal(readyManifest.readyToRunExternalBetaEvidenceCollector, true, 'complete env should be ready to run collector')
 assert.equal(readyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_to_run_external_beta_evidence_collector')
+assert.equal(readyManifest.sourceTruth.currentSourceSha, expectedDeployedSourceSha)
+assert.equal(readyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedLocalEvidenceSourceSha)
+assert.equal(readyManifest.sourceTruth.currentSourceDerivedFromSnapshot, true)
 assert.deepEqual(readyManifest.pendingRequiredInputs, [])
 assert.deepEqual(readyManifest.valueGaps, [])
 assert.deepEqual(readyManifest.secretLikeInputPaths, [])
@@ -143,11 +153,27 @@ assert.ok(
   'manifest must require exact accepted core tool set',
 )
 
+const wrongProductReadyManifest = buildBetaReadinessDeployedEvidenceInputManifest({
+  ...readyEnv,
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '16',
+})
+assert.equal(wrongProductReadyManifest.readyToRunExternalBetaEvidenceCollector, false)
+assert.ok(
+  wrongProductReadyManifest.valueGaps.some((gap) => gap.includes('ACCEPT_PRODUCT_READY_LOCAL_OSS')),
+  'manifest must reject product-ready tool acceptance in the bounded external-beta evidence lane',
+)
+assert.ok(
+  wrongProductReadyManifest.valueGaps.some((gap) => gap.includes('REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT')),
+  'manifest must keep product-ready local OSS count at 0',
+)
+
 console.log(JSON.stringify({
   ok: true,
   emptyReady: emptyManifest.readyToRunExternalBetaEvidenceCollector,
   readyDecision: readyManifest.decision,
-  locallyAcceptedToolCount: readyManifest.sourceTruth.locallyAcceptedToolCount,
+  boundedAcceptedToolCount: readyManifest.sourceTruth.trackBToolTotals.boundedAcceptedProven,
+  productReadyLocalOssCount: readyManifest.sourceTruth.trackBToolTotals.productReady,
   pendingRequiredInputs: emptyManifest.pendingRequiredInputs.length,
   remainingBlockedScopes: readyManifest.remainingBlockedScopes,
 }, null, 2))

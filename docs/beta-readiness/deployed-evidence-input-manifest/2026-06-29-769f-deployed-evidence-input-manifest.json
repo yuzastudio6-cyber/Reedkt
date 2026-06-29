@@ -51,6 +51,29 @@
   "manifestResult": null,
   "readyToRunExternalBetaEvidenceCollector": false,
   "pendingRequiredOwnerInputCount": 29,
+  "trackBToolBoundary": {
+    "ownedToolCount": 16,
+    "boundedAcceptedProvenToolCount": 16,
+    "blockedNotInstalledProvenToolCount": 0,
+    "productReadyLocalOssCount": 0,
+    "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json",
+    "localAcceptedEvidenceBundleSourceSha": "a1943442b794f7ae5216adf501a617a9f4478185",
+    "legacyLocalAcceptedEvidenceToolCount": 14,
+    "deployedEvidenceRequiredBoundedAcceptedToolCount": 16,
+    "deployedEvidenceRequiredProductReadyLocalOssCount": 0,
+    "boundedAcceptedEvidenceEnv": [
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT=16",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0"
+    ],
+    "forbiddenToolEvidenceClaims": [
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true"
+    ]
+  },
   "blockedScopeConfirmations": {
     "externalBetaEnabled": false,
     "realUserMediaBetaEnabled": false,

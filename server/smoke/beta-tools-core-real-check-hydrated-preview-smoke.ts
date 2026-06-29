@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   runBetaToolsCoreRealCheckHydratedPreview,
   type BetaToolsCoreRealCheckHydratedPreviewEnv,
@@ -28,6 +30,7 @@ const missingReport = runBetaToolsCoreRealCheckHydratedPreview({
 assert.equal(missingReport.ok, false, 'missing hydrated Python should fail closed')
 assert.equal(missingReport.previewOnly, true, 'missing hydrated Python report should still be preview-only')
 assert.equal(missingReport.hydratedPythonReady, false, 'missing hydrated Python should not be ready')
+assert.equal(missingReport.readinessBinIncludedInPath, false, 'missing readiness bin should not be included in PATH')
 assert.equal(missingReport.setupCommand, 'npm run tools:readiness:install-core-python', 'missing hydrated Python should name setup command')
 assert.ok(missingReport.warnings.some((warning) => warning.includes('Hydrated readiness Python is missing')), 'missing hydrated Python should be named')
 assert.equal(missingReport.previewReport, undefined, 'missing hydrated Python should not run the underlying preview')
@@ -36,18 +39,25 @@ const pythonPath = findPythonPath()
 let hydratedPassRan = false
 
 if (pythonPath) {
+  const readinessBinDir = mkdtempSync(join(tmpdir(), 'reeditpro-readiness-bin-smoke-'))
+  const previousPath = process.env.PATH
   const readyReport = runBetaToolsCoreRealCheckHydratedPreview({
     ...baseEnv,
     REEDITPRO_READINESS_PYTHON_BIN: pythonPath,
+    REEDITPRO_BETA_TOOLS_PREVIEW_READINESS_BIN_DIR: readinessBinDir,
   })
+  rmSync(readinessBinDir, { recursive: true, force: true })
   hydratedPassRan = true
   assert.equal(readyReport.previewOnly, true, 'hydrated preview report should be preview-only')
   assert.equal(readyReport.hydratedPythonReady, true, 'existing Python should satisfy hydration gate')
   assert.equal(readyReport.hydratedPythonSource, 'env_override', 'explicit Python should be reported as an override')
+  assert.equal(readyReport.readinessBinPath, readinessBinDir, 'hydrated preview should report the readiness bin path')
+  assert.equal(readyReport.readinessBinIncludedInPath, true, 'existing readiness bin should be included in PATH')
   assert.ok(readyReport.previewReport, 'hydrated preview should include the underlying preview report')
   assert.equal(readyReport.previewReport?.ok, true, 'scoped Hyperframe hydrated preview should pass')
   assert.deepEqual(readyReport.previewReport?.acceptedToolIds, ['hyperframe'], 'hydrated preview should accept scoped Hyperframe metadata evidence')
   assert.equal(readyReport.previewReport?.previewOnly, true, 'underlying preview should remain preview-only')
+  assert.equal(process.env.PATH, previousPath, 'hydrated preview should restore PATH after running')
   assert.equal(
     process.env.REEDITPRO_READINESS_PYTHON_BIN,
     undefined,

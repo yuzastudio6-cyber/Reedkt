@@ -6,8 +6,8 @@ import {
 } from '../cli/beta-readiness-owner-approval-collection-handoff.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
-const jsonPath = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.json'
-const markdownPath = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.md'
+const jsonPath = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-aa49-owner-approval-collection-handoff.json'
+const markdownPath = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-aa49-owner-approval-collection-handoff.md'
 const staticJson = JSON.parse(readFileSync(jsonPath, 'utf8'))
 const staticMarkdown = readFileSync(markdownPath, 'utf8')
 const handoff = buildBetaReadinessOwnerApprovalCollectionHandoff()
@@ -25,12 +25,12 @@ assert.equal(
 
 assert.equal(handoff.ok, true)
 assert.equal(handoff.decision, 'beta_readiness_owner_approval_collection_handoff_passed_ready_for_owner_input_collection')
-assert.equal(handoff.sourceTruth.sourceSha, 'ba5bc11778db7c3e2efd6b56941949f64b2c9684')
-assert.equal(handoff.sourceTruth.deployedEvidenceSourceSha, '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127')
-assert.equal(handoff.sourceTruth.apiRevision, 'reeditpro-api-staging-00012-ncd')
+assert.equal(handoff.sourceTruth.sourceSha, '8f5946c12d983abb6fb6e9eca020b9b260848706')
+assert.equal(handoff.sourceTruth.deployedEvidenceSourceSha, 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67')
+assert.equal(handoff.sourceTruth.apiRevision, 'reeditpro-api-staging-00013-jv9')
 assert.equal(handoff.sourceTruth.sourceFreshnessDecision, 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift')
 assert.equal(handoff.sourceTruth.currentDeployedEvidenceManifestDecision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
-assert.equal(handoff.sourceTruth.detailedOwnerGapDecision, 'beta_deployed_evidence_input_manifest_blocked_only_by_owner_approvals_and_attestations')
+assert.equal(handoff.sourceTruth.detailedOwnerGapDecision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
 assert.deepEqual(handoff.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -74,11 +74,11 @@ assert.equal(staticJson.ownerApprovalState.pendingRequiredInputCount, handoff.ow
 assert.equal(staticJson.scopedBlockerForwardProgressPolicy.intentionalBlanketBlocksAllowed, false)
 
 assert.ok(staticMarkdown.includes(handoff.decision))
-assert.ok(staticMarkdown.includes('ba5bc11778db7c3e2efd6b56941949f64b2c9684'))
-assert.ok(staticMarkdown.includes('769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'))
+assert.ok(staticMarkdown.includes('8f5946c12d983abb6fb6e9eca020b9b260848706'))
+assert.ok(staticMarkdown.includes('aa49cef9ed6dad971f0163ea80ebb34de0e65d67'))
 assert.ok(staticMarkdown.includes('Pending owner inputs: `29`'))
 assert.ok(staticMarkdown.includes('Intentional blanket blockers allowed: `false`'))
-assert.ok(markdown.includes('Beta Readiness Owner Approval Collection Handoff - 769f'))
+assert.ok(markdown.includes('Beta Readiness Owner Approval Collection Handoff - aa49'))
 
 assert.equal(serialized.includes('SERVICE_ROLE_KEY'), false)
 assert.equal(serialized.includes('Bearer '), false)

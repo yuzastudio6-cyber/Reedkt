@@ -27,8 +27,8 @@ Current no-input pending count: `29`
 ## Current Source Truth
 
 - Source branch: `codex/sound-music-audio-1abc-checkpoint`
-- Source SHA at refresh: `26c04e800eba4e5fe80a77ad3ad13bd38b4797b1`
-- Deployed evidence source SHA: `769fc2d922b37a9eebb8b0ca29fa2447a6f8f127`
+- Source SHA at refresh: `8f5946c12d983abb6fb6e9eca020b9b260848706`
+- Deployed evidence source SHA: `aa49cef9ed6dad971f0163ea80ebb34de0e65d67`
 - Source freshness decision: `beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift`
 - Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
 - Product-ready local OSS count: `0`
@@ -36,9 +36,9 @@ Current no-input pending count: `29`
 The source lists are:
 
 - `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json`
-- `docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.json`
-- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json`
-- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json`
+- `docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-aa49-owner-approval-collection-handoff.json`
+- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json`
+- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json`
 
 ## Boundary
 

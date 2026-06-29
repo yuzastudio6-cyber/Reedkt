@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 
 const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json'
 const DEFAULT_SOURCE_ID = 'beta-tools-current-source-16-tool-local-accepted-evidence-bundle'
 const CURRENT_TRACKB_TOOL_TOTALS = {
   owned: 16,
@@ -34,8 +35,28 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   options = {},
 ) {
   const snapshotPath = options.snapshotPath ?? DEFAULT_SNAPSHOT_PATH
-  const currentSourceSha = clean(options.currentSourceSha) ?? clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA)
   const snapshot = loadSnapshot(snapshotPath)
+  const deployedEvidenceManifestPath = options.deployedEvidenceManifestPath ?? DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH
+  const deployedEvidenceManifest = loadOptionalJson(deployedEvidenceManifestPath)
+  const deployedReadback = deployedEvidenceManifest?.currentApiDeployReadback ?? {}
+  const defaultCurrentSourceSha = clean(deployedReadback.sourceSha)
+  const defaultExternalApiBaseUrl = clean(deployedReadback.normalApiServiceUrl) ??
+    clean(deployedReadback.serviceUrl)
+  const currentSourceSha = clean(options.currentSourceSha) ??
+    clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA) ??
+    defaultCurrentSourceSha
+  const effectiveEnv = {
+    ...env,
+    ...(defaultExternalApiBaseUrl && !clean(env.REEDITPRO_BETA_EXTERNAL_API_BASE_URL)
+      ? { REEDITPRO_BETA_EXTERNAL_API_BASE_URL: defaultExternalApiBaseUrl }
+      : {}),
+    ...(currentSourceSha && !clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA)
+      ? { REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA: currentSourceSha }
+      : {}),
+    ...(currentSourceSha && !clean(env.REEDITPRO_BETA_EXTERNAL_SOURCE_SHA)
+      ? { REEDITPRO_BETA_EXTERNAL_SOURCE_SHA: currentSourceSha }
+      : {}),
+  }
   const localAcceptedEvidenceSourceSha = required(snapshot.sourceSha, 'snapshot.sourceSha')
   const locallyAcceptedToolIds = requiredArray(snapshot.locallyAcceptedToolIds, 'snapshot.locallyAcceptedToolIds')
   const coreToolIds = requiredArray(snapshot.coreAcceptedToolIds, 'snapshot.coreAcceptedToolIds')
@@ -43,7 +64,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   const libassContainerImage = required(snapshot.libassEvidence?.containerImage, 'snapshot.libassEvidence.containerImage')
   const requiredProductReadyLocalOssCount = requiredNumber(snapshot.locallyAcceptedToolCount, 'snapshot.locallyAcceptedToolCount')
 
-  const requiredInputs = buildRequiredInputs(env, {
+  const requiredInputs = buildRequiredInputs(effectiveEnv, {
     currentSourceSha,
     localAcceptedEvidenceSourceSha,
     coreToolIdsCsv: coreToolIds.join(','),
@@ -54,7 +75,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   const pendingRequiredInputs = requiredInputs
     .filter((input) => !input.present)
     .map((input) => input.name)
-  const valueGaps = buildValueGaps(env, {
+  const valueGaps = buildValueGaps(effectiveEnv, {
     currentSourceSha,
     localAcceptedEvidenceSourceSha,
     coreToolIds,
@@ -99,9 +120,15 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
     manifestId: 'beta-deployed-evidence-input-manifest-after-local-accepted-tools-2026-06-29-16-tool',
     sourceTruth: {
       localAcceptedEvidenceSnapshotPath: snapshotPath,
+      deployedEvidenceManifestPath,
       localAcceptedEvidenceSourceSha,
       currentSourceSha,
       currentSourceDerivedFromSnapshot: Boolean(currentSourceSha && currentSourceSha !== localAcceptedEvidenceSourceSha),
+      defaultedInputs: {
+        externalApiBaseUrlFromDeployReadback: Boolean(defaultExternalApiBaseUrl && !clean(env.REEDITPRO_BETA_EXTERNAL_API_BASE_URL)),
+        deployedEvidenceSourceShaFromDeployReadback: Boolean(currentSourceSha && !clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA)),
+        externalSourceShaFromDeployReadback: Boolean(currentSourceSha && !clean(env.REEDITPRO_BETA_EXTERNAL_SOURCE_SHA)),
+      },
       locallyAcceptedToolCount: requiredProductReadyLocalOssCount,
       locallyAcceptedToolIds,
       coreToolIds,
@@ -320,6 +347,14 @@ function requireNotTrueIfPresent(env, gaps, name) {
 
 function loadSnapshot(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
+}
+
+function loadOptionalJson(path) {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'))
+  } catch {
+    return undefined
+  }
 }
 
 function required(value, label) {

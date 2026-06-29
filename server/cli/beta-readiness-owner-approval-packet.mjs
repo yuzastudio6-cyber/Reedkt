@@ -1,5 +1,5 @@
-const DEFAULT_SOURCE_SHA = 'ba5bc11778db7c3e2efd6b56941949f64b2c9684'
-const DEFAULT_DEPLOYED_EVIDENCE_SOURCE_SHA = '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'
+const DEFAULT_SOURCE_SHA = '8f5946c12d983abb6fb6e9eca020b9b260848706'
+const DEFAULT_DEPLOYED_EVIDENCE_SOURCE_SHA = 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67'
 const DEFAULT_CREATED_AT = '2026-06-29T01:55:00Z'
 
 const platformApprovalItems = [
@@ -183,22 +183,22 @@ export function buildBetaReadinessOwnerApprovalPacket(options = {}) {
       sourceBranch: 'codex/sound-music-audio-1abc-checkpoint',
       sourceSha,
       deployedEvidenceSourceSha: DEFAULT_DEPLOYED_EVIDENCE_SOURCE_SHA,
-      sourceFreshnessPreflightPacket: 'docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json',
+      sourceFreshnessPreflightPacket: 'docs/beta-readiness/source-freshness-preflight/2026-06-29-aa49-source-freshness-passed.json',
       sourceFreshnessDecision: 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift',
-      sourceFreshnessPolicy: 'current ba5 source differs from deployed 769f only by approved metadata/readiness files; runtime-affecting drift remains blocked',
+      sourceFreshnessPolicy: 'current 8f5946c1 source differs from deployed aa49 only by approved metadata/readiness files; runtime-affecting drift remains blocked',
       platformTechnicalProbePacket: 'docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json',
-      currentSourceApiDeployPacket: 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-769f-api-staging-deploy.json',
-      deployedEvidenceInputManifest: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json',
+      currentSourceApiDeployPacket: 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-aa49-api-staging-deploy.json',
+      deployedEvidenceInputManifest: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json',
       normalApiService: 'reeditpro-api-staging',
       normalApiRegion: 'us-east1',
-      normalApiRevision: 'reeditpro-api-staging-00012-ncd',
+      normalApiRevision: 'reeditpro-api-staging-00013-jv9',
       normalApiServiceUrl: 'https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app',
       normalApiCanonicalServiceUrl: 'https://reeditpro-api-staging-390722338345.us-east1.run.app',
-      normalApiImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-769fc2d922b3-20260629T0129Z-retry1',
-      normalApiImageDigest: 'sha256:9a5bcb232c17b5a0eba14158063d5d2828d56be06d56fb7bdf66caf9d1a042d5',
+      normalApiImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-aa49cef9ed6d-20260629T1300Z',
+      normalApiImageDigest: 'sha256:509124705b31f169148f76161b9d5f3c6cd3ab77f703a7f66616eb649ae6117f',
       normalApiArtifactRegion: 'us-central1',
-      normalApiDeployRunId: '28343028750',
-      normalApiDeployRunUrl: 'https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28343028750',
+      normalApiDeployRunId: '28373860720',
+      normalApiDeployRunUrl: 'https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28373860720',
       normalApiPublicUnauthenticatedHealthStatus: 403,
       normalApiAuthenticatedHealthReadback: 'not_rerun_local_cloud_cli_auth_expired',
       toolReadinessService: 'reeditpro-tool-readiness-staging',

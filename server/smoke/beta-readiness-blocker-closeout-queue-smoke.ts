@@ -5,8 +5,13 @@ const report = buildBetaReadinessBlockerCloseoutQueue({
   createdAt: '2026-06-29T00:00:00.000Z',
   currentCentralSha: '582301ab43ff073a5ba9dd7f96fb3e3ca81a1614',
 })
+const liveSourceReport = buildBetaReadinessBlockerCloseoutQueue({
+  createdAt: '2026-06-29T00:00:00.000Z',
+})
 
 assert.equal(report.decision, 'beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection')
+assert.match(liveSourceReport.sourceTruth.currentCentralSha, /^[0-9a-f]{40}$|^unknown_current_source_sha$/)
+assert.notEqual(liveSourceReport.sourceTruth.currentCentralSha, '582301ab43ff073a5ba9dd7f96fb3e3ca81a1614')
 assert.equal(report.sourceTruth.blockerLedgerRows, 197)
 assert.equal(report.sourceTruth.duplicateBlockerRows, 0)
 assert.equal(report.sourceTruth.toolRows, 184)

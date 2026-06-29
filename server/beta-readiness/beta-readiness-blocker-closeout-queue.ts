@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { buildBetaReadinessBlockerLedger } from './beta-readiness-blocker-ledger'
 
@@ -86,7 +87,7 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
     createdAt: options.createdAt ?? new Date().toISOString(),
     decision: 'beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection',
     sourceTruth: {
-      currentCentralSha: options.currentCentralSha ?? '582301ab43ff073a5ba9dd7f96fb3e3ca81a1614',
+      currentCentralSha: options.currentCentralSha ?? resolveCurrentCentralSha(),
       blockerLedgerRows: ledger.totalRows,
       duplicateBlockerRows: ledger.duplicateRowKeys.length,
       toolRows: ledger.toolRows,
@@ -291,6 +292,32 @@ function buildBatches(
 
 function readJson(path: string): any {
   return JSON.parse(readFileSync(path, 'utf8'))
+}
+
+function resolveCurrentCentralSha(): string {
+  const envSha = cleanSha(process.env.REEDITPRO_BETA_BLOCKER_CLOSEOUT_CURRENT_SOURCE_SHA) ??
+    cleanSha(process.env.REEDITPRO_BETA_CURRENT_SOURCE_SHA) ??
+    cleanSha(process.env.GITHUB_SHA)
+  if (envSha) return envSha
+
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return 'unknown_current_source_sha'
+  }
+}
+
+function cleanSha(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return /^[0-9a-f]{40}$/.test(trimmed) ? trimmed : undefined
 }
 
 function countBy(values: string[]): Record<string, number> {

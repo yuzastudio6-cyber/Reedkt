@@ -1413,3 +1413,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Scope: top-level all-21 AI graphics external-beta checkpoint across install surface, production mapping, ranking selection, GPU targeting, cross-owner coordination, readiness evidence, service-role queue smoke preflight, saved service-role queue smoke proof, and saved worker-dispatch smoke proof.
 - Result: default committed evidence remains blocked with 0 external-beta candidates. Full provided evidence can report 21 candidate tools only when `--external-beta-service-role-queue-smoke-preflight-packet`, `--external-beta-service-role-queue-smoke-proof-packet`, and `--external-beta-worker-dispatch-smoke-proof` are supplied, while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced.
 - Runtime/beta/production: no unlock; this packet does not execute tools, enqueue workers, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production.
+
+## AI Graphics External-Beta Candidate Evidence Assembly
+
+- Decision: `ai_graphics_external_beta_candidate_evidence_assembly_prepared_with_runtime_blocks`.
+- Scope: single-source candidate handoff after the accepted external-beta end-to-end readiness packet and accepted private artifact manifest packet.
+- Result: default committed evidence remains blocked with 0 assembled candidates. With accepted provided evidence from both source packets, it assembles 21 candidate tools, keeps all 8 GPU/model tools on native GPU runtime targets, reports 0 heavy tools incorrectly targeting CPU, and keeps `externalBetaReadyNowTools=0` plus `productionReadyNowTools=0`.
+- Runtime/beta/production: no unlock; this packet does not execute tools, enqueue workers, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool call.

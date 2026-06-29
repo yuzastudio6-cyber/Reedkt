@@ -46,6 +46,19 @@ const followOnReleaseGoNoGo1rFiles = [
   'scripts/validation/rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-diagnostics.mjs',
 ]
 
+const followOnQwenRealDispatchAuthPathReadbackFiles = [
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/auth-path-readback.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/readiness-boundary.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/qwen-real-dispatch-auth-path-readback-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-auth-path-readback-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-real-dispatch-auth-path-readback-1.md',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-auth-path-readback-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_external_beta_current_readiness_rollup_after_qwen_orchestration',
@@ -177,6 +190,7 @@ const allowedFiles = new Set([
   ...allowedSupportFiles,
   ...followOnControlledSingleTesterProductFlowAfterQwenFiles,
   ...followOnReleaseGoNoGo1rFiles,
+  ...followOnQwenRealDispatchAuthPathReadbackFiles,
 ])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)

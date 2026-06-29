@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
-const DEFAULT_API_DEPLOY_PACKET_PATH = 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json'
-const DEFAULT_API_DEPLOYMENT_PREFLIGHT_PACKET_PATH = 'docs/beta-readiness/api-deployment-preflight/2026-06-29-17a9-api-deployment-preflight-passed.json'
-const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-deployed-evidence-input-manifest.json'
+const DEFAULT_API_DEPLOY_PACKET_PATH = 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-769f-api-staging-deploy.json'
+const DEFAULT_API_DEPLOYMENT_PREFLIGHT_PACKET_PATH = 'docs/beta-readiness/api-deployment-preflight/2026-06-29-769f-api-deployment-preflight-passed.json'
+const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json'
 
 const PASS_DECISION = 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence'
 const BLOCKED_DECISION = 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale'
@@ -36,6 +36,8 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
   const apiDeploySourceSha = clean(apiDeployPacket?.sourceTruth?.sourceSha) ?? clean(apiDeployPacket?.deployInputs?.sourceSha)
   const apiDeploymentPreflightSourceSha = clean(apiDeploymentPreflightPacket?.sourceSha)
   const manifestRecordedDeployedSourceSha =
+    clean(deployedEvidenceManifest?.currentApiDeployReadback?.sourceSha) ??
+    clean(deployedEvidenceManifest?.current769ApiDeployReadback?.sourceSha) ??
     clean(deployedEvidenceManifest?.current17a9ApiDeployReadback?.sourceSha) ??
     clean(deployedEvidenceManifest?.currentD997ApiDeployReadback?.sourceSha)
 
@@ -90,7 +92,11 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:owner-approval-intake-preflight',
     ],
-    blockedScopes: [
+    blockedScopes: readyForDeployedEvidenceInputManifest ? [
+      'external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass',
+      'real_user_media_beta_until_separate_scope_approval_evidence_passes',
+      'paid_production_until_separate_paid_production_evidence_collector_passes',
+    ] : [
       'deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence',
       'external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass',
       'real_user_media_beta_until_separate_scope_approval_evidence_passes',

@@ -61,6 +61,8 @@ assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))
 assert.equal(ready.recommendedCommands.some((command) => command.includes('gcloud ')), false)
+assert.equal(ready.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'), false)
+assert.ok(ready.blockedScopes.includes('external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass'))
 
 const missingCurrent = buildBetaReadinessSourceFreshnessPreflight({}, {
   currentSourceSha: '',
@@ -84,17 +86,18 @@ assert.ok(markdown.includes('d997d567d40853f59741763c8e9ca8b2c361148a'))
 assert.ok(markdown.includes('e6fa65329dc91b42458261bb224df14c2ffbab3c'))
 assert.ok(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'))
 
-const passReportPath = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-17a9-source-freshness-passed.json'
+const passReportPath = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json'
 const passReport = JSON.parse(readFileSync(passReportPath, 'utf8'))
 assert.equal(passReport.decision, 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence')
-assert.equal(passReport.currentSourceSha, '17a9a2d2b015ab325cf13ce5135d083af070ab00')
-assert.equal(passReport.deployedSourceSha, '17a9a2d2b015ab325cf13ce5135d083af070ab00')
+assert.equal(passReport.currentSourceSha, '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127')
+assert.equal(passReport.deployedSourceSha, '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127')
 assert.equal(passReport.readyForDeployedEvidenceInputManifest, true)
 assert.deepEqual(passReport.valueGaps, [])
+assert.equal(passReport.sourceTruth.manifestRecordedDeployedSourceSha, '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127')
 
-const passMarkdown = readFileSync('docs/beta-readiness/source-freshness-preflight/2026-06-29-17a9-source-freshness-passed.md', 'utf8')
+const passMarkdown = readFileSync('docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.md', 'utf8')
 assert.ok(passMarkdown.includes(passReport.decision))
-assert.ok(passMarkdown.includes('17a9a2d2b015ab325cf13ce5135d083af070ab00'))
+assert.ok(passMarkdown.includes('769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'))
 assert.ok(passMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'))
 
 console.log(JSON.stringify({

@@ -1,0 +1,26 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-NEGATIVE-TESTS-1",
+  "matrix": {
+    "planDrift": "blocked_guarded_executable_handler_implementation_plan_invalid",
+    "missingBackendServiceRoleContext": "blocked_missing_backend_service_role_context",
+    "routeRegistration": "blocked_handler_scaffold_not_disabled",
+    "routeExecutable": "blocked_handler_scaffold_not_disabled",
+    "workerDispatchEnablement": "blocked_handler_scaffold_not_disabled",
+    "featureFlagEnablement": "blocked_feature_flag_enabled",
+    "runtimeApproval": "blocked_handler_scaffold_not_disabled",
+    "missingApprovedSnapshotGuard": "blocked_missing_approved_snapshot_guard",
+    "missingRouteIdempotencyGuard": "blocked_missing_route_idempotency_guard",
+    "missingPrivateArtifactManifestGuard": "blocked_missing_private_artifact_manifest_guard",
+    "rawCommandAllowlist": "blocked_missing_command_allowlist_guard",
+    "missingNegativeTestsGuard": "blocked_missing_negative_tests_guard",
+    "storageTransferGateEnablement": "blocked_missing_storage_or_public_artifact_gate",
+    "signedPublicArtifactGateEnablement": "blocked_missing_storage_or_public_artifact_gate",
+    "missingCleanupAuditReference": "blocked_missing_cleanup_audit_reference",
+    "operatorConfirmation": "blocked_missing_operator_confirmation_guard",
+    "rejectedInputs": "blocked_rejected_input_present",
+    "routeWorkerToolMediaSupabaseSqlRuntimeAttempts": "blocked_runtime_execution_attempt",
+    "storageSignedPublicBetaProductionFinalDeliveryAttempts": "blocked_storage_or_public_artifact_attempt"
+  },
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1"
+}

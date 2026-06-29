@@ -1,0 +1,54 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-NEGATIVE-TESTS-1",
+  "decision": "tracka_gpac_mp4box_guarded_executable_handler_implementation_scaffold_negative_tests_passed_ready_for_guarded_executable_handler_runtime_enablement_review",
+  "execution": "completed_guarded_executable_handler_scaffold_negative_tests_no_route_worker_or_tool_execution",
+  "prior": {
+    "guardedExecutableHandlerImplementationScaffold": "tracka_gpac_mp4box_guarded_executable_handler_implementation_scaffold_passed_ready_for_guarded_executable_handler_implementation_scaffold_negative_tests",
+    "guardedExecutableHandlerImplementationScaffoldMergeSha": "6b1cd42f3a094464307058b322dbb7d634336881",
+    "priorPr": "#1648"
+  },
+  "negativeTests": {
+    "status": "passed",
+    "planDriftBlocks": true,
+    "backendServiceRoleContextBlocks": true,
+    "routeRegistrationBlocks": true,
+    "routeExecutionBlocks": true,
+    "workerDispatchBlocks": true,
+    "workerExecutionBlocks": true,
+    "featureFlagEnablementBlocks": true,
+    "gpacMp4boxExecutionBlocks": true,
+    "mediaProcessingBlocks": true,
+    "storageTransferBlocks": true,
+    "signedPublicArtifactBlocks": true,
+    "supabaseMutationBlocks": true,
+    "sqlExecutionBlocks": true,
+    "rejectedInputsBlock": true,
+    "betaProductionFinalDeliveryBlocks": true
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1"
+}

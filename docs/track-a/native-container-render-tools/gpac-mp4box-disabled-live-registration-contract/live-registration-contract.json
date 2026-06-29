@@ -1,0 +1,32 @@
+{
+  "contractId": "liveRegistration.gpacMp4box.disabled",
+  "routeId": "render.gpacMp4box.disabledLiveRegistrationContract",
+  "routeOwner": "backend_service_role_only",
+  "routeRegistrationMode": "disabled_metadata_contract_only",
+  "registrationStatus": "disabled_live_registration_contract_registered_no_handler",
+  "liveHandlerRegistered": false,
+  "liveHandlerEnabled": false,
+  "featureFlagDefault": false,
+  "runtimeExecutionApproved": false,
+  "rejectedInputs": [
+    "raw_chat",
+    "raw_command_string",
+    "frontend_file_path",
+    "public_url_source_of_truth",
+    "signed_url_source_of_truth",
+    "arbitrary_private_media",
+    "provider_or_model_prompt_payload",
+    "service_role_secret_payload",
+    "broad_service_role_handler_payload"
+  ],
+  "requiredGuards": [
+    "approved_snapshot_guard_required",
+    "route_idempotency_guard_required",
+    "private_artifact_manifest_guard_required",
+    "command_allowlist_guard_required",
+    "negative_tests_must_remain_passing",
+    "no_storage_transfer_until_private_artifact_runtime_gate",
+    "no_signed_or_public_artifact_until_delivery_policy_gate",
+    "operator_confirmation_required_before_any_execution"
+  ]
+}

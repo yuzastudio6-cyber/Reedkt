@@ -1,0 +1,18 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1",
+  "baseMergeSha": "d0aaa82eac128b71fc37be63a5c2194b2990f432",
+  "prior": {
+    "guardedLiveRegistrationReview": "tracka_gpac_mp4box_guarded_live_registration_review_passed_ready_for_disabled_live_registration_contract",
+    "guardedLiveRegistrationReviewMergeSha": "d0aaa82eac128b71fc37be63a5c2194b2990f432"
+  },
+  "scope": "disabled_live_registration_contract_only",
+  "excludedPrs": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyLocalOssTools": 0,
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  }
+}

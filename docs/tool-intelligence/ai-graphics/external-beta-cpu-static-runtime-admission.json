@@ -133,6 +133,8 @@
   "booleans": {
     "externalBetaCpuStaticRuntimeAdmissionPrepared": true,
     "sourceCpuStaticCohortAdmissionAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
     "sourceOnDemandRuntimeAdmissionAccepted": true,
     "selectedToolInCpuStaticCohort": true,
     "selectedToolBlockedPendingNativeGpuProof": false,

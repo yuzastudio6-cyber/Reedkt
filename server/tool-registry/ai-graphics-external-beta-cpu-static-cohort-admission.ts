@@ -65,11 +65,16 @@ export interface AiGraphicsExternalBetaCpuStaticCohortAdmission {
   decision: AiGraphicsExternalBetaCpuStaticCohortAdmissionStatus
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_COHORT_ADMISSION_DECISION
   sourcePerToolRuntimeProofAccepted: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+  serviceRoleQueueSmokeAuthorizationRef: string | null
   missingCpuStaticCohortControls: string[]
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   cpuStaticCohortCandidateToolsWithProvidedEvidence: number
   gpuBlockedToolsPendingNativeGpuProof: number
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
   externalBetaCallableNowTools: 0
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
@@ -91,6 +96,8 @@ export interface AiGraphicsExternalBetaCpuStaticCohortAdmission {
   booleans: {
     externalBetaCpuStaticCohortAdmissionPrepared: true
     sourcePerToolRuntimeProofAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     cpuStaticCohortControlsAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -231,11 +238,20 @@ function sourcePerToolRuntimeProofAccepted(packet?: AiGraphicsExternalBetaPerToo
     packet.jsRuntimeProofAcceptedWithProvidedEvidenceTools === 13 &&
     packet.nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools === 0 &&
     packet.blockedPendingNativeGpuRuntimeProofTools === 8 &&
+    packet.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    isSafePrivateRef(packet.serviceRoleQueueSmokeAuthorizationRef) &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     records.length === 21 &&
     acceptedCpuStaticRecords.length === 13 &&
     blockedGpuRecords.length === 8 &&
+    records.every((record) => (
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+    )) &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.all13JsRuntimeProofsAccepted === true &&
     packet.booleans.all8NativeGpuRuntimeProofsAccepted === false &&
     packet.booleans.blockedPendingNativeGpuRuntimeProofTools === true &&
@@ -286,6 +302,19 @@ export function buildAiGraphicsExternalBetaCpuStaticCohortAdmission(
   input: AiGraphicsExternalBetaCpuStaticCohortAdmissionInput = {},
 ): AiGraphicsExternalBetaCpuStaticCohortAdmission {
   const sourceAccepted = sourcePerToolRuntimeProofAccepted(input.sourcePerToolRuntimeProofPacket)
+  const sourceRuntimeQueueServiceProofBridgeAccepted =
+    sourceAccepted &&
+    input.sourcePerToolRuntimeProofPacket
+      ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    input.sourcePerToolRuntimeProofPacket
+      ?.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true
+  const sourceServiceRoleQueueSmokeAuthorizationAccepted =
+    sourceAccepted &&
+    input.sourcePerToolRuntimeProofPacket
+      ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    isSafePrivateRef(input.sourcePerToolRuntimeProofPacket?.serviceRoleQueueSmokeAuthorizationRef) &&
+    input.sourcePerToolRuntimeProofPacket
+      ?.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
   const missing = sourceAccepted ? missingControls(input) : []
   const controlsAccepted = sourceAccepted && missing.length === 0
 
@@ -364,11 +393,27 @@ export function buildAiGraphicsExternalBetaCpuStaticCohortAdmission(
     }),
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_COHORT_ADMISSION_DECISION,
     sourcePerToolRuntimeProofAccepted: sourceAccepted,
+    sourceRuntimeQueueServiceProofBridgeAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted,
+    serviceRoleQueueSmokeAuthorizationRef:
+      sourceAccepted
+        ? input.sourcePerToolRuntimeProofPacket?.serviceRoleQueueSmokeAuthorizationRef ?? null
+        : null,
     missingCpuStaticCohortControls: missing,
     totalAiGraphicsTools: AI_GRAPHICS_CANONICAL_TOOL_IDS.length as 21,
     totalProductFacingCapabilities: productCapabilityCount(),
     cpuStaticCohortCandidateToolsWithProvidedEvidence: cpuStaticCandidates.length,
     gpuBlockedToolsPendingNativeGpuProof: blockedGpuRecords.length,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
+      sourceAccepted
+        ? input.sourcePerToolRuntimeProofPacket
+          ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence ?? 0
+        : 0,
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
+      sourceAccepted
+        ? input.sourcePerToolRuntimeProofPacket
+          ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence ?? 0
+        : 0,
     externalBetaCallableNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -390,6 +435,8 @@ export function buildAiGraphicsExternalBetaCpuStaticCohortAdmission(
     booleans: {
       externalBetaCpuStaticCohortAdmissionPrepared: true,
       sourcePerToolRuntimeProofAccepted: sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
       cpuStaticCohortControlsAccepted: controlsAccepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,

@@ -7,7 +7,7 @@ This packet is the next external-beta approval contract after candidate evidence
 ## Source Evidence
 
 - Accepted external-beta candidate evidence assembly.
-- Accepted external-beta runtime admission or CPU/static runtime admission.
+- Accepted external-beta runtime admission or CPU/static runtime admission, including the preserved runtime queue service proof bridge and service-role queue-smoke authorization chain.
 - Private approval reference from `AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_OWNER`.
 
 ## Result

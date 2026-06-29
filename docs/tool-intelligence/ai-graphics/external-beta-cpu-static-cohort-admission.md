@@ -6,6 +6,8 @@ This bridge turns the current per-tool runtime proof split into an external-beta
 
 This does not execute tools, execute Tool Routes, dispatch Workers, call providers/models, start browser/WebGL/canvas runtime, start GPU runtime, download or load model weights, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.
 
+The accepted source per-tool runtime proof must also preserve the 21-tool runtime queue service proof bridge and the service-role queue-smoke authorization chain with a private authorization ref. If either chain is stripped, this cohort admission rejects the source proof instead of treating the first cohort as ready.
+
 ## Current Result
 
 - Tools covered: `21`

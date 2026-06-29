@@ -234,6 +234,9 @@ if (!source.includes('external_beta_controlled_runtime_execution_scope_approved_
   fail('source_missing_approved_status')
 }
 if (!source.includes('gpuRuntimeOnDemandOnly: true')) fail('source_missing_gpu_on_demand')
+if (!source.includes('sourceRuntimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted')) {
+  fail('source_missing_runtime_authorization_acceptance')
+}
 if (!source.includes("mode === 'all_tools_external_beta' || tool.gpuRequiredForRuntime === false")) {
   fail('source_missing_cpu_static_scope_limit')
 }
@@ -264,6 +267,12 @@ if (docs.counts?.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools !== 8) {
 }
 if (docs.counts?.externalBetaReadyNowTools !== 0) fail('docs_external_beta_ready_now_not_0')
 if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_ready_now_not_0')
+if (docs.booleans?.sourceRuntimeAdmissionRuntimeQueueServiceProofBridgeAccepted !== true) {
+  fail('docs_source_runtime_admission_proof_bridge_not_true')
+}
+if (docs.booleans?.sourceRuntimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+  fail('docs_source_runtime_admission_authorization_not_true')
+}
 if (docs.gpuRuntimeActivationPolicy?.onDemandOnly !== true) fail('docs_gpu_on_demand_not_true')
 if (docs.gpuRuntimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) fail('docs_no_idle_gpu_not_true')
 if (docs.gpuRuntimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
@@ -304,6 +313,7 @@ const acceptedAllToolsRuntimeAdmissionPacket = {
   decision: 'external_beta_runtime_admission_ready_for_worker_enqueue',
   sourceLaunchGoNoGoAccepted: true,
   sourceLaunchGoNoGoRuntimeProofBridgeAccepted: true,
+  sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: true,
   externalBetaRuntimeAdmissionReadyWithProvidedEvidence: true,
   externalBetaWorkerEnqueueAllowedWithProvidedEvidence: true,
   externalBetaReadyNowTools: 0,
@@ -311,6 +321,7 @@ const acceptedAllToolsRuntimeAdmissionPacket = {
   booleans: {
     sourceExternalBetaLaunchGoNoGoAccepted: true,
     sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted: true,
+    sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: true,
     agentCanExecuteToolsNow: false,
     workerQueueApprovedNow: false,
     gpuRuntimeShouldStartNow: false,
@@ -320,6 +331,8 @@ const acceptedAllToolsRuntimeAdmissionPacket = {
 const acceptedCpuStaticRuntimeAdmissionPacket = {
   sourceDecision: 'ai_graphics_external_beta_cpu_static_runtime_admission_prepared_with_gpu_blocks',
   decision: 'external_beta_cpu_static_runtime_admission_ready_for_worker_enqueue',
+  sourceRuntimeQueueServiceProofBridgeAccepted: true,
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
   cpuStaticRuntimeAdmissionReadyWithProvidedEvidence: true,
   externalBetaWorkerEnqueueAllowedWithProvidedEvidence: true,
   selectedToolInCpuStaticCohort: true,
@@ -328,6 +341,8 @@ const acceptedCpuStaticRuntimeAdmissionPacket = {
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
   booleans: {
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     agentCanExecuteToolsNow: false,
     workerQueueApprovedNow: false,
     gpuRuntimeShouldStartNow: false,
@@ -411,6 +426,12 @@ if (awaitingReport.status !== 'awaiting_external_beta_controlled_runtime_executi
 if (awaitingReport.booleans?.sourceExternalBetaRuntimeAdmissionAccepted !== true) {
   fail('awaiting_runtime_admission_not_accepted')
 }
+if (
+  awaitingReport.booleans
+    ?.sourceRuntimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted !== true
+) {
+  fail('awaiting_runtime_authorization_not_accepted')
+}
 assertToolScopes(awaitingReport, 'awaiting', 0, 0)
 assertCount(awaitingReport, 'controlledRuntimeExecutionCandidateToolsWithProvidedEvidence', 21, 'awaiting')
 assertCount(awaitingReport, 'controlledRuntimeExecutionScopeApprovedToolsWithProvidedEvidence', 0, 'awaiting')
@@ -442,6 +463,34 @@ if (fullReport.controlledRuntimeExecutionApprovalRecord?.approvesRuntimeNow !== 
   fail('full_approval_record_approves_runtime_now_not_false')
 }
 assertFalseBooleans(fullReport, 'full')
+
+const strippedAuthorizationRuntimeAdmissionPath = writeTempJson(
+  tmpRoot,
+  'stripped-authorization-runtime-admission.json',
+  {
+    ...acceptedAllToolsRuntimeAdmissionPacket,
+    sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: false,
+    booleans: {
+      ...acceptedAllToolsRuntimeAdmissionPacket.booleans,
+      sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted:
+        false,
+    },
+  },
+)
+const strippedAuthorizationReport = parseReport(runNpm(runScriptName, [
+  '--external-beta-candidate-evidence-assembly-packet',
+  candidatePath,
+  '--external-beta-runtime-admission-packet',
+  strippedAuthorizationRuntimeAdmissionPath,
+  '--external-beta-controlled-runtime-execution-approval-granted',
+  '--external-beta-controlled-runtime-execution-approval-ref',
+  'external-beta-runtime://ai-graphics/controlled-runtime-execution/approval',
+  '--external-beta-controlled-runtime-execution-approver-role',
+  'AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_OWNER',
+]), 'stripped_authorization')
+if (strippedAuthorizationReport.status !== 'external_beta_runtime_admission_rejected') {
+  fail(`stripped_authorization_status:${strippedAuthorizationReport.status}`)
+}
 
 const cpuStaticReport = parseReport(runNpm(runScriptName, [
   '--external-beta-candidate-evidence-assembly-packet',

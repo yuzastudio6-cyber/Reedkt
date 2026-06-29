@@ -162,10 +162,14 @@ function cohortAdmissionFixture() {
     decision: 'external_beta_cpu_static_cohort_ready_with_gpu_blocks',
     sourceDecision: 'ai_graphics_external_beta_cpu_static_cohort_admission_prepared_with_gpu_blocks',
     sourcePerToolRuntimeProofAccepted: true,
+    sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     cpuStaticCohortCandidateToolsWithProvidedEvidence: 13,
     gpuBlockedToolsPendingNativeGpuProof: 8,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
     externalBetaCallableNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -187,6 +191,8 @@ function cohortAdmissionFixture() {
     booleans: {
       all13CpuStaticCandidatesReadyWithProvidedEvidence: true,
       all8GpuToolsRemainBlockedPendingNativeGpuProof: true,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       agentCanExecuteToolsNow: false,
@@ -245,6 +251,8 @@ for (const [key, expected] of Object.entries({
 for (const key of [
   'externalBetaCpuStaticRuntimeAdmissionPrepared',
   'sourceCpuStaticCohortAdmissionAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceOnDemandRuntimeAdmissionAccepted',
   'selectedToolInCpuStaticCohort',
   'cpuStaticRuntimeAdmissionReadyWithProvidedEvidence',
@@ -268,6 +276,7 @@ for (const key of [
 for (const phrase of [
   '--external-beta-cpu-static-cohort-admission-packet',
   'external_beta_cpu_static_runtime_admission_ready_for_worker_enqueue',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'requested_tool_not_in_cpu_static_cohort',
   'selected tool is blocked pending native GPU runtime proof',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob: false',
@@ -347,6 +356,12 @@ try {
   if (d3.decision !== 'external_beta_cpu_static_runtime_admission_ready_for_worker_enqueue') {
     fail(`d3_decision:${d3.decision}`)
   }
+  if (d3.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('d3_source_runtime_queue_service_proof_bridge_not_true')
+  }
+  if (d3.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('d3_source_service_role_queue_smoke_authorization_not_true')
+  }
   if (d3.cpuStaticRuntimeAdmissionReadyWithProvidedEvidence !== true) fail('d3_not_ready')
   if (d3.externalBetaWorkerEnqueueAllowedWithProvidedEvidence !== true) {
     fail('d3_enqueue_not_allowed_with_evidence')
@@ -375,6 +390,66 @@ try {
   }
   if (sam2.cpuStaticRuntimeAdmissionReadyWithProvidedEvidence !== false) {
     fail('sam2_cpu_static_ready_should_be_false')
+  }
+
+  const strippedAuthPath = writeJson(
+    path.join(tmpRoot, 'stripped-authorization-cpu-static-cohort.json'),
+    {
+      ...cohortAdmissionFixture(),
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+      booleans: {
+        ...cohortAdmissionFixture().booleans,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      },
+    },
+  )
+  const strippedAuth = parseJsonOutput(runNpm(runScriptName, [
+    '--capability-id',
+    'chart_overlay',
+    '--requested-tool-id',
+    'd3',
+    '--node-runtime-proof-ref',
+    'private://ai-graphics/node-static-proof/d3.json',
+    '--external-beta-cpu-static-cohort-admission-packet',
+    strippedAuthPath,
+    '--execution-requested',
+    '--approved-plan-snapshot-id',
+    'approved_snapshot_external_beta_cpu_static_fixture',
+    '--credit-reservation-id',
+    'credit_reservation_external_beta_cpu_static_fixture',
+    '--artifact-boundary-approval-ref',
+    'artifact_boundary_approval_external_beta_cpu_static_fixture',
+    '--tool-route-approval-ref',
+    'tool_route_approval_external_beta_cpu_static_fixture',
+    '--worker-approval-ref',
+    'worker_approval_external_beta_cpu_static_fixture',
+    '--runtime-enqueue-approval-ref',
+    'runtime_enqueue_approval_external_beta_cpu_static_fixture',
+    '--owner-runtime-approval-ref',
+    'owner_runtime_approval_external_beta_cpu_static_fixture',
+    '--private-artifact-manifest-ref',
+    'private://ai-graphics/external-beta/cpu-static/artifact-manifest.json',
+    '--external-beta-cpu-static-feature-flag-enabled',
+    '--external-beta-cpu-static-feature-flag-ref',
+    'external-beta-runtime://cpu-static/feature-flag',
+    '--external-beta-cpu-static-runtime-admission-ref',
+    'external-beta-runtime://cpu-static/runtime-admission',
+    '--external-beta-cpu-static-tool-allowlist-ref',
+    'external-beta-runtime://cpu-static/tool-allowlist',
+    '--external-beta-cpu-static-traffic-scope-ref',
+    'external-beta-runtime://cpu-static/traffic-scope',
+    '--external-beta-cpu-static-telemetry-ref',
+    'external-beta-runtime://cpu-static/telemetry',
+    '--external-beta-cpu-static-support-ref',
+    'external-beta-runtime://cpu-static/support',
+    '--external-beta-cpu-static-cost-guardrail-ref',
+    'external-beta-runtime://cpu-static/cost-guardrail',
+    '--external-beta-cpu-static-worker-pool-ref',
+    'external-beta-runtime://cpu-static/worker-pool',
+  ]), 'stripped-auth')
+  if (strippedAuth.decision !== 'missing_external_beta_cpu_static_cohort_admission') {
+    fail(`stripped_auth_decision:${strippedAuth.decision}`)
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })

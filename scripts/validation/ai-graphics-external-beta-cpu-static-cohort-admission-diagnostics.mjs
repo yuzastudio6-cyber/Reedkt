@@ -166,6 +166,8 @@ function perToolRuntimeProofFixture(overrides = {}) {
     decision: 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
     sourceDecision: 'ai_graphics_external_beta_per_tool_runtime_proof_prepared_with_gpu_blocks',
     sourceToolRouteRuntimeProofAccepted: true,
+    serviceRoleQueueSmokeAuthorizationRef:
+      'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
@@ -174,6 +176,8 @@ function perToolRuntimeProofFixture(overrides = {}) {
     jsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
     nativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
     blockedPendingNativeGpuRuntimeProofTools: 8,
+    sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     records: allTools.map((toolId) => {
@@ -184,6 +188,8 @@ function perToolRuntimeProofFixture(overrides = {}) {
           ? 'blocked_pending_native_gpu_runtime_proof'
           : 'runtime_proof_accepted_with_provided_evidence',
         runtimeProofAcceptedWithProvidedEvidence: !isGpuTool,
+        sourceRuntimeQueueServiceProofBridgeAccepted: true,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
         gpuRuntimeTargeted: isGpuTool,
         gpuRuntimeOnDemandOnly: true,
         noIdleGpuRuntimeApproved: true,
@@ -193,6 +199,8 @@ function perToolRuntimeProofFixture(overrides = {}) {
     booleans: {
       all13JsRuntimeProofsAccepted: true,
       all8NativeGpuRuntimeProofsAccepted: false,
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       blockedPendingNativeGpuRuntimeProofTools: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
@@ -261,6 +269,9 @@ for (const [key, expected] of Object.entries({
 }
 for (const [key, expected] of Object.entries({
   sourcePerToolRuntimeProofAccepted: true,
+  sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   sourceRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
   sourceJsRuntimeProofAcceptedWithProvidedEvidenceTools: 13,
   sourceNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools: 0,
@@ -280,6 +291,8 @@ for (const [key, expected] of Object.entries({
 for (const key of [
   'externalBetaCpuStaticCohortAdmissionPrepared',
   'sourcePerToolRuntimeProofAccepted',
+  'sourceRuntimeQueueServiceProofBridgeAccepted',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all13CpuStaticCandidatesReadyWithProvidedEvidence',
@@ -305,6 +318,8 @@ for (const phrase of [
   'external_beta_cpu_static_candidate_with_provided_evidence',
   'blocked_pending_native_gpu_runtime_proof',
   'cohortAdmissionOnlyNoToolExecution',
+  'serviceRoleQueueSmokeAuthorizationRef',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -352,6 +367,21 @@ try {
   if (accepted.gpuBlockedToolsPendingNativeGpuProof !== 8) {
     fail(`accepted_gpu_blocked_not_8:${accepted.gpuBlockedToolsPendingNativeGpuProof}`)
   }
+  if (accepted.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_not_true')
+  }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_not_true')
+  }
+  if (!accepted.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_service_role_queue_smoke_authorization_ref_missing')
+  }
+  if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
+  }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_service_role_queue_smoke_authorization_count_not_21')
+  }
   if (accepted.externalBetaCallableNowTools !== 0) fail('accepted_external_beta_callable_not_0')
   for (const tool of cpuStaticTools) {
     const record = accepted.records?.find((entry) => entry.toolId === tool)
@@ -398,6 +428,64 @@ try {
   ]), 'rejected')
   if (rejected.decision !== 'external_beta_per_tool_runtime_proof_rejected') {
     fail(`rejected_source_decision:${rejected.decision}`)
+  }
+
+  const strippedAuthorizationPath = writeJson(
+    path.join(tmpRoot, 'stripped-authorization-per-tool-runtime-proof.json'),
+    perToolRuntimeProofFixture({
+      serviceRoleQueueSmokeAuthorizationRef: null,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+      records: allTools.map((toolId) => {
+        const isGpuTool = gpuTools.includes(toolId)
+        return {
+          toolId,
+          runtimeProofStatus: isGpuTool
+            ? 'blocked_pending_native_gpu_runtime_proof'
+            : 'runtime_proof_accepted_with_provided_evidence',
+          runtimeProofAcceptedWithProvidedEvidence: !isGpuTool,
+          sourceRuntimeQueueServiceProofBridgeAccepted: true,
+          sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+          gpuRuntimeTargeted: isGpuTool,
+          gpuRuntimeOnDemandOnly: true,
+          noIdleGpuRuntimeApproved: true,
+          gpuRuntimeShouldStartNow: false,
+        }
+      }),
+      booleans: {
+        all13JsRuntimeProofsAccepted: true,
+        all8NativeGpuRuntimeProofsAccepted: false,
+        sourceRuntimeQueueServiceProofBridgeAccepted: true,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+        blockedPendingNativeGpuRuntimeProofTools: true,
+        gpuRuntimeOnDemandOnly: true,
+        noIdleGpuRuntimeApproved: true,
+        agentCanExecuteToolsNow: false,
+        routeExecutionApprovedNow: false,
+        workerDispatchApprovedNow: false,
+        toolExecutionApprovedNow: false,
+        gpuRuntimeApprovedNow: false,
+        gpuRuntimeShouldStartNow: false,
+        externalBetaReadyNow: false,
+        productionReadyNow: false,
+      },
+    }),
+  )
+  const strippedAuthorization = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-per-tool-runtime-proof-packet',
+    strippedAuthorizationPath,
+    '--external-beta-cpu-static-cohort-policy-ref',
+    'private://ai-graphics/external-beta/cpu-static-cohort/policy.json',
+    '--external-beta-cpu-static-cohort-rollout-ref',
+    'private://ai-graphics/external-beta/cpu-static-cohort/rollout.json',
+    '--external-beta-cpu-static-cohort-telemetry-ref',
+    'external-beta-evidence://ai-graphics/cpu-static-cohort/telemetry.json',
+    '--external-beta-cpu-static-cohort-rollback-ref',
+    'private://ai-graphics/external-beta/cpu-static-cohort/rollback.json',
+    '--external-beta-cpu-static-cohort-support-ref',
+    'backend-evidence://ai-graphics/external-beta/cpu-static-cohort/support.json',
+  ]), 'stripped-authorization')
+  if (strippedAuthorization.decision !== 'external_beta_per_tool_runtime_proof_rejected') {
+    fail(`stripped_authorization_decision:${strippedAuthorization.decision}`)
   }
 
   const publicBlocked = parseJsonOutput(runNpm(runScriptName, [

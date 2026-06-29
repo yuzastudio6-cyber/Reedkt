@@ -46,6 +46,8 @@ export interface AiGraphicsExternalBetaCpuStaticRuntimeAdmission {
   selectedToolId: AiGraphicsCanonicalToolId | null
   executionRequested: boolean
   sourceCpuStaticCohortAdmissionAccepted: boolean
+  sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   selectedToolInCpuStaticCohort: boolean
   selectedToolBlockedPendingNativeGpuProof: boolean
   onDemandRuntimeAdmission: AiGraphicsOnDemandRuntimeAdmission
@@ -75,6 +77,8 @@ export interface AiGraphicsExternalBetaCpuStaticRuntimeAdmission {
   booleans: {
     externalBetaCpuStaticRuntimeAdmissionPrepared: true
     sourceCpuStaticCohortAdmissionAccepted: boolean
+    sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     sourceOnDemandRuntimeAdmissionAccepted: boolean
     selectedToolInCpuStaticCohort: boolean
     selectedToolBlockedPendingNativeGpuProof: boolean
@@ -142,6 +146,10 @@ function sourceCohortAccepted(packet?: AiGraphicsExternalBetaCpuStaticCohortAdmi
     packet?.decision === 'external_beta_cpu_static_cohort_ready_with_gpu_blocks' &&
     packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_COHORT_ADMISSION_DECISION &&
     packet.sourcePerToolRuntimeProofAccepted === true &&
+    packet.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    packet.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
     packet.cpuStaticCohortCandidateToolsWithProvidedEvidence === 13 &&
     packet.gpuBlockedToolsPendingNativeGpuProof === 8 &&
     packet.externalBetaCallableNowTools === 0 &&
@@ -149,6 +157,8 @@ function sourceCohortAccepted(packet?: AiGraphicsExternalBetaCpuStaticCohortAdmi
     packet.productionReadyNowTools === 0 &&
     packet.booleans.all13CpuStaticCandidatesReadyWithProvidedEvidence === true &&
     packet.booleans.all8GpuToolsRemainBlockedPendingNativeGpuProof === true &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.gpuRuntimeOnDemandOnly === true &&
     packet.booleans.noIdleGpuRuntimeApproved === true &&
     packet.booleans.agentCanExecuteToolsNow === false
@@ -231,6 +241,14 @@ export function evaluateAiGraphicsExternalBetaCpuStaticRuntimeAdmission(
   const onDemandAdmission = evaluateAiGraphicsOnDemandRuntimeAdmission(input)
   const selectedToolId = onDemandAdmission.selectedTool?.toolId ?? null
   const sourceAccepted = sourceCohortAccepted(input.sourceExternalBetaCpuStaticCohortAdmissionPacket)
+  const sourceRuntimeQueueServiceProofBridgeAccepted =
+    sourceAccepted &&
+    input.sourceExternalBetaCpuStaticCohortAdmissionPacket
+      ?.sourceRuntimeQueueServiceProofBridgeAccepted === true
+  const sourceServiceRoleQueueSmokeAuthorizationAccepted =
+    sourceAccepted &&
+    input.sourceExternalBetaCpuStaticCohortAdmissionPacket
+      ?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
   const record = cohortRecord(input.sourceExternalBetaCpuStaticCohortAdmissionPacket, selectedToolId)
   const selectedToolInCohort =
     sourceAccepted &&
@@ -273,6 +291,8 @@ export function evaluateAiGraphicsExternalBetaCpuStaticRuntimeAdmission(
     selectedToolId,
     executionRequested: input.executionRequested === true,
     sourceCpuStaticCohortAdmissionAccepted: sourceAccepted,
+    sourceRuntimeQueueServiceProofBridgeAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted,
     selectedToolInCpuStaticCohort: selectedToolInCohort,
     selectedToolBlockedPendingNativeGpuProof,
     onDemandRuntimeAdmission: onDemandAdmission,
@@ -289,6 +309,8 @@ export function evaluateAiGraphicsExternalBetaCpuStaticRuntimeAdmission(
     booleans: {
       externalBetaCpuStaticRuntimeAdmissionPrepared: true,
       sourceCpuStaticCohortAdmissionAccepted: sourceAccepted,
+      sourceRuntimeQueueServiceProofBridgeAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
       sourceOnDemandRuntimeAdmissionAccepted:
         onDemandAdmission.runtimeJobAdmissionReadyWithProvidedEvidence,
       selectedToolInCpuStaticCohort: selectedToolInCohort,

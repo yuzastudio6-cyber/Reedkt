@@ -96,6 +96,9 @@
   },
   "acceptanceCriteria": {
     "sourcePerToolRuntimeProofAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "sourceRuntimeProofAcceptedWithProvidedEvidenceTools": 13,
     "sourceJsRuntimeProofAcceptedWithProvidedEvidenceTools": 13,
     "sourceNativeGpuRuntimeProofAcceptedWithProvidedEvidenceTools": 0,
@@ -125,6 +128,8 @@
   "booleans": {
     "externalBetaCpuStaticCohortAdmissionPrepared": true,
     "sourcePerToolRuntimeProofAccepted": true,
+    "sourceRuntimeQueueServiceProofBridgeAccepted": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
     "cpuStaticCohortControlsAccepted": false,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

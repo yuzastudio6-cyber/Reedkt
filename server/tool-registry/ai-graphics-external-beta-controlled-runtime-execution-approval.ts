@@ -114,6 +114,8 @@ export interface AiGraphicsExternalBetaControlledRuntimeExecutionApproval {
     externalBetaControlledRuntimeExecutionApprovalPrepared: true
     sourceCandidateEvidenceAssemblyAccepted: boolean
     sourceExternalBetaRuntimeAdmissionAccepted: boolean
+    sourceRuntimeAdmissionRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceRuntimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted: boolean
     controlledRuntimeExecutionApprovalRecordAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -258,12 +260,14 @@ function allToolsRuntimeAdmissionAccepted(
     packet.decision === 'external_beta_runtime_admission_ready_for_worker_enqueue' &&
     packet.sourceLaunchGoNoGoAccepted === true &&
     packet.sourceLaunchGoNoGoRuntimeProofBridgeAccepted === true &&
+    packet.sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.externalBetaRuntimeAdmissionReadyWithProvidedEvidence === true &&
     packet.externalBetaWorkerEnqueueAllowedWithProvidedEvidence === true &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     packet.booleans.sourceExternalBetaLaunchGoNoGoAccepted === true &&
     packet.booleans.sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted === true &&
+    packet.booleans.sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.workerQueueApprovedNow === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
@@ -274,6 +278,8 @@ function cpuStaticRuntimeAdmissionAccepted(
 ): boolean {
   return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION &&
     packet.decision === 'external_beta_cpu_static_runtime_admission_ready_for_worker_enqueue' &&
+    packet.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.cpuStaticRuntimeAdmissionReadyWithProvidedEvidence === true &&
     packet.externalBetaWorkerEnqueueAllowedWithProvidedEvidence === true &&
     packet.selectedToolInCpuStaticCohort === true &&
@@ -282,6 +288,8 @@ function cpuStaticRuntimeAdmissionAccepted(
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     packet.booleans.agentCanExecuteToolsNow === false &&
+    packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+    packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.booleans.workerQueueApprovedNow === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
 }
@@ -301,6 +309,28 @@ function runtimeAdmissionAccepted(
   return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
     ? cpuStaticRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaCpuStaticRuntimeAdmission)
     : allToolsRuntimeAdmissionAccepted(packet as AiGraphicsExternalBetaRuntimeAdmission)
+}
+
+function runtimeAdmissionRuntimeQueueServiceProofBridgeAccepted(
+  packet: AiGraphicsExternalBetaRuntimeAdmissionSource | null,
+): boolean {
+  if (!packet) return false
+  return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
+    ? (packet as AiGraphicsExternalBetaCpuStaticRuntimeAdmission)
+      .sourceRuntimeQueueServiceProofBridgeAccepted === true
+    : (packet as AiGraphicsExternalBetaRuntimeAdmission)
+      .sourceLaunchGoNoGoRuntimeProofBridgeAccepted === true
+}
+
+function runtimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted(
+  packet: AiGraphicsExternalBetaRuntimeAdmissionSource | null,
+): boolean {
+  if (!packet) return false
+  return packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_RUNTIME_ADMISSION_DECISION
+    ? (packet as AiGraphicsExternalBetaCpuStaticRuntimeAdmission)
+      .sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+    : (packet as AiGraphicsExternalBetaRuntimeAdmission)
+      .sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted === true
 }
 
 function runtimeAdmissionMode(
@@ -349,6 +379,10 @@ export function buildAiGraphicsExternalBetaControlledRuntimeExecutionApproval(
   )
   const runtimeAdmission = sourceRuntimeAdmission(input)
   const runtimeAccepted = runtimeAdmissionAccepted(runtimeAdmission)
+  const runtimeProofBridgeAccepted =
+    runtimeAdmissionRuntimeQueueServiceProofBridgeAccepted(runtimeAdmission)
+  const runtimeAuthorizationAccepted =
+    runtimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted(runtimeAdmission)
   const approvalAccepted = controlledRuntimeApprovalRecordAccepted(input)
   const status = statusFromInput({
     hasCandidatePacket: Boolean(sourceCandidateEvidenceAssembly),
@@ -438,6 +472,10 @@ export function buildAiGraphicsExternalBetaControlledRuntimeExecutionApproval(
       externalBetaControlledRuntimeExecutionApprovalPrepared: true,
       sourceCandidateEvidenceAssemblyAccepted: candidateAccepted,
       sourceExternalBetaRuntimeAdmissionAccepted: runtimeAccepted,
+      sourceRuntimeAdmissionRuntimeQueueServiceProofBridgeAccepted:
+        runtimeProofBridgeAccepted,
+      sourceRuntimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted:
+        runtimeAuthorizationAccepted,
       controlledRuntimeExecutionApprovalRecordAccepted: approvalAccepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,

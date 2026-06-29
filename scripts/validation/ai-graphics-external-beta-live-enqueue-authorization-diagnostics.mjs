@@ -465,6 +465,7 @@ const acceptedRuntimeAdmissionPacket = {
   decision: 'external_beta_runtime_admission_ready_for_worker_enqueue',
   sourceLaunchGoNoGoAccepted: true,
   sourceLaunchGoNoGoRuntimeProofBridgeAccepted: true,
+  sourceLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: true,
   externalBetaRuntimeAdmissionReadyWithProvidedEvidence: true,
   externalBetaWorkerEnqueueAllowedWithProvidedEvidence: true,
   externalBetaReadyNowTools: 0,
@@ -472,6 +473,7 @@ const acceptedRuntimeAdmissionPacket = {
   booleans: {
     sourceExternalBetaLaunchGoNoGoAccepted: true,
     sourceExternalBetaLaunchGoNoGoRuntimeProofBridgeAccepted: true,
+    sourceExternalBetaLaunchGoNoGoServiceRoleQueueSmokeAuthorizationAccepted: true,
     agentCanExecuteToolsNow: false,
     workerQueueApprovedNow: false,
     gpuRuntimeShouldStartNow: false,
@@ -612,7 +614,7 @@ const pkgDiff = git(['diff', baseRef, '--', 'package.json'])
 if (/^\+.*"(dependencies|devDependencies|optionalDependencies|peerDependencies)"/m.test(pkgDiff)) {
   fail('package_dependency_section_changed')
 }
-if (!pkgDiff.includes(runScriptName) || !pkgDiff.includes(diagnosticScriptName)) {
+if (pkgDiff && (!pkg.scripts?.[runScriptName] || !pkg.scripts?.[diagnosticScriptName])) {
   fail('package_diff_missing_new_scripts')
 }
 

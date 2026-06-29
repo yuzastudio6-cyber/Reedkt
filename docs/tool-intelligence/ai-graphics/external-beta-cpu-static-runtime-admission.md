@@ -6,6 +6,8 @@ This bridge narrows external-beta runtime admission to the first practical cohor
 
 This still does not execute tools, execute Tool Routes, dispatch Workers, call providers/models, start browser/WebGL/canvas runtime, start GPU runtime, download or load model weights, process media, mutate storage, create signed URLs, create public artifacts, or unlock external beta/production.
 
+The source CPU/static cohort packet must preserve the runtime queue service proof bridge and service-role queue-smoke authorization chain inherited from per-tool runtime proof. If either chain is missing, runtime admission treats the cohort packet as rejected.
+
 ## Current Result
 
 - CPU/static cohort tools: `13`

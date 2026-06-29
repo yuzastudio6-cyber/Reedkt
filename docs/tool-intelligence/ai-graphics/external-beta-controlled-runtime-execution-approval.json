@@ -121,6 +121,8 @@
     "externalBetaControlledRuntimeExecutionApprovalPrepared": true,
     "sourceCandidateEvidenceAssemblyAccepted": true,
     "sourceExternalBetaRuntimeAdmissionAccepted": true,
+    "sourceRuntimeAdmissionRuntimeQueueServiceProofBridgeAccepted": true,
+    "sourceRuntimeAdmissionServiceRoleQueueSmokeAuthorizationAccepted": true,
     "controlledRuntimeExecutionApprovalRecordAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

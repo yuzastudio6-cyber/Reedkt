@@ -85,6 +85,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
     'server/cli/beta-readiness-node-ts-register.mjs',
     'server/cli/beta-readiness-operator-status-api.ts',
+    'server/cli/beta-readiness-operator-status-api.d.ts',
     'server/cli/beta-readiness-operator-status-api.mjs',
     'server/cli/beta-readiness-operator-status.ts',
     'server/beta-readiness/platform-evidence-manifest.ts',
@@ -168,6 +169,7 @@ assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.i
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-input-template.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-node-ts-register.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.d.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/beta-readiness/platform-evidence-manifest.ts'))

@@ -1,0 +1,13 @@
+{
+  "policyId": "artifactPolicy.gpacMp4box.private.mock",
+  "policyMode": "private_artifact_metadata_policy_only",
+  "storageAccessMode": "metadata_only_no_storage_transfer",
+  "artifactScope": "worker_temp_private_only",
+  "checksumAlgorithm": "sha256",
+  "cleanupRequired": true,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "storageTransferAllowed": false,
+  "toolExecutionAllowed": false,
+  "mediaProcessingAllowed": false
+}

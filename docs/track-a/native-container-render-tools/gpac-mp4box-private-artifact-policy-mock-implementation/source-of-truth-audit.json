@@ -1,0 +1,16 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-POLICY-MOCK-IMPLEMENTATION-1",
+  "sourceOfTruth": [
+    {
+      "phase": "guarded_worker_skeleton_mock",
+      "decision": "tracka_gpac_mp4box_guarded_worker_skeleton_mock_implementation_passed_ready_for_private_artifact_policy_mock"
+    }
+  ],
+  "excluded": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "thisPhase": {
+    "decision": "tracka_gpac_mp4box_private_artifact_policy_mock_implementation_passed_ready_for_private_artifact_manifest_mock",
+    "execution": "completed_private_artifact_metadata_policy_no_storage_or_tool_execution"
+  }
+}

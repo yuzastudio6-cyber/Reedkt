@@ -1,0 +1,14 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1R",
+  "runtimeExecutionAuthorized": false,
+  "routeExecutionAuthorized": false,
+  "workerDispatchAuthorized": false,
+  "workerExecutionAuthorized": false,
+  "storageTransferAuthorized": false,
+  "signedPublicArtifactAuthorized": false,
+  "externalBetaAuthorized": false,
+  "productionAuthorized": false,
+  "finalDeliveryExportAuthorized": false,
+  "allowedScope": "docs_status_diagnostics_reconciliation_only",
+  "nextScope": "current_runtime_gate_readiness_rollup_only"
+}

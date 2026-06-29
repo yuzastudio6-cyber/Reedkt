@@ -78,6 +78,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_RECONCI
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_ADOPTION } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_ADOPTED_LOCAL_VALIDATION } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-adopted-local-validation'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-remote-satisfaction-review'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-plan'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
@@ -87,9 +88,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persisted_worker_dispatch_review_accepted_controlled_smoke_plan_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_smoke_plan_recorded_execution_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58BK-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-PLAN: plan controlled persisted Qwen worker dispatch smoke, no invocation/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58BL-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-EXECUTION: run controlled persisted Qwen worker dispatch smoke, no Cloud Run invocation/no inference/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -165,6 +166,7 @@ function assertRollupFalseFlags(flags: JsonRecord) {
     'publicArtifactsCreated',
     'signedUrlsCreated',
     'creditMutationCreated',
+    'controlledPersistedWorkerDispatchSmokeExecuted',
     'dryRunPassedClaimed',
     'generatedLocalFixturePassedClaimed',
   ]) {
@@ -382,6 +384,9 @@ for (const file of [
   'docs/qwen2-5-vl-7b-runtime-persistence-to-worker-dispatch-readiness-review.md',
   'src/backend/mock/mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review.ts',
   'server/smoke/qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review-smoke.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-smoke-plan.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-plan.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-plan-smoke.ts',
   'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
   'package.json',
 ]) {
@@ -617,6 +622,11 @@ assert.equal(
   packageJson.scripts?.['smoke:qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'],
   'tsx server/smoke/qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review-smoke.ts',
   'runtime persistence to worker dispatch readiness review package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-plan'],
+  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-smoke-plan-smoke.ts',
+  'controlled persisted worker dispatch smoke plan package script mismatch',
 )
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
@@ -1112,7 +1122,8 @@ for (const phrase of [
   'backend runtime persistence active migration deploy approval: ready, target-class approval recorded',
   'backend runtime persistence active migration deploy execution: ready, remote satisfaction/no-deploy review accepted',
   'persisted worker dispatch readiness review: ready, contract accepted for controlled smoke planning',
-  'controlled persisted worker dispatch smoke plan: blocked, smoke plan required before any dispatch attempt',
+  'controlled persisted worker dispatch smoke plan: ready, smoke plan recorded',
+  'controlled persisted worker dispatch smoke execution: blocked, controlled smoke execution required before any dispatch attempt',
   '`backendRuntimePersistenceActiveMigrationPlanRequired=false`',
   '`backendRuntimePersistenceActiveMigrationPlanRecorded=true`',
   '`backendRuntimePersistenceActiveMigrationCreateRequired=false`',
@@ -1152,7 +1163,10 @@ for (const phrase of [
   '`persistedWorkerDispatchReadinessReviewRequired=false`',
   '`runtimePersistenceToWorkerDispatchReadinessReviewRecorded=true`',
   '`persistedWorkerDispatchReadinessAcceptedForControlledSmokePlanning=true`',
-  '`controlledPersistedWorkerDispatchSmokePlanRequired=true`',
+  '`controlledPersistedWorkerDispatchSmokePlanRequired=false`',
+  '`controlledPersistedWorkerDispatchSmokePlanRecorded=true`',
+  '`controlledPersistedWorkerDispatchSmokeExecutionRequired=true`',
+  '`controlledPersistedWorkerDispatchSmokeExecuted=false`',
   '`backendRuntimePersistenceActiveMigrationDeployShouldBeSkippedNow=true`',
   '`backendRuntimePersistenceActiveMigrationRemoteQwenMigrationObserved=true`',
   '`backendRuntimePersistenceActiveMigrationRemoteQwenVersion=20260628000100`',
@@ -1437,6 +1451,10 @@ assert.equal(
   rollup.upstreamRuntimePersistenceToWorkerDispatchReadinessReviewDecision,
   QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW.decision,
 )
+assert.equal(
+  rollup.upstreamControlledPersistedWorkerDispatchSmokePlanDecision,
+  QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1502,7 +1520,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_smoke_plan_required',
+  'controlled_persisted_worker_dispatch_smoke_execution_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1593,8 +1611,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_active_migration_deploy_execution',
   'persisted_worker_dispatch_readiness_review',
   'controlled_persisted_worker_dispatch_smoke_plan',
+  'controlled_persisted_worker_dispatch_smoke_execution',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 69)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 70)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -1836,6 +1855,12 @@ assert.equal(
 assert.equal(
   rollup.readinessGates.filter(
     (gate) => String(gate.status) === 'blocked_controlled_persisted_worker_dispatch_smoke_plan_required',
+  ).length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter(
+    (gate) => String(gate.status) === 'blocked_controlled_persisted_worker_dispatch_smoke_execution_required',
   ).length,
   1,
 )
@@ -2236,7 +2261,10 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeploye
 assert.equal(rollup.runtimeFlags.persistedWorkerDispatchReadinessReviewRequired, false)
 assert.equal(rollup.runtimeFlags.runtimePersistenceToWorkerDispatchReadinessReviewRecorded, true)
 assert.equal(rollup.runtimeFlags.persistedWorkerDispatchReadinessAcceptedForControlledSmokePlanning, true)
-assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchSmokePlanRequired, true)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchSmokePlanRequired, false)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchSmokePlanRecorded, true)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchSmokeExecutionRequired, true)
+assert.equal(rollup.runtimeFlags.controlledPersistedWorkerDispatchSmokeExecuted, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceStorageUploadPipelinePolicyCommentFixVerified, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplyAttempted, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplied, true)
@@ -2426,6 +2454,8 @@ const forbiddenDataFindings = scanValues({
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW,
   runtimePersistenceToWorkerDispatchReadinessReview:
     QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW,
+  controlledPersistedWorkerDispatchSmokePlan:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

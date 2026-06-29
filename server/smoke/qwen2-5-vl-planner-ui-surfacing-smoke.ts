@@ -91,8 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'controlled_persisted_worker_dispatch_smoke_plan_required',
-  'Private invoke client status must record the controlled persisted worker dispatch smoke plan blocker.',
+  data.privateInvokeClient.currentStatus === 'controlled_persisted_worker_dispatch_smoke_execution_required',
+  'Private invoke client status must record the controlled persisted worker dispatch smoke execution blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -173,8 +173,8 @@ check(
     docText.includes('backend_runtime_persistence_active_migration_plan_required') ||
     docText.includes('backend_runtime_persistence_active_migration_validation_required') ||
     docText.includes('backend_runtime_persistence_active_migration_history_adoption_required') ||
-    docText.includes('controlled_persisted_worker_dispatch_smoke_plan_required') ||
-    data.privateInvokeClient.currentStatus === 'controlled_persisted_worker_dispatch_smoke_plan_required',
+    docText.includes('controlled_persisted_worker_dispatch_smoke_execution_required') ||
+    data.privateInvokeClient.currentStatus === 'controlled_persisted_worker_dispatch_smoke_execution_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -331,8 +331,8 @@ check(
     docText.includes('comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects') &&
     docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
     docText.includes('Retry 15 verified the active local baseline') &&
-    docText.includes('QWEN2_5_VL_STACK_TOOL_58BK-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-PLAN'),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and controlled persisted worker dispatch smoke plan blocker.',
+    docText.includes('QWEN2_5_VL_STACK_TOOL_58BL-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-EXECUTION'),
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and controlled persisted worker dispatch smoke execution blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

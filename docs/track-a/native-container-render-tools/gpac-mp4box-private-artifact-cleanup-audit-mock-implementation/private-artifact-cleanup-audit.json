@@ -1,0 +1,28 @@
+{
+  "cleanupAuditId": "cleanupAudit.gpacMp4box.privateArtifact.mock",
+  "cleanupAuditMode": "private_artifact_cleanup_audit_metadata_only",
+  "qaId": "qa.gpacMp4box.privateArtifact.mock",
+  "manifestId": "artifactManifest.gpacMp4box.private.mock",
+  "cleanupPolicy": {
+    "cleanupRequired": true,
+    "tempArtifactScope": "worker_temp_private_only"
+  },
+  "auditPolicy": {
+    "auditRequired": true,
+    "auditMode": "metadata_only"
+  },
+  "retentionPolicy": {
+    "retentionClass": "ephemeral_worker_temp_only",
+    "persistentStorageAllowed": false
+  },
+  "residuePolicy": {
+    "residueCheckRequired": true,
+    "storageResidueAllowed": false
+  },
+  "storageTransfer": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "workerExecution": false,
+  "gpacMp4boxExecution": false,
+  "mediaProcessing": false
+}

@@ -55,6 +55,7 @@ assert.ok(report.launchApprovalItems.some((item) => item.id === 'launch_model_li
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:platform:staging-evidence-preflight'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(report.completionCriteria.some((criterion) => criterion.includes('readyForExternalBeta=true')))
 assert.ok(report.forbiddenOwnerEvidence.includes('service-role keys'))

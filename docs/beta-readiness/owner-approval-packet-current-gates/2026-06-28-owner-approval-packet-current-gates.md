@@ -28,7 +28,7 @@ Deployed evidence source SHA: `aa49cef9ed6dad971f0163ea80ebb34de0e65d67`
 
 This packet does not approve anything. It defines the exact non-secret owner evidence needed before the existing evidence collectors can run.
 
-Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, then validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
+Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, then generate the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, then validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
 
 ## Platform Evidence Packet Approvals
 
@@ -183,6 +183,7 @@ Generate an owner input template with `npm run beta:readiness:owner-approval-env
 - `npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:platform:staging-evidence-preflight`
 - `npm run beta:readiness:launch-approval-evidence-preflight`
+- `npm run beta:readiness:external-beta-operator-input-template`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 - `npm run beta:readiness:external-beta-evidence-collector`
 - `npm run beta:readiness:operator-status-api`

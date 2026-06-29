@@ -60,6 +60,7 @@ assert.equal(ready.readyForOwnerApprovalIntake, true)
 assert.equal(ready.decision, 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence')
 assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))
 assert.equal(ready.recommendedCommands.some((command) => command.includes('gcloud ')), false)
 assert.equal(ready.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'), false)
@@ -81,6 +82,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+    'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
     'server/cli/beta-readiness-node-ts-register.mjs',
     'server/cli/beta-readiness-operator-status-api.ts',
     'server/cli/beta-readiness-operator-status-api.mjs',
@@ -92,6 +94,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:readiness:deployed-evidence-input-manifest',
     'beta:readiness:api-deployment-preflight',
     'beta:readiness:blocker-ledger',
+    'beta:readiness:external-beta-operator-input-template',
     'beta:readiness:external-beta-evidence-collector',
     'beta:readiness:launch-approval-evidence',
     'beta:readiness:launch-approval-evidence-preflight',
@@ -120,6 +123,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'smoke:beta-readiness-api-staging-deploy-workflow',
     'smoke:beta-readiness-api-staging-input-discovery-blocker',
     'smoke:beta-readiness-blocker-ledger',
+    'smoke:beta-readiness-external-beta-operator-input-template',
     'smoke:beta-readiness-external-beta-evidence-collector',
     'smoke:beta-readiness-launch-approval-evidence-cli',
     'smoke:beta-readiness-launch-approval-evidence-preflight',
@@ -161,6 +165,7 @@ assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllow
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-input-template.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-node-ts-register.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.mjs'))

@@ -1,0 +1,24 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-ENQUEUE-MOCK-IMPLEMENTATION-1",
+  "sourceOfTruth": [
+    {
+      "phase": "mock_worker_interface",
+      "decision": "tracka_gpac_mp4box_mock_worker_interface_passed_ready_for_service_role_route_implementation_plan"
+    },
+    {
+      "phase": "service_role_route_implementation_plan",
+      "decision": "tracka_gpac_mp4box_service_role_route_implementation_plan_passed_ready_for_guarded_route_mock_implementation"
+    },
+    {
+      "phase": "guarded_service_role_route_mock_implementation",
+      "decision": "tracka_gpac_mp4box_guarded_service_role_route_mock_implementation_passed_ready_for_guarded_worker_enqueue_mock"
+    }
+  ],
+  "excluded": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "thisPhase": {
+    "decision": "tracka_gpac_mp4box_guarded_worker_enqueue_mock_implementation_passed_ready_for_guarded_worker_skeleton_mock",
+    "execution": "completed_backend_mock_queue_contract_no_worker_or_tool_execution"
+  }
+}

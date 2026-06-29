@@ -24,11 +24,13 @@ const packetFiles = [
 
 const sourceFiles = [
   'src/backend/contracts/gpac-mp4box-guarded-service-role-route-mock-contracts.ts',
+  'src/backend/contracts/gpac-mp4box-guarded-worker-enqueue-mock-contracts.ts',
   'src/backend/contracts/index.ts',
   'src/backend/api/routes/gpac-mp4box-api-routes.ts',
   'src/backend/api/api-route-registry.ts',
   'src/backend/api/index.ts',
   'server/smoke/tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-smoke.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-smoke.ts',
 ]
 
 const priorDiagnosticFiles = [
@@ -36,10 +38,28 @@ const priorDiagnosticFiles = [
   'scripts/validation/tracka-gpac-mp4box-service-role-route-implementation-plan-diagnostics.mjs',
 ]
 
+const nextWorkerEnqueueFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/gpac-mp4box-guarded-worker-enqueue-mock-implementation-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/gpac-mp4box-guarded-worker-enqueue-mock-implementation-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/worker-enqueue-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-enqueue-mock-implementation/worker-enqueue-contract.md',
+  'src/backend/contracts/gpac-mp4box-guarded-worker-enqueue-mock-contracts.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...sourceFiles,
   ...priorDiagnosticFiles,
+  ...nextWorkerEnqueueFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-1.md',

@@ -1,0 +1,19 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-ENQUEUE-MOCK-IMPLEMENTATION-1",
+  "routeMockContractPassed": true,
+  "workerEnvelopeContractPassed": true,
+  "mockQueueContractPassed": true,
+  "sanitizedQueuePayloadPassed": true,
+  "readyForGuardedWorkerSkeletonMockPacket": true,
+  "readyForRuntimeRouteExecution": false,
+  "readyForWorkerDispatch": false,
+  "readyForWorkerExecution": false,
+  "readyForGpacMp4boxExecution": false,
+  "readyForMediaProcessing": false,
+  "readyForStorageTransfer": false,
+  "readyForProductRuntime": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForProduction": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1"
+}

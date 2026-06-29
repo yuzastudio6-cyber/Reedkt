@@ -1,0 +1,54 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-ENQUEUE-MOCK-IMPLEMENTATION-1",
+  "typeScriptContract": "src/backend/contracts/gpac-mp4box-guarded-worker-enqueue-mock-contracts.ts",
+  "smoke": "server/smoke/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-smoke.ts",
+  "sourceRouteContract": "src/backend/contracts/gpac-mp4box-guarded-service-role-route-mock-contracts.ts",
+  "enqueueMode": "mock_queue_contract_only",
+  "workerKind": "render_export",
+  "acceptedInputs": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "creditReservationRef",
+    "jobRef",
+    "workerLeaseRef",
+    "routeIdempotencyKey",
+    "privateInputManifestRef",
+    "privateArtifactManifestRef",
+    "privateArtifactChecksumRef",
+    "qaPolicyRef",
+    "cleanupPolicyRef",
+    "auditRecordRef",
+    "commandTemplateId"
+  ],
+  "rejectedInputs": [
+    "rawChat",
+    "rawCommandString",
+    "frontendFilePath",
+    "publicUrl",
+    "signedUrlAsSourceOfTruth",
+    "arbitraryPrivateMedia",
+    "providerModelPromptPayload",
+    "serviceRoleSecretPayload",
+    "broadServiceRoleHandlerPayload"
+  ],
+  "execution": {
+    "routeExecution": false,
+    "workerDispatchAttempted": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false
+  },
+  "blockers": [
+    "blocked_route_mock_contract_invalid",
+    "blocked_worker_execution_not_enabled",
+    "blocked_storage_transfer_not_enabled",
+    "blocked_public_or_signed_artifact_attempt",
+    "blocked_idempotency_mismatch",
+    "blocked_job_queue_gate_failed"
+  ]
+}

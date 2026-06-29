@@ -331,6 +331,7 @@
     "worker-runtime-jobs:sound-cpu-evaluation-only-readiness-semantics-source-plan-after-policy:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-evaluation-only-readiness-semantics-source-plan-after-policy-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-evaluation-only-readiness-semantics-source-change-after-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-evaluation-only-readiness-semantics-source-change-after-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-evaluation-only-readiness-semantics-source-change-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-evaluation-only-readiness-semantics-source-change-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-launch-core-remaining-blocker-selection-after-evaluation-only-semantics:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-launch-core-remaining-blocker-selection-after-evaluation-only-semantics-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

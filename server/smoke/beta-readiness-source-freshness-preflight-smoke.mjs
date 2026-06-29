@@ -28,6 +28,7 @@ assert.equal(blocked.readyForOwnerApprovalIntake, false)
 assert.equal(blocked.decision, 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale')
 assert.ok(blocked.valueGaps.some((gap) => gap.includes(currentSourceSha) && gap.includes(deployedSourceSha)))
 assert.ok(blocked.recommendedCommands.some((command) => command.includes('beta-readiness-api-staging-deploy.yml')))
+assert.ok(blocked.recommendedCommands.some((command) => command.includes('--field source_ref=codex/sound-music-audio-1abc-checkpoint')), 'deploy handoff must pass the workflow-required source_ref input')
 assert.ok(blocked.recommendedCommands.some((command) => command.includes('source-freshness-preflight')))
 assert.ok(blocked.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'))
 assert.equal(JSON.stringify(blocked).includes('SERVICE_ROLE_KEY'), false)
@@ -237,6 +238,18 @@ const passMarkdown = readFileSync('docs/beta-readiness/source-freshness-prefligh
 assert.ok(passMarkdown.includes(passReport.decision))
 assert.ok(passMarkdown.includes('769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'))
 assert.ok(passMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'))
+
+const currentBlockedReportPath = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-cbb6-source-freshness-blocked.json'
+const currentBlockedReport = JSON.parse(readFileSync(currentBlockedReportPath, 'utf8'))
+assert.equal(currentBlockedReport.decision, 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale')
+assert.equal(currentBlockedReport.currentSourceSha, 'cbb6cfa814c231b8770f5f7c39299789acf63a47')
+assert.equal(currentBlockedReport.deployedSourceSha, '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127')
+assert.ok(currentBlockedReport.recommendedCommands.some((command) => command.includes('--field source_ref=codex/sound-music-audio-1abc-checkpoint')), 'current blocker packet must include workflow source_ref')
+
+const currentBlockedMarkdown = readFileSync('docs/beta-readiness/source-freshness-preflight/2026-06-29-cbb6-source-freshness-blocked.md', 'utf8')
+assert.ok(currentBlockedMarkdown.includes('cbb6cfa814c231b8770f5f7c39299789acf63a47'))
+assert.ok(currentBlockedMarkdown.includes('--field source_ref=codex/sound-music-audio-1abc-checkpoint'))
+assert.ok(currentBlockedMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'))
 
 console.log(JSON.stringify({
   ok: true,

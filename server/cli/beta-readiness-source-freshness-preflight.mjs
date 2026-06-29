@@ -191,7 +191,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
     ] : [
-      'gh workflow run beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_deploy=DEPLOY_STAGING_BETA_READINESS_API --field source_sha=$REEDITPRO_BETA_SOURCE_FRESHNESS_CURRENT_SOURCE_SHA --field image_tag=<immutable-current-source-image-tag> --field artifact_region=us-central1 --field artifact_repository=reeditpro-staging-workers --field deployer_service_account=<owner-approved-deployer-service-account> --field runtime_service_account=reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --field service_name=reeditpro-api-staging',
+      'gh workflow run beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_deploy=DEPLOY_STAGING_BETA_READINESS_API --field source_ref=codex/sound-music-audio-1abc-checkpoint --field source_sha=$REEDITPRO_BETA_SOURCE_FRESHNESS_CURRENT_SOURCE_SHA --field image_tag=<immutable-current-source-image-tag> --field artifact_region=us-central1 --field artifact_repository=reeditpro-staging-workers --field deployer_service_account=<owner-approved-deployer-service-account> --field runtime_service_account=reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --field service_name=reeditpro-api-staging',
       'npm run beta:readiness:api-deployment-preflight',
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-env-template',

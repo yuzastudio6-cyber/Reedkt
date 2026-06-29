@@ -36,10 +36,29 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-diagnostics.mjs',
 ]
 
+const implementationContractDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-implementation-contract'
+const implementationContractFiles = [
+  `${implementationContractDir}/gpac-mp4box-disabled-handler-implementation-contract-decision.json`,
+  `${implementationContractDir}/gpac-mp4box-disabled-handler-implementation-contract-decision.md`,
+  `${implementationContractDir}/handler-implementation-contract.json`,
+  `${implementationContractDir}/handler-implementation-contract.md`,
+  `${implementationContractDir}/readiness-report.json`,
+  `${implementationContractDir}/source-of-truth-audit.json`,
+  `${implementationContractDir}/source-of-truth-audit.md`,
+  `${implementationContractDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-implementation-contract-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-handler-implementation-contract-negative-tests-1.md',
+  'src/backend/contracts/gpac-mp4box-disabled-handler-implementation-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'server/smoke/tracka-gpac-mp4box-disabled-handler-implementation-contract-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-disabled-handler-implementation-contract-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...implementationContractFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-implementation-review-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-implementation-contract-1.md',
   'package.json',
@@ -120,7 +139,9 @@ for (const pattern of [/Product-ready(?: end-to-end)? local OSS tools:\s*`?[1-9]
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (/package-lock\.json|^docker\/|^supabase\/|^database\/|^src\/|^server\/|^dist|^node_modules\/|\\.dockerignore$|requirements|\\.(mp4|mov|mkv|webm|srt|png|jpg|wav|mp3)$/i.test(file)) fail(`forbidden changed path ${file}`)
+  if (/^src\//.test(file) && !implementationContractFiles.includes(file)) fail(`unexpected source path ${file}`)
+  if (/^server\//.test(file) && !implementationContractFiles.includes(file)) fail(`unexpected server path ${file}`)
+  if (/package-lock\.json|^docker\/|^supabase\/|^database\/|^dist|^node_modules\/|\\.dockerignore$|requirements|\\.(mp4|mov|mkv|webm|srt|png|jpg|wav|mp3)$/i.test(file)) fail(`forbidden changed path ${file}`)
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock changed')

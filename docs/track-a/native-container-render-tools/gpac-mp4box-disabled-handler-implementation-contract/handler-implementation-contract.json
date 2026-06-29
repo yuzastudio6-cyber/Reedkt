@@ -1,0 +1,25 @@
+{
+  "contractId": "handlerImplementation.gpacMp4box.disabled",
+  "status": "disabled_handler_implementation_contract_registered_no_executable_handler",
+  "routeId": "render.gpacMp4box.disabledHandlerImplementationContract",
+  "routeOwner": "backend_service_role_only",
+  "handlerImplementationMode": "disabled_handler_implementation_contract_only",
+  "sourceFile": "src/backend/contracts/gpac-mp4box-disabled-handler-implementation-contracts.ts",
+  "smoke": "server/smoke/tracka-gpac-mp4box-disabled-handler-implementation-contract-smoke.ts",
+  "blocked": {
+    "executableHandlerRegistration": "blocked",
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-HANDLER-IMPLEMENTATION-CONTRACT-NEGATIVE-TESTS-1"
+}

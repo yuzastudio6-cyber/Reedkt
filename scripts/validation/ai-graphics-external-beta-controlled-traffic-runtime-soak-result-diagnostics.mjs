@@ -5,21 +5,21 @@ import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const decision =
-  'ai_graphics_external_beta_operator_traffic_switch_runtime_soak_authorization_prepared_with_runtime_blocks'
+  'ai_graphics_external_beta_controlled_traffic_runtime_soak_result_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'external_beta_operator_traffic_switch_runtime_soak_authorization_ready_runtime_still_blocked'
+  'external_beta_controlled_traffic_runtime_soak_result_accepted_runtime_still_blocked'
 const sourceDecision =
-  'ai_graphics_external_beta_per_tool_traffic_enablement_gate_prepared_with_runtime_blocks'
+  'ai_graphics_external_beta_operator_traffic_switch_runtime_soak_authorization_prepared_with_runtime_blocks'
 const sourceStatus =
-  'external_beta_per_tool_traffic_enablement_gate_ready_runtime_still_blocked'
+  'external_beta_operator_traffic_switch_runtime_soak_authorization_ready_runtime_still_blocked'
 const runScriptName =
-  'ai-graphics:external-beta-operator-traffic-switch-runtime-soak-authorization'
+  'ai-graphics:external-beta-controlled-traffic-runtime-soak-result'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization.ts'
+  'tsx server/cli/ai-graphics-external-beta-controlled-traffic-runtime-soak-result.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-operator-traffic-switch-runtime-soak-authorization:diagnostics'
+  'ai-graphics:external-beta-controlled-traffic-runtime-soak-result:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-controlled-traffic-runtime-soak-result-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -83,9 +83,10 @@ const capabilityByTool = {
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'externalBetaCallableNow',
+  'controlledTrafficRunExecutedByThisGate',
   'externalBetaTrafficEnabledNow',
-  'externalBetaTrafficSwitchEnabledNow',
-  'externalBetaRuntimeSoakStartedNow',
+  'externalBetaTrafficSwitchEnabledByThisGate',
+  'externalBetaRuntimeSoakStartedByThisGate',
   'externalBetaTrafficSwitchApprovedNow',
   'apiRouteExecutionApprovedNow',
   'routeExecutionApprovedNow',
@@ -116,11 +117,11 @@ const falseGateKeys = [
   'privateArtifactWritePerformed',
   'serviceRoleQueueSmokePerformed',
   'supabaseMutationPerformed',
-  'workerLeaseCreatedByAuthorizationGate',
-  'workerDispatchPerformedByAuthorizationGate',
+  'workerLeaseCreatedByResultGate',
+  'workerDispatchPerformedByResultGate',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
-  'gpuRuntimePerformedByAuthorizationGate',
+  'gpuRuntimePerformedByResultGate',
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
@@ -130,13 +131,13 @@ const falseGateKeys = [
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization.ts',
-  'server/cli/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization.ts',
-  'scripts/validation/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-beta-controlled-traffic-runtime-soak-result.ts',
+  'server/cli/ai-graphics-external-beta-controlled-traffic-runtime-soak-result.ts',
+  'scripts/validation/ai-graphics-external-beta-controlled-traffic-runtime-soak-result-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.md',
   'docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.md',
   'docs/tool-intelligence/ai-graphics/external-beta-per-tool-traffic-enablement-gate.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
@@ -148,17 +149,15 @@ const generatedArtifactPathPattern =
 
 const forbiddenDocPatterns = [
   /agentCanExecuteToolsNow["`:\s=]+true/i,
-  /externalBetaCallableNow["`:\s=]+true/i,
+  /controlledTrafficRunExecutedByThisGate["`:\s=]+true/i,
   /externalBetaTrafficEnabledNow["`:\s=]+true/i,
-  /externalBetaTrafficSwitchEnabledNow["`:\s=]+true/i,
-  /externalBetaRuntimeSoakStartedNow["`:\s=]+true/i,
-  /externalBetaTrafficSwitchApprovedNow["`:\s=]+true/i,
-  /apiRouteExecutionApprovedNow["`:\s=]+true/i,
+  /externalBetaTrafficSwitchEnabledByThisGate["`:\s=]+true/i,
+  /externalBetaRuntimeSoakStartedByThisGate["`:\s=]+true/i,
   /routeExecutionApprovedNow["`:\s=]+true/i,
   /workerDispatchApprovedNow["`:\s=]+true/i,
   /toolExecutionApprovedNow["`:\s=]+true/i,
   /toolExecutionPerformed["`:\s=]+true/i,
-  /gpuRuntimePerformedByAuthorizationGate["`:\s=]+true/i,
+  /gpuRuntimePerformedByResultGate["`:\s=]+true/i,
   /gpuRuntimeShouldStartNow["`:\s=]+true/i,
   /runtimeReadyNow["`:\s=]+true/i,
   /externalBetaReadyNow["`:\s=]+true/i,
@@ -217,26 +216,24 @@ function writeJson(file, value) {
   return file
 }
 
-function sourceTrafficEnablementGateFixture(toolId) {
+function sourceAuthorizationFixture(toolId) {
   const capabilityId = capabilityByTool[toolId]
   const routeId = `ai_graphics_external_beta_tool_route_${toolId}`
   return {
     decision: sourceDecision,
-    sourcePerToolCallableResultGateDecision:
-      'ai_graphics_external_beta_per_tool_callable_result_gate_prepared_with_runtime_blocks',
-    sourceExternalBetaLaunchGoNoGoDecision:
-      'ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks',
+    sourcePerToolTrafficEnablementGateDecision:
+      'ai_graphics_external_beta_per_tool_traffic_enablement_gate_prepared_with_runtime_blocks',
     status: sourceStatus,
-    sourcePerToolCallableResultGateAccepted: true,
-    sourceExternalBetaLaunchGoNoGoAccepted: true,
-    trafficEnablementControlsAccepted: true,
+    sourcePerToolTrafficEnablementGateAccepted: true,
+    operatorTrafficSwitchRuntimeSoakControlsAccepted: true,
     rejectionReasons: [],
     requestedToolId: toolId,
     capabilityId,
-    perToolTrafficEnablementPreparedRequestsWithProvidedEvidence: 1,
-    sourceCallableResultGateAcceptedRequestsWithProvidedEvidence: 1,
-    sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
-    externalBetaTrafficCandidateToolsWithProvidedEvidence: 1,
+    operatorTrafficSwitchRuntimeSoakAuthorizationPreparedRequestsWithProvidedEvidence: 1,
+    sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence: 1,
+    operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence: 1,
+    externalBetaTrafficSwitchEnabledNowTools: 0,
+    externalBetaRuntimeSoakStartedNowTools: 0,
     externalBetaTrafficEnabledNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -244,55 +241,59 @@ function sourceTrafficEnablementGateFixture(toolId) {
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     gpuRuntimeShouldStartNow: false,
-    trafficEnablementCandidate: {
+    trafficSwitchRuntimeSoakCandidate: {
       toolId,
       capabilityId,
       routePath: '/api/ai-graphics/external-beta/tool-call',
       routeId,
-      rolloutCohortRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/rollout-cohort.json`,
-      featureFlagRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/feature-flag.json`,
-      killSwitchRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/kill-switch.json`,
-      rateLimitRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/rate-limit.json`,
-      costCeilingRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/cost-ceiling.json`,
-      supportRunbookRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/support-runbook.md`,
-      telemetryRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/telemetry.json`,
-      rollbackRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/rollback.json`,
-      ownerApprovalRef:
-        `private://ai-graphics/external-beta/traffic/${toolId}/owner-approval.json`,
-      sourceCallableResultGateAccepted: true,
-      sourceExternalBetaLaunchGoNoGoAccepted: true,
-      externalBetaTrafficEnablementPreparedWithProvidedEvidence: true,
-      externalBetaTrafficEnabledNow: false,
+      sourceTrafficEnablementGateAccepted: true,
+      operatorTrafficSwitchApprovalRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/approval.json`,
+      runtimeSoakPlanRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/runtime-soak-plan.json`,
+      runtimeSoakWindowRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/runtime-soak-window.json`,
+      canaryCohortRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/canary-cohort.json`,
+      monitoringDashboardRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/monitoring-dashboard.json`,
+      alertPolicyRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/alert-policy.json`,
+      rollbackPlaybookRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/rollback-playbook.md`,
+      supportPagerRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/support-pager.json`,
+      costBudgetRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/cost-budget.json`,
+      killSwitchDrillRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/kill-switch-drill.json`,
+      postSoakReviewRef:
+        `private://ai-graphics/external-beta/operator-switch/${toolId}/post-soak-review.json`,
+      operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence: true,
+      externalBetaTrafficSwitchEnabledNow: false,
+      externalBetaRuntimeSoakStartedNow: false,
       routeExecutionApprovedNow: false,
       workerDispatchApprovedNow: false,
       toolExecutionApprovedNow: false,
       gpuRuntimeShouldStartNow: false,
     },
     policy: {
-      validatesPreparedTrafficEnablementOnly: true,
-      noExternalBetaTrafficEnabledByGate: true,
+      validatesOperatorSwitchAndSoakAuthorizationOnly: true,
+      noExternalBetaTrafficSwitchEnabledByGate: true,
+      noRuntimeSoakStartedByGate: true,
       noLiveApiRouteExecutionByGate: true,
       noLiveWorkerDispatchByGate: true,
       noToolExecutionByGate: true,
       noProviderRuntimeByGate: true,
       noGpuRuntimeStartByGate: true,
-      featureFlagAndKillSwitchRequiredBeforeFutureTraffic: true,
-      nextGateRequiresOperatorTrafficSwitchAndRuntimeSoak: true,
+      monitoringAlertsRollbackAndSupportRequiredBeforeFutureTraffic: true,
+      nextGateRequiresControlledTrafficExecutionAndObservedSoakResults: true,
     },
     booleans: {
-      externalBetaPerToolTrafficEnablementGatePrepared: true,
-      sourcePerToolCallableResultGateAccepted: true,
-      sourceExternalBetaLaunchGoNoGoAccepted: true,
-      trafficEnablementControlsAccepted: true,
-      perToolTrafficEnablementPreparedWithProvidedEvidence: true,
+      externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared: true,
+      sourcePerToolTrafficEnablementGateAccepted: true,
+      operatorTrafficSwitchRuntimeSoakControlsAccepted: true,
+      operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence: true,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
@@ -303,6 +304,8 @@ function sourceTrafficEnablementGateFixture(toolId) {
       agentCanExecuteToolsNow: false,
       externalBetaCallableNow: false,
       externalBetaTrafficEnabledNow: false,
+      externalBetaTrafficSwitchEnabledNow: false,
+      externalBetaRuntimeSoakStartedNow: false,
       externalBetaTrafficSwitchApprovedNow: false,
       apiRouteExecutionApprovedNow: false,
       routeExecutionApprovedNow: false,
@@ -333,11 +336,11 @@ function sourceTrafficEnablementGateFixture(toolId) {
       privateArtifactWritePerformed: false,
       serviceRoleQueueSmokePerformed: false,
       supabaseMutationPerformed: false,
-      workerLeaseCreatedByTrafficGate: false,
-      workerDispatchPerformedByTrafficGate: false,
+      workerLeaseCreatedByAuthorizationGate: false,
+      workerDispatchPerformedByAuthorizationGate: false,
       providerRuntimePerformed: false,
       browserWebglCanvasRuntimePerformed: false,
-      gpuRuntimePerformedByTrafficGate: false,
+      gpuRuntimePerformedByAuthorizationGate: false,
       modelWeightsDownloaded: false,
       modelWeightsLoaded: false,
       mediaProcessingPerformed: false,
@@ -348,40 +351,36 @@ function sourceTrafficEnablementGateFixture(toolId) {
   }
 }
 
-function privateAuthorizationRefs(toolId) {
+function privateObservedRefs(toolId) {
   return [
-    '--external-beta-operator-traffic-switch-approval-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/approval.json`,
-    '--external-beta-runtime-soak-plan-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/runtime-soak-plan.json`,
-    '--external-beta-runtime-soak-window-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/runtime-soak-window.json`,
-    '--external-beta-canary-cohort-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/canary-cohort.json`,
-    '--external-beta-monitoring-dashboard-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/monitoring-dashboard.json`,
-    '--external-beta-alert-policy-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/alert-policy.json`,
-    '--external-beta-rollback-playbook-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/rollback-playbook.md`,
-    '--external-beta-support-pager-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/support-pager.json`,
-    '--external-beta-cost-budget-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/cost-budget.json`,
-    '--external-beta-kill-switch-drill-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/kill-switch-drill.json`,
-    '--external-beta-post-soak-review-ref',
-    `private://ai-graphics/external-beta/operator-switch/${toolId}/post-soak-review.json`,
+    '--external-beta-controlled-traffic-run-result-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/traffic-run-result.json`,
+    '--external-beta-runtime-soak-metrics-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/runtime-soak-metrics.json`,
+    '--external-beta-request-sample-audit-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/request-sample-audit.json`,
+    '--external-beta-zero-critical-incident-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/zero-critical-incident.json`,
+    '--external-beta-cost-observation-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/cost-observation.json`,
+    '--external-beta-gpu-lifecycle-observation-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/gpu-lifecycle-observation.json`,
+    '--external-beta-user-impact-review-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/user-impact-review.json`,
+    '--external-beta-rollback-readiness-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/rollback-readiness.json`,
+    '--external-beta-post-soak-owner-review-ref',
+    `private://ai-graphics/external-beta/observed-soak/${toolId}/post-soak-owner-review.json`,
   ]
 }
 
-function runGate(toolId, extraArgs = privateAuthorizationRefs(toolId), mutateSource) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-operator-switch-'))
-  const sourceGate = sourceTrafficEnablementGateFixture(toolId)
-  if (mutateSource) mutateSource(sourceGate)
-  const sourcePath = writeJson(path.join(tempDir, 'traffic-enable-gate.json'), sourceGate)
+function runGate(toolId, extraArgs = privateObservedRefs(toolId), mutateSource) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-observed-soak-'))
+  const source = sourceAuthorizationFixture(toolId)
+  if (mutateSource) mutateSource(source)
+  const sourcePath = writeJson(path.join(tempDir, 'operator-authorization.json'), source)
   return npmJson(runScriptName, [
-    '--external-beta-per-tool-traffic-enablement-gate-packet',
+    '--external-beta-operator-traffic-switch-runtime-soak-authorization-packet',
     sourcePath,
     ...extraArgs,
   ])
@@ -431,8 +430,6 @@ function verifyPackageJson() {
   const allowedPackageAdditions = [
     `+    "${runScriptName}": "${runScriptCommand}",`,
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-    '+    "ai-graphics:external-beta-controlled-traffic-runtime-soak-result": "tsx server/cli/ai-graphics-external-beta-controlled-traffic-runtime-soak-result.ts",',
-    '+    "ai-graphics:external-beta-controlled-traffic-runtime-soak-result:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-traffic-runtime-soak-result-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')
@@ -464,30 +461,30 @@ function verifyTrackedAndChangedPaths() {
 }
 
 function verifyDocs() {
-  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.json')
+  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.json')
   requireEqual(docJson.decision, decision, 'doc_json_decision')
   requireEqual(docJson.status, acceptedStatus, 'doc_json_status')
   requireEqual(docJson.scope?.totalAiGraphicsTools, 21, 'doc_json_tool_count')
   requireEqual(docJson.scope?.productFacingCapabilities, 12, 'doc_json_capability_count')
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
   requireEqual(
-    docJson.scope?.operatorTrafficSwitchRuntimeSoakAuthorizationPreparedRequestsWithProvidedEvidence,
+    docJson.scope?.controlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence,
     1,
     'doc_json_gate_count',
   )
   requireEqual(
-    docJson.scope?.sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence,
+    docJson.scope?.sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAcceptedRequestsWithProvidedEvidence,
     1,
-    'doc_json_source_gate_count',
+    'doc_json_source_count',
   )
   requireEqual(
-    docJson.scope?.operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence,
+    docJson.scope?.controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence,
     1,
-    'doc_json_candidate_count',
+    'doc_json_observed_count',
   )
-  requireEqual(docJson.scope?.externalBetaTrafficSwitchEnabledNowTools, 0, 'doc_json_switch_now_count')
-  requireEqual(docJson.scope?.externalBetaRuntimeSoakStartedNowTools, 0, 'doc_json_soak_now_count')
-  requireEqual(docJson.scope?.externalBetaTrafficEnabledNowTools, 0, 'doc_json_traffic_now_count')
+  requireEqual(docJson.scope?.externalBetaTrafficSwitchEnabledByThisGateTools, 0, 'doc_json_switch_now_count')
+  requireEqual(docJson.scope?.externalBetaRuntimeSoakStartedByThisGateTools, 0, 'doc_json_soak_now_count')
+  requireEqual(docJson.scope?.externalBetaTrafficEnabledByThisGateTools, 0, 'doc_json_traffic_now_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 0, 'doc_json_external_beta_count')
   requireEqual(docJson.scope?.productionReadyNowTools, 0, 'doc_json_production_count')
   for (const tool of tools) {
@@ -497,10 +494,11 @@ function verifyDocs() {
     if (!docJson.gpuTools?.includes(tool)) fail(`doc_json_missing_gpu_tool:${tool}`)
   }
   for (const key of [
-    'externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared',
-    'sourcePerToolTrafficEnablementGateAccepted',
-    'operatorTrafficSwitchRuntimeSoakControlsAccepted',
-    'operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence',
+    'externalBetaControlledTrafficRuntimeSoakResultPrepared',
+    'sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted',
+    'controlledTrafficRuntimeSoakObservedEvidenceAccepted',
+    'controlledTrafficRunObservedWithProvidedEvidence',
+    'runtimeSoakObservedWithProvidedEvidence',
     'all21ToolsCovered',
     'all12CapabilitiesCovered',
     'all8GpuToolsTargetGpuRuntime',
@@ -515,32 +513,32 @@ function verifyDocs() {
     requireFalse(docJson.booleans?.[key], `doc_json_boolean_${key}`)
   }
 
-  const md = read('docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.md')
+  const md = read('docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.md')
   for (const required of [
     decision,
-    'does not enable traffic',
-    'does not start runtime soak',
-    '`externalBetaTrafficSwitchEnabledNow=false`',
-    '`externalBetaRuntimeSoakStartedNow=false`',
+    'does not execute traffic',
+    'does not enable traffic switches',
+    '`controlledTrafficRunExecutedByThisGate=false`',
+    '`externalBetaRuntimeSoakStartedByThisGate=false`',
     '`gpuRuntimeShouldStartNow=false`',
-    'This gate only proves the authorization controls exist.',
+    'This result gate only accepts observed evidence refs.',
   ]) {
-    if (!md.includes(required)) fail(`operator_switch_md_missing:${required}`)
+    if (!md.includes(required)) fail(`controlled_traffic_md_missing:${required}`)
   }
 
   const scorecard = read('docs/production-beta-readiness-scorecard.md')
   for (const required of [
-    'AI Graphics External-Beta Operator Traffic Switch Runtime Soak Authorization',
+    'AI Graphics External-Beta Controlled Traffic Runtime Soak Result',
     decision,
-    'operator traffic-switch and runtime-soak authorization metadata gate',
+    'observed controlled-traffic/runtime-soak result evidence intake',
     '`gpuRuntimeShouldStartNow` remains false',
   ]) {
     if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
   }
 
   for (const file of [
-    'docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.json',
-    'docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.md',
+    'docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.json',
+    'docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.md',
     'docs/production-beta-readiness-scorecard.md',
   ]) {
     const content = read(file)
@@ -552,23 +550,23 @@ function verifyDocs() {
 
 function verifySourceWiring() {
   const registry = read('server/tool-registry/index.ts')
-  if (!registry.includes("export * from './ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization'")) {
+  if (!registry.includes("export * from './ai-graphics-external-beta-controlled-traffic-runtime-soak-result'")) {
     fail('missing_registry_export')
   }
-  const evaluator = read('server/tool-registry/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization.ts')
+  const evaluator = read('server/tool-registry/ai-graphics-external-beta-controlled-traffic-runtime-soak-result.ts')
   for (const required of [
     decision,
-    'prepared_operator_traffic_switch_runtime_soak_authorization_metadata_only',
+    'observed_controlled_traffic_runtime_soak_result_metadata_only',
+    'noControlledTrafficExecutedByGate: true',
     'noExternalBetaTrafficSwitchEnabledByGate: true',
     'noRuntimeSoakStartedByGate: true',
     'noLiveApiRouteExecutionByGate: true',
     'noLiveWorkerDispatchByGate: true',
     'noToolExecutionByGate: true',
     'noGpuRuntimeStartByGate: true',
-    'externalBetaTrafficSwitchEnabledNow: false',
-    'externalBetaRuntimeSoakStartedNow: false',
+    'controlledTrafficRunExecutedByThisGate: false',
+    'externalBetaRuntimeSoakStartedByThisGate: false',
     'gpuRuntimeShouldStartNow: false',
-    'toolExecutionApprovedNow: false',
   ]) {
     if (!evaluator.includes(required)) fail(`evaluator_missing:${required}`)
   }
@@ -578,9 +576,10 @@ function verifyCliBehavior() {
   const missing = npmJson(runScriptName)
   requireEqual(
     missing.status,
-    'missing_external_beta_per_tool_traffic_enablement_gate',
+    'missing_external_beta_operator_traffic_switch_runtime_soak_authorization',
     'missing_cli_status',
   )
+  requireFalse(missing.input?.controlledTrafficRunExecutedByThisCommand, 'missing_cli_no_traffic')
   requireFalse(missing.input?.externalBetaTrafficSwitchEnabledByThisCommand, 'missing_cli_no_switch')
   requireFalse(missing.input?.externalBetaRuntimeSoakStartedByThisCommand, 'missing_cli_no_soak')
   requireFalse(missing.input?.routeExecutionPerformed, 'missing_cli_no_route')
@@ -590,77 +589,83 @@ function verifyCliBehavior() {
 
   const accepted = runGate('sam2')
   requireEqual(accepted.status, acceptedStatus, 'accepted_status')
-  requireTruthy(accepted.operatorTrafficSwitchRuntimeSoakControlsAccepted, 'accepted_controls')
+  requireTruthy(accepted.controlledTrafficRuntimeSoakObservedEvidenceAccepted, 'accepted_evidence')
   requireEqual(
-    accepted.operatorTrafficSwitchRuntimeSoakAuthorizationPreparedRequestsWithProvidedEvidence,
+    accepted.controlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence,
     1,
     'accepted_gate_count',
   )
   requireEqual(
-    accepted.sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence,
+    accepted.sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAcceptedRequestsWithProvidedEvidence,
     1,
     'accepted_source_count',
   )
   requireEqual(
-    accepted.operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence,
+    accepted.controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence,
     1,
-    'accepted_candidate_count',
+    'accepted_observed_count',
   )
-  requireEqual(accepted.externalBetaTrafficSwitchEnabledNowTools, 0, 'accepted_switch_now_count')
-  requireEqual(accepted.externalBetaRuntimeSoakStartedNowTools, 0, 'accepted_soak_now_count')
+  requireEqual(accepted.externalBetaTrafficSwitchEnabledByThisGateTools, 0, 'accepted_switch_count')
+  requireEqual(accepted.externalBetaRuntimeSoakStartedByThisGateTools, 0, 'accepted_soak_count')
+  requireEqual(accepted.externalBetaReadyNowTools, 0, 'accepted_external_beta_count')
   requireTruthy(
-    accepted.trafficSwitchRuntimeSoakCandidate?.sourceTrafficEnablementGateAccepted,
-    'candidate_source',
+    accepted.observedResult?.sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted,
+    'observed_source',
+  )
+  requireTruthy(
+    accepted.observedResult?.controlledTrafficRunObservedWithProvidedEvidence,
+    'observed_traffic',
+  )
+  requireTruthy(
+    accepted.observedResult?.gpuLifecycleObservedAsOnDemandWithProvidedEvidence,
+    'observed_gpu_lifecycle',
   )
   requireFalse(
-    accepted.trafficSwitchRuntimeSoakCandidate?.externalBetaTrafficSwitchEnabledNow,
-    'candidate_switch_false',
+    accepted.observedResult?.controlledTrafficRunExecutedByThisGate,
+    'observed_no_gate_traffic',
   )
   requireFalse(
-    accepted.trafficSwitchRuntimeSoakCandidate?.externalBetaRuntimeSoakStartedNow,
-    'candidate_soak_false',
+    accepted.observedResult?.externalBetaRuntimeSoakStartedByThisGate,
+    'observed_no_gate_soak',
   )
   verifyFalseGates(accepted, 'accepted')
 
-  const badSource = runGate('sam2', privateAuthorizationRefs('sam2'), (source) => {
-    source.status = 'missing_external_beta_per_tool_traffic_enablement_controls'
+  const badSource = runGate('sam2', privateObservedRefs('sam2'), (source) => {
+    source.status =
+      'missing_external_beta_operator_traffic_switch_runtime_soak_controls'
   })
   requireEqual(
     badSource.status,
-    'external_beta_per_tool_traffic_enablement_gate_rejected',
+    'external_beta_operator_traffic_switch_runtime_soak_authorization_rejected',
     'bad_source_status',
   )
 
   const badPublicRef = runGate('sam2', [
-    '--external-beta-operator-traffic-switch-approval-ref',
-    'https://example.invalid/public/operator-switch.json',
-    '--external-beta-runtime-soak-plan-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/runtime-soak-plan.json',
-    '--external-beta-runtime-soak-window-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/runtime-soak-window.json',
-    '--external-beta-canary-cohort-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/canary-cohort.json',
-    '--external-beta-monitoring-dashboard-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/monitoring-dashboard.json',
-    '--external-beta-alert-policy-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/alert-policy.json',
-    '--external-beta-rollback-playbook-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/rollback-playbook.md',
-    '--external-beta-support-pager-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/support-pager.json',
-    '--external-beta-cost-budget-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/cost-budget.json',
-    '--external-beta-kill-switch-drill-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/kill-switch-drill.json',
-    '--external-beta-post-soak-review-ref',
-    'private://ai-graphics/external-beta/operator-switch/sam2/post-soak-review.json',
+    '--external-beta-controlled-traffic-run-result-ref',
+    'https://example.invalid/public/traffic-run-result.json',
+    '--external-beta-runtime-soak-metrics-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/runtime-soak-metrics.json',
+    '--external-beta-request-sample-audit-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/request-sample-audit.json',
+    '--external-beta-zero-critical-incident-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/zero-critical-incident.json',
+    '--external-beta-cost-observation-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/cost-observation.json',
+    '--external-beta-gpu-lifecycle-observation-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/gpu-lifecycle-observation.json',
+    '--external-beta-user-impact-review-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/user-impact-review.json',
+    '--external-beta-rollback-readiness-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/rollback-readiness.json',
+    '--external-beta-post-soak-owner-review-ref',
+    'private://ai-graphics/external-beta/observed-soak/sam2/post-soak-owner-review.json',
   ])
   requireEqual(
     badPublicRef.status,
-    'missing_external_beta_operator_traffic_switch_runtime_soak_controls',
+    'missing_external_beta_controlled_traffic_runtime_soak_result_evidence',
     'bad_public_ref_status',
   )
-  if (!badPublicRef.rejectionReasons?.some((reason) => reason.includes('operator traffic switch approval'))) {
+  if (!badPublicRef.rejectionReasons?.some((reason) => reason.includes('controlled traffic run result'))) {
     fail('bad_public_ref_missing_rejection_reason')
   }
 }
@@ -678,7 +683,7 @@ if (failures.length > 0) {
     ok: false,
     decision,
     status:
-      'ai_graphics_external_beta_operator_traffic_switch_runtime_soak_authorization_diagnostics_failed',
+      'ai_graphics_external_beta_controlled_traffic_runtime_soak_result_diagnostics_failed',
     failures,
   }, null, 2))
   process.exit(1)
@@ -688,17 +693,19 @@ console.log(JSON.stringify({
   ok: true,
   decision,
   status:
-    'ai_graphics_external_beta_operator_traffic_switch_runtime_soak_authorization_diagnostics_passed',
+    'ai_graphics_external_beta_controlled_traffic_runtime_soak_result_diagnostics_passed',
   checkedFiles: requiredFiles.length,
   totalAiGraphicsTools: tools.length,
   gpuRuntimeTargetedTools: gpuTools.length,
-  operatorTrafficSwitchRuntimeSoakAuthorizationAccepted: true,
-  externalBetaTrafficSwitchEnabledNow: false,
-  externalBetaRuntimeSoakStartedNow: false,
+  controlledTrafficRuntimeSoakObservedEvidenceAccepted: true,
+  controlledTrafficRunExecutedByThisGate: false,
+  externalBetaTrafficSwitchEnabledByThisGate: false,
+  externalBetaRuntimeSoakStartedByThisGate: false,
   routeExecutionApprovedNow: false,
   workerDispatchApprovedNow: false,
   toolExecutionApprovedNow: false,
   gpuRuntimeShouldStartNow: false,
   runtimeReadyNow: false,
+  externalBetaReadyNow: false,
   productionReadyNow: false,
 }, null, 2))

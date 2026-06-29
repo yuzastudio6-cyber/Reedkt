@@ -1,6 +1,8 @@
 # Activation Readiness State
 
-Phase 36G closes the RNNoise/Demucs audio stack correction. DeepFilterNet remains the internal speech-cleanup path, RNNoise is removed from active product routing, and Demucs is documented only as the future vocal/music/stem separation candidate. Demucs htdemucs download and runtime are blocked because the official pretrained-model license/provenance remains ambiguous in the archived facebookresearch/demucs repository. Phase 37A OCR approval workflow may start without treating Demucs as approved. Production, external beta, broad media, arbitrary media, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+Phase 37B completed the PaddleOCR exact asset selection and guarded private download/upload evidence after Phase 37A. The selected safe-zone v1 assets are `PP-OCRv5_mobile_det_infer.tar`, `PP-OCRv5_mobile_rec_infer.tar`, and `ppocrv5_dict.txt` under the private `paddle3.0.0-mobile-safe-zone-v1` prefix, with 12 private GCS objects verified at `2026-05-30T22:04:32.605Z`. Default commands remain non-mutating and now report the approved private staging evidence. Phase 37C may proceed only as generated UI/text-frame OCR runtime verification planning; OCR runtime execution, real media OCR, real video OCR, caption/render integration, production, external beta, broad media, arbitrary media, providers, public output, Revideo, FILM, slow motion, and final delivery remain blocked.
+
+Phase 36G closes the RNNoise/Demucs audio stack correction. DeepFilterNet remains the internal speech-cleanup path, RNNoise is removed from active product routing, and Demucs is documented only as the future vocal/music/stem separation candidate. Demucs htdemucs download and runtime are blocked because the official pretrained-model license/provenance remains ambiguous in the archived facebookresearch/demucs repository. Production, external beta, broad media, arbitrary media, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
 
 Phase 36F completed the audio system internal beta readiness gate for
 `phase36f-20260530T161352`. It verified Phase 31 and Phase 36A-36E evidence,
@@ -120,7 +122,8 @@ runtime on generated media only.
 | DeepFilterNet feature E2E | Phase 36E complete for internal testing only | `phase36e-20260530T152327` used the approved Phase 32 private export and Phase 36D evidence, created a private cleaned WAV, private review MP4, metrics, QA, and a local backup review copy. External beta, paid production, broad media, arbitrary media, and final delivery remain blocked. |
 | Audio system internal readiness | Phase 36F complete for internal audio feature testing only | `phase36f-20260530T161352` verified Phase 31 and Phase 36A-36E evidence, private Phase 36E artifacts, beta-scope manifest, rollback/fallback policy, and blocked external beta/production scopes. |
 | RNNoise/Demucs status | Phase 36G closed with Demucs blocked | RNNoise is removed from active product flow. Demucs is the vocal/music/stem separation candidate, but htdemucs download/runtime is blocked pending pretrained-model license/provenance clarity. No RNNoise or Demucs artifacts are approved or downloaded. |
-| OCR approval workflow | Phase 37A planning approved | PaddleOCR/PaddlePaddle evidence is recorded for generated OCR safe-zone planning only. PP-OCRv5 exact assets are deferred to Phase 37B; OCR download/runtime, real-video OCR, production, beta, and broad media remain blocked. |
+| OCR approval workflow | Phase 37A planning approved | PaddleOCR/PaddlePaddle evidence is recorded for generated OCR safe-zone planning only. Phase 37B now selects exact PP-OCRv5 assets through a guarded workflow; OCR runtime, real-video OCR, production, beta, and broad media remain blocked. |
+| OCR exact assets | Phase 37B private staging evidence passed | `PP-OCRv5_mobile_det_infer.tar`, `PP-OCRv5_mobile_rec_infer.tar`, and `ppocrv5_dict.txt` are selected and verified under the private `paddle3.0.0-mobile-safe-zone-v1` prefix with aggregate SHA-256 `6c4fbb9986bc5fdc97a363ab41124feb835656388cb6d51f17986f70e14a5a7b`. Phase 37C may proceed only to generated OCR runtime verification; OCR runtime execution, real-video OCR, production, beta, and broad media remain blocked. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
@@ -155,7 +158,7 @@ Current classification:
 - staging deployment: complete where applicable for the controlled activation path
 - dedicated runtime jobs: CPU speech runtime verified, BiRefNet L4 runtime verified, Real-ESRGAN L4 runtime verified, SAM2 L4 runtime verified on generated synthetic frames only
 - model weights/licenses: staging approval remains scope-limited per model/tool
-- model files/checksums: private staging storage verified for faster-whisper tiny, BiRefNet, RealESRGAN_x4plus, SAM2.1 tiny, and selected DeepFilterNet v0.5.6 artifacts
+- model files/checksums: private staging storage verified for faster-whisper tiny, BiRefNet, RealESRGAN_x4plus, SAM2.1 tiny, selected DeepFilterNet v0.5.6 artifacts, and selected PP-OCRv5 det/rec/dictionary assets
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
 - general/broad GPU AI worker execution: blocked unless a dedicated approved phase explicitly enables it
 - controlled real-video chain: complete only for the explicit approved Phase 28-34D path
@@ -167,7 +170,7 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next activation phase: Phase 37B exact OCR asset selection/download planning only. Arbitrary media, OCR runtime, real-video OCR, production, beta, RNNoise active routing, Demucs download/runtime, providers, Revideo, FILM, and slow motion remain blocked
+- next activation work: Phase 37C generated OCR runtime verification planning only, using the verified Phase 37B private PP-OCRv5 assets. Arbitrary media, OCR runtime execution, real-video OCR, production, beta, RNNoise active routing, Demucs download/runtime, providers, public output, Revideo, FILM, and slow motion remain blocked
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

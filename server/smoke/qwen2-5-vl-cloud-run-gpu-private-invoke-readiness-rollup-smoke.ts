@@ -71,6 +71,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-plan'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_CREATE } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-create'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_VALIDATION_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-validation-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-plan'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -79,9 +80,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_validated_deploy_plan_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_deploy_plan_recorded_deploy_approval_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58BC-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-DEPLOY-PLAN: plan deployment of validated Qwen persistence migration, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58BD-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-DEPLOY-APPROVAL: approve deployment target for validated Qwen persistence migration, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -1056,7 +1057,8 @@ for (const phrase of [
   'backend runtime persistence active migration plan: ready, plan recorded',
   'backend runtime persistence active migration creation: ready, active migration file created',
   'backend runtime persistence active migration validation: ready, active migration applies locally and Qwen SQL tests pass',
-  'backend runtime persistence active migration deploy plan: blocked, deploy plan required',
+  'backend runtime persistence active migration deploy plan: ready, plan recorded',
+  'backend runtime persistence active migration deploy approval: blocked, deploy approval required',
   '`backendRuntimePersistenceActiveMigrationPlanRequired=false`',
   '`backendRuntimePersistenceActiveMigrationPlanRecorded=true`',
   '`backendRuntimePersistenceActiveMigrationCreateRequired=false`',
@@ -1067,7 +1069,9 @@ for (const phrase of [
   '`backendRuntimePersistenceActiveMigrationValidated=true`',
   '`backendRuntimePersistenceActiveMigrationApplied=true`',
   '`backendRuntimePersistenceActiveMigrationHistoryObserved=true`',
-  '`backendRuntimePersistenceActiveMigrationDeployPlanRequired=true`',
+  '`backendRuntimePersistenceActiveMigrationDeployPlanRecorded=true`',
+  '`backendRuntimePersistenceActiveMigrationDeployApprovalRequired=true`',
+  '`backendRuntimePersistenceActiveMigrationDeploymentTargetApproved=false`',
   '`backendRuntimePersistenceActiveMigrationDeployed=false`',
   NEXT_PROMPT,
 ]) {
@@ -1316,6 +1320,10 @@ assert.equal(
   rollup.upstreamBackendRuntimePersistenceActiveMigrationValidationResultDecision,
   QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_VALIDATION_RESULT.decision,
 )
+assert.equal(
+  rollup.upstreamBackendRuntimePersistenceActiveMigrationDeployPlanDecision,
+  QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_PLAN.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -1381,7 +1389,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'backend_runtime_persistence_active_migration_deploy_plan_required',
+  'backend_runtime_persistence_active_migration_deploy_approval_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1468,8 +1476,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_active_migration_create',
   'backend_runtime_persistence_active_migration_validation',
   'backend_runtime_persistence_active_migration_deploy_plan',
+  'backend_runtime_persistence_active_migration_deploy_approval',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 65)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 66)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -1684,6 +1693,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_active_migration_deploy_plan_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_active_migration_deploy_approval_required').length,
   1,
 )
 assert.equal(
@@ -2043,7 +2056,10 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationValidat
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationValidated, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationApplied, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationHistoryObserved, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployPlanRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployPlanRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployPlanRecorded, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployApprovalRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeploymentTargetApproved, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationDeployed, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceStorageUploadPipelinePolicyCommentFixVerified, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplyAttempted, true)
@@ -2224,6 +2240,7 @@ const forbiddenDataFindings = scanValues({
   backendRuntimePersistenceActiveMigrationPlan: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_PLAN,
   backendRuntimePersistenceActiveMigrationCreate: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_CREATE,
   backendRuntimePersistenceActiveMigrationValidationResult: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_VALIDATION_RESULT,
+  backendRuntimePersistenceActiveMigrationDeployPlan: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_PLAN,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

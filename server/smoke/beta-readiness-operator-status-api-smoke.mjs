@@ -3,11 +3,9 @@ import {
   buildOperatorStatusEndpoint,
   runBetaReadinessOperatorStatusApiFromEnv,
   summarizeOperatorStatusApiResponse,
-  type BetaReadinessOperatorStatusApiEnv,
-  type BetaReadinessOperatorStatusApiFetch,
-} from '../cli/beta-readiness-operator-status-api'
+} from '../cli/beta-readiness-operator-status-api.mjs'
 
-const env: BetaReadinessOperatorStatusApiEnv = {
+const env = {
   REEDITPRO_BETA_STATUS_API_BASE_URL: 'https://api.staging.reeditpro.example/',
   REEDITPRO_BETA_STATUS_BEARER_TOKEN: 'status-api-secret-token',
   REEDITPRO_BETA_STATUS_WORKSPACE_ID: 'workspace-status-api-smoke',
@@ -25,8 +23,8 @@ assert.equal(
 )
 
 let capturedUrl = ''
-let capturedInit: Parameters<BetaReadinessOperatorStatusApiFetch>[1] | undefined
-const blockedFetch: BetaReadinessOperatorStatusApiFetch = async (url, init) => {
+let capturedInit
+const blockedFetch = async (url, init) => {
   capturedUrl = url
   capturedInit = init
   return {

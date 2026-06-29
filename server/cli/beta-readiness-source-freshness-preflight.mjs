@@ -30,6 +30,9 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:tools:libass-synthetic-burnin-qa-evidence',
   'beta:tools:libass-synthetic-burnin-qa-evidence-preflight',
   'beta:tools:libass-synthetic-burnin-qa-preflight',
+  'prod:beta:summary',
+  'prod:readiness:command-plan',
+  'prod:readiness:summary',
   'smoke:beta-readiness-deployed-evidence-input-manifest',
   'smoke:beta-readiness',
   'smoke:beta-readiness-api-deployment-preflight',
@@ -62,6 +65,11 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'smoke:beta-tools-libass-synthetic-burnin-qa-evidence-cli',
   'smoke:beta-tools-libass-synthetic-burnin-qa-evidence-preflight',
   'smoke:beta-tools-libass-synthetic-burnin-qa-preflight',
+  'smoke:prod-container-readiness',
+  'smoke:prod-core-tool-install',
+  'smoke:prod-readiness-validation',
+  'smoke:prod-tool-registry',
+  'smoke:tool-beta-execution-readiness',
 ]
 
 export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, options = {}) {

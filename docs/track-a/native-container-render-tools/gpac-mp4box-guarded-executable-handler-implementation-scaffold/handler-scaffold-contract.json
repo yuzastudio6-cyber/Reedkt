@@ -1,0 +1,37 @@
+{
+  "scaffoldId": "handlerImplementationScaffold.gpacMp4box.guardedExecutable",
+  "routeId": "render.gpacMp4box.guardedExecutableHandlerImplementationScaffold",
+  "routeOwner": "backend_service_role_only",
+  "handlerImplementationMode": "guarded_executable_handler_implementation_scaffold_only",
+  "handlerScaffoldRegistered": true,
+  "routeRegistered": false,
+  "routeExecutable": false,
+  "workerDispatchEnabled": false,
+  "featureFlagDefault": false,
+  "runtimeExecutionApproved": false,
+  "requiredGuards": [
+    "approved_snapshot_guard",
+    "route_idempotency_guard",
+    "private_artifact_manifest_guard",
+    "command_allowlist_guard",
+    "negative_tests_guard",
+    "storage_transfer_gate",
+    "signed_public_artifact_gate",
+    "cleanup_audit_reference",
+    "operator_confirmation_guard"
+  ],
+  "blocked": {
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  }
+}

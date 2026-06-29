@@ -70,6 +70,8 @@
   "acceptanceCriteria": {
     "sourceWorkerDispatchReadinessAcceptedWithProvidedEvidence": true,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
+    "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "smokeJobsPrepared": 21,
     "smokeJobsCompletedWithProvidedEvidence": 21,
     "smokeCapabilityScenariosPrepared": 12,
@@ -92,6 +94,7 @@
     "externalBetaWorkerDispatchSmokePrepared": true,
     "sourceExternalBetaWorkerDispatchReadinessAccepted": false,
     "sourceRuntimeQueueServiceProofBridgeAccepted": false,
+    "sourceServiceRoleQueueSmokeAuthorizationAccepted": false,
     "externalBetaWorkerDispatchSmokeControlsAccepted": false,
     "mockDispatcherSmokeCompletedWithProvidedEvidence": false,
     "all21ToolsCovered": true,

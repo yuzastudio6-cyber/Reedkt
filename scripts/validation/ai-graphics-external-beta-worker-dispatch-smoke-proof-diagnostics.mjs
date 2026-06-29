@@ -233,6 +233,8 @@ for (const capability of capabilities) {
 }
 for (const [key, expected] of Object.entries({
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   smokeJobsPrepared: 21,
   smokeJobsCompletedWithProvidedEvidence: 21,
   smokeCapabilityScenariosPrepared: 12,
@@ -285,6 +287,8 @@ for (const phrase of [
   'noToolExecutionByProofValidator',
   'noGpuRuntimeStartByProofValidator',
   'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
+  'serviceRoleQueueSmokeAuthorizationRef',
+  'sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -310,6 +314,9 @@ try {
     gpuRuntimeTargetedTools: 8,
     acceptedSourceEvidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      serviceRoleQueueSmokeAuthorizationRef:
+        'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
     records: allTools.map((toolId) => ({
       toolId,
@@ -320,6 +327,7 @@ try {
     liveToolExecutionsNow: 0,
     booleans: {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -373,6 +381,11 @@ try {
   if (accepted.counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
   }
+  if (
+    accepted.counts?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_source_service_role_queue_smoke_authorization_count_not_21')
+  }
   if (accepted.counts?.sourceLiveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
   if (accepted.counts?.sourceLiveWorkerDispatchesNow !== 0) fail('accepted_live_dispatches_not_0')
   if (accepted.counts?.sourceLiveToolExecutionsNow !== 0) fail('accepted_live_tool_exec_not_0')
@@ -383,11 +396,22 @@ try {
   ) {
     fail('accepted_source_runtime_queue_service_proof_bridge_evidence_not_true')
   }
+  if (
+    accepted.evidence?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== true
+  ) {
+    fail('accepted_source_service_role_queue_smoke_authorization_evidence_not_true')
+  }
+  if (!accepted.evidence?.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_service_role_queue_smoke_authorization_ref_missing')
+  }
   if (accepted.policy?.validatesSavedWorkerDispatchSmokeResultOnly !== true) {
     fail('accepted_not_saved_result_only')
   }
   if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
     fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
+  }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_boolean_not_true')
   }
   for (const key of falseGateKeys) {
     if (accepted.booleans?.[key] !== false) fail(`accepted_false_gate_not_false:${key}`)
@@ -423,6 +447,10 @@ try {
       ...smokeResult,
       sourceWorkerDispatchReadinessProofBridgeAccepted: false,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
+        smokeResult.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence,
+      serviceRoleQueueSmokeAuthorizationRef:
+        smokeResult.serviceRoleQueueSmokeAuthorizationRef,
       records: smokeResult.records.map((record) => ({
         ...record,
         sourceRuntimeQueueServiceProofBridgeAccepted: false,
@@ -430,6 +458,7 @@ try {
       booleans: {
         ...smokeResult.booleans,
         sourceRuntimeQueueServiceProofBridgeAccepted: false,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       },
     },
   )
@@ -456,6 +485,47 @@ try {
       .includes('proof bridge')
   ) {
     fail('stripped_bridge_rejected_missing_proof_bridge_reason')
+  }
+
+  const strippedAuthorizationResultPath = writeJson(
+    path.join(tmpRoot, 'stripped-authorization-worker-dispatch-smoke-result.json'),
+    {
+      ...smokeResult,
+      serviceRoleQueueSmokeAuthorizationRef: null,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+      records: smokeResult.records.map((record) => ({
+        ...record,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      })),
+      booleans: {
+        ...smokeResult.booleans,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+      },
+    },
+  )
+  const strippedAuthorizationRejected = parseJsonOutput(runNpm(proofScriptName, [
+    '--external-beta-worker-dispatch-smoke-result',
+    strippedAuthorizationResultPath,
+    '--external-beta-worker-dispatch-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/evidence.json',
+    '--external-beta-worker-dispatch-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/telemetry.json',
+    '--external-beta-worker-dispatch-smoke-lease-audit-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/lease-audit.json',
+    '--external-beta-worker-dispatch-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
+  ]), 'stripped-authorization-rejected')
+  if (
+    strippedAuthorizationRejected.decision !==
+      'external_beta_worker_dispatch_smoke_proof_rejected'
+  ) {
+    fail(`stripped_authorization_rejected_decision:${strippedAuthorizationRejected.decision}`)
+  }
+  if (
+    !JSON.stringify(strippedAuthorizationRejected.rejectionReasons ?? [])
+      .includes('authorization')
+  ) {
+    fail('stripped_authorization_rejected_missing_authorization_reason')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })

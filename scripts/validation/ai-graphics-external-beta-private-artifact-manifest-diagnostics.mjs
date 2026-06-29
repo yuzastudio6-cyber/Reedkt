@@ -317,6 +317,9 @@ try {
     gpuRuntimeTargetedTools: 8,
     acceptedSourceEvidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      serviceRoleQueueSmokeAuthorizationRef:
+        'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
     records: allTools.map((toolId) => ({
       toolId,
@@ -327,6 +330,7 @@ try {
     liveToolExecutionsNow: 0,
     booleans: {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,

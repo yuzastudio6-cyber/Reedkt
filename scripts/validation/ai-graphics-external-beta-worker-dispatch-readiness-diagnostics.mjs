@@ -232,6 +232,7 @@ for (const [key, expected] of Object.entries({
   sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
   sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
   sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
   sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
@@ -279,6 +280,8 @@ for (const phrase of [
   'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
   'sourceRuntimeQueueServiceProofBridgeAccepted',
   'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
+  'serviceRoleQueueSmokeAuthorizationRef',
+  'sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence',
   'noLiveWorkerLeaseByReadinessGate',
   'noLiveWorkerDispatchByReadinessGate',
   'noGpuRuntimeStartByReadinessGate',
@@ -377,6 +380,9 @@ try {
       ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
   ) {
     fail('accepted_source_service_role_queue_smoke_authorization_evidence_not_21')
+  }
+  if (!accepted.acceptedSourceEvidence?.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_service_role_queue_smoke_authorization_ref_missing')
   }
   const d3Record = (accepted.records ?? []).find((record) => record.toolId === 'd3')
   if (d3Record?.sourceGatewayRuntimeAdmissionMode !== 'cpu_static_first_cohort') {

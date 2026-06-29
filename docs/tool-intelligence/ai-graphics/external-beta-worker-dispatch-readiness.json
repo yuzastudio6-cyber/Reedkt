@@ -74,6 +74,7 @@
     "sourceLiveQueueWritesAcceptedWithProvidedEvidence": 21,
     "sourceWorkerClaimRowsAcceptedWithProvidedEvidence": 21,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
+    "serviceRoleQueueSmokeAuthorizationRefRequired": true,
     "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
     "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,
     "sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence": 1,

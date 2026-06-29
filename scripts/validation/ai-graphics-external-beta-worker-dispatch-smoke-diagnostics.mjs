@@ -239,6 +239,8 @@ for (const capability of capabilities) {
 }
 for (const [key, expected] of Object.entries({
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  serviceRoleQueueSmokeAuthorizationRefRequired: true,
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
   smokeJobsPrepared: 21,
   smokeJobsCompletedWithProvidedEvidence: 21,
   smokeCapabilityScenariosPrepared: 12,
@@ -288,6 +290,8 @@ for (const phrase of [
   'noToolExecutionBySmoke',
   'noGpuRuntimeStartBySmoke',
   'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
+  'serviceRoleQueueSmokeAuthorizationRef',
+  'sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -319,6 +323,9 @@ try {
     gpuRuntimeTargetedTools: 8,
     acceptedSourceEvidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      serviceRoleQueueSmokeAuthorizationRef:
+        'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
     records: allTools.map((toolId) => ({
       toolId,
@@ -329,6 +336,7 @@ try {
     liveToolExecutionsNow: 0,
     booleans: {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -362,6 +370,12 @@ try {
   if (accepted.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_runtime_queue_service_proof_bridge_count_not_21')
   }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21) {
+    fail('accepted_source_service_role_queue_smoke_authorization_count_not_21')
+  }
+  if (!accepted.serviceRoleQueueSmokeAuthorizationRef) {
+    fail('accepted_service_role_queue_smoke_authorization_ref_missing')
+  }
   if (accepted.inMemoryLeaseRecordsCreated !== 21) fail(`accepted_leases_created_not_21:${accepted.inMemoryLeaseRecordsCreated}`)
   if (accepted.inMemoryLeaseRecordsReleased !== 21) fail(`accepted_leases_released_not_21:${accepted.inMemoryLeaseRecordsReleased}`)
   if (accepted.liveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
@@ -384,6 +398,9 @@ try {
     if (record.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
       fail(`record_source_runtime_queue_service_proof_bridge_not_true:${record.toolId}`)
     }
+    if (record.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+      fail(`record_source_service_role_queue_smoke_authorization_not_true:${record.toolId}`)
+    }
     if (record.gpuRuntimeShouldStartNow !== false) fail(`record_gpu_start_now_not_false:${record.toolId}`)
     if (record.liveWorkerLeaseCreatedNow !== false) fail(`record_live_lease_not_false:${record.toolId}`)
     if (record.liveWorkerDispatchPerformedNow !== false) fail(`record_live_dispatch_not_false:${record.toolId}`)
@@ -402,6 +419,9 @@ try {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: false,
       acceptedSourceEvidence: {
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+        serviceRoleQueueSmokeAuthorizationRef:
+          'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
       },
       records: allTools.map((toolId) => ({
         toolId,
@@ -409,6 +429,7 @@ try {
       })),
       booleans: {
         sourceServiceRoleQueueSmokeProofBridgeAccepted: false,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
         agentCanExecuteToolsNow: false,
         workerDispatchPerformed: false,
         gpuRuntimeShouldStartNow: false,

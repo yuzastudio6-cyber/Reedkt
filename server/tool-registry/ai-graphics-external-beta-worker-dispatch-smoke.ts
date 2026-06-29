@@ -56,6 +56,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeRecord {
   artifactRecordsCreated: 0
   qualityGateResultsCreated: 0
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
   gpuRuntimeShouldStartNow: false
   workerDispatchSmokeCompletedWithProvidedEvidence: boolean
@@ -79,6 +80,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmoke {
   sourceDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_DECISION
   sourceExternalBetaWorkerDispatchReadinessAccepted: boolean
   sourceWorkerDispatchReadinessProofBridgeAccepted: boolean
+  serviceRoleQueueSmokeAuthorizationRef: string | null
   missingSmokeControls: string[]
   mockDispatcherSmokeCompletedWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -92,6 +94,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmoke {
   inMemoryLeaseRecordsReleased: number
   inMemoryWorkerEventsRecorded: number
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+  sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
   liveWorkerLeasesCreatedNow: 0
   liveWorkerDispatchesNow: 0
   liveToolExecutionsNow: 0
@@ -116,6 +119,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmoke {
     externalBetaWorkerDispatchSmokePrepared: true
     sourceExternalBetaWorkerDispatchReadinessAccepted: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     externalBetaWorkerDispatchSmokeControlsAccepted: boolean
     mockDispatcherSmokeCompletedWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -225,6 +229,9 @@ function sourceReadinessAccepted(
     packet.sourceServiceRoleQueueSmokeProofBridgeAccepted === true &&
     packet.acceptedSourceEvidence
       ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    packet.acceptedSourceEvidence
+      ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    hasValue(packet.acceptedSourceEvidence?.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
     packet.records?.length === 21 &&
     packet.records.every((record) => (
       record.sourceRuntimeQueueServiceProofBridgeAccepted === true
@@ -292,6 +299,8 @@ function buildPayload(input: {
   workerType: ProductionWorkerRuntimeType
   runtimeTarget: string
   capabilityIds: string[]
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+  serviceRoleQueueSmokeAuthorizationRef: string | null
 }): ProductionWorkerJobPayload {
   const payloadWithoutIdempotency: ProductionWorkerJobPayload = {
     jobId: `external-beta-ai-graphics-dispatch-smoke-${input.toolId}`,
@@ -330,6 +339,10 @@ function buildPayload(input: {
         planningOnly: true,
         agentCanExecuteToolsNow: false,
       },
+      serviceRoleQueueSmokeAuthorizationRef:
+        input.serviceRoleQueueSmokeAuthorizationRef,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted:
+        input.sourceServiceRoleQueueSmokeAuthorizationAccepted,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       startsOnlyForApprovedWorkerOrToolCall: true,
@@ -353,6 +366,7 @@ function skippedRecord(input: {
   runtimeTarget: string
   capabilityIds: string[]
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   gpuRuntimeStartAllowed: boolean
 }): AiGraphicsExternalBetaWorkerDispatchSmokeRecord {
   return {
@@ -377,6 +391,8 @@ function skippedRecord(input: {
     qualityGateResultsCreated: 0,
     sourceRuntimeQueueServiceProofBridgeAccepted:
       input.sourceRuntimeQueueServiceProofBridgeAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted:
+      input.sourceServiceRoleQueueSmokeAuthorizationAccepted,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       input.gpuRuntimeStartAllowed,
     gpuRuntimeShouldStartNow: false,
@@ -394,6 +410,8 @@ async function smokeRecord(input: {
   runtimeTarget: string
   capabilityIds: string[]
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+  serviceRoleQueueSmokeAuthorizationRef: string | null
   gpuRuntimeStartAllowed: boolean
   workerInstancePrefix: string
   state: ReturnType<typeof createProductionWorkerRuntimeState>
@@ -440,6 +458,8 @@ async function smokeRecord(input: {
       payload.idempotencyKey &&
         payload.executionMode === 'dry_run' &&
         payload.metadata?.aiGraphicsCanonicalToolId === input.toolId &&
+        payload.metadata?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+        Boolean(payload.metadata?.serviceRoleQueueSmokeAuthorizationRef) &&
         payload.metadata?.gpuRuntimeShouldStartNow === false,
     ),
     productionWorkerJobStatus: result.status === 'completed' ? 'completed' : 'skipped',
@@ -457,6 +477,8 @@ async function smokeRecord(input: {
     qualityGateResultsCreated,
     sourceRuntimeQueueServiceProofBridgeAccepted:
       input.sourceRuntimeQueueServiceProofBridgeAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted:
+      input.sourceServiceRoleQueueSmokeAuthorizationAccepted,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       input.gpuRuntimeStartAllowed,
     gpuRuntimeShouldStartNow: false,
@@ -499,6 +521,16 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
   const readinessAccepted = sourceReadinessAccepted(
     input.sourceExternalBetaWorkerDispatchReadinessPacket,
   )
+  const serviceRoleQueueSmokeAuthorizationRef =
+    readinessAccepted
+      ? input.sourceExternalBetaWorkerDispatchReadinessPacket?.acceptedSourceEvidence
+        ?.serviceRoleQueueSmokeAuthorizationRef ?? null
+      : null
+  const sourceServiceRoleQueueSmokeAuthorizationAccepted =
+    readinessAccepted &&
+    hasValue(serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
+    input.sourceExternalBetaWorkerDispatchReadinessPacket?.acceptedSourceEvidence
+      ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21
   const missingControls = readinessAccepted ? missingSmokeControls(input) : []
   const controlsSatisfied = readinessAccepted && missingControls.length === 0
   const state = createProductionWorkerRuntimeState()
@@ -513,6 +545,8 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
       runtimeTarget: record.runtimeTarget,
       capabilityIds: productCapabilities(record.capabilities),
       sourceRuntimeQueueServiceProofBridgeAccepted: readinessAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
+      serviceRoleQueueSmokeAuthorizationRef,
       gpuRuntimeStartAllowed: record.gpuRequiredForRuntime,
     }
   })
@@ -552,6 +586,10 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
     records.filter((record) => (
       record.sourceRuntimeQueueServiceProofBridgeAccepted
     )).length
+  const sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence =
+    records.filter((record) => (
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted
+    )).length
   const mockDispatcherSmokeCompletedWithProvidedEvidence =
     smokeJobsCompletedWithProvidedEvidence === 21 &&
     smokeCapabilityScenariosCompletedWithProvidedEvidence === 12 &&
@@ -560,6 +598,7 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
     allRoutesMockOnly &&
     allRoutesAiGraphicsToolCallHandoff &&
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
     allToolRunResultsEmpty &&
     allArtifactRecordsEmpty &&
     allQualityGateResultsEmpty
@@ -574,6 +613,7 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_DECISION,
     sourceExternalBetaWorkerDispatchReadinessAccepted: readinessAccepted,
     sourceWorkerDispatchReadinessProofBridgeAccepted: readinessAccepted,
+    serviceRoleQueueSmokeAuthorizationRef,
     missingSmokeControls: missingControls,
     mockDispatcherSmokeCompletedWithProvidedEvidence,
     totalAiGraphicsTools: 21,
@@ -588,6 +628,7 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
     inMemoryLeaseRecordsReleased,
     inMemoryWorkerEventsRecorded: state.events.length,
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence,
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence,
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
     liveToolExecutionsNow: 0,
@@ -612,6 +653,7 @@ export async function evaluateAiGraphicsExternalBetaWorkerDispatchSmoke(
       externalBetaWorkerDispatchSmokePrepared: true,
       sourceExternalBetaWorkerDispatchReadinessAccepted: readinessAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted: readinessAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
       externalBetaWorkerDispatchSmokeControlsAccepted: controlsSatisfied,
       mockDispatcherSmokeCompletedWithProvidedEvidence,
       all21ToolsCovered: true,

@@ -43,6 +43,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceInMemoryLeaseRecordsCreated: number
     sourceInMemoryLeaseRecordsReleased: number
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
     sourceLiveWorkerLeasesCreatedNow: 0
     sourceLiveWorkerDispatchesNow: 0
     sourceLiveToolExecutionsNow: 0
@@ -54,6 +55,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     workerDispatchSmokeTelemetryRef: string | null
     workerDispatchSmokeLeaseAuditRef: string | null
     workerDispatchSmokeCleanupProofRef: string | null
+    serviceRoleQueueSmokeAuthorizationRef: string | null
     sanitizedSourceDecision: string | null
     sourceMockDispatcherSmokeCompletedWithProvidedEvidence: boolean
     sourceAllRoutesMockOnly: boolean
@@ -61,6 +63,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceAllInMemoryLeasesCreated: boolean
     sourceAllInMemoryLeasesReleased: boolean
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'non_production_external_beta'
     requiredWorkerMode: 'mock'
     requiredE2eRuntimeMode: 'local'
@@ -81,6 +84,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     externalBetaWorkerDispatchSmokeProofPrepared: true
     sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -256,6 +260,9 @@ function validateRecord(
     record.sourceRuntimeQueueServiceProofBridgeAccepted !== true
       ? `source runtime queue service proof bridge missing for ${record.toolId}`
       : undefined,
+    record.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true
+      ? `source service-role queue smoke authorization missing for ${record.toolId}`
+      : undefined,
     record.gpuRuntimeShouldStartNow !== false
       ? `GPU runtime should not start for ${record.toolId}`
       : undefined,
@@ -346,6 +353,12 @@ function validateSmokeResult(
     result.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21
       ? 'smoke result must preserve the 21-tool runtime queue service proof bridge'
       : undefined,
+    result.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
+      ? 'smoke result must preserve the 21-tool service-role queue smoke authorization'
+      : undefined,
+    !hasValue(result.serviceRoleQueueSmokeAuthorizationRef ?? undefined)
+      ? 'smoke result service-role queue smoke authorization ref is missing'
+      : undefined,
     result.liveWorkerLeasesCreatedNow !== 0
       ? 'smoke result must not create live worker leases'
       : undefined,
@@ -373,6 +386,11 @@ function validateSmokeResult(
     )).length !== 21
       ? 'smoke result must preserve runtime queue service proof bridge on all 21 records'
       : undefined,
+    records.filter((record) => (
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+    )).length !== 21
+      ? 'smoke result must preserve service-role queue smoke authorization on all 21 records'
+      : undefined,
     capabilityScenarios.length !== 12
       ? 'smoke result must include 12 capability scenarios'
       : undefined,
@@ -389,6 +407,7 @@ function buildBooleans(input: {
   accepted: boolean
   sourceAccepted: boolean
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   allJobsAccepted: boolean
   allCapabilityScenariosAccepted: boolean
   allLeasesCreated: boolean
@@ -404,6 +423,8 @@ function buildBooleans(input: {
     sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence: input.sourceAccepted,
     sourceRuntimeQueueServiceProofBridgeAccepted:
       input.sourceRuntimeQueueServiceProofBridgeAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted:
+      input.sourceServiceRoleQueueSmokeAuthorizationAccepted,
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: input.accepted,
     all21ToolsCovered: true,
     all12CapabilitiesCovered: true,
@@ -502,6 +523,14 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
       record.sourceRuntimeQueueServiceProofBridgeAccepted === true
     )) &&
     result?.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true
+  const sourceServiceRoleQueueSmokeAuthorizationAccepted =
+    result?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    hasValue(result.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
+    records.length === 21 &&
+    records.every((record) => (
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+    )) &&
+    result?.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
   const allRoutesMockOnly =
     records.length === 21 && records.every((record) => record.mockOnlyRoute)
   const allRoutesHandoff =
@@ -549,6 +578,10 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
         accepted && result
           ? result.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence
           : 0,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
+        accepted && result
+          ? result.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence
+          : 0,
       sourceLiveWorkerLeasesCreatedNow: 0,
       sourceLiveWorkerDispatchesNow: 0,
       sourceLiveToolExecutionsNow: 0,
@@ -564,6 +597,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
         input.workerDispatchSmokeLeaseAuditRef ?? null,
       workerDispatchSmokeCleanupProofRef:
         input.workerDispatchSmokeCleanupProofRef ?? null,
+      serviceRoleQueueSmokeAuthorizationRef:
+        result?.serviceRoleQueueSmokeAuthorizationRef ?? null,
       sanitizedSourceDecision: result?.decision ?? null,
       sourceMockDispatcherSmokeCompletedWithProvidedEvidence:
         result?.mockDispatcherSmokeCompletedWithProvidedEvidence === true,
@@ -573,6 +608,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
       sourceAllInMemoryLeasesReleased: allLeasesReleased,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:
         sourceRuntimeQueueServiceProofBridgeAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
+        sourceServiceRoleQueueSmokeAuthorizationAccepted,
       requiredExecutionEnvironment: 'non_production_external_beta',
       requiredWorkerMode: 'mock',
       requiredE2eRuntimeMode: 'local',
@@ -593,6 +630,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
       accepted,
       sourceAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted,
       allJobsAccepted,
       allCapabilityScenariosAccepted,
       allLeasesCreated,

@@ -83,6 +83,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
   productionReadyNowTools: 0
   acceptedSourceEvidence: {
     serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
+    serviceRoleQueueSmokeAuthorizationRef: string | null
     sourceLiveQueueWritesAcceptedWithProvidedEvidence: number
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
@@ -372,6 +373,11 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     productionReadyNowTools: 0,
     acceptedSourceEvidence: {
       serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence: proofAccepted,
+      serviceRoleQueueSmokeAuthorizationRef:
+        proofAccepted
+          ? input.sourceExternalBetaServiceRoleQueueSmokeProofPacket?.evidence
+            ?.serviceRoleQueueSmokeAuthorizationRef ?? null
+          : null,
       sourceLiveQueueWritesAcceptedWithProvidedEvidence: proofAccepted ? 21 : 0,
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: proofAccepted ? 21 : 0,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence:

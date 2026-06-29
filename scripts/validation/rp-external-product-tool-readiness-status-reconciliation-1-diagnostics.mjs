@@ -33,7 +33,18 @@ const followOnTriageFiles = [
   'scripts/validation/rp-external-product-tool-runtime-stack-integration-triage-1-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnTriageFiles])
+const followOnAfterGpacDispatchFiles = [
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/source-audit.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/readiness-reconciliation.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/tool-readiness-matrix.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/validation-results.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/tool-readiness-after-gpac-dispatch-record.json',
+  'docs/activation-phase-rp-external-product-tool-readiness-after-gpac-dispatch-1-results.md',
+  'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([...requiredFiles, ...followOnTriageFiles, ...followOnAfterGpacDispatchFiles])
 
 const requiredText = [
   packet,

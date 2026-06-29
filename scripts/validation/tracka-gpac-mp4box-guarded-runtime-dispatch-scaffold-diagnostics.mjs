@@ -38,7 +38,18 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const followOnExternalReadinessFiles = [
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/source-audit.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/readiness-reconciliation.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/tool-readiness-matrix.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/validation-results.md',
+  'docs/external-beta/tool-readiness-after-gpac-dispatch-1/tool-readiness-after-gpac-dispatch-record.json',
+  'docs/activation-phase-rp-external-product-tool-readiness-after-gpac-dispatch-1-results.md',
+  'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-tool-readiness-status-reconciliation-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...followOnExternalReadinessFiles])
 
 function fail(message) {
   console.error(`${lane} diagnostics failed: ${message}`)

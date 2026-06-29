@@ -638,6 +638,7 @@
     "tracka:gpac-mp4box-private-artifact-cleanup-audit-mock-implementation:diagnostics": "node scripts/validation/tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation": "tsx server/smoke/tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-smoke.ts",
     "tracka:gpac-mp4box-private-artifact-final-runtime-readiness-review:diagnostics": "node scripts/validation/tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-diagnostics.mjs",
+    "tracka:gpac-mp4box-guarded-runtime-enablement-plan:diagnostics": "node scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-diagnostics.mjs",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

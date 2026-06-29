@@ -142,6 +142,18 @@ Next action: `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Guarded Runtime Enablement Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1` records decision `tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold` and execution `completed_docs_only_guarded_runtime_enablement_plan_no_runtime_execution`.
+
+The next allowed implementation is `TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1`. Runtime scaffold readiness is `ready_for_disabled_scaffold_only`; product runtime and external beta product use remain blocked.
+
+Required future guards include approved snapshot runtime persistence, service-role backend route registration, disabled-by-default runtime scaffold, worker dispatch confirmation, private artifact storage runtime policy, exact command allowlist, storage-transfer negative tests, signed/public artifact negative tests, QA/cleanup/audit runtime observability, rollback/residue validation, and an operator confirmation gate.
+
+Route execution, worker execution, GPAC/MP4Box execution, storage transfer, signed/public artifacts, media processing, render/export, external beta expansion, paid production unlock, and production unlock remain blocked.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records decision `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

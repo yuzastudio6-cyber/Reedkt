@@ -1,0 +1,23 @@
+{
+  "runtimeGuardMatrix": {
+    "approvedSnapshotRuntimePersistence": "required",
+    "serviceRoleBackendRouteRegistration": "required",
+    "disabledByDefaultRuntimeScaffold": "required",
+    "workerDispatchConfirmation": "required",
+    "privateArtifactStorageRuntimePolicy": "required",
+    "toolRuntimeCommandAllowlist": "required",
+    "storageTransferNegativeTests": "required",
+    "signedPublicArtifactNegativeTests": "required",
+    "qaCleanupAuditRuntimeObservability": "required",
+    "rollbackAndResidueValidation": "required",
+    "operatorConfirmationGate": "required"
+  },
+  "runtimeExecution": false,
+  "routeExecution": false,
+  "workerExecution": false,
+  "gpacMp4boxExecution": false,
+  "storageTransfer": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "mediaProcessing": false
+}

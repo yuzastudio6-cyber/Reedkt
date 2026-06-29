@@ -20,7 +20,7 @@ const report = JSON.parse(readFileSync('docs/beta-readiness/api-staging-deploy-w
 
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-api-staging-deploy-workflow'],
-  'tsx server/smoke/beta-readiness-api-staging-deploy-workflow-smoke.ts',
+  'node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/beta-readiness-api-staging-deploy-workflow-smoke.ts',
   'package script should expose the workflow smoke',
 )
 

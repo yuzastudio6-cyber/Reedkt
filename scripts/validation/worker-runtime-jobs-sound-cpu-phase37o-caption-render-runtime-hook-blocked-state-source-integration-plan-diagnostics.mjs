@@ -8,6 +8,8 @@ const decision =
 const sourceDecision =
   'worker_runtime_jobs_sound_cpu_phase37n_caption_render_runtime_hook_integration_readiness_plan_owner_review_passed_with_warnings_ready_for_blocked_state_source_integration_plan_no_media_no_artifacts'
 const sourceMergeCommit = '984d7dfcaf7d1b2a288d90cc6628f9b4a347a4a9'
+const phase37PDecision =
+  'worker_runtime_jobs_sound_cpu_phase37p_caption_render_runtime_hook_blocked_state_source_integration_source_created_with_warnings_ready_for_source_owner_review_no_media_no_artifacts'
 const hookSourcePath = 'server/workers/sound-cpu/runtime/soundCpuOcrCaptionRenderSafeZoneHook.ts'
 const indexPath = 'server/workers/sound-cpu/index.ts'
 const futureIntegrationPath =
@@ -266,7 +268,20 @@ assert(hookSource.includes('blocked_by_owner_gate'), 'Hook blocked owner-gate st
 const indexSource = readText(indexPath)
 assert(indexSource.includes('./runtime/soundCpuOcrCaptionRenderSafeZoneHook.ts'), 'Index export missing')
 assert(!fs.existsSync(path.join(repoRoot, tempProofFile)), 'Temporary proof file must be absent')
-assert(!fs.existsSync(path.join(repoRoot, futureIntegrationPath)), 'Future integration source must not exist in this gate')
+if (fs.existsSync(path.join(repoRoot, futureIntegrationPath))) {
+  const phase37PResult = parseJsonBlock(
+    'docs/worker-runtime-jobs-sound-cpu-phase37p-caption-render-runtime-hook-blocked-state-source-integration-source-result.md',
+    'worker-runtime-jobs-sound-cpu-phase37p-caption-render-runtime-hook-blocked-state-source-integration-source-result',
+  )
+  assert(phase37PResult.decision === phase37PDecision, 'Phase 37P decision required when future source exists')
+  assert(
+    phase37PResult.sourceCreated.integrationSourcePath === futureIntegrationPath,
+    'Phase 37P integration source path mismatch',
+  )
+  assertFalse(phase37PResult.sourceCreated.hookExecutionApprovedToday, 'Phase 37P hook execution approval')
+  assertFalse(phase37PResult.sourceCreated.realMediaInputApprovedToday, 'Phase 37P media input approval')
+  assertFalse(phase37PResult.sourceCreated.artifactCreationApprovedToday, 'Phase 37P artifact approval')
+}
 
 const packageJson = JSON.parse(readText('package.json'))
 const scriptName =

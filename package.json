@@ -356,6 +356,7 @@
     "worker-runtime-jobs:sound-cpu-phase37n-caption-render-runtime-hook-integration-readiness-plan-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase37n-caption-render-runtime-hook-integration-readiness-plan-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase37o-caption-render-runtime-hook-blocked-state-source-integration-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase37o-caption-render-runtime-hook-blocked-state-source-integration-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase37o-caption-render-runtime-hook-blocked-state-source-integration-plan-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase37o-caption-render-runtime-hook-blocked-state-source-integration-plan-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase37p-caption-render-runtime-hook-blocked-state-source-integration-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase37p-caption-render-runtime-hook-blocked-state-source-integration-source-creation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

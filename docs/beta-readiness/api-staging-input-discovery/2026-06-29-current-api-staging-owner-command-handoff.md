@@ -2,7 +2,7 @@
 
 Decision: `beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application`.
 
-This packet refreshes the owner command handoff after the current 16-tool deployed-evidence manifest refresh and the PR #1666 current-source local bundle refresh. The handoff command resolves the current checkout `HEAD` by default so it does not keep pointing owners at stale source truth after metadata-only beta readiness merges.
+This packet refreshes the owner command handoff after the current 16-tool deployed-evidence manifest refresh and the PR #1673 external operator tool-evidence source refresh. The handoff command resolves the current checkout `HEAD` by default so it does not keep pointing owners at stale source truth after metadata-only beta readiness merges.
 
 ```bash
 npm run beta:readiness:owner-command-handoff
@@ -12,9 +12,10 @@ The command prints a deterministic JSON report containing the exact higher-privi
 
 ## Current Source Truth
 
-- Tools branch source SHA at this packet: `367897d909b901f517177ac697c51680448375b1`
-- Latest refresh reason: `post_pr_1666_current_source_16_tool_local_bundle_refresh`
-- CLI source SHA policy: resolve current checkout `HEAD` by default
+- Tools branch source SHA when this packet was refreshed: `82791a3a9001e14ad9cbd8bae8414ecbde57d1cc`
+- Static SHA role: packet refresh context only, not an operator deploy input
+- Latest refresh reason: `post_pr_1673_external_operator_tool_evidence_source_refresh`
+- CLI source SHA policy: run `npm run beta:readiness:owner-command-handoff` in a fresh current checkout; it resolves current checkout `HEAD` by default
 - Current command packet: `docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md`
 - Workflow scope fix PR: `#1441`
 - Current guarded owner-remediation run: `28321557589`
@@ -43,5 +44,7 @@ The generated script requires the owner to set `REEDITPRO_FIXED_STAGING_API_SECR
 Blocked alternatives remain: project-wide owner/editor grants, `roles/run.admin` mutation, deployer secret payload access, wildcard secret access, production service-account substitution, Cloud Run deploy before audit passes, Docker build before audit passes, and Artifact Registry push before audit passes.
 
 After owner-side application, rerun the read-only owner prerequisite audit, then rerun exact input discovery, and only then run the guarded staging API deploy workflow.
+
+Do not copy the static packet-refresh SHA into the guarded deploy workflow after later metadata merges. Operators must run the handoff CLI from the current checkout immediately before owner action so the source SHA printed by the report matches the source being prepared for deployment evidence.
 
 No Cloud Run deploy, Cloud Run role mutation, Docker build/push, Artifact Registry push, secret value read, tool execution, media processing, Supabase/GCS write, external beta, real-user-media beta, paid production, or production action is enabled by this handoff. Supabase classification remains `no write / environment none / SQL none / migration no`. Product-ready local OSS count remains `0`.

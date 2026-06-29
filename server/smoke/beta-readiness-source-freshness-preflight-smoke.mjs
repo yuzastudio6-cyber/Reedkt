@@ -80,6 +80,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+    'server/cli/beta-readiness-node-ts-register.mjs',
     'server/cli/beta-readiness-operator-status-api.ts',
     'server/cli/beta-readiness-operator-status-api.mjs',
     'server/cli/beta-readiness-operator-status.ts',
@@ -88,8 +89,10 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
   ],
   packageJsonChangedScriptNames: [
     'beta:readiness:deployed-evidence-input-manifest',
+    'beta:readiness:external-beta-evidence-collector',
     'beta:readiness:operator-status-api',
     'smoke:beta-readiness-deployed-evidence-input-manifest',
+    'smoke:beta-readiness-external-beta-evidence-collector',
     'smoke:beta-readiness-operator-status-api',
   ],
   resolveGit: false,
@@ -101,6 +104,7 @@ assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllow
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-node-ts-register.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status.ts'))

@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .reeditpro-tool-readiness-python/
+.reeditpro-tool-readiness-bin/
 dist
 dist-ssr
 dist-server

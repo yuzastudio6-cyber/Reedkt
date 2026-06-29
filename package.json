@@ -129,6 +129,7 @@
     "prod:cost:summary": "tsx server/cli/cost-control-summary.ts",
     "prod:beta:summary": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-summary.ts",
     "tools:readiness:install-core-python": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/install-core-python-readiness.ts",
+    "tools:readiness:build-signalsmith-stretch": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/build-signalsmith-stretch-readiness.ts",
     "smoke:prod-core-python-readiness": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/production-core-python-readiness-smoke.ts",
     "smoke:prompt6-ready": "tsx server/smoke/prompt6-readiness-smoke.ts",
     "smoke:render": "tsx server/cli/basic-render-smoke.ts",

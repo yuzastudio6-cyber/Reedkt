@@ -119,8 +119,10 @@ for (const forbidden of M10_EXCLUDED_GPU_MODEL_TOOL_IDS) {
 const commandTools = new Set(CORE_TOOL_COMMAND_CHECKS.map((item) => item.toolId))
 check(commandTools.has('ffmpeg'), 'FFmpeg command readiness must be declared.')
 check(commandTools.has('ffprobe'), 'FFprobe command readiness must be declared.')
+check(commandTools.has('signalsmith_stretch'), 'Signalsmith Stretch command readiness must be declared.')
 check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'ffmpeg')?.args.join(' ') === '-version', 'FFmpeg readiness must use version check only.')
 check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'ffprobe')?.args.join(' ') === '-version', 'FFprobe readiness must use version check only.')
+check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'signalsmith_stretch')?.args.join(' ') === '-v', 'Signalsmith readiness must use version-shape check only.')
 
 const pythonImports = new Set(CORE_TOOL_PYTHON_IMPORT_CHECKS.map((item) => item.importName))
 for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentimelineio', 'audioflux']) {
@@ -172,6 +174,7 @@ console.log(JSON.stringify({
   ffprobeStatus: realCore.coreToolReadiness?.report.ffprobeStatus,
   lgplStatus: realCore.coreToolReadiness?.report.ffmpegLgplVerificationStatus,
   libassStatus: realCore.coreToolReadiness?.report.libassSubtitleSupportStatus,
+  signalsmithStatus: realCore.coreToolReadiness?.report.signalsmithStretchStatus,
   audiofluxStatus: realCore.coreToolReadiness?.report.launchAudioPackageStatus,
   revideoStatus: realCore.coreToolReadiness?.report.revideoStatus,
   localChecksAreInformational: true,

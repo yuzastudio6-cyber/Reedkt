@@ -12,8 +12,9 @@ A later source-truth packet adds `.github/workflows/beta-readiness-api-staging-d
 
 ## Required Next Gate
 
-Use the guarded manual staging deploy workflow, or an equivalent owner-approved staging deploy path, to create or verify the staging API first. Then run `npm run beta:readiness:api-deployment-preflight` with the staging API deployment inputs before any deployed evidence collector. It must pass before:
+Use the guarded manual staging deploy workflow, or an equivalent owner-approved staging deploy path, to create or verify the staging API first. Then run `npm run beta:readiness:api-deployment-preflight` and `npm run beta:readiness:source-freshness-preflight` with the staging API deployment inputs before any deployed evidence collector. Both must pass before:
 
+- `npm run beta:readiness:source-freshness-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 - `npm run beta:readiness:external-beta-evidence-collector`
 - `npm run beta:readiness:operator-status-api`

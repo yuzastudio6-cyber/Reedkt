@@ -21,7 +21,7 @@ The preflight returned no missing configuration, confirmations, secret-binding c
 
 ## Historical Context
 
-The older packet `docs/beta-readiness/api-deployment-preflight/2026-06-28-api-deployment-preflight.json` remains historical audit context for the earlier blocked state before the current staging API deploy existed. It is superseded for the current `d997` staging handoff by this passed preflight packet.
+The older packet `docs/beta-readiness/api-deployment-preflight/2026-06-28-api-deployment-preflight.json` remains historical audit context for the earlier blocked state before the current staging API deploy existed. It is superseded for the current `d997` staging handoff by this passed preflight packet. Later source-truth commits advanced the branch past `d997`, so operators must now run `npm run beta:readiness:source-freshness-preflight` before owner intake, deployed evidence manifest, or evidence collectors.
 
 ## Remaining Gates
 

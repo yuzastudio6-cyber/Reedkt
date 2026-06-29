@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "preflightId": "beta-readiness-source-freshness-preflight-2026-06-29-e6fa",
+  "createdAt": "2026-06-29T00:24:28Z",
+  "decision": "beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale",
+  "readyForOwnerApprovalIntake": false,
+  "readyForDeployedEvidenceInputManifest": false,
+  "currentSourceSha": "e6fa65329dc91b42458261bb224df14c2ffbab3c",
+  "deployedSourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+  "sourceTruth": {
+    "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+    "apiDeployPacketPath": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json",
+    "apiDeploySourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+    "apiDeploymentPreflightPacketPath": "docs/beta-readiness/api-deployment-preflight/2026-06-28-d997-api-deployment-preflight-passed.json",
+    "apiDeploymentPreflightSourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+    "deployedEvidenceManifestPath": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-deployed-evidence-input-manifest.json",
+    "manifestRecordedDeployedSourceSha": "d997d567d40853f59741763c8e9ca8b2c361148a",
+    "deployedEvidenceManifestSourceShaPolicy": "operator_supplied_current_deployed_source_sha_required"
+  },
+  "valueGaps": [
+    "Current source SHA e6fa65329dc91b42458261bb224df14c2ffbab3c does not match deployed evidence source SHA d997d567d40853f59741763c8e9ca8b2c361148a."
+  ],
+  "recommendedCommands": [
+    "gh workflow run beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_deploy=DEPLOY_STAGING_BETA_READINESS_API --field source_sha=e6fa65329dc91b42458261bb224df14c2ffbab3c --field image_tag=<immutable-current-source-image-tag> --field artifact_region=us-central1 --field artifact_repository=reeditpro-staging-workers --field deployer_service_account=<owner-approved-deployer-service-account> --field runtime_service_account=reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --field service_name=reeditpro-api-staging",
+    "npm run beta:readiness:api-deployment-preflight",
+    "npm run beta:readiness:source-freshness-preflight",
+    "npm run beta:readiness:owner-approval-env-template",
+    "npm run beta:readiness:owner-approval-intake-preflight"
+  ],
+  "blockedScopes": [
+    "deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence",
+    "external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass",
+    "real_user_media_beta_until_separate_scope_approval_evidence_passes",
+    "paid_production_until_separate_paid_production_evidence_collector_passes"
+  ],
+  "boundary": {
+    "deployed": false,
+    "calledGcloud": false,
+    "calledBackend": false,
+    "recordedEvidence": false,
+    "ranTools": false,
+    "processedMedia": false,
+    "wroteSupabase": false,
+    "wroteGcs": false,
+    "enabledExternalBeta": false,
+    "enabledRealUserMediaBeta": false,
+    "enabledPaidProduction": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeAction": "Refresh staging API deploy evidence for e6fa65329dc91b42458261bb224df14c2ffbab3c or run this preflight against matching current/deployed source evidence before owner intake, manifest, or evidence collectors."
+}

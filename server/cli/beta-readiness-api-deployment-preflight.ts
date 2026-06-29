@@ -104,6 +104,7 @@ export function buildBetaReadinessApiDeploymentPreflight(
       'gh workflow run beta-readiness-api-staging-input-discovery.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_input_discovery=READ_STAGING_BETA_API_DEPLOY_INPUTS',
       'gh workflow run beta-readiness-api-staging-deploy.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_deploy=DEPLOY_STAGING_BETA_READINESS_API --field source_ref=codex/sound-music-audio-1abc-checkpoint --field source_sha=$REEDITPRO_BETA_API_DEPLOYMENT_SOURCE_SHA --field image_tag=$REEDITPRO_IMAGE_TAG --field artifact_region=$GCP_ARTIFACT_REGION --field artifact_repository=$REEDITPRO_ARTIFACT_REPOSITORY --field deployer_service_account=<owner-approved-deployer-service-account> --field runtime_service_account=$REEDITPRO_API_SERVICE_ACCOUNT --field service_name=reeditpro-api-staging',
       'npm run beta:readiness:api-deployment-preflight',
+      'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',

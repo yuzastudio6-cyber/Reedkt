@@ -94,6 +94,7 @@ assert.ok(template.includes('REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUN
 assert.ok(template.includes('REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(template.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(template.includes('REEDITPRO_BETA_LAUNCH_APPROVE_PAID_PRODUCTION=false'))
+assert.ok(template.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.equal((template.match(/^REEDITPRO_BETA_/gm) ?? []).length, 34)
 assert.equal(template.includes('Bearer '), false)
 assert.equal(template.includes('SERVICE_ROLE_KEY'), false)

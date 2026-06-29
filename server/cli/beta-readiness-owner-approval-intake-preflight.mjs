@@ -59,7 +59,8 @@ export function buildBetaReadinessOwnerApprovalEnvTemplate() {
     '# Wider-scope flags intentionally stay unset/false in this external-beta intake lane.',
     ...REJECTED_SCOPE_FLAGS.map((name) => `${name}=false`),
     '',
-    '# Validate before any deployed evidence manifest or collector:',
+    '# Validate source freshness and owner intake before any deployed evidence manifest or collector:',
+    '# npm run beta:readiness:source-freshness-preflight',
     '# npm run beta:readiness:owner-approval-intake-preflight',
     '',
   ]

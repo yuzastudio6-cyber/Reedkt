@@ -1,0 +1,21 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1",
+  "scaffoldMode": "fail_closed_confirmation_absent",
+  "requiredConfirmationGate": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true",
+  "routeExecution": "not_run_confirmation_absent",
+  "workerDispatch": "not_run_confirmation_absent",
+  "workerExecution": "not_run_confirmation_absent",
+  "gpacMp4boxExecution": "not_run_confirmation_absent",
+  "mediaProcessing": "not_run_confirmation_absent",
+  "storageTransfer": "not_run_confirmation_absent",
+  "futureConfirmedPacketRequirements": [
+    "approved_snapshot_reference",
+    "private_artifact_manifest",
+    "cleanup_policy",
+    "service_role_route_boundary",
+    "worker_idempotency_key",
+    "worker_lease_and_event_log",
+    "bounded_mp4box_command_allowlist",
+    "rollback_and_residue_readback"
+  ]
+}

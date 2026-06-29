@@ -1,0 +1,13 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1",
+  "sourceChain": [
+    "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1",
+    "TRACKA-GPAC-MP4BOX-CURRENT-RUNTIME-GATE-READINESS-ROLLUP-1"
+  ],
+  "sourceDecisions": {
+    "guardedRuntimeDispatchEnablementPlan": "tracka_gpac_mp4box_guarded_runtime_dispatch_enablement_plan_passed_ready_for_guarded_runtime_dispatch_scaffold",
+    "currentRuntimeGateRollup": "tracka_gpac_mp4box_current_runtime_gate_readiness_rollup_passed_ready_for_guarded_runtime_dispatch_enablement_plan"
+  },
+  "pr577": "open_draft_blocked_excluded",
+  "productReadyLocalOssTools": 0
+}

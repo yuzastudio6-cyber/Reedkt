@@ -9,6 +9,10 @@ const SOURCE_PR = 1595
 const SOURCE_MERGE_COMMIT = 'c0ec29cc7eeaebbddac415d1f7ab3d1c6d2a3281'
 const FUTURE_PATH = 'server/workers/sound-cpu/runtime/soundCpuOcrCaptionRenderSafeZoneHook.ts'
 const NEXT_PROMPT = 'WORKER_RUNTIME_JOBS-SOUND-CPU-PHASE37G-CAPTION-RENDER-RUNTIME-HOOK-SOURCE-OWNER-REVIEW'
+const PHASE37H_DECISION =
+  'worker_runtime_jobs_sound_cpu_phase37h_actual_caption_render_runtime_hook_source_created_with_warnings_ready_for_source_owner_review_no_execution'
+const PHASE37H_RESULT_PATH =
+  'docs/worker-runtime-jobs-sound-cpu-phase37h-actual-caption-render-runtime-hook-source-result.md'
 
 const FILES = {
   plan: {
@@ -128,7 +132,13 @@ for (const [key, doc] of Object.entries(parsed)) {
   scanFalse(doc, [key])
 }
 
-assert(!existsSync(FUTURE_PATH), `${FUTURE_PATH} must not be created in Phase 37G`)
+if (existsSync(FUTURE_PATH)) {
+  const phase37HResult = existsSync(PHASE37H_RESULT_PATH) ? read(PHASE37H_RESULT_PATH) : ''
+  assert(
+    phase37HResult.includes(PHASE37H_DECISION) && phase37HResult.includes(FUTURE_PATH),
+    `${FUTURE_PATH} must not be created in Phase 37G without Phase 37H source-creation evidence`,
+  )
+}
 assert(existsSync('server/workers/sound-cpu/runtime/soundCpuRuntimeGuards.ts'), 'runtime guard context missing')
 assert(existsSync('server/workers/captions/caption-safe-zone-policy.ts'), 'caption safe-zone context missing')
 assert(existsSync('server/activation/ocr-caption-render-qa/approved-ocr-caption-render-qa-evidence.ts'), 'Phase 37E evidence context missing')

@@ -9,6 +9,10 @@ const SOURCE_PR = 1598
 const SOURCE_MERGE_COMMIT = 'b8798dc330d98bfe86f7ccc462197ec0816b1ab2'
 const FUTURE_PATH = 'server/workers/sound-cpu/runtime/soundCpuOcrCaptionRenderSafeZoneHook.ts'
 const NEXT_PROMPT = 'WORKER_RUNTIME_JOBS-SOUND-CPU-PHASE37H-ACTUAL-CAPTION-RENDER-RUNTIME-HOOK-SOURCE-CREATION'
+const PHASE37H_DECISION =
+  'worker_runtime_jobs_sound_cpu_phase37h_actual_caption_render_runtime_hook_source_created_with_warnings_ready_for_source_owner_review_no_execution'
+const PHASE37H_RESULT_PATH =
+  'docs/worker-runtime-jobs-sound-cpu-phase37h-actual-caption-render-runtime-hook-source-result.md'
 
 const FILES = {
   review: {
@@ -133,7 +137,13 @@ for (const [key, doc] of Object.entries(parsed)) {
   scanFalse(doc, [key])
 }
 
-assert(!existsSync(FUTURE_PATH), `${FUTURE_PATH} must not be created in source owner review`)
+if (existsSync(FUTURE_PATH)) {
+  const phase37HResult = existsSync(PHASE37H_RESULT_PATH) ? read(PHASE37H_RESULT_PATH) : ''
+  assert(
+    phase37HResult.includes(PHASE37H_DECISION) && phase37HResult.includes(FUTURE_PATH),
+    `${FUTURE_PATH} must not be created in source owner review without Phase 37H source-creation evidence`,
+  )
+}
 
 const review = parsed.review
 assert(review.sourcePlanDecision === SOURCE_DECISION, 'source plan decision mismatch')

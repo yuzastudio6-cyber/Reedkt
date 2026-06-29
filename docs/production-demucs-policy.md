@@ -11,3 +11,5 @@ for justified music/speech separation or stem workflows, not as the first voice
 cleanup path. Repository code license evidence is not enough to approve
 pretrained model artifacts; exact weight provenance, license, checksum, private
 storage, and separation QA remain required before any download or runtime.
+
+Phase 36G update: Demucs is the intended vocal/music/stem separation candidate, not a general denoise tool. htdemucs download/runtime remains blocked because official pretrained-model license/provenance is ambiguous in the archived repository.

@@ -304,3 +304,20 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the Phase 36E private cleaned WAV, review MP4, metrics, QA, model checksum metadata, and private review manifest were verified in private GCS.
 4. Confirm the audio beta-scope manifest includes FFmpeg loudness and DeepFilterNet only, and excludes RNNoise, Demucs, providers, Revideo, FILM, slow motion, arbitrary media, and production delivery.
 5. Proceed to Phase 37A only as an OCR approval workflow if Phase 36F passes. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+
+## After Phase 36G
+
+1. Review `activation:audio-stack-demucs:report` and confirm DeepFilterNet owns speech cleanup, RNNoise is removed from active product routing, and Demucs is only a blocked separation candidate.
+2. Confirm no Demucs model artifacts were downloaded, no Demucs runtime ran, and no media was processed.
+3. Confirm the Demucs blocker cites official pretrained-model license/provenance ambiguity and does not treat MIT code licensing as model approval.
+4. Proceed to Phase 37A OCR approval workflow only; do not approve Demucs, RNNoise, external beta, paid production, broad media, providers, Revideo, FILM, or slow motion.
+
+
+## After Phase 37A
+
+1. Review `activation:ocr-model-approval:plan`, `activation:ocr-model-approval:report`, and `activation:ocr-model-weight:summary`.
+2. Confirm PaddleOCR is approved only for generated UI/text OCR safe-zone planning.
+3. Confirm PaddlePaddle is runtime planning only and PP-OCRv5 exact det/rec/cls assets remain deferred to Phase 37B.
+4. Confirm the download command plan is text-only and no model files were downloaded or committed.
+5. Confirm no OCR inference, real media OCR, Docker/GCP mutation, GPU job, provider call, public output, Revideo, production, external beta, or broad real media occurred.
+6. Proceed to Phase 37B only as exact official OCR asset selection/download planning into private staging storage.

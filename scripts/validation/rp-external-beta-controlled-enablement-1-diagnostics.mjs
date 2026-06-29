@@ -72,6 +72,17 @@ const followOnControlledPrivateInviteAccess1Files = [
   'scripts/validation/rp-external-beta-controlled-private-invite-access-1-diagnostics.mjs',
 ]
 
+const followOnCurrentReadinessDiagnosticsCompatibility1Files = [
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/source-audit.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/compatibility-decision.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/validation-results.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/current-readiness-diagnostics-compatibility-record.json',
+  'docs/activation-phase-rp-external-beta-current-readiness-diagnostics-compatibility-1-results.md',
+  'scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-current-readiness-diagnostics-compatibility-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_controlled_external_beta_enablement_source_contract_default_off',
@@ -125,6 +136,7 @@ const allowedChanged = new Set([
   ...followOnStagingFlagApplication1rFiles,
   ...followOnControlledSmokeValidation1Files,
   ...followOnControlledPrivateInviteAccess1Files,
+  ...followOnCurrentReadinessDiagnosticsCompatibility1Files,
 ])
 const allowedServerFiles = new Set([
   'server/config/external-beta-controlled-enablement-contract.ts',
@@ -247,12 +259,18 @@ const rollupIsSmokeCompleted =
   rollup.decision === 'completed_controlled_external_beta_authenticated_staging_smoke_validation'
 const rollupIsInviteAccessCompleted =
   rollup.decision === 'completed_controlled_private_invite_access_policy_no_access_mutation'
+const rollupIsSingleTesterExpansionBlocked =
+  rollup.decision === 'blocked_no_additional_named_tester_list' ||
+  rollup.mainSupabaseTarget?.boundedTesterExpansionDecision === 'blocked_no_additional_named_tester_list'
+const externalBetaEnabledAfterSourceContract =
+  rollupIsStagingCompleted || rollupIsSmokeCompleted || rollupIsInviteAccessCompleted || rollupIsSingleTesterExpansionBlocked
 if (
   rollup.decision !== 'completed_controlled_external_beta_enablement_source_contract_default_off' &&
   !rollupIsStagingBlocked &&
   !rollupIsStagingCompleted &&
   !rollupIsSmokeCompleted &&
-  !rollupIsInviteAccessCompleted
+  !rollupIsInviteAccessCompleted &&
+  !rollupIsSingleTesterExpansionBlocked
 ) {
   fail('rollup decision mismatch')
 }
@@ -262,19 +280,22 @@ if (
   rollup.statuses?.externalProductBeta !== 'blocked_pending_gcloud_reauthentication_before_staging_flag_application' &&
   rollup.statuses?.externalProductBeta !== 'controlled_external_beta_enabled_on_staging_api' &&
   rollup.statuses?.externalProductBeta !== 'controlled_external_beta_smoke_validated_authenticated_staging_api' &&
-  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready'
+  rollup.statuses?.externalProductBeta !== 'controlled_external_beta_private_invite_access_policy_ready' &&
+  rollup.statuses?.externalProductBeta !==
+    'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list'
 ) {
   fail('rollup external beta readiness mismatch')
 }
 if (rollup.mainSupabaseTarget?.controlledEnablement !== 'completed_controlled_external_beta_enablement_source_contract_default_off') fail('rollup controlled enablement status mismatch')
-if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== (rollupIsStagingCompleted || rollupIsSmokeCompleted || rollupIsInviteAccessCompleted)) fail('rollup enabled phase flag mismatch')
+if (rollup.mainSupabaseTarget?.externalBetaEnabledInThisPhase !== externalBetaEnabledAfterSourceContract) fail('rollup enabled phase flag mismatch')
 if (rollup.mainSupabaseTarget?.stagingFlagApplicationRequired !== true) fail('staging flag application required flag mismatch')
 if (
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1' &&
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1R-AFTER-GCLOUD-REAUTH' &&
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-SMOKE-VALIDATION-1' &&
   rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-ACCESS-1' &&
-  rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1'
+  rollup.requiredNextOwnerDecision?.[0] !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1' &&
+  rollup.mainSupabaseTarget?.nextMilestone !== 'OWNER_ACTION_REQUIRED_ADDITIONAL_NAMED_TESTER_LIST_FOR_BOUNDED_EXPANSION'
 ) {
   fail('rollup next decision mismatch')
 }
@@ -303,8 +324,19 @@ if (rollupIsInviteAccessCompleted) {
   if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('controlled invite access status mismatch')
   if (rollup.mainSupabaseTarget?.nextMilestone !== 'RP-EXTERNAL-BETA-CONTROLLED-PRIVATE-INVITE-IAM-GRANT-1') fail('controlled invite access next milestone mismatch')
 }
+if (rollupIsSingleTesterExpansionBlocked) {
+  if (rollup.sourceClosure?.stagingFlagApplication1r !== 'rp_external_beta_staging_flag_application_1r_after_gcloud_reauth') fail('staging flag 1R source missing')
+  if (rollup.sourceClosure?.controlledSmokeValidation !== 'rp_external_beta_controlled_smoke_validation_1') fail('controlled smoke source missing')
+  if (rollup.sourceClosure?.controlledPrivateInviteAccess !== 'rp_external_beta_controlled_private_invite_access_1') fail('controlled invite access source missing')
+  if (rollup.mainSupabaseTarget?.stagingFlagApplication !== 'completed_controlled_external_beta_staging_flag_application') fail('completed staging flag status mismatch')
+  if (rollup.mainSupabaseTarget?.controlledSmokeValidation !== 'completed_controlled_external_beta_authenticated_staging_smoke_validation') fail('controlled smoke status mismatch')
+  if (rollup.mainSupabaseTarget?.controlledPrivateInviteAccess !== 'completed_controlled_private_invite_access_policy_no_access_mutation') fail('controlled invite access status mismatch')
+  if (rollup.mainSupabaseTarget?.boundedTesterExpansionDecision !== 'blocked_no_additional_named_tester_list') fail('bounded tester expansion blocker mismatch')
+  if (rollup.mainSupabaseTarget?.currentApprovedTesterEmail !== 'aiediting@reeditpro.com') fail('current approved tester mismatch')
+  if (rollup.mainSupabaseTarget?.nextMilestone !== 'OWNER_ACTION_REQUIRED_ADDITIONAL_NAMED_TESTER_LIST_FOR_BOUNDED_EXPANSION') fail('bounded expansion next milestone mismatch')
+}
 if (rollup.safety?.controlledExternalBetaEnablementSourceContract !== true) fail('rollup source contract flag mismatch')
-if (rollup.safety?.externalBetaEnvironmentUnlock !== (rollupIsStagingCompleted || rollupIsSmokeCompleted || rollupIsInviteAccessCompleted)) fail('rollup external beta environment unlock mismatch')
+if (rollup.safety?.externalBetaEnvironmentUnlock !== externalBetaEnabledAfterSourceContract) fail('rollup external beta environment unlock mismatch')
 
 const packageJson = JSON.parse(read('package.json'))
 if (

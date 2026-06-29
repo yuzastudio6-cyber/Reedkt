@@ -531,6 +531,18 @@ const followOnToolReadinessStatusReconciliation1Files = [
   'package.json',
 ]
 
+const followOnCurrentReadinessDiagnosticsCompatibility1Files = [
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/source-audit.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/compatibility-decision.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/validation-results.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/current-readiness-diagnostics-compatibility-record.json',
+  'docs/activation-phase-rp-external-beta-current-readiness-diagnostics-compatibility-1-results.md',
+  'scripts/validation/rp-external-beta-controlled-enablement-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-current-readiness-diagnostics-compatibility-1-diagnostics.mjs',
+  'package.json',
+]
+
 const followOnSupabaseCleanStagingBranchMigrationChainApply1Files = [
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1.md',
   'docs/supabase-worker-runtime/supabase-clean-staging-branch-migration-chain-apply-1-record.json',
@@ -1529,6 +1541,7 @@ const allowed = new Set([
   ...followOnSingleTesterActiveLaneClosure1Files,
   ...followOnAdditionalNamedTesterListDecision1Files,
   ...followOnToolReadinessStatusReconciliation1Files,
+  ...followOnCurrentReadinessDiagnosticsCompatibility1Files,
   ...relatedDiagnosticsAllowlist,
   ...followOnSupabaseCleanStagingTargetOwnerApproval1Files,
   ...followOnSupabaseCleanStagingBranchCurrentTargetRevalidation1Files,

@@ -3,8 +3,7 @@ import type { ProductionToolId } from '../tool-registry'
 import type { BetaReadinessEvidencePacketInput } from '../beta-readiness/beta-readiness-evidence-store'
 import {
   runBetaReadinessOperatorStatusApiFromEnv,
-  type BetaReadinessOperatorStatusApiRunResult,
-} from './beta-readiness-operator-status-api'
+} from './beta-readiness-operator-status-api.mjs'
 import {
   buildBetaToolsCoreRealCheckEvidenceRequest,
   summarizeCoreRealCheckEvidenceResponse,
@@ -15,6 +14,8 @@ import {
   type BetaToolsLocalAcceptedEvidenceBundleEnv,
 } from './beta-tools-local-accepted-evidence-bundle'
 import type { LibassSyntheticBurninCommandRunner } from './beta-tools-libass-synthetic-burnin-qa-preflight'
+
+type BetaReadinessOperatorStatusApiRunResult = Awaited<ReturnType<typeof runBetaReadinessOperatorStatusApiFromEnv>>
 
 export interface BetaToolsLocalAcceptedEvidenceCollectorEnv extends BetaToolsLocalAcceptedEvidenceBundleEnv {
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_API_BASE_URL?: string

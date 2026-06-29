@@ -152,6 +152,8 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
     recommendedCommands: [
       'npm run beta:readiness:owner-approval-packet',
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-intake-status',

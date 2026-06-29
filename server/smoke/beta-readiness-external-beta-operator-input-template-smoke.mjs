@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
+  buildBetaReadinessExternalBetaOperatorAutofillEnv,
   buildBetaReadinessExternalBetaOperatorInputStatus,
   buildBetaReadinessExternalBetaOperatorInputTemplate,
+  renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown,
   renderBetaReadinessExternalBetaOperatorInputStatusMarkdown,
   renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown,
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
@@ -24,16 +26,23 @@ assert.equal(
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs',
 )
 assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-autofill-env'],
+  'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --autofill-env',
+)
+assert.equal(
   packageJson.scripts['smoke:beta-readiness-external-beta-operator-input-template'],
   'node server/smoke/beta-readiness-external-beta-operator-input-template-smoke.mjs',
 )
 
 const report = buildBetaReadinessExternalBetaOperatorInputTemplate()
 const status = buildBetaReadinessExternalBetaOperatorInputStatus(report)
+const autofill = buildBetaReadinessExternalBetaOperatorAutofillEnv(report)
 const markdown = renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report)
 const statusMarkdown = renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(status)
+const autofillMarkdown = renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(autofill)
 const serialized = JSON.stringify(report)
 const serializedStatus = JSON.stringify(status)
+const serializedAutofill = JSON.stringify(autofill)
 
 assert.equal(report.ok, true)
 assert.equal(
@@ -102,6 +111,27 @@ assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 
 assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), true)
 assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT'), true)
 assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
+assert.equal(autofill.ok, true)
+assert.equal(
+  autofill.decision,
+  'beta_readiness_external_beta_operator_autofill_env_passed_ready_for_human_operator_value_collection',
+)
+assert.equal(autofill.inputCounts.autoFillablePending, 12)
+assert.equal(autofill.inputCounts.generatedIdempotencyKeys, 4)
+assert.equal(autofill.inputCounts.prefilledNonSecretConstants, 8)
+assert.equal(autofill.inputCounts.humanActionableInputsEmitted, 0)
+assert.equal(autofill.inputCounts.secretOrSensitiveInputsEmitted, 0)
+assert.equal(autofill.inputCounts.ownerApprovalInputsEmitted, 0)
+assert.equal(autofill.inputCounts.ownerEvidenceNotesEmitted, 0)
+assert.equal(autofill.autoFillableInputs.length, 12)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), true)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_IDEMPOTENCY_KEY'), true)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_IDEMPOTENCY_KEY'), true)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA'), true)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), false)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
+assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), false)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS'), true)
@@ -115,7 +145,20 @@ assert.ok(report.envTemplate.includes(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(report.envTemplate.includes('operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL'))
+assert.ok(autofill.envTemplate.includes('export REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY='))
+assert.ok(autofill.envTemplate.includes(`export REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="${expectedLocalEvidenceSourceSha}"`))
+assert.ok(autofill.envTemplate.includes('export REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
+assert.ok(autofill.envTemplate.includes('export REEDITPRO_BETA_PLATFORM_IDEMPOTENCY_KEY='))
+assert.ok(autofill.envTemplate.includes('export REEDITPRO_BETA_LAUNCH_IDEMPOTENCY_KEY='))
+assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL='), false)
+assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN='), false)
+assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID='), false)
+assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_PROJECT_ID='), false)
+assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY='), false)
+assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE='), false)
 assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-intake-status'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
+assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 for (const staleSourceSha of staleLocalEvidenceSourceShas) {
@@ -133,8 +176,19 @@ assert.equal(serializedStatus.includes('secret-token'), false)
 assert.equal(serializedStatus.includes('Bearer secret'), false)
 assert.equal(serializedStatus.includes('service_role_key'), false)
 assert.equal(serializedStatus.includes('x-goog-signature='), false)
+assert.equal(serializedAutofill.includes('secret value supplied only in the operator shell'), false)
+assert.equal(serializedAutofill.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
+assert.equal(serializedAutofill.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
+assert.equal(serializedAutofill.includes('REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), false)
+assert.equal(serializedAutofill.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
+assert.equal(serializedAutofill.includes('non-secret owner evidence summary'), false)
 assert.equal(statusMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(statusMarkdown.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
+assert.equal(autofillMarkdown.includes('Auto-fillable pending inputs: `12`'), true)
+assert.equal(autofillMarkdown.includes('Human-actionable inputs emitted: `0`'), true)
+assert.equal(autofillMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
+assert.equal(autofillMarkdown.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
+assert.equal(autofillMarkdown.includes('non-secret owner evidence summary'), false)
 assert.equal(statusMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 assert.equal(statusMarkdown.includes('Human-actionable pending inputs: `45`'), true)
 assert.equal(statusMarkdown.includes('Auto-fillable pending inputs: `12`'), true)
@@ -159,6 +213,7 @@ console.log(JSON.stringify({
   pendingRequiredInputs: report.inputCounts.currentlyPendingInBlankEnvironment,
   humanActionablePendingInputs: status.actionabilityCounts.humanActionablePending,
   autoFillablePendingInputs: status.actionabilityCounts.autoFillablePending,
+  autofillInputs: autofill.inputCounts.autoFillablePending,
   trackBToolTotals: report.sourceTruth.trackBToolTotals,
   productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
 }, null, 2))

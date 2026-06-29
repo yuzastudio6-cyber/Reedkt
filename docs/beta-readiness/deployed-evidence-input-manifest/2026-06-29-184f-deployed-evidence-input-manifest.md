@@ -12,11 +12,20 @@ The manifest records the current deploy readback needed by the source freshness 
 
 ## Remaining Gate
 
-Pending operator inputs: `58`
+Pending operator inputs: `57`
 
 Ready to run external beta evidence collector: `false`
 
 The missing inputs include bearer/token-bearing values, workspace/project IDs, idempotency keys, platform evidence, launch approval evidence, and explicit launch/platform confirmations. Those values must stay outside source control.
+
+## Recommended Commands
+
+- `npm run beta:readiness:external-beta-operator-input-template -- --status`
+- `npm run beta:readiness:external-beta-operator-autofill-env`
+- `npm run beta:readiness:external-beta-operator-input-template`
+- `npm run beta:readiness:owner-approval-intake-status`
+- `npm run beta:readiness:owner-approval-intake-preflight`
+- `npm run beta:readiness:deployed-evidence-input-manifest`
 
 ## Tool Evidence Boundary
 

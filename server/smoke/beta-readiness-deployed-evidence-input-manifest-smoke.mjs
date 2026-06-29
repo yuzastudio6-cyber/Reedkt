@@ -72,6 +72,8 @@ assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_PLATFORM_
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
 assert.equal(emptyManifest.secretLikeInputPaths.length, 0)
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
+assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
+assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))

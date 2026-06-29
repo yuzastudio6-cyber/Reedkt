@@ -30,6 +30,8 @@ Source freshness decision: `beta_readiness_source_freshness_preflight_passed_cur
 ## Collection Commands
 
 - `npm run beta:readiness:owner-approval-env-template`
+- `npm run beta:readiness:external-beta-operator-input-template -- --status`
+- `npm run beta:readiness:external-beta-operator-autofill-env`
 - `npm run beta:readiness:external-beta-operator-input-template`
 - `npm run beta:readiness:source-freshness-preflight`
 - `npm run beta:readiness:owner-approval-intake-status`
@@ -52,4 +54,4 @@ This handoff did not grant approvals, call the deployed backend, record evidence
 
 Supabase classification: no write / environment none / SQL none / migration no.
 
-Next safe action: Owners fill the generated non-secret approval template outside source control, then run source freshness, owner approval intake preflight, and deployed evidence input manifest before any collector.
+Next safe action: Owners fill the generated non-secret approval template outside source control, operators export the auto-fillable non-secret constants/idempotency keys, then run source freshness, owner approval intake status, owner approval intake preflight, and deployed evidence input manifest before any collector.

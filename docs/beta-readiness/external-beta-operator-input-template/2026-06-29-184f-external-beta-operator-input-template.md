@@ -15,7 +15,7 @@ Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed
 - Secret/sensitive inputs: `2`
 - Operator-generated ids: `4`
 - Owner evidence notes: `11`
-- Prefilled non-secret constants: `40`
+- Prefilled non-secret constants: `10`
 
 ## Required Groups
 
@@ -103,6 +103,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 
 # Validate before collector execution:
 # npm run beta:readiness:source-freshness-preflight
+# npm run beta:readiness:external-beta-operator-autofill-env
 # npm run beta:readiness:owner-approval-intake-status
 # npm run beta:readiness:owner-approval-intake-preflight
 # npm run beta:readiness:deployed-evidence-input-manifest
@@ -118,6 +119,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 ## Validation Commands
 
 - `npm run beta:readiness:source-freshness-preflight`
+- `npm run beta:readiness:external-beta-operator-autofill-env`
 - `npm run beta:readiness:owner-approval-intake-status`
 - `npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
@@ -130,4 +132,4 @@ This report did not grant approvals, call the deployed backend, record evidence,
 
 Supabase classification: no write / environment none / SQL none / migration no.
 
-Next safe action: Operators fill this template outside source control, then run source freshness, owner approval intake preflight, deployed evidence input manifest, and only then the external beta evidence collector.
+Next safe action: Operators fill this template outside source control, then run source freshness, owner approval intake status, owner approval intake preflight, deployed evidence input manifest, and only then the external beta evidence collector.

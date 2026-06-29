@@ -46,6 +46,16 @@ const allowedChangedFiles = new Set([
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-mock-only-source-import-1.ts',
   'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-mock-only-source-import-1-smoke.ts',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-mock-only-source-import-1-diagnostics.mjs',
+  'docs/external-beta/qwen-real-dispatch-preflight-1/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-preflight-1/preflight-gate.md',
+  'docs/external-beta/qwen-real-dispatch-preflight-1/runtime-boundary.md',
+  'docs/external-beta/qwen-real-dispatch-preflight-1/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-preflight-1/qwen-real-dispatch-preflight-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-preflight-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-preflight-1-smoke.ts',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-preflight-1-diagnostics.mjs',
   'package.json',
 ])
 

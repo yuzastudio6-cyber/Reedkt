@@ -1,0 +1,50 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-HANDLER-IMPLEMENTATION-CONTRACT-NEGATIVE-TESTS-1",
+  "decision": "tracka_gpac_mp4box_handler_implementation_contract_negative_tests_passed_ready_for_guarded_handler_implementation_plan",
+  "execution": "completed_handler_implementation_contract_negative_tests_no_route_or_worker_execution",
+  "prior": {
+    "disabledHandlerImplementationContract": "tracka_gpac_mp4box_disabled_handler_implementation_contract_passed_ready_for_handler_implementation_contract_negative_tests",
+    "disabledHandlerImplementationContractMergeSha": "02e692d9729dac0654db1c83fc02a648c102cda5"
+  },
+  "negativeCoverage": {
+    "rejectedInputs": "blocked_rejected_input_present",
+    "runtimeAttempts": "blocked_runtime_execution_attempt",
+    "deliveryAttempts": "blocked_storage_or_public_artifact_attempt",
+    "guardedReview": "blocked_guarded_handler_implementation_review_invalid",
+    "handlerImplementation": "blocked_handler_implementation_not_disabled",
+    "featureFlag": "blocked_feature_flag_enabled",
+    "serviceRole": "blocked_missing_backend_service_role_context",
+    "approvedSnapshot": "blocked_missing_approved_snapshot_guard",
+    "commandAllowlist": "blocked_missing_command_allowlist_guard",
+    "negativeTests": "blocked_missing_negative_tests_guard",
+    "cleanupAudit": "blocked_missing_cleanup_audit_reference",
+    "operatorConfirmation": "blocked_missing_operator_confirmation_guard"
+  },
+  "safety": {
+    "executableHandlerRegistration": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-IMPLEMENTATION-PLAN-1"
+}

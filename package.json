@@ -106,6 +106,7 @@
     "beta:readiness:owner-command-handoff": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-owner-command-handoff.ts",
     "beta:readiness:api-deployment-preflight": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-api-deployment-preflight.ts",
     "beta:readiness:deployed-evidence-input-manifest": "node server/cli/beta-readiness-deployed-evidence-input-manifest.mjs",
+    "beta:readiness:external-beta-operator-autofill-env": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --autofill-env",
     "beta:readiness:external-beta-operator-input-template": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs",
     "beta:readiness:external-beta-evidence-collector": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-external-beta-evidence-collector.ts",
     "beta:readiness:paid-production-evidence-collector": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-paid-production-evidence-collector.ts",

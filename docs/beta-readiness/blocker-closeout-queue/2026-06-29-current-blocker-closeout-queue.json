@@ -1,9 +1,9 @@
 {
   "reportId": "beta-readiness-blocker-closeout-queue-2026-06-29",
-  "createdAt": "2026-06-29T17:58:22.680Z",
+  "createdAt": "2026-06-29T21:49:16.000Z",
   "decision": "beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection",
   "sourceTruth": {
-    "currentCentralSha": "fd4d0278d4a547526fcdd9672c6f0f3f0dd11ef0",
+    "currentCentralSha": "d973dbfd70ceab9ac5d910c1c196e324130e4bb4",
     "blockerLedgerRows": 197,
     "duplicateBlockerRows": 0,
     "toolRows": 184,
@@ -37,7 +37,9 @@
     "readyToRecordDeployedEvidence": true,
     "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json",
     "requiredOperatorInputs": 60,
-    "pendingOperatorInputsInBlankEnv": 57
+    "pendingOperatorInputsInBlankEnv": 57,
+    "humanActionablePendingOperatorInputs": 45,
+    "autoFillablePendingOperatorInputs": 12
   },
   "blockerCounts": {
     "byClearanceType": {
@@ -60,74 +62,146 @@
   "batches": [
     {
       "batchId": "operator_value_collection",
+      "title": "Collect exact operator values outside source control",
       "order": 1,
+      "clearanceType": "operator_input_collection",
       "rowCount": 57,
+      "canRunWithoutOperatorSecrets": false,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json (60 required inputs, 57 pending in blank env: 45 human-actionable, 12 auto-fillable constants/keys)"
+      ],
       "nextCommands": [
         "npm run beta:readiness:external-beta-operator-input-template -- --status",
+        "npm run beta:readiness:external-beta-operator-autofill-env",
         "npm run beta:readiness:external-beta-operator-input-template",
         "npm run beta:readiness:owner-approval-intake-status",
         "npm run beta:readiness:owner-approval-intake-preflight",
         "npm run beta:readiness:deployed-evidence-input-manifest"
+      ],
+      "blockedUntil": [
+        "Operators review the value-free pending-input status, then supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session."
       ]
     },
     {
       "batchId": "trackb_deployed_tool_evidence_recording",
+      "title": "Record the 16-tool Track B accepted evidence bundle against deployed staging",
       "order": 2,
+      "clearanceType": "deployed_tool_evidence",
       "rowCount": 16,
+      "canRunWithoutOperatorSecrets": false,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json (16 locally accepted tools, readyToRecordDeployedEvidence=true)"
+      ],
       "nextCommands": [
         "npm run beta:tools:local-accepted-evidence-collector",
         "npm run beta:readiness:external-beta-evidence-collector",
         "npm run beta:readiness:operator-status-api"
+      ],
+      "blockedUntil": [
+        "The deployed collector records core tool evidence and libass evidence idempotently, then operator status readback confirms the accepted evidence from staging."
       ]
     },
     {
       "batchId": "registry_bounded_runtime_evidence",
+      "title": "Close bounded command/import/container proof gaps for the full production registry",
       "order": 3,
+      "clearanceType": "bounded_local_proof",
       "rowCount": 98,
+      "canRunWithoutOperatorSecrets": true,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "Current blocker ledger readiness_not_passed and real_execution_not_verified rows."
+      ],
       "nextCommands": [
+        "npm run beta:tools:core-real-check-preview -- --env-template",
         "npm run beta:tools:core-real-check-preview",
         "npm run beta:tools:core-real-check-preview:hydrated",
         "npm run beta:tools:local-accepted-evidence-bundle"
+      ],
+      "blockedUntil": [
+        "Every registry tool has accepted bounded runtime evidence or an explicit source-truth exclusion; no user media or product runtime proof is implied."
       ]
     },
     {
       "batchId": "product_ready_qa_acceptance",
+      "title": "Run QA acceptance after real bounded evidence exists",
       "order": 4,
+      "clearanceType": "diagnostics_or_qa",
       "rowCount": 49,
+      "canRunWithoutOperatorSecrets": true,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "Current blocker ledger product_ready_acceptance_missing rows."
+      ],
       "nextCommands": [
         "npm run smoke:tool-beta-execution-readiness",
         "npm run smoke:beta-readiness",
         "npm run smoke:beta-readiness-api"
+      ],
+      "blockedUntil": [
+        "QA accepts exact bounded evidence per tool and product-ready local OSS remains explicitly scoped, reviewed, and counted from evidence."
       ]
     },
     {
       "batchId": "deployed_platform_evidence",
+      "title": "Record deployed platform evidence for billing persistence and staging readiness",
       "order": 5,
+      "clearanceType": "deployed_platform_evidence",
       "rowCount": 5,
+      "canRunWithoutOperatorSecrets": false,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "Current platform blocker: production_billing_deployment_unverified."
+      ],
       "nextCommands": [
         "npm run beta:platform:staging-evidence-preflight",
         "npm run beta:platform:staging-evidence-probe",
         "npm run beta:readiness:operator-status-api"
+      ],
+      "blockedUntil": [
+        "Migration deployment, service-role write path, RLS member readback, idempotent replay, wallet settlement, Stripe boundary, monitoring, billing QA, and owner approvals are recorded from deployed staging."
       ]
     },
     {
       "batchId": "owner_launch_approvals",
+      "title": "Collect model/license, deployment, security, storage, legal, monitoring, and support approvals",
       "order": 6,
+      "clearanceType": "owner_approval",
       "rowCount": 44,
+      "canRunWithoutOperatorSecrets": false,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "Current checklist and go/no-go owner approval blockers."
+      ],
       "nextCommands": [
         "npm run beta:readiness:owner-approval-env-template",
         "npm run beta:readiness:launch-approval-evidence-preflight",
         "npm run beta:readiness:launch-approval-evidence"
+      ],
+      "blockedUntil": [
+        "Named owners provide non-secret evidence notes and explicit approvals; model/checkpoint licensing remains approved only for the named external-beta scope."
       ]
     },
     {
       "batchId": "post_external_beta_scope_escalation",
+      "title": "Escalate separately to real-user-media beta and paid production after external beta passes",
       "order": 7,
+      "clearanceType": "scope_approval",
       "rowCount": 2,
+      "canRunWithoutOperatorSecrets": false,
+      "canEnableBetaOrProduction": false,
+      "sourceEvidence": [
+        "Current go/no-go policy keeps real-user-media beta and paid production separate from external beta."
+      ],
       "nextCommands": [
         "REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta npm run beta:readiness:scope-approval-evidence-preflight",
         "REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production npm run beta:readiness:scope-approval-evidence-preflight",
         "npm run beta:readiness:paid-production-evidence-collector"
+      ],
+      "blockedUntil": [
+        "External beta has passed, then separate real-user-media and paid-production approval/evidence packets pass with final readback."
       ]
     }
   ],
@@ -149,5 +223,11 @@
     "environment": "none",
     "sql": "none",
     "migration": "no"
-  }
+  },
+  "warnings": [
+    "This closeout queue is metadata only; it does not record evidence, call deployed services, run tools, process media, or enable beta/production.",
+    "Track B local accepted evidence is ready to be recorded against deployed staging, but it is not itself a product-ready or launch approval.",
+    "Operator secrets, owner attestations, deployed evidence recording, final readback, real-user-media approval, and paid-production approval remain separate gates.",
+    "Blockers remain scoped to named unsafe beta/production actions; safe blocker-reduction work remains allowed."
+  ]
 }

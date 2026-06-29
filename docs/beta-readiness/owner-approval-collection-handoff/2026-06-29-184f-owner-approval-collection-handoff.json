@@ -17,7 +17,7 @@
     "currentDeployedEvidenceManifestDecision": "beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs",
     "detailedOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json",
     "detailedOwnerGapDecision": "beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs",
-    "detailedOwnerGapPendingInputCount": 58,
+    "detailedOwnerGapPendingInputCount": 57,
     "productReadyLocalOssCount": 0,
     "trackBToolTotals": {
       "owned": 16,
@@ -259,6 +259,8 @@
   },
   "commands": [
     "npm run beta:readiness:owner-approval-env-template",
+    "npm run beta:readiness:external-beta-operator-input-template -- --status",
+    "npm run beta:readiness:external-beta-operator-autofill-env",
     "npm run beta:readiness:external-beta-operator-input-template",
     "npm run beta:readiness:source-freshness-preflight",
     "npm run beta:readiness:owner-approval-intake-status",
@@ -309,7 +311,7 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Owners fill the generated non-secret approval template outside source control, then run source freshness, owner approval intake preflight, and deployed evidence input manifest before any collector.",
+  "nextSafeAction": "Owners fill the generated non-secret approval template outside source control, operators export the auto-fillable non-secret constants/idempotency keys, then run source freshness, owner approval intake status, owner approval intake preflight, and deployed evidence input manifest before any collector.",
   "outputPaths": {
     "json": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.json",
     "markdown": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.md"

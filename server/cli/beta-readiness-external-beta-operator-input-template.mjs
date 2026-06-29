@@ -4,6 +4,7 @@ import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readines
 const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
 const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection'
 const STATUS_DECISION = 'beta_readiness_external_beta_operator_input_status_passed_ready_for_operator_value_collection'
+const AUTOFILL_DECISION = 'beta_readiness_external_beta_operator_autofill_env_passed_ready_for_human_operator_value_collection'
 
 const SECRET_PLACEHOLDER = '<secret value supplied only in the operator shell>'
 const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
@@ -53,6 +54,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
     envTemplate: renderEnvTemplate(requiredInputs),
     validationCommands: [
       'npm run beta:readiness:source-freshness-preflight',
+      'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
@@ -140,6 +142,55 @@ export function buildBetaReadinessExternalBetaOperatorInputStatus(report = build
   }
 }
 
+export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = buildBetaReadinessExternalBetaOperatorInputTemplate()) {
+  const pendingInputs = report.requiredInputs.filter((input) => !input.present)
+  const autoFillableInputs = pendingInputs
+    .filter((input) => !isHumanActionableInput(input))
+    .map((input) => ({
+      name: input.name,
+      group: input.group,
+      requiredFor: input.requiredFor,
+      valuePolicy: input.valuePolicy,
+      operatorAction: operatorAction(input),
+      value: input.templateValue,
+    }))
+
+  return {
+    ok: true,
+    decision: AUTOFILL_DECISION,
+    templateDecision: report.decision,
+    templateId: report.templateId,
+    sourceTruth: report.sourceTruth,
+    inputCounts: {
+      autoFillablePending: autoFillableInputs.length,
+      generatedIdempotencyKeys: autoFillableInputs.filter((input) => input.valuePolicy === 'operator_unique_id').length,
+      prefilledNonSecretConstants: autoFillableInputs.filter((input) => input.valuePolicy === 'prefilled_non_secret_constant').length,
+      humanActionableInputsEmitted: 0,
+      secretOrSensitiveInputsEmitted: 0,
+      ownerApprovalInputsEmitted: 0,
+      ownerEvidenceNotesEmitted: 0,
+    },
+    autoFillableInputs,
+    envTemplate: renderAutofillEnvTemplate(autoFillableInputs),
+    validationCommands: [
+      'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-input-template',
+      'npm run beta:readiness:owner-approval-intake-status',
+      'npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest',
+    ],
+    blockedScopeConfirmations: report.blockedScopeConfirmations,
+    supabaseClassification: report.supabaseClassification,
+    nextSafeAction: 'Export these auto-fillable values in an operator shell, then supply the remaining human-actionable secret, non-secret, approval, verification, and evidence-note values outside source control.',
+    warnings: [
+      'This auto-fill template intentionally emits only pending non-secret constants and generated idempotency keys.',
+      'It does not emit bearer tokens, workspace/project identifiers, API base URLs, owner approval booleans, technical verification booleans, evidence notes, signed URLs, raw prompts, private media references, or deploy secrets.',
+      'It does not grant approvals, call the deployed backend, record evidence, write Supabase/GCS, dispatch workers, process media, enable external beta, enable real-user-media beta, or enable paid production.',
+    ],
+  }
+}
+
 export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report) {
   const lines = [
     '# Beta Readiness External Beta Operator Input Template - 184f',
@@ -180,6 +231,47 @@ export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(rep
     '## Boundary',
     '',
     'This report did not grant approvals, call the deployed backend, record evidence, write Supabase, run SQL, write GCS, dispatch workers, call providers, process media, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.',
+    '',
+    'Supabase classification: no write / environment none / SQL none / migration no.',
+    '',
+    `Next safe action: ${report.nextSafeAction}`,
+  ]
+  return lines.join('\n')
+}
+
+export function renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(report) {
+  const lines = [
+    '# Beta Readiness External Beta Operator Auto-Fill Env - 184f',
+    '',
+    `Decision: \`${report.decision}\``,
+    `Template decision: \`${report.templateDecision}\``,
+    '',
+    `Auto-fillable pending inputs: \`${report.inputCounts.autoFillablePending}\``,
+    `Generated idempotency keys: \`${report.inputCounts.generatedIdempotencyKeys}\``,
+    `Prefilled non-secret constants: \`${report.inputCounts.prefilledNonSecretConstants}\``,
+    `Human-actionable inputs emitted: \`${report.inputCounts.humanActionableInputsEmitted}\``,
+    `Secret/sensitive inputs emitted: \`${report.inputCounts.secretOrSensitiveInputsEmitted}\``,
+    `Owner approval inputs emitted: \`${report.inputCounts.ownerApprovalInputsEmitted}\``,
+    `Owner evidence notes emitted: \`${report.inputCounts.ownerEvidenceNotesEmitted}\``,
+    '',
+    '## Export Template',
+    '',
+    '```bash',
+    report.envTemplate,
+    '```',
+    '',
+    '## Auto-Fillable Inputs',
+    '',
+    ...report.autoFillableInputs.map((input) => `- \`${input.name}\` (${input.group}, ${input.valuePolicy}, ${input.operatorAction})`),
+    '',
+    '## Validation Commands',
+    '',
+    ...report.validationCommands.map((command) => `- \`${command}\``),
+    '',
+    '## Boundary',
+    '',
+    'This auto-fill report emitted no bearer tokens, workspace/project identifiers, API base URLs, owner evidence text, approval booleans, technical verification booleans, signed URLs, raw prompts, private media references, or deploy secrets.',
+    'It did not grant approval, call the deployed backend, record evidence, write Supabase, run SQL, write GCS, dispatch workers, call providers, process media, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.',
     '',
     'Supabase classification: no write / environment none / SQL none / migration no.',
     '',
@@ -312,6 +404,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('')
   lines.push('# Validate before collector execution:')
   lines.push('# npm run beta:readiness:source-freshness-preflight')
+  lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
@@ -322,6 +415,31 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL,')
   lines.push('# REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN, and REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID')
   lines.push('# when the matching REEDITPRO_BETA_STATUS_* aliases are unset.')
+  return lines.join('\n')
+}
+
+function renderAutofillEnvTemplate(autoFillableInputs) {
+  const lines = [
+    '# ReEditPro external beta auto-fillable operator exports - 184f',
+    '# Safe to generate locally; still export only in an operator shell or secret manager session.',
+    '# This file intentionally omits tokens, workspace/project IDs, API URLs, approvals, verification booleans, and evidence notes.',
+    '',
+  ]
+  let lastGroup
+  for (const input of autoFillableInputs) {
+    if (input.group !== lastGroup) {
+      if (lastGroup) lines.push('')
+      lines.push(`# ${input.group}`)
+      lastGroup = input.group
+    }
+    lines.push(`export ${input.name}="${escapeTemplateValue(input.value)}"`)
+  }
+  lines.push('')
+  lines.push('# Continue with human-supplied values outside source control:')
+  lines.push('# npm run beta:readiness:external-beta-operator-input-template')
+  lines.push('# npm run beta:readiness:owner-approval-intake-status')
+  lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
+  lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   return lines.join('\n')
 }
 
@@ -409,6 +527,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorInputStatus(report), null, 2))
   } else if (process.argv.includes('--status-markdown')) {
     console.log(renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(buildBetaReadinessExternalBetaOperatorInputStatus(report)))
+  } else if (process.argv.includes('--autofill-env')) {
+    console.log(buildBetaReadinessExternalBetaOperatorAutofillEnv(report).envTemplate)
+  } else if (process.argv.includes('--autofill-json')) {
+    console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorAutofillEnv(report), null, 2))
+  } else if (process.argv.includes('--autofill-markdown')) {
+    console.log(renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(buildBetaReadinessExternalBetaOperatorAutofillEnv(report)))
   } else if (process.argv.includes('--env-template')) {
     console.log(report.envTemplate)
   } else if (process.argv.includes('--markdown')) {

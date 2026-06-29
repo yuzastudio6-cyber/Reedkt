@@ -12,6 +12,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:api-deployment-preflight',
   'beta:readiness:blocker-closeout-queue',
   'beta:readiness:blocker-ledger',
+  'beta:readiness:external-beta-operator-autofill-env',
   'beta:readiness:external-beta-operator-input-template',
   'beta:readiness:external-beta-evidence-collector',
   'beta:readiness:launch-approval-evidence',
@@ -203,6 +204,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
     recommendedCommands: readyForDeployedEvidenceInputManifest ? [
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
@@ -215,6 +217,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',

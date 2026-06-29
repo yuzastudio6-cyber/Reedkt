@@ -56,6 +56,8 @@ assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:source-fr
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:platform:staging-evidence-preflight'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(report.completionCriteria.some((criterion) => criterion.includes('readyForExternalBeta=true')))

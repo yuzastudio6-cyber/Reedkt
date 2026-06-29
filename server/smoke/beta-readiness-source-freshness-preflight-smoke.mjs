@@ -61,13 +61,19 @@ assert.equal(ready.decision, 'beta_readiness_source_freshness_preflight_passed_c
 assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template -- --status') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env'),
+  'safe status review should precede the auto-fill env command',
+)
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template'),
-  'safe status review should precede the full operator template command',
+  'auto-fill env command should precede the full operator template command',
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:owner-approval-intake-status') <
@@ -113,6 +119,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:readiness:deployed-evidence-input-manifest',
     'beta:readiness:api-deployment-preflight',
     'beta:readiness:blocker-ledger',
+    'beta:readiness:external-beta-operator-autofill-env',
     'beta:readiness:external-beta-operator-input-template',
     'beta:readiness:external-beta-evidence-collector',
     'beta:readiness:launch-approval-evidence',

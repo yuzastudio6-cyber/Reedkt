@@ -35,12 +35,12 @@
   },
   "manifestResult": {
     "readyToRunExternalBetaEvidenceCollector": false,
-    "pendingRequiredInputCount": 58,
+    "pendingRequiredInputCount": 57,
     "valueGaps": [],
     "secretLikeInputPaths": []
   },
   "readyToRunExternalBetaEvidenceCollector": false,
-  "pendingRequiredOwnerInputCount": 58,
+  "pendingRequiredOwnerInputCount": 57,
   "trackBToolBoundary": {
     "ownedToolCount": 16,
     "boundedAcceptedProvenToolCount": 16,
@@ -82,5 +82,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Operators must provide the missing staging evidence inputs outside source control, then rerun the deployed evidence input manifest before external beta evidence collection."
+  "nextSafeAction": "Operators should review the value-free pending-input status, export the safe non-secret auto-fill constants/idempotency keys, provide the remaining human-actionable staging evidence inputs outside source control, then rerun the deployed evidence input manifest before external beta evidence collection."
 }

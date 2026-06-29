@@ -5,6 +5,7 @@ const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-i
 const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection'
 const STATUS_DECISION = 'beta_readiness_external_beta_operator_input_status_passed_ready_for_operator_value_collection'
 const AUTOFILL_DECISION = 'beta_readiness_external_beta_operator_autofill_env_passed_ready_for_human_operator_value_collection'
+const HUMAN_INPUT_CHECKLIST_DECISION = 'beta_readiness_external_beta_operator_human_input_checklist_passed_ready_for_operator_owner_collection'
 
 const SECRET_PLACEHOLDER = '<secret value supplied only in the operator shell>'
 const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
@@ -55,6 +56,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
     validationCommands: [
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
@@ -191,6 +193,60 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
   }
 }
 
+export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report = buildBetaReadinessExternalBetaOperatorInputTemplate()) {
+  const pendingInputs = report.requiredInputs.filter((input) => !input.present)
+  const humanActionableInputs = pendingInputs
+    .filter(isHumanActionableInput)
+    .map(toHumanInputChecklistItem)
+
+  return {
+    ok: true,
+    decision: HUMAN_INPUT_CHECKLIST_DECISION,
+    templateDecision: report.decision,
+    templateId: report.templateId,
+    sourceTruth: report.sourceTruth,
+    inputCounts: {
+      humanActionablePending: humanActionableInputs.length,
+      operatorSecretOrSensitive: humanActionableInputs.filter((input) => input.collectionRole === 'operator_secret_or_sensitive').length,
+      operatorNonSecretValues: humanActionableInputs.filter((input) => input.collectionRole === 'operator_non_secret_value').length,
+      operatorConfirmations: humanActionableInputs.filter((input) => input.collectionRole === 'operator_confirmation').length,
+      ownerApprovalConfirmations: humanActionableInputs.filter((input) => input.collectionRole === 'owner_approval_confirmation').length,
+      technicalVerificationConfirmations: humanActionableInputs.filter((input) => input.collectionRole === 'technical_verification_confirmation').length,
+      ownerEvidenceNotes: humanActionableInputs.filter((input) => input.collectionRole === 'owner_evidence_note').length,
+      autoFillableInputsEmitted: 0,
+      valuesEmitted: 0,
+    },
+    pendingGroups: groupCounts(humanActionableInputs),
+    pendingCollectionRoles: groupByField(humanActionableInputs, 'collectionRole'),
+    humanActionableInputs,
+    collectionOrder: [
+      'operator_secret_or_sensitive',
+      'operator_non_secret_value',
+      'operator_confirmation',
+      'owner_approval_confirmation',
+      'technical_verification_confirmation',
+      'owner_evidence_note',
+    ],
+    validationCommands: [
+      'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-human-input-checklist',
+      'npm run beta:readiness:external-beta-operator-input-template',
+      'npm run beta:readiness:owner-approval-intake-status',
+      'npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest',
+    ],
+    blockedScopeConfirmations: report.blockedScopeConfirmations,
+    supabaseClassification: report.supabaseClassification,
+    nextSafeAction: 'Collect the listed human-owned values outside source control, export the safe auto-fill env output, then run owner approval intake status/preflight and the deployed evidence input manifest before any deployed collector.',
+    warnings: [
+      'This checklist intentionally emits input names, groups, roles, and actions only; it emits no values.',
+      'Bearer tokens, workspace/project identifiers, owner evidence notes, approval decisions, and technical verification confirmations must be supplied by the correct operator/owner outside source control.',
+      'It does not grant approvals, call deployed services, record evidence, run tools, process media, write Supabase/GCS, enable external beta, enable real-user-media beta, or enable paid production.',
+    ],
+  }
+}
+
 export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report) {
   const lines = [
     '# Beta Readiness External Beta Operator Input Template - 184f',
@@ -277,6 +333,59 @@ export function renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(repor
     '',
     `Next safe action: ${report.nextSafeAction}`,
   ]
+  return lines.join('\n')
+}
+
+export function renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdown(report) {
+  const lines = [
+    '# Beta Readiness External Beta Human Input Checklist - 184f',
+    '',
+    `Decision: \`${report.decision}\``,
+    `Template decision: \`${report.templateDecision}\``,
+    '',
+    `Human-actionable pending inputs: \`${report.inputCounts.humanActionablePending}\``,
+    `Operator secret/sensitive values: \`${report.inputCounts.operatorSecretOrSensitive}\``,
+    `Operator non-secret values: \`${report.inputCounts.operatorNonSecretValues}\``,
+    `Operator confirmations: \`${report.inputCounts.operatorConfirmations}\``,
+    `Owner approval confirmations: \`${report.inputCounts.ownerApprovalConfirmations}\``,
+    `Technical verification confirmations: \`${report.inputCounts.technicalVerificationConfirmations}\``,
+    `Owner evidence notes: \`${report.inputCounts.ownerEvidenceNotes}\``,
+    `Auto-fillable inputs emitted: \`${report.inputCounts.autoFillableInputsEmitted}\``,
+    `Values emitted: \`${report.inputCounts.valuesEmitted}\``,
+    '',
+    '## Pending Groups',
+    '',
+    ...Object.entries(report.pendingGroups).map(([group, count]) => `- ${group}: \`${count}\``),
+    '',
+    '## Collection Roles',
+    '',
+    ...Object.entries(report.pendingCollectionRoles).map(([role, count]) => `- ${role}: \`${count}\``),
+    '',
+    '## Checklist',
+    '',
+  ]
+  for (const role of report.collectionOrder) {
+    const roleInputs = report.humanActionableInputs.filter((input) => input.collectionRole === role)
+    if (roleInputs.length === 0) continue
+    lines.push(`### ${role}`)
+    lines.push('')
+    for (const input of roleInputs) {
+      lines.push(`- \`${input.name}\` (${input.group}, ${input.operatorAction})`)
+    }
+    lines.push('')
+  }
+  lines.push('## Validation Commands')
+  lines.push('')
+  lines.push(...report.validationCommands.map((command) => `- \`${command}\``))
+  lines.push('')
+  lines.push('## Boundary')
+  lines.push('')
+  lines.push('This checklist printed no bearer tokens, workspace/project identifiers, owner evidence text, approval values, technical verification values, signed URLs, raw prompts, private media references, API base URLs, or deploy secrets.')
+  lines.push('It did not grant approval, call the deployed backend, record evidence, write Supabase, run SQL, write GCS, dispatch workers, call providers, process media, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.')
+  lines.push('')
+  lines.push('Supabase classification: no write / environment none / SQL none / migration no.')
+  lines.push('')
+  lines.push(`Next safe action: ${report.nextSafeAction}`)
   return lines.join('\n')
 }
 
@@ -405,6 +514,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# Validate before collector execution:')
   lines.push('# npm run beta:readiness:source-freshness-preflight')
   lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
+  lines.push('# npm run beta:readiness:external-beta-operator-human-input-checklist')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
@@ -509,6 +619,18 @@ function toStatusInput(input) {
   }
 }
 
+function toHumanInputChecklistItem(input) {
+  return {
+    name: input.name,
+    group: input.group,
+    requiredFor: input.requiredFor,
+    collectionRole: input.valuePolicy,
+    operatorAction: operatorAction(input),
+    secret: input.secret === true,
+    valueEmitted: false,
+  }
+}
+
 function escapeTemplateValue(value) {
   return String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')
 }
@@ -533,6 +655,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorAutofillEnv(report), null, 2))
   } else if (process.argv.includes('--autofill-markdown')) {
     console.log(renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(buildBetaReadinessExternalBetaOperatorAutofillEnv(report)))
+  } else if (process.argv.includes('--human-input-checklist')) {
+    console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report), null, 2))
+  } else if (process.argv.includes('--human-input-markdown')) {
+    console.log(renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdown(buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report)))
   } else if (process.argv.includes('--env-template')) {
     console.log(report.envTemplate)
   } else if (process.argv.includes('--markdown')) {

@@ -2,9 +2,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
   buildBetaReadinessExternalBetaOperatorAutofillEnv,
+  buildBetaReadinessExternalBetaOperatorHumanInputChecklist,
   buildBetaReadinessExternalBetaOperatorInputStatus,
   buildBetaReadinessExternalBetaOperatorInputTemplate,
   renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown,
+  renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdown,
   renderBetaReadinessExternalBetaOperatorInputStatusMarkdown,
   renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown,
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
@@ -30,6 +32,10 @@ assert.equal(
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --autofill-env',
 )
 assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-human-input-checklist'],
+  'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --human-input-checklist',
+)
+assert.equal(
   packageJson.scripts['smoke:beta-readiness-external-beta-operator-input-template'],
   'node server/smoke/beta-readiness-external-beta-operator-input-template-smoke.mjs',
 )
@@ -37,12 +43,15 @@ assert.equal(
 const report = buildBetaReadinessExternalBetaOperatorInputTemplate()
 const status = buildBetaReadinessExternalBetaOperatorInputStatus(report)
 const autofill = buildBetaReadinessExternalBetaOperatorAutofillEnv(report)
+const checklist = buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report)
 const markdown = renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report)
 const statusMarkdown = renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(status)
 const autofillMarkdown = renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(autofill)
+const checklistMarkdown = renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdown(checklist)
 const serialized = JSON.stringify(report)
 const serializedStatus = JSON.stringify(status)
 const serializedAutofill = JSON.stringify(autofill)
+const serializedChecklist = JSON.stringify(checklist)
 
 assert.equal(report.ok, true)
 assert.equal(
@@ -132,6 +141,44 @@ assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITP
 assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), false)
 assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
 assert.equal(autofill.autoFillableInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), false)
+assert.equal(checklist.ok, true)
+assert.equal(
+  checklist.decision,
+  'beta_readiness_external_beta_operator_human_input_checklist_passed_ready_for_operator_owner_collection',
+)
+assert.deepEqual(checklist.inputCounts, {
+  humanActionablePending: 45,
+  operatorSecretOrSensitive: 1,
+  operatorNonSecretValues: 3,
+  operatorConfirmations: 11,
+  ownerApprovalConfirmations: 15,
+  technicalVerificationConfirmations: 4,
+  ownerEvidenceNotes: 11,
+  autoFillableInputsEmitted: 0,
+  valuesEmitted: 0,
+})
+assert.deepEqual(checklist.pendingGroups, {
+  shared: 5,
+  tool_evidence: 5,
+  platform_evidence: 20,
+  launch_approval: 15,
+})
+assert.deepEqual(checklist.pendingCollectionRoles, {
+  operator_secret_or_sensitive: 1,
+  operator_non_secret_value: 3,
+  operator_confirmation: 11,
+  owner_approval_confirmation: 15,
+  technical_verification_confirmation: 4,
+  owner_evidence_note: 11,
+})
+assert.equal(checklist.humanActionableInputs.length, 45)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN' && input.secret), true)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), true)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), true)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED'), true)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), true)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), false)
+assert.equal(checklist.humanActionableInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA'), false)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS'), true)
@@ -156,8 +203,10 @@ assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID
 assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_PROJECT_ID='), false)
 assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY='), false)
 assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE='), false)
+assert.ok(checklist.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
@@ -182,6 +231,12 @@ assert.equal(serializedAutofill.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN')
 assert.equal(serializedAutofill.includes('REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), false)
 assert.equal(serializedAutofill.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
 assert.equal(serializedAutofill.includes('non-secret owner evidence summary'), false)
+assert.equal(serializedChecklist.includes('secret value supplied only in the operator shell'), false)
+assert.equal(serializedChecklist.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
+assert.equal(serializedChecklist.includes('non-secret owner evidence summary'), false)
+assert.equal(serializedChecklist.includes('reeditpro-beta-tools-local-bundle-core-idempotency-key'), false)
+assert.equal(serializedChecklist.includes('d47015e88943dd4760dd9eb6ee45ad0f8ead15ca'), false)
+assert.equal(serializedChecklist.includes('"valueEmitted":true'), false)
 assert.equal(statusMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(statusMarkdown.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
 assert.equal(autofillMarkdown.includes('Auto-fillable pending inputs: `12`'), true)
@@ -189,6 +244,13 @@ assert.equal(autofillMarkdown.includes('Human-actionable inputs emitted: `0`'), 
 assert.equal(autofillMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
 assert.equal(autofillMarkdown.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), false)
 assert.equal(autofillMarkdown.includes('non-secret owner evidence summary'), false)
+assert.equal(checklistMarkdown.includes('Human-actionable pending inputs: `45`'), true)
+assert.equal(checklistMarkdown.includes('Values emitted: `0`'), true)
+assert.equal(checklistMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
+assert.equal(checklistMarkdown.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY'), true)
+assert.equal(checklistMarkdown.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
+assert.equal(checklistMarkdown.includes('non-secret owner evidence summary'), false)
+assert.equal(checklistMarkdown.includes('reeditpro-beta-tools-local-bundle-core-idempotency-key'), false)
 assert.equal(statusMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 assert.equal(statusMarkdown.includes('Human-actionable pending inputs: `45`'), true)
 assert.equal(statusMarkdown.includes('Auto-fillable pending inputs: `12`'), true)
@@ -214,6 +276,7 @@ console.log(JSON.stringify({
   humanActionablePendingInputs: status.actionabilityCounts.humanActionablePending,
   autoFillablePendingInputs: status.actionabilityCounts.autoFillablePending,
   autofillInputs: autofill.inputCounts.autoFillablePending,
+  humanChecklistInputs: checklist.inputCounts.humanActionablePending,
   trackBToolTotals: report.sourceTruth.trackBToolTotals,
   productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
 }, null, 2))

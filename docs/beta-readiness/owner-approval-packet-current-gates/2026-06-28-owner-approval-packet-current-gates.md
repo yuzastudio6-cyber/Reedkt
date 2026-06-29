@@ -28,7 +28,7 @@ Deployed evidence source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
 
 This packet does not approve anything. It defines the exact non-secret owner evidence needed before the existing evidence collectors can run.
 
-Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, review value-free pending operator inputs with `npm run beta:readiness:external-beta-operator-input-template -- --status`, export the safe non-secret constants/idempotency keys with `npm run beta:readiness:external-beta-operator-autofill-env`, then generate the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, review value-free owner input progress with `npm run beta:readiness:owner-approval-intake-status`, then validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
+Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, review value-free pending operator inputs with `npm run beta:readiness:external-beta-operator-input-template -- --status`, export the safe non-secret constants/idempotency keys with `npm run beta:readiness:external-beta-operator-autofill-env`, review the human-owned value checklist with `npm run beta:readiness:external-beta-operator-human-input-checklist`, then generate the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, review value-free owner input progress with `npm run beta:readiness:owner-approval-intake-status`, then validate owner-provided approval/attestation booleans are explicitly `true` and evidence notes are present with `npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes and wider-scope real-user-media or paid-production flags without echoing evidence note values.
 
 ## Platform Evidence Packet Approvals
 
@@ -186,6 +186,7 @@ Generate an owner input template with `npm run beta:readiness:owner-approval-env
 - `npm run beta:readiness:launch-approval-evidence-preflight`
 - `npm run beta:readiness:external-beta-operator-input-template -- --status`
 - `npm run beta:readiness:external-beta-operator-autofill-env`
+- `npm run beta:readiness:external-beta-operator-human-input-checklist`
 - `npm run beta:readiness:external-beta-operator-input-template`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 - `npm run beta:readiness:external-beta-evidence-collector`

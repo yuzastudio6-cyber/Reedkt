@@ -1,9 +1,9 @@
 {
   "reportId": "beta-readiness-blocker-closeout-queue-2026-06-29",
-  "createdAt": "2026-06-29T21:49:16.000Z",
+  "createdAt": "2026-06-29T22:37:34.000Z",
   "decision": "beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection",
   "sourceTruth": {
-    "currentCentralSha": "d973dbfd70ceab9ac5d910c1c196e324130e4bb4",
+    "currentCentralSha": "fa5d04a19f116723e17ab1832ded7cde7ef78481",
     "blockerLedgerRows": 197,
     "duplicateBlockerRows": 0,
     "toolRows": 184,
@@ -74,6 +74,7 @@
       "nextCommands": [
         "npm run beta:readiness:external-beta-operator-input-template -- --status",
         "npm run beta:readiness:external-beta-operator-autofill-env",
+        "npm run beta:readiness:external-beta-operator-human-input-checklist",
         "npm run beta:readiness:external-beta-operator-input-template",
         "npm run beta:readiness:owner-approval-intake-status",
         "npm run beta:readiness:owner-approval-intake-preflight",

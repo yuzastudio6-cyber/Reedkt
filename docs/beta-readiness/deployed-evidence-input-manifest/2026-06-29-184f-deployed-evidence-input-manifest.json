@@ -82,5 +82,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Operators should review the value-free pending-input status, export the safe non-secret auto-fill constants/idempotency keys, provide the remaining human-actionable staging evidence inputs outside source control, then rerun the deployed evidence input manifest before external beta evidence collection."
+  "nextSafeAction": "Operators should review the value-free pending-input status, export the safe non-secret auto-fill constants/idempotency keys, review the human input checklist, provide the remaining human-actionable staging evidence inputs outside source control, then rerun the deployed evidence input manifest before external beta evidence collection."
 }

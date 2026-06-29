@@ -67,6 +67,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_OBJECTS_POLICY_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_14_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-14-result'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_15_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-readiness-rollup'
@@ -75,9 +76,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_validation_retry_15_passed_result_review_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persistence_local_harness_result_review_accepted_active_migration_plan_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58AY-BACKEND-RUNTIME-PERSISTENCE-LOCAL-HARNESS-VALIDATION-RESULT-REVIEW: review passed Qwen local harness validation result, no deploy/no cloud/no assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58AZ-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-PLAN: promote validated Qwen persistence draft to active migration plan, no deploy/no cloud/no assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -340,6 +341,12 @@ for (const file of [
   'server/smoke/qwen2-5-vl-approved-fixture-inference-service-deploy-result-smoke.ts',
   'server/smoke/qwen2-5-vl-approved-fixture-inference-smoke-execute-result-smoke.ts',
   'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-6-result-smoke.ts',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-15-result.md',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result.ts',
+  'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result-smoke.ts',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-result-review.md',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review.ts',
+  'server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review-smoke.ts',
   'package.json',
 ]) {
   check(fs.existsSync(path.join(ROOT, file)), `Missing required file: ${file}`)
@@ -525,6 +532,11 @@ assert.equal(
   packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result'],
   'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result-smoke.ts',
   'local harness validation retry 15 package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review'],
+  'tsx server/smoke/qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review-smoke.ts',
+  'local harness validation result review package script mismatch',
 )
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
@@ -1305,7 +1317,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'backend_runtime_persistence_local_harness_validation_result_review_required',
+  'backend_runtime_persistence_active_migration_plan_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -1388,8 +1400,9 @@ assert.deepEqual(gateIds, [
   'backend_runtime_persistence_storage_upload_pipeline_policy_comment_baseline_fix',
   'backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix',
   'backend_runtime_persistence_local_harness_validation_result_review',
+  'backend_runtime_persistence_active_migration_plan',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 61)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 62)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -1588,6 +1601,10 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_local_harness_validation_result_review_required').length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_backend_runtime_persistence_active_migration_plan_required').length,
   1,
 )
 assert.equal(
@@ -1934,7 +1951,11 @@ assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidation
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry15Attempted, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationRetry15Passed, true)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessBaselineMigrationPassed, true)
-assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationResultReviewRequired, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationResultReviewRequired, false)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationResultReviewRecorded, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceLocalHarnessValidationResultReviewAccepted, true)
+assert.equal(rollup.runtimeFlags.backendRuntimePersistenceActiveMigrationPlanRequired, true)
+assert.equal(rollup.runtimeFlags.qwenActiveMigrationCreated, false)
 assert.equal(rollup.runtimeFlags.backendRuntimePersistenceStorageUploadPipelinePolicyCommentFixVerified, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplyAttempted, true)
 assert.equal(rollup.runtimeFlags.qwenDraftSqlApplied, true)
@@ -2047,6 +2068,8 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-baseline-storage-upload-pipeline-policy-comment-fix.ts',
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-15-result.md',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-retry-15-result.ts',
+  'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-result-review.md',
+  'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-local-harness-validation-result-review.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -2106,6 +2129,7 @@ const forbiddenDataFindings = scanValues({
   backendRuntimePersistenceLocalHarnessValidationRetry14Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_14_RESULT,
   backendRuntimePersistenceBaselineStorageUploadPipelinePolicyCommentFix: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_BASELINE_STORAGE_UPLOAD_PIPELINE_POLICY_COMMENT_FIX,
   backendRuntimePersistenceLocalHarnessValidationRetry15Result: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RETRY_15_RESULT,
+  backendRuntimePersistenceLocalHarnessValidationResultReview: QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT_REVIEW,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

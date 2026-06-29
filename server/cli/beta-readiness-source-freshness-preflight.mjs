@@ -176,6 +176,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-operator-status-api.d.ts',
         'server/cli/beta-readiness-operator-status-api.mjs',
         'server/cli/beta-readiness-operator-status.ts',
+        'server/cli/beta-readiness-summary.ts',
         'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts',
         'server/beta-readiness/index.ts',
         'server/beta-readiness/platform-evidence-manifest.ts',
@@ -281,6 +282,7 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-operator-status-api.d.ts' ||
     path === 'server/cli/beta-readiness-operator-status-api.mjs' ||
     path === 'server/cli/beta-readiness-operator-status.ts' ||
+    path === 'server/cli/beta-readiness-summary.ts' ||
     path === 'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts' ||
     path === 'server/beta-readiness/index.ts' ||
     path === 'server/beta-readiness/platform-evidence-manifest.ts' ||

@@ -1,0 +1,43 @@
+{
+  "id": "signalsmith-stretch-source-build-plan-2026-06-29",
+  "decision": "signalsmith_stretch_source_build_plan_passed_ready_for_bounded_source_build_execution",
+  "toolId": "signalsmith_stretch",
+  "sourceClass": "official_upstream_source_build",
+  "upstream": {
+    "repository": "https://github.com/Signalsmith-Audio/signalsmith-stretch",
+    "head": "57b93f4e9206a089a45387eaa39bdc9f310d3308",
+    "licenseFile": "LICENSE.txt",
+    "license": "MIT",
+    "commandSource": "cmd/main.cpp",
+    "makefile": "cmd/Makefile",
+    "cmakeFile": "cmd/CMakeLists.txt"
+  },
+  "approvedNextStep": {
+    "name": "bounded_source_build_execution",
+    "buildTarget": "cmd/out/stretch",
+    "installedCommand": "signalsmith-stretch",
+    "allowedEvidence": [
+      "source checkout at exact upstream commit",
+      "license file hash and source file hash recording",
+      "compile-only command build",
+      "binary presence and help/version shape if available"
+    ],
+    "blockedEvidence": [
+      "audio input or output processing",
+      "CMake FetchContent example input download",
+      "example WAV fixture download",
+      "media generation",
+      "runtime worker dispatch",
+      "external beta or production enablement"
+    ]
+  },
+  "boundaries": {
+    "doesNotRunSignalsmith": true,
+    "doesNotBuildDocker": true,
+    "doesNotProcessAudio": true,
+    "doesNotMutateSupabase": true,
+    "doesNotEnableBetaOrProduction": true,
+    "productReadyLocalOssTools": 0
+  },
+  "nextPrompt": "SIGNALSMITH_STRETCH_BOUNDED_SOURCE_BUILD_EXECUTION"
+}

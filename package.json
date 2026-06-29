@@ -28,6 +28,7 @@
     "smoke:sound-music-audio-contracts": "tsx server/smoke/sound-music-audio-contracts-smoke.ts",
     "smoke:sound-music-audio-planner": "tsx server/smoke/sound-music-audio-planner-smoke.ts",
     "smoke:prod-core-tool-install": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/production-core-tool-install-smoke.ts",
+    "smoke:signalsmith-stretch-source-build-plan": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/signalsmith-stretch-source-build-plan-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/production-readiness-validation-smoke.ts",
     "smoke:prod-real-speech-caption": "tsx server/smoke/production-real-speech-caption-execution-smoke.ts",

@@ -3,6 +3,12 @@
   "decision": "blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa",
   "execution": "blocked_gcloud_reauth_no_staging_route_readback",
   "integrationBase": "c77835cc2715f24726da617caca1b477d1c214d0",
+  "post1692SourceClosure": {
+    "toolReadinessAfterGpacDispatch": "RP-EXTERNAL-PRODUCT-TOOL-READINESS-AFTER-GPAC-DISPATCH-1",
+    "mergeSha": "987dd4565bfa5cfedef74814fede477ae36a42d4",
+    "gpacMp4box": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa",
+    "qwen25Vl": "qa_passed_single_tester_qwen_product_flow_runtime_evidence_backend_only_gated_not_broad_provider_unlock"
+  },
   "target": {
     "projectName": "Reeditpro",
     "projectRef": "wmyyttnynmteqgcdishd",

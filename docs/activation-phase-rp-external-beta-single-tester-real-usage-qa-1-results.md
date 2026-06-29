@@ -16,6 +16,8 @@ Additional tester expansion: `blocked_no_additional_named_tester_list`
 
 Next milestone: `RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1R-AFTER-GCLOUD-REAUTH`
 
+Post-#1692 source closure: branch updated after `RP-EXTERNAL-PRODUCT-TOOL-READINESS-AFTER-GPAC-DISPATCH-1` merged at `987dd4565bfa5cfedef74814fede477ae36a42d4`; real usage QA remains blocked pending gcloud reauthentication.
+
 Product-ready end-to-end local OSS tools: `0`
 
 Package-lock: `unchanged`

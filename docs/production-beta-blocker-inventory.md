@@ -1690,6 +1690,18 @@ Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-REGISTRATION-PLAN-1`.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Guarded Handler Registration Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-REGISTRATION-PLAN-1` records decision `tracka_gpac_mp4box_guarded_handler_registration_plan_passed_ready_for_disabled_handler_registration_scaffold` and execution `completed_docs_only_guarded_handler_registration_plan_no_runtime_execution`.
+
+The plan allows only a future disabled-by-default handler-registration scaffold with scope `disabled_handler_registration_scaffold_only`. Required future guards are backend/service-role ownership, disabled-by-default handler registration, feature flag default false, approved snapshot guard, route idempotency guard, private artifact manifest guard, command allowlist guard, passing negative tests, cleanup/audit reference, storage/public artifact gates, and operator confirmation before any execution.
+
+Executable handler registration, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-SCAFFOLD-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records decision `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

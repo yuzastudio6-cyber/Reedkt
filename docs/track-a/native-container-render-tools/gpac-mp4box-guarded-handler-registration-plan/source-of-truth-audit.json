@@ -1,0 +1,26 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-REGISTRATION-PLAN-1",
+  "acceptedPriorSource": {
+    "pr": 1607,
+    "mergeSha": "7600ec197854d64784289fa9d2ee6ba654772486",
+    "decision": "tracka_gpac_mp4box_disabled_handler_registration_contract_negative_tests_passed_ready_for_guarded_handler_registration_plan",
+    "execution": "completed_disabled_handler_registration_contract_negative_tests_no_route_or_worker_execution"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "futureScope": "disabled_handler_registration_scaffold_only",
+  "approvedForExecutableHandlerRegistration": false,
+  "approvedForRouteExecution": false,
+  "approvedForWorkerDispatch": false,
+  "approvedForWorkerExecution": false,
+  "approvedForGpacMp4boxExecution": false,
+  "approvedForStorageTransfer": false,
+  "approvedForSignedUrlCreation": false,
+  "approvedForPublicArtifactCreation": false,
+  "approvedForMediaProcessing": false,
+  "approvedForExternalBeta": false,
+  "approvedForPaidProduction": false,
+  "approvedForProduction": false,
+  "approvedForFinalDeliveryExport": false
+}

@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const lane = 'TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-CONTRACT-NEGATIVE-TESTS-1'
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-contract-negative-tests'
+const planDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-handler-registration-plan'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-contract'
 const decisionText = 'tracka_gpac_mp4box_disabled_handler_registration_contract_negative_tests_passed_ready_for_guarded_handler_registration_plan'
 const executionText = 'completed_disabled_handler_registration_contract_negative_tests_no_route_or_worker_execution'
@@ -25,9 +26,24 @@ const statusFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
 ]
 
+const planFiles = [
+  `${planDir}/gpac-mp4box-guarded-handler-registration-plan-decision.json`,
+  `${planDir}/gpac-mp4box-guarded-handler-registration-plan-decision.md`,
+  `${planDir}/handler-registration-guard-matrix.json`,
+  `${planDir}/handler-registration-guard-matrix.md`,
+  `${planDir}/readiness-report.json`,
+  `${planDir}/source-of-truth-audit.json`,
+  `${planDir}/source-of-truth-audit.md`,
+  `${planDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-registration-plan-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-scaffold-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-handler-registration-plan-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
+  ...planFiles,
   `${priorDir}/gpac-mp4box-disabled-handler-registration-contract-decision.json`,
   `${priorDir}/readiness-report.json`,
   'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-1-results.md',

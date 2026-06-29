@@ -1,0 +1,36 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-IMPLEMENTATION-SCAFFOLD-1",
+  "contractId": "handlerImplementationScaffold.gpacMp4box.disabled",
+  "routeId": "render.gpacMp4box.disabledHandlerImplementationScaffold",
+  "mode": "disabled_handler_implementation_scaffold_only",
+  "status": "disabled_handler_implementation_scaffold_registered_no_executable_handler",
+  "requires": [
+    "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-IMPLEMENTATION-PLAN-1",
+    "approved_snapshot_guard",
+    "route_idempotency_guard",
+    "private_artifact_manifest_guard",
+    "command_allowlist_guard",
+    "negative_tests_guard",
+    "storage_transfer_gate",
+    "signed_public_artifact_gate",
+    "cleanup_audit_reference",
+    "operator_confirmation_guard"
+  ],
+  "blocked": {
+    "executableHandlerImplementation": "blocked",
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "supabaseMutation": "blocked",
+    "sqlExecution": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  }
+}

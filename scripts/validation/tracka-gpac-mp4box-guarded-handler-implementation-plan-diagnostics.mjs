@@ -38,10 +38,33 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-handler-implementation-contract-negative-tests-diagnostics.mjs',
 ]
 
+const scaffoldFiles = [
+  'src/backend/contracts/gpac-mp4box-disabled-handler-implementation-scaffold-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'server/smoke/tracka-gpac-mp4box-disabled-handler-implementation-scaffold-smoke.ts',
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-implementation-scaffold-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-handler-implementation-scaffold-negative-tests-1.md',
+  'scripts/validation/tracka-gpac-mp4box-disabled-handler-implementation-scaffold-diagnostics.mjs',
+]
+
+const scaffoldPacketDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-implementation-scaffold'
+const scaffoldPacketFiles = [
+  `${scaffoldPacketDir}/gpac-mp4box-disabled-handler-implementation-scaffold-decision.json`,
+  `${scaffoldPacketDir}/gpac-mp4box-disabled-handler-implementation-scaffold-decision.md`,
+  `${scaffoldPacketDir}/handler-implementation-scaffold-contract.json`,
+  `${scaffoldPacketDir}/handler-implementation-scaffold-contract.md`,
+  `${scaffoldPacketDir}/readiness-report.json`,
+  `${scaffoldPacketDir}/source-of-truth-audit.json`,
+  `${scaffoldPacketDir}/source-of-truth-audit.md`,
+  `${scaffoldPacketDir}/validation-results.md`,
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...scaffoldFiles,
+  ...scaffoldPacketFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-implementation-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-implementation-scaffold-1.md',
   'package.json',
@@ -130,8 +153,6 @@ const forbiddenDocPatterns = [
 ]
 
 const forbiddenPathPatterns = [
-  /^src\//,
-  /^server\//,
   /^supabase\//,
   /^database\//,
   /^docker\//,
@@ -248,6 +269,8 @@ if (prior.decision !== priorDecision) fail('prior negative-tests decision drift'
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
+  if (/^src\//.test(file) && !scaffoldFiles.includes(file)) fail(`unexpected source path ${file}`)
+  if (/^server\//.test(file) && !scaffoldFiles.includes(file)) fail(`unexpected server path ${file}`)
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
 }
 

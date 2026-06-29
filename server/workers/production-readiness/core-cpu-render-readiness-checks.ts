@@ -18,6 +18,7 @@ export const M10_CORE_CPU_RENDER_TOOL_IDS: ProductionToolId[] = [
   'duckdb',
   'polars',
   'opentimelineio',
+  'audioflux',
   'sharp',
   'remotion',
   'libass',

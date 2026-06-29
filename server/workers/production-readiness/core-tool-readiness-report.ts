@@ -11,6 +11,7 @@ export interface CoreToolReadinessReport {
   pythonMediaPackageStatus: ProductionReadinessStatus
   nodeRenderPackageStatus: ProductionReadinessStatus
   openTimelineIoStatus: ProductionReadinessStatus
+  launchAudioPackageStatus: ProductionReadinessStatus
   optionalColorPackageStatus: ProductionReadinessStatus
   revideoStatus: ProductionReadinessStatus
   gpuModelToolsExcluded: boolean
@@ -82,11 +83,13 @@ export function buildCoreToolReadinessReport(
     pythonMediaPackageStatus: aggregateStatus(pythonCoreStatuses),
     nodeRenderPackageStatus: aggregateStatus(nodeCoreStatuses),
     openTimelineIoStatus: statusForTool(results, 'opentimelineio'),
+    launchAudioPackageStatus: statusForTool(results, 'audioflux'),
     optionalColorPackageStatus: aggregateStatus(optionalColorStatuses),
     revideoStatus: statusForTool(results, 'revideo', 'evaluation_only'),
     gpuModelToolsExcluded,
     notes: [
       'M10 readiness checks are command/version, Python import, Node package metadata, and manual policy review checks only.',
+      'AudioFlux readiness is import-only CPU launch-core evidence and must not process audio in this gate.',
       'FFmpeg and ffprobe checks must not process media.',
       'FFmpeg commercial LGPL-safe build verification remains pending manual legal/build review.',
       'Revideo remains evaluation-only and is not installed as a core render dependency.',

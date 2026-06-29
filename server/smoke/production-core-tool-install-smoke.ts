@@ -123,7 +123,7 @@ check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'ffmpeg')?.args.jo
 check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'ffprobe')?.args.join(' ') === '-version', 'FFprobe readiness must use version check only.')
 
 const pythonImports = new Set(CORE_TOOL_PYTHON_IMPORT_CHECKS.map((item) => item.importName))
-for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentimelineio']) {
+for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentimelineio', 'audioflux']) {
   check(pythonImports.has(expected), `Python import check must include ${expected}.`)
 }
 
@@ -172,6 +172,7 @@ console.log(JSON.stringify({
   ffprobeStatus: realCore.coreToolReadiness?.report.ffprobeStatus,
   lgplStatus: realCore.coreToolReadiness?.report.ffmpegLgplVerificationStatus,
   libassStatus: realCore.coreToolReadiness?.report.libassSubtitleSupportStatus,
+  audiofluxStatus: realCore.coreToolReadiness?.report.launchAudioPackageStatus,
   revideoStatus: realCore.coreToolReadiness?.report.revideoStatus,
   localChecksAreInformational: true,
 }, null, 2))

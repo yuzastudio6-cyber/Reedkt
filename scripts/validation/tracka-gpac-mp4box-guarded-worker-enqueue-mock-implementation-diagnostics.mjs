@@ -23,8 +23,10 @@ const packetFiles = [
 
 const sourceFiles = [
   'src/backend/contracts/gpac-mp4box-guarded-worker-enqueue-mock-contracts.ts',
+  'src/backend/contracts/gpac-mp4box-guarded-worker-skeleton-mock-contracts.ts',
   'src/backend/contracts/index.ts',
   'server/smoke/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-smoke.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-smoke.ts',
 ]
 
 const statusFiles = [
@@ -40,11 +42,29 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-diagnostics.mjs',
 ]
 
+const nextWorkerSkeletonFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-policy-mock-implementation-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/gpac-mp4box-guarded-worker-skeleton-mock-implementation-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/gpac-mp4box-guarded-worker-skeleton-mock-implementation-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/worker-skeleton-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-worker-skeleton-mock-implementation/worker-skeleton-contract.md',
+  'src/backend/contracts/gpac-mp4box-guarded-worker-skeleton-mock-contracts.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...sourceFiles,
   ...statusFiles,
   ...priorFiles,
+  ...nextWorkerSkeletonFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-1.md',
   'package.json',

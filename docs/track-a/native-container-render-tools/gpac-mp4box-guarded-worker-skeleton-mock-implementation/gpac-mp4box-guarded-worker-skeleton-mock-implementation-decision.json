@@ -1,0 +1,52 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1",
+  "decision": "tracka_gpac_mp4box_guarded_worker_skeleton_mock_implementation_passed_ready_for_private_artifact_policy_mock",
+  "execution": "completed_disabled_worker_skeleton_contract_no_worker_or_tool_execution",
+  "sourceChain": {
+    "guardedWorkerEnqueueMock": "tracka_gpac_mp4box_guarded_worker_enqueue_mock_implementation_passed_ready_for_guarded_worker_skeleton_mock"
+  },
+  "skeletonId": "worker.gpacMp4box.packageValidation.mock",
+  "skeletonMode": "disabled_mock_worker_skeleton_only",
+  "queueConsumptionMode": "metadata_validation_only",
+  "workerKind": "render_export",
+  "readiness": {
+    "mockQueueContract": "passed",
+    "disabledWorkerSkeleton": "passed",
+    "privateArtifactPolicyMock": "ready",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "productRuntime": "blocked_pending_private_artifact_policy_external_beta_gate"
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatchAttempted": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabaseClassification": {
+    "updateRequired": "none",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no",
+    "nextAction": "none"
+  },
+  "excludedSource": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-POLICY-MOCK-IMPLEMENTATION-1"
+}

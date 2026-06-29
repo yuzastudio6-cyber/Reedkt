@@ -1,0 +1,33 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1",
+  "typeScriptContract": "src/backend/contracts/gpac-mp4box-guarded-worker-skeleton-mock-contracts.ts",
+  "smoke": "server/smoke/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-smoke.ts",
+  "sourceEnqueueContract": "src/backend/contracts/gpac-mp4box-guarded-worker-enqueue-mock-contracts.ts",
+  "skeletonId": "worker.gpacMp4box.packageValidation.mock",
+  "skeletonMode": "disabled_mock_worker_skeleton_only",
+  "workerOwner": "backend_worker_only",
+  "workerKind": "render_export",
+  "queueConsumptionMode": "metadata_validation_only",
+  "execution": {
+    "routeExecution": false,
+    "workerDispatchAttempted": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false
+  },
+  "blockers": [
+    "blocked_missing_mock_enqueue",
+    "blocked_enqueue_contract_invalid",
+    "blocked_queue_item_not_mock_only",
+    "blocked_queue_item_not_queued",
+    "blocked_worker_kind_mismatch",
+    "blocked_worker_execution_not_enabled",
+    "blocked_storage_transfer_not_enabled",
+    "blocked_public_or_signed_artifact_attempt"
+  ]
+}

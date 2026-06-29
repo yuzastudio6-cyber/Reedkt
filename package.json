@@ -627,6 +627,8 @@
     "smoke:tracka-gpac-mp4box-guarded-service-role-route-mock-implementation": "tsx server/smoke/tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-smoke.ts",
     "tracka:gpac-mp4box-guarded-worker-enqueue-mock-implementation:diagnostics": "node scripts/validation/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation": "tsx server/smoke/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-smoke.ts",
+    "tracka:gpac-mp4box-guarded-worker-skeleton-mock-implementation:diagnostics": "node scripts/validation/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-diagnostics.mjs",
+    "smoke:tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation": "tsx server/smoke/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-smoke.ts",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",

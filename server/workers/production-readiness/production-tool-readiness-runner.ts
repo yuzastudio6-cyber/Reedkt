@@ -1,6 +1,10 @@
 import type { ProductionToolId } from '../../tool-registry'
 import { getProductionToolProfile } from '../../tool-registry'
 import { existsSync, readFileSync } from 'node:fs'
+import {
+  evaluateModelWeightManifestForMode,
+  listGpuModelWeightManifestTemplates,
+} from '../../model-weights'
 import { productionToolReadinessSpecs } from './production-tool-readiness-specs'
 import { summarizeProductionToolReadiness } from './production-tool-readiness-summary'
 import {
@@ -258,6 +262,12 @@ function buildBoundedActivationEvidenceToolSet(): Set<ProductionToolId> {
   return backedToolIds
 }
 
+function buildProductionApprovedModelWeightToolSet(): Set<ProductionToolId> {
+  return new Set(listGpuModelWeightManifestTemplates()
+    .filter((template) => evaluateModelWeightManifestForMode(template, 'production_ready').allowedForProduction)
+    .map((template) => template.toolId))
+}
+
 function dryRunStatusForTool(
   specToolId: ProductionToolId,
   specStatus: ProductionReadinessStatus,
@@ -265,8 +275,15 @@ function dryRunStatusForTool(
   dockerfileBackedToolIds: Set<ProductionToolId>,
   dockerfilePipBackedToolIds: Set<ProductionToolId>,
   boundedActivationEvidenceToolIds: Set<ProductionToolId>,
+  productionApprovedModelWeightToolIds: Set<ProductionToolId>,
 ): ProductionReadinessStatus {
   const baseStatus = dryRunStatusForSpec(specStatus)
+  if (
+    productionApprovedModelWeightToolIds.has(specToolId) &&
+    specStatus === 'needs_license_review'
+  ) {
+    return 'warning'
+  }
   if (internalPreviewBoundaryWarningToolIds.has(specToolId)) return 'warning'
   if (
     manifestBackedToolIds.has(specToolId) &&
@@ -308,6 +325,7 @@ function buildDryRunWarnings(
   dockerfileBackedToolIds: Set<ProductionToolId>,
   dockerfilePipBackedToolIds: Set<ProductionToolId>,
   boundedActivationEvidenceToolIds: Set<ProductionToolId>,
+  productionApprovedModelWeightToolIds: Set<ProductionToolId>,
 ): string[] {
   const profile = getProductionToolProfile(specToolId)
   const warnings = [
@@ -352,7 +370,9 @@ function buildDryRunWarnings(
     warnings.push('Hyperframe package identity review concluded this is an internal preview boundary; static readiness records warning and does not require hyperframe/package.json or install guessed package names.')
   }
 
-  if (profile?.modelWeightsRequired) {
+  if (profile?.modelWeightsRequired && productionApprovedModelWeightToolIds.has(specToolId)) {
+    warnings.push('Approved model-weight metadata exists for the selected private-staging asset set; runtime mounts, tool calls, media processing, beta, and production execution remain blocked until later gates.')
+  } else if (profile?.modelWeightsRequired) {
     warnings.push('Model weights are placeholders only and block production readiness until reviewed.')
   }
 
@@ -386,6 +406,7 @@ export function runProductionToolReadiness(
   const dockerfileBackedToolIds = buildDockerfileBackedToolSet()
   const dockerfilePipBackedToolIds = buildDockerfilePipBackedToolSet()
   const boundedActivationEvidenceToolIds = buildBoundedActivationEvidenceToolSet()
+  const productionApprovedModelWeightToolIds = buildProductionApprovedModelWeightToolSet()
   const results: ProductionToolReadinessResult[] = specs.map((spec) => ({
     toolId: spec.toolId,
     displayName: spec.displayName,
@@ -396,6 +417,7 @@ export function runProductionToolReadiness(
       dockerfileBackedToolIds,
       dockerfilePipBackedToolIds,
       boundedActivationEvidenceToolIds,
+      productionApprovedModelWeightToolIds,
     ),
     dryRun: true,
     commandChecks: spec.commandChecks,
@@ -409,6 +431,7 @@ export function runProductionToolReadiness(
       dockerfileBackedToolIds,
       dockerfilePipBackedToolIds,
       boundedActivationEvidenceToolIds,
+      productionApprovedModelWeightToolIds,
     ),
     blocksProduction: spec.blocksProductionIfMissing,
     checkedAt,

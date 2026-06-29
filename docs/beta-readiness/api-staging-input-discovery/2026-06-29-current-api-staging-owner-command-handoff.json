@@ -1,13 +1,14 @@
 {
   "reportId": "beta-readiness-api-staging-owner-command-handoff-current-source-2026-06-29",
   "decision": "beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application",
-  "toolsSourceSha": "9b04cfc513125c50baae859a6154746cf0461cf3",
+  "toolsSourceSha": "367897d909b901f517177ac697c51680448375b1",
   "sourceTruth": {
     "ownerCommandPacket": "docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md",
     "workflowScopeFixPr": 1441,
     "workflowScopeFixRunId": 28321557589,
     "workflowScopeFixDecision": "beta_readiness_api_staging_owner_remediation_after_workflow_scope_fix_blocked_by_higher_privilege_owner_permissions",
-    "dynamicCliSourceShaPolicy": "npm run beta:readiness:owner-command-handoff resolves the current checkout HEAD by default"
+    "dynamicCliSourceShaPolicy": "npm run beta:readiness:owner-command-handoff resolves the current checkout HEAD by default",
+    "latestRefreshReason": "post_pr_1666_current_source_16_tool_local_bundle_refresh"
   },
   "ownerHandoffCommand": "npm run beta:readiness:owner-command-handoff",
   "intendedExecutor": "higher_privilege_gcp_owner_or_resource_admin",

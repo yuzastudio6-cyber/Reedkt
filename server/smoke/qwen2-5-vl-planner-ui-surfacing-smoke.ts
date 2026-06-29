@@ -91,8 +91,9 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus === 'controlled_persisted_worker_dispatch_runtime_execution_attempt_required',
-  'Private invoke client status must record the controlled persisted worker dispatch runtime execution-attempt blocker.',
+  data.privateInvokeClient.currentStatus ===
+    'controlled_persisted_worker_dispatch_runtime_execution_attempt_result_review_required',
+  'Private invoke client status must record the controlled persisted worker dispatch runtime execution attempt result-review blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -181,8 +182,9 @@ check(
     docText.includes('controlled_persisted_worker_dispatch_runtime_smoke_execution_required') ||
     docText.includes('controlled_persisted_worker_dispatch_runtime_smoke_result_review_required') ||
     docText.includes('controlled_persisted_worker_dispatch_runtime_approval_plan_required') ||
-    docText.includes('controlled_persisted_worker_dispatch_runtime_execution_attempt_required') ||
-    data.privateInvokeClient.currentStatus === 'controlled_persisted_worker_dispatch_runtime_execution_attempt_required',
+    docText.includes('controlled_persisted_worker_dispatch_runtime_execution_attempt_result_review_required') ||
+    data.privateInvokeClient.currentStatus ===
+      'controlled_persisted_worker_dispatch_runtime_execution_attempt_result_review_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -339,8 +341,8 @@ check(
     docText.includes('comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects') &&
     docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
     docText.includes('Retry 15 verified the active local baseline') &&
-    docText.includes('QWEN2_5_VL_STACK_TOOL_58BX-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-ATTEMPT'),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and controlled persisted worker dispatch runtime execution-attempt blocker.',
+    docText.includes('QWEN2_5_VL_STACK_TOOL_58BY-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-ATTEMPT-RESULT-REVIEW'),
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and controlled persisted worker dispatch runtime execution attempt result-review blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

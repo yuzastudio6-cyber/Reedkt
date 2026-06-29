@@ -9,6 +9,12 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { script
 const handoffDoc = JSON.parse(readFileSync(handoffJsonPath, 'utf8')) as {
   decision: string
   toolsSourceSha: string
+  toolsSourceShaRole: string
+  toolsSourceShaPolicy: string
+  sourceTruth: {
+    latestRefreshReason: string
+    dynamicCliSourceShaPolicy: string
+  }
   ownerHandoffCommand: string
   intendedExecutor: string
   requiredOwnerEnvironment: string[]
@@ -45,10 +51,16 @@ const report = buildBetaReadinessOwnerCommandHandoffReport(handoffDoc.toolsSourc
 const serialized = JSON.stringify(report)
 
 assert.equal(defaultReport.sourceTruth.latestMergedSourceSha, currentSourceSha)
+assert.match(handoffDoc.toolsSourceSha, /^[0-9a-f]{40}$/)
+assert.notEqual(
+  handoffDoc.toolsSourceSha,
+  '367897d909b901f517177ac697c51680448375b1',
+  'packet refresh context should not remain pinned to the PR #1666 source SHA',
+)
 assert.equal(report.ok, true)
 assert.equal(report.decision, 'beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application')
 assert.equal(report.sourceTruth.toolsBranch, 'codex/sound-music-audio-1abc-checkpoint')
-assert.equal(report.sourceTruth.latestMergedSourceSha, '367897d909b901f517177ac697c51680448375b1')
+assert.equal(report.sourceTruth.latestMergedSourceSha, handoffDoc.toolsSourceSha)
 assert.equal(report.sourceTruth.currentWorkflowScopeFixPr, 1441)
 assert.equal(report.sourceTruth.currentWorkflowScopeFixRunId, 28321557589)
 assert.equal(report.sourceTruth.currentOwnerCommandPacket, 'docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md')
@@ -100,6 +112,16 @@ assert.equal(report.externalBetaEnabled, false)
 assert.equal(report.realUserMediaBetaEnabled, false)
 assert.equal(report.productionEnabled, false)
 assert.equal(handoffDoc.decision, report.decision)
+assert.equal(handoffDoc.toolsSourceShaRole, 'packet_refresh_context_only_not_operator_input')
+assert.equal(
+  handoffDoc.toolsSourceShaPolicy,
+  'run npm run beta:readiness:owner-command-handoff in a fresh current checkout before owner action; the CLI resolves current HEAD by default',
+)
+assert.equal(handoffDoc.sourceTruth.latestRefreshReason, 'post_pr_1673_external_operator_tool_evidence_source_refresh')
+assert.equal(
+  handoffDoc.sourceTruth.dynamicCliSourceShaPolicy,
+  'npm run beta:readiness:owner-command-handoff resolves the current checkout HEAD by default',
+)
 assert.equal(handoffDoc.toolsSourceSha, report.sourceTruth.latestMergedSourceSha)
 assert.equal(handoffDoc.ownerHandoffCommand, 'npm run beta:readiness:owner-command-handoff')
 assert.equal(handoffDoc.intendedExecutor, report.ownerExecution.intendedExecutor)
@@ -114,7 +136,9 @@ assert.equal(handoffDoc.productionEnabled, false)
 assert.deepEqual(handoffDoc.supabase, report.supabase)
 assert.ok(handoffMarkdown.includes('npm run beta:readiness:owner-command-handoff'))
 assert.ok(handoffMarkdown.includes('REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV'))
-assert.ok(handoffMarkdown.includes('resolve current checkout `HEAD` by default'))
+assert.ok(handoffMarkdown.includes('resolves current checkout `HEAD` by default'))
+assert.ok(handoffMarkdown.includes('packet refresh context only, not an operator deploy input'))
+assert.ok(handoffMarkdown.includes('Do not copy the static packet-refresh SHA into the guarded deploy workflow'))
 assert.ok(handoffMarkdown.includes('Workflow scope fix PR: `#1441`'))
 assert.ok(handoffMarkdown.includes('Product-ready local OSS count remains `0`'))
 assert.equal(JSON.stringify(handoffDoc).includes('SERVICE_ROLE_KEY'), false, 'handoff doc must not print secret names or values')

@@ -1559,3 +1559,17 @@ No worker, route, GPAC/MP4Box, media, storage, Supabase, SQL, provider, model, D
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
 Next milestone: `TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1`.
+
+## Track A GPAC/MP4Box Service-Role Route Implementation Plan
+
+`TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1` records decision `tracka_gpac_mp4box_service_role_route_implementation_plan_passed_ready_for_guarded_route_mock_implementation` and execution `completed_docs_only_service_role_route_implementation_plan_no_route_or_worker_execution`.
+
+The future route owner is `backend_service_role_only`, and the next allowed packet is `guarded_mock_route_implementation_first`. The plan requires approved snapshot, approval record, credit reservation, job, worker lease, route idempotency, private manifests, checksums, QA report, cleanup, audit, and command template refs.
+
+Rejected future inputs include raw chat, raw command strings, frontend file paths, public URLs, signed URLs as source-of-truth, arbitrary private media, provider/model prompt payloads, service-role secret payloads, and broad service-role handler payloads.
+
+No route, worker, GPAC/MP4Box, media, storage, Supabase, SQL, provider, model, Docker, render/export, beta expansion, paid production, or production path is enabled by this packet.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
+Next milestone: `TRACKA-GPAC-MP4BOX-GUARDED-SERVICE-ROLE-ROUTE-MOCK-IMPLEMENTATION-1`.

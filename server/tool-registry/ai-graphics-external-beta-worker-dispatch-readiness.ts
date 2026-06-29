@@ -41,6 +41,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadinessRecord {
   capabilityIds: string[]
   sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   workerLeaseReadinessPreparedWithProvidedEvidence: boolean
   workerDispatchReadinessPreparedWithProvidedEvidence: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
@@ -67,6 +68,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     typeof AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_READINESS_DECISION
   sourceServiceRoleQueueSmokeProofAccepted: boolean
   sourceServiceRoleQueueSmokeProofBridgeAccepted: boolean
+  sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
   missingDispatchControls: string[]
   workerDispatchReadinessPreparedWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -115,6 +117,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     externalBetaWorkerDispatchReadinessPrepared: true
     sourceServiceRoleQueueSmokeProofAccepted: boolean
     sourceServiceRoleQueueSmokeProofBridgeAccepted: boolean
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
     externalBetaWorkerLeasePolicyAccepted: boolean
     externalBetaWorkerDispatchPolicyAccepted: boolean
     externalBetaWorkerIdempotencyNamespaceAccepted: boolean
@@ -220,6 +223,16 @@ function sourceProofAccepted(
     packet.booleans.gpuRuntimeShouldStartNow === false
 }
 
+function sourceServiceRoleQueueSmokeAuthorizationAccepted(
+  packet?: AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
+): boolean {
+  return Boolean(packet) &&
+    packet?.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    packet?.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+    hasValue(packet?.evidence.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
+    packet?.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+}
+
 function missingDispatchControls(
   input: AiGraphicsExternalBetaWorkerDispatchReadinessInput,
 ): string[] {
@@ -263,6 +276,7 @@ function statusFromInput(input: {
 
 function buildRecords(input: {
   proofAccepted: boolean
+  sourceAuthorizationAccepted: boolean
   controlsSatisfied: boolean
   sourceGatewayRuntimeAdmissionModesByTool?:
     Record<string, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
@@ -282,6 +296,8 @@ function buildRecords(input: {
       sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence:
         input.proofAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted: input.proofAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted:
+        input.sourceAuthorizationAccepted,
       workerLeaseReadinessPreparedWithProvidedEvidence: readyWithEvidence,
       workerDispatchReadinessPreparedWithProvidedEvidence: readyWithEvidence,
       gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -329,10 +345,15 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
   const proofAccepted = sourceProofAccepted(
     input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
   )
+  const sourceAuthorizationAccepted =
+    sourceServiceRoleQueueSmokeAuthorizationAccepted(
+      input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
+    )
   const missingControls = proofAccepted ? missingDispatchControls(input) : []
   const controlsSatisfied = proofAccepted && missingControls.length === 0
   const records = buildRecords({
     proofAccepted,
+    sourceAuthorizationAccepted,
     controlsSatisfied,
     sourceGatewayRuntimeAdmissionModesByTool:
       input.sourceExternalBetaServiceRoleQueueSmokeProofPacket
@@ -355,6 +376,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     sourceDecision: AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_READINESS_DECISION,
     sourceServiceRoleQueueSmokeProofAccepted: proofAccepted,
     sourceServiceRoleQueueSmokeProofBridgeAccepted: proofAccepted,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: sourceAuthorizationAccepted,
     missingDispatchControls: missingControls,
     workerDispatchReadinessPreparedWithProvidedEvidence: controlsSatisfied,
     totalAiGraphicsTools: 21,
@@ -411,6 +433,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
       externalBetaWorkerDispatchReadinessPrepared: true,
       sourceServiceRoleQueueSmokeProofAccepted: proofAccepted,
       sourceServiceRoleQueueSmokeProofBridgeAccepted: proofAccepted,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted:
+        sourceAuthorizationAccepted,
       externalBetaWorkerLeasePolicyAccepted: controlsSatisfied,
       externalBetaWorkerDispatchPolicyAccepted: controlsSatisfied,
       externalBetaWorkerIdempotencyNamespaceAccepted: controlsSatisfied,

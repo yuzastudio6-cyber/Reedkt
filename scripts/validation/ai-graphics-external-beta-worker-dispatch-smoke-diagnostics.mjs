@@ -317,6 +317,7 @@ try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
     sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
@@ -330,6 +331,7 @@ try {
     records: allTools.map((toolId) => ({
       toolId,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
@@ -411,12 +413,16 @@ try {
   if (accepted.booleans?.sourceRuntimeQueueServiceProofBridgeAccepted !== true) {
     fail('accepted_boolean_source_runtime_queue_service_proof_bridge_not_true')
   }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_boolean_source_service_role_queue_smoke_authorization_not_true')
+  }
 
   const strippedBridgePacketPath = writeJson(
     path.join(tmpRoot, 'stripped-worker-dispatch-readiness.json'),
     {
       ...JSON.parse(fs.readFileSync(readinessPacketPath, 'utf8')),
       sourceServiceRoleQueueSmokeProofBridgeAccepted: false,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       acceptedSourceEvidence: {
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
         sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
@@ -426,6 +432,7 @@ try {
       records: allTools.map((toolId) => ({
         toolId,
         sourceRuntimeQueueServiceProofBridgeAccepted: false,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
       })),
       booleans: {
         sourceServiceRoleQueueSmokeProofBridgeAccepted: false,

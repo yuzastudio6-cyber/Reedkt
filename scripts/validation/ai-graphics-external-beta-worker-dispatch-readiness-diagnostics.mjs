@@ -264,6 +264,9 @@ for (const key of [
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_required_true_not_true:${key}`)
 }
+if (docs.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== false) {
+  fail('docs_source_service_role_queue_smoke_authorization_should_default_false')
+}
 for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
@@ -281,6 +284,7 @@ for (const phrase of [
   'sourceRuntimeQueueServiceProofBridgeAccepted',
   'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
   'serviceRoleQueueSmokeAuthorizationRef',
+  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence',
   'noLiveWorkerLeaseByReadinessGate',
   'noLiveWorkerDispatchByReadinessGate',
@@ -369,6 +373,9 @@ try {
   if (accepted.sourceServiceRoleQueueSmokeProofBridgeAccepted !== true) {
     fail('accepted_source_service_role_queue_smoke_proof_bridge_not_true')
   }
+  if (accepted.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_source_service_role_queue_smoke_authorization_not_true')
+  }
   if (
     accepted.acceptedSourceEvidence
       ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence !== 21
@@ -399,6 +406,15 @@ try {
   )
   if (sourceProofBridgeReady.length !== 21) {
     fail(`accepted_source_proof_bridge_record_count:${sourceProofBridgeReady.length}`)
+  }
+  const sourceAuthorizationReady = (accepted.records ?? []).filter(
+    (record) => record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true,
+  )
+  if (sourceAuthorizationReady.length !== 21) {
+    fail(`accepted_source_authorization_record_count:${sourceAuthorizationReady.length}`)
+  }
+  if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
+    fail('accepted_boolean_source_service_role_queue_smoke_authorization_not_true')
   }
   if (accepted.liveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
   if (accepted.liveWorkerDispatchesNow !== 0) fail('accepted_live_dispatches_not_0')

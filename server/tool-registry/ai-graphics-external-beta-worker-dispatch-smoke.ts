@@ -227,6 +227,7 @@ function sourceReadinessAccepted(
     packet.workerDispatchCapabilityScenariosPreparedWithProvidedEvidence === 12 &&
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.sourceServiceRoleQueueSmokeProofBridgeAccepted === true &&
+    packet.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.acceptedSourceEvidence
       ?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
     packet.acceptedSourceEvidence
@@ -234,9 +235,11 @@ function sourceReadinessAccepted(
     hasValue(packet.acceptedSourceEvidence?.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
     packet.records?.length === 21 &&
     packet.records.every((record) => (
-      record.sourceRuntimeQueueServiceProofBridgeAccepted === true
+      record.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+      record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
     )) &&
     packet.booleans?.sourceServiceRoleQueueSmokeProofBridgeAccepted === true &&
+    packet.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
     packet.liveWorkerLeasesCreatedNow === 0 &&
     packet.liveWorkerDispatchesNow === 0 &&
     packet.liveToolExecutionsNow === 0 &&

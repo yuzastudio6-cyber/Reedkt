@@ -308,6 +308,7 @@ try {
   const readinessPacketPath = writeJson(path.join(tmpRoot, 'worker-dispatch-readiness.json'), {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
     sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
+    sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
@@ -321,6 +322,7 @@ try {
     records: allTools.map((toolId) => ({
       toolId,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,

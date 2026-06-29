@@ -246,6 +246,13 @@ export function insertEditCreditEstimatePreview(
   return preview
 }
 
+export function getEditCreditEstimatePreview(
+  store: MockCreditEstimateStore,
+  creditEstimateId: string,
+): EditCreditEstimatePreview | undefined {
+  return store.previews.find((preview) => preview.estimate.id === creditEstimateId)
+}
+
 export function upsertEditCreditEstimatePreviewByIdempotencyKey(
   store: MockCreditEstimateStore,
   input: PreviewEditCreditEstimateRequest,

@@ -10,6 +10,7 @@ import { createBetaReadinessRoutes } from './routes/beta-readiness-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditDataRoutes } from './routes/credit-data-routes'
 import { createCreditEstimateRoutes } from './routes/credit-estimate-routes'
+import { createCreditReservationRoutes } from './routes/credit-reservation-routes'
 import { createCreditRoutes } from './routes/credit-routes'
 import { createHealthRoutes } from './routes/health-routes'
 import { createJobRoutes } from './routes/job-routes'
@@ -49,6 +50,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createCreditRoutes())
   app.use(createCreditDataRoutes())
   app.use(createCreditEstimateRoutes())
+  app.use(createCreditReservationRoutes())
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())

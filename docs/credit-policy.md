@@ -78,3 +78,7 @@ Action required: add credits to export
 ```
 
 Use export lock only when the user approved the additional cost, the edit is ready, and the approved final charge is not fully funded. Do not use export lock when ReEditPro estimated incorrectly, provider variance occurred without user approval, or ReEditPro failed to pause in time.
+
+## RP-RESERVATION-01 Mock Hold
+
+RP-RESERVATION-01 implements the mock-safe reservation step for the estimate maximum. The hold uses `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`; insufficient credits blocks without mutating mock wallet or reservation state. The implementation remains local and in-memory only: no live billing, no Stripe, no Supabase write, no provider call, no production ledger write, no render/export, and no checkout/top-up. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.

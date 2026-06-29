@@ -466,6 +466,79 @@ export interface PreviewEditCreditEstimateResponse {
   warnings: string[]
 }
 
+export const RESERVE_MAX_ESTIMATE_CREDIT_STATUSES = [
+  'reserved',
+  'insufficient_credits',
+  'estimate_not_found',
+  'estimate_not_approved',
+  'estimate_expired',
+  'wallet_not_found',
+  'already_reserved',
+  'invalid_request',
+] as const
+
+export type ReserveMaxEstimateCreditsStatus = typeof RESERVE_MAX_ESTIMATE_CREDIT_STATUSES[number]
+
+export interface ReserveMaxEstimateCreditsRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID
+  chatSessionId?: ID
+  creditWalletId?: ID
+  creditEstimateId: ID
+  creditApprovalId?: ID
+  approvedByUserId: ID
+  idempotencyKey: string
+  expiresAt?: ISODateString
+  metadata?: JSONObject
+}
+
+export interface CreditReservationWalletBalance {
+  creditWalletId: ID
+  workspaceId: ID
+  userId?: ID
+  walletType: CreditWalletType
+  availableCredits: CreditAmount
+  reservedCredits: CreditAmount
+  spentCredits: CreditAmount
+  refundedCredits: CreditAmount
+}
+
+export interface ReserveMaxEstimateCreditsSafetyFlags {
+  mockOnly: true
+  requiredHoldUsesMaximumEstimate: true
+  walletMutated: boolean
+  reservationMutated: boolean
+  creditsReserved: boolean
+  creditsSpent: false
+  ledgerWritten: false
+  settlementExecuted: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface ReserveMaxEstimateCreditsResponse {
+  status: ReserveMaxEstimateCreditsStatus
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  creditWallet: CreditWalletRecord | null
+  walletBalance: CreditReservationWalletBalance | null
+  requiredHoldCredits: CreditAmount
+  availableCreditsBeforeReservation: CreditAmount
+  availableCreditsAfterReservation: CreditAmount
+  reservedCreditsAfterReservation: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  userFacingMessage: string
+  safetyFlags: ReserveMaxEstimateCreditsSafetyFlags
+  warnings: string[]
+}
+
 export interface CreditWalletRecord extends BaseRecord {
   workspaceId: ID
   userId?: ID

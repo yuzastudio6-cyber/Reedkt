@@ -9,6 +9,8 @@ import type {
   EditCreditCostSummary,
   PreviewCreditSettlementRequest,
   PreviewCreditSettlementResponse,
+  ReserveMaxEstimateCreditsRequest,
+  ReserveMaxEstimateCreditsResponse,
 } from '../../types'
 
 export interface CreateCreditEstimateRequest {
@@ -54,6 +56,8 @@ export type {
   EditCreditCostSummary,
   PreviewCreditSettlementRequest,
   PreviewCreditSettlementResponse,
+  ReserveMaxEstimateCreditsRequest,
+  ReserveMaxEstimateCreditsResponse,
 }
 
 export interface ListCreditSettlementsResponse {

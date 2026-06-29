@@ -537,3 +537,10 @@ Do not implement these without explicit user request:
 - Mobile companion app
 - Unlimited AI editing assumptions
 - Generation before approval
+
+## RP-RESERVATION-01 Credit Reservation Boundary
+
+- Mock credit reservation holds `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`.
+- Only local in-memory mock wallet available/reserved balances and mock reservation records may change.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, render/export, checkout/top-up, or export unlock for this milestone.
+- Use `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation` when changing the credit reservation surface.

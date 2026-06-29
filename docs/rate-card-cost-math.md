@@ -26,3 +26,5 @@ The rate card is mock-safe: no live billing, no Stripe/payment flow, no provider
 - Estimate ranges return low, expected, and high internal costs with risk buffers, and they exclude ReEditPro service fee.
 
 `smoke:rate-card` and the alias `smoke:tool-cost-metering` verify conversion, provider/runtime/deterministic cost math, pricing snapshot safety, non-billable exclusion, and the read-only settlement-preview bridge. `smoke:production-tool-cost` verifies 49/49 production tool owner coverage plus estimate/event adapter behavior. `smoke:credit-estimate` verifies the user-facing estimate preview bridge.
+
+RP-RESERVATION-01 sits after estimate approval and before paid work. It reserves the estimate maximum (`maximumEstimatedCredits` / `requiredHoldCredits`) in mock wallet state only; tool-cost rate card events still exclude the ReEditPro service fee and still do not perform live billing, provider calls, Supabase writes, production ledger writes, render/export, or checkout/top-up.

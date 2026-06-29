@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 const DEFAULT_API_DEPLOY_PACKET_PATH = 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-769f-api-staging-deploy.json'
 const DEFAULT_API_DEPLOYMENT_PREFLIGHT_PACKET_PATH = 'docs/beta-readiness/api-deployment-preflight/2026-06-29-769f-api-deployment-preflight-passed.json'
@@ -218,7 +218,11 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
 function resolveGitSha(options) {
   if (options.resolveGit === false) return undefined
   try {
-    return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      env: gitExecEnv(),
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
   } catch {
     return undefined
   }
@@ -231,6 +235,7 @@ function resolveChangedFiles(deployedSourceSha, currentSourceSha, options) {
   try {
     const output = execFileSync('git', ['diff', '--name-only', deployedSourceSha, currentSourceSha], {
       encoding: 'utf8',
+      env: gitExecEnv(),
       stdio: ['ignore', 'pipe', 'ignore'],
     })
     return output.split('\n').map((line) => line.trim()).filter(Boolean)
@@ -266,6 +271,7 @@ function isAllowedPackageJsonScriptOnlyDrift({ deployedSourceSha, currentSourceS
   try {
     const output = execFileSync('git', ['diff', '--unified=0', '--no-ext-diff', deployedSourceSha, currentSourceSha, '--', 'package.json'], {
       encoding: 'utf8',
+      env: gitExecEnv(),
       stdio: ['ignore', 'pipe', 'ignore'],
     })
     const changedLines = output
@@ -276,6 +282,15 @@ function isAllowedPackageJsonScriptOnlyDrift({ deployedSourceSha, currentSourceS
       changedLines.every((line) => ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.some((scriptName) => line.includes(`"${scriptName}"`)))
   } catch {
     return false
+  }
+}
+
+function gitExecEnv() {
+  if (process.platform !== 'darwin') return process.env
+  if (process.env.DEVELOPER_DIR && existsSync(process.env.DEVELOPER_DIR)) return process.env
+  return {
+    ...process.env,
+    DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
   }
 }
 

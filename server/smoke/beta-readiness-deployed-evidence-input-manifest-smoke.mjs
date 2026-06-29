@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
-const expectedLocalEvidenceSourceSha = 'a1943442b794f7ae5216adf501a617a9f4478185'
+const expectedLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
 const expectedDeployedSourceSha = '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'
 const expectedCoreToolIds = [
   'ffmpeg',
@@ -17,6 +17,8 @@ const expectedCoreToolIds = [
   'opencv',
   'opencolorio',
   'openimageio',
+  'audioflux',
+  'signalsmith_stretch',
 ]
 const expectedLibassImage = 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
 
@@ -24,7 +26,7 @@ const emptyManifest = buildBetaReadinessDeployedEvidenceInputManifest({})
 assert.equal(emptyManifest.ok, true)
 assert.equal(emptyManifest.readyToRunExternalBetaEvidenceCollector, false, 'empty env should not be ready to run deployed evidence')
 assert.equal(emptyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
-assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 14)
+assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 16)
 assert.equal(emptyManifest.sourceTruth.currentSourceSha, undefined)
 assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedLocalEvidenceSourceSha)
 assert.deepEqual(emptyManifest.sourceTruth.trackBToolTotals, {
@@ -65,7 +67,7 @@ const readyEnv = {
   REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'tool-core-idempotency-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'tool-libass-idempotency-smoke',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'beta-tools-current-source-local-accepted-evidence-bundle',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'beta-tools-current-source-16-tool-local-accepted-evidence-bundle',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA: expectedLocalEvidenceSourceSha,
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS: expectedCoreToolIds.join(','),
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',

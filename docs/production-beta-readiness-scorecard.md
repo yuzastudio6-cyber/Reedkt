@@ -1435,6 +1435,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted controlled-runtime approval, accepted runtime queue service bridge evidence, and private `AI_GRAPHICS_EXTERNAL_BETA_RUNTIME_OPERATOR` references for non-production environment, queue write window, cleanup, rollback, and cost ceiling, it records 21 live-enqueue authorization scopes with provided evidence. Live queue writes approved now, live queue writes performed now, worker dispatch approved now, tool execution approved now, external-beta-ready-now, and production-ready-now all remain 0.
 - Runtime/beta/production: no unlock; this packet does not mutate Supabase/GCS, insert queue rows, create leases, dispatch workers, execute tools, start browser/WebGL/canvas or GPU runtime, download/load model weights, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta Callable Scope
+
+- Decision: `ai_graphics_external_beta_callable_scope_prepared_with_runtime_blocks`.
+- Scope: consolidated external-beta callable-candidate contract after accepted launch go/no-go, live-enqueue authorization, and worker-dispatch smoke proof.
+- Result: with accepted source packets, it records 21 external-beta callable candidate tools and 12 product-facing capabilities with provided evidence, including all 8 GPU/model tools on native GPU targets. External-beta callable-now tools, external-beta-ready-now tools, and production-ready-now tools remain 0.
+- Runtime/beta/production: no unlock; this packet does not execute tools, call Tool Routes, enqueue workers, mutate queues, dispatch workers, start GPU runtime, create signed URLs, create public artifacts, unlock external-beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

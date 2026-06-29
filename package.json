@@ -568,6 +568,7 @@
     "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-approval-plan": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-approval-plan-smoke.ts",
     "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-approval-decision": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-approval-decision-smoke.ts",
     "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-execution-plan": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-execution-plan-smoke.ts",
+    "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-execution-approval": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-execution-approval-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-reverify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-reverify-result-smoke.ts",

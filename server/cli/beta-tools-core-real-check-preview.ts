@@ -6,6 +6,9 @@ import {
 } from '../beta-readiness/core-real-check-evidence'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
+const TEMPLATE_DECISION = 'beta_tools_core_real_check_preview_template_passed_ready_for_local_operator_preview'
+const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
+
 export interface BetaToolsCoreRealCheckPreviewEnv {
   REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_PROJECT_ID?: string
@@ -21,6 +24,37 @@ export interface BetaToolsCoreRealCheckPreviewEnv {
   REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE?: string
+}
+
+export interface BetaToolsCoreRealCheckPreviewTemplateReport {
+  ok: true
+  decision: typeof TEMPLATE_DECISION
+  previewOnly: true
+  recordsBackendEvidence: false
+  defaultToolScope: 'all_production_tools_when_tool_ids_unset'
+  valuePolicy: {
+    workspaceId: 'operator_non_secret_value'
+    projectId: 'operator_optional_non_secret_value'
+    sourceSha: 'operator_current_source_sha'
+    toolIds: 'optional_comma_separated_production_tool_ids'
+    acceptanceMode: 'bounded_accepted_evidence_only'
+    productReadyLocalOss: false
+  }
+  envTemplate: string
+  recommendedCommands: string[]
+  blockedScopeConfirmations: {
+    backendEvidenceRecorded: false
+    deployedBackendCalled: false
+    toolExecutionRecorded: false
+    mediaProcessed: false
+    dockerRan: false
+    supabaseWritesRan: false
+    gcsWritesRan: false
+    externalBetaEnabled: false
+    realUserMediaBetaEnabled: false
+    paidProductionEnabled: false
+  }
+  warnings: string[]
 }
 
 export interface BetaToolsCoreRealCheckPreviewReport {
@@ -39,6 +73,101 @@ export interface BetaToolsCoreRealCheckPreviewReport {
   invalidToolIds: string[]
   secretLikeInputPaths: string[]
   warnings: string[]
+}
+
+export function buildBetaToolsCoreRealCheckPreviewTemplate(): BetaToolsCoreRealCheckPreviewTemplateReport {
+  const envTemplate = [
+    '# ReEditPro beta tools core real-check preview template',
+    '# Local preview only. Fill in an operator shell; do not commit completed values.',
+    '# This does not call the deployed backend, record evidence, process media, run Docker, enable beta, or enable production.',
+    '',
+    `export REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID="${NON_SECRET_PLACEHOLDER}"`,
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_PROJECT_ID="<optional non-secret project id>"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_ID="beta-tools-core-real-check-preview"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_SHA="<current source sha under review>"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_NOTES="Local no-write bounded accepted evidence preview; no backend evidence recorded."',
+    '# Leave empty to preview all production registry tools, or set a comma-separated subset like hyperframe,remotion.',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS=""',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_INCLUDE_WARNINGS="true"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE="true"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE="true"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS="false"',
+    'export REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE="true"',
+    '',
+    '# Run after filling values:',
+    '# npm run beta:tools:core-real-check-preview',
+    '',
+    '# For Python-backed core tools, hydrate the gitignored readiness venv first:',
+    '# npm run tools:readiness:install-core-python',
+    '# npm run beta:tools:core-real-check-preview:hydrated',
+  ].join('\n')
+
+  return {
+    ok: true,
+    decision: TEMPLATE_DECISION,
+    previewOnly: true,
+    recordsBackendEvidence: false,
+    defaultToolScope: 'all_production_tools_when_tool_ids_unset',
+    valuePolicy: {
+      workspaceId: 'operator_non_secret_value',
+      projectId: 'operator_optional_non_secret_value',
+      sourceSha: 'operator_current_source_sha',
+      toolIds: 'optional_comma_separated_production_tool_ids',
+      acceptanceMode: 'bounded_accepted_evidence_only',
+      productReadyLocalOss: false,
+    },
+    envTemplate,
+    recommendedCommands: [
+      'npm run beta:tools:core-real-check-preview',
+      'npm run tools:readiness:install-core-python',
+      'npm run beta:tools:core-real-check-preview:hydrated',
+      'npm run beta:tools:local-accepted-evidence-bundle',
+    ],
+    blockedScopeConfirmations: {
+      backendEvidenceRecorded: false,
+      deployedBackendCalled: false,
+      toolExecutionRecorded: false,
+      mediaProcessed: false,
+      dockerRan: false,
+      supabaseWritesRan: false,
+      gcsWritesRan: false,
+      externalBetaEnabled: false,
+      realUserMediaBetaEnabled: false,
+      paidProductionEnabled: false,
+    },
+    warnings: [
+      'Template values must be filled outside source control.',
+      'Bounded accepted evidence is not product-ready local OSS acceptance.',
+      'A passing local preview still requires deployed staging evidence recording and product-ready QA before beta/production gates can open.',
+    ],
+  }
+}
+
+export function renderBetaToolsCoreRealCheckPreviewTemplateMarkdown(report: BetaToolsCoreRealCheckPreviewTemplateReport): string {
+  return [
+    '# Beta Tools Core Real-Check Preview Template',
+    '',
+    `Decision: \`${report.decision}\``,
+    '',
+    `Preview only: \`${report.previewOnly}\``,
+    `Records backend evidence: \`${report.recordsBackendEvidence}\``,
+    `Default tool scope: \`${report.defaultToolScope}\``,
+    `Product-ready local OSS acceptance: \`${report.valuePolicy.productReadyLocalOss}\``,
+    '',
+    '## Environment Template',
+    '',
+    '```bash',
+    report.envTemplate,
+    '```',
+    '',
+    '## Recommended Commands',
+    '',
+    ...report.recommendedCommands.map((command) => `- \`${command}\``),
+    '',
+    '## Boundary',
+    '',
+    'This template did not call the deployed backend, record evidence, process media, run Docker, write Supabase/GCS, enable external beta, enable real-user-media beta, or enable paid production.',
+  ].join('\n')
 }
 
 export function runBetaToolsCoreRealCheckPreview(
@@ -291,9 +420,15 @@ function clean(value: string | undefined): string | undefined {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const report = runBetaToolsCoreRealCheckPreview(process.env)
-  console.log(JSON.stringify(report, null, 2))
-  if (!report.readyToRecordAcceptedEvidence) {
-    process.exitCode = 1
+  if (process.argv.includes('--env-template')) {
+    console.log(buildBetaToolsCoreRealCheckPreviewTemplate().envTemplate)
+  } else if (process.argv.includes('--template-markdown')) {
+    console.log(renderBetaToolsCoreRealCheckPreviewTemplateMarkdown(buildBetaToolsCoreRealCheckPreviewTemplate()))
+  } else {
+    const report = runBetaToolsCoreRealCheckPreview(process.env)
+    console.log(JSON.stringify(report, null, 2))
+    if (!report.readyToRecordAcceptedEvidence) {
+      process.exitCode = 1
+    }
   }
 }

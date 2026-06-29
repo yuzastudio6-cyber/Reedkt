@@ -91,6 +91,8 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
 
 export function buildBetaReadinessExternalBetaOperatorInputStatus(report = buildBetaReadinessExternalBetaOperatorInputTemplate()) {
   const pendingInputs = report.requiredInputs.filter((input) => !input.present)
+  const actionableInputs = pendingInputs.filter(isHumanActionableInput)
+  const autoFillableInputs = pendingInputs.filter((input) => !isHumanActionableInput(input))
   return {
     ok: true,
     decision: STATUS_DECISION,
@@ -98,9 +100,20 @@ export function buildBetaReadinessExternalBetaOperatorInputStatus(report = build
     templateId: report.templateId,
     sourceTruth: report.sourceTruth,
     inputCounts: report.inputCounts,
+    actionabilityCounts: {
+      humanActionablePending: actionableInputs.length,
+      autoFillablePending: autoFillableInputs.length,
+      pendingPrefilledConstants: pendingInputs.filter((input) => input.valuePolicy === 'prefilled_non_secret_constant').length,
+      pendingOperatorGeneratedIds: pendingInputs.filter((input) => input.valuePolicy === 'operator_unique_id').length,
+      pendingOwnerEvidenceNotes: pendingInputs.filter((input) => input.valuePolicy === 'owner_evidence_note').length,
+      pendingSecretOrSensitiveInputs: pendingInputs.filter((input) => input.valuePolicy === 'operator_secret_or_sensitive').length,
+      pendingNonSecretOperatorValues: pendingInputs.filter((input) => input.valuePolicy === 'operator_non_secret_value').length,
+    },
     requiredInputGroups: report.requiredInputGroups,
     pendingInputGroups: groupCounts(pendingInputs),
     pendingValuePolicies: groupByField(pendingInputs, 'valuePolicy'),
+    humanActionablePendingInputs: actionableInputs.map(toStatusInput),
+    autoFillablePendingInputs: autoFillableInputs.map(toStatusInput),
     pendingInputs: pendingInputs.map((input) => ({
       name: input.name,
       group: input.group,
@@ -115,6 +128,7 @@ export function buildBetaReadinessExternalBetaOperatorInputStatus(report = build
     supabaseClassification: report.supabaseClassification,
     warnings: [
       'This status report is intentionally value-free: it prints required input names, groups, and policies only.',
+      'Human-actionable pending inputs are the true operator/owner collection items; auto-fillable pending inputs are safe template constants or generated idempotency keys that must still be exported before evidence collection.',
       'Do not paste bearer tokens, workspace/project identifiers if private, owner evidence text, signed URLs, raw prompts, or private media references into source control.',
       'Use --env-template only in an operator shell or secret manager session; use --status for safe progress review.',
       'External beta, real-user-media beta, paid production, provider calls, worker dispatch, Supabase/GCS writes, public artifacts, and signed URLs remain blocked until named gates pass.',
@@ -179,6 +193,8 @@ export function renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(statu
     '',
     `Required inputs: \`${status.inputCounts.required}\``,
     `Pending in blank environment: \`${status.inputCounts.currentlyPendingInBlankEnvironment}\``,
+    `Human-actionable pending inputs: \`${status.actionabilityCounts.humanActionablePending}\``,
+    `Auto-fillable pending inputs: \`${status.actionabilityCounts.autoFillablePending}\``,
     `Secret/sensitive inputs: \`${status.inputCounts.secretOrSensitiveInputs}\``,
     `Operator-generated ids: \`${status.inputCounts.operatorGeneratedIds}\``,
     `Owner evidence notes: \`${status.inputCounts.operatorEvidenceNotes}\``,
@@ -191,6 +207,14 @@ export function renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(statu
     '## Pending Value Policies',
     '',
     ...Object.entries(status.pendingValuePolicies).map(([policy, count]) => `- ${policy}: \`${count}\``),
+    '',
+    '## Human-Actionable Pending Inputs',
+    '',
+    ...status.humanActionablePendingInputs.map((input) => `- \`${input.name}\` (${input.group}, ${input.valuePolicy}, ${input.operatorAction})`),
+    '',
+    '## Auto-Fillable Pending Inputs',
+    '',
+    ...status.autoFillablePendingInputs.map((input) => `- \`${input.name}\` (${input.group}, ${input.valuePolicy}, ${input.operatorAction})`),
     '',
     '## Pending Input Names',
     '',
@@ -314,6 +338,25 @@ function operatorAction(input) {
   if (input.valuePolicy === 'owner_evidence_note') return 'supply_non_secret_owner_evidence_note'
   if (input.valuePolicy === 'prefilled_non_secret_constant') return 'export_prefilled_constant_from_template'
   return 'supply_non_secret_operator_value'
+}
+
+function isHumanActionableInput(input) {
+  return (
+    input.valuePolicy === 'operator_secret_or_sensitive' ||
+    input.valuePolicy === 'operator_non_secret_value' ||
+    input.valuePolicy === 'owner_evidence_note'
+  )
+}
+
+function toStatusInput(input) {
+  return {
+    name: input.name,
+    group: input.group,
+    requiredFor: input.requiredFor,
+    secret: input.secret === true,
+    valuePolicy: input.valuePolicy,
+    operatorAction: operatorAction(input),
+  }
 }
 
 function escapeTemplateValue(value) {

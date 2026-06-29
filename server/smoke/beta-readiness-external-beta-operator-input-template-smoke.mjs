@@ -58,6 +58,15 @@ assert.equal(status.templateDecision, report.decision)
 assert.equal(status.inputCounts.required, 60)
 assert.equal(status.inputCounts.currentlyPendingInBlankEnvironment, 57)
 assert.equal(status.pendingInputs.length, 57)
+assert.deepEqual(status.actionabilityCounts, {
+  humanActionablePending: 15,
+  autoFillablePending: 42,
+  pendingPrefilledConstants: 38,
+  pendingOperatorGeneratedIds: 4,
+  pendingOwnerEvidenceNotes: 11,
+  pendingSecretOrSensitiveInputs: 1,
+  pendingNonSecretOperatorValues: 3,
+})
 assert.deepEqual(status.pendingInputGroups, {
   shared: 5,
   tool_evidence: 14,
@@ -75,6 +84,14 @@ assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), true)
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), true)
 assert.equal(status.pendingInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), true)
+assert.equal(status.humanActionablePendingInputs.length, 15)
+assert.equal(status.autoFillablePendingInputs.length, 42)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN' && input.secret), true)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID'), true)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'), true)
+assert.equal(status.humanActionablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'), true)
+assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'), true)
+assert.equal(status.autoFillablePendingInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), true)
 assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS'), true)
@@ -107,6 +124,10 @@ assert.equal(serializedStatus.includes('x-goog-signature='), false)
 assert.equal(statusMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(statusMarkdown.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
 assert.equal(statusMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
+assert.equal(statusMarkdown.includes('Human-actionable pending inputs: `15`'), true)
+assert.equal(statusMarkdown.includes('Auto-fillable pending inputs: `42`'), true)
+assert.equal(statusMarkdown.includes('## Human-Actionable Pending Inputs'), true)
+assert.equal(statusMarkdown.includes('## Auto-Fillable Pending Inputs'), true)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 assert.equal(markdown.includes('enable external beta'), true)
 assert.equal(markdown.includes(expectedLocalEvidenceSourceSha), true)
@@ -124,6 +145,8 @@ console.log(JSON.stringify({
   statusDecision: status.decision,
   requiredInputs: report.inputCounts.required,
   pendingRequiredInputs: report.inputCounts.currentlyPendingInBlankEnvironment,
+  humanActionablePendingInputs: status.actionabilityCounts.humanActionablePending,
+  autoFillablePendingInputs: status.actionabilityCounts.autoFillablePending,
   trackBToolTotals: report.sourceTruth.trackBToolTotals,
   productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
 }, null, 2))

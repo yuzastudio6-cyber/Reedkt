@@ -27,6 +27,8 @@ assert.equal(
 )
 assert.equal(report.sourceTruth.requiredOperatorInputs, 60)
 assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)
+assert.equal(report.sourceTruth.humanActionablePendingOperatorInputs, 15)
+assert.equal(report.sourceTruth.autoFillablePendingOperatorInputs, 42)
 assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
 assert.equal(report.sourceTruth.externalBetaAllowed, false)
 assert.equal(report.sourceTruth.realUserMediaBetaAllowed, false)
@@ -46,7 +48,11 @@ assert.equal(
   true,
 )
 assert.equal(
-  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('2026-06-29-184f-external-beta-operator-input-template.json')),
+  report.batches[0]?.blockedUntil[0]?.includes('15 human-actionable values'),
+  true,
+)
+assert.equal(
+  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('15 human-actionable, 42 auto-fillable')),
   true,
 )
 assert.equal(report.batches[1]?.batchId, 'trackb_deployed_tool_evidence_recording')
@@ -75,5 +81,7 @@ console.log(JSON.stringify({
   closeoutBatches: report.batches.length,
   locallyAcceptedTools: report.sourceTruth.locallyAcceptedToolCount,
   pendingOperatorInputsInBlankEnv: report.sourceTruth.pendingOperatorInputsInBlankEnv,
+  humanActionablePendingOperatorInputs: report.sourceTruth.humanActionablePendingOperatorInputs,
+  autoFillablePendingOperatorInputs: report.sourceTruth.autoFillablePendingOperatorInputs,
   productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
 }, null, 2))

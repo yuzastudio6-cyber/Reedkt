@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-runtime-scaffold'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan'
+const negativeTestsDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-runtime-scaffold-negative-tests'
 const decisionText = 'tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests'
 const executionText = 'completed_disabled_runtime_scaffold_contract_no_runtime_execution'
 const priorDecision = 'tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold'
@@ -34,10 +35,26 @@ const statusFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
 ]
 
+const negativeTestsFiles = [
+  `${negativeTestsDir}/gpac-mp4box-runtime-scaffold-negative-tests-decision.json`,
+  `${negativeTestsDir}/gpac-mp4box-runtime-scaffold-negative-tests-decision.md`,
+  `${negativeTestsDir}/negative-test-matrix.json`,
+  `${negativeTestsDir}/negative-test-matrix.md`,
+  `${negativeTestsDir}/readiness-report.json`,
+  `${negativeTestsDir}/source-of-truth-audit.json`,
+  `${negativeTestsDir}/source-of-truth-audit.md`,
+  `${negativeTestsDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-runtime-scaffold-negative-tests-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-live-registration-review-1.md',
+  'server/smoke/tracka-gpac-mp4box-runtime-scaffold-negative-tests-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...contractFiles,
   ...statusFiles,
+  ...negativeTestsFiles,
   'docs/activation-phase-tracka-gpac-mp4box-disabled-runtime-scaffold-1-results.md',
   'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-runtime-scaffold-1.md',
@@ -247,7 +264,7 @@ for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
   if (/^src\//.test(file) && file !== 'src/backend/contracts/gpac-mp4box-disabled-runtime-scaffold-contracts.ts' && file !== 'src/backend/contracts/index.ts') fail(`unexpected source path ${file}`)
-  if (/^server\//.test(file) && file !== 'server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts') fail(`unexpected server path ${file}`)
+  if (/^server\//.test(file) && file !== 'server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts' && file !== 'server/smoke/tracka-gpac-mp4box-runtime-scaffold-negative-tests-smoke.ts') fail(`unexpected server path ${file}`)
   if (file.startsWith('src/') || file.startsWith('server/')) {
     const text = read(file)
     for (const pattern of forbiddenSourcePatterns) {

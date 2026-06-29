@@ -1,0 +1,22 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1",
+  "sourceChain": {
+    "disabledRuntimeScaffold": {
+      "pr": 1579,
+      "mergeSha": "9f3d7afc8eb33d93bae0c8728e2666ffbcccceeb",
+      "decision": "tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests"
+    },
+    "guardedRuntimeEnablementPlan": {
+      "pr": 1572,
+      "mergeSha": "fd44ba5c394cf6fa61856f4c66c16d0509b70f6a",
+      "decision": "tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold"
+    }
+  },
+  "pr577": "open_draft_blocked_conflicting_excluded",
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  }
+}

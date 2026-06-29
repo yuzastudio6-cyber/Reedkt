@@ -5,6 +5,7 @@ import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+import { acceptedExternalBetaLaunchControlsPacket } from './ai-graphics-external-beta-launch-controls-fixture-packet.mjs'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -683,6 +684,10 @@ const workerDispatchSmokeProofPath = writeJson(
   path.join(tmpRoot, 'worker-dispatch-smoke-proof.json'),
   acceptedWorkerDispatchSmokeProofFixture(),
 )
+const launchControlsPath = writeJson(
+  path.join(tmpRoot, 'external-beta-launch-controls.json'),
+  acceptedExternalBetaLaunchControlsPacket(),
+)
 const readyServiceRolePreflightPath = writeJson(
   path.join(tmpRoot, 'ready-service-role-queue-smoke-preflight.json'),
   readyServiceRoleQueueSmokePreflightFixture(),
@@ -727,6 +732,8 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-launch-controls-packet',
+  launchControlsPath,
   '--all-external-beta-launch-gates-approved',
   '--external-beta-launch-ref',
   'external-beta-launch://launch-switch-approved',
@@ -1259,6 +1266,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-worker-enqueue-adapter:diagnostics": "node scripts/validation/ai-graphics-external-beta-worker-enqueue-adapter-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-launch-controls": "tsx server/cli/ai-graphics-external-beta-launch-controls.ts",',
+  '+    "ai-graphics:external-beta-launch-controls:diagnostics": "node scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-service-role-queue-transaction": "tsx server/cli/ai-graphics-external-beta-service-role-queue-transaction.ts",',
   '+    "ai-graphics:external-beta-service-role-queue-transaction:diagnostics": "node scripts/validation/ai-graphics-external-beta-service-role-queue-transaction-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-local-queue-storage": "tsx server/cli/ai-graphics-external-beta-local-queue-storage.ts",',

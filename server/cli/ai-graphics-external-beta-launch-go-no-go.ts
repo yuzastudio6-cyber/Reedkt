@@ -17,6 +17,9 @@ import type {
 import type {
   AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
 } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-proof'
+import type {
+  AiGraphicsExternalBetaLaunchControls,
+} from '../tool-registry/ai-graphics-external-beta-launch-controls'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -42,6 +45,10 @@ function readJsonFile<T>(flag: string): T | undefined {
 const sharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allExternalBetaEvidencePassed = hasFlag('--all-external-beta-evidence-passed')
 const allExternalBetaLaunchGatesApproved = hasFlag('--all-external-beta-launch-gates-approved')
+const externalBetaLaunchControlsPacket =
+  readJsonFile<AiGraphicsExternalBetaLaunchControls>(
+    '--external-beta-launch-controls-packet',
+  )
 
 const input: AiGraphicsExternalBetaLaunchGoNoGoInput = {
   sourceExternalBetaLaunchGapReportPacket:
@@ -58,6 +65,8 @@ const input: AiGraphicsExternalBetaLaunchGoNoGoInput = {
     readJsonFile<AiGraphicsExternalBetaServiceRoleQueueSmokeProof>(
       '--external-beta-service-role-queue-smoke-proof-packet',
     ),
+  sourceExternalBetaLaunchControlsPacket: externalBetaLaunchControlsPacket,
+  externalBetaLaunchControls: externalBetaLaunchControlsPacket,
   externalBetaEvidenceAdmissionBundle:
     readJsonFile<AiGraphicsExternalBetaEvidenceAdmissionBundle>(
       '--external-beta-evidence-admission-bundle',
@@ -151,6 +160,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--external-beta-service-role-queue-smoke-preflight-packet')),
     sourceServiceRoleQueueSmokeProofPacketRead:
       Boolean(stringFlag('--external-beta-service-role-queue-smoke-proof-packet')),
+    sourceLaunchControlsPacketRead:
+      Boolean(stringFlag('--external-beta-launch-controls-packet')),
     externalBetaEvidenceAdmissionBundleRead:
       Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
     externalBetaWorkerDispatchSmokeProofRead:

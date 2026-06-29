@@ -110,7 +110,7 @@ const externalBetaLaunchSequence = [
   'Generate local-only external-beta evidence templates with ai-graphics:external-beta-evidence-scaffold.',
   'Replace all rejected public placeholders with private/backend evidence refs after real runtime soak, external QA, cost/concurrency/privacy/rollback, incident, and owner approval evidence exists.',
   'Validate the sanitized evidence with ai-graphics:external-beta-evidence-packet:validate.',
-  'Feed the validated packet into ai-graphics:external-beta-readiness-gate with the already accepted shared, browser, GPU, and model-manifest evidence gates.',
+  'Feed the validated packet and accepted launch controls into ai-graphics:external-beta-readiness-gate with the already accepted shared, browser, GPU, and model-manifest evidence gates.',
   'Run a separate external-beta launch go/no-go that checks rollout cohort, cost ceiling, concurrency ceiling, rollback, incident response, private artifact handling, and support ownership before enabling user-facing tool calls.',
 ]
 

@@ -88,6 +88,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: number
     workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: number
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: number
+    externalBetaLaunchControlsAcceptedWithProvidedEvidence: 0 | 1
     externalBetaReadyNowTools: 0
     productionReadyNowTools: 0
   }
@@ -131,6 +132,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
     workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: boolean
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: boolean
+    externalBetaLaunchControlsAcceptedWithProvidedEvidence: boolean
     externalBetaCandidateReadyWithProvidedEvidence: boolean
     externalBetaReadyNow: false
     productionReadyNow: false
@@ -429,6 +431,8 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
         sourceWorkerDispatchSmokeProofAccepted && workerDispatchSmokeProof
           ? workerDispatchSmokeProof.counts.sourceInMemoryLeaseRecordsCreated
           : 0,
+      externalBetaLaunchControlsAcceptedWithProvidedEvidence:
+        sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted ? 1 : 0,
       externalBetaReadyNowTools: 0,
       productionReadyNowTools: 0,
     },
@@ -492,6 +496,8 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
         sourceWorkerDispatchSmokeProofAccepted &&
         workerDispatchSmokeProof?.counts.sourceInMemoryLeaseRecordsCreated === 21 &&
         workerDispatchSmokeProof?.counts.sourceInMemoryLeaseRecordsReleased === 21,
+      externalBetaLaunchControlsAcceptedWithProvidedEvidence:
+        sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted,
       externalBetaCandidateReadyWithProvidedEvidence,
       externalBetaReadyNow: false,
       productionReadyNow: false,

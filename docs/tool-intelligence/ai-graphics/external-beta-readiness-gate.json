@@ -12,6 +12,7 @@
     "externalBetaEvidencePacket": "docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json",
     "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
     "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
+    "externalBetaLaunchControls": "docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json",
     "betaProductionReadinessRollup": "docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json"
   },
   "contractSurface": {
@@ -32,7 +33,8 @@
     "defaultExternalBetaReadyWithProvidedEvidenceTools": 0,
     "overrideFlagExternalBetaReadyWithProvidedEvidenceTools": 0,
     "prebuiltAdmissionBundleExternalBetaReadyWithProvidedEvidenceTools": 0,
-    "admissionBundleExternalBetaReadyWithProvidedEvidenceTools": 21,
+    "admissionBundleExternalBetaReadyWithProvidedEvidenceTools": 0,
+    "admissionBundlePlusLaunchControlsExternalBetaReadyWithProvidedEvidenceTools": 21,
     "workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "externalBetaBlockedNowTools": 21,
@@ -44,6 +46,8 @@
     "sourceTechnicalProofPacketsRequired": true,
     "sourceTechnicalProofPacketsProvided": true,
     "sourceTechnicalProofPacketsAccepted": true,
+    "externalBetaLaunchControlsPacketRequired": true,
+    "admissionBundleAloneAcceptedAsLaunchControls": false,
     "prebuiltBetaEvidenceSummaryRejectedForReadiness": true
   },
   "requiredExternalBetaGates": [
@@ -102,6 +106,7 @@
     "sourceBetaToolCallReadinessAccepted": true,
     "sourceExternalBetaEvidenceAdmissionBundleAccepted": true,
     "sourceExternalBetaWorkerDispatchSmokeProofAccepted": true,
+    "sourceExternalBetaLaunchControlsAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all21ToolsInstalledForPlannedSurface": true,

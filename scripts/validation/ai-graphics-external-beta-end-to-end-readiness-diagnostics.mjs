@@ -5,6 +5,7 @@ import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+import { acceptedExternalBetaLaunchControlsPacket } from './ai-graphics-external-beta-launch-controls-fixture-packet.mjs'
 
 const runScriptName = 'ai-graphics:external-beta-end-to-end-readiness'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-end-to-end-readiness.ts'
@@ -54,6 +55,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.md',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
 ]
@@ -538,6 +540,9 @@ if (docsJson.counts?.fullEvidenceWorkerDispatchSmokeProofInMemoryLeasesAcceptedW
 if (docsJson.counts?.fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools !== 21) {
   fail('docs_full_evidence_candidate_count_not_21')
 }
+if (docsJson.counts?.fullEvidenceLaunchControlsAcceptedWithProvidedEvidence !== 1) {
+  fail('docs_full_evidence_launch_controls_not_1')
+}
 if (docsJson.sourceEvidence?.externalBetaWorkerDispatchSmokeProof !==
   'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json') {
   fail('docs_missing_worker_dispatch_proof_source_evidence')
@@ -545,6 +550,10 @@ if (docsJson.sourceEvidence?.externalBetaWorkerDispatchSmokeProof !==
 if (docsJson.sourceEvidence?.externalBetaEvidenceAdmissionBundle !==
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json') {
   fail('docs_missing_external_beta_admission_bundle_source_evidence')
+}
+if (docsJson.sourceEvidence?.externalBetaLaunchControls !==
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json') {
+  fail('docs_missing_external_beta_launch_controls_source_evidence')
 }
 if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight !==
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json') {
@@ -574,6 +583,9 @@ if (docsJson.booleans?.fullEvidenceServiceRoleQueueSmokeProofAcceptedWithProvide
 }
 if (docsJson.booleans?.fullEvidenceWorkerDispatchSmokeProofAcceptedWithProvidedEvidence !== true) {
   fail('docs_full_worker_dispatch_proof_not_true')
+}
+if (docsJson.booleans?.fullEvidenceLaunchControlsAcceptedWithProvidedEvidence !== true) {
+  fail('docs_full_launch_controls_not_true')
 }
 assertBooleanMap(docsJson, 'docs', undefined)
 
@@ -769,6 +781,11 @@ fs.writeFileSync(
   workerDispatchSmokeProofPath,
   `${JSON.stringify(workerDispatchSmokeProof, null, 2)}\n`,
 )
+const launchControlsPath = path.join(tmpDir, 'external-beta-launch-controls.json')
+fs.writeFileSync(
+  launchControlsPath,
+  `${JSON.stringify(acceptedExternalBetaLaunchControlsPacket(), null, 2)}\n`,
+)
 
 const preflightOnlyFullEvidenceReport = runCli([
   '--all-shared-gates-passed',
@@ -850,6 +867,8 @@ const fullEvidenceReport = runCli([
   serviceRoleQueueSmokeProofPath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
+  '--external-beta-launch-controls',
+  launchControlsPath,
 ])
 if (
   fullEvidenceReport.status !==

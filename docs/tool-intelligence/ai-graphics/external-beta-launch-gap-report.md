@@ -14,7 +14,8 @@ This report is the external launch view of the AI graphics tool lane. It starts 
 - Planning selectable tools: `21`
 - GPU runtime targeted tools: `8`
 - Default external-beta candidates with provided evidence: `0`
-- Full evidence external-beta candidates with provided evidence: `21`
+- Full evidence external-beta candidates with provided evidence: `21`, only when accepted launch controls are supplied with the admission and proof packets.
+- Full evidence external-beta launch controls accepted: `true`
 - External-beta-ready now: `0`
 - External-beta blocked now: `21`
 - Production-ready now: `0`
@@ -47,7 +48,7 @@ worker/tool call.
 1. Generate local-only external-beta evidence templates with `ai-graphics:external-beta-evidence-scaffold`.
 2. Replace all rejected public placeholders with private/backend refs after real runtime soak, external QA, cost/concurrency/privacy/rollback, incident, and owner approval evidence exists.
 3. Validate the sanitized evidence with `ai-graphics:external-beta-evidence-packet:validate`.
-4. Feed the validated packet into `ai-graphics:external-beta-readiness-gate`.
+4. Feed the validated packet and accepted launch controls into `ai-graphics:external-beta-readiness-gate`.
 5. Run a separate external-beta launch go/no-go for rollout cohort, cost ceiling, concurrency ceiling, rollback, incident response, private artifact handling, and support ownership before enabling user-facing tool calls.
 
 ## Runtime Boundary

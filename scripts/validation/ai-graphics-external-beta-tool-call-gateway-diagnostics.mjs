@@ -5,6 +5,7 @@ import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+import { acceptedExternalBetaLaunchControlsPacket } from './ai-graphics-external-beta-launch-controls-fixture-packet.mjs'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -716,6 +717,10 @@ const workerDispatchSmokeProofPath = writeJson(
   path.join(tmpRoot, 'worker-dispatch-smoke-proof.json'),
   acceptedWorkerDispatchSmokeProofFixture(),
 )
+const launchControlsPath = writeJson(
+  path.join(tmpRoot, 'external-beta-launch-controls.json'),
+  acceptedExternalBetaLaunchControlsPacket(),
+)
 
 const fullEvidenceArgs = [
   '--all-shared-gates-passed',
@@ -778,6 +783,8 @@ const launchGoNoGo = parseJsonOutput(runNpm(launchGoNoGoScriptName, [
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-launch-controls-packet',
+  launchControlsPath,
   ...launchApprovalArgs,
 ]), 'external_beta_launch_go_no_go')
 if (launchGoNoGo.status !== 'external_beta_launch_go_no_go_approved_runtime_still_blocked') {
@@ -1133,6 +1140,8 @@ const allowedPackageAdditions = new Set([
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-launch-controls": "tsx server/cli/ai-graphics-external-beta-launch-controls.ts",',
+  '+    "ai-graphics:external-beta-launch-controls:diagnostics": "node scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-cpu-static-runtime-admission": "tsx server/cli/ai-graphics-external-beta-cpu-static-runtime-admission.ts",',
   '+    "ai-graphics:external-beta-cpu-static-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-runtime-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-worker-enqueue-adapter": "tsx server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts",',

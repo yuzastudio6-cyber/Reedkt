@@ -5,6 +5,7 @@ import {
 import type { AiGraphicsExternalBetaEvidencePacket } from '../tool-registry/ai-graphics-external-beta-evidence-packet'
 import type { AiGraphicsExternalBetaEvidenceAdmissionBundle } from '../tool-registry/ai-graphics-external-beta-evidence-admission-bundle'
 import type { AiGraphicsExternalBetaWorkerDispatchSmokeProof } from '../tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof'
+import type { AiGraphicsExternalBetaLaunchControls } from '../tool-registry/ai-graphics-external-beta-launch-controls'
 import type { AiGraphicsExternalBetaReadinessEvidence } from '../tool-registry/ai-graphics-external-beta-readiness-gate'
 
 function hasFlag(flag: string): boolean {
@@ -42,6 +43,12 @@ function readExternalBetaWorkerDispatchSmokeProof():
   return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaWorkerDispatchSmokeProof
 }
 
+function readExternalBetaLaunchControls(): AiGraphicsExternalBetaLaunchControls | undefined {
+  const packetPath = stringFlag('--external-beta-launch-controls')
+  if (!packetPath) return undefined
+  return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaLaunchControls
+}
+
 const sharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allExternalBetaEvidencePassed = hasFlag('--all-external-beta-evidence-passed')
 
@@ -49,6 +56,7 @@ const evidence: AiGraphicsExternalBetaReadinessEvidence = {
   externalBetaEvidencePacket: readExternalBetaEvidencePacket(),
   externalBetaEvidenceAdmissionBundle: readExternalBetaEvidenceAdmissionBundle(),
   externalBetaWorkerDispatchSmokeProof: readExternalBetaWorkerDispatchSmokeProof(),
+  externalBetaLaunchControls: readExternalBetaLaunchControls(),
   approvedPlanSnapshotGatePassed: sharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
   creditReservationGatePassed: sharedGatesPassed || hasFlag('--credit-reservation-gate-passed'),
   artifactBoundaryGatePassed: sharedGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
@@ -97,6 +105,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
     externalBetaWorkerDispatchSmokeProofRead:
       Boolean(stringFlag('--external-beta-worker-dispatch-smoke-proof')),
+    externalBetaLaunchControlsRead:
+      Boolean(stringFlag('--external-beta-launch-controls')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

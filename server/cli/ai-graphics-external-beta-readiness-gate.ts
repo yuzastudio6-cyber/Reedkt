@@ -5,6 +5,7 @@ import {
 import type { AiGraphicsExternalBetaEvidencePacket } from '../tool-registry/ai-graphics-external-beta-evidence-packet'
 import type { AiGraphicsExternalBetaEvidenceAdmissionBundle } from '../tool-registry/ai-graphics-external-beta-evidence-admission-bundle'
 import type { AiGraphicsExternalBetaWorkerDispatchSmokeProof } from '../tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof'
+import type { AiGraphicsExternalBetaLaunchControls } from '../tool-registry/ai-graphics-external-beta-launch-controls'
 import fs from 'node:fs'
 
 function hasFlag(flag: string): boolean {
@@ -42,16 +43,24 @@ function readExternalBetaWorkerDispatchSmokeProof():
   return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaWorkerDispatchSmokeProof
 }
 
+function readExternalBetaLaunchControls(): AiGraphicsExternalBetaLaunchControls | undefined {
+  const packetPath = stringFlag('--external-beta-launch-controls')
+  if (!packetPath) return undefined
+  return JSON.parse(fs.readFileSync(packetPath, 'utf8')) as AiGraphicsExternalBetaLaunchControls
+}
+
 const sharedGatesPassed = hasFlag('--all-shared-gates-passed')
 const allExternalBetaEvidencePassed = hasFlag('--all-external-beta-evidence-passed')
 const externalBetaEvidencePacket = readExternalBetaEvidencePacket()
 const externalBetaEvidenceAdmissionBundle = readExternalBetaEvidenceAdmissionBundle()
 const externalBetaWorkerDispatchSmokeProof = readExternalBetaWorkerDispatchSmokeProof()
+const externalBetaLaunchControls = readExternalBetaLaunchControls()
 
 const evidence: AiGraphicsExternalBetaReadinessEvidence = {
   externalBetaEvidencePacket,
   externalBetaEvidenceAdmissionBundle,
   externalBetaWorkerDispatchSmokeProof,
+  externalBetaLaunchControls,
   approvedPlanSnapshotGatePassed: sharedGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
   creditReservationGatePassed: sharedGatesPassed || hasFlag('--credit-reservation-gate-passed'),
   artifactBoundaryGatePassed: sharedGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
@@ -98,6 +107,7 @@ console.log(JSON.stringify({
     externalBetaEvidencePacketRead: Boolean(externalBetaEvidencePacket),
     externalBetaEvidenceAdmissionBundleRead: Boolean(externalBetaEvidenceAdmissionBundle),
     externalBetaWorkerDispatchSmokeProofRead: Boolean(externalBetaWorkerDispatchSmokeProof),
+    externalBetaLaunchControlsRead: Boolean(externalBetaLaunchControls),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

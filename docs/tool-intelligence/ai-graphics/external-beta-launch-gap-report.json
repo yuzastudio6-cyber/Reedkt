@@ -5,6 +5,7 @@
   "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
   "sourceEvidence": {
     "externalBetaReadinessGate": "docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json",
+    "externalBetaLaunchControls": "docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json",
     "externalBetaEvidenceScaffold": "docs/tool-intelligence/ai-graphics/external-beta-evidence-scaffold.json",
     "externalBetaEvidencePacket": "docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json",
     "betaActivationGapReport": "docs/tool-intelligence/ai-graphics/beta-activation-gap-report.json"
@@ -27,6 +28,7 @@
     "gpuRuntimeTargetedTools": 8,
     "defaultExternalBetaCandidatesWithProvidedEvidenceTools": 0,
     "fullEvidenceExternalBetaCandidatesWithProvidedEvidenceTools": 21,
+    "fullEvidenceExternalBetaLaunchControlsAccepted": true,
     "externalBetaReadyNowTools": 0,
     "externalBetaBlockedNowTools": 21,
     "productionReadyNowTools": 0
@@ -58,7 +60,7 @@
     "generate local-only external-beta evidence templates",
     "replace rejected placeholders with private/backend refs",
     "validate sanitized external-beta evidence packet",
-    "feed validated packet into external-beta readiness gate",
+    "feed validated packet and accepted launch controls into external-beta readiness gate",
     "run separate external-beta launch go/no-go before user-facing tool calls"
   ],
   "tools": [

@@ -5,6 +5,7 @@ import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+import { acceptedExternalBetaLaunchControlsPacket } from './ai-graphics-external-beta-launch-controls-fixture-packet.mjs'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -489,10 +490,12 @@ const requiredFiles = [
   'server/cli/ai-graphics-external-beta-launch-go-no-go.ts',
   'server/tool-registry/ai-graphics-external-beta-launch-gap-report.ts',
   'server/tool-registry/ai-graphics-external-beta-readiness-gate.ts',
+  'server/tool-registry/ai-graphics-external-beta-launch-controls.ts',
   'server/tool-registry/index.ts',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
@@ -598,6 +601,7 @@ for (const needle of [
   '--external-beta-evidence-packet',
   '--all-external-beta-launch-gates-approved',
   '--external-beta-launch-ref',
+  '--external-beta-launch-controls-packet',
   '--external-beta-private-artifact-retention-support-ref',
   'evaluatorOnly: true',
 ]) {
@@ -667,6 +671,10 @@ const nativeGpuProofCollectionPacketPath = writeJson(
   path.join(tempRoot, 'external-beta-native-gpu-proof-collection-packet.json'),
   acceptedNativeGpuProofCollectionPacket(),
 )
+const launchControlsPacketPath = writeJson(
+  path.join(tempRoot, 'external-beta-launch-controls.json'),
+  acceptedExternalBetaLaunchControlsPacket(),
+)
 const admissionBundlePath = writeJson(
   path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
   parseJsonOutput(
@@ -712,6 +720,8 @@ const fullLaunchGapPacket = parseJsonOutput(
     admissionBundlePath,
     '--external-beta-worker-dispatch-smoke-proof',
     workerDispatchSmokeProofPath,
+    '--external-beta-launch-controls',
+    launchControlsPacketPath,
   ]),
   'full_launch_gap_source',
 )
@@ -803,6 +813,8 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-launch-controls-packet',
+  launchControlsPacketPath,
   ...launchApprovalArgs,
 ]), 'approved_launch_go_no_go')
 const admissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
@@ -844,6 +856,8 @@ const admissionBundleApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-launch-controls-packet',
+  launchControlsPacketPath,
   ...launchApprovalArgs,
 ]), 'admission_bundle_approved_launch_go_no_go')
 const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
@@ -853,6 +867,8 @@ const packetFedApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-launch-controls-packet',
+  launchControlsPacketPath,
   ...launchApprovalArgs,
 ]), 'packet_fed_approved_launch_go_no_go')
 const weakenedLaunchGapOutput = parseJsonOutput(runNpm(runScriptName, [
@@ -862,6 +878,8 @@ const weakenedLaunchGapOutput = parseJsonOutput(runNpm(runScriptName, [
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',
   serviceRoleQueueSmokeProofPath,
+  '--external-beta-launch-controls-packet',
+  launchControlsPacketPath,
   ...launchApprovalArgs,
 ]), 'weakened_launch_gap_launch_go_no_go')
 
@@ -1083,6 +1101,8 @@ const allowedPackageAdditions = new Set([
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-launch-controls": "tsx server/cli/ai-graphics-external-beta-launch-controls.ts",',
+  '+    "ai-graphics:external-beta-launch-controls:diagnostics": "node scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-cpu-static-runtime-admission": "tsx server/cli/ai-graphics-external-beta-cpu-static-runtime-admission.ts",',
   '+    "ai-graphics:external-beta-cpu-static-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-runtime-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-runtime-admission": "tsx server/cli/ai-graphics-external-beta-runtime-admission.ts",',

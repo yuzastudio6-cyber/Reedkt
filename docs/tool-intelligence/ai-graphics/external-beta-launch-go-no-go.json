@@ -8,6 +8,7 @@
     "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
     "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "externalBetaServiceRoleQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json",
+    "externalBetaLaunchControls": "docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json",
     "externalBetaReadinessGate": "docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json",
     "externalBetaEvidencePacket": "docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json",
     "externalBetaEvidenceScaffold": "docs/tool-intelligence/ai-graphics/external-beta-evidence-scaffold.json"
@@ -29,6 +30,7 @@
     "admissionBundleExternalBetaLaunchCandidateToolsWithProvidedEvidence": 21,
     "serviceRoleQueueSmokePreflightAccepted": true,
     "serviceRoleQueueSmokeProofAccepted": true,
+    "launchControlsAccepted": true,
     "sourceLaunchGapRuntimeProofBridgeAccepted": true,
     "fullLaunchApprovalExternalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
@@ -40,6 +42,8 @@
     "sourceTechnicalProofPacketsRequired": true,
     "sourceTechnicalProofPacketsProvided": true,
     "sourceTechnicalProofPacketsAccepted": true,
+    "externalBetaLaunchControlsPacketRequired": true,
+    "admissionBundleAloneAcceptedAsLaunchControls": false,
     "prebuiltSummaryOnlyAdmissionBundleAccepted": false
   },
   "requiredLaunchApprovalRecord": {
@@ -118,6 +122,7 @@
     "sourceExternalBetaEvidenceAdmissionBundleAccepted": true,
     "sourceExternalBetaServiceRoleQueueSmokePreflightAccepted": true,
     "sourceExternalBetaServiceRoleQueueSmokeProofAccepted": true,
+    "sourceExternalBetaLaunchControlsAccepted": true,
     "externalBetaLaunchCandidateWithProvidedEvidence": true,
     "externalBetaLaunchGoNoGoApprovalRecordAccepted": true,
     "all21ToolsCovered": true,

@@ -8,6 +8,7 @@ import type { AiGraphicsExternalBetaEvidencePacket } from '../tool-registry/ai-g
 import type { AiGraphicsExternalBetaServiceRoleQueueSmokePreflight } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-preflight'
 import type { AiGraphicsExternalBetaServiceRoleQueueSmokeProof } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-proof'
 import type { AiGraphicsExternalBetaWorkerDispatchSmokeProof } from '../tool-registry/ai-graphics-external-beta-worker-dispatch-smoke-proof'
+import type { AiGraphicsExternalBetaLaunchControls } from '../tool-registry/ai-graphics-external-beta-launch-controls'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -42,6 +43,10 @@ const evidence: AiGraphicsExternalBetaEndToEndReadinessInput = {
   externalBetaWorkerDispatchSmokeProof:
     readJsonFile<AiGraphicsExternalBetaWorkerDispatchSmokeProof>(
       '--external-beta-worker-dispatch-smoke-proof',
+    ),
+  externalBetaLaunchControls:
+    readJsonFile<AiGraphicsExternalBetaLaunchControls>(
+      '--external-beta-launch-controls',
     ),
   externalBetaServiceRoleQueueSmokePreflight:
     readJsonFile<AiGraphicsExternalBetaServiceRoleQueueSmokePreflight>(
@@ -108,6 +113,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--external-beta-evidence-admission-bundle')),
     externalBetaWorkerDispatchSmokeProofRead:
       Boolean(stringFlag('--external-beta-worker-dispatch-smoke-proof')),
+    externalBetaLaunchControlsRead:
+      Boolean(stringFlag('--external-beta-launch-controls')),
     externalBetaServiceRoleQueueSmokePreflightRead:
       Boolean(stringFlag('--external-beta-service-role-queue-smoke-preflight-packet')),
     externalBetaServiceRoleQueueSmokeProofRead:

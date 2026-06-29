@@ -12,6 +12,7 @@
     "externalBetaWorkerEnqueueAdapter": "docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.json",
     "externalBetaWorkerDispatchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-readiness.json",
     "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
+    "externalBetaLaunchControls": "docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json",
     "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
     "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "externalBetaServiceRoleQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json",
@@ -45,6 +46,7 @@
     "fullEvidenceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
     "fullEvidenceWorkerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence": 21,
     "fullEvidenceWorkerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence": 21,
+    "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": 1,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
@@ -117,6 +119,7 @@
     "fullEvidenceServiceRoleQueueSmokeReadyToExecute": true,
     "fullEvidenceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence": true,
     "fullEvidenceWorkerDispatchSmokeProofAcceptedWithProvidedEvidence": true,
+    "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": true,
     "defaultExternalBetaCandidateReadyWithProvidedEvidence": false,
     "fullEvidenceExternalBetaCandidateReadyWithProvidedEvidence": true,
     "externalBetaReadyNow": false,

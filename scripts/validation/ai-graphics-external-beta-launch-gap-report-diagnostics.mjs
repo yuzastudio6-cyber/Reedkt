@@ -5,6 +5,7 @@ import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+import { acceptedExternalBetaLaunchControlsPacket } from './ai-graphics-external-beta-launch-controls-fixture-packet.mjs'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -38,6 +39,7 @@ const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-launch-gap-report-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
+const launchControlsScriptName = 'ai-graphics:external-beta-launch-controls'
 
 const allTools = [
   'torch_torchvision',
@@ -313,12 +315,14 @@ const requiredFiles = [
   'server/tool-registry/ai-graphics-external-beta-evidence-scaffold.ts',
   'server/tool-registry/ai-graphics-external-beta-evidence-packet.ts',
   'server/tool-registry/ai-graphics-external-beta-readiness-gate.ts',
+  'server/tool-registry/ai-graphics-external-beta-launch-controls.ts',
   'server/tool-registry/index.ts',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.json',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.md',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-scaffold.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
 ]
 
@@ -353,6 +357,7 @@ for (const [key, expected] of Object.entries({
   gpuRuntimeTargetedTools: 8,
   defaultExternalBetaCandidatesWithProvidedEvidenceTools: 0,
   fullEvidenceExternalBetaCandidatesWithProvidedEvidenceTools: 21,
+  fullEvidenceExternalBetaLaunchControlsAccepted: true,
   externalBetaReadyNowTools: 0,
   externalBetaBlockedNowTools: 21,
   productionReadyNowTools: 0,
@@ -399,7 +404,7 @@ for (const sequenceNeedle of [
   'Generate local-only external-beta evidence templates',
   'Replace all rejected public placeholders with private/backend evidence refs',
   'Validate the sanitized evidence',
-  'Feed the validated packet into ai-graphics:external-beta-readiness-gate',
+  'Feed the validated packet and accepted launch controls into ai-graphics:external-beta-readiness-gate',
   'Run a separate external-beta launch go/no-go',
 ]) {
   if (!source.includes(sequenceNeedle)) fail(`source_missing_launch_sequence:${sequenceNeedle}`)
@@ -427,6 +432,7 @@ for (const needle of [
   '--external-beta-evidence-packet',
   '--external-beta-evidence-admission-bundle',
   '--external-beta-worker-dispatch-smoke-proof',
+  '--external-beta-launch-controls',
   '--external-beta-worker-dispatch-smoke-proof-accepted',
   '--all-shared-gates-passed',
   '--all-external-beta-evidence-passed',
@@ -491,6 +497,10 @@ const nativeGpuProofCollectionPacketPath = writeJson(
   path.join(tempRoot, 'external-beta-native-gpu-proof-collection-packet.json'),
   acceptedNativeGpuProofCollectionPacket(),
 )
+const launchControlsPacketPath = writeJson(
+  path.join(tempRoot, 'external-beta-launch-controls.json'),
+  acceptedExternalBetaLaunchControlsPacket(),
+)
 const admissionBundlePath = writeJson(
   path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
   parseJsonOutput(
@@ -529,6 +539,8 @@ const fullOutput = parseJsonOutput(runNpm(runScriptName, [
   admissionBundlePath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
+  '--external-beta-launch-controls',
+  launchControlsPacketPath,
 ]), 'full_launch_gap_report')
 
 if (defaultOutput.externalBetaCandidatesWithProvidedEvidenceTools !== 0) {
@@ -670,6 +682,8 @@ const allowedPackageAdditions = new Set([
   `+    "${toolRouteRuntimeProofDiagnosticScriptName}": "${toolRouteRuntimeProofDiagnosticScriptCommand}",`,
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-beta-launch-controls": "tsx server/cli/ai-graphics-external-beta-launch-controls.ts",',
+  '+    "ai-graphics:external-beta-launch-controls:diagnostics": "node scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-cpu-static-runtime-admission": "tsx server/cli/ai-graphics-external-beta-cpu-static-runtime-admission.ts",',
   '+    "ai-graphics:external-beta-cpu-static-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-runtime-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-launch-go-no-go": "tsx server/cli/ai-graphics-external-beta-launch-go-no-go.ts",',

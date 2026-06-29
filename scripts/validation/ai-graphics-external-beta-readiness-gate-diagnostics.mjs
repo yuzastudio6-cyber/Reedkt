@@ -5,6 +5,7 @@ import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+import { acceptedExternalBetaLaunchControlsPacket } from './ai-graphics-external-beta-launch-controls-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const scriptName = 'ai-graphics:external-beta-readiness-gate:diagnostics'
@@ -14,6 +15,7 @@ const evaluatorScriptCommand = 'tsx server/cli/ai-graphics-external-beta-readine
 const evidencePacketScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
 const evidencePacketScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-packet.ts'
 const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
+const launchControlsScriptName = 'ai-graphics:external-beta-launch-controls'
 const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
 const workerDispatchSmokeProofScriptName =
   'ai-graphics:external-beta-worker-dispatch-smoke-proof'
@@ -318,6 +320,7 @@ for (const needle of [
   'externalBetaEvidencePacket',
   'externalBetaEvidenceAdmissionBundle',
   'externalBetaWorkerDispatchSmokeProof',
+  'externalBetaLaunchControls',
   'technicalEvidenceSourceMode ===',
   'sourceTechnicalProofPacketsRequired === true',
   'sourceTechnicalProofPacketsProvided === true',
@@ -326,9 +329,8 @@ for (const needle of [
   'AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION',
   'externalBetaEvidenceAdmissionBundleAccepted',
   'externalBetaWorkerDispatchSmokeProofAccepted',
-  'internalBetaRuntimeSoakAccepted:\n      externalBetaEvidenceAdmissionBundleAccepted',
-  'externalBetaQaAccepted:\n      externalBetaEvidenceAdmissionBundleAccepted',
-  'externalBetaOwnerApprovalGranted:\n      externalBetaEvidenceAdmissionBundleAccepted',
+  'externalBetaLaunchControlsAccepted',
+  'external-beta launch controls packet is not accepted',
   'externalBetaWorkerDispatchSmokeProofAccepted:\n      externalBetaWorkerDispatchSmokeProofAcceptedFromPacket',
   'gpuRuntimeOnDemandOnly: true',
   'agentCanExecuteToolsNow: false',
@@ -345,6 +347,7 @@ for (const needle of [
   '--external-beta-evidence-packet',
   '--external-beta-evidence-admission-bundle',
   '--external-beta-worker-dispatch-smoke-proof',
+  '--external-beta-launch-controls',
   '--external-beta-worker-dispatch-smoke-proof-accepted',
   'evaluatorOnly: true',
 ]) {
@@ -366,8 +369,11 @@ if (docs.counts?.overrideFlagExternalBetaReadyWithProvidedEvidenceTools !== 0) {
 if (docs.counts?.prebuiltAdmissionBundleExternalBetaReadyWithProvidedEvidenceTools !== 0) {
   fail('docs_prebuilt_admission_bundle_ready_with_evidence_not_0')
 }
-if (docs.counts?.admissionBundleExternalBetaReadyWithProvidedEvidenceTools !== 21) {
-  fail('docs_admission_bundle_external_beta_ready_with_evidence_not_21')
+if (docs.counts?.admissionBundleExternalBetaReadyWithProvidedEvidenceTools !== 0) {
+  fail('docs_admission_bundle_external_beta_ready_with_evidence_not_0')
+}
+if (docs.counts?.admissionBundlePlusLaunchControlsExternalBetaReadyWithProvidedEvidenceTools !== 21) {
+  fail('docs_admission_bundle_plus_launch_controls_ready_with_evidence_not_21')
 }
 if (docs.counts?.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
   fail('docs_worker_dispatch_smoke_proof_accepted_tools_not_21')
@@ -387,6 +393,12 @@ if (docs.sourceAdmissionRequirements?.requiredTechnicalEvidenceSourceMode !== 's
 if (docs.sourceAdmissionRequirements?.prebuiltBetaEvidenceSummaryRejectedForReadiness !== true) {
   fail('docs_prebuilt_summary_not_rejected_for_readiness')
 }
+if (docs.sourceAdmissionRequirements?.externalBetaLaunchControlsPacketRequired !== true) {
+  fail('docs_launch_controls_requirement_missing')
+}
+if (docs.sourceAdmissionRequirements?.admissionBundleAloneAcceptedAsLaunchControls !== false) {
+  fail('docs_admission_bundle_alone_unexpected_launch_controls')
+}
 
 for (const key of [
   'externalBetaReadinessGatePrepared',
@@ -394,6 +406,7 @@ for (const key of [
   'sourceBetaToolCallReadinessAccepted',
   'sourceExternalBetaEvidenceAdmissionBundleAccepted',
   'sourceExternalBetaWorkerDispatchSmokeProofAccepted',
+  'sourceExternalBetaLaunchControlsAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all21ToolsInstalledForPlannedSurface',
@@ -484,6 +497,10 @@ const gpuRuntimeProofResultPacketPath = writeJson(
 const nativeGpuProofCollectionPacketPath = writeJson(
   path.join(tempRoot, 'external-beta-native-gpu-proof-collection-packet.json'),
   acceptedNativeGpuProofCollectionPacket(),
+)
+const launchControlsPacketPath = writeJson(
+  path.join(tempRoot, 'external-beta-launch-controls.json'),
+  acceptedExternalBetaLaunchControlsPacket(),
 )
 const fullEvidenceRecordsPath = path.join(tempRoot, 'full-external-beta-evidence-records.json')
 const fullEvidencePacketPath = path.join(tempRoot, 'full-external-beta-evidence-packet.json')
@@ -621,8 +638,8 @@ const admissionBundleFedOutput = parseJsonOutput(runEvaluator([
 if (admissionBundleFedOutput.betaTestingReadyWithProvidedEvidenceTools !== 21) {
   fail('admission_bundle_fed_beta_testing_ready_with_evidence_not_21')
 }
-if (admissionBundleFedOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
-  fail('admission_bundle_fed_external_beta_ready_with_evidence_not_21')
+if (admissionBundleFedOutput.externalBetaReadyWithProvidedEvidenceTools !== 0) {
+  fail('admission_bundle_fed_external_beta_ready_with_evidence_not_0')
 }
 if (admissionBundleFedOutput.externalBetaReadyNowTools !== 0) {
   fail('admission_bundle_fed_external_beta_ready_now_not_0')
@@ -638,6 +655,44 @@ if (admissionBundleFedOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundle
 }
 if (admissionBundleFedOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted !== true) {
   fail('admission_bundle_fed_worker_dispatch_smoke_proof_not_accepted')
+}
+if (admissionBundleFedOutput.booleans?.sourceExternalBetaLaunchControlsAccepted !== false) {
+  fail('admission_bundle_fed_launch_controls_unexpectedly_accepted')
+}
+
+const admissionBundleWithControlsOutput = parseJsonOutput(runEvaluator([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--external-beta-evidence-admission-bundle',
+  admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+  '--external-beta-launch-controls',
+  launchControlsPacketPath,
+]), 'external_beta_admission_bundle_with_launch_controls')
+if (admissionBundleWithControlsOutput.betaTestingReadyWithProvidedEvidenceTools !== 21) {
+  fail('admission_bundle_with_controls_beta_testing_ready_with_evidence_not_21')
+}
+if (admissionBundleWithControlsOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
+  fail('admission_bundle_with_controls_external_beta_ready_with_evidence_not_21')
+}
+if (admissionBundleWithControlsOutput.externalBetaReadyNowTools !== 0) {
+  fail('admission_bundle_with_controls_external_beta_ready_now_not_0')
+}
+if (admissionBundleWithControlsOutput.productionReadyNowTools !== 0) {
+  fail('admission_bundle_with_controls_production_ready_now_not_0')
+}
+if (admissionBundleWithControlsOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== true) {
+  fail('admission_bundle_with_controls_admission_bundle_not_accepted')
+}
+if (admissionBundleWithControlsOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted !== true) {
+  fail('admission_bundle_with_controls_worker_dispatch_smoke_proof_not_accepted')
+}
+if (admissionBundleWithControlsOutput.booleans?.sourceExternalBetaLaunchControlsAccepted !== true) {
+  fail('admission_bundle_with_controls_launch_controls_not_accepted')
 }
 
 const prebuiltAdmissionBundleFedOutput = parseJsonOutput(runEvaluator([
@@ -663,6 +718,7 @@ for (const output of [
   overrideFlagOutput,
   packetFedOutput,
   admissionBundleFedOutput,
+  admissionBundleWithControlsOutput,
   prebuiltAdmissionBundleFedOutput,
 ]) {
   for (const tool of allTools) {
@@ -782,12 +838,16 @@ console.log(JSON.stringify({
     overrideFlagOutput.externalBetaReadyWithProvidedEvidenceTools,
   packetFedExternalBetaReadyWithProvidedEvidenceTools:
     packetFedOutput.externalBetaReadyWithProvidedEvidenceTools,
-  admissionBundleFedExternalBetaReadyWithProvidedEvidenceTools:
+  admissionBundleOnlyExternalBetaReadyWithProvidedEvidenceTools:
     admissionBundleFedOutput.externalBetaReadyWithProvidedEvidenceTools,
+  admissionBundleWithLaunchControlsExternalBetaReadyWithProvidedEvidenceTools:
+    admissionBundleWithControlsOutput.externalBetaReadyWithProvidedEvidenceTools,
   workerDispatchSmokeProofAccepted:
-    admissionBundleFedOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted,
-  externalBetaReadyNowTools: admissionBundleFedOutput.externalBetaReadyNowTools,
-  externalBetaBlockedNowTools: admissionBundleFedOutput.externalBetaBlockedNowTools,
-  agentCanExecuteToolsNow: admissionBundleFedOutput.booleans?.agentCanExecuteToolsNow,
-  runtimeReadyNow: admissionBundleFedOutput.booleans?.runtimeReadyNow,
+    admissionBundleWithControlsOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted,
+  launchControlsAccepted:
+    admissionBundleWithControlsOutput.booleans?.sourceExternalBetaLaunchControlsAccepted,
+  externalBetaReadyNowTools: admissionBundleWithControlsOutput.externalBetaReadyNowTools,
+  externalBetaBlockedNowTools: admissionBundleWithControlsOutput.externalBetaBlockedNowTools,
+  agentCanExecuteToolsNow: admissionBundleWithControlsOutput.booleans?.agentCanExecuteToolsNow,
+  runtimeReadyNow: admissionBundleWithControlsOutput.booleans?.runtimeReadyNow,
 }, null, 2))

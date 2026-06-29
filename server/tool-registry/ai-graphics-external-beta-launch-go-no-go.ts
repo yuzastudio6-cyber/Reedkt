@@ -15,6 +15,11 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION,
   type AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
 } from './ai-graphics-external-beta-service-role-queue-smoke-proof'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_CONTROLS_DECISION,
+  acceptedAiGraphicsExternalBetaLaunchControls,
+  type AiGraphicsExternalBetaLaunchControls,
+} from './ai-graphics-external-beta-launch-controls'
 import type { AiGraphicsExternalBetaReadinessEvidence } from './ai-graphics-external-beta-readiness-gate'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION =
@@ -35,6 +40,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGoInput
     AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
   sourceExternalBetaServiceRoleQueueSmokeProofPacket?:
     AiGraphicsExternalBetaServiceRoleQueueSmokeProof
+  sourceExternalBetaLaunchControlsPacket?: AiGraphicsExternalBetaLaunchControls
   externalBetaLaunchSwitchApproved?: boolean
   externalBetaLaunchRef?: string
   externalBetaRolloutCohortApproved?: boolean
@@ -57,6 +63,8 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
     typeof AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION
   sourceExternalBetaServiceRoleQueueSmokeProofDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION
+  sourceExternalBetaLaunchControlsDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_CONTROLS_DECISION
   status: AiGraphicsExternalBetaLaunchGoNoGoStatus
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -74,6 +82,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
   sourceServiceRoleQueueSmokePreflight:
     AiGraphicsExternalBetaServiceRoleQueueSmokePreflight | null
   sourceServiceRoleQueueSmokeProof: AiGraphicsExternalBetaServiceRoleQueueSmokeProof | null
+  sourceLaunchControls: AiGraphicsExternalBetaLaunchControls | null
   requiredLaunchApprovalRecord: {
     required: true
     approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER'
@@ -95,6 +104,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
     sourceExternalBetaEvidenceAdmissionBundleAccepted: boolean
     sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: boolean
     sourceExternalBetaServiceRoleQueueSmokeProofAccepted: boolean
+    sourceExternalBetaLaunchControlsAccepted: boolean
     externalBetaLaunchCandidateWithProvidedEvidence: boolean
     externalBetaLaunchGoNoGoApprovalRecordAccepted: boolean
     all21ToolsCovered: true
@@ -172,19 +182,43 @@ function hasNonEmptyRef(value: string | undefined): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+function hasPrivateEvidenceRef(value: string | undefined): boolean {
+  if (!hasNonEmptyRef(value)) return false
+  const normalized = value.trim().toLowerCase()
+  if (
+    normalized.startsWith('http://') ||
+    normalized.startsWith('https://') ||
+    normalized.startsWith('gs://') ||
+    normalized.startsWith('s3://') ||
+    normalized.includes('signed-url') ||
+    normalized.includes('public-artifact') ||
+    normalized.includes('/public/')
+  ) {
+    return false
+  }
+  return normalized.startsWith('private://') ||
+    normalized.startsWith('backend://') ||
+    normalized.startsWith('external-beta-evidence://')
+}
+
 function launchApprovalRecordAccepted(input: AiGraphicsExternalBetaLaunchGoNoGoInput): boolean {
-  return input.externalBetaLaunchSwitchApproved === true &&
-    hasNonEmptyRef(input.externalBetaLaunchRef) &&
+  const sourceLaunchControlsAccepted = acceptedAiGraphicsExternalBetaLaunchControls(
+    input.sourceExternalBetaLaunchControlsPacket,
+  )
+  return sourceLaunchControlsAccepted || (
+    input.externalBetaLaunchSwitchApproved === true &&
+    hasPrivateEvidenceRef(input.externalBetaLaunchRef) &&
     input.externalBetaRolloutCohortApproved === true &&
-    hasNonEmptyRef(input.externalBetaRolloutCohortRef) &&
+    hasPrivateEvidenceRef(input.externalBetaRolloutCohortRef) &&
     input.externalBetaCostConcurrencyCeilingApproved === true &&
-    hasNonEmptyRef(input.externalBetaCostConcurrencyCeilingRef) &&
+    hasPrivateEvidenceRef(input.externalBetaCostConcurrencyCeilingRef) &&
     input.externalBetaRollbackIncidentRunbookApproved === true &&
-    hasNonEmptyRef(input.externalBetaRollbackIncidentRunbookRef) &&
+    hasPrivateEvidenceRef(input.externalBetaRollbackIncidentRunbookRef) &&
     input.externalBetaPrivateArtifactRetentionSupportApproved === true &&
-    hasNonEmptyRef(input.externalBetaPrivateArtifactRetentionSupportRef) &&
+    hasPrivateEvidenceRef(input.externalBetaPrivateArtifactRetentionSupportRef) &&
     (input.externalBetaLaunchApproverRole ?? 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER') ===
       'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER'
+  )
 }
 
 function statusFromInput(input: {
@@ -352,6 +386,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     input.sourceExternalBetaServiceRoleQueueSmokePreflightPacket ?? null
   const sourceServiceRoleQueueSmokeProof =
     input.sourceExternalBetaServiceRoleQueueSmokeProofPacket ?? null
+  const sourceLaunchControls =
+    input.sourceExternalBetaLaunchControlsPacket ?? null
   const sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted =
     launchGapRuntimeProofBridgeAccepted(sourceLaunchGapReport)
   const sourceLaunchGapAccepted = launchGapCandidateAccepted(sourceLaunchGapReport)
@@ -366,6 +402,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     serviceRoleQueueSmokeProofAccepted(
       input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
     )
+  const sourceExternalBetaLaunchControlsAccepted =
+    acceptedAiGraphicsExternalBetaLaunchControls(input.sourceExternalBetaLaunchControlsPacket)
   const candidateSourceEvidenceAccepted =
     sourceLaunchGapAccepted || sourceEvidenceAdmissionBundleAccepted
   const candidateWithProvidedEvidence =
@@ -391,16 +429,19 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     !sourceExternalBetaServiceRoleQueueSmokeProofAccepted
       ? 'external_beta_service_role_queue_smoke_proof_accepted'
       : undefined,
-    !input.externalBetaLaunchSwitchApproved ? 'external_beta_launch_switch_approval' : undefined,
-    !hasNonEmptyRef(input.externalBetaLaunchRef) ? 'external_beta_launch_ref' : undefined,
-    !input.externalBetaRolloutCohortApproved ? 'external_beta_rollout_cohort_approval' : undefined,
-    !hasNonEmptyRef(input.externalBetaRolloutCohortRef) ? 'external_beta_rollout_cohort_ref' : undefined,
-    !input.externalBetaCostConcurrencyCeilingApproved ? 'external_beta_cost_concurrency_ceiling_approval' : undefined,
-    !hasNonEmptyRef(input.externalBetaCostConcurrencyCeilingRef) ? 'external_beta_cost_concurrency_ceiling_ref' : undefined,
-    !input.externalBetaRollbackIncidentRunbookApproved ? 'external_beta_rollback_incident_runbook_approval' : undefined,
-    !hasNonEmptyRef(input.externalBetaRollbackIncidentRunbookRef) ? 'external_beta_rollback_incident_runbook_ref' : undefined,
-    !input.externalBetaPrivateArtifactRetentionSupportApproved ? 'external_beta_private_artifact_retention_support_approval' : undefined,
-    !hasNonEmptyRef(input.externalBetaPrivateArtifactRetentionSupportRef) ? 'external_beta_private_artifact_retention_support_ref' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted
+      ? 'external_beta_launch_controls_packet_accepted'
+      : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !input.externalBetaLaunchSwitchApproved ? 'external_beta_launch_switch_approval' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !hasPrivateEvidenceRef(input.externalBetaLaunchRef) ? 'external_beta_launch_ref' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !input.externalBetaRolloutCohortApproved ? 'external_beta_rollout_cohort_approval' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !hasPrivateEvidenceRef(input.externalBetaRolloutCohortRef) ? 'external_beta_rollout_cohort_ref' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !input.externalBetaCostConcurrencyCeilingApproved ? 'external_beta_cost_concurrency_ceiling_approval' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !hasPrivateEvidenceRef(input.externalBetaCostConcurrencyCeilingRef) ? 'external_beta_cost_concurrency_ceiling_ref' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !input.externalBetaRollbackIncidentRunbookApproved ? 'external_beta_rollback_incident_runbook_approval' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !hasPrivateEvidenceRef(input.externalBetaRollbackIncidentRunbookRef) ? 'external_beta_rollback_incident_runbook_ref' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !input.externalBetaPrivateArtifactRetentionSupportApproved ? 'external_beta_private_artifact_retention_support_approval' : undefined,
+    !sourceExternalBetaLaunchControlsAccepted && !hasPrivateEvidenceRef(input.externalBetaPrivateArtifactRetentionSupportRef) ? 'external_beta_private_artifact_retention_support_ref' : undefined,
     input.externalBetaLaunchApproverRole &&
       input.externalBetaLaunchApproverRole !== 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER'
       ? 'external_beta_launch_approver_role_must_be_AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER'
@@ -416,6 +457,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
       AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION,
     sourceExternalBetaServiceRoleQueueSmokeProofDecision:
       AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PROOF_DECISION,
+    sourceExternalBetaLaunchControlsDecision:
+      AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_CONTROLS_DECISION,
     status,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -434,6 +477,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
     sourceEvidenceAdmissionBundle,
     sourceServiceRoleQueueSmokePreflight,
     sourceServiceRoleQueueSmokeProof,
+    sourceLaunchControls,
     requiredLaunchApprovalRecord: {
       required: true,
       approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
@@ -458,6 +502,8 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
         sourceExternalBetaServiceRoleQueueSmokePreflightAccepted,
       sourceExternalBetaServiceRoleQueueSmokeProofAccepted:
         sourceExternalBetaServiceRoleQueueSmokeProofAccepted,
+      sourceExternalBetaLaunchControlsAccepted:
+        sourceExternalBetaLaunchControlsAccepted,
       externalBetaLaunchCandidateWithProvidedEvidence: candidateWithProvidedEvidence,
       externalBetaLaunchGoNoGoApprovalRecordAccepted: approvalRecordAccepted,
       all21ToolsCovered: true,

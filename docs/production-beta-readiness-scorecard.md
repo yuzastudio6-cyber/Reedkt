@@ -1399,6 +1399,14 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - GPU policy: the 8 GPU/model tools remain native NVIDIA L4 targeted and on-demand only. No idle GPU runtime is approved; GPU can start only for a later accepted worker/tool call after launch and runtime-admission gates pass.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics External-Beta Launch Controls
+
+- Decision: `ai_graphics_external_beta_launch_controls_prepared_with_runtime_blocks`.
+- Scope: AI-graphics-specific launch-control packet after technical admission and before external-beta candidate/readiness promotion.
+- Result: the packet requires 12 private/backend refs for runtime soak, external-beta QA, cost/concurrency/privacy/rollback, incident response, owner approval, launch switch, rollout cohort, cost/concurrency ceiling, rollback/incident runbook, private artifact retention/support, support ownership, and worker-dispatch smoke proof. The technical admission bundle alone is explicitly not launch approval.
+- GPU policy: GPU remains on-demand only. Accepted launch controls do not start GPU runtime; GPU can start only for a later accepted worker/tool call after runtime admission and queue controls pass.
+- Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`, `workerExecutionApprovedNow=false`, `workerQueueApprovedNow=false`, `toolExecutionApprovedNow=false`, `gpuRuntimeApprovedNow=false`, `gpuRuntimeShouldStartNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics External-Beta End-to-End Readiness
 
 - Decision: `ai_graphics_external_beta_end_to_end_readiness_prepared_with_remaining_blocks`.

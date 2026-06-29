@@ -12,6 +12,9 @@ import type {
 import type {
   AiGraphicsExternalBetaNativeGpuProofCollection,
 } from '../tool-registry/ai-graphics-external-beta-native-gpu-proof-collection'
+import type {
+  AiGraphicsExternalBetaActivatedLaunchReadiness,
+} from '../tool-registry/ai-graphics-external-beta-activated-launch-readiness'
 
 const expectedGpuRuntimeTargets: Record<string, string> = {
   torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
@@ -260,6 +263,12 @@ function readSourceExternalBetaNativeGpuProofCollectionPacket():
     AiGraphicsExternalBetaNativeGpuProofCollection | undefined
 }
 
+function readSourceExternalBetaActivatedLaunchReadinessPacket():
+  AiGraphicsExternalBetaActivatedLaunchReadiness | undefined {
+  return readJsonFile('--external-beta-activated-launch-readiness-packet') as
+    AiGraphicsExternalBetaActivatedLaunchReadiness | undefined
+}
+
 const allTechnicalGatesPassed = hasFlag('--all-technical-gates-passed')
 const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
   approvedPlanSnapshotGatePassed: allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
@@ -287,11 +296,14 @@ const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
 const sourcePacket = readSourceProductionWorkerGateReadinessPacket()
 const sourceExternalBetaNativeGpuProofCollectionPacket =
   readSourceExternalBetaNativeGpuProofCollectionPacket()
+const sourceExternalBetaActivatedLaunchReadinessPacket =
+  readSourceExternalBetaActivatedLaunchReadinessPacket()
 const readiness = buildAiGraphicsBetaProductionReadinessRollup({
   evidenceBundleInput,
   sourceProductionWorkerGateReadinessPacket:
     sourcePacket.sourceProductionWorkerGateReadinessPacket,
   sourceExternalBetaNativeGpuProofCollectionPacket,
+  sourceExternalBetaActivatedLaunchReadinessPacket,
   ownerApprovalGranted: hasFlag('--owner-approval-granted'),
   ownerApprovalRef: valueAfterFlag('--owner-approval-ref'),
   ownerApproverRole: valueAfterFlag('--owner-approver-role') ?? 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER',
@@ -306,6 +318,8 @@ const output = {
       Boolean(sourcePacket.sourceProductionWorkerGateReadinessPacket),
     sourceExternalBetaNativeGpuProofCollectionPacketRead:
       Boolean(sourceExternalBetaNativeGpuProofCollectionPacket),
+    sourceExternalBetaActivatedLaunchReadinessPacketRead:
+      Boolean(sourceExternalBetaActivatedLaunchReadinessPacket),
     ownerApprovalRefProvided: Boolean(valueAfterFlag('--owner-approval-ref')),
     committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
     dependencyInstallPerformed: false,
@@ -335,6 +349,10 @@ if (
   process.exitCode = 2
 }
 
-if (hasFlag('--require-external-beta-ready') || hasFlag('--require-production-ready')) {
+if (hasFlag('--require-external-beta-ready') && !readiness.booleans.externalBetaReadyNow) {
+  process.exitCode = 3
+}
+
+if (hasFlag('--require-production-ready')) {
   process.exitCode = 3
 }

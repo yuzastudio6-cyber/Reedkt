@@ -18,6 +18,10 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
   type AiGraphicsExternalBetaNativeGpuProofCollection,
 } from './ai-graphics-external-beta-native-gpu-proof-collection'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION,
+  type AiGraphicsExternalBetaActivatedLaunchReadiness,
+} from './ai-graphics-external-beta-activated-launch-readiness'
 
 export const AI_GRAPHICS_BETA_PRODUCTION_READINESS_ROLLUP_DECISION =
   'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks'
@@ -31,6 +35,7 @@ export interface AiGraphicsBetaProductionReadinessRollupInput
   extends AiGraphicsInternalBetaProductionWorkerGateReadinessInput {
   sourceProductionWorkerGateReadinessPacket?: AiGraphicsInternalBetaProductionWorkerGateReadiness
   sourceExternalBetaNativeGpuProofCollectionPacket?: AiGraphicsExternalBetaNativeGpuProofCollection
+  sourceExternalBetaActivatedLaunchReadinessPacket?: AiGraphicsExternalBetaActivatedLaunchReadiness
 }
 
 export interface AiGraphicsBetaProductionReadinessRollup {
@@ -40,6 +45,8 @@ export interface AiGraphicsBetaProductionReadinessRollup {
   sourceProductionWorkerGateDecision: typeof AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_GATE_READINESS_DECISION
   sourceExternalBetaNativeGpuProofCollectionDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION
+  sourceExternalBetaActivatedLaunchReadinessDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION | null
   status: AiGraphicsBetaProductionReadinessRollupStatus
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -61,7 +68,7 @@ export interface AiGraphicsBetaProductionReadinessRollup {
   nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence: number
   modelWeightManifestReviewAcceptedWithProvidedEvidence: number
   internalBetaReadyNowTools: 0
-  externalBetaReadyNowTools: 0
+  externalBetaReadyNowTools: 0 | 21
   productionReadyNowTools: 0
   activationGapReport: AiGraphicsBetaActivationGapReport
   crossOwnerCoordination: AiGraphicsCrossOwnerCoordinationPacket
@@ -87,7 +94,8 @@ export interface AiGraphicsBetaProductionReadinessRollup {
     gpuRuntimeOnDemandOnly: true
     productionWorkerGateHardFailuresWithProvidedEvidenceAbsent: boolean
     internalBetaGoNoGoReadyWithProvidedEvidence: boolean
-    externalBetaGoNoGoReadyWithProvidedEvidence: false
+    externalBetaGoNoGoReadyWithProvidedEvidence: boolean
+    externalBetaActivatedLaunchReadyWithProvidedEvidence: boolean
     productionGoNoGoReadyWithProvidedEvidence: false
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -103,7 +111,7 @@ export interface AiGraphicsBetaProductionReadinessRollup {
     gpuRuntimeApprovedNow: false
     runtimeReadyNow: false
     internalBetaReadyNow: false
-    externalBetaReadyNow: false
+    externalBetaReadyNow: boolean
     productionReadyNow: false
     dependencyInstallPerformed: false
     packageLockMutationPerformed: false
@@ -140,7 +148,7 @@ const requiredFinalGoNoGoGates = [
   'accepted external beta service-role queue smoke preflight',
   'accepted saved external beta service-role queue smoke proof',
   'explicit internal beta owner go/no-go approval',
-  'separate external beta approval',
+  'accepted external beta activated-launch readiness',
   'separate production launch approval',
 ]
 
@@ -161,7 +169,6 @@ const stillBlockedRuntimeActions = [
   'signed URL creation',
   'public artifact creation',
   'internal beta runtime unlock',
-  'external beta unlock',
   'production unlock',
 ]
 
@@ -209,6 +216,67 @@ function nativeGpuProofCollectionAccepted(
     packet?.booleans.productionReadyNow === false
 }
 
+function externalBetaActivatedLaunchReadinessAccepted(
+  packet?: AiGraphicsExternalBetaActivatedLaunchReadiness,
+): boolean {
+  const scope = (packet as unknown as {
+    scope?: {
+      totalAiGraphicsTools?: number
+      productFacingCapabilities?: number
+      gpuRuntimeTargetedTools?: number
+      externalBetaActivatedLaunchReadyToolsWithProvidedEvidence?: number
+      externalBetaToolCallReadyNowTools?: number
+      externalBetaReadyNowTools?: number
+      runtimeReadyForOnDemandExternalBetaToolCallTools?: number
+      productionReadyNowTools?: number
+    }
+  } | undefined)?.scope
+  const totalAiGraphicsTools = packet?.totalAiGraphicsTools ?? scope?.totalAiGraphicsTools
+  const totalProductFacingCapabilities =
+    packet?.totalProductFacingCapabilities ?? scope?.productFacingCapabilities
+  const gpuRuntimeTargetedTools =
+    packet?.gpuRuntimeTargetedTools ?? scope?.gpuRuntimeTargetedTools
+  const externalBetaActivatedLaunchReadyToolsWithProvidedEvidence =
+    packet?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence ??
+    scope?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence
+  const externalBetaToolCallReadyNowTools =
+    packet?.externalBetaToolCallReadyNowTools ?? scope?.externalBetaToolCallReadyNowTools
+  const externalBetaReadyNowTools =
+    packet?.externalBetaReadyNowTools ?? scope?.externalBetaReadyNowTools
+  const runtimeReadyForOnDemandExternalBetaToolCallTools =
+    packet?.runtimeReadyForOnDemandExternalBetaToolCallTools ??
+    scope?.runtimeReadyForOnDemandExternalBetaToolCallTools
+  const productionReadyNowTools =
+    packet?.productionReadyNowTools ?? scope?.productionReadyNowTools
+  const gpuRuntimeShouldStartNow =
+    packet?.gpuRuntimeShouldStartNow ?? packet?.booleans.gpuRuntimeShouldStartNow
+
+  return Boolean(packet) &&
+    packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION &&
+    packet.status ===
+      'external_beta_activated_launch_ready_for_controlled_on_demand_tool_calls' &&
+    totalAiGraphicsTools === 21 &&
+    totalProductFacingCapabilities === 12 &&
+    gpuRuntimeTargetedTools === 8 &&
+    externalBetaActivatedLaunchReadyToolsWithProvidedEvidence === 21 &&
+    externalBetaToolCallReadyNowTools === 21 &&
+    externalBetaReadyNowTools === 21 &&
+    runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
+    productionReadyNowTools === 0 &&
+    gpuRuntimeShouldStartNow === false &&
+    packet.booleans.sourceExternalBetaLaunchGoNoGoAccepted === true &&
+    packet.booleans.sourceExternalBetaAll21ActivationRollupAccepted === true &&
+    packet.booleans.all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
+    packet.booleans.externalBetaReadyNow === true &&
+    packet.booleans.agentCanExecuteToolsNow === false &&
+    packet.booleans.routeExecutionApprovedNow === false &&
+    packet.booleans.workerExecutionApprovedNow === false &&
+    packet.booleans.toolExecutionApprovedNow === false &&
+    packet.booleans.gpuRuntimeApprovedNow === false &&
+    packet.booleans.gpuRuntimeShouldStartNow === false &&
+    packet.booleans.productionReadyNow === false
+}
+
 export function buildAiGraphicsBetaProductionReadinessRollup(
   input: AiGraphicsBetaProductionReadinessRollupInput = {},
 ): AiGraphicsBetaProductionReadinessRollup {
@@ -253,6 +321,10 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
   const nativeGpuProofCollectionReadyForPerToolRuntimeProofRecheck =
     sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence &&
     input.sourceExternalBetaNativeGpuProofCollectionPacket?.booleans.readyForPerToolRuntimeProofRecheck === true
+  const sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence =
+    externalBetaActivatedLaunchReadinessAccepted(
+      input.sourceExternalBetaActivatedLaunchReadinessPacket,
+    )
   const nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence =
     sourceExternalBetaNativeGpuProofCollectionAcceptedWithProvidedEvidence
       ? input.sourceExternalBetaNativeGpuProofCollectionPacket?.counts.nativeGpuRuntimeProofAcceptedTools ?? 0
@@ -274,6 +346,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       AI_GRAPHICS_INTERNAL_BETA_PRODUCTION_WORKER_GATE_READINESS_DECISION,
     sourceExternalBetaNativeGpuProofCollectionDecision:
       AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
+    sourceExternalBetaActivatedLaunchReadinessDecision:
+      input.sourceExternalBetaActivatedLaunchReadinessPacket?.decision ?? null,
     status,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -300,7 +374,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
     nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence,
     modelWeightManifestReviewAcceptedWithProvidedEvidence,
     internalBetaReadyNowTools: 0,
-    externalBetaReadyNowTools: 0,
+    externalBetaReadyNowTools:
+      sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence ? 21 : 0,
     productionReadyNowTools: 0,
     activationGapReport,
     crossOwnerCoordination,
@@ -335,7 +410,10 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
         productionWorkerGateReadiness.hardFailedGateChecksWithProvidedEvidence === 0,
       internalBetaGoNoGoReadyWithProvidedEvidence:
         sourceProductionWorkerGateAcceptedWithProvidedEvidence,
-      externalBetaGoNoGoReadyWithProvidedEvidence: false,
+      externalBetaGoNoGoReadyWithProvidedEvidence:
+        sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
+      externalBetaActivatedLaunchReadyWithProvidedEvidence:
+        sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
       productionGoNoGoReadyWithProvidedEvidence: false,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
@@ -351,7 +429,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       gpuRuntimeApprovedNow: false,
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
-      externalBetaReadyNow: false,
+      externalBetaReadyNow:
+        sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
       productionReadyNow: false,
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,

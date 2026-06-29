@@ -118,7 +118,7 @@ const requiredFinalGoNoGoGates = [
   'accepted external beta service-role queue smoke preflight',
   'accepted saved external beta service-role queue smoke proof',
   'explicit internal beta owner go/no-go approval',
-  'separate external beta approval',
+  'accepted external beta activated-launch readiness',
   'separate production launch approval',
 ]
 
@@ -136,7 +136,6 @@ const falseGateKeys = [
   'gpuRuntimeApprovedNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
-  'externalBetaReadyNow',
   'productionReadyNow',
   'dependencyInstallPerformed',
   'packageLockMutationPerformed',
@@ -439,6 +438,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/cross-owner-coordination.json',
   'docs/tool-intelligence/ai-graphics/internal-beta-production-worker-gate-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-collection.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
 
@@ -554,7 +554,6 @@ for (const blockedAction of [
   'GPU/model runtime execution',
   'signed URL creation',
   'public artifact creation',
-  'external beta unlock',
   'production unlock',
 ]) {
   if (!docs.stillBlockedRuntimeActions?.includes(blockedAction)) fail(`docs_missing_blocked_action:${blockedAction}`)
@@ -574,7 +573,7 @@ for (const [key, expected] of Object.entries({
   nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence: 6,
   modelWeightManifestReviewAcceptedWithProvidedEvidence: 5,
   internalBetaReadyNowTools: 0,
-  externalBetaReadyNowTools: 0,
+  externalBetaReadyNowTools: 21,
   productionReadyNowTools: 0,
 })) {
   if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
@@ -592,6 +591,15 @@ if (docs.nativeGpuProofCollection?.status !== 'external_beta_native_gpu_proof_co
 }
 if (docs.nativeGpuProofCollection?.sourcePacketFlag !== '--external-beta-native-gpu-proof-collection-packet') {
   fail(`docs_native_gpu_collection_flag:${docs.nativeGpuProofCollection?.sourcePacketFlag}`)
+}
+if (docs.externalBetaActivatedLaunchReadiness?.acceptedWithProvidedEvidence !== true) {
+  fail('docs_external_beta_activated_launch_not_accepted')
+}
+if (docs.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 21) {
+  fail('docs_external_beta_activated_launch_ready_tools_not_21')
+}
+if (docs.externalBetaActivatedLaunchReadiness?.gpuRuntimeShouldStartNow !== false) {
+  fail('docs_external_beta_activated_launch_gpu_should_start_not_false')
 }
 for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
   if (docs.expectedGpuRuntimeTargets?.[tool] !== runtimeTarget) {
@@ -637,12 +645,14 @@ for (const key of [
   'gpuRuntimeOnDemandOnly',
   'productionWorkerGateHardFailuresWithProvidedEvidenceAbsent',
   'internalBetaGoNoGoReadyWithProvidedEvidence',
+  'externalBetaGoNoGoReadyWithProvidedEvidence',
+  'externalBetaActivatedLaunchReadyWithProvidedEvidence',
+  'externalBetaReadyNow',
   'agentCanSelectForPlanning',
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_true_boolean_not_true:${key}`)
 }
 for (const key of [
-  'externalBetaGoNoGoReadyWithProvidedEvidence',
   'productionGoNoGoReadyWithProvidedEvidence',
   ...falseGateKeys,
 ]) {
@@ -736,6 +746,16 @@ const packetFedOutput = parseJsonOutput(runNpm(runScriptName, [
   nativeGpuProofCollectionPacketPath,
   '--require-internal-beta-go-no-go-ready',
 ]), 'packet_fed_rollup')
+const activatedPacketFedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-production-worker-gate-readiness-packet',
+  sourceGatePacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
+  '--external-beta-activated-launch-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+  '--require-internal-beta-go-no-go-ready',
+  '--require-external-beta-ready',
+]), 'activated_packet_fed_rollup')
 
 if (approvedOutput.status !== 'owner_approved_worker_gates_ready_runtime_still_blocked') {
   fail(`approved_status:${approvedOutput.status}`)
@@ -844,6 +864,28 @@ if (packetFedOutput.booleans?.productionGoNoGoReadyWithProvidedEvidence !== fals
   fail('packet_fed_production_go_no_go_not_false')
 }
 
+if (activatedPacketFedOutput.input?.sourceExternalBetaActivatedLaunchReadinessPacketRead !== true) {
+  fail('activated_packet_fed_activated_launch_packet_not_read')
+}
+if (activatedPacketFedOutput.externalBetaReadyNowTools !== 21) {
+  fail('activated_packet_fed_external_beta_ready_tools_not_21')
+}
+if (activatedPacketFedOutput.productionReadyNowTools !== 0) {
+  fail('activated_packet_fed_production_ready_tools_not_0')
+}
+if (activatedPacketFedOutput.booleans?.externalBetaGoNoGoReadyWithProvidedEvidence !== true) {
+  fail('activated_packet_fed_external_beta_go_no_go_not_true')
+}
+if (activatedPacketFedOutput.booleans?.externalBetaActivatedLaunchReadyWithProvidedEvidence !== true) {
+  fail('activated_packet_fed_activated_launch_not_true')
+}
+if (activatedPacketFedOutput.booleans?.externalBetaReadyNow !== true) {
+  fail('activated_packet_fed_external_beta_ready_not_true')
+}
+if (activatedPacketFedOutput.booleans?.productionReadyNow !== false) {
+  fail('activated_packet_fed_production_ready_not_false')
+}
+
 expectSourceGatePacketRejected('missing_tool_coverage', packetRoot, sourceGatePacket, (packet) =>
   deepMerge(packet, { totalAiGraphicsTools: 20 }),
 )
@@ -893,7 +935,7 @@ expectSourceGatePacketRejected('tool_execution_performed', packetRoot, sourceGat
   deepMerge(packet, { booleans: { toolExecutionPerformed: true } }),
 )
 
-for (const output of [defaultOutput, awaitingOutput, approvedOutput, packetFedOutput]) {
+for (const output of [defaultOutput, awaitingOutput, approvedOutput, packetFedOutput, activatedPacketFedOutput]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`false_gate_not_false:${key}`)
@@ -925,7 +967,6 @@ const forbiddenTruePatterns = [
   /gpuRuntimeApprovedNow["`:\s]+true/i,
   /runtimeReadyNow["`:\s]+true/i,
   /internalBetaReadyNow["`:\s]+true/i,
-  /externalBetaReadyNow["`:\s]+true/i,
   /productionReadyNow["`:\s]+true/i,
   /modelWeightsDownloaded["`:\s]+true/i,
   /modelWeightsLoaded["`:\s]+true/i,
@@ -1153,6 +1194,8 @@ console.log(JSON.stringify({
     approvedOutput.nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence,
   internalBetaReadyNowTools: approvedOutput.internalBetaReadyNowTools,
   externalBetaReadyNowTools: approvedOutput.externalBetaReadyNowTools,
+  activatedPacketFedExternalBetaReadyNowTools:
+    activatedPacketFedOutput.externalBetaReadyNowTools,
   productionReadyNowTools: approvedOutput.productionReadyNowTools,
   agentCanExecuteToolsNow: approvedOutput.booleans?.agentCanExecuteToolsNow,
   runtimeReadyNow: approvedOutput.booleans?.runtimeReadyNow,

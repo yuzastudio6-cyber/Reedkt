@@ -23,6 +23,10 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_WORKER_DISPATCH_SMOKE_PROOF_DECISION,
   type AiGraphicsExternalBetaWorkerDispatchSmokeProof,
 } from './ai-graphics-external-beta-worker-dispatch-smoke-proof'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION,
+  type AiGraphicsExternalBetaActivatedLaunchReadiness,
+} from './ai-graphics-external-beta-activated-launch-readiness'
 import type {
   ProductionRegistryWorkerType,
   ProductionToolId,
@@ -34,12 +38,15 @@ export const AI_GRAPHICS_EXTERNAL_BETA_END_TO_END_READINESS_DECISION =
 export type AiGraphicsExternalBetaEndToEndReadinessStatus =
   | 'installed_and_mapped_runtime_blocked'
   | 'external_beta_candidate_with_provided_evidence_runtime_still_blocked'
+  | 'external_beta_ready_for_controlled_on_demand_tool_calls_runtime_still_blocked'
 
 export interface AiGraphicsExternalBetaEndToEndReadinessInput
   extends AiGraphicsExternalBetaReadinessEvidence {
   externalBetaServiceRoleQueueSmokePreflight?:
     AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
   externalBetaServiceRoleQueueSmokeProof?: AiGraphicsExternalBetaServiceRoleQueueSmokeProof
+  externalBetaActivatedLaunchReadiness?:
+    AiGraphicsExternalBetaActivatedLaunchReadiness
 }
 
 export interface AiGraphicsExternalBetaEndToEndToolReadiness {
@@ -55,7 +62,7 @@ export interface AiGraphicsExternalBetaEndToEndToolReadiness {
   cpuFallbackAllowedForHeavyTool: false
   betaTechnicalEvidenceReadyWithProvidedEvidence: boolean
   externalBetaCandidateReadyWithProvidedEvidence: boolean
-  externalBetaReadyNow: false
+  externalBetaReadyNow: boolean
   productionReadyNow: false
   missingEndToEndGates: string[]
   nextProofMilestone: string
@@ -66,6 +73,8 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
   status: AiGraphicsExternalBetaEndToEndReadinessStatus
   sourceExternalBetaReadinessGateDecision: AiGraphicsExternalBetaReadinessGate['decision']
   sourceCrossOwnerCoordinationDecision: AiGraphicsCrossOwnerCoordinationPacket['decision']
+  sourceExternalBetaActivatedLaunchReadinessDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION | null
   counts: {
     totalAiGraphicsTools: 21
     totalProductFacingCapabilities: 12
@@ -90,7 +99,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: number
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: number
     externalBetaLaunchControlsAcceptedWithProvidedEvidence: 0 | 1
-    externalBetaReadyNowTools: 0
+    externalBetaReadyNowTools: 0 | 21
     productionReadyNowTools: 0
   }
   runtimePolicy: {
@@ -134,8 +143,9 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: boolean
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: boolean
     externalBetaLaunchControlsAcceptedWithProvidedEvidence: boolean
+    externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence: boolean
     externalBetaCandidateReadyWithProvidedEvidence: boolean
-    externalBetaReadyNow: false
+    externalBetaReadyNow: boolean
     productionReadyNow: false
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -220,8 +230,12 @@ function statusFromGate(input: {
   serviceRoleQueueSmokePreflight: AiGraphicsExternalBetaServiceRoleQueueSmokePreflight
   serviceRoleQueueSmokeProofAccepted: boolean
   workerDispatchSmokeProofAccepted: boolean
+  externalBetaActivatedLaunchReadinessAccepted: boolean
 }):
   AiGraphicsExternalBetaEndToEndReadinessStatus {
+  if (input.externalBetaActivatedLaunchReadinessAccepted) {
+    return 'external_beta_ready_for_controlled_on_demand_tool_calls_runtime_still_blocked'
+  }
   return input.gate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
     input.serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
     input.serviceRoleQueueSmokeProofAccepted &&
@@ -286,6 +300,70 @@ function workerDispatchSmokeProofAccepted(
   )
 }
 
+function externalBetaActivatedLaunchReadinessAccepted(
+  packet: AiGraphicsExternalBetaActivatedLaunchReadiness | undefined,
+): packet is AiGraphicsExternalBetaActivatedLaunchReadiness {
+  const scope = (packet as unknown as {
+    scope?: {
+      totalAiGraphicsTools?: number
+      productFacingCapabilities?: number
+      gpuRuntimeTargetedTools?: number
+      externalBetaActivatedLaunchReadyToolsWithProvidedEvidence?: number
+      externalBetaToolCallReadyNowTools?: number
+      externalBetaReadyNowTools?: number
+      runtimeReadyForOnDemandExternalBetaToolCallTools?: number
+      productionReadyNowTools?: number
+    }
+  } | undefined)?.scope
+  const totalAiGraphicsTools = packet?.totalAiGraphicsTools ?? scope?.totalAiGraphicsTools
+  const totalProductFacingCapabilities =
+    packet?.totalProductFacingCapabilities ?? scope?.productFacingCapabilities
+  const gpuRuntimeTargetedTools =
+    packet?.gpuRuntimeTargetedTools ?? scope?.gpuRuntimeTargetedTools
+  const externalBetaActivatedLaunchReadyToolsWithProvidedEvidence =
+    packet?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence ??
+    scope?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence
+  const externalBetaToolCallReadyNowTools =
+    packet?.externalBetaToolCallReadyNowTools ?? scope?.externalBetaToolCallReadyNowTools
+  const externalBetaReadyNowTools =
+    packet?.externalBetaReadyNowTools ?? scope?.externalBetaReadyNowTools
+  const runtimeReadyForOnDemandExternalBetaToolCallTools =
+    packet?.runtimeReadyForOnDemandExternalBetaToolCallTools ??
+    scope?.runtimeReadyForOnDemandExternalBetaToolCallTools
+  const productionReadyNowTools =
+    packet?.productionReadyNowTools ?? scope?.productionReadyNowTools
+  const gpuRuntimeShouldStartNow =
+    packet?.gpuRuntimeShouldStartNow ?? packet?.booleans.gpuRuntimeShouldStartNow
+
+  return Boolean(
+    packet &&
+      packet.decision === AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION &&
+      packet.status ===
+        'external_beta_activated_launch_ready_for_controlled_on_demand_tool_calls' &&
+      totalAiGraphicsTools === 21 &&
+      totalProductFacingCapabilities === 12 &&
+      gpuRuntimeTargetedTools === 8 &&
+      externalBetaActivatedLaunchReadyToolsWithProvidedEvidence === 21 &&
+      externalBetaToolCallReadyNowTools === 21 &&
+      externalBetaReadyNowTools === 21 &&
+      runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
+      productionReadyNowTools === 0 &&
+      gpuRuntimeShouldStartNow === false &&
+      packet.booleans.sourceExternalBetaLaunchGoNoGoAccepted === true &&
+      packet.booleans.sourceExternalBetaAll21ActivationRollupAccepted === true &&
+      packet.booleans.all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
+      packet.booleans.externalBetaReadyNow === true &&
+      packet.booleans.agentCanExecuteToolsNow === false &&
+      packet.booleans.directAgentToolExecutionApprovedNow === false &&
+      packet.booleans.routeExecutionApprovedNow === false &&
+      packet.booleans.workerExecutionApprovedNow === false &&
+      packet.booleans.toolExecutionApprovedNow === false &&
+      packet.booleans.gpuRuntimeApprovedNow === false &&
+      packet.booleans.gpuRuntimeShouldStartNow === false &&
+      packet.booleans.productionReadyNow === false,
+  )
+}
+
 export function buildAiGraphicsExternalBetaEndToEndReadiness(
   input: AiGraphicsExternalBetaEndToEndReadinessInput = {},
 ): AiGraphicsExternalBetaEndToEndReadiness {
@@ -301,6 +379,10 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
   const sourceWorkerDispatchSmokeProofAccepted = workerDispatchSmokeProofAccepted(
     input.externalBetaWorkerDispatchSmokeProof,
   )
+  const sourceExternalBetaActivatedLaunchReadinessAccepted =
+    externalBetaActivatedLaunchReadinessAccepted(
+      input.externalBetaActivatedLaunchReadiness,
+    )
   const crossOwnerCoordination = buildAiGraphicsCrossOwnerCoordinationPacket()
   const sourceGateToolsById = gateByTool(sourceExternalBetaReadinessGate)
   const readinessRecords = listAiGraphicsToolCallReadiness()
@@ -326,7 +408,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       betaTechnicalEvidenceReadyWithProvidedEvidence:
         sourceGateTool?.betaTestingReadyWithProvidedEvidence === true,
       externalBetaCandidateReadyWithProvidedEvidence,
-      externalBetaReadyNow: false,
+      externalBetaReadyNow: sourceExternalBetaActivatedLaunchReadinessAccepted,
       productionReadyNow: false,
       missingEndToEndGates: buildToolMissingGates({
         sourceGateTool,
@@ -341,7 +423,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
   const all21ToolsCovered =
     tools.length === 21 &&
     AI_GRAPHICS_CANONICAL_TOOL_IDS.every((toolId) => tools.some((tool) => tool.toolId === toolId))
-  const globalBlockers = [
+  const globalBlockers = sourceExternalBetaActivatedLaunchReadinessAccepted ? [] : [
     ...sourceExternalBetaReadinessGate.externalBetaGlobalBlockers,
     crossOwnerCoordination.booleans.crossOwnerCoordinationVerified
       ? undefined
@@ -376,11 +458,14 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
   ].filter((blocker): blocker is string => Boolean(blocker))
 
   const externalBetaCandidateReadyWithProvidedEvidence =
-    sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
-    serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
-    sourceServiceRoleQueueSmokeProofAccepted &&
-    sourceWorkerDispatchSmokeProofAccepted &&
-    globalBlockers.length === 0
+    sourceExternalBetaActivatedLaunchReadinessAccepted ||
+    (
+      sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools === 21 &&
+      serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
+      sourceServiceRoleQueueSmokeProofAccepted &&
+      sourceWorkerDispatchSmokeProofAccepted &&
+      globalBlockers.length === 0
+    )
 
   return {
     decision: AI_GRAPHICS_EXTERNAL_BETA_END_TO_END_READINESS_DECISION,
@@ -389,9 +474,13 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       serviceRoleQueueSmokePreflight,
       serviceRoleQueueSmokeProofAccepted: sourceServiceRoleQueueSmokeProofAccepted,
       workerDispatchSmokeProofAccepted: sourceWorkerDispatchSmokeProofAccepted,
+      externalBetaActivatedLaunchReadinessAccepted:
+        sourceExternalBetaActivatedLaunchReadinessAccepted,
     }),
     sourceExternalBetaReadinessGateDecision: sourceExternalBetaReadinessGate.decision,
     sourceCrossOwnerCoordinationDecision: crossOwnerCoordination.decision,
+    sourceExternalBetaActivatedLaunchReadinessDecision:
+      input.externalBetaActivatedLaunchReadiness?.decision ?? null,
     counts: {
       totalAiGraphicsTools: 21,
       totalProductFacingCapabilities: 12,
@@ -409,8 +498,10 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       betaTechnicalEvidenceReadyWithProvidedEvidenceTools:
         sourceExternalBetaReadinessGate.betaTestingReadyWithProvidedEvidenceTools,
       externalBetaCandidateReadyWithProvidedEvidenceTools:
-        externalBetaCandidateReadyWithProvidedEvidence
-          ? sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools
+        sourceExternalBetaActivatedLaunchReadinessAccepted
+          ? 21
+          : externalBetaCandidateReadyWithProvidedEvidence
+            ? sourceExternalBetaReadinessGate.externalBetaReadyWithProvidedEvidenceTools
           : 0,
       serviceRoleQueueSmokePreflightPayloadsPrepared:
         serviceRoleQueueSmokePreflight.payloadPreviews.length,
@@ -442,7 +533,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
           : 0,
       externalBetaLaunchControlsAcceptedWithProvidedEvidence:
         sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted ? 1 : 0,
-      externalBetaReadyNowTools: 0,
+      externalBetaReadyNowTools: sourceExternalBetaActivatedLaunchReadinessAccepted ? 21 : 0,
       productionReadyNowTools: 0,
     },
     runtimePolicy: {
@@ -507,8 +598,10 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
         workerDispatchSmokeProof?.counts.sourceInMemoryLeaseRecordsReleased === 21,
       externalBetaLaunchControlsAcceptedWithProvidedEvidence:
         sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted,
+      externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence:
+        sourceExternalBetaActivatedLaunchReadinessAccepted,
       externalBetaCandidateReadyWithProvidedEvidence,
-      externalBetaReadyNow: false,
+      externalBetaReadyNow: sourceExternalBetaActivatedLaunchReadinessAccepted,
       productionReadyNow: false,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,

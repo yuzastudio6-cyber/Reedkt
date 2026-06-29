@@ -1,16 +1,18 @@
 {
-  "schemaVersion": "2026-06-26.ai-graphics.beta-production-readiness-rollup",
+  "schemaVersion": "2026-06-29.ai-graphics.beta-production-readiness-rollup",
   "decision": "ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks",
   "status": "owner_approved_worker_gates_ready_runtime_still_blocked",
   "sourceDecisions": [
     "ai_graphics_beta_activation_gap_report_prepared_with_remaining_blocks",
     "ai_graphics_cross_owner_coordination_verified_without_duplicate_owner_claims",
     "ai_graphics_internal_beta_production_worker_gate_readiness_contract_prepared_with_fail_closed_runtime",
-    "ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks"
+    "ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks",
+    "ai_graphics_external_beta_activated_launch_readiness_approved_with_runtime_blocks"
   ],
   "sourceEvidencePolicy": {
     "acceptsProductionWorkerGateReadinessPacket": true,
     "acceptsExternalBetaNativeGpuProofCollectionPacket": true,
+    "acceptsExternalBetaActivatedLaunchReadinessPacket": true,
     "sourceProductionWorkerGatePacketMustReportOwnerApprovedGateChecksReady": true,
     "sourceProductionWorkerGatePacketMustCoverAll21Tools": true,
     "sourceProductionWorkerGatePacketMustCoverAll12Capabilities": true,
@@ -23,6 +25,8 @@
     "sourceNativeGpuProofCollectionPacketMustBeReadyForPerToolRuntimeProofRecheck": true,
     "sourceNativeGpuProofCollectionPacketMustAcceptAll8GpuRuntimeToolsWithProvidedEvidence": true,
     "sourceNativeGpuProofCollectionPacketMustKeepGpuRuntimeExecutionFalse": true,
+    "sourceExternalBetaActivatedLaunchReadinessPacketMustReportAll21ExternalBetaReady": true,
+    "sourceExternalBetaActivatedLaunchReadinessPacketMustKeepDirectExecutionGpuAndProductionFalse": true,
     "rollupStillDoesNotApproveExecutionOrRuntime": true
   },
   "tools": [
@@ -77,8 +81,17 @@
     "nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence": 6,
     "modelWeightManifestReviewAcceptedWithProvidedEvidence": 5,
     "internalBetaReadyNowTools": 0,
-    "externalBetaReadyNowTools": 0,
+    "externalBetaReadyNowTools": 21,
     "productionReadyNowTools": 0
+  },
+  "externalBetaActivatedLaunchReadiness": {
+    "acceptedWithProvidedEvidence": true,
+    "sourcePacketFlag": "--external-beta-activated-launch-readiness-packet",
+    "externalBetaReadyNowTools": 21,
+    "runtimeReadyForOnDemandExternalBetaToolCallTools": 21,
+    "agentCanExecuteToolsNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "productionReadyNow": false
   },
   "nativeGpuProofCollection": {
     "acceptedWithProvidedEvidence": true,
@@ -116,7 +129,7 @@
     "accepted external beta service-role queue smoke preflight",
     "accepted saved external beta service-role queue smoke proof",
     "explicit internal beta owner go/no-go approval",
-    "separate external beta approval",
+    "accepted external beta activated-launch readiness",
     "separate production launch approval"
   ],
   "stillBlockedRuntimeActions": [
@@ -136,7 +149,6 @@
     "signed URL creation",
     "public artifact creation",
     "internal beta runtime unlock",
-    "external beta unlock",
     "production unlock"
   ],
   "nextMilestones": [
@@ -145,7 +157,8 @@
     "Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.",
     "Preserve the external-beta service-role queue smoke preflight and accepted saved smoke proof before any external beta launch decision.",
     "Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.",
-    "After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself."
+    "External-beta activated launch readiness is now accepted for controlled on-demand tool calls across all 21 tools.",
+    "Run separate production launch review before any production-ready claim; this rollup never unlocks production by itself."
   ],
   "booleans": {
     "betaProductionReadinessRollupPrepared": true,
@@ -165,7 +178,8 @@
     "gpuRuntimeOnDemandOnly": true,
     "productionWorkerGateHardFailuresWithProvidedEvidenceAbsent": true,
     "internalBetaGoNoGoReadyWithProvidedEvidence": true,
-    "externalBetaGoNoGoReadyWithProvidedEvidence": false,
+    "externalBetaGoNoGoReadyWithProvidedEvidence": true,
+    "externalBetaActivatedLaunchReadyWithProvidedEvidence": true,
     "productionGoNoGoReadyWithProvidedEvidence": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
@@ -181,7 +195,7 @@
     "gpuRuntimeApprovedNow": false,
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
-    "externalBetaReadyNow": false,
+    "externalBetaReadyNow": true,
     "productionReadyNow": false,
     "dependencyInstallPerformed": false,
     "packageLockMutationPerformed": false,

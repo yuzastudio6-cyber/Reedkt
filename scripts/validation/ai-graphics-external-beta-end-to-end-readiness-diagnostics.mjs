@@ -54,6 +54,7 @@ const requiredFiles = [
   'scripts/validation/ai-graphics-external-beta-end-to-end-readiness-diagnostics.mjs',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
   'docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
@@ -61,7 +62,6 @@ const requiredFiles = [
 ]
 
 const falseBooleanKeys = [
-  'externalBetaReadyNow',
   'productionReadyNow',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -336,6 +336,7 @@ function assertBooleanMap(
   expectedPreflightReady,
   expectedProofAccepted,
   expectedWorkerDispatchProofAccepted,
+  expectedExternalBetaReadyNow = false,
 ) {
   const booleans = record?.booleans ?? {}
   for (const key of falseBooleanKeys) {
@@ -343,6 +344,9 @@ function assertBooleanMap(
   }
   if (booleans.agentCanSelectForPlanning !== true) {
     fail(`${label}_agentCanSelectForPlanning_not_true`)
+  }
+  if (booleans.externalBetaReadyNow !== expectedExternalBetaReadyNow) {
+    fail(`${label}_externalBetaReadyNow_unexpected:${booleans.externalBetaReadyNow}`)
   }
   if (booleans.all21ToolsCovered !== true) fail(`${label}_all21ToolsCovered_not_true`)
   if (booleans.all12CapabilitiesCovered !== true) fail(`${label}_all12CapabilitiesCovered_not_true`)
@@ -378,7 +382,7 @@ function assertBooleanMap(
   }
 }
 
-function assertTools(record, label) {
+function assertTools(record, label, expectedExternalBetaReadyNow = false) {
   const toolIds = (record?.tools ?? []).map((tool) => tool.toolId)
   for (const toolId of allTools) {
     if (!toolIds.includes(toolId)) fail(`${label}_missing_tool:${toolId}`)
@@ -391,7 +395,9 @@ function assertTools(record, label) {
     if (tool.rankingSelectionReadyForPlanning !== true) {
       fail(`${label}_ranking_not_true:${tool.toolId}`)
     }
-    if (tool.externalBetaReadyNow !== false) fail(`${label}_external_beta_ready_now:${tool.toolId}`)
+    if (tool.externalBetaReadyNow !== expectedExternalBetaReadyNow) {
+      fail(`${label}_external_beta_ready_now_unexpected:${tool.toolId}:${tool.externalBetaReadyNow}`)
+    }
     if (tool.productionReadyNow !== false) fail(`${label}_production_ready_now:${tool.toolId}`)
     if (tool.cpuFallbackAllowedForHeavyTool !== false) {
       fail(`${label}_cpu_fallback_not_false:${tool.toolId}`)
@@ -511,7 +517,8 @@ assertCount(docsJson, 'productionMappedTools', 21, 'docs')
 assertCount(docsJson, 'gpuRuntimeTargetedTools', 8, 'docs')
 assertCount(docsJson, 'heavyToolsIncorrectlyTargetingCpu', 0, 'docs')
 assertCount(docsJson, 'duplicateAiGraphicsProductionToolIds', 0, 'docs')
-assertCount(docsJson, 'externalBetaReadyNowTools', 0, 'docs')
+assertCount(docsJson, 'activatedLaunchReadinessExternalBetaReadyNowTools', 21, 'docs')
+assertCount(docsJson, 'externalBetaReadyNowTools', 21, 'docs')
 assertCount(docsJson, 'productionReadyNowTools', 0, 'docs')
 if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightPayloadsPrepared !== 21) {
   fail('docs_default_service_role_payloads_not_21')
@@ -572,6 +579,10 @@ if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokeProof !==
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json') {
   fail('docs_missing_service_role_proof_source_evidence')
 }
+if (docsJson.sourceEvidence?.externalBetaActivatedLaunchReadiness !==
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json') {
+  fail('docs_missing_activated_launch_readiness_source_evidence')
+}
 if (docsJson.booleans?.defaultServiceRoleQueueSmokePayloadsPreparedForAll21Tools !== true) {
   fail('docs_default_service_role_payloads_not_true')
 }
@@ -596,7 +607,10 @@ if (docsJson.booleans?.fullEvidenceWorkerDispatchSmokeProofAcceptedWithProvidedE
 if (docsJson.booleans?.fullEvidenceLaunchControlsAcceptedWithProvidedEvidence !== true) {
   fail('docs_full_launch_controls_not_true')
 }
-assertBooleanMap(docsJson, 'docs', undefined)
+if (docsJson.booleans?.externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence !== true) {
+  fail('docs_activated_launch_readiness_not_true')
+}
+assertBooleanMap(docsJson, 'docs', undefined, undefined, undefined, true)
 
 const defaultReport = runCli()
 if (defaultReport.status !== 'installed_and_mapped_runtime_blocked') {
@@ -622,6 +636,35 @@ if (defaultReport.serviceRoleQueueSmokePreflight?.all21PayloadsPrepared !== true
 }
 if (defaultReport.serviceRoleQueueSmokePreflight?.readyToExecuteLiveNonProductionSmoke !== false) {
   fail('default_service_role_preflight_ready_not_false')
+}
+
+const activatedLaunchReadinessReport = runCli([
+  '--external-beta-activated-launch-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+])
+if (
+  activatedLaunchReadinessReport.status !==
+  'external_beta_ready_for_controlled_on_demand_tool_calls_runtime_still_blocked'
+) {
+  fail(`activated_launch_status:${activatedLaunchReadinessReport.status}`)
+}
+assertCount(
+  activatedLaunchReadinessReport,
+  'externalBetaCandidateReadyWithProvidedEvidenceTools',
+  21,
+  'activated_launch',
+)
+assertCount(
+  activatedLaunchReadinessReport,
+  'externalBetaReadyNowTools',
+  21,
+  'activated_launch',
+)
+assertCount(activatedLaunchReadinessReport, 'productionReadyNowTools', 0, 'activated_launch')
+assertBooleanMap(activatedLaunchReadinessReport, 'activated_launch', false, false, false, true)
+assertTools(activatedLaunchReadinessReport, 'activated_launch', true)
+if (activatedLaunchReadinessReport.globalBlockers?.length !== 0) {
+  fail('activated_launch_global_blockers_not_empty')
 }
 
 const serviceRoleKeyEnvName = 'SUPABASE_' + 'SERVICE_ROLE_KEY'
@@ -951,6 +994,8 @@ console.log(JSON.stringify({
     defaultReport.counts.externalBetaCandidateReadyWithProvidedEvidenceTools,
   fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools:
     fullEvidenceReport.counts.externalBetaCandidateReadyWithProvidedEvidenceTools,
+  activatedLaunchReadinessExternalBetaReadyNowTools:
+    activatedLaunchReadinessReport.counts.externalBetaReadyNowTools,
   fullEvidenceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence:
     fullEvidenceReport.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence,
   externalBetaReadyNowTools: defaultReport.counts.externalBetaReadyNowTools,

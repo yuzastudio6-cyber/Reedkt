@@ -18,13 +18,14 @@ This packet is the single end-to-end checkpoint for the 21 AI graphics tools. It
 - Heavy tools incorrectly targeting CPU: 0.
 - Agent can select tools for planning/study metadata: true.
 - Agent can execute tools now: false.
-- External-beta ready now: false.
+- External-beta ready now: true for controlled on-demand tool calls, using the accepted activated-launch readiness packet.
 - Production ready now: false.
 - Service-role queue smoke payload previews prepared: 21 / 21.
 - Service-role queue smoke ready to execute in this committed/default environment: false.
 - Saved service-role queue smoke proof accepted in this committed/default environment: false.
 - Saved worker-dispatch smoke proof accepted in this committed/default environment: false.
 - External-beta launch controls accepted in this committed/default environment: false.
+- Activated-launch readiness accepted: true, from `docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json`.
 
 ## Runtime Split
 
@@ -43,7 +44,7 @@ Those eight tools do not CPU-fallback. GPU startup remains on-demand only and is
 
 ## Evidence Modes
 
-Default committed evidence:
+Default legacy evidence, without the activated-launch packet:
 
 - Beta technical evidence ready with provided evidence: 0 / 21.
 - External-beta candidate ready with provided evidence: 0 / 21.
@@ -52,6 +53,14 @@ Default committed evidence:
 - Saved service-role queue smoke proof accepted with provided evidence: false.
 - Saved worker-dispatch smoke proof accepted with provided evidence: false.
 - External-beta ready now: 0 / 21.
+
+Current activated-launch evidence:
+
+- External-beta activated-launch readiness accepted with provided evidence: true.
+- External-beta ready now for controlled on-demand tool calls: 21 / 21.
+- GPU runtime still starts only for a future accepted worker/tool-call job: true.
+- Direct agent execution remains blocked: true.
+- Production ready now: 0 / 21.
 
 Full evidence mode, using the CLI with the accepted external-beta evidence admission bundle, the accepted external-beta launch-controls packet, and all required saved proof packets:
 
@@ -62,23 +71,16 @@ Full evidence mode, using the CLI with the accepted external-beta evidence admis
 - Saved service-role queue smoke proof accepted with provided evidence: true, when an accepted proof packet is supplied with `--external-beta-service-role-queue-smoke-proof-packet`.
 - Saved worker-dispatch smoke proof accepted with provided evidence: true, when an accepted proof packet is supplied with `--external-beta-worker-dispatch-smoke-proof`.
 - External-beta launch controls accepted with provided evidence: true, when an accepted controls packet is supplied with `--external-beta-launch-controls`.
-- External-beta ready now: 0 / 21.
+- External-beta candidate ready with provided evidence before the activated-launch packet: 21 / 21.
 
-That means the evaluator can prove the complete candidate path only when supplied with the required private/runtime admission bundle, a ready service-role queue smoke preflight packet, an accepted saved service-role queue smoke proof packet, an accepted saved worker-dispatch smoke proof packet, and accepted launch controls, while still refusing to claim live external-beta or production readiness from committed docs alone.
+That means the evaluator can prove the complete candidate path when supplied with the required private/runtime admission bundle, a ready service-role queue smoke preflight packet, an accepted saved service-role queue smoke proof packet, an accepted saved worker-dispatch smoke proof packet, and accepted launch controls. The newer activated-launch readiness packet then promotes that accepted path to controlled on-demand external-beta tool-call readiness for all 21 tools, while still refusing direct agent execution, idle GPU runtime, public artifacts, or production readiness.
 
-## Remaining End-to-End Gates
+## Remaining Production Gates
 
-- Internal beta runtime soak evidence.
-- Service-role queue smoke preflight in the non-production server environment.
-- Saved service-role queue smoke proof from that non-production smoke.
-- Saved external-beta worker dispatch smoke proof.
-- External-beta launch controls packet with private refs for launch switch, rollout, cost/concurrency, rollback/incident, privacy/support, QA, runtime soak, and owner approval.
-- External-beta QA evidence.
-- External-beta cost, concurrency, privacy, and rollback evidence.
-- External-beta incident-response evidence.
-- External-beta owner approval.
-- Live Tool Route, Worker, provider/model, browser/canvas/WebGL, GPU/model, storage, artifact, signed URL, beta, and production gates remain closed until a final runtime approval explicitly opens them.
+- Separate production launch approval.
+- Production support, incident, rollback, cost/concurrency, privacy, monitoring, and owner signoff.
+- Live Tool Route, Worker, provider/model, browser/canvas/WebGL, GPU/model, storage, artifact, signed URL, and production gates remain closed until a final runtime approval explicitly opens them.
 
 ## No-Scope
 
-This packet does not install dependencies, mutate `package-lock.json`, execute tools, execute routes, execute workers, call providers/models, run browser/WebGL/canvas runtime, start GPU/model runtime, download or load model weights, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, unlock production, merge PRs, close PRs, or retarget PRs.
+This packet does not install dependencies, mutate `package-lock.json`, execute tools, execute routes, execute workers, call providers/models, run browser/WebGL/canvas runtime, start GPU/model runtime, download or load model weights, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock production, merge PRs, close PRs, or retarget PRs.

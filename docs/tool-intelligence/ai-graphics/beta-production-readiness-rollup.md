@@ -29,10 +29,17 @@ accepted, `readyForPerToolRuntimeProofRecheck=true`, on-demand-only GPU runtime,
 no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and
 all execution/runtime/beta/production gates still false.
 
-External beta launch decisions also require the later service-role queue smoke
-preflight and accepted saved service-role queue smoke proof. This rollup names
-those gates but does not approve live queue writes, worker dispatch, tool
-execution, external beta, or production by itself.
+The rollup can also ingest
+`--external-beta-activated-launch-readiness-packet` when that packet already
+reports all 21 tools ready for controlled on-demand external-beta tool calls,
+preserves on-demand-only GPU runtime, keeps direct agent execution false, and
+keeps production false. This source updates the rollup's external-beta-ready
+answer without executing queue writes, worker dispatch, tools, GPU runtime, or
+production traffic.
+
+The older external-beta candidate path still names the service-role queue smoke
+preflight and accepted saved service-role queue smoke proof as prerequisites,
+and the rollup does not approve live queue writes from those records.
 
 ## Current Result
 
@@ -54,7 +61,7 @@ execution, external beta, or production by itself.
 - Native GPU runtime proof profiles accepted with provided evidence: 6
 - Model-weight manifest review accepted with provided evidence: 5
 - Internal beta ready now: 0
-- External beta ready now: 0
+- External beta ready now: 21, controlled on-demand tool-call readiness only
 - Production ready now: 0
 
 ## Covered Tools
@@ -124,6 +131,15 @@ the GPU runtime may start now. The accepted source packet must preserve
 `modelWeightsLoaded=false`, `modelInferencePerformed=false`,
 `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## External-Beta Activated Launch Gate
+
+Accepted activated-launch readiness means the external-beta go/no-go and all-21
+activation rollup have already been accepted. It marks all 21 tools ready for
+controlled on-demand external-beta tool calls while preserving
+`agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`,
+`workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`,
+`gpuRuntimeShouldStartNow=false`, and `productionReadyNow=false`.
+
 ## Final Go/No-Go Gates
 
 - accepted all-21 install and production mapping audit
@@ -140,7 +156,7 @@ the GPU runtime may start now. The accepted source packet must preserve
 - accepted external beta service-role queue smoke preflight
 - accepted saved external beta service-role queue smoke proof
 - explicit internal beta owner go/no-go approval
-- separate external beta approval
+- accepted external beta activated-launch readiness
 - separate production launch approval
 
 ## Still Blocked
@@ -161,17 +177,13 @@ the GPU runtime may start now. The accepted source packet must preserve
 - signed URL creation
 - public artifact creation
 - internal beta runtime unlock
-- external beta unlock
 - production unlock
 
 ## Next Milestones
 
-1. Feed an accepted external beta native GPU proof collection packet into the rollup before the final external-beta go/no-go.
-2. Re-run the external per-tool runtime proof gate after accepted native GPU collection evidence is available.
-3. Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.
-4. Preserve the external-beta service-role queue smoke preflight and accepted saved smoke proof before any external beta launch decision.
-5. Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.
-6. After internal beta evidence exists, run separate external beta and production launch reviews; this rollup never unlocks them by itself.
+1. Preserve accepted external-beta activated-launch readiness as the source for controlled on-demand external-beta tool-call readiness.
+2. Keep GPU runtime on-demand only for accepted worker/tool-call jobs.
+3. Run separate production launch review before any production-ready claim.
 
 ## No Runtime Unlock
 
@@ -184,5 +196,5 @@ the GPU runtime may start now. The accepted source packet must preserve
 - `gpuRuntimeOnDemandOnly=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
-- `externalBetaReadyNow=false`
+- `externalBetaReadyNow=true`
 - `productionReadyNow=false`

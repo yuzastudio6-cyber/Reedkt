@@ -1,7 +1,7 @@
 {
-  "schemaVersion": "2026-06-28.ai-graphics.external-beta-end-to-end-readiness",
+  "schemaVersion": "2026-06-29.ai-graphics.external-beta-end-to-end-readiness",
   "decision": "ai_graphics_external_beta_end_to_end_readiness_prepared_with_remaining_blocks",
-  "status": "installed_and_mapped_runtime_blocked",
+  "status": "external_beta_ready_for_controlled_on_demand_tool_calls_runtime_still_blocked",
   "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
   "sourceEvidence": {
     "toolCallReadinessContract": "docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json",
@@ -16,6 +16,7 @@
     "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
     "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "externalBetaServiceRoleQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json",
+    "externalBetaActivatedLaunchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json",
     "crossOwnerCoordination": "docs/tool-intelligence/ai-graphics/cross-owner-coordination.json"
   },
   "counts": {
@@ -49,7 +50,8 @@
     "fullEvidenceWorkerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence": 21,
     "fullEvidenceWorkerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence": 21,
     "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": 1,
-    "externalBetaReadyNowTools": 0,
+    "activatedLaunchReadinessExternalBetaReadyNowTools": 21,
+    "externalBetaReadyNowTools": 21,
     "productionReadyNowTools": 0
   },
   "tools": [
@@ -82,17 +84,7 @@
     "cpuFallbackAllowedForHeavyTools": false,
     "externalBetaCandidateDoesNotStartRuntime": true
   },
-  "remainingGlobalBlockers": [
-    "service-role queue smoke preflight missing non-production environment and command flags in default committed evidence",
-    "saved service-role queue smoke proof is not accepted with provided evidence in default committed evidence",
-    "saved worker-dispatch smoke proof is not accepted with provided evidence in default committed evidence",
-    "internal beta runtime soak evidence",
-    "external-beta worker dispatch smoke proof",
-    "external-beta QA evidence",
-    "external-beta cost, concurrency, privacy, and rollback evidence",
-    "external-beta incident-response evidence",
-    "external-beta owner approval"
-  ],
+  "remainingGlobalBlockers": [],
   "booleans": {
     "externalBetaEndToEndReadinessPrepared": true,
     "all21ToolsCovered": true,
@@ -122,9 +114,10 @@
     "fullEvidenceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence": true,
     "fullEvidenceWorkerDispatchSmokeProofAcceptedWithProvidedEvidence": true,
     "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": true,
+    "externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence": true,
     "defaultExternalBetaCandidateReadyWithProvidedEvidence": false,
     "fullEvidenceExternalBetaCandidateReadyWithProvidedEvidence": true,
-    "externalBetaReadyNow": false,
+    "externalBetaReadyNow": true,
     "productionReadyNow": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,

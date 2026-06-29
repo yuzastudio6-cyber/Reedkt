@@ -1,0 +1,67 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CURRENT-RUNTIME-GATE-READINESS-ROLLUP-1",
+  "decision": "tracka_gpac_mp4box_current_runtime_gate_readiness_rollup_passed_ready_for_guarded_runtime_dispatch_enablement_plan",
+  "requiredEvidence": [
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1",
+      "pr": "#1572",
+      "mergeSha": "fd44ba5c394cf6fa61856f4c66c16d0509b70f6a",
+      "decision": "tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1",
+      "pr": "#1579",
+      "mergeSha": "9f3d7afc8eb33d93bae0c8728e2666ffbcccceeb",
+      "decision": "tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1",
+      "pr": "#1580",
+      "mergeSha": "44245f61b9ff915554b6845c97f4b87cd434a177",
+      "decision": "tracka_gpac_mp4box_runtime_scaffold_negative_tests_passed_ready_for_guarded_live_registration_review"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-GUARDED-SERVICE-ROLE-ROUTE-MOCK-IMPLEMENTATION-1",
+      "pr": "#1540",
+      "mergeSha": "4ead5a5fd0ada73fc7b5fbf77fd21edfec233375",
+      "decision": "tracka_gpac_mp4box_guarded_service_role_route_mock_implementation_passed_ready_for_guarded_worker_enqueue_mock"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-ENQUEUE-MOCK-IMPLEMENTATION-1",
+      "pr": "#1543",
+      "mergeSha": "8ae73e136268e30e29c49f34dcbdc49370f0f0c4",
+      "decision": "tracka_gpac_mp4box_guarded_worker_enqueue_mock_implementation_passed_ready_for_guarded_worker_skeleton_mock"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1",
+      "pr": "#1547",
+      "mergeSha": "3af25963decb83de23ef45632a6d0ab69a27664a",
+      "decision": "tracka_gpac_mp4box_guarded_worker_skeleton_mock_implementation_passed_ready_for_private_artifact_policy_mock"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1",
+      "pr": "#1568",
+      "mergeSha": "f9994564af1e08b82f2d5e8393a0272de0b10b6d",
+      "decision": "tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1",
+      "pr": "#1658",
+      "mergeSha": "719b8690358d199e723db7fca1dc137b84ca2237",
+      "decision": "tracka_gpac_mp4box_guarded_executable_handler_runtime_enablement_review_passed_ready_for_guarded_runtime_enablement_plan"
+    },
+    {
+      "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1R",
+      "pr": "#1663",
+      "mergeSha": "882a8dfbaf7acc189543d7ff14a3aa1ebf98b440",
+      "decision": "tracka_gpac_mp4box_guarded_runtime_enablement_plan_1r_reconciled_post_executable_handler_runtime_review_ready_for_current_runtime_gate_readiness_rollup"
+    }
+  ],
+  "duplicateScan": {
+    "exactOpenCurrentRuntimeGateReadinessRollupPr": "none_found_before_branch_creation",
+    "duplicateOriginalGuardedRuntimeEnablementPlan": "do_not_recreate",
+    "duplicateExecutableHandlerRuntimeReview": "do_not_recreate",
+    "nextGateSelectedBecause": "route_worker_private_artifact_mock_chain_and_executable_handler_runtime_review_are_present_but_runtime_dispatch_enablement_is_not_yet_source_of_truth"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1"
+}

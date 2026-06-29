@@ -1,0 +1,59 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CURRENT-RUNTIME-GATE-READINESS-ROLLUP-1",
+  "decision": "tracka_gpac_mp4box_current_runtime_gate_readiness_rollup_passed_ready_for_guarded_runtime_dispatch_enablement_plan",
+  "execution": "completed_docs_only_current_runtime_gate_readiness_rollup_no_runtime_execution",
+  "currentRuntimeGate": {
+    "sourceChainReconciled": true,
+    "originalGuardedRuntimeEnablementPlanConsumed": true,
+    "disabledRuntimeScaffoldChainConsumed": true,
+    "routeWorkerPrivateArtifactMockChainConsumed": true,
+    "guardedExecutableHandlerRuntimeReviewConsumed": true,
+    "guardedRuntimeEnablementPlan1rConsumed": true,
+    "duplicateRuntimeGateCreated": false
+  },
+  "readiness": {
+    "nextNonDuplicateGate": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1",
+    "readyForGuardedRuntimeDispatchEnablementPlan": true,
+    "readyForRouteExecution": false,
+    "readyForWorkerDispatch": false,
+    "readyForWorkerExecution": false,
+    "readyForGpacMp4boxExecution": false,
+    "readyForMediaProcessing": false,
+    "readyForStorageTransfer": false,
+    "readyForSignedUrlCreation": false,
+    "readyForPublicArtifactCreation": false,
+    "readyForProductRuntime": false,
+    "readyForExternalBetaProductUse": false,
+    "readyForPaidProduction": false,
+    "readyForProduction": false,
+    "readyForFinalDeliveryExport": false
+  },
+  "sourceTruth": {
+    "pr577": "open_draft_blocked_excluded",
+    "productReadyLocalOssTools": 0,
+    "packageLock": "unchanged",
+    "generatedArtifactsCommitted": "none"
+  },
+  "safety": {
+    "routeExecutionAuthorized": false,
+    "workerDispatchAuthorized": false,
+    "workerExecutionAuthorized": false,
+    "gpacMp4boxExecutionAuthorized": false,
+    "mediaProcessingAuthorized": false,
+    "storageTransferAuthorized": false,
+    "signedUrlCreationAuthorized": false,
+    "publicArtifactCreationAuthorized": false,
+    "supabaseMutationAuthorized": false,
+    "sqlExecutionAuthorized": false,
+    "externalBetaAuthorized": false,
+    "paidProductionAuthorized": false,
+    "productionAuthorized": false,
+    "finalDeliveryExportAuthorized": false,
+    "packageInstallationAuthorized": false,
+    "dockerExecutionAuthorized": false,
+    "remotionExecutionAuthorized": false,
+    "ffmpegFfprobeExecutionAuthorized": false,
+    "broadServiceRoleHandlerAuthorized": false
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1"
+}

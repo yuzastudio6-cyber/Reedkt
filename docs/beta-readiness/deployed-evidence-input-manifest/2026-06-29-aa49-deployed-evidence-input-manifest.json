@@ -45,7 +45,7 @@
     "blockedNotInstalledProvenToolCount": 0,
     "productReadyLocalOssCount": 0,
     "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json",
-    "localAcceptedEvidenceBundleSourceSha": "e8821759a10a43a60795accb596b3b83c15f9dfb",
+    "localAcceptedEvidenceBundleSourceSha": "94c37bb492a584c087247625dcb1fb53398c17f4",
     "deployedEvidenceRequiredBoundedAcceptedToolCount": 16,
     "deployedEvidenceRequiredProductReadyLocalOssCount": 0,
     "boundedAcceptedEvidenceEnv": [

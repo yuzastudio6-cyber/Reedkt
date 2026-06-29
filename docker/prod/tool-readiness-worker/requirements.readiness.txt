@@ -8,5 +8,6 @@ opencv-python-headless
 duckdb
 polars
 opentimelineio
+audioflux
 OpenColorIO
 OpenImageIO

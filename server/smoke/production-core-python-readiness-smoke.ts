@@ -21,6 +21,7 @@ const expectedPassedPythonTools = [
   'duckdb',
   'polars',
   'opentimelineio',
+  'audioflux',
   'opencolorio',
   'openimageio',
 ] as const

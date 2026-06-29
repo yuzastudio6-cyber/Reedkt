@@ -79,6 +79,13 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
     'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
+    'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+    'server/cli/beta-readiness-operator-status.ts',
+    'package.json',
+  ],
+  packageJsonChangedScriptNames: [
+    'beta:readiness:deployed-evidence-input-manifest',
+    'smoke:beta-readiness-deployed-evidence-input-manifest',
   ],
   resolveGit: false,
 })
@@ -88,6 +95,9 @@ assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_p
 assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.some((policy) => policy.includes('package.json scripts only')))
 assert.deepEqual(metadataOnly.valueGaps, [])
 
 const runtimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {
@@ -105,6 +115,24 @@ const runtimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {
 assert.equal(runtimeDrift.readyForDeployedEvidenceInputManifest, false)
 assert.equal(runtimeDrift.decision, 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale')
 assert.deepEqual(runtimeDrift.sourceDriftClassification.blockingChangedFiles, ['server/index.ts'])
+
+const packageJsonRuntimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {
+  currentSourceSha: metadataOnlySourceSha,
+  deployedSourceSha: currentSourceSha,
+  apiDeployPacketPath: deployPacketPath,
+  apiDeploymentPreflightPacketPath: apiPreflightPacketPath,
+  deployedEvidenceManifestPath: manifestPath,
+  changedFiles: [
+    'package.json',
+  ],
+  packageJsonChangedScriptNames: [
+    'dependencies',
+  ],
+  resolveGit: false,
+})
+
+assert.equal(packageJsonRuntimeDrift.readyForDeployedEvidenceInputManifest, false)
+assert.deepEqual(packageJsonRuntimeDrift.sourceDriftClassification.blockingChangedFiles, ['package.json'])
 
 const missingCurrent = buildBetaReadinessSourceFreshnessPreflight({}, {
   currentSourceSha: '',

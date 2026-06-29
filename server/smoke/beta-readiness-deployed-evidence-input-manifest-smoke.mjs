@@ -1,8 +1,5 @@
 import assert from 'node:assert/strict'
-import {
-  buildBetaReadinessDeployedEvidenceInputManifest,
-  type BetaReadinessDeployedEvidenceInputManifestEnv,
-} from '../cli/beta-readiness-deployed-evidence-input-manifest'
+import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
 const expectedLocalEvidenceSourceSha = 'a1943442b794f7ae5216adf501a617a9f4478185'
 const expectedDeployedSourceSha = '769fc2d922b37a9eebb8b0ca29fa2447a6f8f127'
@@ -57,7 +54,7 @@ assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:own
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(emptyManifest.remainingBlockedScopes.includes('paid_production_until_separate_paid_production_evidence_collector_passes'))
 
-const readyEnv: BetaReadinessDeployedEvidenceInputManifestEnv = {
+const readyEnv = {
   REEDITPRO_BETA_EXTERNAL_API_BASE_URL: 'https://api.staging.reeditpro.example',
   REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN: 'secret-token-not-reported',
   REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID: 'workspace-deployed-evidence-input-manifest-smoke',

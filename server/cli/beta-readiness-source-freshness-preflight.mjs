@@ -9,7 +9,9 @@ const PASS_DECISION = 'beta_readiness_source_freshness_preflight_passed_current_
 const BLOCKED_DECISION = 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale'
 const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:deployed-evidence-input-manifest',
+  'beta:readiness:operator-status-api',
   'smoke:beta-readiness-deployed-evidence-input-manifest',
+  'smoke:beta-readiness-operator-status-api',
 ]
 
 export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, options = {}) {
@@ -100,7 +102,10 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+        'server/cli/beta-readiness-operator-status-api.ts',
+        'server/cli/beta-readiness-operator-status-api.mjs',
         'server/cli/beta-readiness-operator-status.ts',
+        'server/beta-readiness/platform-evidence-manifest.ts',
         `package.json scripts only: ${ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.join(', ')}`,
       ],
       blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path, {
@@ -184,7 +189,10 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
+    path === 'server/cli/beta-readiness-operator-status-api.ts' ||
+    path === 'server/cli/beta-readiness-operator-status-api.mjs' ||
     path === 'server/cli/beta-readiness-operator-status.ts' ||
+    path === 'server/beta-readiness/platform-evidence-manifest.ts' ||
     (path === 'package.json' && isAllowedPackageJsonScriptOnlyDrift(context))
 }
 

@@ -1,0 +1,33 @@
+{
+  "manifestId": "artifactManifest.gpacMp4box.private.mock",
+  "entries": [
+    {
+      "entryId": "artifact-entry-validation-report",
+      "fileName": "validation-report.json",
+      "artifactKind": "validation_report_json",
+      "byteCount": 412,
+      "checksumSha256": "e31c57b9b47054acdc67efac18e87fbfae2d5a1504367e8ed813b01d24ef28b9",
+      "storageDisposition": "worker_temp_private_only",
+      "sourceClass": "generated_private_fixture_output_metadata",
+      "publicArtifact": false,
+      "signedUrl": false,
+      "committedToRepo": false,
+      "mediaArtifact": false
+    },
+    {
+      "entryId": "artifact-entry-manifest",
+      "fileName": "artifact-manifest.json",
+      "artifactKind": "artifact_manifest_json",
+      "byteCount": 529,
+      "checksumSha256": "f83bb12d827a9e7b0d44c6bb578ed09a02f5a1c1bdcf29b620fb5b2800439468",
+      "storageDisposition": "worker_temp_private_only",
+      "sourceClass": "generated_private_fixture_output_metadata",
+      "publicArtifact": false,
+      "signedUrl": false,
+      "committedToRepo": false,
+      "mediaArtifact": false
+    }
+  ],
+  "totalByteCount": 941,
+  "generatedArtifactsCommitted": "none"
+}

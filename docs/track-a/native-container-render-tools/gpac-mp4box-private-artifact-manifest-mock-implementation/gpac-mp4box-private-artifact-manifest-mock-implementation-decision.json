@@ -1,0 +1,46 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-MANIFEST-MOCK-IMPLEMENTATION-1",
+  "decision": "tracka_gpac_mp4box_private_artifact_manifest_mock_implementation_passed_ready_for_private_artifact_qa_mock",
+  "execution": "completed_private_artifact_manifest_metadata_no_storage_or_tool_execution",
+  "prior": {
+    "privateArtifactPolicyMock": "tracka_gpac_mp4box_private_artifact_policy_mock_implementation_passed_ready_for_private_artifact_manifest_mock",
+    "privateArtifactPolicyMergeSha": "6e579d6ef1cbb46e108e89b7f8e4ef7166c645b7"
+  },
+  "manifestId": "artifactManifest.gpacMp4box.private.mock",
+  "manifestMode": "private_artifact_manifest_metadata_only",
+  "artifactScope": "worker_temp_private_only",
+  "checksumAlgorithm": "sha256",
+  "readiness": {
+    "privateArtifactPolicy": "passed",
+    "privateArtifactManifest": "passed",
+    "privateArtifactQaMock": "ready",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked"
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "pr577": "open_draft_blocked_conflicting_excluded",
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-QA-MOCK-IMPLEMENTATION-1"
+}

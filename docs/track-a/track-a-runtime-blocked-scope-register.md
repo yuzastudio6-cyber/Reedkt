@@ -278,3 +278,14 @@ Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifac
 Private artifact QA is metadata-only. Required checks are `manifest_integrity`, `checksum_references`, `private_artifact_boundary`, `cleanup_reference`, and `audit_reference`. Storage transfer, signed URLs, public artifacts, route execution, worker execution, GPAC/MP4Box execution, media processing, render/export, external beta expansion, paid production, and production remain blocked.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+## Track A GPAC/MP4Box Guarded Executable Handler Implementation Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-PLAN-1` records decision `tracka_gpac_mp4box_guarded_executable_handler_implementation_plan_passed_ready_for_guarded_executable_handler_implementation_scaffold` and execution `completed_docs_only_guarded_executable_handler_implementation_plan_no_runtime_execution`.
+
+Allowed future scope is `guarded_executable_handler_implementation_scaffold_only`. Required future guards remain backend/service-role ownership, disabled-by-default implementation, feature flag default false, approved snapshot guard, route idempotency guard, private artifact manifest guard, command allowlist guard, passing negative tests, cleanup/audit reference, storage/public artifact gates, and operator confirmation before any execution.
+
+Executable handler implementation in this phase, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.

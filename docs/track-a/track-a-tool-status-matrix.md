@@ -227,3 +227,14 @@ The metadata chain is complete through route mock, enqueue mock, disabled worker
 Route execution, worker execution, GPAC/MP4Box execution, storage transfer, signed/public artifacts, media processing, render/export, external beta expansion, paid production unlock, and production unlock remain blocked.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+## Track A GPAC/MP4Box Guarded Executable Handler Implementation Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-PLAN-1` records decision `tracka_gpac_mp4box_guarded_executable_handler_implementation_plan_passed_ready_for_guarded_executable_handler_implementation_scaffold` and execution `completed_docs_only_guarded_executable_handler_implementation_plan_no_runtime_execution`.
+
+The plan consumes PR #1642 / `7112409bd57ee533dbb61b7f9f2386fc31d81aff` and allows only a future `guarded_executable_handler_implementation_scaffold_only` packet. It preserves backend/service-role ownership, disabled-by-default implementation, feature flag default false, approved snapshot, route idempotency, private artifact manifest, command allowlist, negative-test, cleanup/audit, storage/public artifact, and operator-confirmation guards.
+
+Executable handler implementation in this phase, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed/public artifacts, Supabase mutation, SQL execution, beta, production, and final delivery/export remain blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.

@@ -1867,3 +1867,12 @@ Route id `render.gpacMp4box.serviceRolePackageMock` is registered as backend/ser
 The active blocker is now guarded worker enqueue mock implementation and later product runtime gates. Route execution, worker execution, GPAC/MP4Box execution, storage transfer, Supabase mutation, SQL execution, signed/public artifacts, external beta expansion, paid production, and production remain blocked.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+## Track A GPAC/MP4Box Guarded Executable Handler Implementation Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-PLAN-1` records decision `tracka_gpac_mp4box_guarded_executable_handler_implementation_plan_passed_ready_for_guarded_executable_handler_implementation_scaffold` and execution `completed_docs_only_guarded_executable_handler_implementation_plan_no_runtime_execution`.
+
+The packet is planning-only after PR #1642. It allows only a future `guarded_executable_handler_implementation_scaffold_only` packet and keeps executable handler implementation in this phase, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed/public artifacts, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.

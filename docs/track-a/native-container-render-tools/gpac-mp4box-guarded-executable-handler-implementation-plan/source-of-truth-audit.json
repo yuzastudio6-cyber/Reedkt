@@ -1,0 +1,15 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-PLAN-1",
+  "acceptedSources": {
+    "guardedHandlerImplementationReview2": {
+      "pr": 1642,
+      "mergeSha": "7112409bd57ee533dbb61b7f9f2386fc31d81aff",
+      "decision": "tracka_gpac_mp4box_guarded_handler_implementation_review_2_passed_ready_for_guarded_executable_handler_implementation_plan"
+    }
+  },
+  "excludedSources": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1"
+}

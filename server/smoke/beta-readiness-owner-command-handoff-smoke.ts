@@ -29,12 +29,12 @@ const handoffMarkdown = readFileSync(handoffMarkdownPath, 'utf8')
 
 assert.equal(
   packageJson.scripts['beta:readiness:owner-command-handoff'],
-  'tsx server/cli/beta-readiness-owner-command-handoff.ts',
+  'node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-owner-command-handoff.ts',
   'package script should expose the owner command handoff CLI',
 )
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-owner-command-handoff'],
-  'tsx server/smoke/beta-readiness-owner-command-handoff-smoke.ts',
+  'node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/beta-readiness-owner-command-handoff-smoke.ts',
   'package script should expose the owner command handoff smoke',
 )
 

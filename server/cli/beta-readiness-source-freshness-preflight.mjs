@@ -201,6 +201,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
     valueGaps,
     recommendedCommands: readyForDeployedEvidenceInputManifest ? [
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
@@ -211,6 +212,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:api-deployment-preflight',
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-env-template',
+      'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-preflight',
     ],

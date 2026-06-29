@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-runtime-scaffold-negative-tests'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-runtime-scaffold'
+const liveRegistrationReviewDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-live-registration-review'
 const decisionText = 'tracka_gpac_mp4box_runtime_scaffold_negative_tests_passed_ready_for_guarded_live_registration_review'
 const executionText = 'completed_runtime_scaffold_negative_tests_no_runtime_execution'
 const priorDecision = 'tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests'
@@ -32,12 +33,26 @@ const statusFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
 ]
 
+const liveRegistrationReviewFiles = [
+  `${liveRegistrationReviewDir}/gpac-mp4box-guarded-live-registration-review-decision.json`,
+  `${liveRegistrationReviewDir}/gpac-mp4box-guarded-live-registration-review-decision.md`,
+  `${liveRegistrationReviewDir}/readiness-report.json`,
+  `${liveRegistrationReviewDir}/registration-guard-matrix.json`,
+  `${liveRegistrationReviewDir}/registration-guard-matrix.md`,
+  `${liveRegistrationReviewDir}/source-of-truth-audit.json`,
+  `${liveRegistrationReviewDir}/source-of-truth-audit.md`,
+  `${liveRegistrationReviewDir}/validation-results.md`,
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...smokeFiles,
   ...statusFiles,
+  ...liveRegistrationReviewFiles,
   'docs/activation-phase-tracka-gpac-mp4box-runtime-scaffold-negative-tests-1-results.md',
   'docs/activation-phase-tracka-gpac-mp4box-disabled-runtime-scaffold-1-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-live-registration-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-live-registration-contract-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-live-registration-review-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-runtime-scaffold-negative-tests-1.md',
   `${priorDir}/gpac-mp4box-disabled-runtime-scaffold-decision.json`,
@@ -45,6 +60,7 @@ const requiredFiles = [
   'package.json',
   'scripts/validation/tracka-gpac-mp4box-disabled-runtime-scaffold-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-live-registration-review-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)

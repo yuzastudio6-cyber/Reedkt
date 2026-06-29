@@ -1,0 +1,52 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-LIVE-REGISTRATION-REVIEW-1",
+  "decision": "tracka_gpac_mp4box_guarded_live_registration_review_passed_ready_for_disabled_live_registration_contract",
+  "execution": "completed_docs_only_guarded_live_registration_review_no_runtime_execution",
+  "prior": {
+    "runtimeScaffoldNegativeTests": "tracka_gpac_mp4box_runtime_scaffold_negative_tests_passed_ready_for_guarded_live_registration_review",
+    "runtimeScaffoldNegativeTestsMergeSha": "44245f61b9ff915554b6845c97f4b87cd434a177"
+  },
+  "allowedNextImplementation": "TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1",
+  "allowedScope": "disabled_live_registration_contract_only",
+  "requiredFutureRegistrationGuards": [
+    "backend_service_role_owner_required",
+    "live_handler_disabled_by_default_required",
+    "feature_flag_default_false_required",
+    "approved_snapshot_guard_required",
+    "route_idempotency_guard_required",
+    "private_artifact_manifest_guard_required",
+    "command_allowlist_guard_required",
+    "negative_tests_must_remain_passing",
+    "no_storage_transfer_until_private_artifact_runtime_gate",
+    "no_signed_or_public_artifact_until_delivery_policy_gate",
+    "operator_confirmation_required_before_any_execution"
+  ],
+  "registration": {
+    "routeRegistration": "disabled_contract_only",
+    "liveHandlerEnabled": false,
+    "featureFlagDefault": false,
+    "runtimeExecutionApproved": false
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1"
+}

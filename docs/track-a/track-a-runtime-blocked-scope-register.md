@@ -165,6 +165,20 @@ The private artifact manifest is metadata-only. QA, cleanup, and audit reference
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1
+
+Decision: `tracka_gpac_mp4box_guarded_executable_handler_runtime_enablement_review_passed_ready_for_guarded_runtime_enablement_plan`.
+
+Execution: `completed_docs_only_guarded_executable_handler_runtime_enablement_review_no_runtime_execution`.
+
+Blocked in this phase: executable handler implementation, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export.
+
+Future plan must preserve backend/service-role ownership, disabled-by-default state, feature flag default false, approved snapshot guard, route idempotency guard, private artifact manifest guard, exact command allowlist guard, negative tests, storage/public artifact gates, cleanup/audit references, and operator confirmation.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`.
+
 ## Track A GPAC/MP4Box Guarded Handler Implementation Review 2
 
 `TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-IMPLEMENTATION-REVIEW-2` records `tracka_gpac_mp4box_guarded_handler_implementation_review_2_passed_ready_for_guarded_executable_handler_implementation_plan` and execution `completed_docs_only_guarded_handler_implementation_review_2_no_runtime_execution`.

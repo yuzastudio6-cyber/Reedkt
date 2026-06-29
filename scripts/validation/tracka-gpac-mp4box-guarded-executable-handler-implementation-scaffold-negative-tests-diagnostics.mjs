@@ -43,11 +43,27 @@ const sourceFiles = [
   'server/smoke/tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-smoke.ts',
 ]
 
+const followOnRuntimeReviewDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-executable-handler-runtime-enablement-review'
+const followOnRuntimeReviewFiles = [
+  `${followOnRuntimeReviewDir}/gpac-mp4box-guarded-executable-handler-runtime-enablement-review-decision.json`,
+  `${followOnRuntimeReviewDir}/gpac-mp4box-guarded-executable-handler-runtime-enablement-review-decision.md`,
+  `${followOnRuntimeReviewDir}/runtime-enablement-boundary.json`,
+  `${followOnRuntimeReviewDir}/runtime-enablement-boundary.md`,
+  `${followOnRuntimeReviewDir}/readiness-report.json`,
+  `${followOnRuntimeReviewDir}/source-of-truth-audit.json`,
+  `${followOnRuntimeReviewDir}/source-of-truth-audit.md`,
+  `${followOnRuntimeReviewDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-runtime-enablement-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-executable-handler-runtime-enablement-review-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
   ...sourceFiles,
+  ...followOnRuntimeReviewFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-runtime-enablement-review-1.md',
   'package.json',

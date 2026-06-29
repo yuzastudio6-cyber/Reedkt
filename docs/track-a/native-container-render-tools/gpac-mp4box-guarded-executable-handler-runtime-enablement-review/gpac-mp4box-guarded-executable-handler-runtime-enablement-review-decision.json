@@ -1,0 +1,50 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-RUNTIME-ENABLEMENT-REVIEW-1",
+  "decision": "tracka_gpac_mp4box_guarded_executable_handler_runtime_enablement_review_passed_ready_for_guarded_runtime_enablement_plan",
+  "execution": "completed_docs_only_guarded_executable_handler_runtime_enablement_review_no_runtime_execution",
+  "prior": {
+    "guardedExecutableHandlerImplementationScaffoldNegativeTests": "tracka_gpac_mp4box_guarded_executable_handler_implementation_scaffold_negative_tests_passed_ready_for_guarded_executable_handler_runtime_enablement_review",
+    "guardedExecutableHandlerImplementationScaffoldNegativeTestsMergeSha": "ec9d2d70ea90ffdbfe431d94f715066614efb15b",
+    "priorPr": "#1655"
+  },
+  "review": {
+    "runtimeEnablementPlanReadiness": "ready_for_guarded_runtime_enablement_plan",
+    "backendServiceRoleOwnershipRequired": true,
+    "disabledByDefaultRequired": true,
+    "featureFlagDefaultFalseRequired": true,
+    "approvedSnapshotGuardRequired": true,
+    "routeIdempotencyGuardRequired": true,
+    "privateArtifactManifestGuardRequired": true,
+    "commandAllowlistGuardRequired": true,
+    "negativeTestsRequired": true,
+    "storagePublicArtifactGatesRequired": true,
+    "cleanupAuditReferencesRequired": true,
+    "operatorConfirmationRequired": true
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1"
+}

@@ -1,0 +1,15 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1",
+  "sources": {
+    "privateArtifactFinalRuntimeReadinessReview": {
+      "pr": 1568,
+      "mergeSha": "f9994564af1e08b82f2d5e8393a0272de0b10b6d",
+      "decision": "tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan"
+    },
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "current": {
+    "decision": "tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold",
+    "execution": "completed_docs_only_guarded_runtime_enablement_plan_no_runtime_execution"
+  }
+}

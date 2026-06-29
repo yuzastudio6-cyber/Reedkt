@@ -155,6 +155,14 @@ The private artifact manifest is metadata-only. QA, cleanup, and audit reference
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Guarded Runtime Enablement Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1` records `tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold` and execution `completed_docs_only_guarded_runtime_enablement_plan_no_runtime_execution`.
+
+The plan allows only a future disabled-by-default runtime scaffold packet. It does not authorize route execution, worker dispatch, GPAC/MP4Box execution, storage transfer, signed/public artifacts, media processing, external beta expansion, paid production unlock, or production unlock.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

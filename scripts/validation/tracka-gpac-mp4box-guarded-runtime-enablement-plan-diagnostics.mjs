@@ -3,19 +3,20 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
-const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-final-runtime-readiness-review'
-const cleanupAuditDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-cleanup-audit-mock-implementation'
-const enablementPlanDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan'
-const decisionText = 'tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan'
-const executionText = 'completed_docs_only_final_runtime_readiness_review_no_runtime_execution'
-const priorDecision = 'tracka_gpac_mp4box_private_artifact_cleanup_audit_mock_implementation_passed_ready_for_final_runtime_readiness_review'
-const priorMergeSha = 'a3b861e13df8d4466b5ea160cf121f6606e888d2'
-const nextPrompt = 'TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1'
+const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan'
+const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-final-runtime-readiness-review'
+const decisionText = 'tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold'
+const executionText = 'completed_docs_only_guarded_runtime_enablement_plan_no_runtime_execution'
+const priorDecision = 'tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan'
+const priorMergeSha = 'f9994564af1e08b82f2d5e8393a0272de0b10b6d'
+const nextPrompt = 'TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1'
 
 const packetFiles = [
-  `${packetDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.json`,
-  `${packetDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.md`,
+  `${packetDir}/gpac-mp4box-guarded-runtime-enablement-plan-decision.json`,
+  `${packetDir}/gpac-mp4box-guarded-runtime-enablement-plan-decision.md`,
   `${packetDir}/readiness-report.json`,
+  `${packetDir}/runtime-guard-matrix.json`,
+  `${packetDir}/runtime-guard-matrix.md`,
   `${packetDir}/source-of-truth-audit.json`,
   `${packetDir}/source-of-truth-audit.md`,
   `${packetDir}/validation-results.md`,
@@ -28,58 +29,53 @@ const statusFiles = [
 ]
 
 const priorFiles = [
-  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-1-results.md',
-  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-1.md',
-  `${cleanupAuditDir}/gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-decision.json`,
-  `${cleanupAuditDir}/readiness-report.json`,
-  'scripts/validation/tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-diagnostics.mjs',
-]
-
-const enablementPlanFiles = [
-  `${enablementPlanDir}/gpac-mp4box-guarded-runtime-enablement-plan-decision.json`,
-  `${enablementPlanDir}/gpac-mp4box-guarded-runtime-enablement-plan-decision.md`,
-  `${enablementPlanDir}/readiness-report.json`,
-  `${enablementPlanDir}/runtime-guard-matrix.json`,
-  `${enablementPlanDir}/runtime-guard-matrix.md`,
-  `${enablementPlanDir}/source-of-truth-audit.json`,
-  `${enablementPlanDir}/source-of-truth-audit.md`,
-  `${enablementPlanDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1.md',
+  `${priorDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.json`,
+  `${priorDir}/readiness-report.json`,
+  'scripts/validation/tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-diagnostics.mjs',
 ]
 
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
-  ...enablementPlanFiles,
-  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-1-results.md',
   'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1-results.md',
-  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-runtime-scaffold-1.md',
   'package.json',
-  'scripts/validation/tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
 
 const requiredText = [
-  'TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1',
+  'TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1',
   nextPrompt,
   decisionText,
   executionText,
   priorDecision,
   priorMergeSha,
-  'metadata_chain_complete_ready_for_guarded_runtime_enablement_plan',
-  'readyForGuardedRuntimeEnablementPlan',
-  'approved_snapshot_runtime_persistence',
-  'service_role_backend_route_registration',
-  'worker_runtime_dispatch_confirmation',
-  'private_artifact_storage_runtime_policy',
-  'storage_transfer_negative_tests',
-  'signed_public_artifact_negative_tests',
-  'tool_runtime_command_allowlist',
-  'qa_cleanup_audit_runtime_observability',
-  'rollback_and_residue_validation',
+  'ready_for_disabled_scaffold_only',
+  'approved_snapshot_runtime_persistence_required',
+  'service_role_backend_route_registration_required',
+  'disabled_by_default_runtime_scaffold_required',
+  'worker_dispatch_confirmation_required',
+  'private_artifact_storage_runtime_policy_required',
+  'tool_runtime_command_allowlist_required',
+  'storage_transfer_negative_tests_required',
+  'signed_public_artifact_negative_tests_required',
+  'qa_cleanup_audit_runtime_observability_required',
+  'rollback_and_residue_validation_required',
+  'operator_confirmation_gate_required',
+  'raw_chat',
+  'raw_command_string',
+  'frontend_file_path',
+  'public_url_source_of_truth',
+  'signed_url_source_of_truth',
+  'arbitrary_private_media',
+  'provider_or_model_prompt_payload',
+  'service_role_secret_payload',
+  'broad_service_role_handler_payload',
   'Product-ready local OSS tools: `0`',
   'Supabase classification: no write / environment none / SQL none / migration no',
   'Package-lock: `unchanged`',
@@ -104,6 +100,7 @@ const forbiddenDocPatterns = [
   /gpacMp4boxExecution"\s*:\s*true/i,
   /mediaProcessing"\s*:\s*true/i,
   /storageTransfer"\s*:\s*true/i,
+  /runtimeExecution"\s*:\s*true/i,
   /supabaseMutation"\s*:\s*true/i,
   /sqlExecution"\s*:\s*true/i,
   /signedUrlCreation"\s*:\s*true/i,
@@ -114,7 +111,7 @@ const forbiddenDocPatterns = [
 ]
 
 function fail(message) {
-  console.error(`TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1 diagnostics failed: ${message}`)
+  console.error(`TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1 diagnostics failed: ${message}`)
   process.exit(1)
 }
 
@@ -148,7 +145,7 @@ for (const file of requiredFiles) read(file)
 for (const file of packetFiles.filter((file) => file.endsWith('.json'))) json(file)
 
 const packageJson = json('package.json')
-if (packageJson.scripts?.['tracka:gpac-mp4box-private-artifact-final-runtime-readiness-review:diagnostics'] !== 'node scripts/validation/tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-diagnostics.mjs') fail('missing package diagnostics script')
+if (packageJson.scripts?.['tracka:gpac-mp4box-guarded-runtime-enablement-plan:diagnostics'] !== 'node scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-diagnostics.mjs') fail('missing package diagnostics script')
 
 const docsCorpus = requiredFiles
   .filter((file) => !file.startsWith('scripts/validation/'))
@@ -156,31 +153,47 @@ const docsCorpus = requiredFiles
   .join('\n')
 
 for (const text of requiredText) {
-  if (!docsCorpus.includes(text) && !read('package.json').includes(text)) fail(`missing required text: ${text}`)
+  if (!docsCorpus.includes(text)) fail(`missing required text: ${text}`)
 }
 for (const pattern of forbiddenDocPatterns) {
   if (pattern.test(docsCorpus)) fail(`forbidden doc claim matched ${pattern}`)
 }
 
-const decision = json(`${packetDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.json`)
+const decision = json(`${packetDir}/gpac-mp4box-guarded-runtime-enablement-plan-decision.json`)
 if (decision.decision !== decisionText) fail('decision drift')
 if (decision.execution !== executionText) fail('execution drift')
-if (decision.prior?.privateArtifactCleanupAuditMock !== priorDecision) fail('prior cleanup/audit decision drift')
-if (decision.prior?.privateArtifactCleanupAuditMergeSha !== priorMergeSha) fail('prior merge SHA drift')
-if (decision.readiness?.guardedRuntimeEnablementPlan !== 'ready') fail('guarded enablement readiness drift')
-if (decision.readiness?.productRuntime !== 'blocked') fail('product runtime drift')
+if (decision.prior?.privateArtifactFinalRuntimeReadinessReview !== priorDecision) fail('prior readiness decision drift')
+if (decision.prior?.privateArtifactFinalRuntimeReadinessMergeSha !== priorMergeSha) fail('prior merge SHA drift')
+if (decision.runtimeEnablementPlan?.nextAllowedImplementation !== nextPrompt) fail('next implementation drift')
+if (decision.runtimeEnablementPlan?.runtimeScaffoldReadiness !== 'ready_for_disabled_scaffold_only') fail('scaffold readiness drift')
+if (decision.runtimeEnablementPlan?.productRuntime !== 'blocked') fail('product runtime drift')
 for (const requiredGuard of [
-  'approved_snapshot_runtime_persistence',
-  'service_role_backend_route_registration',
-  'worker_runtime_dispatch_confirmation',
-  'private_artifact_storage_runtime_policy',
-  'storage_transfer_negative_tests',
-  'signed_public_artifact_negative_tests',
-  'tool_runtime_command_allowlist',
-  'qa_cleanup_audit_runtime_observability',
-  'rollback_and_residue_validation',
+  'approved_snapshot_runtime_persistence_required',
+  'service_role_backend_route_registration_required',
+  'disabled_by_default_runtime_scaffold_required',
+  'worker_dispatch_confirmation_required',
+  'private_artifact_storage_runtime_policy_required',
+  'tool_runtime_command_allowlist_required',
+  'storage_transfer_negative_tests_required',
+  'signed_public_artifact_negative_tests_required',
+  'qa_cleanup_audit_runtime_observability_required',
+  'rollback_and_residue_validation_required',
+  'operator_confirmation_gate_required',
 ]) {
   if (!decision.requiredFutureGuards?.includes(requiredGuard)) fail(`missing future guard ${requiredGuard}`)
+}
+for (const rejectedInput of [
+  'raw_chat',
+  'raw_command_string',
+  'frontend_file_path',
+  'public_url_source_of_truth',
+  'signed_url_source_of_truth',
+  'arbitrary_private_media',
+  'provider_or_model_prompt_payload',
+  'service_role_secret_payload',
+  'broad_service_role_handler_payload',
+]) {
+  if (!decision.rejectedInputs?.includes(rejectedInput)) fail(`missing rejected input ${rejectedInput}`)
 }
 for (const [key, value] of Object.entries(decision.safety ?? {})) {
   if (value !== false) fail(`safety ${key} was enabled`)
@@ -188,17 +201,21 @@ for (const [key, value] of Object.entries(decision.safety ?? {})) {
 if (decision.productReadyLocalOssTools !== 0) fail('product-ready count drift')
 if (decision.nextPrompt !== nextPrompt) fail('next prompt drift')
 
+const guardMatrix = json(`${packetDir}/runtime-guard-matrix.json`)
+for (const key of ['runtimeExecution', 'routeExecution', 'workerExecution', 'gpacMp4boxExecution', 'storageTransfer', 'signedUrlCreation', 'publicArtifactCreation', 'mediaProcessing']) {
+  if (guardMatrix[key] !== false) fail(`guard matrix ${key} drift`)
+}
+
 const readiness = json(`${packetDir}/readiness-report.json`)
-if (readiness.privateArtifactCleanupAuditPassed !== true) fail('readiness cleanup/audit drift')
-if (readiness.finalRuntimeReadinessReviewPassed !== true) fail('readiness final review drift')
-if (readiness.readyForGuardedRuntimeEnablementPlan !== true) fail('readiness next gate drift')
+if (readiness.guardedRuntimeEnablementPlanPassed !== true) fail('readiness plan drift')
+if (readiness.readyForDisabledRuntimeScaffold !== true) fail('readiness scaffold drift')
 for (const key of ['readyForRuntimeRouteExecution', 'readyForWorkerDispatch', 'readyForWorkerExecution', 'readyForGpacMp4boxExecution', 'readyForMediaProcessing', 'readyForStorageTransfer', 'readyForSignedUrlCreation', 'readyForPublicArtifactCreation', 'readyForProductRuntime', 'readyForExternalBetaProductUse', 'readyForProduction']) {
   if (readiness[key] !== false) fail(`${key} drift`)
 }
 if (readiness.productReadyLocalOssTools !== 0) fail('readiness product-ready count drift')
 
-const prior = json(`${cleanupAuditDir}/gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-decision.json`)
-if (prior.decision !== priorDecision) fail('prior cleanup/audit decision drift')
+const prior = json(`${priorDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.json`)
+if (prior.decision !== priorDecision) fail('prior final readiness decision drift')
 
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
@@ -220,9 +237,9 @@ gitQuiet(['diff', '--quiet', '--', 'docker/prod/tool-readiness-worker/Dockerfile
 gitQuiet(['diff', '--check'], 'git diff --check failed')
 gitQuiet(['diff', '--cached', '--check'], 'git diff --cached --check failed')
 
-console.log('TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1 diagnostics passed')
+console.log('TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-ENABLEMENT-PLAN-1 diagnostics passed')
 console.log(`Decision: ${decisionText}`)
-console.log('Runtime readiness review: ready for guarded runtime enablement plan only')
+console.log('Next implementation: disabled runtime scaffold only')
 console.log('Route, worker, GPAC/MP4Box, storage transfer, signed/public artifacts, media processing: blocked')
 console.log(`Next prompt: ${nextPrompt}`)
 console.log('Product-ready local OSS tools: 0')

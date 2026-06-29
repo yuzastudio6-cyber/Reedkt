@@ -212,6 +212,18 @@ Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media
 
 Next prompt: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1`.
 
+## TRACKA GPAC/MP4Box Guarded Runtime Dispatch Enablement Plan
+
+`TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1` records decision `tracka_gpac_mp4box_guarded_runtime_dispatch_enablement_plan_passed_ready_for_guarded_runtime_dispatch_scaffold` and execution `completed_docs_only_guarded_runtime_dispatch_enablement_plan_no_runtime_execution`.
+
+Future confirmation gate: `REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true`.
+
+The packet defines approved snapshot requirements, private artifact manifest and cleanup requirements, service-role route boundaries, worker idempotency/lease/event requirements, GPAC/MP4Box command allowlist requirements, and negative-test requirements. It does not execute routes, dispatch workers, execute workers, run GPAC/MP4Box, process media, transfer storage, mutate Supabase, run SQL, create signed/public artifacts, or unlock beta/production/final delivery.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. PR #577 remains open/draft/blocked/excluded.
+
+Next prompt: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1`.
+
 ## RP External Beta Service-Role Route Runtime Validation 1
 
 `RP-EXTERNAL-BETA-SERVICE-ROLE-ROUTE-RUNTIME-VALIDATION-1` records decision `completed_service_role_storage_object_metadata_read_route_runtime_validation` and execution `completed_guarded_in_process_service_role_storage_object_metadata_read_route_validation`.

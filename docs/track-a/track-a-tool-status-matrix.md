@@ -38,6 +38,14 @@ Runtime status remains blocked for route execution, worker dispatch, worker exec
 
 Next action: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1`.
 
+GPAC/MP4Box guarded runtime dispatch enablement plan: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1` records `tracka_gpac_mp4box_guarded_runtime_dispatch_enablement_plan_passed_ready_for_guarded_runtime_dispatch_scaffold` and execution `completed_docs_only_guarded_runtime_dispatch_enablement_plan_no_runtime_execution`.
+
+The plan defines future confirmation gate `REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true`, approved snapshot requirements, private artifact manifest/cleanup requirements, service-role route boundaries, worker idempotency/lease/event requirements, GPAC/MP4Box command allowlist requirements, and negative-test requirements. Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed/public artifacts, Supabase mutation, SQL execution, external beta, production, and final delivery/export remain blocked.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. PR #577 remains open/draft/blocked/excluded.
+
+Next action: `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-1`.
+
 GPAC/MP4Box status update: `TRACKA-GPAC-MP4BOX-GUARDED-WORKER-ENQUEUE-MOCK-IMPLEMENTATION-1` records `tracka_gpac_mp4box_guarded_worker_enqueue_mock_implementation_passed_ready_for_guarded_worker_skeleton_mock` and execution `completed_backend_mock_queue_contract_no_worker_or_tool_execution`. Queue mode is `mock_queue_contract_only`, queue status is `queued_mock_contract_only`, and worker kind is `render_export`. Worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed/public artifacts, render/export, external beta product use, and production remain blocked. Next action: `TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1`.
 
 GPAC/MP4Box worker skeleton status update: `TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1` records `tracka_gpac_mp4box_guarded_worker_skeleton_mock_implementation_passed_ready_for_private_artifact_policy_mock` and execution `completed_disabled_worker_skeleton_contract_no_worker_or_tool_execution`. Skeleton id is `worker.gpacMp4box.packageValidation.mock`; skeleton mode is `disabled_mock_worker_skeleton_only`; queue consumption mode is `metadata_validation_only`. Worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed/public artifacts, render/export, external beta product use, and production remain blocked. Next action: `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-POLICY-MOCK-IMPLEMENTATION-1`.

@@ -1,0 +1,47 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1",
+  "dispatchPlan": {
+    "allowedFuturePacketType": "guarded_runtime_dispatch_scaffold",
+    "futureConfirmationGate": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true",
+    "approvedSnapshot": {
+      "required": true,
+      "mustReferenceImmutableApprovedPlanVersion": true,
+      "mustIncludeConfirmedFrameAndTiming": true,
+      "mustIncludeCreditReservationReference": true,
+      "rawChatExecutionAllowed": false
+    },
+    "privateArtifactManifest": {
+      "required": true,
+      "sha256ChecksumsRequired": true,
+      "privateOnly": true,
+      "signedUrlsAsSourceOfTruth": false,
+      "publicArtifactsAllowed": false,
+      "cleanupPolicyRequired": true,
+      "residueReadbackRequired": true
+    },
+    "serviceRoleRouteBoundary": {
+      "serviceRoleBackendOnly": true,
+      "frontendServiceRoleExposureAllowed": false,
+      "broadServiceRoleHandlerAllowed": false,
+      "routeMustRequireConfirmationGate": true,
+      "routeMustRejectRawChat": true,
+      "routeMustRejectUnapprovedMedia": true
+    },
+    "workerDispatch": {
+      "idempotencyKeyRequired": true,
+      "leaseRequired": true,
+      "eventLogRequired": true,
+      "retryPolicyRequired": true,
+      "cleanupOnFailureRequired": true,
+      "workerExecutionThisPhase": false
+    },
+    "commandAllowlist": {
+      "tool": "MP4Box",
+      "allowedFutureCommandFamily": "bounded_manifest_backed_mp4box_package_validation_only",
+      "arbitraryArgumentsAllowed": false,
+      "ffmpegFfprobeAllowed": false,
+      "gstreamerMkvtoolnixAllowed": false,
+      "remotionAllowed": false
+    }
+  }
+}

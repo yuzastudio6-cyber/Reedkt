@@ -22,6 +22,22 @@ const packetFiles = [
   `${packetDir}/validation-results.md`,
 ]
 
+const dispatchEnablementPlanDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-enablement-plan'
+const dispatchEnablementPlanFiles = [
+  `${dispatchEnablementPlanDir}/gpac-mp4box-guarded-runtime-dispatch-enablement-plan-decision.json`,
+  `${dispatchEnablementPlanDir}/gpac-mp4box-guarded-runtime-dispatch-enablement-plan-decision.md`,
+  `${dispatchEnablementPlanDir}/dispatch-enablement-plan.json`,
+  `${dispatchEnablementPlanDir}/dispatch-enablement-plan.md`,
+  `${dispatchEnablementPlanDir}/negative-test-matrix.json`,
+  `${dispatchEnablementPlanDir}/negative-test-matrix.md`,
+  `${dispatchEnablementPlanDir}/source-of-truth-audit.json`,
+  `${dispatchEnablementPlanDir}/source-of-truth-audit.md`,
+  `${dispatchEnablementPlanDir}/readiness-report.json`,
+  `${dispatchEnablementPlanDir}/runtime-boundary.json`,
+  `${dispatchEnablementPlanDir}/runtime-boundary.md`,
+  `${dispatchEnablementPlanDir}/validation-results.md`,
+]
+
 const statusFiles = [
   'docs/production-beta-blocker-inventory.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -42,12 +58,16 @@ const sourceFiles = [
 
 const requiredFiles = [
   ...packetFiles,
+  ...dispatchEnablementPlanFiles,
   ...statusFiles,
   ...sourceFiles,
   'docs/activation-phase-tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-1-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-1.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-1.md',
   'scripts/validation/tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-1r-diagnostics.mjs',
   'package.json',
 ]

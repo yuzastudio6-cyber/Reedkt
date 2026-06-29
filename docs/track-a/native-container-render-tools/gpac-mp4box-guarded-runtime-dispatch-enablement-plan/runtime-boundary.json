@@ -1,0 +1,23 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1",
+  "allowedScope": "docs_status_diagnostics_plan_only",
+  "routeExecutionAuthorized": false,
+  "workerDispatchAuthorized": false,
+  "workerExecutionAuthorized": false,
+  "gpacMp4boxExecutionAuthorized": false,
+  "mediaProcessingAuthorized": false,
+  "storageTransferAuthorized": false,
+  "signedUrlCreationAuthorized": false,
+  "publicArtifactCreationAuthorized": false,
+  "supabaseMutationAuthorized": false,
+  "sqlExecutionAuthorized": false,
+  "externalBetaAuthorized": false,
+  "paidProductionAuthorized": false,
+  "productionAuthorized": false,
+  "finalDeliveryExportAuthorized": false,
+  "packageInstallationAuthorized": false,
+  "dockerExecutionAuthorized": false,
+  "remotionExecutionAuthorized": false,
+  "ffmpegFfprobeExecutionAuthorized": false,
+  "broadServiceRoleHandlerAuthorized": false
+}

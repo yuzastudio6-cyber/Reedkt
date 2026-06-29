@@ -27,8 +27,8 @@ assert.equal(
 )
 assert.equal(report.sourceTruth.requiredOperatorInputs, 60)
 assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)
-assert.equal(report.sourceTruth.humanActionablePendingOperatorInputs, 15)
-assert.equal(report.sourceTruth.autoFillablePendingOperatorInputs, 42)
+assert.equal(report.sourceTruth.humanActionablePendingOperatorInputs, 45)
+assert.equal(report.sourceTruth.autoFillablePendingOperatorInputs, 12)
 assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
 assert.equal(report.sourceTruth.externalBetaAllowed, false)
 assert.equal(report.sourceTruth.realUserMediaBetaAllowed, false)
@@ -48,11 +48,11 @@ assert.equal(
   true,
 )
 assert.equal(
-  report.batches[0]?.blockedUntil[0]?.includes('15 human-actionable values'),
+  report.batches[0]?.blockedUntil[0]?.includes('45 human-actionable values'),
   true,
 )
 assert.equal(
-  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('15 human-actionable, 42 auto-fillable')),
+  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('45 human-actionable, 12 auto-fillable')),
   true,
 )
 assert.equal(report.batches[1]?.batchId, 'trackb_deployed_tool_evidence_recording')

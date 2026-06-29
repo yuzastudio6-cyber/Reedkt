@@ -182,7 +182,7 @@ function buildBatches(
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],
       blockedUntil: [
-        `Operators review the value-free pending-input status, then supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, and non-secret owner evidence notes) and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.`,
+        `Operators review the value-free pending-input status, then supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.`,
       ],
     },
     {
@@ -355,10 +355,32 @@ function arrayValue(value: unknown): any[] {
 }
 
 function isHumanActionableOperatorInput(input: any): boolean {
+  const name = typeof input?.name === 'string' ? input.name : ''
   return (
+    isOwnerApprovalConfirmationName(name) ||
+    isTechnicalVerificationConfirmationName(name) ||
+    isOperatorConfirmationName(name) ||
     input?.valuePolicy === 'operator_secret_or_sensitive' ||
     input?.valuePolicy === 'operator_non_secret_value' ||
     input?.valuePolicy === 'owner_evidence_note'
+  )
+}
+
+function isOwnerApprovalConfirmationName(name: string): boolean {
+  return name.includes('_APPROVE_') || name === 'REEDITPRO_BETA_LAUNCH_CONFIRM_EXTERNAL_BETA_APPROVAL'
+}
+
+function isTechnicalVerificationConfirmationName(name: string): boolean {
+  return name.endsWith('_VERIFIED')
+}
+
+function isOperatorConfirmationName(name: string): boolean {
+  return (
+    name.includes('_CONFIRM_') ||
+    name.includes('_REQUIRE_') ||
+    name.includes('_ACCEPT_') ||
+    name.endsWith('_RECORD_EVIDENCE') ||
+    name === 'REEDITPRO_BETA_PLATFORM_ALLOW_PERSISTENT_PROBE_WRITES'
   )
 }
 

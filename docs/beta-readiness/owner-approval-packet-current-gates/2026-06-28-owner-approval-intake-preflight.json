@@ -1,11 +1,11 @@
 {
   "reportId": "beta-readiness-owner-approval-intake-preflight-2026-06-28",
-  "createdAt": "2026-06-28T22:20:00Z",
+  "createdAt": "2026-06-29T00:44:00Z",
   "decision": "beta_readiness_owner_approval_intake_preflight_passed_ready_for_owner_input_collection",
   "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
-  "sourceSha": "2a5296d973d10ab374bca642f526711f763817ac",
+  "sourceSha": "17a9a2d2b015ab325cf13ce5135d083af070ab00",
   "ownerApprovalPacket": "docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json",
-  "manifestOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-d997-technical-inputs-owner-approval-gap.json",
+  "manifestOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json",
   "commands": {
     "template": "npm run beta:readiness:owner-approval-env-template",
     "sourceFreshness": "npm run beta:readiness:source-freshness-preflight",

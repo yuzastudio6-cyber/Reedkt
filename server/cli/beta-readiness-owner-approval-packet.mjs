@@ -1,5 +1,5 @@
-const DEFAULT_SOURCE_SHA = 'd997d567d40853f59741763c8e9ca8b2c361148a'
-const DEFAULT_CREATED_AT = '2026-06-28T21:05:00Z'
+const DEFAULT_SOURCE_SHA = '17a9a2d2b015ab325cf13ce5135d083af070ab00'
+const DEFAULT_CREATED_AT = '2026-06-29T00:40:00Z'
 
 const platformApprovalItems = [
   {
@@ -182,17 +182,17 @@ export function buildBetaReadinessOwnerApprovalPacket(options = {}) {
       sourceBranch: 'codex/sound-music-audio-1abc-checkpoint',
       sourceSha,
       platformTechnicalProbePacket: 'docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json',
-      currentSourceApiDeployPacket: 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json',
+      currentSourceApiDeployPacket: 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json',
       normalApiService: 'reeditpro-api-staging',
       normalApiRegion: 'us-east1',
-      normalApiRevision: 'reeditpro-api-staging-00010-c6h',
+      normalApiRevision: 'reeditpro-api-staging-00011-cts',
       normalApiServiceUrl: 'https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app',
       normalApiCanonicalServiceUrl: 'https://reeditpro-api-staging-390722338345.us-east1.run.app',
-      normalApiImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-d997d567d408-20260628T2058Z',
-      normalApiImageDigest: 'sha256:b3c5a028ad5385683c9beed7ef8b8fc96a0c2b7342849864ceb843db60f323bf',
+      normalApiImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-17a9a2d2b015-20260629T0034Z',
+      normalApiImageDigest: 'sha256:35fcf6401f15baab8206fc7b3bf5436416c6ef24419f545f8e813504a7c1ab4c',
       normalApiArtifactRegion: 'us-central1',
-      normalApiDeployRunId: '28335776268',
-      normalApiDeployRunUrl: 'https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268',
+      normalApiDeployRunId: '28341446109',
+      normalApiDeployRunUrl: 'https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28341446109',
       normalApiPublicUnauthenticatedHealthStatus: 403,
       normalApiAuthenticatedHealthReadback: 'not_rerun_local_cloud_cli_auth_expired',
       toolReadinessService: 'reeditpro-tool-readiness-staging',

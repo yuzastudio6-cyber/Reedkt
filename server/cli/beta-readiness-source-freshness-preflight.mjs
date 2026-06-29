@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
-const DEFAULT_API_DEPLOY_PACKET_PATH = 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json'
-const DEFAULT_API_DEPLOYMENT_PREFLIGHT_PACKET_PATH = 'docs/beta-readiness/api-deployment-preflight/2026-06-28-d997-api-deployment-preflight-passed.json'
+const DEFAULT_API_DEPLOY_PACKET_PATH = 'docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json'
+const DEFAULT_API_DEPLOYMENT_PREFLIGHT_PACKET_PATH = 'docs/beta-readiness/api-deployment-preflight/2026-06-29-17a9-api-deployment-preflight-passed.json'
 const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-deployed-evidence-input-manifest.json'
 
 const PASS_DECISION = 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence'
@@ -35,7 +35,9 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
     clean(apiDeploymentPreflightPacket?.sourceSha)
   const apiDeploySourceSha = clean(apiDeployPacket?.sourceTruth?.sourceSha) ?? clean(apiDeployPacket?.deployInputs?.sourceSha)
   const apiDeploymentPreflightSourceSha = clean(apiDeploymentPreflightPacket?.sourceSha)
-  const manifestRecordedDeployedSourceSha = clean(deployedEvidenceManifest?.currentD997ApiDeployReadback?.sourceSha)
+  const manifestRecordedDeployedSourceSha =
+    clean(deployedEvidenceManifest?.current17a9ApiDeployReadback?.sourceSha) ??
+    clean(deployedEvidenceManifest?.currentD997ApiDeployReadback?.sourceSha)
 
   const valueGaps = [
     ...(validSha(currentSourceSha) ? [] : ['Current source SHA is required and must be a 40-character lowercase git SHA.']),

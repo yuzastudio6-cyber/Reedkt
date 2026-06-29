@@ -111,7 +111,7 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
     packetId: 'beta-readiness-owner-approval-intake-preflight-2026-06-28',
     sourceTruth: {
       ownerApprovalPacket: 'docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json',
-      manifestOwnerGapPacket: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-28-d997-technical-inputs-owner-approval-gap.json',
+      manifestOwnerGapPacket: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json',
       sourceSha: packet.sourceTruth.sourceSha,
       normalApiRevision: packet.sourceTruth.normalApiRevision,
       productReadyLocalOssCount: packet.productReadyLocalOssCount,

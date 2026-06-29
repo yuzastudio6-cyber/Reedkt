@@ -65,6 +65,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_RECONCI
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_ADOPTION } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-adoption'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_ADOPTED_LOCAL_VALIDATION } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-adopted-local-validation'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-remote-satisfaction-review'
+import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -133,6 +134,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_active_migration_adopted_local_validation_required'
   | 'blocked_backend_runtime_persistence_active_migration_remote_satisfaction_review_required'
   | 'blocked_persisted_worker_dispatch_readiness_review_required'
+  | 'blocked_controlled_persisted_worker_dispatch_smoke_plan_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -149,7 +151,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_remote_satisfaction_accepted_runtime_dispatch_readiness_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_persisted_worker_dispatch_review_accepted_controlled_smoke_plan_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -284,6 +286,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_ADOPTED_LOCAL_VALIDATION.decision,
   upstreamBackendRuntimePersistenceActiveMigrationRemoteSatisfactionReviewDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW.decision,
+  upstreamRuntimePersistenceToWorkerDispatchReadinessReviewDecision:
+    QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1100,15 +1104,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'persisted_worker_dispatch_readiness_review',
       label: 'Persisted worker dispatch readiness review',
-      status: 'blocked_persisted_worker_dispatch_readiness_review_required',
+      status: 'ready',
       evidence: [
         'Backend runtime persistence no-deploy satisfaction is accepted.',
         'Fail-closed coordinator and controlled dispatch dry-run evidence remain recorded.',
         'Approved worker integration review accepted metadata-only local queue and private invoke contract shapes.',
+        'Runtime persistence to worker dispatch readiness review accepts the contract for controlled persisted dispatch smoke planning.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_smoke_plan',
+      label: 'Controlled persisted worker dispatch smoke plan',
+      status: 'blocked_controlled_persisted_worker_dispatch_smoke_plan_required',
+      evidence: [
+        'Persisted worker dispatch readiness review is accepted for controlled smoke planning.',
+        'No-deploy Qwen runtime persistence migration satisfaction is accepted.',
+        'Existing ReEditPro runtime surfaces cover approved snapshot refs, jobs, idempotency, leases, runtime messages, claims, private storage refs, signed URL audit, QA, audit, and credit gates.',
       ],
       missingEvidence: [
-        'Review the persisted job, lease, idempotency, backend runtime message, job event, worker claim, private storage record, signed URL audit, QA, audit, and credit boundaries before any real dispatch path.',
-        'Keep Cloud Run invocation, Qwen inference, generated assets, signed URLs, beta, and production blocked until a later approved controlled dispatch prompt.',
+        'Plan a controlled persisted worker dispatch smoke that proves persisted job/lease/idempotency/event/message/claim/source-of-truth/QA/audit/credit handoff shape without invoking Cloud Run or creating generated assets.',
+        'Keep Cloud Run invocation, Qwen inference, workers, generated assets, signed URLs, beta, and production blocked until a later approved controlled dispatch execution prompt.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -1479,7 +1495,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceActiveMigrationRemoteQwenVersion: '20260628000100',
     backendRuntimePersistenceActiveMigrationLocalValidatedVersion: '20260628000100',
     backendRuntimePersistenceActiveMigrationDeployed: false,
-    persistedWorkerDispatchReadinessReviewRequired: true,
+    persistedWorkerDispatchReadinessReviewRequired: false,
+    runtimePersistenceToWorkerDispatchReadinessReviewRecorded: true,
+    persistedWorkerDispatchReadinessAcceptedForControlledSmokePlanning: true,
+    controlledPersistedWorkerDispatchSmokePlanRequired: true,
     backendRuntimePersistenceStorageUploadPipelinePolicyCommentFixVerified: true,
     qwenDraftSqlApplyAttempted: true,
     qwenDraftSqlApplied: true,
@@ -1515,11 +1534,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'persisted_worker_dispatch_readiness_review_required',
+    'controlled_persisted_worker_dispatch_smoke_plan_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58BJ-RUNTIME-PERSISTENCE-TO-WORKER-DISPATCH-READINESS-REVIEW: review persisted Qwen worker dispatch readiness, no invocation/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58BK-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-PLAN: plan controlled persisted Qwen worker dispatch smoke, no invocation/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

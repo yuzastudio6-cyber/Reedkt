@@ -37,10 +37,29 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-contract-negative-tests-diagnostics.mjs',
 ]
 
+const scaffoldDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-scaffold'
+const scaffoldFiles = [
+  `${scaffoldDir}/gpac-mp4box-disabled-handler-registration-scaffold-decision.json`,
+  `${scaffoldDir}/gpac-mp4box-disabled-handler-registration-scaffold-decision.md`,
+  `${scaffoldDir}/handler-registration-scaffold-contract.json`,
+  `${scaffoldDir}/handler-registration-scaffold-contract.md`,
+  `${scaffoldDir}/readiness-report.json`,
+  `${scaffoldDir}/source-of-truth-audit.json`,
+  `${scaffoldDir}/source-of-truth-audit.md`,
+  `${scaffoldDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-registration-scaffold-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-1.md',
+  'src/backend/contracts/gpac-mp4box-disabled-handler-registration-scaffold-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'server/smoke/tracka-gpac-mp4box-disabled-handler-registration-scaffold-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-scaffold-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...scaffoldFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-registration-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-scaffold-1.md',
   'package.json',
@@ -245,7 +264,10 @@ if (prior.decision !== priorDecision) fail('prior negative-tests decision drift'
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
+  const isAllowedScaffoldSource = file === 'src/backend/contracts/gpac-mp4box-disabled-handler-registration-scaffold-contracts.ts' ||
+    file === 'src/backend/contracts/index.ts' ||
+    file === 'server/smoke/tracka-gpac-mp4box-disabled-handler-registration-scaffold-smoke.ts'
+  if (!isAllowedScaffoldSource && forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock changed')

@@ -10,6 +10,7 @@ const BLOCKED_DECISION = 'beta_readiness_source_freshness_preflight_blocked_depl
 const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:deployed-evidence-input-manifest',
   'beta:readiness:api-deployment-preflight',
+  'beta:readiness:blocker-closeout-queue',
   'beta:readiness:blocker-ledger',
   'beta:readiness:external-beta-operator-input-template',
   'beta:readiness:external-beta-evidence-collector',
@@ -36,6 +37,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'prod:readiness:summary',
   'smoke:beta-readiness-deployed-evidence-input-manifest',
   'smoke:beta-readiness',
+  'smoke:beta-readiness-blocker-closeout-queue',
   'smoke:beta-readiness-api-deployment-preflight',
   'smoke:beta-readiness-api-staging-deploy-workflow',
   'smoke:beta-readiness-api-staging-input-discovery-blocker',
@@ -162,11 +164,14 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+        'server/cli/beta-readiness-blocker-closeout-queue.ts',
         'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
         'server/cli/beta-readiness-node-ts-register.mjs',
         'server/cli/beta-readiness-operator-status-api.ts',
         'server/cli/beta-readiness-operator-status-api.mjs',
         'server/cli/beta-readiness-operator-status.ts',
+        'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts',
+        'server/beta-readiness/index.ts',
         'server/beta-readiness/platform-evidence-manifest.ts',
         `package.json scripts only: ${ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.join(', ')}`,
       ],
@@ -258,11 +263,14 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
+    path === 'server/cli/beta-readiness-blocker-closeout-queue.ts' ||
     path === 'server/cli/beta-readiness-external-beta-operator-input-template.mjs' ||
     path === 'server/cli/beta-readiness-node-ts-register.mjs' ||
     path === 'server/cli/beta-readiness-operator-status-api.ts' ||
     path === 'server/cli/beta-readiness-operator-status-api.mjs' ||
     path === 'server/cli/beta-readiness-operator-status.ts' ||
+    path === 'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts' ||
+    path === 'server/beta-readiness/index.ts' ||
     path === 'server/beta-readiness/platform-evidence-manifest.ts' ||
     (path === 'package.json' && isAllowedPackageJsonScriptOnlyDrift(context))
 }

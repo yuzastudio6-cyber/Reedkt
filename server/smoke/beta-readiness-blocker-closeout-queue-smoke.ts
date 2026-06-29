@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict'
+import { buildBetaReadinessBlockerCloseoutQueue } from '../beta-readiness'
+
+const report = buildBetaReadinessBlockerCloseoutQueue({
+  createdAt: '2026-06-29T00:00:00.000Z',
+  currentCentralSha: '582301ab43ff073a5ba9dd7f96fb3e3ca81a1614',
+})
+
+assert.equal(report.decision, 'beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection')
+assert.equal(report.sourceTruth.blockerLedgerRows, 197)
+assert.equal(report.sourceTruth.duplicateBlockerRows, 0)
+assert.equal(report.sourceTruth.toolRows, 184)
+assert.equal(report.sourceTruth.platformRows, 1)
+assert.equal(report.sourceTruth.checklistRows, 2)
+assert.equal(report.sourceTruth.goNoGoRows, 10)
+assert.equal(report.sourceTruth.locallyAcceptedToolCount, 16)
+assert.equal(report.sourceTruth.locallyAcceptedToolIds.includes('libass'), true)
+assert.equal(report.sourceTruth.readyToRecordDeployedEvidence, true)
+assert.equal(report.sourceTruth.requiredOperatorInputs, 60)
+assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)
+assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
+assert.equal(report.sourceTruth.externalBetaAllowed, false)
+assert.equal(report.sourceTruth.realUserMediaBetaAllowed, false)
+assert.equal(report.sourceTruth.paidProductionAllowed, false)
+assert.equal(report.blockerCounts.byBlockerId.readiness_not_passed, 49)
+assert.equal(report.blockerCounts.byBlockerId.real_execution_not_verified, 49)
+assert.equal(report.blockerCounts.byBlockerId.product_ready_acceptance_missing, 49)
+assert.equal(report.blockerCounts.byClearanceType.owner_approval, 44)
+assert.equal(report.blockerCounts.byClearanceType.deployed_platform_evidence, 5)
+assert.equal(report.batches.length, 7)
+assert.deepEqual(report.batches.map((batch) => batch.order), [1, 2, 3, 4, 5, 6, 7])
+assert.equal(report.batches[0]?.batchId, 'operator_value_collection')
+assert.equal(report.batches[1]?.batchId, 'trackb_deployed_tool_evidence_recording')
+assert.equal(report.batches[1]?.rowCount, 16)
+assert.equal(report.batches.every((batch) => batch.canEnableBetaOrProduction === false), true)
+assert.equal(report.batches.some((batch) => batch.nextCommands.some((command) => command.includes('external-beta-evidence-collector'))), true)
+assert.equal(report.blockedScopeConfirmations.deployedBackendCalled, false)
+assert.equal(report.blockedScopeConfirmations.toolExecutionRan, false)
+assert.equal(report.blockedScopeConfirmations.supabaseWritesRan, false)
+assert.equal(report.blockedScopeConfirmations.externalBetaEnabled, false)
+assert.equal(report.blockedScopeConfirmations.paidProductionEnabled, false)
+assert.deepEqual(report.supabaseClassification, {
+  write: 'no write',
+  environment: 'none',
+  sql: 'none',
+  migration: 'no',
+})
+
+console.log(JSON.stringify({
+  ok: true,
+  decision: report.decision,
+  blockerRows: report.sourceTruth.blockerLedgerRows,
+  closeoutBatches: report.batches.length,
+  locallyAcceptedTools: report.sourceTruth.locallyAcceptedToolCount,
+  pendingOperatorInputsInBlankEnv: report.sourceTruth.pendingOperatorInputsInBlankEnv,
+  productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
+}, null, 2))

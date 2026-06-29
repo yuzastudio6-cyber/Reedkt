@@ -1,24 +1,26 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const decision =
-  'ai_graphics_external_beta_all_21_activation_rollup_approved_with_runtime_blocks'
+  'ai_graphics_external_beta_activated_launch_readiness_approved_with_runtime_blocks'
 const acceptedStatus =
+  'external_beta_activated_launch_ready_for_controlled_on_demand_tool_calls'
+const launchDecision =
+  'ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks'
+const launchStatus = 'external_beta_launch_go_no_go_approved_runtime_still_blocked'
+const activationDecision =
+  'ai_graphics_external_beta_all_21_activation_rollup_approved_with_runtime_blocks'
+const activationStatus =
   'external_beta_all_21_activation_rollup_accepted_runtime_on_demand'
-const sourceDecision =
-  'ai_graphics_external_beta_activation_go_no_go_approved_with_runtime_blocks'
-const sourceStatus =
-  'external_beta_activation_go_no_go_approved_for_one_tool_runtime_on_demand'
-const runScriptName = 'ai-graphics:external-beta-all-21-activation-rollup'
+const runScriptName = 'ai-graphics:external-beta-activated-launch-readiness'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-all-21-activation-rollup.ts'
+  'tsx server/cli/ai-graphics-external-beta-activated-launch-readiness.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-all-21-activation-rollup:diagnostics'
+  'ai-graphics:external-beta-activated-launch-readiness:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-all-21-activation-rollup-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -44,7 +46,7 @@ const tools = [
   'babylonjs',
 ]
 
-const gpuTools = [
+const gpuTools = new Set([
   'torch_torchvision',
   'transformers',
   'sam2',
@@ -53,7 +55,7 @@ const gpuTools = [
   'kornia',
   'rembg',
   'transparent_background',
-]
+])
 
 const capabilityByTool = {
   torch_torchvision: 'model_runtime_foundation',
@@ -112,7 +114,7 @@ const falseGateKeys = [
   'supabaseMutationPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
-  'gpuRuntimePerformedByActivationRollup',
+  'gpuRuntimePerformedByReadinessGate',
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
   'mediaProcessingPerformed',
@@ -121,10 +123,11 @@ const falseGateKeys = [
   'signedUrlCreated',
 ]
 
-const trueRollupKeys = [
-  'externalBetaAll21ActivationRollupPrepared',
-  'sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence',
-  'all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence',
+const trueReadinessKeys = [
+  'externalBetaActivatedLaunchReadinessPrepared',
+  'sourceExternalBetaLaunchGoNoGoAccepted',
+  'sourceExternalBetaAll21ActivationRollupAccepted',
+  'all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -132,18 +135,20 @@ const trueRollupKeys = [
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'agentCanSelectForPlanning',
+  'controlledExternalBetaToolCallGatewayReadyNow',
   'controlledWorkerToolCallReadyNow',
   'externalBetaCallableNow',
   'externalBetaReadyNow',
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-external-beta-all-21-activation-rollup.ts',
-  'server/cli/ai-graphics-external-beta-all-21-activation-rollup.ts',
-  'scripts/validation/ai-graphics-external-beta-all-21-activation-rollup-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-beta-activated-launch-readiness.ts',
+  'server/cli/ai-graphics-external-beta-activated-launch-readiness.ts',
+  'scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
   'docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-activation-go-no-go.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
   'server/tool-registry/index.ts',
@@ -158,7 +163,7 @@ const forbiddenDocPatterns = [
   /routeExecutionApprovedNow["`:\s=]+true/i,
   /workerDispatchApprovedNow["`:\s=]+true/i,
   /toolExecutionApprovedNow["`:\s=]+true/i,
-  /gpuRuntimePerformedByActivationRollup["`:\s=]+true/i,
+  /gpuRuntimePerformedByReadinessGate["`:\s=]+true/i,
   /gpuRuntimeShouldStartNow["`:\s=]+true/i,
   /productionReadyNow["`:\s=]+true/i,
   /publicArtifactCreated["`:\s=]+true/i,
@@ -215,84 +220,142 @@ function writeJson(file, value) {
   return file
 }
 
-function activationPacketFixture(toolId) {
-  const capabilityId = capabilityByTool[toolId]
-  const routeId = `ai_graphics_external_beta_tool_route_${toolId}`
+function acceptedLaunchPacket() {
   return {
-    decision: sourceDecision,
-    sourceControlledTrafficRuntimeSoakResultDecision:
-      'ai_graphics_external_beta_controlled_traffic_runtime_soak_result_prepared_with_runtime_blocks',
-    status: sourceStatus,
-    sourceControlledTrafficRuntimeSoakResultAccepted: true,
-    externalBetaActivationControlsAccepted: true,
+    decision: launchDecision,
+    sourceExternalBetaLaunchGapDecision:
+      'ai_graphics_external_beta_launch_gap_report_prepared_with_runtime_blocks',
+    sourceExternalBetaEvidenceAdmissionBundleDecision:
+      'ai_graphics_external_beta_evidence_admission_bundle_prepared_with_runtime_blocks',
+    sourceExternalBetaServiceRoleQueueSmokePreflightDecision:
+      'ai_graphics_external_beta_service_role_queue_smoke_preflight_prepared_with_runtime_blocks',
+    sourceExternalBetaServiceRoleQueueSmokeProofDecision:
+      'ai_graphics_external_beta_service_role_queue_smoke_proof_prepared_with_runtime_blocks',
+    sourceExternalBetaLaunchControlsDecision:
+      'ai_graphics_external_beta_launch_controls_approved_with_runtime_blocks',
+    status: launchStatus,
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    gpuRuntimeTargetedTools: 8,
+    gpuRuntimeOnDemandOnly: true,
+    externalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
+    externalBetaLaunchCandidateCapabilitiesWithProvidedEvidence: 12,
+    externalBetaLaunchGoNoGoApprovalRecordAccepted: true,
+    sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: true,
+    externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    sourceLaunchGapReport: {},
+    sourceEvidenceAdmissionBundle: {},
+    sourceServiceRoleQueueSmokePreflight: {},
+    sourceServiceRoleQueueSmokeProof: {},
+    sourceLaunchControls: {},
+    requiredLaunchApprovalRecord: {
+      required: true,
+      approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
+      launchRefRequired: true,
+      rolloutCohortRefRequired: true,
+      costConcurrencyCeilingRefRequired: true,
+      rollbackIncidentRunbookRefRequired: true,
+      privateArtifactRetentionSupportRefRequired: true,
+      approvesRuntimeNow: false,
+    },
+    allowedLaunchGoNoGoActions: [],
+    blockedRuntimeActions: [],
+    missingLaunchGoNoGoEvidence: [],
+    nextMilestones: [],
+    booleans: {
+      externalBetaLaunchGoNoGoContractPrepared: true,
+      sourceExternalBetaLaunchGapAccepted: true,
+      sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: true,
+      sourceExternalBetaEvidenceAdmissionBundleAccepted: true,
+      sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: true,
+      sourceExternalBetaServiceRoleQueueSmokeProofAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceExternalBetaLaunchControlsAccepted: true,
+      externalBetaLaunchCandidateWithProvidedEvidence: true,
+      externalBetaLaunchGoNoGoApprovalRecordAccepted: true,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all8GpuToolsTargetGpuRuntime: true,
+      gpuRuntimeOnDemandOnly: true,
+      all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
+function acceptedActivationRollupPacket() {
+  return {
+    decision: activationDecision,
+    sourceActivationGoNoGoDecision:
+      'ai_graphics_external_beta_activation_go_no_go_approved_with_runtime_blocks',
+    status: activationStatus,
     rejectionReasons: [],
-    requestedToolId: toolId,
-    capabilityId,
-    externalBetaActivationGoNoGoApprovedToolsWithProvidedEvidence: 1,
-    sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence: 1,
-    externalBetaToolCallReadyNowTools: 1,
-    externalBetaReadyNowTools: 1,
-    runtimeReadyForOnDemandExternalBetaToolCallTools: 1,
+    acceptedToolIds: tools,
+    missingToolIds: [],
+    duplicateToolIds: [],
+    externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence: 21,
+    externalBetaToolCallReadyNowTools: 21,
+    externalBetaReadyNowTools: 21,
+    runtimeReadyForOnDemandExternalBetaToolCallTools: 21,
     productionReadyNowTools: 0,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     gpuRuntimeShouldStartNow: false,
-    activatedToolCallReadiness: {
+    activatedTools: tools.map((toolId) => ({
       toolId,
-      capabilityId,
+      capabilityId: capabilityByTool[toolId],
       routePath: '/api/ai-graphics/external-beta/tool-call',
-      routeId,
-      sourceControlledTrafficRuntimeSoakResultAccepted: true,
-      externalBetaActivationApprovedWithProvidedEvidence: true,
+      routeId: `ai_graphics_external_beta_tool_route_${toolId}`,
+      gpuRuntimeTargetedTool: gpuTools.has(toolId),
       externalBetaToolCallReadyNow: true,
       runtimeReadyForOnDemandExternalBetaToolCall: true,
       gpuRuntimeOnDemandOnly: true,
       gpuRuntimeShouldStartNow: false,
       productionReadyNow: false,
-      ownerApprovalRef: `private://ai-graphics/external-beta/activation/${toolId}/owner-approval.json`,
-      featureFlagRef: `private://ai-graphics/external-beta/activation/${toolId}/feature-flag.json`,
-      cohortRef: `private://ai-graphics/external-beta/activation/${toolId}/cohort.json`,
-      supportAckRef: `private://ai-graphics/external-beta/activation/${toolId}/support-ack.json`,
-      monitoringLiveRef: `private://ai-graphics/external-beta/activation/${toolId}/monitoring-live.json`,
-      costBudgetFinalRef: `private://ai-graphics/external-beta/activation/${toolId}/cost-budget-final.json`,
-      rollbackArmedRef: `private://ai-graphics/external-beta/activation/${toolId}/rollback-armed.json`,
-      releaseNotesRef: `private://ai-graphics/external-beta/activation/${toolId}/release-notes.md`,
-      userCommsRef: `private://ai-graphics/external-beta/activation/${toolId}/user-comms.md`,
-      postActivationReviewRef: `private://ai-graphics/external-beta/activation/${toolId}/post-activation-review.json`,
-    },
-    evidence: {
-      ownerApprovalRef: `private://ai-graphics/external-beta/activation/${toolId}/owner-approval.json`,
-      featureFlagRef: `private://ai-graphics/external-beta/activation/${toolId}/feature-flag.json`,
-      cohortRef: `private://ai-graphics/external-beta/activation/${toolId}/cohort.json`,
-      supportAckRef: `private://ai-graphics/external-beta/activation/${toolId}/support-ack.json`,
-      monitoringLiveRef: `private://ai-graphics/external-beta/activation/${toolId}/monitoring-live.json`,
-      costBudgetFinalRef: `private://ai-graphics/external-beta/activation/${toolId}/cost-budget-final.json`,
-      rollbackArmedRef: `private://ai-graphics/external-beta/activation/${toolId}/rollback-armed.json`,
-      releaseNotesRef: `private://ai-graphics/external-beta/activation/${toolId}/release-notes.md`,
-      userCommsRef: `private://ai-graphics/external-beta/activation/${toolId}/user-comms.md`,
-      postActivationReviewRef: `private://ai-graphics/external-beta/activation/${toolId}/post-activation-review.json`,
-      requiredExecutionEnvironment: 'private_non_production_external_beta',
-      requiredActivationMode: 'external_beta_tool_call_ready_on_demand_metadata_only',
-      sourceControlledTrafficRuntimeSoakResultRequired: true,
-    },
+    })),
     policy: {
-      approvesExternalBetaToolCallReadinessMetadata: true,
+      approvesAll21ExternalBetaToolCallReadinessMetadata: true,
       directAgentExecutionStillBlocked: true,
       runtimeStartsOnlyForAcceptedWorkerJob: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
-      noProductionUnlockByGate: true,
-      noPublicArtifactsByGate: true,
-      nextGateRequiresAll21ToolActivationRollup: true,
+      noProductionUnlockByRollup: true,
+      noPublicArtifactsByRollup: true,
+      nextGateRequiresExternalBetaLaunchOwnerApproval: true,
     },
     booleans: {
-      externalBetaActivationGoNoGoPrepared: true,
-      sourceControlledTrafficRuntimeSoakResultAccepted: true,
-      externalBetaActivationControlsAccepted: true,
-      externalBetaActivationApprovedWithProvidedEvidence: true,
-      externalBetaToolCallReadyNow: true,
-      runtimeReadyForOnDemandExternalBetaToolCall: true,
+      externalBetaAll21ActivationRollupPrepared: true,
+      sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence: true,
+      all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence: true,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
@@ -304,10 +367,6 @@ function activationPacketFixture(toolId) {
       directAgentToolExecutionApprovedNow: false,
       controlledWorkerToolCallReadyNow: true,
       externalBetaCallableNow: true,
-      controlledTrafficRunExecutedByThisGate: false,
-      apiRouteExecutionPerformedByThisGate: false,
-      workerDispatchPerformedByThisGate: false,
-      toolExecutionPerformedByThisGate: false,
       externalBetaReadyNow: true,
       productionReadyNow: false,
       routeExecutionApprovedNow: false,
@@ -339,7 +398,7 @@ function activationPacketFixture(toolId) {
       supabaseMutationPerformed: false,
       providerRuntimePerformed: false,
       browserWebglCanvasRuntimePerformed: false,
-      gpuRuntimePerformedByActivationGate: false,
+      gpuRuntimePerformedByActivationRollup: false,
       modelWeightsDownloaded: false,
       modelWeightsLoaded: false,
       mediaProcessingPerformed: false,
@@ -350,12 +409,24 @@ function activationPacketFixture(toolId) {
   }
 }
 
-function packetArgsForTools(toolIds) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-all21-activation-'))
-  return toolIds.flatMap((toolId) => [
-    '--external-beta-activation-go-no-go-packet',
-    writeJson(path.join(tempDir, `${toolId}.json`), activationPacketFixture(toolId)),
-  ])
+function runGate(options = {}) {
+  const launch = Object.prototype.hasOwnProperty.call(options, 'launch')
+    ? options.launch
+    : acceptedLaunchPacket()
+  const activation = Object.prototype.hasOwnProperty.call(options, 'activation')
+    ? options.activation
+    : acceptedActivationRollupPacket()
+  const tempDir = fs.mkdtempSync(path.join(process.cwd(), '.tmp-ai-graphics-activated-launch-'))
+  const args = []
+  if (launch) {
+    args.push('--external-beta-launch-go-no-go-packet', writeJson(path.join(tempDir, 'launch.json'), launch))
+  }
+  if (activation) {
+    args.push('--external-beta-all-21-activation-rollup-packet', writeJson(path.join(tempDir, 'activation.json'), activation))
+  }
+  const output = npmJson(runScriptName, args)
+  fs.rmSync(tempDir, { recursive: true, force: true })
+  return output
 }
 
 function requireEqual(actual, expected, label) {
@@ -378,16 +449,12 @@ function verifyFalseGates(packet, label) {
   }
 }
 
-function verifyTrueRollup(packet, label) {
-  for (const key of trueRollupKeys) {
+function verifyTrueReadiness(packet, label) {
+  for (const key of trueReadinessKeys) {
     if (packet.booleans?.[key] !== true) {
       fail(`${label}:boolean_${key}_must_be_true`)
     }
   }
-}
-
-function verifyRequiredFiles() {
-  requiredFiles.forEach(read)
 }
 
 function verifyPackageJson() {
@@ -410,8 +477,6 @@ function verifyPackageJson() {
   const allowedPackageAdditions = [
     `+    "${runScriptName}": "${runScriptCommand}",`,
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-    '+    "ai-graphics:external-beta-activated-launch-readiness": "tsx server/cli/ai-graphics-external-beta-activated-launch-readiness.ts",',
-    '+    "ai-graphics:external-beta-activated-launch-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')
@@ -443,34 +508,28 @@ function verifyTrackedAndChangedPaths() {
 }
 
 function verifyDocs() {
-  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.json')
+  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json')
   requireEqual(docJson.decision, decision, 'doc_json_decision')
   requireEqual(docJson.status, acceptedStatus, 'doc_json_status')
   requireEqual(docJson.scope?.totalAiGraphicsTools, 21, 'doc_json_tool_count')
   requireEqual(docJson.scope?.productFacingCapabilities, 12, 'doc_json_capability_count')
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
-  requireEqual(docJson.scope?.externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence, 21, 'doc_json_activation_count')
+  requireEqual(docJson.scope?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence, 21, 'doc_json_ready_count')
   requireEqual(docJson.scope?.externalBetaToolCallReadyNowTools, 21, 'doc_json_tool_call_ready_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 21, 'doc_json_external_beta_count')
   requireEqual(docJson.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'doc_json_runtime_ready_count')
   requireEqual(docJson.scope?.productionReadyNowTools, 0, 'doc_json_production_count')
-  for (const tool of tools) {
-    if (!docJson.tools?.includes(tool)) fail(`doc_json_missing_tool:${tool}`)
-  }
-  for (const tool of gpuTools) {
-    if (!docJson.gpuTools?.includes(tool)) fail(`doc_json_missing_gpu_tool:${tool}`)
-  }
-  for (const key of trueRollupKeys) {
+  for (const key of trueReadinessKeys) {
     requireTruthy(docJson.booleans?.[key], `doc_json_boolean_${key}`)
   }
   for (const key of falseGateKeys) {
     requireFalse(docJson.booleans?.[key], `doc_json_boolean_${key}`)
   }
 
-  const md = read('docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.md')
+  const md = read('docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.md')
   for (const required of [
     decision,
-    'external-beta tool-call ready',
+    'controlled on-demand external-beta tool calls',
     '`externalBetaToolCallReadyNowTools`: 21',
     '`externalBetaReadyNowTools`: 21',
     '`runtimeReadyForOnDemandExternalBetaToolCallTools`: 21',
@@ -478,12 +537,22 @@ function verifyDocs() {
     '`gpuRuntimeShouldStartNow=false`',
     '`productionReadyNow=false`',
   ]) {
-    if (!md.includes(required)) fail(`all21_activation_md_missing:${required}`)
+    if (!md.includes(required)) fail(`activated_launch_md_missing:${required}`)
+  }
+
+  const scorecard = read('docs/production-beta-readiness-scorecard.md')
+  for (const required of [
+    'AI Graphics External-Beta Activated Launch Readiness',
+    decision,
+    'externalBetaReadyNowTools=21',
+    '`gpuRuntimeShouldStartNow` remains false',
+  ]) {
+    if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
   }
 
   for (const file of [
-    'docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.json',
-    'docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.md',
+    'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+    'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.md',
     'docs/production-beta-readiness-scorecard.md',
   ]) {
     const content = read(file)
@@ -494,17 +563,19 @@ function verifyDocs() {
 }
 
 function verifySourceWiring() {
+  requiredFiles.forEach(read)
   const registry = read('server/tool-registry/index.ts')
-  if (!registry.includes("export * from './ai-graphics-external-beta-all-21-activation-rollup'")) {
+  if (!registry.includes("export * from './ai-graphics-external-beta-activated-launch-readiness'")) {
     fail('missing_registry_export')
   }
-  const evaluator = read('server/tool-registry/ai-graphics-external-beta-all-21-activation-rollup.ts')
+  const evaluator = read('server/tool-registry/ai-graphics-external-beta-activated-launch-readiness.ts')
   for (const required of [
     decision,
-    'approvesAll21ExternalBetaToolCallReadinessMetadata: true',
+    'controlled_external_beta_on_demand_tool_call_metadata',
+    'approvesControlledExternalBetaToolCallReadiness: true',
     'directAgentExecutionStillBlocked: true',
     'runtimeStartsOnlyForAcceptedWorkerJob: true',
-    'noProductionUnlockByRollup: true',
+    'noProductionUnlockByReadinessGate: true',
     'externalBetaReadyNow: accepted',
     'gpuRuntimeShouldStartNow: false',
     'productionReadyNow: false',
@@ -515,53 +586,51 @@ function verifySourceWiring() {
 
 function verifyCliBehavior() {
   const missing = npmJson(runScriptName)
-  requireEqual(
-    missing.status,
-    'missing_external_beta_activation_go_no_go_packets',
-    'missing_cli_status',
-  )
+  requireEqual(missing.status, 'missing_external_beta_launch_go_no_go', 'missing_cli_status')
   requireFalse(missing.input?.directAgentToolExecutionPerformed, 'missing_cli_no_direct_agent')
   requireFalse(missing.input?.routeExecutionPerformed, 'missing_cli_no_route')
   requireFalse(missing.input?.workerDispatchPerformedByThisCommand, 'missing_cli_no_dispatch')
   requireFalse(missing.input?.toolExecutionPerformed, 'missing_cli_no_tool')
   requireFalse(missing.input?.gpuRuntimePerformedByThisCommand, 'missing_cli_no_gpu')
 
-  const partial = npmJson(runScriptName, packetArgsForTools(['sam2']))
-  requireEqual(partial.status, 'partial_external_beta_activation_go_no_go_packets', 'partial_status')
-  requireEqual(partial.externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence, 1, 'partial_accepted_count')
-  requireEqual(partial.externalBetaReadyNowTools, 0, 'partial_external_beta_ready')
-  requireEqual(partial.missingToolIds?.length, 20, 'partial_missing_count')
-  verifyFalseGates(partial, 'partial')
+  const rejectedLaunch = acceptedLaunchPacket()
+  rejectedLaunch.status = 'awaiting_external_beta_launch_go_no_go_approval'
+  const rejectedLaunchOutput = runGate({ launch: rejectedLaunch })
+  requireEqual(rejectedLaunchOutput.status, 'external_beta_launch_go_no_go_rejected', 'rejected_launch_status')
+  requireEqual(rejectedLaunchOutput.externalBetaReadyNowTools, 0, 'rejected_launch_external_beta_ready')
+  verifyFalseGates(rejectedLaunchOutput, 'rejected_launch')
 
-  const duplicate = npmJson(runScriptName, packetArgsForTools(['sam2', 'sam2']))
-  requireEqual(duplicate.status, 'duplicate_external_beta_activation_go_no_go_tool_packets', 'duplicate_status')
-  requireEqual(duplicate.externalBetaReadyNowTools, 0, 'duplicate_external_beta_ready')
-  requireEqual(duplicate.duplicateToolIds?.[0], 'sam2', 'duplicate_tool')
-  verifyFalseGates(duplicate, 'duplicate')
+  const missingActivation = runGate({ activation: undefined })
+  requireEqual(missingActivation.status, 'missing_external_beta_all_21_activation_rollup', 'missing_activation_status')
+  requireEqual(missingActivation.externalBetaReadyNowTools, 0, 'missing_activation_external_beta_ready')
+  verifyFalseGates(missingActivation, 'missing_activation')
 
-  const accepted = npmJson(runScriptName, packetArgsForTools(tools))
+  const rejectedActivation = acceptedActivationRollupPacket()
+  rejectedActivation.status = 'partial_external_beta_activation_go_no_go_packets'
+  const rejectedActivationOutput = runGate({ activation: rejectedActivation })
+  requireEqual(rejectedActivationOutput.status, 'external_beta_all_21_activation_rollup_rejected', 'rejected_activation_status')
+  requireEqual(rejectedActivationOutput.externalBetaReadyNowTools, 0, 'rejected_activation_external_beta_ready')
+  verifyFalseGates(rejectedActivationOutput, 'rejected_activation')
+
+  const accepted = runGate()
   requireEqual(accepted.status, acceptedStatus, 'accepted_status')
+  requireTruthy(accepted.sourceExternalBetaLaunchGoNoGoAccepted, 'accepted_launch')
+  requireTruthy(accepted.sourceExternalBetaAll21ActivationRollupAccepted, 'accepted_activation')
   requireEqual(
-    accepted.externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence,
+    accepted.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence,
     21,
-    'accepted_activation_count',
+    'accepted_ready_count',
   )
   requireEqual(accepted.externalBetaToolCallReadyNowTools, 21, 'accepted_tool_call_ready')
   requireEqual(accepted.externalBetaReadyNowTools, 21, 'accepted_external_beta_ready')
   requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'accepted_runtime_on_demand')
   requireEqual(accepted.productionReadyNowTools, 0, 'accepted_production_count')
-  requireEqual(accepted.activatedTools?.length, 21, 'accepted_activated_tool_count')
-  requireEqual(
-    accepted.activatedTools?.filter((tool) => tool.gpuRuntimeTargetedTool).length,
-    8,
-    'accepted_gpu_tool_count',
-  )
+  requireEqual(accepted.readinessMode, 'controlled_external_beta_on_demand_tool_call_metadata', 'accepted_readiness_mode')
   requireFalse(accepted.gpuRuntimeShouldStartNow, 'accepted_gpu_should_not_start')
-  verifyTrueRollup(accepted, 'accepted')
+  verifyTrueReadiness(accepted, 'accepted')
   verifyFalseGates(accepted, 'accepted')
 }
 
-verifyRequiredFiles()
 verifyPackageJson()
 verifyPackageLockUnchanged()
 verifyTrackedAndChangedPaths()
@@ -573,7 +642,7 @@ if (failures.length > 0) {
   console.error(JSON.stringify({
     ok: false,
     decision,
-    status: 'ai_graphics_external_beta_all_21_activation_rollup_diagnostics_failed',
+    status: 'ai_graphics_external_beta_activated_launch_readiness_diagnostics_failed',
     failures,
   }, null, 2))
   process.exit(1)
@@ -582,11 +651,11 @@ if (failures.length > 0) {
 console.log(JSON.stringify({
   ok: true,
   decision,
-  status: 'ai_graphics_external_beta_all_21_activation_rollup_diagnostics_passed',
+  status: 'ai_graphics_external_beta_activated_launch_readiness_diagnostics_passed',
   checkedFiles: requiredFiles.length,
   totalAiGraphicsTools: 21,
   gpuRuntimeTargetedTools: 8,
-  externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence: 21,
+  externalBetaActivatedLaunchReadyToolsWithProvidedEvidence: 21,
   externalBetaToolCallReadyNowTools: 21,
   externalBetaReadyNowTools: 21,
   runtimeReadyForOnDemandExternalBetaToolCallTools: 21,

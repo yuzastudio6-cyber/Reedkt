@@ -6,6 +6,7 @@
     "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
     "modelWeightChecksumEvidence": "docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json",
     "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "modelWeightPrivateEvidenceIntake": "docs/tool-intelligence/ai-graphics/model-weight-private-evidence-intake.json",
     "cloudRunResultCollector": "docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-result-collector.json",
     "gpuRuntimeProofResultPacket": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json"
   },
@@ -70,6 +71,7 @@
     "modelWeightChecksumEvidenceAccepted": 0,
     "modelWeightManifestRequiredTools": 5,
     "modelWeightManifestReviewAccepted": 0,
+    "modelWeightPrivateEvidenceIntakeAccepted": 0,
     "nativeGpuRuntimeProofProfilesRequired": 6,
     "nativeGpuRuntimeProofProfilesAccepted": 0,
     "cloudRunResultCollectorProfilesAccepted": 0,
@@ -93,6 +95,12 @@
       "status": "blocked_pending_private_evidence"
     },
     {
+      "requirementId": "private_model_weight_evidence_intake_for_5_model_tools",
+      "currentAccepted": 0,
+      "requiredAccepted": 5,
+      "status": "blocked_pending_private_evidence"
+    },
+    {
       "requirementId": "native_gpu_runtime_proof_results_for_6_profiles",
       "currentAccepted": 0,
       "requiredAccepted": 6,
@@ -108,6 +116,7 @@
   "requiredCollectionCommands": {
     "checksumEvidenceScaffold": "npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence",
     "checksumEvidenceValidate": "npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence",
+    "privateEvidenceIntake": "npm run --silent ai-graphics:model-weight-private-evidence-intake -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
     "manifestAuthoring": "npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests",
     "manifestReviewValidate": "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests",
     "nativeGpuProofScriptGenerate": "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
@@ -135,7 +144,7 @@
     "gs://",
     "gcs://"
   ],
-  "nextExternalBetaGap": "Collect private checksum evidence, author/review private manifests for the five model-weight tools, run the six-profile native linux/amd64 NVIDIA L4 proof, validate the result packet, and re-run the external per-tool runtime proof gate.",
+  "nextExternalBetaGap": "Collect private checksum evidence, author/review private manifests, run the combined private evidence intake for the five model-weight tools, run the six-profile native linux/amd64 NVIDIA L4 proof, validate the result packet, and re-run the external per-tool runtime proof gate.",
   "booleans": {
     "externalBetaNativeGpuProofCollectionPrepared": true,
     "sourcePerToolRuntimeProofAccepted": true,
@@ -145,6 +154,7 @@
     "commandPlanAccepted": true,
     "checksumEvidenceAcceptedForAll5ModelTools": false,
     "privateModelManifestsAcceptedForAll5ModelTools": false,
+    "privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools": false,
     "nativeGpuRuntimeProofResultsAcceptedForAll6Profiles": false,
     "all8GpuRuntimeToolsCovered": true,
     "all5ModelWeightToolsCovered": true,

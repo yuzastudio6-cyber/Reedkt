@@ -253,7 +253,7 @@ for (const [key, filePath] of Object.entries(generatedFiles)) {
 
 const handoffPacket = json(generatedFiles.handoffPacket)
 if (handoffPacket.sourceCollectionAccepted !== true) fail('generated_handoff_source_not_accepted')
-if (handoffPacket.operatorSteps?.length !== 10) fail(`generated_handoff_step_count:${handoffPacket.operatorSteps?.length}`)
+if (handoffPacket.operatorSteps?.length !== 11) fail(`generated_handoff_step_count:${handoffPacket.operatorSteps?.length}`)
 assertSet('generated_handoff_gpu_tools', handoffPacket.gpuRuntimeTargetedTools || [], gpuTools)
 assertFalseGates(handoffPacket, 'generated_handoff')
 
@@ -263,6 +263,8 @@ for (const needle of [
   'REEDITPRO_AI_GRAPHICS_NATIVE_GPU_OPERATOR_CONFIRM',
   'run-native-gpu-proof-on-approved-l4-host',
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
+  'ai-graphics:model-weight-private-evidence-intake',
+  '--model-weight-private-evidence-intake-packet',
   'bash .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh',
   'ai-graphics:external-beta-per-tool-runtime-proof',
 ]) {

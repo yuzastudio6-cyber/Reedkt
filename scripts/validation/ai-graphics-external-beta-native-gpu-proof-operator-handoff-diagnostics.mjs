@@ -45,6 +45,7 @@ const requiredStepIds = [
   'validate_private_checksum_evidence',
   'author_private_model_manifests',
   'validate_private_model_manifests',
+  'validate_private_model_weight_evidence_intake',
   'generate_native_gpu_command_plan',
   'verify_native_gpu_host',
   'run_native_gpu_profile_proof',
@@ -207,7 +208,7 @@ if (docs.readyAfterEvidenceStatus !== 'external_beta_native_gpu_proof_operator_h
 assertSet('docs_gpu_tools', docs.gpuRuntimeTargetedTools || [], gpuTools)
 assertSet('docs_model_weight_tools', docs.modelWeightManifestRequiredTools || [], modelWeightTools)
 assertSet('docs_runtime_profiles', docs.runtimeProfilesRequired || [], runtimeProfiles)
-if ((docs.operatorSteps || []).length !== 10) fail(`operator_step_count_not_10:${(docs.operatorSteps || []).length}`)
+if ((docs.operatorSteps || []).length !== 11) fail(`operator_step_count_not_11:${(docs.operatorSteps || []).length}`)
 assertSet('docs_operator_steps', (docs.operatorSteps || []).map((step) => step.stepId), requiredStepIds)
 const docsRuntimeSteps = (docs.operatorSteps || []).filter((step) => step.performsRuntimeExecution === true)
 if (docsRuntimeSteps.length !== 1 || docsRuntimeSteps[0]?.stepId !== 'run_native_gpu_profile_proof') {
@@ -230,11 +231,11 @@ for (const step of docs.operatorSteps || []) {
     fail(`non_runtime_step_performs_execution:${step.stepId}`)
   }
 }
-if (docs.counts?.operatorStepsWithCommands !== 10) {
-  fail(`operator_steps_with_commands_count_not_10:${docs.counts?.operatorStepsWithCommands}`)
+if (docs.counts?.operatorStepsWithCommands !== 11) {
+  fail(`operator_steps_with_commands_count_not_11:${docs.counts?.operatorStepsWithCommands}`)
 }
-if (docs.counts?.operatorStepsWithOutputPaths !== 10) {
-  fail(`operator_steps_with_output_paths_count_not_10:${docs.counts?.operatorStepsWithOutputPaths}`)
+if (docs.counts?.operatorStepsWithOutputPaths !== 11) {
+  fail(`operator_steps_with_output_paths_count_not_11:${docs.counts?.operatorStepsWithOutputPaths}`)
 }
 if (docs.commandSequence?.commandsIncludedInOperatorSteps !== true) {
   fail('command_sequence_does_not_confirm_commands')
@@ -246,6 +247,7 @@ if (docs.commandSequence?.onlyRuntimeExecutingStep !== 'run_native_gpu_profile_p
 for (const key of [
   'checksumEvidencePacket',
   'modelWeightManifestReviewPacket',
+  'modelWeightPrivateEvidenceIntakePacket',
   'gpuRuntimeProofCommandPlanPacket',
   'nativeGpuHostPreflight',
   'gpuRuntimeProofResultPacket',
@@ -276,6 +278,9 @@ for (const needle of [
   if (!source.includes(needle)) fail(`source_missing:${needle}`)
 }
 for (const needle of [
+  'ai-graphics:model-weight-private-evidence-intake',
+  'model-weight-private-evidence-intake-packet.json',
+  '--model-weight-private-evidence-intake-packet',
   '--cloud-run-result-collector-packet',
   'cloud-run-native-gpu-proof-result-collector-packet.json',
 ]) {

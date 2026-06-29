@@ -21,6 +21,9 @@ import type {
 import type {
   AiGraphicsModelWeightManifestReviewPacket,
 } from '../tool-registry/ai-graphics-model-weight-manifest-readiness'
+import type {
+  AiGraphicsModelWeightPrivateEvidenceIntakePacket,
+} from '../tool-registry/ai-graphics-model-weight-private-evidence-intake'
 
 function stringFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -50,6 +53,10 @@ const input: AiGraphicsExternalBetaNativeGpuProofCollectionInput = {
   modelWeightManifestReviewPacket:
     readJsonFile<AiGraphicsModelWeightManifestReviewPacket>(
       '--model-weight-manifest-review-packet',
+    ),
+  modelWeightPrivateEvidenceIntakePacket:
+    readJsonFile<AiGraphicsModelWeightPrivateEvidenceIntakePacket>(
+      '--model-weight-private-evidence-intake-packet',
     ),
   gpuRuntimeProofResultPacket:
     readJsonFile<AiGraphicsGpuRuntimeProofResultPacket>(
@@ -87,6 +94,8 @@ console.log(JSON.stringify({
       Boolean(stringFlag('--model-weight-checksum-evidence-packet')),
     modelWeightManifestReviewPacketRead:
       Boolean(stringFlag('--model-weight-manifest-review-packet')),
+    modelWeightPrivateEvidenceIntakePacketRead:
+      Boolean(stringFlag('--model-weight-private-evidence-intake-packet')),
     gpuRuntimeProofResultPacketRead:
       Boolean(stringFlag('--gpu-runtime-proof-result-packet')),
     cloudRunResultCollectorPacketRead:

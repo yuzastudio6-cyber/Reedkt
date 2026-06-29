@@ -60,6 +60,14 @@ const allTools = [
   'babylonjs',
 ]
 
+const modelWeightTools = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+]
+
 const capabilities = [
   'chart_overlay',
   'data_visualization',
@@ -264,6 +272,35 @@ function acceptedChecksumEvidenceFixture() {
   }
 }
 
+function acceptedPrivateEvidenceIntakeFixture() {
+  return {
+    decision: 'ai_graphics_model_weight_private_evidence_intake_prepared_with_runtime_blocks',
+    status: 'private_model_weight_evidence_ready_for_native_gpu_proof_not_beta_ready',
+    totalAiGraphicsTools: 21,
+    gpuRuntimeTargetedTools: 8,
+    modelWeightManifestRequiredTools: modelWeightTools,
+    checksumEvidenceRecordsAccepted: 5,
+    manifestSupplementRecordsAccepted: 5,
+    localPrivateManifestDraftsReady: 5,
+    reviewedPrivateManifestRecordsAccepted: 5,
+    nativeGpuProofInputEligibleRecords: 5,
+    readyForNativeGpuProofInputRecords: 5,
+    privateArtifactRefsLogged: 0,
+    betaReadyModelWeightTools: 0,
+    booleans: {
+      readyForNativeGpuProofInput: true,
+      checksumEvidenceAcceptedForAll5: true,
+      manifestSupplementsAcceptedForAll5: true,
+      localPrivateManifestDraftsReadyForAll5: true,
+      reviewedPrivateManifestsAcceptedForAll5: true,
+      privateArtifactRefsNotLogged: true,
+      gpuRuntimeShouldStartNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 function acceptedCloudRunResultCollectorFixture() {
   return {
     decision: 'ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only',
@@ -300,6 +337,11 @@ function writeAcceptedNativeGpuProofCollectionPacket(root, manifestPacketPath, g
     'accepted-model-weight-checksum-evidence.json',
     acceptedChecksumEvidenceFixture(),
   )
+  const privateEvidenceIntakePath = writeJsonPacket(
+    root,
+    'accepted-model-weight-private-evidence-intake.json',
+    acceptedPrivateEvidenceIntakeFixture(),
+  )
   const cloudRunResultCollectorPath = writeJsonPacket(
     root,
     'accepted-cloud-run-result-collector.json',
@@ -314,6 +356,8 @@ function writeAcceptedNativeGpuProofCollectionPacket(root, manifestPacketPath, g
     checksumPath,
     '--model-weight-manifest-review-packet',
     manifestPacketPath,
+    '--model-weight-private-evidence-intake-packet',
+    privateEvidenceIntakePath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
     '--cloud-run-result-collector-packet',

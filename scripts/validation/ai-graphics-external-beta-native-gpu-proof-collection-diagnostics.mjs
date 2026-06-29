@@ -216,6 +216,35 @@ function acceptedManifestReviewFixture() {
   }
 }
 
+function acceptedPrivateEvidenceIntakeFixture() {
+  return {
+    decision: 'ai_graphics_model_weight_private_evidence_intake_prepared_with_runtime_blocks',
+    status: 'private_model_weight_evidence_ready_for_native_gpu_proof_not_beta_ready',
+    totalAiGraphicsTools: 21,
+    gpuRuntimeTargetedTools: 8,
+    modelWeightManifestRequiredTools: modelWeightTools,
+    checksumEvidenceRecordsAccepted: 5,
+    manifestSupplementRecordsAccepted: 5,
+    localPrivateManifestDraftsReady: 5,
+    reviewedPrivateManifestRecordsAccepted: 5,
+    nativeGpuProofInputEligibleRecords: 5,
+    readyForNativeGpuProofInputRecords: 5,
+    privateArtifactRefsLogged: 0,
+    betaReadyModelWeightTools: 0,
+    booleans: {
+      readyForNativeGpuProofInput: true,
+      checksumEvidenceAcceptedForAll5: true,
+      manifestSupplementsAcceptedForAll5: true,
+      localPrivateManifestDraftsReadyForAll5: true,
+      reviewedPrivateManifestsAcceptedForAll5: true,
+      privateArtifactRefsNotLogged: true,
+      gpuRuntimeShouldStartNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 function acceptedGpuProofResultFixture() {
   return {
     decision: 'ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results',
@@ -278,6 +307,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
   'docs/tool-intelligence/ai-graphics/model-weight-checksum-evidence.json',
   'docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json',
+  'docs/tool-intelligence/ai-graphics/model-weight-private-evidence-intake.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-result-packet.json',
   'docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-result-collector.json',
 ]
@@ -331,6 +361,7 @@ for (const [key, expected] of Object.entries({
   modelWeightChecksumEvidenceAccepted: 0,
   modelWeightManifestRequiredTools: 5,
   modelWeightManifestReviewAccepted: 0,
+  modelWeightPrivateEvidenceIntakeAccepted: 0,
   nativeGpuRuntimeProofProfilesRequired: 6,
   nativeGpuRuntimeProofProfilesAccepted: 0,
   cloudRunResultCollectorProfilesAccepted: 0,
@@ -365,6 +396,7 @@ for (const key of [
 for (const key of [
   'checksumEvidenceAcceptedForAll5ModelTools',
   'privateModelManifestsAcceptedForAll5ModelTools',
+  'privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools',
   'nativeGpuRuntimeProofResultsAcceptedForAll6Profiles',
   'sourceCloudRunResultCollectorAccepted',
   'sourceNativeGpuProofCollectionBridgeAccepted',
@@ -389,6 +421,9 @@ if (!markdown.includes('Current accepted private checksum evidence: `0 / 5`')) {
 if (!markdown.includes('Current accepted native GPU proof profiles: `0 / 6`')) {
   fail('markdown_missing_native_gpu_block')
 }
+if (!markdown.includes('Current accepted combined private model-weight evidence intake: `0 / 5`')) {
+  fail('markdown_missing_private_evidence_intake_block')
+}
 if (!markdown.includes('Current accepted Cloud Run result collector profiles: `0 / 6`')) {
   fail('markdown_missing_cloud_run_collector_block')
 }
@@ -398,6 +433,7 @@ for (const token of [
   '--gpu-runtime-proof-command-plan-packet',
   '--model-weight-checksum-evidence-packet',
   '--model-weight-manifest-review-packet',
+  '--model-weight-private-evidence-intake-packet',
   '--gpu-runtime-proof-result-packet',
   '--cloud-run-result-collector-packet',
   '--external-beta-native-gpu-proof-collection-policy-ref',
@@ -415,6 +451,7 @@ for (const token of [
   'readyForPerToolRuntimeProofRecheck',
   'sourceCloudRunResultCollectorAccepted',
   'cloudRunResultCollectorAccepted',
+  'privateEvidenceIntakeAccepted',
   'privateArtifactRefsNotLogged',
 ]) {
   if (!source.includes(token)) fail(`source_missing:${token}`)
@@ -478,6 +515,8 @@ assertFalseGates(currentPacket, 'current_collection')
 
 const acceptedChecksumPath = writeJson(path.join(tempDir, 'accepted-checksum.json'), acceptedChecksumEvidenceFixture())
 const acceptedManifestPath = writeJson(path.join(tempDir, 'accepted-manifest.json'), acceptedManifestReviewFixture())
+const acceptedPrivateEvidenceIntakePath =
+  writeJson(path.join(tempDir, 'accepted-private-evidence-intake.json'), acceptedPrivateEvidenceIntakeFixture())
 const acceptedGpuResultPath = writeJson(path.join(tempDir, 'accepted-gpu-result.json'), acceptedGpuProofResultFixture())
 const acceptedCollectorPath =
   writeJson(path.join(tempDir, 'accepted-cloud-run-result-collector.json'), acceptedCloudRunResultCollectorFixture())
@@ -490,6 +529,8 @@ const readyWithoutCollectorOutput = runNpm(runScriptName, [
   acceptedChecksumPath,
   '--model-weight-manifest-review-packet',
   acceptedManifestPath,
+  '--model-weight-private-evidence-intake-packet',
+  acceptedPrivateEvidenceIntakePath,
   '--gpu-runtime-proof-result-packet',
   acceptedGpuResultPath,
   ...safeRefArgs,
@@ -506,6 +547,36 @@ if (readyWithoutCollectorPacket.booleans?.readyForPerToolRuntimeProofRecheck !==
   fail('ready_without_collector_ready_for_recheck_not_false')
 }
 
+const readyWithoutIntakeOutput = runNpm(runScriptName, [
+  '--external-beta-per-tool-runtime-proof-packet',
+  perToolPath,
+  '--gpu-runtime-proof-command-plan-packet',
+  commandPlanPath,
+  '--model-weight-checksum-evidence-packet',
+  acceptedChecksumPath,
+  '--model-weight-manifest-review-packet',
+  acceptedManifestPath,
+  '--gpu-runtime-proof-result-packet',
+  acceptedGpuResultPath,
+  '--cloud-run-result-collector-packet',
+  acceptedCollectorPath,
+  ...safeRefArgs,
+])
+const readyWithoutIntakePacket = parseJsonOutput(readyWithoutIntakeOutput, 'ready_without_intake_collection')
+if (readyWithoutIntakePacket.decision !==
+  'external_beta_native_gpu_proof_collection_blocked_pending_private_manifests_and_runtime_results') {
+  fail(`ready_without_intake_decision_mismatch:${readyWithoutIntakePacket.decision}`)
+}
+if (readyWithoutIntakePacket.counts?.modelWeightPrivateEvidenceIntakeAccepted !== 0) {
+  fail('ready_without_intake_count_not_zero')
+}
+if (readyWithoutIntakePacket.booleans?.privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools !== false) {
+  fail('ready_without_intake_boolean_not_false')
+}
+if (readyWithoutIntakePacket.booleans?.readyForPerToolRuntimeProofRecheck !== false) {
+  fail('ready_without_intake_ready_for_recheck_not_false')
+}
+
 const readyOutput = runNpm(runScriptName, [
   '--external-beta-per-tool-runtime-proof-packet',
   perToolPath,
@@ -515,6 +586,8 @@ const readyOutput = runNpm(runScriptName, [
   acceptedChecksumPath,
   '--model-weight-manifest-review-packet',
   acceptedManifestPath,
+  '--model-weight-private-evidence-intake-packet',
+  acceptedPrivateEvidenceIntakePath,
   '--gpu-runtime-proof-result-packet',
   acceptedGpuResultPath,
   '--cloud-run-result-collector-packet',
@@ -531,8 +604,14 @@ if (readyPacket.counts?.nativeGpuRuntimeProofAcceptedTools !== 8) {
 if (readyPacket.counts?.sourceCloudRunResultCollectorBridgeAcceptedWithProvidedEvidence !== 6) {
   fail('ready_collection_source_collector_bridge_not_6')
 }
+if (readyPacket.counts?.modelWeightPrivateEvidenceIntakeAccepted !== 5) {
+  fail('ready_collection_private_evidence_intake_not_5')
+}
 if (readyPacket.booleans?.sourceCloudRunResultCollectorAccepted !== true) {
   fail('ready_collection_source_collector_not_true')
+}
+if (readyPacket.booleans?.privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools !== true) {
+  fail('ready_collection_private_evidence_intake_boolean_not_true')
 }
 if (readyPacket.booleans?.readyForPerToolRuntimeProofRecheck !== true) {
   fail('ready_collection_ready_for_recheck_not_true')
@@ -585,6 +664,8 @@ const strippedBridgeOutput = runNpm(runScriptName, [
   acceptedChecksumPath,
   '--model-weight-manifest-review-packet',
   acceptedManifestPath,
+  '--model-weight-private-evidence-intake-packet',
+  acceptedPrivateEvidenceIntakePath,
   '--gpu-runtime-proof-result-packet',
   acceptedGpuResultPath,
   '--cloud-run-result-collector-packet',

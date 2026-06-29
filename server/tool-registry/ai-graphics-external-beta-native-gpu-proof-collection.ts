@@ -20,6 +20,9 @@ import type {
   AiGraphicsModelWeightManifestReviewPacket,
   AiGraphicsModelWeightManifestToolId,
 } from './ai-graphics-model-weight-manifest-readiness'
+import type {
+  AiGraphicsModelWeightPrivateEvidenceIntakePacket,
+} from './ai-graphics-model-weight-private-evidence-intake'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION =
@@ -37,6 +40,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollectionInput {
   gpuRuntimeProofCommandPlanPacket?: AiGraphicsGpuRuntimeProofCommandPlan
   modelWeightChecksumEvidencePacket?: AiGraphicsModelWeightChecksumEvidencePacket
   modelWeightManifestReviewPacket?: AiGraphicsModelWeightManifestReviewPacket
+  modelWeightPrivateEvidenceIntakePacket?: AiGraphicsModelWeightPrivateEvidenceIntakePacket
   gpuRuntimeProofResultPacket?: AiGraphicsGpuRuntimeProofResultPacket
   cloudRunResultCollectorPacket?: AiGraphicsExternalBetaNativeGpuProofCloudRunResultCollectorPacket
   externalBetaNativeGpuProofCollectionPolicyRef?: string
@@ -88,6 +92,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
     modelWeightChecksumEvidenceAccepted: number
     modelWeightManifestRequiredTools: 5
     modelWeightManifestReviewAccepted: number
+    modelWeightPrivateEvidenceIntakeAccepted: number
     nativeGpuRuntimeProofProfilesRequired: 6
     nativeGpuRuntimeProofProfilesAccepted: number
     cloudRunResultCollectorProfilesAccepted: number
@@ -100,6 +105,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
   requiredCollectionCommands: {
     checksumEvidenceScaffold: 'npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence'
     checksumEvidenceValidate: 'npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence'
+    privateEvidenceIntake: 'npm run --silent ai-graphics:model-weight-private-evidence-intake -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests'
     manifestAuthoring: 'npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests'
     manifestReviewValidate: 'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests'
     nativeGpuProofScriptGenerate: 'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh'
@@ -123,6 +129,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofCollection {
     commandPlanAccepted: boolean
     checksumEvidenceAcceptedForAll5ModelTools: boolean
     privateModelManifestsAcceptedForAll5ModelTools: boolean
+    privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools: boolean
     nativeGpuRuntimeProofResultsAcceptedForAll6Profiles: boolean
     all8GpuRuntimeToolsCovered: true
     all5ModelWeightToolsCovered: true
@@ -299,6 +306,20 @@ function manifestReviewAccepted(packet?: AiGraphicsModelWeightManifestReviewPack
   return packet?.reviewAcceptedManifestRecords ?? counts?.reviewAcceptedManifestRecords ?? 0
 }
 
+function privateEvidenceIntakeAccepted(
+  packet?: AiGraphicsModelWeightPrivateEvidenceIntakePacket,
+): number {
+  return packet?.status === 'private_model_weight_evidence_ready_for_native_gpu_proof_not_beta_ready' &&
+    packet?.booleans?.readyForNativeGpuProofInput === true &&
+    packet?.booleans?.checksumEvidenceAcceptedForAll5 === true &&
+    packet?.booleans?.manifestSupplementsAcceptedForAll5 === true &&
+    packet?.booleans?.localPrivateManifestDraftsReadyForAll5 === true &&
+    packet?.booleans?.reviewedPrivateManifestsAcceptedForAll5 === true &&
+    packet?.privateArtifactRefsLogged === 0
+    ? packet.readyForNativeGpuProofInputRecords
+    : 0
+}
+
 function nativeGpuRuntimeProfilesAccepted(packet?: AiGraphicsGpuRuntimeProofResultPacket): number {
   const counts = (packet as unknown as { counts?: Record<string, number> } | undefined)?.counts
   return packet?.runtimeProofResultsAcceptedForOwnerReview ??
@@ -358,6 +379,9 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
   const commandAccepted = commandPlanAccepted(input.gpuRuntimeProofCommandPlanPacket)
   const checksumAccepted = checksumEvidenceAccepted(input.modelWeightChecksumEvidencePacket)
   const manifestAccepted = manifestReviewAccepted(input.modelWeightManifestReviewPacket)
+  const privateEvidenceIntakeAcceptedRecords = privateEvidenceIntakeAccepted(
+    input.modelWeightPrivateEvidenceIntakePacket,
+  )
   const nativeProfilesAccepted = nativeGpuRuntimeProfilesAccepted(input.gpuRuntimeProofResultPacket)
   const cloudRunCollectorProfilesAccepted =
     cloudRunResultCollectorProfilesAccepted(input.cloudRunResultCollectorPacket)
@@ -370,6 +394,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
     missingNativeGpuProofCollectionControls.length === 0 &&
     checksumAccepted === 5 &&
     manifestAccepted === 5 &&
+    privateEvidenceIntakeAcceptedRecords === 5 &&
     nativeProfilesAccepted === 6 &&
     input.gpuRuntimeProofResultPacket?.nativeGpuRuntimeProofResultsAccepted === true
 
@@ -397,6 +422,13 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
       5,
       'blocked_pending_private_evidence',
       'Author and validate reviewed private model manifests with private artifact refs for the five model-weight tools.',
+    ),
+    buildRequirement(
+      'private_model_weight_evidence_intake_for_5_model_tools',
+      privateEvidenceIntakeAcceptedRecords,
+      5,
+      'blocked_pending_private_evidence',
+      'Run the combined private model-weight evidence intake after checksum evidence, manifest supplements, local manifest authoring, and manifest review are complete.',
     ),
     buildRequirement(
       'native_gpu_runtime_proof_results_for_6_profiles',
@@ -448,6 +480,7 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
       modelWeightChecksumEvidenceAccepted: checksumAccepted,
       modelWeightManifestRequiredTools: 5,
       modelWeightManifestReviewAccepted: manifestAccepted,
+      modelWeightPrivateEvidenceIntakeAccepted: privateEvidenceIntakeAcceptedRecords,
       nativeGpuRuntimeProofProfilesRequired: 6,
       nativeGpuRuntimeProofProfilesAccepted: nativeProfilesAccepted,
       cloudRunResultCollectorProfilesAccepted: cloudRunCollectorProfilesAccepted,
@@ -462,6 +495,8 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
         'npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence',
       checksumEvidenceValidate:
         'npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence',
+      privateEvidenceIntake:
+        'npm run --silent ai-graphics:model-weight-private-evidence-intake -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
       manifestAuthoring:
         'npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests',
       manifestReviewValidate:
@@ -492,6 +527,8 @@ export function buildAiGraphicsExternalBetaNativeGpuProofCollection(
       commandPlanAccepted: commandAccepted,
       checksumEvidenceAcceptedForAll5ModelTools: checksumAccepted === 5,
       privateModelManifestsAcceptedForAll5ModelTools: manifestAccepted === 5,
+      privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools:
+        privateEvidenceIntakeAcceptedRecords === 5,
       nativeGpuRuntimeProofResultsAcceptedForAll6Profiles: nativeProfilesAccepted === 6,
       all8GpuRuntimeToolsCovered: true,
       all5ModelWeightToolsCovered: true,

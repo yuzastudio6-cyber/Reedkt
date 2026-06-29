@@ -50,6 +50,7 @@ export interface AiGraphicsExternalBetaNativeGpuProofOperatorHandoff {
   expectedPacketPaths: {
     checksumEvidencePacket: string
     modelWeightManifestReviewPacket: string
+    modelWeightPrivateEvidenceIntakePacket: string
     gpuRuntimeProofCommandPlanPacket: string
     nativeGpuHostPreflight: string
     gpuRuntimeProofResultPacket: string
@@ -214,6 +215,8 @@ const expectedPacketPaths = {
     '.local-artifacts/ai-graphics/model-weight-checksum-evidence/model-weight-checksum-evidence-packet.json',
   modelWeightManifestReviewPacket:
     '.local-artifacts/ai-graphics/model-weight-manifests/model-weight-manifest-review-packet.json',
+  modelWeightPrivateEvidenceIntakePacket:
+    '.local-artifacts/ai-graphics/model-weight-manifests/model-weight-private-evidence-intake-packet.json',
   gpuRuntimeProofCommandPlanPacket:
     '.local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-command-plan-packet.json',
   nativeGpuHostPreflight:
@@ -266,6 +269,15 @@ const operatorSteps: AiGraphicsExternalBetaNativeGpuProofOperatorStep[] = [
     performsRuntimeExecution: false,
   },
   {
+    stepId: 'validate_private_model_weight_evidence_intake',
+    command:
+      `npm run --silent ai-graphics:model-weight-private-evidence-intake -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests > ${expectedPacketPaths.modelWeightPrivateEvidenceIntakePacket}`,
+    outputPath: expectedPacketPaths.modelWeightPrivateEvidenceIntakePacket,
+    mustRunOnNativeGpuHost: false,
+    requiresPrivateArtifacts: true,
+    performsRuntimeExecution: false,
+  },
+  {
     stepId: 'generate_native_gpu_command_plan',
     command:
       `npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh > ${expectedPacketPaths.gpuRuntimeProofCommandPlanPacket}`,
@@ -303,7 +315,7 @@ const operatorSteps: AiGraphicsExternalBetaNativeGpuProofOperatorStep[] = [
   {
     stepId: 'validate_native_gpu_proof_collection',
     command:
-      `npm run --silent ai-graphics:external-beta-native-gpu-proof-collection -- --external-beta-per-tool-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json --gpu-runtime-proof-command-plan-packet ${expectedPacketPaths.gpuRuntimeProofCommandPlanPacket} --model-weight-checksum-evidence-packet ${expectedPacketPaths.checksumEvidencePacket} --model-weight-manifest-review-packet ${expectedPacketPaths.modelWeightManifestReviewPacket} --gpu-runtime-proof-result-packet ${expectedPacketPaths.gpuRuntimeProofResultPacket} --cloud-run-result-collector-packet ${expectedPacketPaths.cloudRunResultCollectorPacket} --external-beta-native-gpu-proof-collection-policy-ref private://ai-graphics/external-beta/native-gpu-proof/policy --external-beta-native-gpu-proof-collection-schema-ref private://ai-graphics/external-beta/native-gpu-proof/schema --external-beta-native-gpu-proof-collection-host-pool-ref private://ai-graphics/external-beta/native-gpu-proof/host-pool/l4 --external-beta-native-gpu-proof-collection-private-artifact-namespace-ref private://ai-graphics/model-weights --external-beta-native-gpu-proof-collection-telemetry-ref private://ai-graphics/external-beta/native-gpu-proof/telemetry --external-beta-native-gpu-proof-collection-rollback-ref private://ai-graphics/external-beta/native-gpu-proof/rollback > ${expectedPacketPaths.nativeGpuProofCollectionPacket}`,
+      `npm run --silent ai-graphics:external-beta-native-gpu-proof-collection -- --external-beta-per-tool-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json --gpu-runtime-proof-command-plan-packet ${expectedPacketPaths.gpuRuntimeProofCommandPlanPacket} --model-weight-checksum-evidence-packet ${expectedPacketPaths.checksumEvidencePacket} --model-weight-manifest-review-packet ${expectedPacketPaths.modelWeightManifestReviewPacket} --model-weight-private-evidence-intake-packet ${expectedPacketPaths.modelWeightPrivateEvidenceIntakePacket} --gpu-runtime-proof-result-packet ${expectedPacketPaths.gpuRuntimeProofResultPacket} --cloud-run-result-collector-packet ${expectedPacketPaths.cloudRunResultCollectorPacket} --external-beta-native-gpu-proof-collection-policy-ref private://ai-graphics/external-beta/native-gpu-proof/policy --external-beta-native-gpu-proof-collection-schema-ref private://ai-graphics/external-beta/native-gpu-proof/schema --external-beta-native-gpu-proof-collection-host-pool-ref private://ai-graphics/external-beta/native-gpu-proof/host-pool/l4 --external-beta-native-gpu-proof-collection-private-artifact-namespace-ref private://ai-graphics/model-weights --external-beta-native-gpu-proof-collection-telemetry-ref private://ai-graphics/external-beta/native-gpu-proof/telemetry --external-beta-native-gpu-proof-collection-rollback-ref private://ai-graphics/external-beta/native-gpu-proof/rollback > ${expectedPacketPaths.nativeGpuProofCollectionPacket}`,
     outputPath: expectedPacketPaths.nativeGpuProofCollectionPacket,
     mustRunOnNativeGpuHost: false,
     requiresPrivateArtifacts: true,

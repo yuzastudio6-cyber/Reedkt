@@ -13,7 +13,7 @@ This checkpoint connects the external per-tool runtime proof gate to the native 
 - `rembg`
 - `transparent_background`
 
-The current external-beta state remains blocked for these tools. The 13 JavaScript graphics tools already have accepted runtime proof evidence, but the 8 GPU/model tools still require private model-weight evidence and native linux/amd64 NVIDIA L4 proof before they can be rechecked by the per-tool runtime gate.
+The current external-beta state remains blocked for these tools. The 13 JavaScript graphics tools already have accepted runtime proof evidence, but the 8 GPU/model tools still require the full private model-weight evidence intake and native linux/amd64 NVIDIA L4 proof before they can be rechecked by the per-tool runtime gate.
 
 The source per-tool runtime proof must also preserve the runtime queue service proof bridge: `sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence=21`. This prevents stale or stripped proof packets from feeding the native GPU collection path.
 
@@ -48,6 +48,8 @@ Current accepted private checksum evidence: `0 / 5`
 
 Current accepted reviewed private manifests: `0 / 5`
 
+Current accepted combined private model-weight evidence intake: `0 / 5`
+
 Current accepted native GPU proof profiles: `0 / 6`
 
 Current accepted Cloud Run result collector profiles: `0 / 6`
@@ -70,6 +72,7 @@ npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-di
 npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence
 npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests
 npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
+npm run --silent ai-graphics:model-weight-private-evidence-intake -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests
 npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh
 npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible
 npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results
@@ -81,7 +84,7 @@ npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-
 
 This checkpoint performs no dependency install, package-lock mutation, Docker build, GPU runtime, model download, model load, inference, media processing, Tool Route execution, Worker dispatch, provider/model call, Supabase/GCS mutation, signed URL creation, public artifact creation, beta unlock, or production unlock.
 
-The only accepted ready state from this checkpoint is `external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`, and only after all five private model manifest records and all six native GPU proof profile results validate.
+The only accepted ready state from this checkpoint is `external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`, and only after the combined private model-weight evidence intake, all five private model manifest records, and all six native GPU proof profile results validate.
 
 ## Current Result
 
@@ -91,6 +94,7 @@ The only accepted ready state from this checkpoint is `external_beta_native_gpu_
 - GPU command plan accepted: `true`
 - Private checksum evidence accepted for all five model tools: `false`
 - Private model manifests accepted for all five model tools: `false`
+- Private model-weight evidence intake accepted for all five model tools: `false`
 - Native GPU runtime proof results accepted for all six profiles: `false`
 - Cloud Run result collector accepted for all six profiles: `false`
 - Ready for per-tool runtime proof recheck: `false`

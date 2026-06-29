@@ -48,6 +48,37 @@ export interface RunProductionToolReadinessResult {
 const launchCoreRequirementsPath = 'server/workers/sound-cpu/requirements.launch-core.txt'
 const soundCpuDockerfilePath = 'server/workers/sound-cpu/Dockerfile'
 const soundCpuControlledRequirementsPath = 'server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt'
+const boundedActivationEvidenceFiles = new Map<ProductionToolId, Array<{ path: string, markers: string[] }>>([
+  ['signalsmith_stretch', [
+    {
+      path: 'docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports/phase_36i_signalsmith_runtime_generated_fixture_report.json',
+      markers: [
+        '"status": "passed"',
+        '"runtimeBuildStatus": "passed"',
+        '"generatedFixtureStatus": "passed"',
+        '"realMedia": "not_run_blocked"',
+      ],
+    },
+    {
+      path: 'docs/activation-phase-36j-controlled-real-media-timing-stretch-sample-reports/phase_36j_signalsmith_controlled_stretch_report.json',
+      markers: [
+        '"status": "passed"',
+        '"boundedControlledAudioOnly": true',
+        '"publicOutput": "blocked"',
+      ],
+    },
+    {
+      path: 'docs/activation-phase-36m-audio-timing-internal-beta-readiness-gate-reports/phase_36m_audio_timing_beta_gate_decision.json',
+      markers: [
+        '"status": "passed"',
+        '"audioTimingToolFamilyBetaStatus": "internally beta-ready candidate"',
+        '"externalBeta": "blocked"',
+        '"production": "blocked"',
+        '"Signalsmith runtime reruns"',
+      ],
+    },
+  ]],
+])
 const manifestBackedPythonPackages = new Map<ProductionToolId, string>([
   ['pyav', 'av==17.1.0'],
   ['pyscenedetect', 'scenedetect==0.7'],
@@ -95,6 +126,9 @@ const dockerfileBackedStaticReviewClosedToolIds = new Set<ProductionToolId>([
 ])
 const dockerfilePipStaticReviewClosedToolIds = new Set<ProductionToolId>([
   'audioflux',
+])
+const boundedActivationEvidenceWarningToolIds = new Set<ProductionToolId>([
+  'signalsmith_stretch',
 ])
 const internalPreviewBoundaryWarningToolIds = new Set<ProductionToolId>([
   'hyperframe',
@@ -206,12 +240,31 @@ function buildDockerfilePipBackedToolSet(): Set<ProductionToolId> {
   return backedToolIds
 }
 
+function fileIncludesAll(path: string, markers: string[]): boolean {
+  if (!existsSync(path)) return false
+  const text = readFileSync(path, 'utf8')
+  return markers.every((marker) => text.includes(marker))
+}
+
+function buildBoundedActivationEvidenceToolSet(): Set<ProductionToolId> {
+  const backedToolIds = new Set<ProductionToolId>()
+
+  for (const [toolId, files] of boundedActivationEvidenceFiles) {
+    if (files.every((file) => fileIncludesAll(file.path, file.markers))) {
+      backedToolIds.add(toolId)
+    }
+  }
+
+  return backedToolIds
+}
+
 function dryRunStatusForTool(
   specToolId: ProductionToolId,
   specStatus: ProductionReadinessStatus,
   manifestBackedToolIds: Set<ProductionToolId>,
   dockerfileBackedToolIds: Set<ProductionToolId>,
   dockerfilePipBackedToolIds: Set<ProductionToolId>,
+  boundedActivationEvidenceToolIds: Set<ProductionToolId>,
 ): ProductionReadinessStatus {
   const baseStatus = dryRunStatusForSpec(specStatus)
   if (internalPreviewBoundaryWarningToolIds.has(specToolId)) return 'warning'
@@ -239,6 +292,13 @@ function dryRunStatusForTool(
     if (dockerfilePipStaticReviewClosedToolIds.has(specToolId)) return 'warning'
     return 'source_install_review_required'
   }
+  if (
+    boundedActivationEvidenceToolIds.has(specToolId) &&
+    (baseStatus === 'missing' || baseStatus === 'not_installed')
+  ) {
+    if (boundedActivationEvidenceWarningToolIds.has(specToolId)) return 'warning'
+    return 'source_install_review_required'
+  }
   return baseStatus
 }
 
@@ -247,6 +307,7 @@ function buildDryRunWarnings(
   manifestBackedToolIds: Set<ProductionToolId>,
   dockerfileBackedToolIds: Set<ProductionToolId>,
   dockerfilePipBackedToolIds: Set<ProductionToolId>,
+  boundedActivationEvidenceToolIds: Set<ProductionToolId>,
 ): string[] {
   const profile = getProductionToolProfile(specToolId)
   const warnings = [
@@ -276,6 +337,14 @@ function buildDryRunWarnings(
       warnings.push('SOUND CPU Dockerfile pip requirements declaration, controlled install/import proof, and source-fix owner review passed; static readiness records warning until controlled tool-call, media policy, and runtime policy close.')
     } else {
       warnings.push('SOUND CPU Dockerfile pip requirements declaration exists; static readiness records source_install_review_required until controlled install/import proof and owner review close.')
+    }
+  }
+
+  if (boundedActivationEvidenceToolIds.has(specToolId)) {
+    if (boundedActivationEvidenceWarningToolIds.has(specToolId)) {
+      warnings.push('Signalsmith Phase 36I/36J/36M bounded activation evidence passed for generated fixtures and one private controlled sample; static readiness records warning only. Runtime reruns, broad media, external beta, and production remain blocked.')
+    } else {
+      warnings.push('Bounded activation evidence exists; static readiness records source_install_review_required until owner review closes the exact scope.')
     }
   }
 
@@ -316,6 +385,7 @@ export function runProductionToolReadiness(
   const manifestBackedToolIds = buildManifestBackedToolSet()
   const dockerfileBackedToolIds = buildDockerfileBackedToolSet()
   const dockerfilePipBackedToolIds = buildDockerfilePipBackedToolSet()
+  const boundedActivationEvidenceToolIds = buildBoundedActivationEvidenceToolSet()
   const results: ProductionToolReadinessResult[] = specs.map((spec) => ({
     toolId: spec.toolId,
     displayName: spec.displayName,
@@ -325,6 +395,7 @@ export function runProductionToolReadiness(
       manifestBackedToolIds,
       dockerfileBackedToolIds,
       dockerfilePipBackedToolIds,
+      boundedActivationEvidenceToolIds,
     ),
     dryRun: true,
     commandChecks: spec.commandChecks,
@@ -337,6 +408,7 @@ export function runProductionToolReadiness(
       manifestBackedToolIds,
       dockerfileBackedToolIds,
       dockerfilePipBackedToolIds,
+      boundedActivationEvidenceToolIds,
     ),
     blocksProduction: spec.blocksProductionIfMissing,
     checkedAt,

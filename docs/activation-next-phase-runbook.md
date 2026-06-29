@@ -311,3 +311,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 2. Confirm no Demucs model artifacts were downloaded, no Demucs runtime ran, and no media was processed.
 3. Confirm the Demucs blocker cites official pretrained-model license/provenance ambiguity and does not treat MIT code licensing as model approval.
 4. Proceed to Phase 37A OCR approval workflow only; do not approve Demucs, RNNoise, external beta, paid production, broad media, providers, Revideo, FILM, or slow motion.
+
+
+## After Phase 37A
+
+1. Review `activation:ocr-model-approval:plan`, `activation:ocr-model-approval:report`, and `activation:ocr-model-weight:summary`.
+2. Confirm PaddleOCR is approved only for generated UI/text OCR safe-zone planning.
+3. Confirm PaddlePaddle is runtime planning only and PP-OCRv5 exact det/rec/cls assets remain deferred to Phase 37B.
+4. Confirm the download command plan is text-only and no model files were downloaded or committed.
+5. Confirm no OCR inference, real media OCR, Docker/GCP mutation, GPU job, provider call, public output, Revideo, production, external beta, or broad real media occurred.
+6. Proceed to Phase 37B only as exact official OCR asset selection/download planning into private staging storage.

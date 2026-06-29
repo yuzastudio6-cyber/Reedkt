@@ -71,3 +71,7 @@ image, and emitted enhancement QA with no blocking failures. This does not
 approve FILM, GFPGAN/facexlib weights, real-video enhancement, full-video
 enhancement, slow motion, RTX PRO 6000, production, external beta, or broad
 real-media execution.
+
+## Phase 37A OCR Approval Update
+
+Phase 37A OCR approval update: PaddleOCR/PaddlePaddle are approved only for staging generated OCR safe-zone planning. Exact PP-OCRv5 assets are deferred to Phase 37B, OCR runtime is deferred to Phase 37C, controlled real-video OCR is deferred to Phase 37D, and production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.

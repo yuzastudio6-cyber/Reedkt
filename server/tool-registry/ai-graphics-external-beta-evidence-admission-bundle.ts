@@ -2,6 +2,7 @@ import {
   AI_GRAPHICS_BETA_EVIDENCE_BUNDLE_DECISION,
   buildAiGraphicsBetaEvidenceBundle,
   type AiGraphicsBetaEvidenceBundle,
+  type AiGraphicsBetaEvidenceBundleInput,
 } from './ai-graphics-beta-evidence-bundle'
 import {
   AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_PACKET_DECISION,
@@ -24,6 +25,19 @@ export type AiGraphicsExternalBetaEvidenceAdmissionBundleStatus =
 export interface AiGraphicsExternalBetaEvidenceAdmissionBundleInput {
   betaEvidenceBundlePacket?: Partial<AiGraphicsBetaEvidenceBundle>
   externalBetaEvidencePacket?: Partial<AiGraphicsExternalBetaEvidencePacket>
+  sourceProofPacketsRequired?: boolean
+  approvedPlanSnapshotGatePassed?: AiGraphicsBetaEvidenceBundleInput['approvedPlanSnapshotGatePassed']
+  creditReservationGatePassed?: AiGraphicsBetaEvidenceBundleInput['creditReservationGatePassed']
+  artifactBoundaryGatePassed?: AiGraphicsBetaEvidenceBundleInput['artifactBoundaryGatePassed']
+  toolRouteGatePassed?: AiGraphicsBetaEvidenceBundleInput['toolRouteGatePassed']
+  workerGatePassed?: AiGraphicsBetaEvidenceBundleInput['workerGatePassed']
+  browserCanvasWebglSandboxPassed?: AiGraphicsBetaEvidenceBundleInput['browserCanvasWebglSandboxPassed']
+  internalBetaOwnerApprovalGranted?: AiGraphicsBetaEvidenceBundleInput['internalBetaOwnerApprovalGranted']
+  modelWeightManifestReviewPacket?: AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket']
+  gpuRuntimeProofResultPacket?: AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket']
+  nodeRuntimeProofPacket?: AiGraphicsBetaEvidenceBundleInput['nodeRuntimeProofPacket']
+  browserRuntimeProofPacket?: AiGraphicsBetaEvidenceBundleInput['browserRuntimeProofPacket']
+  satoriFontRuntimeProofPacket?: AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket']
 }
 
 export interface AiGraphicsExternalBetaEvidenceAdmissionToolRow {
@@ -41,9 +55,16 @@ export interface AiGraphicsExternalBetaEvidenceAdmissionBundle {
   sourceBetaEvidenceBundleDecision: typeof AI_GRAPHICS_BETA_EVIDENCE_BUNDLE_DECISION
   sourceExternalBetaEvidencePacketDecision: typeof AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_PACKET_DECISION
   status: AiGraphicsExternalBetaEvidenceAdmissionBundleStatus
+  technicalEvidenceSourceMode:
+    | 'default_empty_beta_evidence_bundle'
+    | 'prebuilt_beta_evidence_bundle_packet'
+    | 'source_proof_packets'
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   technicalEvidenceReadyBeforeOwnerApprovalTools: number
+  sourceTechnicalProofPacketsRequired: boolean
+  sourceTechnicalProofPacketsProvided: boolean
+  sourceTechnicalProofPacketsAccepted: boolean
   externalBetaPrivateEvidenceAcceptedTools: number
   externalBetaAdmissionCandidateToolsWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
@@ -58,6 +79,9 @@ export interface AiGraphicsExternalBetaEvidenceAdmissionBundle {
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     technicalEvidenceReadyBeforeOwnerApproval: boolean
+    sourceTechnicalProofPacketsRequiredForAdmission: boolean
+    sourceTechnicalProofPacketsProvided: boolean
+    sourceTechnicalProofPacketsAcceptedForAdmission: boolean
     externalBetaPrivateEvidenceRefsAccepted: boolean
     externalBetaAdmissionCandidateWithProvidedEvidence: boolean
     gpuRuntimeOnDemandOnly: true
@@ -195,6 +219,37 @@ function externalBetaEvidencePacketAccepted(
   )
 }
 
+function sourceProofBundleInput(
+  input: AiGraphicsExternalBetaEvidenceAdmissionBundleInput,
+): AiGraphicsBetaEvidenceBundleInput {
+  return {
+    approvedPlanSnapshotGatePassed: input.approvedPlanSnapshotGatePassed,
+    creditReservationGatePassed: input.creditReservationGatePassed,
+    artifactBoundaryGatePassed: input.artifactBoundaryGatePassed,
+    toolRouteGatePassed: input.toolRouteGatePassed,
+    workerGatePassed: input.workerGatePassed,
+    browserCanvasWebglSandboxPassed: input.browserCanvasWebglSandboxPassed,
+    internalBetaOwnerApprovalGranted: input.internalBetaOwnerApprovalGranted,
+    modelWeightManifestReviewPacket: input.modelWeightManifestReviewPacket,
+    gpuRuntimeProofResultPacket: input.gpuRuntimeProofResultPacket,
+    nodeRuntimeProofPacket: input.nodeRuntimeProofPacket,
+    browserRuntimeProofPacket: input.browserRuntimeProofPacket,
+    satoriFontRuntimeProofPacket: input.satoriFontRuntimeProofPacket,
+  }
+}
+
+function sourceProofPacketsProvided(
+  input: AiGraphicsExternalBetaEvidenceAdmissionBundleInput,
+): boolean {
+  return Boolean(
+    input.modelWeightManifestReviewPacket ||
+      input.gpuRuntimeProofResultPacket ||
+      input.nodeRuntimeProofPacket ||
+      input.browserRuntimeProofPacket ||
+      input.satoriFontRuntimeProofPacket,
+  )
+}
+
 function statusForBundle(input: {
   technicalEvidenceAccepted: boolean
   externalBetaEvidenceAccepted: boolean
@@ -225,15 +280,23 @@ function toolMissingEvidence(input: {
 export function buildAiGraphicsExternalBetaEvidenceAdmissionBundle(
   input: AiGraphicsExternalBetaEvidenceAdmissionBundleInput = {},
 ): AiGraphicsExternalBetaEvidenceAdmissionBundle {
-  const sourceBetaEvidenceBundle = {
-    ...buildAiGraphicsBetaEvidenceBundle(),
-    ...(input.betaEvidenceBundlePacket ?? {}),
-  } as AiGraphicsBetaEvidenceBundle
+  const sourcePacketsProvided = sourceProofPacketsProvided(input)
+  const sourceBetaEvidenceBundle = sourcePacketsProvided
+    ? buildAiGraphicsBetaEvidenceBundle(sourceProofBundleInput(input))
+    : ({
+        ...buildAiGraphicsBetaEvidenceBundle(),
+        ...(input.betaEvidenceBundlePacket ?? {}),
+      } as AiGraphicsBetaEvidenceBundle)
   const sourceExternalBetaEvidencePacket = {
     ...buildAiGraphicsExternalBetaEvidencePacket(),
     ...(input.externalBetaEvidencePacket ?? {}),
   } as AiGraphicsExternalBetaEvidencePacket
-  const technicalEvidenceAccepted = betaEvidenceBundleAccepted(sourceBetaEvidenceBundle)
+  const sourcePacketsAccepted =
+    sourcePacketsProvided && betaEvidenceBundleAccepted(sourceBetaEvidenceBundle)
+  const sourcePacketsRequired = input.sourceProofPacketsRequired === true
+  const technicalEvidenceAccepted =
+    betaEvidenceBundleAccepted(sourceBetaEvidenceBundle) &&
+    (!sourcePacketsRequired || sourcePacketsAccepted)
   const externalBetaEvidenceAccepted =
     externalBetaEvidencePacketAccepted(sourceExternalBetaEvidencePacket)
   const admissionCandidate =
@@ -272,9 +335,17 @@ export function buildAiGraphicsExternalBetaEvidenceAdmissionBundle(
     sourceBetaEvidenceBundleDecision: AI_GRAPHICS_BETA_EVIDENCE_BUNDLE_DECISION,
     sourceExternalBetaEvidencePacketDecision: AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_PACKET_DECISION,
     status,
+    technicalEvidenceSourceMode: sourcePacketsProvided
+      ? 'source_proof_packets'
+      : input.betaEvidenceBundlePacket
+        ? 'prebuilt_beta_evidence_bundle_packet'
+        : 'default_empty_beta_evidence_bundle',
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     technicalEvidenceReadyBeforeOwnerApprovalTools: technicalEvidenceAccepted ? 21 : 0,
+    sourceTechnicalProofPacketsRequired: sourcePacketsRequired,
+    sourceTechnicalProofPacketsProvided: sourcePacketsProvided,
+    sourceTechnicalProofPacketsAccepted: sourcePacketsAccepted,
     externalBetaPrivateEvidenceAcceptedTools: externalBetaEvidenceAccepted ? 21 : 0,
     externalBetaAdmissionCandidateToolsWithProvidedEvidence: admissionCandidate ? 21 : 0,
     externalBetaReadyNowTools: 0,
@@ -289,6 +360,9 @@ export function buildAiGraphicsExternalBetaEvidenceAdmissionBundle(
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       technicalEvidenceReadyBeforeOwnerApproval: technicalEvidenceAccepted,
+      sourceTechnicalProofPacketsRequiredForAdmission: sourcePacketsRequired,
+      sourceTechnicalProofPacketsProvided: sourcePacketsProvided,
+      sourceTechnicalProofPacketsAcceptedForAdmission: sourcePacketsAccepted,
       externalBetaPrivateEvidenceRefsAccepted: externalBetaEvidenceAccepted,
       externalBetaAdmissionCandidateWithProvidedEvidence: admissionCandidate,
       gpuRuntimeOnDemandOnly: true,

@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
@@ -323,6 +325,9 @@ for (const needle of [
   'betaEvidenceBundleAccepted',
   'externalBetaEvidencePacketAccepted',
   'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked',
+  'sourceProofPacketsRequired',
+  'sourceProofPacketsProvided',
+  'source_proof_packets',
   'installReadyForPlannedSurfaceTools === 21',
   'modelWeightManifestReviewPacketProvided === true',
   'nativeGpuRuntimeProofResultPacketProvided === true',
@@ -338,7 +343,12 @@ for (const needle of [
 for (const needle of [
   '--beta-evidence-bundle-packet',
   '--external-beta-evidence-packet',
+  '--require-source-proof-packets',
+  '--model-weight-manifest-review-packet',
+  '--gpu-runtime-proof-result-packet',
+  '--use-committed-js-runtime-proofs',
   'evaluatorOnly: true',
+  'sourceProofPacketFilesRead',
   'toolExecutionPerformed: false',
   'gpuRuntimePerformed: false',
 ]) {
@@ -378,6 +388,15 @@ if (docs.technicalEvidenceBundleAcceptancePolicy?.nativeGpuRuntimeProofResultPac
 if (docs.technicalEvidenceBundleAcceptancePolicy?.missingTechnicalEvidenceBeforeOwnerApprovalMustBeEmpty !== true) {
   fail('docs_missing_technical_evidence_empty_not_required')
 }
+if (docs.technicalEvidenceBundleAcceptancePolicy?.sourceProofPacketStrictModeSupported !== true) {
+  fail('docs_source_proof_strict_mode_not_supported')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.strictSourceProofModeRejectsPrebuiltSummaryWithoutSourcePackets !== true) {
+  fail('docs_strict_source_mode_does_not_reject_prebuilt_summary_without_sources')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.directSourceProofPacketAdmissionSupported !== true) {
+  fail('docs_direct_source_packet_admission_not_supported')
+}
 if (!scorecard.includes('ai_graphics_external_beta_evidence_admission_bundle_prepared_with_runtime_blocks')) {
   fail('scorecard_missing_external_beta_evidence_admission_bundle_decision')
 }
@@ -396,12 +415,27 @@ const externalBetaPacketPath = writeJson(
     'external_beta_evidence_packet',
   ),
 )
+const modelWeightManifestReviewPacketPath = writeJson(
+  path.join(tempRoot, 'model-weight-manifest-review-packet.json'),
+  acceptedModelWeightManifestReviewPacket(),
+)
+const gpuRuntimeProofResultPacketPath = writeJson(
+  path.join(tempRoot, 'gpu-runtime-proof-result-packet.json'),
+  acceptedGpuRuntimeProofResultPacket(),
+)
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_admission_bundle')
 const summaryOnlyOutput = parseJsonOutput(runNpm(runScriptName, [
   '--beta-evidence-bundle-packet',
   summaryOnlyBetaBundlePath,
 ]), 'summary_only_admission_bundle')
+const strictPrebuiltOnlyOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--require-source-proof-packets',
+  '--beta-evidence-bundle-packet',
+  betaBundlePath,
+  '--external-beta-evidence-packet',
+  externalBetaPacketPath,
+]), 'strict_prebuilt_only_admission_bundle')
 const technicalOnlyOutput = parseJsonOutput(runNpm(runScriptName, [
   '--beta-evidence-bundle-packet',
   betaBundlePath,
@@ -412,6 +446,18 @@ const fullOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-evidence-packet',
   externalBetaPacketPath,
 ]), 'full_admission_bundle')
+const sourcePacketStrictOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--require-source-proof-packets',
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--use-committed-js-runtime-proofs',
+  '--model-weight-manifest-review-packet',
+  modelWeightManifestReviewPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuRuntimeProofResultPacketPath,
+  '--external-beta-evidence-packet',
+  externalBetaPacketPath,
+]), 'source_packet_strict_admission_bundle')
 
 if (defaultOutput.status !== 'missing_technical_runtime_evidence') {
   fail(`default_status_unexpected:${defaultOutput.status}`)
@@ -427,6 +473,21 @@ if (summaryOnlyOutput.technicalEvidenceReadyBeforeOwnerApprovalTools !== 0) {
 }
 if (summaryOnlyOutput.externalBetaAdmissionCandidateToolsWithProvidedEvidence !== 0) {
   fail('summary_only_admission_candidate_tools_not_0')
+}
+if (strictPrebuiltOnlyOutput.status !== 'missing_technical_runtime_evidence') {
+  fail(`strict_prebuilt_only_status_unexpected:${strictPrebuiltOnlyOutput.status}`)
+}
+if (strictPrebuiltOnlyOutput.technicalEvidenceSourceMode !== 'prebuilt_beta_evidence_bundle_packet') {
+  fail(`strict_prebuilt_only_source_mode_unexpected:${strictPrebuiltOnlyOutput.technicalEvidenceSourceMode}`)
+}
+if (strictPrebuiltOnlyOutput.sourceTechnicalProofPacketsRequired !== true) {
+  fail('strict_prebuilt_only_source_packets_not_required')
+}
+if (strictPrebuiltOnlyOutput.sourceTechnicalProofPacketsProvided !== false) {
+  fail('strict_prebuilt_only_source_packets_provided')
+}
+if (strictPrebuiltOnlyOutput.technicalEvidenceReadyBeforeOwnerApprovalTools !== 0) {
+  fail('strict_prebuilt_only_technical_evidence_tools_not_0')
 }
 if (technicalOnlyOutput.status !== 'missing_external_beta_private_evidence_refs') {
   fail(`technical_only_status_unexpected:${technicalOnlyOutput.status}`)
@@ -454,6 +515,33 @@ if (fullOutput.productionReadyNowTools !== 0) fail('full_production_ready_now_no
 if (fullOutput.booleans?.externalBetaAdmissionCandidateWithProvidedEvidence !== true) {
   fail('full_admission_candidate_boolean_not_true')
 }
+if (sourcePacketStrictOutput.status !== 'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked') {
+  fail(`source_packet_strict_status_unexpected:${sourcePacketStrictOutput.status}`)
+}
+if (sourcePacketStrictOutput.technicalEvidenceSourceMode !== 'source_proof_packets') {
+  fail(`source_packet_strict_source_mode_unexpected:${sourcePacketStrictOutput.technicalEvidenceSourceMode}`)
+}
+if (sourcePacketStrictOutput.sourceTechnicalProofPacketsRequired !== true) {
+  fail('source_packet_strict_source_packets_not_required')
+}
+if (sourcePacketStrictOutput.sourceTechnicalProofPacketsProvided !== true) {
+  fail('source_packet_strict_source_packets_not_provided')
+}
+if (sourcePacketStrictOutput.sourceTechnicalProofPacketsAccepted !== true) {
+  fail('source_packet_strict_source_packets_not_accepted')
+}
+if (sourcePacketStrictOutput.technicalEvidenceReadyBeforeOwnerApprovalTools !== 21) {
+  fail('source_packet_strict_technical_evidence_tools_not_21')
+}
+if (sourcePacketStrictOutput.externalBetaAdmissionCandidateToolsWithProvidedEvidence !== 21) {
+  fail('source_packet_strict_admission_candidate_tools_not_21')
+}
+if (sourcePacketStrictOutput.input?.sourceProofPacketFilesRead !== 2) {
+  fail(`source_packet_strict_file_count_unexpected:${sourcePacketStrictOutput.input?.sourceProofPacketFilesRead}`)
+}
+if (sourcePacketStrictOutput.input?.committedJsRuntimeProofsRead !== true) {
+  fail('source_packet_strict_committed_js_proofs_not_read')
+}
 
 for (const tool of allTools) {
   const row = fullOutput.tools?.find((entry) => entry.toolId === tool)
@@ -469,7 +557,14 @@ for (const tool of allTools) {
   if (row?.productionReadyNow !== false) fail(`full_tool_production_not_false:${tool}`)
 }
 
-for (const output of [defaultOutput, summaryOnlyOutput, technicalOnlyOutput, fullOutput]) {
+for (const output of [
+  defaultOutput,
+  summaryOnlyOutput,
+  strictPrebuiltOnlyOutput,
+  technicalOnlyOutput,
+  fullOutput,
+  sourcePacketStrictOutput,
+]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`output_required_false_not_false:${key}`)
@@ -546,8 +641,11 @@ console.log(JSON.stringify({
   gpuToolsCovered: gpuTools.length,
   defaultStatus: defaultOutput.status,
   summaryOnlyStatus: summaryOnlyOutput.status,
+  strictPrebuiltOnlyStatus: strictPrebuiltOnlyOutput.status,
   technicalOnlyStatus: technicalOnlyOutput.status,
   fullStatus: fullOutput.status,
+  sourcePacketStrictStatus: sourcePacketStrictOutput.status,
+  sourcePacketStrictMode: sourcePacketStrictOutput.technicalEvidenceSourceMode,
   externalBetaAdmissionCandidateToolsWithProvidedEvidence:
     fullOutput.externalBetaAdmissionCandidateToolsWithProvidedEvidence,
   externalBetaReadyNowTools: fullOutput.externalBetaReadyNowTools,

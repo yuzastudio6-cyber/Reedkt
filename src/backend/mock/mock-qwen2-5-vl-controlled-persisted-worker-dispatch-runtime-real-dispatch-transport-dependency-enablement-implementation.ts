@@ -1,0 +1,31 @@
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-dependency-enablement-approval'
+import { QWEN2_5_VL_CONTROLLED_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_IMPLEMENTATION } from '../workers/qwen2-5-vl-controlled-real-dispatch-transport-dependency-enablement'
+
+const implementation =
+  QWEN2_5_VL_CONTROLLED_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_IMPLEMENTATION
+
+export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_IMPLEMENTATION = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_dependency_enablement_implementation',
+  decision: implementation.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchTransportDependencyEnablementApprovalDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_APPROVAL.decision,
+  implementationRecorded: implementation.implementationRecorded,
+  implementationPreflightRequired: implementation.implementationPreflightRequired,
+  dependenciesEnabledNow: implementation.dependenciesEnabledNow,
+  readyForRealWorkerDispatch: implementation.readyForRealWorkerDispatch,
+  selectedRuntime: implementation.selectedRuntime,
+  dependencySurfaces: implementation.dependencySurfaces,
+  dependencyContracts: implementation.dependencyContracts,
+  localContractPreview: implementation.localContractPreview,
+  transportDependencyShape: implementation.transportDependencyShape,
+  sourceOfTruthRules: implementation.sourceOfTruthRules,
+  runtimeFlags: implementation.runtimeFlags,
+  warnings: implementation.warnings,
+  nextPrompt: implementation.nextPrompt,
+} as const
+
+export type Qwen25VlControlledPersistedWorkerDispatchRuntimeRealDispatchTransportDependencyEnablementImplementation =
+  typeof QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_IMPLEMENTATION

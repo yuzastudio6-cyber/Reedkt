@@ -1,0 +1,16 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-WORKER-SKELETON-MOCK-IMPLEMENTATION-1",
+  "sourceOfTruth": [
+    {
+      "phase": "guarded_worker_enqueue_mock_implementation",
+      "decision": "tracka_gpac_mp4box_guarded_worker_enqueue_mock_implementation_passed_ready_for_guarded_worker_skeleton_mock"
+    }
+  ],
+  "excluded": {
+    "pr577": "open_draft_blocked_conflicting_excluded"
+  },
+  "thisPhase": {
+    "decision": "tracka_gpac_mp4box_guarded_worker_skeleton_mock_implementation_passed_ready_for_private_artifact_policy_mock",
+    "execution": "completed_disabled_worker_skeleton_contract_no_worker_or_tool_execution"
+  }
+}

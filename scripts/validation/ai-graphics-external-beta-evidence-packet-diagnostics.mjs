@@ -40,6 +40,7 @@ const scaffoldScriptName = 'ai-graphics:external-beta-evidence-scaffold'
 const scaffoldScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts'
 const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
 const readinessScriptName = 'ai-graphics:external-beta-readiness-gate'
+const launchControlsScriptName = 'ai-graphics:external-beta-launch-controls'
 const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
 const workerDispatchSmokeProofScriptName =
   'ai-graphics:external-beta-worker-dispatch-smoke-proof'
@@ -495,6 +496,38 @@ const workerDispatchSmokeProofPath = writeJson(
     'private://ai-graphics/external-beta/worker-dispatch-smoke-proof/cleanup.json',
   ]), 'worker_dispatch_smoke_proof_source'),
 )
+const launchControlsPath = writeJson(
+  tempRoot,
+  'external-beta-launch-controls.json',
+  parseJsonOutput(runNpm(launchControlsScriptName, [
+    '--internal-beta-runtime-soak-ref',
+    'private://ai-graphics/external-beta/launch-controls/internal-runtime-soak.json',
+    '--external-beta-qa-evidence-ref',
+    'private://ai-graphics/external-beta/launch-controls/external-beta-qa.json',
+    '--external-beta-cost-concurrency-privacy-rollback-ref',
+    'private://ai-graphics/external-beta/launch-controls/cost-concurrency-privacy-rollback.json',
+    '--external-beta-incident-response-ref',
+    'private://ai-graphics/external-beta/launch-controls/incident-response.json',
+    '--external-beta-owner-approval-ref',
+    'private://ai-graphics/external-beta/launch-controls/owner-approval.json',
+    '--external-beta-launch-switch-ref',
+    'private://ai-graphics/external-beta/launch-controls/launch-switch.json',
+    '--external-beta-rollout-cohort-ref',
+    'private://ai-graphics/external-beta/launch-controls/rollout-cohort.json',
+    '--external-beta-cost-concurrency-ceiling-ref',
+    'private://ai-graphics/external-beta/launch-controls/cost-concurrency-ceiling.json',
+    '--external-beta-rollback-incident-runbook-ref',
+    'private://ai-graphics/external-beta/launch-controls/rollback-incident-runbook.json',
+    '--external-beta-private-artifact-retention-support-ref',
+    'private://ai-graphics/external-beta/launch-controls/private-artifact-retention-support.json',
+    '--external-beta-support-ownership-ref',
+    'private://ai-graphics/external-beta/launch-controls/support-ownership.json',
+    '--external-beta-worker-dispatch-smoke-proof-ref',
+    'private://ai-graphics/external-beta/launch-controls/worker-dispatch-smoke-proof.json',
+    '--external-beta-launch-approver-role',
+    'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
+  ]), 'launch_controls_source'),
+)
 const unsafeRecordsPath = writeJson(tempRoot, 'unsafe-records.json', [
   {
     ...acceptedRecord('d3'),
@@ -528,6 +561,8 @@ const admissionBundleFedGateOutput = parseJsonOutput(runNpm(readinessScriptName,
   '--model-weight-review-packet-accepted',
   '--external-beta-evidence-admission-bundle',
   admissionBundlePath,
+  '--external-beta-launch-controls',
+  launchControlsPath,
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
 ]), 'admission_bundle_fed_external_beta_gate')
@@ -638,6 +673,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  '+    "ai-graphics:external-beta-live-enqueue-authorization": "tsx server/cli/ai-graphics-external-beta-live-enqueue-authorization.ts",',
+  '+    "ai-graphics:external-beta-live-enqueue-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-live-enqueue-authorization-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-controlled-runtime-execution-approval": "tsx server/cli/ai-graphics-external-beta-controlled-runtime-execution-approval.ts",',
   '+    "ai-graphics:external-beta-controlled-runtime-execution-approval:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-runtime-execution-approval-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-candidate-evidence-assembly": "tsx server/cli/ai-graphics-external-beta-candidate-evidence-assembly.ts",',

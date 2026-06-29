@@ -23,6 +23,7 @@ export const M10_CORE_CPU_RENDER_TOOL_IDS: ProductionToolId[] = [
   'remotion',
   'libass',
   'hyperframe',
+  'signalsmith_stretch',
   'openimageio',
   'opencolorio',
 ]

@@ -8,6 +8,7 @@ export interface CoreToolReadinessReport {
   ffprobeStatus: ProductionReadinessStatus
   ffmpegLgplVerificationStatus: ProductionReadinessStatus
   libassSubtitleSupportStatus: ProductionReadinessStatus
+  signalsmithStretchStatus: ProductionReadinessStatus
   pythonMediaPackageStatus: ProductionReadinessStatus
   nodeRenderPackageStatus: ProductionReadinessStatus
   openTimelineIoStatus: ProductionReadinessStatus
@@ -80,6 +81,7 @@ export function buildCoreToolReadinessReport(
     ffprobeStatus: statusForTool(results, 'ffprobe'),
     ffmpegLgplVerificationStatus: statusForTool(results, 'ffmpeg_lgpl_policy', 'pending_manual_review'),
     libassSubtitleSupportStatus: statusForTool(results, 'libass'),
+    signalsmithStretchStatus: statusForTool(results, 'signalsmith_stretch'),
     pythonMediaPackageStatus: aggregateStatus(pythonCoreStatuses),
     nodeRenderPackageStatus: aggregateStatus(nodeCoreStatuses),
     openTimelineIoStatus: statusForTool(results, 'opentimelineio'),
@@ -90,6 +92,7 @@ export function buildCoreToolReadinessReport(
     notes: [
       'M10 readiness checks are command/version, Python import, Node package metadata, and manual policy review checks only.',
       'AudioFlux readiness is import-only CPU launch-core evidence and must not process audio in this gate.',
+      'Signalsmith Stretch readiness is help-shape-only bounded source-build evidence and must not process audio in this gate.',
       'FFmpeg and ffprobe checks must not process media.',
       'FFmpeg commercial LGPL-safe build verification remains pending manual legal/build review.',
       'Revideo remains evaluation-only and is not installed as a core render dependency.',

@@ -1,7 +1,7 @@
 import type { ProductionToolId } from '../../tool-registry'
 
 export interface CoreToolCommandCheckDefinition {
-  toolId: Extract<ProductionToolId, 'ffmpeg' | 'ffprobe' | 'libass'>
+  toolId: Extract<ProductionToolId, 'ffmpeg' | 'ffprobe' | 'libass' | 'signalsmith_stretch'>
   checkName: string
   command: string
   args: string[]
@@ -50,6 +50,20 @@ export const CORE_TOOL_COMMAND_CHECKS: CoreToolCommandCheckDefinition[] = [
     notes: [
       'Safe filter-list inspection only; do not render subtitle previews in M10.',
       'Passing filter inspection does not prove font packaging or final caption burn-in readiness.',
+    ],
+  },
+  {
+    toolId: 'signalsmith_stretch',
+    checkName: 'signalsmith_stretch_version_shape',
+    command: 'signalsmith-stretch',
+    args: ['-v'],
+    expectedPattern: /^\d+\.\d+\.\d+/i,
+    versionOnly: true,
+    optional: false,
+    manualReviewRequired: true,
+    notes: [
+      'Version-shape check only; readiness must not process audio.',
+      'Passing this command check proves local bounded source-build availability only, not production runtime approval.',
     ],
   },
 ]

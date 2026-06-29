@@ -1,0 +1,107 @@
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_APPROVAL_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-approval-plan'
+
+const DECISION =
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_approval_decision_accepted_execution_plan_required' as const
+const NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58BU-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-PLAN: plan controlled persisted Qwen worker dispatch runtime execution, no Cloud Run invocation/no inference/no assets/no beta' as const
+
+const approvalPlan = QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_APPROVAL_PLAN
+
+export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_APPROVAL_DECISION = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_approval_decision',
+  decision: DECISION,
+  upstreamControlledPersistedWorkerDispatchRuntimeApprovalPlanDecision:
+    approvalPlan.decision,
+  approvalDecision: {
+    decisionRecorded: true,
+    acceptsApprovalPlanForFutureControlledRuntimeExecutionPlanning: true,
+    controlledRuntimeExecutionPlanRequired: true,
+    approvesExecutionNow: false,
+    approvesWorkerDispatchNow: false,
+    approvesCloudRunInvocationNow: false,
+    approvesQwenInferenceNow: false,
+    approvesGeneratedAssetsNow: false,
+    approvesBetaNow: false,
+    approvesProductionNow: false,
+  },
+  acceptedRuntimeApprovalEvidence: approvalPlan.requiredRuntimeApprovalEvidence.map((entry) => ({
+    id: entry.id,
+    owner: entry.owner,
+    acceptedForExecutionPlanning: true,
+    executionAllowedNow: false,
+    requiredEvidence: entry.requiredEvidence,
+  })),
+  approvedRuntimePosture: approvalPlan.approvedRuntimePosture,
+  controlledRuntimeExecutionPlanRequirements: [
+    'exact approved snapshot and immutable plan version intake',
+    'exact credit estimate, reservation, and no-spend precondition',
+    'private storage object record, manifest, checksum, and source media references',
+    'backend-only service-role lease claim path with idempotency and duplicate-source guards',
+    'private Cloud Run invocation dependency resolution inside backend runtime code only',
+    'Qwen request and response schema, raw-output exclusion, QA acceptance criteria, audit events, and cost evidence',
+    'failure, timeout, retry, cleanup, credit release/refund, and rollback behavior',
+    'proof that frontend code cannot call Cloud Run, resolve credentials, create generated assets, create public artifacts, create signed URLs, or dispatch workers',
+  ],
+  workerSourceOfTruthRules: {
+    workersExecuteApprovedSnapshots: true,
+    rawChatWorkerExecutionAllowed: false,
+    signedUrlSourceOfTruthAllowed: false,
+    publicUrlSourceOfTruthAllowed: false,
+    privateStorageManifestChecksumApprovedSnapshotRefsRequired: true,
+    frontendMayClaimJobs: false,
+    frontendMayResolvePrivateInvokeCredentials: false,
+    frontendMayCallCloudRun: false,
+    frontendMayCreateGeneratedAssets: false,
+  },
+  runtimeFlags: {
+    controlledPersistedWorkerDispatchRuntimeApprovalPlanAccepted: true,
+    controlledPersistedWorkerDispatchRuntimeApprovalDecisionRequired: false,
+    controlledPersistedWorkerDispatchRuntimeApprovalDecisionRecorded: true,
+    controlledPersistedWorkerDispatchRuntimeApprovalDecisionAcceptedForExecutionPlanning: true,
+    controlledPersistedWorkerDispatchRuntimeExecutionPlanRequired: true,
+    readyForRealWorkerDispatch: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    creditMutationCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt: NEXT_PROMPT,
+} as const
+
+export type Qwen25VlControlledPersistedWorkerDispatchRuntimeApprovalDecision =
+  typeof QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_APPROVAL_DECISION

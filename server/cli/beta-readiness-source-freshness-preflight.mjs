@@ -9,6 +9,7 @@ const PASS_DECISION = 'beta_readiness_source_freshness_preflight_passed_current_
 const BLOCKED_DECISION = 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale'
 const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:deployed-evidence-input-manifest',
+  'beta:readiness:api-deployment-preflight',
   'beta:readiness:external-beta-evidence-collector',
   'beta:readiness:launch-approval-evidence',
   'beta:readiness:launch-approval-evidence-preflight',
@@ -20,6 +21,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:platform:staging-evidence-preflight',
   'beta:platform:staging-evidence-probe',
   'smoke:beta-readiness-deployed-evidence-input-manifest',
+  'smoke:beta-readiness-api-deployment-preflight',
   'smoke:beta-readiness-external-beta-evidence-collector',
   'smoke:beta-readiness-launch-approval-evidence-cli',
   'smoke:beta-readiness-launch-approval-evidence-preflight',

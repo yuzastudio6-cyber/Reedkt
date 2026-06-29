@@ -1,6 +1,6 @@
 # Qwen2.5-VL 7B Cloud Run GPU Private Invoke Readiness Rollup
 
-Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_deploy_plan_recorded_deploy_approval_required`.
+Decision: `qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_deploy_approval_recorded_deploy_execution_required`.
 
 This packet rolls up the current Qwen2.5-VL 7B ReeditPro stack-tool state. It confirms that the registry, production readiness metadata, private-invoke mock route, frontend-safe client, chat-native UI surfacing, guarded Cloud Run auth/IAM reverify, controlled private invoke smoke plan, private caller route, Direct VPC route config, CPU-only caller source, CPU-only caller deploy, CPU-only caller contract smoke, runtime readiness review, approved-fixture inference smoke plan, gated service source, service deploy, first fixture attempt, tuned fixture retry, structured output source fix, controlled structured-output retry, structured fixture output result review, private runtime readiness review result, approved worker integration readiness review, backend runtime dispatch implementation plan, fail-closed backend runtime dispatch coordinator, controlled backend dispatch dry-run review, backend runtime persistence plan, backend runtime persistence schema draft review, backend runtime persistence migration draft, backend runtime persistence local validation result, backend runtime persistence local harness plan, backend runtime persistence local harness config creation, backend runtime persistence local harness config verification, backend runtime persistence local harness validation result, backend runtime persistence local harness port fix, backend runtime persistence local harness validation retry result, backend runtime persistence baseline migration fix, backend runtime persistence local harness validation retry 2 result, backend runtime persistence current edit session baseline fix, backend runtime persistence local harness validation retry 3 result, backend runtime persistence media assets status baseline fix, backend runtime persistence local harness validation retry 4 result, backend runtime persistence edit plan segments version baseline fix, backend runtime persistence local harness validation retry 5 result, backend runtime persistence credit approval snapshots baseline fix, backend runtime persistence local harness validation retry 6 result, backend runtime persistence credit estimates plan version baseline fix, backend runtime persistence local harness validation retry 7 result, backend runtime persistence generation requests approved snapshot baseline fix, backend runtime persistence local harness validation retry 8 result, backend runtime persistence generated asset versions version baseline fix, backend runtime persistence local harness validation retry 9 result, backend runtime persistence QA check results reserved column baseline fix, backend runtime persistence local harness validation retry 10 result, backend runtime persistence QA reports approved snapshot baseline fix, backend runtime persistence local harness validation retry 11 result, backend runtime persistence RLS function parameter baseline fix, backend runtime persistence local harness validation retry 12 result, backend runtime persistence baseline storage buckets comment fix, backend runtime persistence local harness validation retry 13 result, backend runtime persistence baseline storage objects policy comment fix, backend runtime persistence local harness validation retry 14 result, backend runtime persistence baseline storage upload pipeline policy comment fix, backend runtime persistence local harness validation retry 15 result, and backend runtime persistence local harness validation result review are recorded.
 
@@ -78,7 +78,8 @@ This is evidence only. Retry 15 executed SQL only inside the approved local Supa
 - backend runtime persistence active migration creation: ready, active migration file created
 - backend runtime persistence active migration validation: ready, active migration applies locally and Qwen SQL tests pass
 - backend runtime persistence active migration deploy plan: ready, plan recorded
-- backend runtime persistence active migration deploy approval: blocked, deploy approval required
+- backend runtime persistence active migration deploy approval: ready, target-class approval recorded
+- backend runtime persistence active migration deploy execution: blocked, deploy execution required
 - private invoke runtime readiness: false
 - beta readiness: false
 - production readiness: false
@@ -164,7 +165,8 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 | Backend runtime persistence active migration creation | ready | Active migration file created from the validated Qwen draft without deploy or runtime side effects. | none |
 | Backend runtime persistence active migration validation | ready | Active migration `20260629011700_qwen2_5_vl_backend_runtime_persistence.sql` applied in the approved local Supabase-compatible harness, migration history recorded `20260629011700`, and Qwen SQL tests passed. | none |
 | Backend runtime persistence active migration deploy plan | ready | Deploy plan recorded with advisor, rollback, owner approval, Data API exposure, cloud/staging/production safety, and no-runtime-unlock gates before any deploy command is allowed. | none |
-| Backend runtime persistence active migration deploy approval | blocked backend runtime persistence active migration deploy approval required | The validated active migration has a no-deploy plan, but no exact Supabase target, rollback authority, advisor capture, or deployment approval is granted. | Approve the exact target and deploy command family before any cloud deployment is allowed. |
+| Backend runtime persistence active migration deploy approval | ready | Deployment target-class approval is recorded for a ReEditPro owner-approved Supabase cloud backend-runtime migration target; exact target resolution remains execution-time only. | none |
+| Backend runtime persistence active migration deploy execution | blocked backend runtime persistence active migration deploy execution required | The validated active migration has no deployment result yet. | Re-check CLI help, resolve the approved target without exposing credentials, inspect migration status, deploy only the validated migration if still needed, verify version `20260629011700`, and keep runtime/beta/production blocked. |
 
 ## Runtime Gates
 
@@ -423,8 +425,10 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `backendRuntimePersistenceActiveMigrationHistoryObserved=true`
 - `backendRuntimePersistenceActiveMigrationDeployPlanRequired=false`
 - `backendRuntimePersistenceActiveMigrationDeployPlanRecorded=true`
-- `backendRuntimePersistenceActiveMigrationDeployApprovalRequired=true`
-- `backendRuntimePersistenceActiveMigrationDeploymentTargetApproved=false`
+- `backendRuntimePersistenceActiveMigrationDeployApprovalRequired=false`
+- `backendRuntimePersistenceActiveMigrationDeployApprovalRecorded=true`
+- `backendRuntimePersistenceActiveMigrationDeploymentTargetApproved=true`
+- `backendRuntimePersistenceActiveMigrationDeployExecutionRequired=true`
 - `backendRuntimePersistenceActiveMigrationDeployed=false`
 - `qwenDraftSqlApplied=true`
 - `qwenLocalSqlTestsExecuted=true`
@@ -475,7 +479,7 @@ NVIDIA L4 remains the cost-friendly target for bounded Qwen visual-analysis requ
 - `dryRunPassedClaimed=false`
 - `generatedLocalFixturePassedClaimed=false`
 
-The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, backend runtime persistence schema draft review, backend runtime persistence migration drafting, blocked local-validation result recording, local harness planning, config creation, config verification, blocked port-conflict local harness validation result, port fix, baseline compatibility fixes, retry 9, the QA check-results reserved-column fix, retry 10, the QA reports approved-snapshot baseline fix, retry 11, the RLS helper parameter compatibility fix, retry 12, the storage buckets comment baseline fix, retry 13, the storage.objects policy-comment baseline fix, retry 14, the storage upload pipeline policy-comment baseline fix, retry 15, the local harness validation result review, the active migration plan, active migration creation, active migration local validation, and active migration deploy plan are recorded, but user-facing dispatch still requires deployment approval, actual deployment, and later real runtime approval.
+The broad `vllmEngineInitialized=false` and `inferenceRun=false` flags mean persistent user-facing runtime readiness remains closed. The bounded retry evidence is recorded under structured-output-specific flags, and the private runtime review is accepted only for metadata-only controlled fixture readiness. Approved worker integration review, backend runtime dispatch planning, fail-closed coordinator implementation, controlled backend dispatch dry-run review, backend runtime persistence planning, backend runtime persistence schema draft review, backend runtime persistence migration drafting, blocked local-validation result recording, local harness planning, config creation, config verification, blocked port-conflict local harness validation result, port fix, baseline compatibility fixes, retry 9, the QA check-results reserved-column fix, retry 10, the QA reports approved-snapshot baseline fix, retry 11, the RLS helper parameter compatibility fix, retry 12, the storage buckets comment baseline fix, retry 13, the storage.objects policy-comment baseline fix, retry 14, the storage upload pipeline policy-comment baseline fix, retry 15, the local harness validation result review, the active migration plan, active migration creation, active migration local validation, active migration deploy plan, and active migration deploy approval are recorded, but user-facing dispatch still requires deploy execution and later real runtime approval.
 
 ## Scope Boundaries
 
@@ -485,8 +489,8 @@ Qwen2.5-VL must not generate B-roll video, replace Wan or LTX generation routes,
 
 ## Required Next Step
 
-The next action is deployment approval for the locally validated Qwen backend runtime persistence migration. That future prompt must not deploy a migration, touch Supabase cloud, staging, production, live data, Cloud Run, Qwen inference, worker dispatch, generated assets, public artifacts, signed URLs, beta, production, or claim `generated_local_fixture_passed`.
+The next action is deploy execution for the locally validated Qwen backend runtime persistence migration. That future prompt may only operate on the approved Supabase backend-runtime migration target and must still not invoke Cloud Run, run Qwen inference, dispatch workers, create generated assets, public artifacts, signed URLs, beta, production, or claim `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58BD-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-DEPLOY-APPROVAL: approve deployment target for validated Qwen persistence migration, no deploy/no cloud/no assets/no beta`
+`QWEN2_5_VL_STACK_TOOL_58BE-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-DEPLOY-EXECUTE: deploy validated Qwen persistence migration to approved Supabase target, no assets/no beta`

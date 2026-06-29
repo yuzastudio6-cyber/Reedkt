@@ -26,6 +26,7 @@ const baseEnv: BetaToolsCoreRealCheckHydratedPreviewEnv = {
 const missingReport = runBetaToolsCoreRealCheckHydratedPreview({
   ...baseEnv,
   REEDITPRO_READINESS_PYTHON_BIN: '/tmp/reeditpro-missing-readiness-python-for-smoke/bin/python',
+  REEDITPRO_BETA_TOOLS_PREVIEW_READINESS_BIN_DIR: join(tmpdir(), 'reeditpro-missing-readiness-bin-for-smoke'),
 })
 assert.equal(missingReport.ok, false, 'missing hydrated Python should fail closed')
 assert.equal(missingReport.previewOnly, true, 'missing hydrated Python report should still be preview-only')

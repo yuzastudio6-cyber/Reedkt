@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { delimiter, resolve } from 'node:path'
 import {
   runBetaToolsCoreRealCheckPreview,
   type BetaToolsCoreRealCheckPreviewEnv,
@@ -9,6 +9,7 @@ import {
 export interface BetaToolsCoreRealCheckHydratedPreviewEnv extends BetaToolsCoreRealCheckPreviewEnv {
   REEDITPRO_READINESS_PYTHON_BIN?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_VENV_DIR?: string
+  REEDITPRO_BETA_TOOLS_PREVIEW_READINESS_BIN_DIR?: string
 }
 
 export interface BetaToolsCoreRealCheckHydratedPreviewReport {
@@ -17,6 +18,8 @@ export interface BetaToolsCoreRealCheckHydratedPreviewReport {
   hydratedPythonReady: boolean
   hydratedPythonPath: string
   hydratedPythonSource: 'env_override' | 'default_readiness_venv'
+  readinessBinPath: string
+  readinessBinIncludedInPath: boolean
   setupCommand: 'npm run tools:readiness:install-core-python'
   previewReport?: BetaToolsCoreRealCheckPreviewReport
   warnings: string[]
@@ -26,6 +29,7 @@ export function runBetaToolsCoreRealCheckHydratedPreview(
   env: BetaToolsCoreRealCheckHydratedPreviewEnv,
 ): BetaToolsCoreRealCheckHydratedPreviewReport {
   const hydratedPython = resolveHydratedPython(env)
+  const readinessBin = resolveReadinessBin(env)
 
   if (!existsSync(hydratedPython.path)) {
     return {
@@ -34,6 +38,8 @@ export function runBetaToolsCoreRealCheckHydratedPreview(
       hydratedPythonReady: false,
       hydratedPythonPath: hydratedPython.path,
       hydratedPythonSource: hydratedPython.source,
+      readinessBinPath: readinessBin.path,
+      readinessBinIncludedInPath: readinessBin.exists,
       setupCommand: 'npm run tools:readiness:install-core-python',
       warnings: [
         `Hydrated readiness Python is missing at ${hydratedPython.path}.`,
@@ -44,7 +50,13 @@ export function runBetaToolsCoreRealCheckHydratedPreview(
   }
 
   const previousPythonBin = process.env.REEDITPRO_READINESS_PYTHON_BIN
+  const previousPath = process.env.PATH
   process.env.REEDITPRO_READINESS_PYTHON_BIN = hydratedPython.path
+  if (readinessBin.exists) {
+    process.env.PATH = previousPath
+      ? `${readinessBin.path}${delimiter}${previousPath}`
+      : readinessBin.path
+  }
   try {
     const previewReport = runBetaToolsCoreRealCheckPreview(env)
     return {
@@ -53,6 +65,8 @@ export function runBetaToolsCoreRealCheckHydratedPreview(
       hydratedPythonReady: true,
       hydratedPythonPath: hydratedPython.path,
       hydratedPythonSource: hydratedPython.source,
+      readinessBinPath: readinessBin.path,
+      readinessBinIncludedInPath: readinessBin.exists,
       setupCommand: 'npm run tools:readiness:install-core-python',
       previewReport,
       warnings: hydratedPreviewWarnings(),
@@ -62,6 +76,11 @@ export function runBetaToolsCoreRealCheckHydratedPreview(
       delete process.env.REEDITPRO_READINESS_PYTHON_BIN
     } else {
       process.env.REEDITPRO_READINESS_PYTHON_BIN = previousPythonBin
+    }
+    if (previousPath === undefined) {
+      delete process.env.PATH
+    } else {
+      process.env.PATH = previousPath
     }
   }
 }
@@ -85,10 +104,23 @@ function resolveHydratedPython(env: BetaToolsCoreRealCheckHydratedPreviewEnv): {
   }
 }
 
+function resolveReadinessBin(env: BetaToolsCoreRealCheckHydratedPreviewEnv): {
+  path: string
+  exists: boolean
+} {
+  const binDir = clean(env.REEDITPRO_BETA_TOOLS_PREVIEW_READINESS_BIN_DIR) ?? '.reeditpro-tool-readiness-bin'
+  const path = resolve(binDir)
+  return {
+    path,
+    exists: existsSync(path),
+  }
+}
+
 function hydratedPreviewWarnings(): string[] {
   return [
     'Hydrated preview is local and no-write; it does not call the deployed backend or record evidence.',
     'Hydrated preview may import safe CPU/render Python packages only through the readiness venv.',
+    'Hydrated preview prepends the gitignored readiness bin to PATH when present so bounded source-built tools can be checked without installing globally.',
     'Hydrated preview must not process media, run Docker, call providers, write Supabase, enable beta, or enable production.',
     'A passing hydrated preview still requires deployed staging evidence recording through beta:tools:core-real-check-evidence.',
   ]

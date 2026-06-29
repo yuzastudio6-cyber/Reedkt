@@ -1,0 +1,45 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-CURRENT-RUNTIME-GATE-READINESS-ROLLUP-1",
+  "decision": "tracka_gpac_mp4box_current_runtime_gate_readiness_rollup_passed_ready_for_guarded_runtime_dispatch_enablement_plan",
+  "matrix": {
+    "installSourceAndToolRuntimeEvidence": {
+      "status": "accepted_prior_source_evidence",
+      "runtimeThisPhase": "not_run",
+      "note": "Existing GPAC/MP4Box install/runtime/synthetic/QA evidence remains source evidence only for this rollup."
+    },
+    "disabledRuntimeScaffold": {
+      "status": "passed",
+      "runtimeThisPhase": "not_run"
+    },
+    "serviceRoleRouteMock": {
+      "status": "passed",
+      "routeExecutionThisPhase": "not_run",
+      "readiness": "source_evidence_available_for_guarded_dispatch_plan"
+    },
+    "workerEnqueueMock": {
+      "status": "passed",
+      "workerDispatchThisPhase": "not_run",
+      "readiness": "source_evidence_available_for_guarded_dispatch_plan"
+    },
+    "workerSkeletonMock": {
+      "status": "passed_disabled_skeleton_only",
+      "workerExecutionThisPhase": "not_run",
+      "readiness": "source_evidence_available_for_guarded_dispatch_plan"
+    },
+    "privateArtifactPolicyManifestQaCleanup": {
+      "status": "passed_metadata_chain",
+      "storageTransferThisPhase": "not_run",
+      "readiness": "source_evidence_available_for_guarded_dispatch_plan"
+    },
+    "executableHandlerRuntimeEnablementReview": {
+      "status": "passed",
+      "executableHandlerRuntimeThisPhase": "not_run",
+      "readiness": "source_evidence_available_for_guarded_dispatch_plan"
+    },
+    "nextNonDuplicateGate": {
+      "prompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ENABLEMENT-PLAN-1",
+      "scope": "docs_status_diagnostics_plan_only"
+    }
+  },
+  "productReadyLocalOssTools": 0
+}

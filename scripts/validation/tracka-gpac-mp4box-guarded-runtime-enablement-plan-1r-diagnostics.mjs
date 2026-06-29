@@ -20,6 +20,20 @@ const packetFiles = [
   `${packetDir}/validation-results.md`,
 ]
 
+const currentRuntimeGateRollupDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-current-runtime-gate-readiness-rollup'
+const currentRuntimeGateRollupFiles = [
+  `${currentRuntimeGateRollupDir}/gpac-mp4box-current-runtime-gate-readiness-rollup-decision.json`,
+  `${currentRuntimeGateRollupDir}/gpac-mp4box-current-runtime-gate-readiness-rollup-decision.md`,
+  `${currentRuntimeGateRollupDir}/source-chain-rollup.json`,
+  `${currentRuntimeGateRollupDir}/source-chain-rollup.md`,
+  `${currentRuntimeGateRollupDir}/current-runtime-gate-matrix.json`,
+  `${currentRuntimeGateRollupDir}/current-runtime-gate-matrix.md`,
+  `${currentRuntimeGateRollupDir}/readiness-report.json`,
+  `${currentRuntimeGateRollupDir}/runtime-boundary.json`,
+  `${currentRuntimeGateRollupDir}/runtime-boundary.md`,
+  `${currentRuntimeGateRollupDir}/validation-results.md`,
+]
+
 const statusFiles = [
   'docs/production-beta-blocker-inventory.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -29,14 +43,18 @@ const statusFiles = [
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
+  ...currentRuntimeGateRollupFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1r-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-1.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-enablement-plan-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1.md',
   'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan/gpac-mp4box-guarded-runtime-enablement-plan-decision.json',
   'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-runtime-scaffold/gpac-mp4box-disabled-runtime-scaffold-decision.json',
   'docs/track-a/native-container-render-tools/gpac-mp4box-runtime-scaffold-negative-tests/gpac-mp4box-runtime-scaffold-negative-tests-decision.json',
   'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-executable-handler-runtime-enablement-review/gpac-mp4box-guarded-executable-handler-runtime-enablement-review-decision.json',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-1r-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-current-runtime-gate-readiness-rollup-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-enablement-plan-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-executable-handler-runtime-enablement-review-diagnostics.mjs',
   'package.json',

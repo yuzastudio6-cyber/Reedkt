@@ -3,6 +3,7 @@ import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readines
 
 const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
 const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection'
+const STATUS_DECISION = 'beta_readiness_external_beta_operator_input_status_passed_ready_for_operator_value_collection'
 
 const SECRET_PLACEHOLDER = '<secret value supplied only in the operator shell>'
 const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
@@ -88,6 +89,39 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
   }
 }
 
+export function buildBetaReadinessExternalBetaOperatorInputStatus(report = buildBetaReadinessExternalBetaOperatorInputTemplate()) {
+  const pendingInputs = report.requiredInputs.filter((input) => !input.present)
+  return {
+    ok: true,
+    decision: STATUS_DECISION,
+    templateDecision: report.decision,
+    templateId: report.templateId,
+    sourceTruth: report.sourceTruth,
+    inputCounts: report.inputCounts,
+    requiredInputGroups: report.requiredInputGroups,
+    pendingInputGroups: groupCounts(pendingInputs),
+    pendingValuePolicies: groupByField(pendingInputs, 'valuePolicy'),
+    pendingInputs: pendingInputs.map((input) => ({
+      name: input.name,
+      group: input.group,
+      requiredFor: input.requiredFor,
+      secret: input.secret === true,
+      valuePolicy: input.valuePolicy,
+      operatorAction: operatorAction(input),
+    })),
+    validationCommands: report.validationCommands,
+    nextSafeAction: report.nextSafeAction,
+    blockedScopeConfirmations: report.blockedScopeConfirmations,
+    supabaseClassification: report.supabaseClassification,
+    warnings: [
+      'This status report is intentionally value-free: it prints required input names, groups, and policies only.',
+      'Do not paste bearer tokens, workspace/project identifiers if private, owner evidence text, signed URLs, raw prompts, or private media references into source control.',
+      'Use --env-template only in an operator shell or secret manager session; use --status for safe progress review.',
+      'External beta, real-user-media beta, paid production, provider calls, worker dispatch, Supabase/GCS writes, public artifacts, and signed URLs remain blocked until named gates pass.',
+    ],
+  }
+}
+
 export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report) {
   const lines = [
     '# Beta Readiness External Beta Operator Input Template - 184f',
@@ -132,6 +166,48 @@ export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(rep
     'Supabase classification: no write / environment none / SQL none / migration no.',
     '',
     `Next safe action: ${report.nextSafeAction}`,
+  ]
+  return lines.join('\n')
+}
+
+export function renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(status) {
+  const lines = [
+    '# Beta Readiness External Beta Operator Input Status - 184f',
+    '',
+    `Decision: \`${status.decision}\``,
+    `Template decision: \`${status.templateDecision}\``,
+    '',
+    `Required inputs: \`${status.inputCounts.required}\``,
+    `Pending in blank environment: \`${status.inputCounts.currentlyPendingInBlankEnvironment}\``,
+    `Secret/sensitive inputs: \`${status.inputCounts.secretOrSensitiveInputs}\``,
+    `Operator-generated ids: \`${status.inputCounts.operatorGeneratedIds}\``,
+    `Owner evidence notes: \`${status.inputCounts.operatorEvidenceNotes}\``,
+    `Prefilled non-secret constants: \`${status.inputCounts.prefilledNonSecretConstants}\``,
+    '',
+    '## Pending Groups',
+    '',
+    ...Object.entries(status.pendingInputGroups).map(([group, count]) => `- ${group}: \`${count}\``),
+    '',
+    '## Pending Value Policies',
+    '',
+    ...Object.entries(status.pendingValuePolicies).map(([policy, count]) => `- ${policy}: \`${count}\``),
+    '',
+    '## Pending Input Names',
+    '',
+    ...status.pendingInputs.map((input) => `- \`${input.name}\` (${input.group}, ${input.valuePolicy}, ${input.operatorAction})`),
+    '',
+    '## Validation Commands',
+    '',
+    ...status.validationCommands.map((command) => `- \`${command}\``),
+    '',
+    '## Boundary',
+    '',
+    'This status report printed no template values, bearer tokens, workspace/project identifiers, owner evidence text, signed URLs, raw prompts, private media references, or deploy secrets.',
+    'It did not grant approvals, call the deployed backend, record evidence, write Supabase, run SQL, write GCS, dispatch workers, call providers, process media, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.',
+    '',
+    'Supabase classification: no write / environment none / SQL none / migration no.',
+    '',
+    `Next safe action: ${status.nextSafeAction}`,
   ]
   return lines.join('\n')
 }
@@ -224,6 +300,22 @@ function groupCounts(inputs) {
   }, {})
 }
 
+function groupByField(inputs, field) {
+  return inputs.reduce((groups, input) => {
+    const value = input[field] ?? 'unknown'
+    groups[value] = (groups[value] ?? 0) + 1
+    return groups
+  }, {})
+}
+
+function operatorAction(input) {
+  if (input.secret) return 'supply_secret_in_operator_shell'
+  if (input.valuePolicy === 'operator_unique_id') return 'generate_unique_idempotency_key'
+  if (input.valuePolicy === 'owner_evidence_note') return 'supply_non_secret_owner_evidence_note'
+  if (input.valuePolicy === 'prefilled_non_secret_constant') return 'export_prefilled_constant_from_template'
+  return 'supply_non_secret_operator_value'
+}
+
 function escapeTemplateValue(value) {
   return String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')
 }
@@ -238,7 +330,11 @@ function readJson(path) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const report = buildBetaReadinessExternalBetaOperatorInputTemplate()
-  if (process.argv.includes('--env-template')) {
+  if (process.argv.includes('--status')) {
+    console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorInputStatus(report), null, 2))
+  } else if (process.argv.includes('--status-markdown')) {
+    console.log(renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(buildBetaReadinessExternalBetaOperatorInputStatus(report)))
+  } else if (process.argv.includes('--env-template')) {
     console.log(report.envTemplate)
   } else if (process.argv.includes('--markdown')) {
     console.log(renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report))

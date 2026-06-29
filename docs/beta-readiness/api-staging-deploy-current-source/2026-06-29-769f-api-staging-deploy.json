@@ -1,0 +1,131 @@
+{
+  "reportId": "beta-readiness-api-staging-current-source-deploy-769f-2026-06-29",
+  "createdAt": "2026-06-29T01:34:00Z",
+  "decision": "beta_readiness_api_staging_deploy_current_source_passed_ready_for_current_source_api_preflight",
+  "sourceTruth": {
+    "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+    "sourceSha": "769fc2d922b37a9eebb8b0ca29fa2447a6f8f127",
+    "previousApiDeploySourceSha": "17a9a2d2b015ab325cf13ce5135d083af070ab00",
+    "previousApiDeployPacket": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json",
+    "previousOwnerApprovalCollectionHandoff": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-17a9-owner-approval-collection-handoff.json",
+    "currentOwnerApprovalPacket": "docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json"
+  },
+  "supersededFailedAttempt": {
+    "workflowName": "Beta Readiness API Staging Deploy",
+    "runId": "28342982883",
+    "runUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28342982883",
+    "imageTag": "api-staging-769fc2d922b3-20260629T0127Z",
+    "conclusion": "failure",
+    "blocker": "wrong_deployer_service_account_input_reeditpro_api_staging_deployer_not_found",
+    "serviceMutation": "none_observed_before_push_denied",
+    "resolution": "rerun_with_recorded_owner_approved_deployer_service_account_sa_remotion_render_worker"
+  },
+  "workflowRun": {
+    "workflowName": "Beta Readiness API Staging Deploy",
+    "runId": "28343028750",
+    "runUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28343028750",
+    "event": "workflow_dispatch",
+    "triggerBranch": "codex/reeditpro-web-ui-shell",
+    "triggerHeadSha": "c2c99bb1d3da714d382e9016dda29d22d46b5bdd",
+    "conclusion": "success",
+    "startedAt": "2026-06-29T01:29:27Z",
+    "completedAt": "2026-06-29T01:30:54Z",
+    "jobs": [
+      {
+        "name": "Guarded staging API deploy preflight",
+        "conclusion": "success"
+      },
+      {
+        "name": "Build and deploy private staging API service",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "deployInputs": {
+    "sourceRef": "codex/sound-music-audio-1abc-checkpoint",
+    "sourceSha": "769fc2d922b37a9eebb8b0ca29fa2447a6f8f127",
+    "imageTag": "api-staging-769fc2d922b3-20260629T0129Z-retry1",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "cloudRunRegion": "us-east1",
+    "serviceName": "reeditpro-api-staging",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "unauthenticatedAccessPolicy": "no-allow-unauthenticated"
+  },
+  "artifact": {
+    "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-769fc2d922b3-20260629T0129Z-retry1",
+    "digest": "sha256:9a5bcb232c17b5a0eba14158063d5d2828d56be06d56fb7bdf66caf9d1a042d5"
+  },
+  "deployedService": {
+    "service": "reeditpro-api-staging",
+    "region": "us-east1",
+    "revision": "reeditpro-api-staging-00012-ncd",
+    "trafficPercent": 100,
+    "serviceUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+    "canonicalServiceUrl": "https://reeditpro-api-staging-390722338345.us-east1.run.app"
+  },
+  "publicUnauthenticatedReadback": [
+    {
+      "url": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app/health",
+      "method": "GET",
+      "status": 403,
+      "result": "public_unauthenticated_access_forbidden"
+    },
+    {
+      "url": "https://reeditpro-api-staging-390722338345.us-east1.run.app/health",
+      "method": "GET",
+      "status": 403,
+      "result": "public_unauthenticated_access_forbidden"
+    }
+  ],
+  "cloudRunDeployWarnings": [
+    "workflow_log_reported_setting_iam_policy_failed_but_service_deployed_and_public_unauthenticated_health_readback_returned_403"
+  ],
+  "limitations": {
+    "authenticatedHealthReadback": "not_rerun_local_cloud_cli_auth_expired",
+    "platformTechnicalProbeAt769f": "not_rerun_owner_approval_and_authenticated_preflight_still_required",
+    "externalBetaEvidenceCollector": "not_run_owner_approvals_still_required"
+  },
+  "currentEvidenceState": {
+    "normalApiCurrentSourceDeploy": "passed",
+    "publicUnauthenticatedHealthBlocked": true,
+    "ownerApprovalsStillRequired": [
+      "billing_stripe_boundary",
+      "deployment",
+      "security",
+      "storage_privacy",
+      "legal",
+      "monitoring",
+      "support",
+      "model_license_launch"
+    ],
+    "externalBetaReady": false,
+    "realUserMediaBetaReady": false,
+    "paidProductionReady": false
+  },
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeActions": [
+    "Run npm run beta:readiness:api-deployment-preflight with the 769f deployment inputs.",
+    "Run npm run beta:readiness:source-freshness-preflight.",
+    "Collect owner approvals and run owner intake before deployed evidence collection."
+  ]
+}

@@ -159,7 +159,7 @@
     "smoke:edit-level-api-routes": "tsx server/smoke/edit-level-api-routes-smoke.ts",
     "smoke:edit-level-api-client": "tsx server/smoke/edit-level-api-client-smoke.ts",
     "smoke:edit-level-ui": "tsx server/smoke/edit-level-ui-smoke.ts",
-    "smoke:edit-level-tool-router": "tsx server/smoke/edit-level-tool-router-smoke.ts",
+    "smoke:edit-level-tool-router": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/edit-level-tool-router-smoke.ts",
     "smoke:edit-level-source-understanding": "tsx server/smoke/edit-level-source-understanding-smoke.ts",
     "smoke:edit-level-qwen-planning": "tsx server/smoke/edit-level-qwen-planning-smoke.ts",
     "smoke:edit-level-qa-gates": "tsx server/smoke/edit-level-qa-gates-smoke.ts",

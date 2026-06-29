@@ -15,11 +15,17 @@ import {
 import { createEditLevelToolRouterTechnicalSummary } from '../../src/lib/edit-level-tool-router-summaries'
 import {
   listEditLevelToolCapabilities,
+} from '../../src/backend/edit-level-tool-router/edit-level-tool-capability-registry'
+import {
+  validateEditLevelToolRoutingPackage,
+} from '../../src/backend/edit-level-tool-router/edit-level-tool-router-validation-service'
+import {
+  listMockEditLevelToolRouterScenarios,
+} from '../../src/backend/edit-level-tool-router/mock-edit-level-tool-router-scenarios'
+import {
   runMockEditLevelToolRouterFlow,
   runMockToolRouterValidationFlow,
-  validateEditLevelToolRoutingPackage,
-  listMockEditLevelToolRouterScenarios,
-} from '../../src/backend'
+} from '../../src/backend/orchestrators/mock-edit-level-tool-router-orchestrator'
 import type {
   EditLevelToolCapabilityId,
   EditLevelToolRouterSideEffectFlags,
@@ -273,6 +279,9 @@ const migrationCount = readdirSync(new URL('../../supabase/migrations', import.m
 assert.equal(migrationCount, 24, 'RP-EDITLEVEL-05 must not create or modify migration files.')
 
 const packageJson = JSON.parse(readRepoFile('package.json')) as { scripts?: Record<string, string> }
-assert.equal(packageJson.scripts?.['smoke:edit-level-tool-router'], 'tsx server/smoke/edit-level-tool-router-smoke.ts')
+assert.equal(
+  packageJson.scripts?.['smoke:edit-level-tool-router'],
+  'node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/edit-level-tool-router-smoke.ts',
+)
 
 console.log('edit-level-tool-router-smoke passed')

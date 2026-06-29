@@ -1540,6 +1540,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted source authorization and private controlled traffic result, soak metrics, request sample audit, zero-critical-incident, cost, GPU lifecycle, user-impact, rollback-readiness, and post-soak owner review refs, it accepts one observed result packet with provided evidence.
 - Runtime/beta/production: no unlock by this gate; this gate does not execute traffic, enable traffic switches, start soak, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, mark external beta ready now, or unlock production. `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta Activation Go/No-Go
+
+- Decision: `ai_graphics_external_beta_activation_go_no_go_approved_with_runtime_blocks`.
+- Scope: per-tool external-beta activation approval after accepted controlled-traffic/runtime-soak result evidence.
+- Result: with accepted observed soak evidence and private owner approval, feature flag, cohort, support, monitoring, cost, rollback, release-note, user-communication, and post-activation review refs, it marks one tool as external-beta tool-call ready through the controlled on-demand worker path.
+- Runtime/beta/production: external-beta readiness is metadata-only for the accepted tool; this gate does not execute traffic, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

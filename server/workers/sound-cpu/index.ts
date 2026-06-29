@@ -6,6 +6,16 @@ export {
 } from './synthetic-route-decision.ts'
 
 export {
+  SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_BLOCKED_REASON,
+  SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_NAME,
+  SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_SOURCE_STATUS,
+  assertSoundCpuOcrCaptionRenderSafeZoneHookExecutionBlocked,
+  createSoundCpuOcrCaptionRenderSafeZoneHookBlockedResult,
+  type SoundCpuOcrCaptionRenderSafeZoneHookInput,
+  type SoundCpuOcrCaptionRenderSafeZoneHookResult,
+} from './runtime/soundCpuOcrCaptionRenderSafeZoneHook.ts'
+
+export {
   SOUND_CPU_SYNTHETIC_IMAGES,
   SOUND_CPU_SYNTHETIC_JOB_TYPES,
   SOUND_CPU_SYNTHETIC_REJECTED_PAYLOAD_FIELDS,

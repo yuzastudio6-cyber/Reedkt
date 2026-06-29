@@ -200,6 +200,7 @@ function buildBatches(
         'Current blocker ledger readiness_not_passed and real_execution_not_verified rows.',
       ],
       nextCommands: [
+        'npm run beta:tools:core-real-check-preview -- --env-template',
         'npm run beta:tools:core-real-check-preview',
         'npm run beta:tools:core-real-check-preview:hydrated',
         'npm run beta:tools:local-accepted-evidence-bundle',

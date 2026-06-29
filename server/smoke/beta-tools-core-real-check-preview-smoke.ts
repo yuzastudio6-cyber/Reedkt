@@ -1,8 +1,34 @@
 import assert from 'node:assert/strict'
 import {
+  buildBetaToolsCoreRealCheckPreviewTemplate,
+  renderBetaToolsCoreRealCheckPreviewTemplateMarkdown,
   runBetaToolsCoreRealCheckPreview,
   type BetaToolsCoreRealCheckPreviewEnv,
 } from '../cli/beta-tools-core-real-check-preview'
+
+const template = buildBetaToolsCoreRealCheckPreviewTemplate()
+const templateMarkdown = renderBetaToolsCoreRealCheckPreviewTemplateMarkdown(template)
+
+assert.equal(template.ok, true, 'preview template should build')
+assert.equal(
+  template.decision,
+  'beta_tools_core_real_check_preview_template_passed_ready_for_local_operator_preview',
+)
+assert.equal(template.previewOnly, true, 'preview template must be preview-only')
+assert.equal(template.recordsBackendEvidence, false, 'preview template must not record backend evidence')
+assert.equal(template.valuePolicy.acceptanceMode, 'bounded_accepted_evidence_only')
+assert.equal(template.valuePolicy.productReadyLocalOss, false, 'preview template must not accept product-ready local OSS')
+assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE="true"'))
+assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS="false"'))
+assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE="true"'))
+assert.ok(template.envTemplate.includes('npm run beta:tools:core-real-check-preview'))
+assert.equal(template.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
+assert.equal(template.envTemplate.includes('service_role'), false)
+assert.equal(template.envTemplate.includes('x-goog-signature='), false)
+assert.equal(template.blockedScopeConfirmations.deployedBackendCalled, false)
+assert.equal(template.blockedScopeConfirmations.supabaseWritesRan, false)
+assert.equal(template.blockedScopeConfirmations.externalBetaEnabled, false)
+assert.equal(templateMarkdown.includes('Product-ready local OSS acceptance: `false`'), true)
 
 const completeEnv: BetaToolsCoreRealCheckPreviewEnv = {
   REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID: 'workspace-core-real-check-preview-smoke',
@@ -80,6 +106,7 @@ assert.ok(
 
 console.log(JSON.stringify({
   ok: true,
+  templateDecision: template.decision,
   previewOnly: readyReport.previewOnly,
   acceptedToolIds: readyReport.acceptedToolIds,
   missingConfigurationCount: noEnvReport.missingConfiguration.length,

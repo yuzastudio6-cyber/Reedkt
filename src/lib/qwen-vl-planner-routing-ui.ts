@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'controlled_persisted_worker_dispatch_runtime_execution_plan_required'
+  currentStatus: 'controlled_persisted_worker_dispatch_runtime_execution_approval_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58BU-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-PLAN: plan controlled persisted Qwen worker dispatch runtime execution, no Cloud Run invocation/no inference/no assets/no beta'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58BV-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-APPROVAL: approve controlled persisted Qwen worker dispatch runtime execution plan, no Cloud Run invocation/no inference/no assets/no beta'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -219,14 +219,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       clientHelper: 'callQwen25VlPrivateInvokeDryRun',
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
-      currentStatus: 'controlled_persisted_worker_dispatch_runtime_execution_plan_required',
+      currentStatus: 'controlled_persisted_worker_dispatch_runtime_execution_approval_required',
       currentBlocker:
-        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, structured-output retry/result review passed, private runtime and approved worker integration reviews are accepted, fail-closed backend dispatch and controlled dispatch dry-run are recorded, backend runtime persistence has advanced through local harness validation, active migration creation, active migration validation, deploy planning, target-class deploy approval, deploy-execution metadata preflight, read-only migration-history reconciliation, local history adoption to remote version 20260628000100, adopted active-migration local validation, remote satisfaction/no-deploy review, persisted worker dispatch readiness review, controlled persisted worker dispatch smoke planning, controlled persisted worker dispatch smoke execution, controlled persisted worker dispatch smoke result review, controlled persisted worker dispatch runtime planning, controlled persisted worker dispatch runtime implementation, controlled persisted worker dispatch runtime smoke planning, controlled persisted worker dispatch runtime smoke execution, controlled persisted worker dispatch runtime smoke result review, controlled persisted worker dispatch runtime approval planning, and controlled persisted worker dispatch runtime approval decision are recorded. User-facing readiness remains blocked until the controlled runtime execution plan is recorded; real worker dispatch, Cloud Run invocation, Qwen inference, generated assets, signed URLs, beta, and production remain blocked.',
+        'Controlled private invoke auth works, the dedicated Direct VPC private route subnet is configured, the no-model CPU-only caller source is defined, the controlled caller job is deployed, one caller contract smoke observed the expected fail-closed response with inference disabled, runtime readiness review is recorded, structured-output retry/result review passed, private runtime and approved worker integration reviews are accepted, fail-closed backend dispatch and controlled dispatch dry-run are recorded, backend runtime persistence has advanced through local harness validation, active migration creation, active migration validation, deploy planning, target-class deploy approval, deploy-execution metadata preflight, read-only migration-history reconciliation, local history adoption to remote version 20260628000100, adopted active-migration local validation, remote satisfaction/no-deploy review, persisted worker dispatch readiness review, controlled persisted worker dispatch smoke planning, controlled persisted worker dispatch smoke execution, controlled persisted worker dispatch smoke result review, controlled persisted worker dispatch runtime planning, controlled persisted worker dispatch runtime implementation, controlled persisted worker dispatch runtime smoke planning, controlled persisted worker dispatch runtime smoke execution, controlled persisted worker dispatch runtime smoke result review, controlled persisted worker dispatch runtime approval planning, controlled persisted worker dispatch runtime approval decision, and controlled persisted worker dispatch runtime execution plan are recorded. User-facing readiness remains blocked until controlled runtime execution approval is recorded; real worker dispatch, Cloud Run invocation, Qwen inference, generated assets, signed URLs, beta, and production remain blocked.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The next runtime gate is the controlled persisted worker dispatch runtime execution plan; it must keep runtime approval fail-closed and must not deploy migrations, invoke Cloud Run, run Qwen inference, create generated assets, publish artifacts, create signed URLs, unlock beta, or unlock production.',
+        'The next runtime gate is the controlled persisted worker dispatch runtime execution approval; it must keep runtime approval fail-closed and must not deploy migrations, invoke Cloud Run, run Qwen inference, create generated assets, publish artifacts, create signed URLs, unlock beta, or unlock production.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -261,6 +261,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'D3, ECharts, and Vega-Lite own exact chart/dataviz output.',
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
-    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58BU-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-PLAN: plan controlled persisted Qwen worker dispatch runtime execution, no Cloud Run invocation/no inference/no assets/no beta',
+    nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58BV-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-EXECUTION-APPROVAL: approve controlled persisted Qwen worker dispatch runtime execution plan, no Cloud Run invocation/no inference/no assets/no beta',
   }
 }

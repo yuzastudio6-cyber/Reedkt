@@ -89,6 +89,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
   ],
   packageJsonChangedScriptNames: [
     'beta:readiness:deployed-evidence-input-manifest',
+    'beta:readiness:api-deployment-preflight',
     'beta:readiness:external-beta-evidence-collector',
     'beta:readiness:launch-approval-evidence',
     'beta:readiness:launch-approval-evidence-preflight',
@@ -100,6 +101,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:platform:staging-evidence-preflight',
     'beta:platform:staging-evidence-probe',
     'smoke:beta-readiness-deployed-evidence-input-manifest',
+    'smoke:beta-readiness-api-deployment-preflight',
     'smoke:beta-readiness-external-beta-evidence-collector',
     'smoke:beta-readiness-launch-approval-evidence-cli',
     'smoke:beta-readiness-launch-approval-evidence-preflight',

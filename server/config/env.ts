@@ -1,7 +1,13 @@
-import dotenv from 'dotenv'
-import { z } from 'zod'
+import { createRequire } from 'node:module'
 
-dotenv.config({ quiet: true })
+const optionalRequire = createRequire(import.meta.url)
+
+try {
+  const dotenv = optionalRequire('dotenv') as { config(options?: { quiet?: boolean }): void }
+  dotenv.config({ quiet: true })
+} catch (error) {
+  if (!isMissingOptionalPackageError(error)) throw error
+}
 
 export type E2ERuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
@@ -47,53 +53,53 @@ export interface RuntimeEnv {
   warnings: string[]
 }
 
-const envSchema = z.object({
-  NODE_ENV: z.string().default('development'),
-  API_PORT: z.coerce.number().int().positive().max(65535).optional(),
-  PORT: z.coerce.number().int().positive().max(65535).optional(),
-  E2E_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
-  API_ALLOW_MOCK_WITHOUT_SUPABASE: z.string().optional(),
-  STORAGE_MODE: z.enum(['local', 'gcs_disabled', 'gcs']).default('local'),
-  LOCAL_STORAGE_ROOT: z.string().default('.reeditpro-local-storage'),
-  SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().max(86400).default(900),
-  SUPABASE_URL: z.string().optional(),
-  VITE_SUPABASE_URL: z.string().optional(),
-  SUPABASE_ANON_KEY: z.string().optional(),
-  VITE_SUPABASE_ANON_KEY: z.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-  GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
-  GOOGLE_CLOUD_REGION: z.string().optional(),
-  GCS_DEFAULT_REGION: z.string().default('us-east1'),
-  GCS_SOURCE_MEDIA_BUCKET: z.string().optional(),
-  GCS_GENERATED_ASSETS_BUCKET: z.string().optional(),
-  GCS_PROCESSED_MEDIA_BUCKET: z.string().optional(),
-  GCS_PREVIEWS_BUCKET: z.string().optional(),
-  GCS_EXPORTS_BUCKET: z.string().optional(),
-  GCS_THUMBNAILS_BUCKET: z.string().optional(),
-  GCS_QA_ARTIFACTS_BUCKET: z.string().optional(),
-  GCS_WORKER_TEMP_BUCKET: z.string().optional(),
-  WORKER_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
-  WORKER_INSTANCE_ID: z.string().default('local-worker-1'),
-  WORKER_HEARTBEAT_INTERVAL_SECONDS: z.coerce.number().int().positive().max(3600).default(30),
-  WORKER_CLAIM_LEASE_SECONDS: z.coerce.number().int().positive().max(86400).default(300),
-  STRICT_TOOL_READINESS: z.string().optional(),
-  TOOL_CHECK_TIMEOUT_MS: z.coerce.number().int().positive().max(120000).default(10000),
-  FFMPEG_BIN: z.string().default('ffmpeg'),
-  FFPROBE_BIN: z.string().default('ffprobe'),
-  REMOTION_BIN: z.string().default('npx remotion'),
-  PYTHON_BIN: z.string().default('python'),
-  PLAYWRIGHT_BIN: z.string().default('npx playwright'),
-  GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
-  GOOGLE_SECRET_WAN_API_KEY_NAME: z.string().optional(),
-  GOOGLE_SECRET_HAILUO_API_KEY_NAME: z.string().optional(),
-  GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME: z.string().optional(),
-  GOOGLE_SECRET_LYRIA_API_KEY_NAME: z.string().optional(),
-  GOOGLE_SECRET_MIRELO_API_KEY_NAME: z.string().optional(),
-  GOOGLE_SECRET_MMAUDIO_API_KEY_NAME: z.string().optional(),
-})
+interface ParsedRuntimeEnvSource {
+  NODE_ENV: string
+  API_PORT?: number
+  PORT?: number
+  E2E_RUNTIME_MODE: E2ERuntimeMode
+  API_ALLOW_MOCK_WITHOUT_SUPABASE?: string
+  STORAGE_MODE: StorageMode
+  LOCAL_STORAGE_ROOT: string
+  SIGNED_URL_TTL_SECONDS: number
+  SUPABASE_URL?: string
+  VITE_SUPABASE_URL?: string
+  SUPABASE_ANON_KEY?: string
+  VITE_SUPABASE_ANON_KEY?: string
+  SUPABASE_SERVICE_ROLE_KEY?: string
+  GOOGLE_CLOUD_PROJECT_ID?: string
+  GOOGLE_CLOUD_REGION?: string
+  GCS_DEFAULT_REGION: string
+  GCS_SOURCE_MEDIA_BUCKET?: string
+  GCS_GENERATED_ASSETS_BUCKET?: string
+  GCS_PROCESSED_MEDIA_BUCKET?: string
+  GCS_PREVIEWS_BUCKET?: string
+  GCS_EXPORTS_BUCKET?: string
+  GCS_THUMBNAILS_BUCKET?: string
+  GCS_QA_ARTIFACTS_BUCKET?: string
+  GCS_WORKER_TEMP_BUCKET?: string
+  WORKER_RUNTIME_MODE: WorkerRuntimeMode
+  WORKER_INSTANCE_ID: string
+  WORKER_HEARTBEAT_INTERVAL_SECONDS: number
+  WORKER_CLAIM_LEASE_SECONDS: number
+  STRICT_TOOL_READINESS?: string
+  TOOL_CHECK_TIMEOUT_MS: number
+  FFMPEG_BIN: string
+  FFPROBE_BIN: string
+  REMOTION_BIN: string
+  PYTHON_BIN: string
+  PLAYWRIGHT_BIN: string
+  GOOGLE_SECRET_OPENAI_API_KEY_NAME?: string
+  GOOGLE_SECRET_WAN_API_KEY_NAME?: string
+  GOOGLE_SECRET_HAILUO_API_KEY_NAME?: string
+  GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME?: string
+  GOOGLE_SECRET_LYRIA_API_KEY_NAME?: string
+  GOOGLE_SECRET_MIRELO_API_KEY_NAME?: string
+  GOOGLE_SECRET_MMAUDIO_API_KEY_NAME?: string
+}
 
 export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): RuntimeEnv {
-  const parsed = envSchema.parse(source)
+  const parsed = parseRuntimeEnvSource(source)
   const supabaseUrl = clean(parsed.SUPABASE_URL) ?? clean(parsed.VITE_SUPABASE_URL)
   const supabaseAnonKey = clean(parsed.SUPABASE_ANON_KEY) ?? clean(parsed.VITE_SUPABASE_ANON_KEY)
   const supabaseServiceRoleKey = clean(parsed.SUPABASE_SERVICE_ROLE_KEY)
@@ -228,7 +234,98 @@ function clean(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined
 }
 
-function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {
+function parseRuntimeEnvSource(source: NodeJS.ProcessEnv): ParsedRuntimeEnvSource {
+  return {
+    NODE_ENV: stringValue(source.NODE_ENV, 'development'),
+    API_PORT: optionalPositiveInt(source.API_PORT, 'API_PORT', 65535),
+    PORT: optionalPositiveInt(source.PORT, 'PORT', 65535),
+    E2E_RUNTIME_MODE: enumValue(source.E2E_RUNTIME_MODE, 'E2E_RUNTIME_MODE', ['local', 'mock', 'cloud_run', 'disabled'], 'local'),
+    API_ALLOW_MOCK_WITHOUT_SUPABASE: optionalString(source.API_ALLOW_MOCK_WITHOUT_SUPABASE),
+    STORAGE_MODE: enumValue(source.STORAGE_MODE, 'STORAGE_MODE', ['local', 'gcs_disabled', 'gcs'], 'local'),
+    LOCAL_STORAGE_ROOT: stringValue(source.LOCAL_STORAGE_ROOT, '.reeditpro-local-storage'),
+    SIGNED_URL_TTL_SECONDS: positiveInt(source.SIGNED_URL_TTL_SECONDS, 'SIGNED_URL_TTL_SECONDS', 86400, 900),
+    SUPABASE_URL: optionalString(source.SUPABASE_URL),
+    VITE_SUPABASE_URL: optionalString(source.VITE_SUPABASE_URL),
+    SUPABASE_ANON_KEY: optionalString(source.SUPABASE_ANON_KEY),
+    VITE_SUPABASE_ANON_KEY: optionalString(source.VITE_SUPABASE_ANON_KEY),
+    SUPABASE_SERVICE_ROLE_KEY: optionalString(source.SUPABASE_SERVICE_ROLE_KEY),
+    GOOGLE_CLOUD_PROJECT_ID: optionalString(source.GOOGLE_CLOUD_PROJECT_ID),
+    GOOGLE_CLOUD_REGION: optionalString(source.GOOGLE_CLOUD_REGION),
+    GCS_DEFAULT_REGION: stringValue(source.GCS_DEFAULT_REGION, 'us-east1'),
+    GCS_SOURCE_MEDIA_BUCKET: optionalString(source.GCS_SOURCE_MEDIA_BUCKET),
+    GCS_GENERATED_ASSETS_BUCKET: optionalString(source.GCS_GENERATED_ASSETS_BUCKET),
+    GCS_PROCESSED_MEDIA_BUCKET: optionalString(source.GCS_PROCESSED_MEDIA_BUCKET),
+    GCS_PREVIEWS_BUCKET: optionalString(source.GCS_PREVIEWS_BUCKET),
+    GCS_EXPORTS_BUCKET: optionalString(source.GCS_EXPORTS_BUCKET),
+    GCS_THUMBNAILS_BUCKET: optionalString(source.GCS_THUMBNAILS_BUCKET),
+    GCS_QA_ARTIFACTS_BUCKET: optionalString(source.GCS_QA_ARTIFACTS_BUCKET),
+    GCS_WORKER_TEMP_BUCKET: optionalString(source.GCS_WORKER_TEMP_BUCKET),
+    WORKER_RUNTIME_MODE: enumValue(source.WORKER_RUNTIME_MODE, 'WORKER_RUNTIME_MODE', ['local', 'mock', 'cloud_run', 'disabled'], 'local'),
+    WORKER_INSTANCE_ID: stringValue(source.WORKER_INSTANCE_ID, 'local-worker-1'),
+    WORKER_HEARTBEAT_INTERVAL_SECONDS: positiveInt(source.WORKER_HEARTBEAT_INTERVAL_SECONDS, 'WORKER_HEARTBEAT_INTERVAL_SECONDS', 3600, 30),
+    WORKER_CLAIM_LEASE_SECONDS: positiveInt(source.WORKER_CLAIM_LEASE_SECONDS, 'WORKER_CLAIM_LEASE_SECONDS', 86400, 300),
+    STRICT_TOOL_READINESS: optionalString(source.STRICT_TOOL_READINESS),
+    TOOL_CHECK_TIMEOUT_MS: positiveInt(source.TOOL_CHECK_TIMEOUT_MS, 'TOOL_CHECK_TIMEOUT_MS', 120000, 10000),
+    FFMPEG_BIN: stringValue(source.FFMPEG_BIN, 'ffmpeg'),
+    FFPROBE_BIN: stringValue(source.FFPROBE_BIN, 'ffprobe'),
+    REMOTION_BIN: stringValue(source.REMOTION_BIN, 'npx remotion'),
+    PYTHON_BIN: stringValue(source.PYTHON_BIN, 'python'),
+    PLAYWRIGHT_BIN: stringValue(source.PLAYWRIGHT_BIN, 'npx playwright'),
+    GOOGLE_SECRET_OPENAI_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
+    GOOGLE_SECRET_WAN_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_WAN_API_KEY_NAME),
+    GOOGLE_SECRET_HAILUO_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_HAILUO_API_KEY_NAME),
+    GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME: optionalString(source.GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME),
+    GOOGLE_SECRET_LYRIA_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_LYRIA_API_KEY_NAME),
+    GOOGLE_SECRET_MIRELO_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_MIRELO_API_KEY_NAME),
+    GOOGLE_SECRET_MMAUDIO_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_MMAUDIO_API_KEY_NAME),
+  }
+}
+
+function stringValue(value: string | undefined, defaultValue: string): string {
+  return optionalString(value) ?? defaultValue
+}
+
+function optionalString(value: string | undefined): string | undefined {
+  return clean(value)
+}
+
+function enumValue<const T extends string>(
+  value: string | undefined,
+  name: string,
+  allowed: readonly T[],
+  defaultValue: T,
+): T {
+  const normalized = clean(value)
+  if (!normalized) return defaultValue
+  if ((allowed as readonly string[]).includes(normalized)) return normalized as T
+  throw new Error(`${name} must be one of: ${allowed.join(', ')}.`)
+}
+
+function optionalPositiveInt(value: string | undefined, name: string, max: number): number | undefined {
+  const normalized = clean(value)
+  if (!normalized) return undefined
+  return parsePositiveInt(normalized, name, max)
+}
+
+function positiveInt(value: string | undefined, name: string, max: number, defaultValue: number): number {
+  const normalized = clean(value)
+  if (!normalized) return defaultValue
+  return parsePositiveInt(normalized, name, max)
+}
+
+function parsePositiveInt(value: string, name: string, max: number): number {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > max) {
+    throw new Error(`${name} must be a positive integer no greater than ${max}.`)
+  }
+  return parsed
+}
+
+function isMissingOptionalPackageError(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'MODULE_NOT_FOUND')
+}
+
+function hasRequiredGcsBuckets(parsed: ParsedRuntimeEnvSource): boolean {
   return Boolean(
     clean(parsed.GCS_SOURCE_MEDIA_BUCKET) &&
     clean(parsed.GCS_GENERATED_ASSETS_BUCKET) &&

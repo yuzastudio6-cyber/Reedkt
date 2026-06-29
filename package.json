@@ -887,6 +887,7 @@
     "rp-external-beta-controlled-owner-browser-walkthrough-1": "node scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1.mjs",
     "rp-external-beta-controlled-owner-browser-walkthrough-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-owner-browser-walkthrough-1-diagnostics.mjs",
     "rp-external-beta-controlled-owner-go-no-go-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-owner-go-no-go-1-diagnostics.mjs",
+    "rp-external-beta-current-readiness-diagnostics-compatibility-1:diagnostics": "node scripts/validation/rp-external-beta-current-readiness-diagnostics-compatibility-1-diagnostics.mjs",
     "rp-external-beta-named-invited-tester-walkthrough-1": "node scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1.mjs",
     "rp-external-beta-named-invited-tester-walkthrough-1:diagnostics": "node scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1-diagnostics.mjs",
     "rp-external-beta-bounded-tester-expansion-decision-1:diagnostics": "node scripts/validation/rp-external-beta-bounded-tester-expansion-decision-1-diagnostics.mjs",

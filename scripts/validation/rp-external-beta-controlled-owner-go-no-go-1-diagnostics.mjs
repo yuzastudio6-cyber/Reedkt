@@ -40,9 +40,21 @@ const followOnNamedInvitedTesterWalkthroughFiles = [
   'scripts/validation/rp-external-beta-named-invited-tester-walkthrough-1-diagnostics.mjs',
 ]
 
+const followOnCurrentReadinessDiagnosticsCompatibility1Files = [
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/source-audit.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/compatibility-decision.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/validation-results.md',
+  'docs/external-beta/current-readiness-diagnostics-compatibility-1/current-readiness-diagnostics-compatibility-record.json',
+  'docs/activation-phase-rp-external-beta-current-readiness-diagnostics-compatibility-1-results.md',
+  'scripts/validation/rp-external-beta-controlled-enablement-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-current-readiness-diagnostics-compatibility-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
+]
+
 const allowedFiles = new Set([
   ...requiredFiles,
   ...followOnNamedInvitedTesterWalkthroughFiles,
+  ...followOnCurrentReadinessDiagnosticsCompatibility1Files,
 ])
 
 const requiredText = [
@@ -199,6 +211,7 @@ if (
   ![
     'ready_for_named_invited_tester_identity_and_walkthrough',
     'ready_for_bounded_external_beta_tester_expansion_decision',
+    'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list',
   ].includes(rollup.statuses?.externalProductBeta)
 ) {
   fail('rollup external beta readiness mismatch')
@@ -210,9 +223,21 @@ if (
   ![
     'RP-EXTERNAL-BETA-NAMED-INVITED-TESTER-WALKTHROUGH-1',
     'RP-EXTERNAL-BETA-BOUNDED-TESTER-EXPANSION-DECISION-1',
+    'OWNER_ACTION_REQUIRED_ADDITIONAL_NAMED_TESTER_LIST_FOR_BOUNDED_EXPANSION',
   ].includes(rollup.mainSupabaseTarget?.nextMilestone)
 ) {
   fail('rollup next milestone mismatch')
+}
+if (
+  rollup.statuses?.externalProductBeta ===
+  'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list'
+) {
+  if (rollup.mainSupabaseTarget?.boundedTesterExpansionDecision !== 'blocked_no_additional_named_tester_list') {
+    fail('bounded tester expansion decision mismatch')
+  }
+  if (rollup.mainSupabaseTarget?.currentApprovedTesterEmail !== 'aiediting@reeditpro.com') {
+    fail('current approved tester mismatch')
+  }
 }
 if (rollup.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('rollup product-ready count changed')
 

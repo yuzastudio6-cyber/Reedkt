@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_active_migration_create_required',
-  'Private invoke client status must record the active migration creation blocker after active migration plan recording.',
+    'backend_runtime_persistence_active_migration_validation_required',
+  'Private invoke client status must record the active migration validation blocker after active migration creation.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -172,9 +172,9 @@ check(
     docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_storage_objects_policy_comment_fix_required') ||
     docText.includes('backend_runtime_persistence_local_harness_validation_retry_after_storage_upload_pipeline_policy_comment_fix_required') ||
     docText.includes('backend_runtime_persistence_active_migration_plan_required') ||
-    docText.includes('backend_runtime_persistence_active_migration_create_required') ||
+    docText.includes('backend_runtime_persistence_active_migration_validation_required') ||
     data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_active_migration_create_required',
+      'backend_runtime_persistence_active_migration_validation_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -331,8 +331,8 @@ check(
     docText.includes('comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects') &&
     docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
     docText.includes('Retry 15 verified the active local baseline') &&
-    docText.includes('QWEN2_5_VL_STACK_TOOL_58BA-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-CREATE'),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and active-migration creation blocker.',
+    docText.includes('QWEN2_5_VL_STACK_TOOL_58BB-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-VALIDATE'),
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and active-migration validation blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

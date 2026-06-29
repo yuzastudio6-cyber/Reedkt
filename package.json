@@ -621,6 +621,7 @@
     "tracka:gpac-mp4box-worker-integration-plan:diagnostics": "node scripts/validation/tracka-gpac-mp4box-worker-integration-plan-diagnostics.mjs",
     "tracka:gpac-mp4box-worker-route-contract:diagnostics": "node scripts/validation/tracka-gpac-mp4box-worker-route-contract-diagnostics.mjs",
     "tracka:gpac-mp4box-mock-worker-interface:diagnostics": "node scripts/validation/tracka-gpac-mp4box-mock-worker-interface-diagnostics.mjs",
+    "tracka:gpac-mp4box-service-role-route-implementation-plan:diagnostics": "node scripts/validation/tracka-gpac-mp4box-service-role-route-implementation-plan-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-mock-worker-interface": "tsx server/smoke/tracka-gpac-mp4box-mock-worker-interface-smoke.ts",
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",

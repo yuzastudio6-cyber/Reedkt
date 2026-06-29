@@ -1,0 +1,41 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1",
+  "decision": "tracka_gpac_mp4box_service_role_route_implementation_plan_passed_ready_for_guarded_route_mock_implementation",
+  "execution": "completed_docs_only_service_role_route_implementation_plan_no_route_or_worker_execution",
+  "sourceChain": {
+    "mockWorkerInterfaceMerge": "0d9e74def114c0a4cb0bf421a2010257f435b42d",
+    "workerRouteContractMerge": "d16c85ac6ca002a371bc8e4c33afab033ce95212",
+    "workerIntegrationPlanMerge": "df9bf699accd6b07c3fa75ea4352a71b2b850fbe",
+    "workerContractReviewMerge": "a2a4b1160a32b4a37f2e5f7fd7c1d98ce9ffc9c4",
+    "excludedRemotionDraft": "#577"
+  },
+  "readiness": {
+    "serviceRoleRouteImplementationPlan": "passed",
+    "guardedRouteMockImplementationPacket": "ready",
+    "runtimeRouteImplementation": "blocked_pending_guarded_route_mock_implementation_packet",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecutionThisPhase": false,
+    "storageTransfer": "blocked",
+    "productRuntime": "blocked_pending_guarded_route_mock_implementation_worker_execution_private_artifact_policy_and_external_beta_gate",
+    "externalBetaProductUse": "blocked",
+    "production": "blocked"
+  },
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-SERVICE-ROLE-ROUTE-MOCK-IMPLEMENTATION-1",
+  "safety": {
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "gpacExecution": false,
+    "mp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false,
+    "packageDependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1",
+  "futureRouteOwner": "backend_service_role_only",
+  "futureRouteClass": "guarded_mock_route_implementation_first",
+  "runtimeRouteImplementation": false,
+  "routeExecution": false,
+  "workerExecution": false,
+  "acceptedInputs": [
+    "approvedSnapshotRef",
+    "approvalRecordRef",
+    "creditReservationRef",
+    "jobRef",
+    "workerLeaseRef",
+    "routeIdempotencyKey",
+    "sourceSequenceMapRef",
+    "compiledIntentRef",
+    "modelRoutingPolicyRef",
+    "qaPolicyRef",
+    "privateInputManifestRef",
+    "privateArtifactManifestRef",
+    "privateArtifactChecksumRef",
+    "toolRuntimePolicyRef",
+    "gpacMp4boxWorkerContractRef",
+    "gpacMp4boxRouteContractRef",
+    "cleanupPolicyRef",
+    "auditRecordRef",
+    "commandTemplateId"
+  ],
+  "preflightGates": [
+    "approved_snapshot_status",
+    "approval_record_matches_snapshot",
+    "credit_reservation_reference_present",
+    "route_idempotency_key_matches_envelope",
+    "command_template_id_allowlisted",
+    "private_input_manifest_checksum",
+    "private_artifact_manifest_rejects_public_and_signed_url_truth",
+    "cleanup_policy_ref_present",
+    "qa_report_ref_present",
+    "no_service_role_secret_payload_returned"
+  ],
+  "rejectedInputs": [
+    "rawChat",
+    "rawCommandString",
+    "frontendFilePath",
+    "publicUrl",
+    "signedUrlAsSourceOfTruth",
+    "arbitraryPrivateMedia",
+    "providerModelPromptPayload",
+    "serviceRoleSecretPayload",
+    "broadServiceRoleHandlerPayload"
+  ],
+  "allowedResponseShape": [
+    "jobRef",
+    "routeStatus",
+    "sanitizedBlockers",
+    "manifestRefs",
+    "qaReportRefs",
+    "cleanupRefs",
+    "auditRefs",
+    "nextRequiredGate"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-SERVICE-ROLE-ROUTE-IMPLEMENTATION-PLAN-1",
+  "serviceRoleRouteImplementationPlanPassed": true,
+  "readyForGuardedRouteMockImplementationPacket": true,
+  "readyForRuntimeRouteImplementation": false,
+  "readyForWorkerExecution": false,
+  "readyForGpacMp4boxExecution": false,
+  "readyForStorageTransfer": false,
+  "readyForProductRuntime": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForProduction": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-SERVICE-ROLE-ROUTE-MOCK-IMPLEMENTATION-1"
+}

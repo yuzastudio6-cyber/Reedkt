@@ -44,6 +44,18 @@ const requiredFiles = [
   'package.json',
   'scripts/validation/tracka-gpac-mp4box-worker-route-contract-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-mock-worker-interface-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-service-role-route-implementation-plan-diagnostics.mjs',
+  'docs/activation-phase-tracka-gpac-mp4box-service-role-route-implementation-plan-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-service-role-route-mock-implementation-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/gpac-mp4box-service-role-route-implementation-plan-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/gpac-mp4box-service-role-route-implementation-plan-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/route-implementation-plan.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/route-implementation-plan.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-service-role-route-implementation-plan/validation-results.md',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)

@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-cleanup-audit-mock-implementation'
 const qaDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-qa-mock-implementation'
+const finalReviewDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-final-runtime-readiness-review'
 const decisionText = 'tracka_gpac_mp4box_private_artifact_cleanup_audit_mock_implementation_passed_ready_for_final_runtime_readiness_review'
 const executionText = 'completed_private_artifact_cleanup_audit_metadata_no_storage_or_tool_execution'
 const priorDecision = 'tracka_gpac_mp4box_private_artifact_qa_mock_implementation_passed_ready_for_cleanup_audit_mock'
@@ -42,15 +43,28 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-private-artifact-qa-mock-implementation-diagnostics.mjs',
 ]
 
+const finalReviewFiles = [
+  `${finalReviewDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.json`,
+  `${finalReviewDir}/gpac-mp4box-private-artifact-final-runtime-readiness-review-decision.md`,
+  `${finalReviewDir}/readiness-report.json`,
+  `${finalReviewDir}/source-of-truth-audit.json`,
+  `${finalReviewDir}/source-of-truth-audit.md`,
+  `${finalReviewDir}/validation-results.md`,
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...sourceFiles,
   ...statusFiles,
   ...priorFiles,
+  ...finalReviewFiles,
   'docs/activation-phase-tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-1-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-1.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1.md',
   'package.json',
   'scripts/validation/tracka-gpac-mp4box-private-artifact-cleanup-audit-mock-implementation-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)

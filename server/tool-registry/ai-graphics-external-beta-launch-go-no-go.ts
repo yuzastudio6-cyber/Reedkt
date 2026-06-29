@@ -240,11 +240,18 @@ function evidenceAdmissionBundleAccepted(
     packet &&
       packet.decision === AI_GRAPHICS_EXTERNAL_BETA_EVIDENCE_ADMISSION_BUNDLE_DECISION &&
       packet.status === 'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked' &&
+      packet.technicalEvidenceSourceMode === 'source_proof_packets' &&
       packet.totalAiGraphicsTools === 21 &&
       packet.totalProductFacingCapabilities === 12 &&
       packet.externalBetaAdmissionCandidateToolsWithProvidedEvidence === 21 &&
+      packet.sourceTechnicalProofPacketsRequired === true &&
+      packet.sourceTechnicalProofPacketsProvided === true &&
+      packet.sourceTechnicalProofPacketsAccepted === true &&
       packet.externalBetaReadyNowTools === 0 &&
       packet.productionReadyNowTools === 0 &&
+      packet.booleans?.sourceTechnicalProofPacketsRequiredForAdmission === true &&
+      packet.booleans?.sourceTechnicalProofPacketsProvided === true &&
+      packet.booleans?.sourceTechnicalProofPacketsAcceptedForAdmission === true &&
       packet.booleans?.externalBetaAdmissionCandidateWithProvidedEvidence === true &&
       packet.booleans?.agentCanExecuteToolsNow === false &&
       packet.booleans?.routeExecutionApprovedNow === false &&

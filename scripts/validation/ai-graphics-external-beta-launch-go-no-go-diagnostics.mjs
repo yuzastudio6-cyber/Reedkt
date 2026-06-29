@@ -551,6 +551,10 @@ for (const needle of [
   'buildAiGraphicsExternalBetaLaunchGoNoGo',
   'buildAiGraphicsExternalBetaLaunchGapReport',
   'evidenceAdmissionBundleAccepted',
+  'technicalEvidenceSourceMode ===',
+  'sourceTechnicalProofPacketsRequired === true',
+  'sourceTechnicalProofPacketsProvided === true',
+  'sourceTechnicalProofPacketsAccepted === true',
   'serviceRoleQueueSmokePreflightAccepted',
   'serviceRoleQueueSmokeProofAccepted',
   'sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted',
@@ -653,6 +657,18 @@ const admissionBundlePath = writeJson(
       fullPacketPath,
     ]),
     'external_beta_evidence_admission_bundle_source',
+  ),
+)
+const prebuiltAdmissionBundlePath = writeJson(
+  path.join(tempRoot, 'prebuilt-external-beta-evidence-admission-bundle.json'),
+  parseJsonOutput(
+    runNpm(admissionBundleScriptName, [
+      '--beta-evidence-bundle-packet',
+      betaEvidenceBundlePath,
+      '--external-beta-evidence-packet',
+      fullPacketPath,
+    ]),
+    'prebuilt_external_beta_evidence_admission_bundle_source',
   ),
 )
 const workerDispatchSmokeProofPath = writeJson(
@@ -767,6 +783,12 @@ const admissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
 ]), 'admission_bundle_launch_go_no_go')
+const prebuiltAdmissionBundleOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--external-beta-evidence-admission-bundle-packet',
+  prebuiltAdmissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+]), 'prebuilt_admission_bundle_launch_go_no_go')
 const admissionBundleWithPreflightOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-evidence-admission-bundle-packet',
   admissionBundlePath,
@@ -875,6 +897,15 @@ if (admissionBundleOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAcc
 }
 if (admissionBundleOutput.booleans?.sourceExternalBetaLaunchGapAccepted !== false) {
   fail('admission_bundle_launch_gap_source_boolean_not_false')
+}
+if (prebuiltAdmissionBundleOutput.status !== 'missing_external_beta_candidate_evidence') {
+  fail(`prebuilt_admission_bundle_status_unexpected:${prebuiltAdmissionBundleOutput.status}`)
+}
+if (prebuiltAdmissionBundleOutput.externalBetaLaunchCandidateToolsWithProvidedEvidence !== 0) {
+  fail('prebuilt_admission_bundle_candidate_tools_not_0')
+}
+if (prebuiltAdmissionBundleOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== false) {
+  fail('prebuilt_admission_bundle_source_boolean_not_false')
 }
 if (!admissionBundleOutput.missingLaunchGoNoGoEvidence?.includes('external_beta_launch_ref')) {
   fail('admission_bundle_missing_launch_ref_not_reported')

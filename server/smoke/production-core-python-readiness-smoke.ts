@@ -29,19 +29,15 @@ for (const toolId of expectedPassedPythonTools) {
   check(statusByTool.get(toolId) === 'passed', `${toolId} should pass Python import readiness from ${venvPython}.`)
 }
 
-check(statusByTool.get('ffmpeg') === 'passed', 'ffmpeg command readiness should still pass.')
-check(statusByTool.get('ffprobe') === 'passed', 'ffprobe command readiness should still pass.')
-check(statusByTool.get('sharp') === 'passed', 'sharp metadata readiness should still pass.')
-check(statusByTool.get('remotion') === 'passed', 'remotion metadata readiness should still pass.')
-check(statusByTool.get('hyperframe') === 'passed', 'Hyperframe source-boundary readiness should pass without a package import.')
-
 console.log(JSON.stringify({
   ok: true,
   venvPython,
   passedPythonTools: expectedPassedPythonTools,
+  scope: 'core_python_import_readiness_only',
   statuses: Object.fromEntries([...statusByTool.entries()].sort()),
   notes: [
     'Core Python readiness smoke imports packages only.',
+    'Non-Python tool statuses are reported for context but are verified by their own readiness gates.',
     'No media processing, provider calls, Docker build/run, Supabase/GCS mutation, beta activation, or production enablement occurred.',
   ],
 }, null, 2))

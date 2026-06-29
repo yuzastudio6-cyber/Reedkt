@@ -65,6 +65,16 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1.md',
   'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-confirmed-preflight-1-smoke.ts',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-confirmed-preflight-1-diagnostics.mjs',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/dry-run-blocker.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/transport-readback.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/runtime-boundary.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/qwen-real-dispatch-dry-run-attempt-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-dry-run-attempt-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth.md',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1-smoke.ts',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1-diagnostics.mjs',
   'package.json',
 ])
 

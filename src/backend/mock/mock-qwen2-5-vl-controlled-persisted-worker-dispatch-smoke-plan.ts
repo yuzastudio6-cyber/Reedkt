@@ -1,0 +1,192 @@
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-remote-satisfaction-review'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_PLAN } from './mock-qwen2-5-vl-backend-runtime-persistence-plan'
+import { QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT } from './mock-qwen2-5-vl-controlled-backend-dispatch-dry-run-result'
+import { QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR } from './mock-qwen2-5-vl-fail-closed-backend-runtime-dispatch-coordinator'
+import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
+
+export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_controlled_persisted_worker_dispatch_smoke_plan_only',
+  decision:
+    'qwen2_5_vl_controlled_persisted_worker_dispatch_smoke_plan_recorded_smoke_execution_required',
+  upstreamRuntimePersistenceToWorkerDispatchReadinessReviewDecision:
+    QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW.decision,
+  upstreamRemoteSatisfactionReviewDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_REMOTE_SATISFACTION_REVIEW.decision,
+  upstreamControlledBackendDispatchDryRunDecision:
+    QWEN2_5_VL_CONTROLLED_BACKEND_DISPATCH_DRY_RUN_RESULT.decision,
+  upstreamFailClosedBackendRuntimeDispatchCoordinatorDecision:
+    QWEN2_5_VL_FAIL_CLOSED_BACKEND_RUNTIME_DISPATCH_COORDINATOR.decision,
+  upstreamBackendRuntimePersistencePlanDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_PLAN.decision,
+  plannedSmoke: {
+    smokeId: 'mock-reference-only-qwen-controlled-persisted-dispatch-smoke',
+    scope: 'future_controlled_persisted_dispatch_shape_validation_only',
+    environment: 'future_local_or_owner_approved_non_production_only',
+    sourceOfTruthPath: [
+      'approved_plan_snapshot_ref',
+      'private_storage_path_ref',
+      'manifest_ref',
+      'checksum_ref',
+      'credit_reservation_ref',
+    ],
+    executionPath: [
+      'structured_agent_findings',
+      'edit_intents',
+      'approved_plan_snapshot',
+      'persisted_job_shape',
+      'worker_dispatch_shape',
+    ],
+  },
+  persistedHandoffExpectations: [
+    {
+      id: 'approved_snapshot_refs',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Immutable approved snapshot id, checksum, plan version, and source intent refs.',
+      stillBlocked: 'real_approved_snapshot_mutation',
+    },
+    {
+      id: 'credit_reservation_refs',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Credit reservation reference exists before dispatch shape is accepted.',
+      stillBlocked: 'credit_reserve_spend_release_refund',
+    },
+    {
+      id: 'private_source_of_truth_refs',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Private storage path reference, manifest reference, checksum, and approved snapshot.',
+      stillBlocked: 'storage_object_upload_or_row_mutation',
+    },
+    {
+      id: 'api_idempotency_keys',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Workspace, approved snapshot, job type, and request hash scope.',
+      stillBlocked: 'idempotency_row_mutation',
+    },
+    {
+      id: 'jobs',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Qwen worker/job type, approved snapshot ref, and fail-closed status transitions.',
+      stillBlocked: 'real_job_creation',
+    },
+    {
+      id: 'job_events',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Sanitized event summaries without raw prompt, token, URL, or secret values.',
+      stillBlocked: 'real_job_event_creation',
+    },
+    {
+      id: 'worker_runtime_configs',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Backend-only L4 scale-to-zero runtime config reference.',
+      stillBlocked: 'runtime_config_mutation',
+    },
+    {
+      id: 'worker_leases',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'One-active-lease semantics, stale recovery boundary, and cleanup expectation.',
+      stillBlocked: 'real_lease_claim_heartbeat_release',
+    },
+    {
+      id: 'worker_job_claims',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'One-active-worker-claim semantics.',
+      stillBlocked: 'real_worker_claim_creation',
+    },
+    {
+      id: 'backend_runtime_messages',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Sanitized runtime message summary and blocked transport preview.',
+      stillBlocked: 'backend_runtime_message_creation',
+    },
+    {
+      id: 'signed_url_events',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Audit-only semantics with signed URL source-of-truth rejection.',
+      stillBlocked: 'signed_url_creation',
+    },
+    {
+      id: 'qa_audit_cost_credit',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Metadata refs for QA, audit, cost, and owner handoff readiness.',
+      stillBlocked: 'persisted_qa_audit_cost_or_credit_mutation',
+    },
+    {
+      id: 'failure_cleanup',
+      status: 'planned_for_future_controlled_smoke_execution',
+      requiredEvidence: 'Deterministic cleanup and no orphaned worker state expectations.',
+      stillBlocked: 'real_cleanup_mutation',
+    },
+  ],
+  blockedBypasses: [
+    'raw_chat_worker_input',
+    'raw_prompt_payload_fields',
+    'raw_model_output_persistence',
+    'signed_url_source_of_truth',
+    'public_url_source_of_truth',
+    'frontend_browser_invocation',
+    'direct_cloud_run_service_url_exposure',
+    'token_or_bearer_header_persistence',
+    'provider_secret_persistence',
+    'service_role_key_value_persistence',
+    'database_url_persistence',
+    'duplicate_active_worker_claims',
+    'missing_credit_reservation',
+    'missing_approved_snapshot',
+    'missing_private_storage_checksum_manifest',
+    'generated_asset_row_before_qa_storage_acceptance',
+    'beta_or_production_readiness_claim',
+  ],
+  runtimeFlags: {
+    controlledPersistedWorkerDispatchSmokePlanRecorded: true,
+    controlledPersistedWorkerDispatchSmokeExecutionRequired: true,
+    controlledPersistedWorkerDispatchSmokeExecuted: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    creditMutationCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseCloudTouched: false,
+    stagingTouched: false,
+    productionTouched: false,
+    sqlExecuted: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58BL-CONTROLLED-PERSISTED-WORKER-DISPATCH-SMOKE-EXECUTION: run controlled persisted Qwen worker dispatch smoke, no Cloud Run invocation/no inference/no assets/no beta',
+} as const
+
+export type Qwen25VlControlledPersistedWorkerDispatchSmokePlan =
+  typeof QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_SMOKE_PLAN

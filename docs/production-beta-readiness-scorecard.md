@@ -1470,6 +1470,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted source packets and private operator, route-execution-window, queue-write-window, cleanup, rollback, telemetry, cost, private network, and incident-response refs, it records one API route queue smoke authorization request with provided evidence. The authorization remains metadata only and does not approve the smoke itself.
 - Runtime/beta/production: no unlock; this packet does not mount or execute an API route, write queue rows, run a service-role transaction, enqueue workers, create leases, dispatch workers, execute tools, start GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta API Route Queue Smoke Proof
+
+- Decision: `ai_graphics_external_beta_api_route_queue_smoke_proof_prepared_with_runtime_blocks`.
+- Scope: saved private non-production API-route-to-queue smoke proof validator after API route queue smoke authorization.
+- Result: with an accepted authorization packet and saved sanitized smoke result, it validates one route-to-queue smoke request against the authorized route, queue, tool, capability, approved snapshot, credit reservation, idempotency key, runtime target, and worker type. The saved result must show one route invocation, one queue row inserted, zero rows persisted after cleanup, and zero worker claims, worker dispatches, or tool executions.
+- Runtime/beta/production: no unlock; this validator does not run the route smoke, mount or execute an API route, write queue rows, run a service-role transaction, dispatch workers, execute tools, start GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

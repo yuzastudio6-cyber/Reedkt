@@ -42,11 +42,24 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-handler-registration-plan-diagnostics.mjs',
 ]
 
+const negativeTestsDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-handler-registration-scaffold-negative-tests'
+const negativeTestFiles = [
+  `${negativeTestsDir}/gpac-mp4box-handler-registration-scaffold-negative-tests-decision.json`,
+  `${negativeTestsDir}/gpac-mp4box-handler-registration-scaffold-negative-tests-decision.md`,
+  `${negativeTestsDir}/readiness-report.json`,
+  `${negativeTestsDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-handler-implementation-review-1.md',
+  'server/smoke/tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...sourceFiles,
   ...priorFiles,
+  ...negativeTestFiles,
   'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-registration-scaffold-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-handler-registration-scaffold-negative-tests-1.md',
   'package.json',
@@ -144,7 +157,7 @@ const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), 
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
   if (/^src\//.test(file) && !sourceFiles.includes(file)) fail(`unexpected source path ${file}`)
-  if (/^server\//.test(file) && !sourceFiles.includes(file)) fail(`unexpected server path ${file}`)
+  if (/^server\//.test(file) && !sourceFiles.includes(file) && !negativeTestFiles.includes(file)) fail(`unexpected server path ${file}`)
   if (/package-lock\.json|^docker\/|^supabase\/|^database\/|^public\/|^dist|^node_modules\/|\\.dockerignore$|requirements|\\.(mp4|mov|mkv|webm|srt|png|jpg|wav|mp3)$/i.test(file)) fail(`forbidden changed path ${file}`)
 }
 

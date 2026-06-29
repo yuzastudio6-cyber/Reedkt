@@ -58,6 +58,7 @@ import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_LOCAL_HARNESS_VALIDATION_RESULT_
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_PLAN } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-plan'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_CREATE } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-create'
 import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_VALIDATION_RESULT } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-validation-result'
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_PLAN } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-plan'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'ready'
@@ -120,7 +121,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_backend_runtime_persistence_active_migration_plan_required'
   | 'blocked_backend_runtime_persistence_active_migration_create_required'
   | 'blocked_backend_runtime_persistence_active_migration_validation_required'
-  | 'blocked_backend_runtime_persistence_active_migration_deploy_plan_required'
+  | 'blocked_backend_runtime_persistence_active_migration_deploy_approval_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -137,7 +138,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_validated_deploy_plan_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_active_migration_deploy_plan_recorded_deploy_approval_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -258,6 +259,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_CREATE.decision,
   upstreamBackendRuntimePersistenceActiveMigrationValidationResultDecision:
     QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_VALIDATION_RESULT.decision,
+  upstreamBackendRuntimePersistenceActiveMigrationDeployPlanDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_DEPLOY_PLAN.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1035,15 +1038,28 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'backend_runtime_persistence_active_migration_deploy_plan',
       label: 'Backend runtime persistence active migration deploy plan',
-      status: 'blocked_backend_runtime_persistence_active_migration_deploy_plan_required',
+      status: 'ready',
       evidence: [
         'The active Qwen migration has local validation evidence.',
-        'Deployment remains blocked until a separate deploy plan and approval path is recorded.',
+        'Backend runtime persistence active migration deploy plan is recorded.',
+        'The deploy plan defines target approval, advisor, rollback, Data API exposure, cloud/staging/production safety, and no-runtime-unlock gates before any deploy command is allowed.',
+        'No Supabase cloud deployment, staging, production, live data, Cloud Run invocation, Qwen inference, worker dispatch, generated asset, public artifact, signed URL, credit mutation, beta, or production unlock occurred.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'backend_runtime_persistence_active_migration_deploy_approval',
+      label: 'Backend runtime persistence active migration deploy approval',
+      status: 'blocked_backend_runtime_persistence_active_migration_deploy_approval_required',
+      evidence: [
+        'The validated active migration now has a no-deploy deployment plan.',
+        'Deployment target, owner approval, rollback authority, advisor collection, and environment classification remain unapproved.',
       ],
       missingEvidence: [
-        'Plan deployment of the validated Qwen backend runtime persistence migration without deploying it.',
-        'Define cloud/staging/production safety gates, rollback expectations, advisor checks, and owner approvals before any deploy command is allowed.',
-        'Keep deployment, private invoke, real worker dispatch, generated assets, public artifacts, signed URLs, beta, and production blocked until deploy planning and later deployment approvals are complete.',
+        'Approve an exact Supabase deployment target before any deploy command is allowed.',
+        'Confirm migration status and target environment ownership without exposing secrets.',
+        'Define the approved deploy command, rollback path, advisor capture, and post-deploy verification for version 20260629011700.',
+        'Keep private invoke, real worker dispatch, generated assets, public artifacts, signed URLs, beta, and production blocked until deployment and later runtime approvals are complete.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -1377,7 +1393,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     backendRuntimePersistenceActiveMigrationValidated: true,
     backendRuntimePersistenceActiveMigrationApplied: true,
     backendRuntimePersistenceActiveMigrationHistoryObserved: true,
-    backendRuntimePersistenceActiveMigrationDeployPlanRequired: true,
+    backendRuntimePersistenceActiveMigrationDeployPlanRequired: false,
+    backendRuntimePersistenceActiveMigrationDeployPlanRecorded: true,
+    backendRuntimePersistenceActiveMigrationDeployApprovalRequired: true,
+    backendRuntimePersistenceActiveMigrationDeploymentTargetApproved: false,
     backendRuntimePersistenceActiveMigrationDeployed: false,
     backendRuntimePersistenceStorageUploadPipelinePolicyCommentFixVerified: true,
     qwenDraftSqlApplyAttempted: true,
@@ -1414,11 +1433,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'backend_runtime_persistence_active_migration_deploy_plan_required',
+    'backend_runtime_persistence_active_migration_deploy_approval_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58BC-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-DEPLOY-PLAN: plan deployment of validated Qwen persistence migration, no deploy/no cloud/no assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58BD-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-DEPLOY-APPROVAL: approve deployment target for validated Qwen persistence migration, no deploy/no cloud/no assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

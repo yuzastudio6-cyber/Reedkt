@@ -3,6 +3,12 @@ import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
 const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json'
 const DEFAULT_SOURCE_ID = 'beta-tools-current-source-local-accepted-evidence-bundle'
+const CURRENT_TRACKB_TOOL_TOTALS = {
+  owned: 16,
+  boundedAcceptedProven: 16,
+  blockedNotInstalledProven: 0,
+  productReady: 0,
+} as const
 
 export type BetaReadinessDeployedEvidenceInputManifestEnv = Record<string, string | undefined>
 
@@ -30,11 +36,13 @@ export interface BetaReadinessDeployedEvidenceInputManifest {
     locallyAcceptedToolIds: string[]
     coreToolIds: string[]
     libassToolIds: string[]
+    trackBToolTotals: typeof CURRENT_TRACKB_TOOL_TOTALS
   }
   fixedInputs: {
     coreToolIdsCsv: string
     libassMode: 'docker'
     libassContainerImage: string
+    requiredBoundedAcceptedToolCount: number
     requiredProductReadyLocalOssCount: number
     platformEnvironment: 'staging'
     externalBetaReadyRequired: true
@@ -85,18 +93,22 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
 
   const requiredInputs = buildRequiredInputs(env, {
     currentSourceSha,
+    localAcceptedEvidenceSourceSha,
     coreToolIdsCsv: coreToolIds.join(','),
     libassContainerImage,
-    requiredProductReadyLocalOssCount: String(requiredProductReadyLocalOssCount),
+    requiredBoundedAcceptedToolCount: String(CURRENT_TRACKB_TOOL_TOTALS.boundedAcceptedProven),
+    requiredProductReadyLocalOssCount: String(CURRENT_TRACKB_TOOL_TOTALS.productReady),
   })
   const pendingRequiredInputs = requiredInputs
     .filter((input) => !input.present)
     .map((input) => input.name)
   const valueGaps = buildValueGaps(env, {
     currentSourceSha,
+    localAcceptedEvidenceSourceSha,
     coreToolIds,
     libassContainerImage,
-    requiredProductReadyLocalOssCount,
+    requiredBoundedAcceptedToolCount: CURRENT_TRACKB_TOOL_TOTALS.boundedAcceptedProven,
+    requiredProductReadyLocalOssCount: CURRENT_TRACKB_TOOL_TOTALS.productReady,
   })
   const secretLikeInputPaths = collectSecretLikePaths({
     sourceId: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID,
@@ -142,12 +154,14 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       locallyAcceptedToolIds,
       coreToolIds,
       libassToolIds,
+      trackBToolTotals: CURRENT_TRACKB_TOOL_TOTALS,
     },
     fixedInputs: {
       coreToolIdsCsv: coreToolIds.join(','),
       libassMode: 'docker',
       libassContainerImage,
-      requiredProductReadyLocalOssCount,
+      requiredBoundedAcceptedToolCount: CURRENT_TRACKB_TOOL_TOTALS.boundedAcceptedProven,
+      requiredProductReadyLocalOssCount: CURRENT_TRACKB_TOOL_TOTALS.productReady,
       platformEnvironment: 'staging',
       externalBetaReadyRequired: true,
       deployedEvidenceSourceShaRequired: true,
@@ -185,8 +199,10 @@ function buildRequiredInputs(
   env: BetaReadinessDeployedEvidenceInputManifestEnv,
   fixed: {
     currentSourceSha?: string
+    localAcceptedEvidenceSourceSha: string
     coreToolIdsCsv: string
     libassContainerImage: string
+    requiredBoundedAcceptedToolCount: string
     requiredProductReadyLocalOssCount: string
   },
 ): DeployedEvidenceInputRecord[] {
@@ -202,14 +218,14 @@ function buildRequiredInputs(
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY', 'tool_evidence', false, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY', 'tool_evidence', false, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID', 'tool_evidence', false, 'external_beta_evidence_sequence', DEFAULT_SOURCE_ID),
+    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA', 'tool_evidence', false, 'external_beta_evidence_sequence', fixed.localAcceptedEvidenceSourceSha),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS', 'tool_evidence', false, 'external_beta_evidence_sequence', fixed.coreToolIdsCsv),
-    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
-    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
-    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
-    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
+    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
+    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
+    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT', 'tool_evidence', false, 'external_beta_evidence_sequence', fixed.requiredBoundedAcceptedToolCount),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT', 'tool_evidence', false, 'external_beta_evidence_sequence', fixed.requiredProductReadyLocalOssCount),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'docker'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE', 'tool_evidence', false, 'external_beta_evidence_sequence', fixed.libassContainerImage),
@@ -258,29 +274,29 @@ function buildValueGaps(
   env: BetaReadinessDeployedEvidenceInputManifestEnv,
   fixed: {
     currentSourceSha?: string
+    localAcceptedEvidenceSourceSha: string
     coreToolIds: string[]
     libassContainerImage: string
+    requiredBoundedAcceptedToolCount: number
     requiredProductReadyLocalOssCount: number
   },
 ): string[] {
   const gaps: string[] = []
   if (fixed.currentSourceSha) {
     requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA', fixed.currentSourceSha)
-    requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA', fixed.currentSourceSha)
     requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_SOURCE_SHA', fixed.currentSourceSha)
     requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_SOURCE_SHA', fixed.currentSourceSha)
     requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_STATUS_SOURCE_SHA', fixed.currentSourceSha)
   }
+  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA', fixed.localAcceptedEvidenceSourceSha)
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE', 'docker')
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE', fixed.libassContainerImage)
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_ENVIRONMENT', 'staging')
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE', 'true')
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY', 'true')
   for (const name of [
-    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS',
-    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE',
-    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS',
-    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE',
+    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE',
+    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK',
@@ -310,14 +326,26 @@ function buildValueGaps(
   ]) {
     requireEqualIfPresent(env, gaps, name, 'true')
   }
+  requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS')
+  requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE')
+  requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS')
+  requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE')
   requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_APPROVE_REAL_USER_MEDIA_BETA')
   requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_APPROVE_PAID_PRODUCTION')
+
+  const requiredBoundedCount = clean(env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT)
+  if (requiredBoundedCount) {
+    const parsed = Number.parseInt(requiredBoundedCount, 10)
+    if (!Number.isFinite(parsed) || parsed !== fixed.requiredBoundedAcceptedToolCount) {
+      gaps.push(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT must be exactly ${fixed.requiredBoundedAcceptedToolCount}.`)
+    }
+  }
 
   const requiredCount = clean(env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT)
   if (requiredCount) {
     const parsed = Number.parseInt(requiredCount, 10)
-    if (!Number.isFinite(parsed) || parsed < fixed.requiredProductReadyLocalOssCount) {
-      gaps.push(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT must be at least ${fixed.requiredProductReadyLocalOssCount}.`)
+    if (!Number.isFinite(parsed) || parsed !== fixed.requiredProductReadyLocalOssCount) {
+      gaps.push(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT must be exactly ${fixed.requiredProductReadyLocalOssCount}.`)
     }
   }
 

@@ -90,6 +90,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-packet.mjs',
         'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
+        'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
       ],
       blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path)),
     },
@@ -165,7 +166,8 @@ function isAllowedMetadataOnlyDriftPath(path) {
     path === 'server/cli/beta-readiness-source-freshness-preflight.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-packet.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-intake-preflight.mjs' ||
-    path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs'
+    path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs' ||
+    path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts'
 }
 
 function readJson(path) {

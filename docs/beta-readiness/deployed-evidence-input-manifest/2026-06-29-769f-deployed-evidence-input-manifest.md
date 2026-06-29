@@ -16,6 +16,26 @@ Pending owner inputs: `29`
 
 Ready to run external beta evidence collector: `false`
 
+## Tool Evidence Boundary
+
+Track B current totals are `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+
+The legacy local accepted evidence bundle remains historical prerequisite evidence from source `a1943442b794f7ae5216adf501a617a9f4478185` with `14` locally accepted evidence entries. It is not a product-ready authorization and it is not the current deployed source SHA.
+
+The deployed evidence input manifest must now require bounded evidence, not production readiness:
+
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT=16`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0`
+
+The following claims remain forbidden in this lane:
+
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true`
+
 The next runnable sequence is:
 
 1. `npm run beta:readiness:owner-approval-env-template`

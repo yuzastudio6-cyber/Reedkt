@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 
-const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json'
-const DEFAULT_SOURCE_ID = 'beta-tools-current-source-local-accepted-evidence-bundle'
+const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const DEFAULT_SOURCE_ID = 'beta-tools-current-source-16-tool-local-accepted-evidence-bundle'
 const CURRENT_TRACKB_TOOL_TOTALS = {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -96,7 +96,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
     decision: readyToRunExternalBetaEvidenceCollector
       ? 'beta_deployed_evidence_input_manifest_passed_ready_to_run_external_beta_evidence_collector'
       : 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs',
-    manifestId: 'beta-deployed-evidence-input-manifest-after-local-accepted-tools-2026-06-28',
+    manifestId: 'beta-deployed-evidence-input-manifest-after-local-accepted-tools-2026-06-29-16-tool',
     sourceTruth: {
       localAcceptedEvidenceSnapshotPath: snapshotPath,
       localAcceptedEvidenceSourceSha,

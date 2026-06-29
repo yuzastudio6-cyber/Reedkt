@@ -23,8 +23,10 @@ const packetFiles = [
 
 const sourceFiles = [
   'src/backend/contracts/gpac-mp4box-guarded-worker-skeleton-mock-contracts.ts',
+  'src/backend/contracts/gpac-mp4box-private-artifact-policy-mock-contracts.ts',
   'src/backend/contracts/index.ts',
   'server/smoke/tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-smoke.ts',
+  'server/smoke/tracka-gpac-mp4box-private-artifact-policy-mock-implementation-smoke.ts',
 ]
 
 const statusFiles = [
@@ -40,11 +42,29 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-worker-enqueue-mock-implementation-diagnostics.mjs',
 ]
 
+const nextPrivateArtifactPolicyFiles = [
+  'docs/activation-phase-tracka-gpac-mp4box-private-artifact-policy-mock-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-manifest-mock-implementation-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/gpac-mp4box-private-artifact-policy-mock-implementation-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/gpac-mp4box-private-artifact-policy-mock-implementation-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/private-artifact-policy.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/private-artifact-policy.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-policy-mock-implementation/validation-results.md',
+  'src/backend/contracts/gpac-mp4box-private-artifact-policy-mock-contracts.ts',
+  'server/smoke/tracka-gpac-mp4box-private-artifact-policy-mock-implementation-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-private-artifact-policy-mock-implementation-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...sourceFiles,
   ...statusFiles,
   ...priorFiles,
+  ...nextPrivateArtifactPolicyFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-worker-skeleton-mock-implementation-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-private-artifact-policy-mock-implementation-1.md',
   'package.json',

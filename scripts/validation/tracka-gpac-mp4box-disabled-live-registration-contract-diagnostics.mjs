@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-live-registration-contract'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-live-registration-review'
+const negativeTestsDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-live-registration-contract-negative-tests'
 const lane = 'TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1'
 const decisionText = 'tracka_gpac_mp4box_disabled_live_registration_contract_passed_ready_for_live_registration_contract_negative_tests'
 const executionText = 'completed_disabled_live_registration_contract_no_route_or_worker_execution'
@@ -29,6 +30,21 @@ const contractFiles = [
   'server/smoke/tracka-gpac-mp4box-disabled-live-registration-contract-smoke.ts',
 ]
 
+const negativeTestFiles = [
+  `${negativeTestsDir}/gpac-mp4box-live-registration-contract-negative-tests-decision.json`,
+  `${negativeTestsDir}/gpac-mp4box-live-registration-contract-negative-tests-decision.md`,
+  `${negativeTestsDir}/negative-test-matrix.json`,
+  `${negativeTestsDir}/negative-test-matrix.md`,
+  `${negativeTestsDir}/readiness-report.json`,
+  `${negativeTestsDir}/source-of-truth-audit.json`,
+  `${negativeTestsDir}/source-of-truth-audit.md`,
+  `${negativeTestsDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-live-registration-contract-negative-tests-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-review-1.md',
+  'server/smoke/tracka-gpac-mp4box-live-registration-contract-negative-tests-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-live-registration-contract-negative-tests-diagnostics.mjs',
+]
+
 const priorFiles = [
   `${priorDir}/gpac-mp4box-guarded-live-registration-review-decision.json`,
   `${priorDir}/readiness-report.json`,
@@ -47,6 +63,7 @@ const requiredFiles = [
   ...contractFiles,
   ...priorFiles,
   ...statusFiles,
+  ...negativeTestFiles,
   'docs/activation-phase-tracka-gpac-mp4box-disabled-live-registration-contract-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-live-registration-contract-negative-tests-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-live-registration-contract-1.md',
@@ -299,9 +316,10 @@ for (const pattern of forbiddenSourcePatterns) {
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
+  const isAllowedServerFile = contractFiles.includes(file) || negativeTestFiles.includes(file)
+  if (!isAllowedServerFile && forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
   if (/^src\//.test(file) && !contractFiles.includes(file)) fail(`unexpected source path ${file}`)
-  if (/^server\//.test(file) && !contractFiles.includes(file)) fail(`unexpected server path ${file}`)
+  if (/^server\//.test(file) && !isAllowedServerFile) fail(`unexpected server path ${file}`)
 }
 
 gitQuiet(['diff', '--quiet', '--', 'package-lock.json'], 'package-lock changed')

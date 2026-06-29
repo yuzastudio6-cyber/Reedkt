@@ -1,0 +1,18 @@
+{
+  "rejectedInputCoverage": "blocked_rejected_input_present",
+  "runtimeAttemptCoverage": "blocked_runtime_execution_attempt",
+  "deliveryAttemptCoverage": "blocked_storage_or_public_artifact_attempt",
+  "guardFailureCoverage": [
+    "blocked_guarded_review_invalid",
+    "blocked_missing_backend_service_role_context",
+    "blocked_live_handler_registered",
+    "blocked_feature_flag_enabled",
+    "blocked_missing_approved_snapshot_guard",
+    "blocked_missing_route_idempotency_guard",
+    "blocked_missing_private_artifact_manifest_guard",
+    "blocked_missing_command_allowlist_guard",
+    "blocked_missing_negative_tests_guard",
+    "blocked_missing_storage_or_public_artifact_gate",
+    "blocked_missing_operator_confirmation_guard"
+  ]
+}

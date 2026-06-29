@@ -1,0 +1,77 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-LIVE-REGISTRATION-CONTRACT-NEGATIVE-TESTS-1",
+  "decision": "tracka_gpac_mp4box_live_registration_contract_negative_tests_passed_ready_for_disabled_handler_registration_review",
+  "execution": "completed_live_registration_contract_negative_tests_no_route_or_worker_execution",
+  "prior": {
+    "disabledLiveRegistrationContract": "tracka_gpac_mp4box_disabled_live_registration_contract_passed_ready_for_live_registration_contract_negative_tests",
+    "disabledLiveRegistrationContractMergeSha": "7905f29b16d7bdcaa95bdaefdc55d2ccd4b734ae"
+  },
+  "baselineStatus": "disabled_live_registration_contract_registered_no_handler",
+  "negativeCoverage": {
+    "rejectedInputs": [
+      "raw_chat",
+      "raw_command_string",
+      "frontend_file_path",
+      "public_url_source_of_truth",
+      "signed_url_source_of_truth",
+      "arbitrary_private_media",
+      "provider_or_model_prompt_payload",
+      "service_role_secret_payload",
+      "broad_service_role_handler_payload"
+    ],
+    "runtimeAttempts": [
+      "routeExecution",
+      "workerDispatch",
+      "workerExecution",
+      "gpacMp4boxExecution",
+      "mediaProcessing",
+      "supabaseMutation",
+      "sqlExecution"
+    ],
+    "deliveryAttempts": [
+      "storageTransfer",
+      "signedUrlCreation",
+      "publicArtifactCreation",
+      "externalBetaExpansion",
+      "paidProductionUnlock",
+      "productionUnlock",
+      "finalDeliveryExport"
+    ],
+    "guardFailures": [
+      "blocked_guarded_review_invalid",
+      "blocked_missing_backend_service_role_context",
+      "blocked_live_handler_registered",
+      "blocked_feature_flag_enabled",
+      "blocked_missing_approved_snapshot_guard",
+      "blocked_missing_route_idempotency_guard",
+      "blocked_missing_private_artifact_manifest_guard",
+      "blocked_missing_command_allowlist_guard",
+      "blocked_missing_negative_tests_guard",
+      "blocked_missing_storage_or_public_artifact_gate",
+      "blocked_missing_operator_confirmation_guard"
+    ]
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-REVIEW-1"
+}

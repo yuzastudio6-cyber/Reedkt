@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const reportPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.json'
-const markdownPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-28-current-source-local-accepted-evidence-bundle.md'
+const reportPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const markdownPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.md'
 
 const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
   decision?: string
@@ -52,11 +52,13 @@ const expectedTools = [
   'opencv',
   'opencolorio',
   'openimageio',
+  'audioflux',
+  'signalsmith_stretch',
   'libass',
 ]
 
 assert.equal(report.decision, 'beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording')
-assert.equal(report.sourceSha, 'a1943442b794f7ae5216adf501a617a9f4478185')
+assert.equal(report.sourceSha, 'e8821759a10a43a60795accb596b3b83c15f9dfb')
 assert.equal(report.previewOnly, true)
 assert.equal(report.noBackendEvidenceRecorded, true)
 assert.equal(report.readyToRecordDeployedEvidence, true)
@@ -65,6 +67,8 @@ assert.deepEqual([...(report.locallyAcceptedToolIds ?? [])].sort(), [...expected
 assert.deepEqual(report.libassAcceptedToolIds, ['libass'])
 assert.equal(report.coreAcceptedToolIds?.includes('pyav'), true)
 assert.equal(report.coreAcceptedToolIds?.includes('pyscenedetect'), true)
+assert.equal(report.coreAcceptedToolIds?.includes('audioflux'), true)
+assert.equal(report.coreAcceptedToolIds?.includes('signalsmith_stretch'), true)
 assert.equal(report.libassEvidence?.network, 'none')
 assert.equal(report.libassEvidence?.syntheticBurninQa?.syntheticOnly, true)
 assert.equal(report.libassEvidence?.syntheticBurninQa?.fontDiscoveryOk, true)

@@ -1,0 +1,188 @@
+{
+  "reportId": "beta-tools-current-source-16-tool-local-accepted-evidence-bundle-2026-06-29",
+  "createdAt": "2026-06-29T11:29:30Z",
+  "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "sourceSha": "e8821759a10a43a60795accb596b3b83c15f9dfb",
+  "decision": "beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording",
+  "evidenceMode": "local_no_write_preview",
+  "blockerPolicy": "evidence_driven_block_unsafe_actions_only",
+  "safeBlockerReductionAllowed": true,
+  "previewOnly": true,
+  "noBackendEvidenceRecorded": true,
+  "readyToRecordDeployedEvidence": true,
+  "locallyAcceptedToolCount": 16,
+  "locallyAcceptedToolIds": [
+    "ffmpeg",
+    "ffprobe",
+    "pyav",
+    "opentimelineio",
+    "hyperframe",
+    "remotion",
+    "sharp",
+    "duckdb",
+    "polars",
+    "pyscenedetect",
+    "opencv",
+    "opencolorio",
+    "openimageio",
+    "audioflux",
+    "signalsmith_stretch",
+    "libass"
+  ],
+  "coreAcceptedToolIds": [
+    "ffmpeg",
+    "ffprobe",
+    "pyav",
+    "opentimelineio",
+    "hyperframe",
+    "remotion",
+    "sharp",
+    "duckdb",
+    "polars",
+    "pyscenedetect",
+    "opencv",
+    "opencolorio",
+    "openimageio",
+    "audioflux",
+    "signalsmith_stretch"
+  ],
+  "libassAcceptedToolIds": [
+    "libass"
+  ],
+  "coreEvidence": {
+    "hydratedPythonRequired": true,
+    "hydratedPythonDirectory": ".reeditpro-tool-readiness-python",
+    "ignoredSignalsmithBinaryDirectory": ".reeditpro-tool-readiness-bin",
+    "acceptedToolCount": 15,
+    "audiofluxEvidence": {
+      "status": "passed",
+      "proof": "bounded Python import/readiness only",
+      "processedAudio": false
+    },
+    "signalsmithStretchEvidence": {
+      "status": "passed",
+      "proof": "bounded pinned source-build plus command version/help-shape readiness",
+      "stretchRepo": "https://github.com/Signalsmith-Audio/signalsmith-stretch",
+      "stretchCommit": "57b93f4e9206a089a45387eaa39bdc9f310d3308",
+      "linearRepo": "https://github.com/Signalsmith-Audio/linear.git",
+      "linearCommit": "5668673560146a9cfe38c25315071e3fd68c8317",
+      "processedAudio": false
+    },
+    "guardrailObserved": {
+      "missingSignalsmithBinaryFailedClosed": true,
+      "summary": "A first current-source local bundle rerun reported 15 accepted tools when the ignored Signalsmith readiness binary was absent. After rerunning the bounded source-build proof and adding .reeditpro-tool-readiness-bin to PATH, the bundle accepted all 15 core tools plus libass."
+    }
+  },
+  "libassEvidence": {
+    "containerImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001",
+    "mode": "docker",
+    "network": "none",
+    "platformWarningOnly": "The linux/amd64 validation image ran on an arm64 host through Docker platform compatibility; the synthetic-only QA still passed.",
+    "filterProof": {
+      "hasAssFilter": true,
+      "hasSubtitlesFilter": true,
+      "command": "docker run --rm --network none <approved-libass-image> ffmpeg -hide_banner -filters"
+    },
+    "syntheticBurninQa": {
+      "runId": "libass-burnin-qa-2026-06-29T11-29-23-772Z",
+      "syntheticOnly": true,
+      "fontDiscoveryOk": true,
+      "burninCommandOk": true,
+      "decodeProbeOk": true,
+      "safeStylePresetAccepted": true,
+      "tempRootRemoved": true,
+      "noPrivateOrUserMedia": true,
+      "noNetwork": true,
+      "inputVideo": {
+        "checksumSha256": "9daac3fef6018b0dfeec3fe3338ebac7b76eaa783327f7b6b1c93a1d8ec3f6b3"
+      },
+      "captionFixture": {
+        "checksumSha256": "9febb7ebb6aac1b263ca9ab0a278b47f21bbc6e8b85ab9328944e78effd62ece"
+      },
+      "outputVideo": {
+        "fileName": "synthetic-libass-burnin-output.mp4",
+        "sizeBytes": 40771,
+        "checksumSha256": "301ee872212d00c243c8d220a0552157bdebc7766238cc178353089de6b912a8",
+        "durationSeconds": 1
+      }
+    }
+  },
+  "validation": {
+    "commandsPassed": [
+      "REEDITPRO_CONFIRM_SIGNALSMITH_STRETCH_SOURCE_BUILD=true npm run tools:readiness:build-signalsmith-stretch",
+      "npm run beta:tools:libass-container-proof-preflight",
+      "npm run beta:tools:libass-synthetic-burnin-qa-preflight",
+      "npm run beta:tools:local-accepted-evidence-bundle"
+    ],
+    "localEvidenceBundleOutput": {
+      "ok": true,
+      "previewOnly": true,
+      "noBackendEvidenceRecorded": true,
+      "readyToRecordDeployedEvidence": true,
+      "locallyAcceptedToolCount": 16,
+      "coreAcceptedToolCount": 15,
+      "libassAcceptedToolCount": 1
+    }
+  },
+  "duplicateContext": {
+    "currentSourceDuplicatePrsObserved": 0,
+    "historicalContextPrs": [
+      73,
+      68,
+      99
+    ],
+    "classification": "historical_activation_or_foundation_context_not_current_source_duplicate"
+  },
+  "remainingGateBlockers": [
+    "deployed_core_real_check_evidence_recording_pending",
+    "deployed_libass_qa_evidence_recording_pending",
+    "platform_billing_deployment_evidence_pending",
+    "launch_owner_approval_evidence_pending",
+    "final_operator_status_readback_pending"
+  ],
+  "nextSafeActions": [
+    "Run npm run beta:tools:core-real-check-evidence-preflight, then npm run beta:tools:core-real-check-evidence against deployed staging with source SHA e8821759a10a43a60795accb596b3b83c15f9dfb.",
+    "Run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging using the accepted libass QA inputs.",
+    "Run npm run beta:platform:staging-evidence-preflight only after the remaining owner-side staging API prerequisites are remediated and platform probe inputs exist.",
+    "Run npm run beta:readiness:launch-approval-evidence-preflight after launch owner approvals and evidence notes exist.",
+    "Rerun npm run beta:readiness:operator-status-api after deployed evidence is recorded; do not enable external beta, real-user-media beta, paid production, or product runtime execution from this local bundle alone."
+  ],
+  "blockedActionScope": [
+    "external_beta_user_exposure",
+    "real_user_media_beta",
+    "paid_production",
+    "provider_calls",
+    "worker_dispatch",
+    "supabase_or_gcs_writes",
+    "public_artifact_delivery",
+    "signed_url_delivery"
+  ],
+  "allowedForwardProgressScopes": [
+    "source_truth_review",
+    "local_no_write_preview",
+    "deployed_evidence_preflight",
+    "owner_approval_collection",
+    "diagnostics",
+    "qa_review",
+    "monitoring_and_rollback_planning"
+  ],
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "supabaseWritesRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "userMediaProcessed": false,
+    "productReadyClaimForAllRegistryTools": false
+  },
+  "supabaseClassification": {
+    "write": "no",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  }
+}

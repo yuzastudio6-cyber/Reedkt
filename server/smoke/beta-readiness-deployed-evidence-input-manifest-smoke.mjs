@@ -2,8 +2,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
-const expectedLocalEvidenceSourceSha = '94c37bb492a584c087247625dcb1fb53398c17f4'
-const staleLocalEvidenceSourceSha = 'e8821759a10a43a60795accb596b3b83c15f9dfb'
+const expectedLocalEvidenceSourceSha = 'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca'
+const staleLocalEvidenceSourceShas = [
+  '94c37bb492a584c087247625dcb1fb53398c17f4',
+  'e8821759a10a43a60795accb596b3b83c15f9dfb',
+]
 const expectedDeployedSourceSha = 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67'
 const expectedCoreToolIds = [
   'ffmpeg',
@@ -33,9 +36,11 @@ const committedManifestMarkdown = readFileSync(
 )
 
 assert.equal(committedManifestJson.includes(expectedLocalEvidenceSourceSha), true)
-assert.equal(committedManifestJson.includes(staleLocalEvidenceSourceSha), false)
 assert.equal(committedManifestMarkdown.includes(expectedLocalEvidenceSourceSha), true)
-assert.equal(committedManifestMarkdown.includes(staleLocalEvidenceSourceSha), false)
+for (const staleSourceSha of staleLocalEvidenceSourceShas) {
+  assert.equal(committedManifestJson.includes(staleSourceSha), false)
+  assert.equal(committedManifestMarkdown.includes(staleSourceSha), false)
+}
 
 const emptyManifest = buildBetaReadinessDeployedEvidenceInputManifest({})
 assert.equal(emptyManifest.ok, true)

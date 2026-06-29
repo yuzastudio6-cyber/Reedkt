@@ -111,9 +111,9 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
     packetId: 'beta-readiness-owner-approval-intake-preflight-2026-06-28',
     sourceTruth: {
       ownerApprovalPacket: 'docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json',
-      manifestOwnerGapPacket: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json',
-      deployedEvidenceInputManifest: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json',
-      sourceFreshnessPreflightPacket: 'docs/beta-readiness/source-freshness-preflight/2026-06-29-aa49-source-freshness-passed.json',
+      manifestOwnerGapPacket: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json',
+      deployedEvidenceInputManifest: 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json',
+      sourceFreshnessPreflightPacket: 'docs/beta-readiness/source-freshness-preflight/2026-06-29-184f-source-freshness-passed.json',
       sourceFreshnessDecision: packet.sourceTruth.sourceFreshnessDecision,
       sourceSha: packet.sourceTruth.sourceSha,
       deployedEvidenceSourceSha: packet.sourceTruth.deployedEvidenceSourceSha,

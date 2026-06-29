@@ -3,21 +3,21 @@
 Decision: `beta_readiness_owner_approval_packet_passed_ready_for_owner_review`
 
 Source branch: `codex/sound-music-audio-1abc-checkpoint`
-Source SHA: `8f5946c12d983abb6fb6e9eca020b9b260848706`
-Deployed evidence source SHA: `aa49cef9ed6dad971f0163ea80ebb34de0e65d67`
+Source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
+Deployed evidence source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
 
 ## Current Evidence
 
-- Source freshness preflight packet: `docs/beta-readiness/source-freshness-preflight/2026-06-29-aa49-source-freshness-passed.json`
-- Source freshness decision: `beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift`
-- Source freshness policy: current 8f5946c1 source differs from deployed aa49 only by approved metadata/readiness files; runtime-affecting drift remains blocked.
+- Source freshness preflight packet: `docs/beta-readiness/source-freshness-preflight/2026-06-29-184f-source-freshness-passed.json`
+- Source freshness decision: `beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence`
+- Source freshness policy: current source matches deployed 184f8b225d01 staging evidence after guarded workflow run 28388776429.
 - Platform technical probe packet: `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json`
-- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-aa49-api-staging-deploy.json`
-- Deployed evidence input manifest: `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-aa49-deployed-evidence-input-manifest.json`
-- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00013-jv9` in `us-east1`
-- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-aa49cef9ed6d-20260629T1300Z`
-- Normal API image digest: `sha256:509124705b31f169148f76161b9d5f3c6cd3ab77f703a7f66616eb649ae6117f`
-- Normal API deploy run: [28373860720](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28373860720)
+- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-184f-api-staging-deploy.json`
+- Deployed evidence input manifest: `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json`
+- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00014-xdj` in `us-east1`
+- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-184f8b225d01-20260629T1655Z`
+- Normal API image digest: `sha256:57ad5f03353ea9944b026c71ea35fbd9e478e98b7dd757df68e994a746c683ca`
+- Normal API deploy run: [28388776429](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28388776429)
 - Normal API public unauthenticated `/health`: HTTP `403`
 - Normal API authenticated health readback: `not_rerun_local_cloud_cli_auth_expired`
 - Tool-readiness API: `reeditpro-tool-readiness-staging` revision `reeditpro-tool-readiness-staging-00002-qdp`

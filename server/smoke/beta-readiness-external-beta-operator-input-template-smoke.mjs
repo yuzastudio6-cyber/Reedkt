@@ -12,7 +12,7 @@ const staleLocalEvidenceSourceShas = [
   'e8821759a10a43a60795accb596b3b83c15f9dfb',
 ]
 const committedMarkdown = readFileSync(
-  'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-aa49-external-beta-operator-input-template.md',
+  'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.md',
   'utf8',
 )
 
@@ -34,7 +34,7 @@ assert.equal(
   report.decision,
   'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection',
 )
-assert.equal(report.sourceTruth.deployedSourceSha, 'aa49cef9ed6dad971f0163ea80ebb34de0e65d67')
+assert.equal(report.sourceTruth.deployedSourceSha, '184f8b225d01d5bb38c7d3a09d8461bcf8e325dc')
 assert.deepEqual(report.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -51,7 +51,7 @@ assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BET
 
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL="https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN="<secret value supplied only in the operator shell>"'))
-assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="aa49cef9ed6dad971f0163ea80ebb34de0e65d67"'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="184f8b225d01d5bb38c7d3a09d8461bcf8e325dc"'))
 assert.ok(report.envTemplate.includes(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="${expectedLocalEvidenceSourceSha}"`))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))

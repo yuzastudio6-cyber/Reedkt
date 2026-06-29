@@ -1,0 +1,49 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-IMPLEMENTATION-REVIEW-2",
+  "decision": "tracka_gpac_mp4box_guarded_handler_implementation_review_2_passed_ready_for_guarded_executable_handler_implementation_plan",
+  "execution": "completed_docs_only_guarded_handler_implementation_review_2_no_runtime_execution",
+  "prior": {
+    "handlerImplementationScaffoldNegativeTests": "tracka_gpac_mp4box_handler_implementation_scaffold_negative_tests_passed_ready_for_guarded_handler_implementation_review",
+    "handlerImplementationScaffoldNegativeTestsMergeSha": "9f938b1b03c4a7b0b2553edbfbc278387958be1b"
+  },
+  "review": {
+    "allowedFutureScope": "guarded_executable_handler_implementation_plan_only",
+    "backendServiceRoleOwnershipRequired": true,
+    "disabledByDefaultRequired": true,
+    "featureFlagDefaultFalseRequired": true,
+    "approvedSnapshotGuardRequired": true,
+    "routeIdempotencyGuardRequired": true,
+    "privateArtifactManifestGuardRequired": true,
+    "commandAllowlistGuardRequired": true,
+    "negativeTestsMustRemainPassing": true,
+    "cleanupAuditReferenceRequired": true,
+    "operatorConfirmationRequiredBeforeExecution": true
+  },
+  "safety": {
+    "executableHandlerImplementation": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-PLAN-1"
+}

@@ -1,0 +1,71 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-HANDLER-REGISTRATION-PLAN-1",
+  "decision": "tracka_gpac_mp4box_guarded_handler_registration_plan_passed_ready_for_disabled_handler_registration_scaffold",
+  "execution": "completed_docs_only_guarded_handler_registration_plan_no_runtime_execution",
+  "prior": {
+    "disabledHandlerRegistrationContractNegativeTests": "tracka_gpac_mp4box_disabled_handler_registration_contract_negative_tests_passed_ready_for_guarded_handler_registration_plan",
+    "disabledHandlerRegistrationContractNegativeTestsMergeSha": "7600ec197854d64784289fa9d2ee6ba654772486"
+  },
+  "handlerRegistrationPlan": {
+    "status": "passed",
+    "nextAllowedImplementation": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-SCAFFOLD-1",
+    "handlerRegistrationReadiness": "ready_for_disabled_handler_registration_scaffold_only",
+    "productRuntime": "blocked",
+    "externalBetaProductUse": "blocked",
+    "paidProduction": "blocked",
+    "production": "blocked",
+    "finalDeliveryExport": "blocked"
+  },
+  "requiredFutureGuards": [
+    "backend_service_role_owner_required",
+    "disabled_by_default_handler_registration_required",
+    "feature_flag_default_false_required",
+    "approved_snapshot_guard_required",
+    "route_idempotency_guard_required",
+    "private_artifact_manifest_guard_required",
+    "command_allowlist_guard_required",
+    "negative_tests_must_remain_passing",
+    "cleanup_audit_reference_required",
+    "no_storage_transfer_until_private_artifact_runtime_gate",
+    "no_signed_or_public_artifact_until_delivery_policy_gate",
+    "operator_confirmation_required_before_any_execution"
+  ],
+  "rejectedInputs": [
+    "raw_chat",
+    "raw_command_string",
+    "frontend_file_path",
+    "public_url_source_of_truth",
+    "signed_url_source_of_truth",
+    "arbitrary_private_media",
+    "provider_or_model_prompt_payload",
+    "service_role_secret_payload",
+    "broad_service_role_handler_payload"
+  ],
+  "safety": {
+    "executableHandlerRegistration": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-SCAFFOLD-1"
+}

@@ -91,9 +91,8 @@ check(
   'UI data must name the typed private invoke frontend client.',
 )
 check(
-  data.privateInvokeClient.currentStatus ===
-    'backend_runtime_persistence_active_migration_remote_satisfaction_review_required',
-  'Private invoke client status must record the active migration remote satisfaction review blocker.',
+  data.privateInvokeClient.currentStatus === 'persisted_worker_dispatch_readiness_review_required',
+  'Private invoke client status must record the persisted worker dispatch readiness blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -174,9 +173,8 @@ check(
     docText.includes('backend_runtime_persistence_active_migration_plan_required') ||
     docText.includes('backend_runtime_persistence_active_migration_validation_required') ||
     docText.includes('backend_runtime_persistence_active_migration_history_adoption_required') ||
-    docText.includes('backend_runtime_persistence_active_migration_remote_satisfaction_review_required') ||
-    data.privateInvokeClient.currentStatus ===
-      'backend_runtime_persistence_active_migration_remote_satisfaction_review_required',
+    docText.includes('persisted_worker_dispatch_readiness_review_required') ||
+    data.privateInvokeClient.currentStatus === 'persisted_worker_dispatch_readiness_review_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -333,8 +331,8 @@ check(
     docText.includes('comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects') &&
     docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
     docText.includes('Retry 15 verified the active local baseline') &&
-    docText.includes('QWEN2_5_VL_STACK_TOOL_58BI-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-REMOTE-SATISFACTION-REVIEW'),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and remote satisfaction review blocker.',
+    docText.includes('QWEN2_5_VL_STACK_TOOL_58BJ-RUNTIME-PERSISTENCE-TO-WORKER-DISPATCH-READINESS-REVIEW'),
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and persisted worker dispatch readiness blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

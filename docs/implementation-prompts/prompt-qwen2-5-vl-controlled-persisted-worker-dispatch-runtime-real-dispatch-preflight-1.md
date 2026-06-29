@@ -21,3 +21,7 @@ The future runner must require an explicit confirmation environment variable bef
 ## Forbidden Scope
 
 No full draft stack merge, Dockerfile changes, Supabase migrations, SQL execution, provider/model call, QWEN inference, Cloud Run invocation, worker dispatch, media processing, generated assets, public artifacts, signed URLs, credit mutation, final render/export, broad beta unlock, or production unlock may occur from this prompt alone.
+
+## Source Gate Follow-Up
+
+After `RP-EXTERNAL-BETA-QWEN-REAL-DISPATCH-PREFLIGHT-1`, the next prompt is `QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_CONFIRMED_PREFLIGHT_1`. It must use the current integration source gate and must not import the stacked draft runtime branches wholesale.

@@ -1630,6 +1630,18 @@ Next required gate: `TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1`.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Disabled Live Registration Contract
+
+`TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1` records decision `tracka_gpac_mp4box_disabled_live_registration_contract_passed_ready_for_live_registration_contract_negative_tests` and execution `completed_disabled_live_registration_contract_no_route_or_worker_execution`.
+
+The TypeScript-only contract id is `liveRegistration.gpacMp4box.disabled`; route id is `render.gpacMp4box.disabledLiveRegistrationContract`; route owner is `backend_service_role_only`; route registration mode is `disabled_metadata_contract_only`; registration status is `disabled_live_registration_contract_registered_no_handler`. It does not register an executable HTTP handler.
+
+Live handler registration, route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-LIVE-REGISTRATION-CONTRACT-NEGATIVE-TESTS-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records decision `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

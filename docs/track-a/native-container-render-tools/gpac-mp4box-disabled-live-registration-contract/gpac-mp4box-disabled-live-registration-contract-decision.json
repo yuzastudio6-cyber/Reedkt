@@ -1,0 +1,53 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-LIVE-REGISTRATION-CONTRACT-1",
+  "decision": "tracka_gpac_mp4box_disabled_live_registration_contract_passed_ready_for_live_registration_contract_negative_tests",
+  "execution": "completed_disabled_live_registration_contract_no_route_or_worker_execution",
+  "prior": {
+    "guardedLiveRegistrationReview": "tracka_gpac_mp4box_guarded_live_registration_review_passed_ready_for_disabled_live_registration_contract",
+    "guardedLiveRegistrationReviewMergeSha": "d0aaa82eac128b71fc37be63a5c2194b2990f432"
+  },
+  "contract": {
+    "contractId": "liveRegistration.gpacMp4box.disabled",
+    "routeId": "render.gpacMp4box.disabledLiveRegistrationContract",
+    "routeOwner": "backend_service_role_only",
+    "routeRegistrationMode": "disabled_metadata_contract_only",
+    "registrationStatus": "disabled_live_registration_contract_registered_no_handler",
+    "liveHandlerRegistered": false,
+    "liveHandlerEnabled": false,
+    "featureFlagDefault": false,
+    "runtimeExecutionApproved": false
+  },
+  "requiredGuards": [
+    "approved_snapshot_guard_required",
+    "route_idempotency_guard_required",
+    "private_artifact_manifest_guard_required",
+    "command_allowlist_guard_required",
+    "negative_tests_must_remain_passing",
+    "no_storage_transfer_until_private_artifact_runtime_gate",
+    "no_signed_or_public_artifact_until_delivery_policy_gate",
+    "operator_confirmation_required_before_any_execution"
+  ],
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-LIVE-REGISTRATION-CONTRACT-NEGATIVE-TESTS-1"
+}

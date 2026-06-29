@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-live-registration-review'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-runtime-scaffold-negative-tests'
+const disabledLiveRegistrationDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-live-registration-contract'
 const lane = 'TRACKA-GPAC-MP4BOX-GUARDED-LIVE-REGISTRATION-REVIEW-1'
 const decisionText = 'tracka_gpac_mp4box_guarded_live_registration_review_passed_ready_for_disabled_live_registration_contract'
 const executionText = 'completed_docs_only_guarded_live_registration_review_no_runtime_execution'
@@ -36,16 +37,38 @@ const statusFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
 ]
 
+const disabledLiveRegistrationFiles = [
+  `${disabledLiveRegistrationDir}/gpac-mp4box-disabled-live-registration-contract-decision.json`,
+  `${disabledLiveRegistrationDir}/gpac-mp4box-disabled-live-registration-contract-decision.md`,
+  `${disabledLiveRegistrationDir}/live-registration-contract.json`,
+  `${disabledLiveRegistrationDir}/live-registration-contract.md`,
+  `${disabledLiveRegistrationDir}/readiness-report.json`,
+  `${disabledLiveRegistrationDir}/source-of-truth-audit.json`,
+  `${disabledLiveRegistrationDir}/source-of-truth-audit.md`,
+  `${disabledLiveRegistrationDir}/validation-results.md`,
+]
+
+const disabledLiveRegistrationContractFiles = [
+  'src/backend/contracts/gpac-mp4box-disabled-live-registration-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'server/smoke/tracka-gpac-mp4box-disabled-live-registration-contract-smoke.ts',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...priorFiles,
   ...statusFiles,
+  ...disabledLiveRegistrationFiles,
+  ...disabledLiveRegistrationContractFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-live-registration-review-1-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-live-registration-contract-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-live-registration-contract-negative-tests-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-live-registration-contract-1.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-live-registration-review-1.md',
   'package.json',
   'scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-live-registration-review-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-disabled-live-registration-contract-diagnostics.mjs',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
@@ -254,7 +277,10 @@ if (prior.decision !== priorDecision) fail('prior negative-tests decision drift'
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (forbiddenChangedPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
+  const isAllowedDisabledContractFile = disabledLiveRegistrationContractFiles.includes(file)
+  if (!isAllowedDisabledContractFile && forbiddenChangedPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path ${file}`)
+  if (/^src\//.test(file) && !isAllowedDisabledContractFile) fail(`unexpected source path ${file}`)
+  if (/^server\//.test(file) && !isAllowedDisabledContractFile) fail(`unexpected server path ${file}`)
 }
 
 for (const file of changedFiles.filter((file) => file.startsWith(packetDir) || file.startsWith('docs/activation-phase-tracka-gpac-mp4box-guarded-live-registration-review') || file === 'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-live-registration-contract-1.md')) {

@@ -303,7 +303,8 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
     const externalBetaCandidateReadyWithProvidedEvidence =
       sourceGateTool?.externalBetaReadyWithProvidedEvidence === true &&
       serviceRoleQueueSmokePreflight.readyToExecuteLiveNonProductionSmoke === true &&
-      sourceServiceRoleQueueSmokeProofAccepted
+      sourceServiceRoleQueueSmokeProofAccepted &&
+      sourceWorkerDispatchSmokeProofAccepted
     return {
       toolId: record.toolId,
       productionToolId: record.productionToolId,

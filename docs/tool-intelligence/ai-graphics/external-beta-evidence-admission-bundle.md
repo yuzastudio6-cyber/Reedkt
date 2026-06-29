@@ -9,6 +9,8 @@ This packet is the external-beta bridge between the all-21 technical proof bundl
 
 It does not enable tool execution. External beta still requires launch go/no-go, runtime admission, approved plan snapshot, credit, Tool Route, Worker, private artifact, feature flag, rollout, cost, concurrency, rollback, support, and incident-response gates.
 
+Summary-only technical evidence is rejected. The source beta evidence bundle must carry detailed install, production mapping, planning, shared gate, JS runtime proof, model-weight review, native GPU proof, private artifact namespace, GPU policy, per-tool coverage, and empty technical-gap fields before the admission bundle can count technical evidence for all 21 tools.
+
 ## Tools
 
 The bundle covers all 21 AI graphics tools:

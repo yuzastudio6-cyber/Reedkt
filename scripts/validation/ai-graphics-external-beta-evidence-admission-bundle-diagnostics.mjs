@@ -139,6 +139,106 @@ function acceptedExternalBetaRecord(toolId) {
 }
 
 function acceptedBetaEvidenceBundleFixture() {
+  const expectedGpuRuntimeTargets = {
+    torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+    birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+    real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+    kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  }
+
+  return {
+    decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
+    totalAiGraphicsTools: 21,
+    installReadyForPlannedSurfaceTools: 21,
+    productionMappedTools: 21,
+    planningSelectableTools: 21,
+    betaTestingReadyTools: 21,
+    blockedTools: 0,
+    all21BetaEvidenceReady: true,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+    evidence: {
+      approvedPlanSnapshotGatePassed: true,
+      creditReservationGatePassed: true,
+      artifactBoundaryGatePassed: true,
+      toolRouteGatePassed: true,
+      workerGatePassed: true,
+      browserCanvasWebglSandboxPassed: true,
+      nativeGpuRuntimeProofPassed: true,
+      modelWeightManifestsApproved: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      internalBetaOwnerApprovalGranted: true,
+    },
+    evidenceSources: {
+      jsRuntimeProofsAccepted: true,
+      nodeRuntimeProofPacketAccepted: true,
+      browserRuntimeProofPacketAccepted: true,
+      satoriFontRuntimeProofPacketAccepted: true,
+      nodeRuntimeProofPacketProvided: true,
+      browserRuntimeProofPacketProvided: true,
+      satoriFontRuntimeProofPacketProvided: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      modelWeightManifestReviewPacketProvided: true,
+      nativeGpuRuntimeProofResultPacketAccepted: true,
+      nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuRuntimeProofTargetsExact: true,
+      privateArtifactRefNamespaceAccepted: true,
+    },
+    gpuRuntimeTargetedTools: gpuTools,
+    expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
+      cpuFallbackAllowedForHeavyTools: false,
+    },
+    tools: allTools.map((toolId) => ({
+      toolId,
+      installReadyForPlannedSurface: true,
+      productionMapped: true,
+      planningSelectable: true,
+      gpuRequiredForRuntime: gpuTools.includes(toolId),
+      runtimeTargetForPlannedSurface: expectedGpuRuntimeTargets[toolId] ?? null,
+      betaTestingReadyNow: true,
+      evidenceMissing: [],
+      blockers: [],
+    })),
+    missingEvidence: [],
+    missingTechnicalEvidenceBeforeOwnerApproval: [],
+    booleans: {
+      betaEvidenceBundleValidatorPrepared: true,
+      all21ToolsCovered: true,
+      all21ToolsInstallReadyForPlannedSurface: true,
+      all21ToolsMappedToProductionRegistry: true,
+      all21ToolsPlanningSelectable: true,
+      agentCanSelectForPlanning: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
+      privateArtifactRefNamespaceRequired: true,
+      all21BetaEvidenceReady: true,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+      readyForInternalBetaOwnerGate: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      modelWeightManifestsApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
+function summaryOnlyBetaEvidenceBundleFixture() {
   return {
     decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
     totalAiGraphicsTools: 21,
@@ -223,6 +323,11 @@ for (const needle of [
   'betaEvidenceBundleAccepted',
   'externalBetaEvidencePacketAccepted',
   'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked',
+  'installReadyForPlannedSurfaceTools === 21',
+  'modelWeightManifestReviewPacketProvided === true',
+  'nativeGpuRuntimeProofResultPacketProvided === true',
+  'privateArtifactRefNamespaceAccepted === true',
+  'missingTechnicalEvidenceBeforeOwnerApproval?.length === 0',
   'externalBetaReadyNowTools: 0',
   'productionReadyNowTools: 0',
   'gpuRuntimeOnDemandOnly: true',
@@ -258,12 +363,31 @@ for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
 if (!docsMd.includes('External-beta-ready now: `0`')) fail('markdown_missing_external_beta_ready_zero')
+if (!docsMd.includes('Summary-only technical evidence is rejected')) {
+  fail('markdown_missing_summary_only_rejection')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.summaryOnlyPacketsRejected !== true) {
+  fail('docs_summary_only_packets_not_rejected')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.modelWeightManifestReviewPacketRequired !== true) {
+  fail('docs_model_weight_packet_not_required_for_admission')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.nativeGpuRuntimeProofResultPacketRequired !== true) {
+  fail('docs_gpu_packet_not_required_for_admission')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.missingTechnicalEvidenceBeforeOwnerApprovalMustBeEmpty !== true) {
+  fail('docs_missing_technical_evidence_empty_not_required')
+}
 if (!scorecard.includes('ai_graphics_external_beta_evidence_admission_bundle_prepared_with_runtime_blocks')) {
   fail('scorecard_missing_external_beta_evidence_admission_bundle_decision')
 }
 
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-external-beta-admission-'))
 const betaBundlePath = writeJson(path.join(tempRoot, 'accepted-beta-evidence-bundle.json'), acceptedBetaEvidenceBundleFixture())
+const summaryOnlyBetaBundlePath = writeJson(
+  path.join(tempRoot, 'summary-only-beta-evidence-bundle.json'),
+  summaryOnlyBetaEvidenceBundleFixture(),
+)
 const recordsPath = writeJson(path.join(tempRoot, 'external-beta-records.json'), allTools.map(acceptedExternalBetaRecord))
 const externalBetaPacketPath = writeJson(
   path.join(tempRoot, 'external-beta-evidence-packet.json'),
@@ -274,6 +398,10 @@ const externalBetaPacketPath = writeJson(
 )
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_admission_bundle')
+const summaryOnlyOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--beta-evidence-bundle-packet',
+  summaryOnlyBetaBundlePath,
+]), 'summary_only_admission_bundle')
 const technicalOnlyOutput = parseJsonOutput(runNpm(runScriptName, [
   '--beta-evidence-bundle-packet',
   betaBundlePath,
@@ -290,6 +418,15 @@ if (defaultOutput.status !== 'missing_technical_runtime_evidence') {
 }
 if (defaultOutput.externalBetaAdmissionCandidateToolsWithProvidedEvidence !== 0) {
   fail('default_admission_candidate_tools_not_0')
+}
+if (summaryOnlyOutput.status !== 'missing_technical_runtime_evidence') {
+  fail(`summary_only_status_unexpected:${summaryOnlyOutput.status}`)
+}
+if (summaryOnlyOutput.technicalEvidenceReadyBeforeOwnerApprovalTools !== 0) {
+  fail('summary_only_technical_evidence_tools_not_0')
+}
+if (summaryOnlyOutput.externalBetaAdmissionCandidateToolsWithProvidedEvidence !== 0) {
+  fail('summary_only_admission_candidate_tools_not_0')
 }
 if (technicalOnlyOutput.status !== 'missing_external_beta_private_evidence_refs') {
   fail(`technical_only_status_unexpected:${technicalOnlyOutput.status}`)
@@ -332,7 +469,7 @@ for (const tool of allTools) {
   if (row?.productionReadyNow !== false) fail(`full_tool_production_not_false:${tool}`)
 }
 
-for (const output of [defaultOutput, technicalOnlyOutput, fullOutput]) {
+for (const output of [defaultOutput, summaryOnlyOutput, technicalOnlyOutput, fullOutput]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`output_required_false_not_false:${key}`)
@@ -408,6 +545,7 @@ console.log(JSON.stringify({
   toolsCovered: allTools.length,
   gpuToolsCovered: gpuTools.length,
   defaultStatus: defaultOutput.status,
+  summaryOnlyStatus: summaryOnlyOutput.status,
   technicalOnlyStatus: technicalOnlyOutput.status,
   fullStatus: fullOutput.status,
   externalBetaAdmissionCandidateToolsWithProvidedEvidence:

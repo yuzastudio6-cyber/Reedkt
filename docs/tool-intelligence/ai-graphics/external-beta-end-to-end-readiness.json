@@ -12,6 +12,7 @@
     "externalBetaWorkerEnqueueAdapter": "docs/tool-intelligence/ai-graphics/external-beta-worker-enqueue-adapter.json",
     "externalBetaWorkerDispatchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-readiness.json",
     "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
+    "externalBetaEvidenceAdmissionBundle": "docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json",
     "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "externalBetaServiceRoleQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json",
     "crossOwnerCoordination": "docs/tool-intelligence/ai-graphics/cross-owner-coordination.json"
@@ -35,6 +36,7 @@
     "defaultServiceRoleQueueSmokePreflightReadyToExecute": 0,
     "defaultServiceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence": 0,
     "defaultWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 0,
+    "overrideFlagWithQueueAndWorkerProofExternalBetaCandidateReadyWithProvidedEvidenceTools": 0,
     "fullEvidenceBetaTechnicalEvidenceReadyWithProvidedEvidenceTools": 21,
     "fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceTools": 21,
     "fullEvidenceServiceRoleQueueSmokePreflightReadyToExecute": 1,

@@ -42,6 +42,20 @@
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
+  "technicalEvidenceBundleAcceptancePolicy": {
+    "summaryOnlyPacketsRejected": true,
+    "installReadyForPlannedSurfaceToolsRequired": 21,
+    "productionMappedToolsRequired": 21,
+    "planningSelectableToolsRequired": 21,
+    "detailedSharedGateEvidenceRequired": true,
+    "jsRuntimeProofPacketsRequired": true,
+    "modelWeightManifestReviewPacketRequired": true,
+    "nativeGpuRuntimeProofResultPacketRequired": true,
+    "privateArtifactRefNamespaceRequired": true,
+    "gpuRuntimeOnDemandPolicyRequired": true,
+    "perToolCoverageRequired": 21,
+    "missingTechnicalEvidenceBeforeOwnerApprovalMustBeEmpty": true
+  },
   "requiredEvidenceFlow": [
     "technical proof bundle accepted for all 21 AI graphics tools",
     "private or backend external-beta evidence refs accepted for all 21 tools",

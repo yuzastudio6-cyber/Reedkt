@@ -30,7 +30,7 @@
     "gpuRuntimeTargetedTools": 8,
     "heavyToolsIncorrectlyTargetingCpu": 0,
     "defaultExternalBetaReadyWithProvidedEvidenceTools": 0,
-    "fullEvidenceExternalBetaReadyWithProvidedEvidenceTools": 21,
+    "overrideFlagExternalBetaReadyWithProvidedEvidenceTools": 0,
     "admissionBundleExternalBetaReadyWithProvidedEvidenceTools": 21,
     "workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,

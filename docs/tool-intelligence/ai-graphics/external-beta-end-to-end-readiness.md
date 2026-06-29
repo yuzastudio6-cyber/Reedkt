@@ -52,16 +52,17 @@ Default committed evidence:
 - Saved worker-dispatch smoke proof accepted with provided evidence: false.
 - External-beta ready now: 0 / 21.
 
-Full evidence mode, using the CLI with all required proof flags:
+Full evidence mode, using the CLI with the accepted external-beta evidence admission bundle and all required saved proof packets:
 
 - Beta technical evidence ready with provided evidence: 21 / 21.
 - External-beta candidate ready with provided evidence: 21 / 21.
+- Override flags plus queue and worker proof, without the admission bundle, remain blocked at 0 / 21 external-beta candidates.
 - Service-role queue smoke preflight ready to execute: true, when a ready preflight packet is supplied with `--external-beta-service-role-queue-smoke-preflight-packet`.
 - Saved service-role queue smoke proof accepted with provided evidence: true, when an accepted proof packet is supplied with `--external-beta-service-role-queue-smoke-proof-packet`.
 - Saved worker-dispatch smoke proof accepted with provided evidence: true, when an accepted proof packet is supplied with `--external-beta-worker-dispatch-smoke-proof`.
 - External-beta ready now: 0 / 21.
 
-That means the evaluator can prove the complete candidate path when supplied with the required private/runtime evidence, a ready service-role queue smoke preflight packet, an accepted saved service-role queue smoke proof packet, and an accepted saved worker-dispatch smoke proof packet, while still refusing to claim live external-beta or production readiness from committed docs alone.
+That means the evaluator can prove the complete candidate path only when supplied with the required private/runtime admission bundle, a ready service-role queue smoke preflight packet, an accepted saved service-role queue smoke proof packet, and an accepted saved worker-dispatch smoke proof packet, while still refusing to claim live external-beta or production readiness from committed docs alone.
 
 ## Remaining End-to-End Gates
 

@@ -34,6 +34,7 @@ const diagnosticScriptName = 'ai-graphics:external-beta-evidence-packet:diagnost
 const diagnosticScriptCommand = 'node scripts/validation/ai-graphics-external-beta-evidence-packet-diagnostics.mjs'
 const scaffoldScriptName = 'ai-graphics:external-beta-evidence-scaffold'
 const scaffoldScriptCommand = 'tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts'
+const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
 const readinessScriptName = 'ai-graphics:external-beta-readiness-gate'
 const workerDispatchSmokeScriptName = 'ai-graphics:external-beta-worker-dispatch-smoke'
 const workerDispatchSmokeProofScriptName =
@@ -164,6 +165,115 @@ function acceptedRecord(toolId) {
   }
 }
 
+function acceptedBetaEvidenceBundleFixture() {
+  const gpuTools = [
+    'torch_torchvision',
+    'transformers',
+    'sam2',
+    'birefnet',
+    'real_esrgan',
+    'kornia',
+    'rembg',
+    'transparent_background',
+  ]
+  const expectedGpuRuntimeTargets = {
+    torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+    birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+    real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+    kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  }
+
+  return {
+    decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
+    totalAiGraphicsTools: 21,
+    installReadyForPlannedSurfaceTools: 21,
+    productionMappedTools: 21,
+    planningSelectableTools: 21,
+    betaTestingReadyTools: 21,
+    blockedTools: 0,
+    all21BetaEvidenceReady: true,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+    evidence: {
+      approvedPlanSnapshotGatePassed: true,
+      creditReservationGatePassed: true,
+      artifactBoundaryGatePassed: true,
+      toolRouteGatePassed: true,
+      workerGatePassed: true,
+      browserCanvasWebglSandboxPassed: true,
+      nativeGpuRuntimeProofPassed: true,
+      modelWeightManifestsApproved: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      internalBetaOwnerApprovalGranted: true,
+    },
+    evidenceSources: {
+      jsRuntimeProofsAccepted: true,
+      nodeRuntimeProofPacketAccepted: true,
+      browserRuntimeProofPacketAccepted: true,
+      satoriFontRuntimeProofPacketAccepted: true,
+      nodeRuntimeProofPacketProvided: true,
+      browserRuntimeProofPacketProvided: true,
+      satoriFontRuntimeProofPacketProvided: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      modelWeightManifestReviewPacketProvided: true,
+      nativeGpuRuntimeProofResultPacketAccepted: true,
+      nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuRuntimeProofTargetsExact: true,
+      privateArtifactRefNamespaceAccepted: true,
+    },
+    gpuRuntimeTargetedTools: gpuTools,
+    expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
+      cpuFallbackAllowedForHeavyTools: false,
+    },
+    tools: allTools.map((toolId) => ({
+      toolId,
+      installReadyForPlannedSurface: true,
+      productionMapped: true,
+      planningSelectable: true,
+      gpuRequiredForRuntime: gpuTools.includes(toolId),
+      runtimeTargetForPlannedSurface: expectedGpuRuntimeTargets[toolId] ?? null,
+      betaTestingReadyNow: true,
+      evidenceMissing: [],
+      blockers: [],
+    })),
+    missingEvidence: [],
+    missingTechnicalEvidenceBeforeOwnerApproval: [],
+    booleans: {
+      betaEvidenceBundleValidatorPrepared: true,
+      all21ToolsCovered: true,
+      all21ToolsInstallReadyForPlannedSurface: true,
+      all21ToolsMappedToProductionRegistry: true,
+      all21ToolsPlanningSelectable: true,
+      agentCanSelectForPlanning: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
+      privateArtifactRefNamespaceRequired: true,
+      all21BetaEvidenceReady: true,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+      readyForInternalBetaOwnerGate: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 const pkg = json('package.json')
 const docs = json('docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json')
 const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.md')
@@ -266,9 +376,9 @@ for (const needle of [
 for (const needle of [
   'externalBetaEvidencePacket',
   '--external-beta-evidence-packet',
-  'internalBetaRuntimeSoakAcceptedWithProvidedEvidence',
-  'externalBetaQaAcceptedWithProvidedEvidence',
-  'externalBetaOwnerApprovalGrantedWithProvidedEvidence',
+  'externalBetaEvidenceAdmissionBundle',
+  '--external-beta-evidence-admission-bundle',
+  'sourceExternalBetaEvidenceAdmissionBundleAccepted',
 ]) {
   if (!gateSource.includes(needle) && !gateCli.includes(needle)) fail(`readiness_gate_missing_packet_integration:${needle}`)
 }
@@ -282,6 +392,24 @@ const fullPacketPath = writeJson(
   tempRoot,
   'full-packet.json',
   parseJsonOutput(runNpm(validateScriptName, ['--evidence-records', fullRecordsPath]), 'full_packet_source'),
+)
+const betaEvidenceBundlePath = writeJson(
+  tempRoot,
+  'accepted-beta-evidence-bundle.json',
+  acceptedBetaEvidenceBundleFixture(),
+)
+const admissionBundlePath = writeJson(
+  tempRoot,
+  'external-beta-evidence-admission-bundle.json',
+  parseJsonOutput(
+    runNpm(admissionBundleScriptName, [
+      '--beta-evidence-bundle-packet',
+      betaEvidenceBundlePath,
+      '--external-beta-evidence-packet',
+      fullPacketPath,
+    ]),
+    'external_beta_evidence_admission_bundle_source',
+  ),
 )
 const workerDispatchReadinessPath = writeJson(
   tempRoot,
@@ -368,6 +496,17 @@ const packetFedGateOutput = parseJsonOutput(runNpm(readinessScriptName, [
   '--external-beta-worker-dispatch-smoke-proof',
   workerDispatchSmokeProofPath,
 ]), 'packet_fed_external_beta_gate')
+const admissionBundleFedGateOutput = parseJsonOutput(runNpm(readinessScriptName, [
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--external-beta-evidence-admission-bundle',
+  admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+]), 'admission_bundle_fed_external_beta_gate')
 
 if (defaultOutput.records?.length !== 21) fail('default_output_record_count_not_21')
 if (defaultOutput.evidenceRecordsProvided !== 0) fail('default_output_records_provided_not_0')
@@ -392,8 +531,8 @@ if (!unsafeD3?.missingEvidence?.length) fail('unsafe_d3_missing_evidence_not_rep
 if (packetFedGateOutput.betaTestingReadyWithProvidedEvidenceTools !== 21) {
   fail('packet_fed_gate_beta_testing_candidates_not_21')
 }
-if (packetFedGateOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
-  fail('packet_fed_gate_external_beta_candidates_not_21')
+if (packetFedGateOutput.externalBetaReadyWithProvidedEvidenceTools !== 0) {
+  fail('packet_fed_gate_external_beta_candidates_not_0')
 }
 if (packetFedGateOutput.externalBetaReadyNowTools !== 0) fail('packet_fed_gate_external_beta_ready_now_not_0')
 if (packetFedGateOutput.externalBetaBlockedNowTools !== 21) fail('packet_fed_gate_blocked_now_not_21')
@@ -401,8 +540,17 @@ if (packetFedGateOutput.productionReadyNowTools !== 0) fail('packet_fed_gate_pro
 if (packetFedGateOutput.booleans?.sourceExternalBetaWorkerDispatchSmokeProofAccepted !== true) {
   fail('packet_fed_gate_worker_dispatch_smoke_proof_not_accepted')
 }
+if (admissionBundleFedGateOutput.externalBetaReadyWithProvidedEvidenceTools !== 21) {
+  fail('admission_bundle_fed_gate_external_beta_candidates_not_21')
+}
+if (admissionBundleFedGateOutput.booleans?.sourceExternalBetaEvidenceAdmissionBundleAccepted !== true) {
+  fail('admission_bundle_fed_gate_admission_bundle_not_accepted')
+}
+if (admissionBundleFedGateOutput.externalBetaReadyNowTools !== 0) {
+  fail('admission_bundle_fed_gate_external_beta_ready_now_not_0')
+}
 
-for (const output of [defaultOutput, fullOutput, packetFedGateOutput]) {
+for (const output of [defaultOutput, fullOutput, packetFedGateOutput, admissionBundleFedGateOutput]) {
   for (const key of falseGateKeys) {
     if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
       fail(`output_required_false_not_false:${key}`)

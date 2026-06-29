@@ -111,18 +111,67 @@ const nextExternalBetaActions = [
 function betaEvidenceBundleAccepted(
   packet: Partial<AiGraphicsBetaEvidenceBundle>,
 ): packet is AiGraphicsBetaEvidenceBundle {
+  const evidence = packet.evidence
+  const evidenceSources = packet.evidenceSources
+  const booleans = packet.booleans
+  const tools = Array.isArray(packet.tools) ? packet.tools : []
+  const gpuTargets = Array.isArray(packet.gpuRuntimeTargetedTools)
+    ? packet.gpuRuntimeTargetedTools
+    : []
+  const missingTechnicalEvidenceBeforeOwnerApproval =
+    Array.isArray(packet.missingTechnicalEvidenceBeforeOwnerApproval)
+      ? packet.missingTechnicalEvidenceBeforeOwnerApproval
+      : null
+  const expectedToolsCovered =
+    tools.length === AI_GRAPHICS_CANONICAL_TOOL_IDS.length &&
+    AI_GRAPHICS_CANONICAL_TOOL_IDS.every((toolId) =>
+      tools.some((tool) => tool.toolId === toolId),
+    )
+
   return Boolean(
     packet.decision === AI_GRAPHICS_BETA_EVIDENCE_BUNDLE_DECISION &&
       packet.totalAiGraphicsTools === 21 &&
+      packet.installReadyForPlannedSurfaceTools === 21 &&
+      packet.productionMappedTools === 21 &&
+      packet.planningSelectableTools === 21 &&
       packet.all21TechnicalEvidenceReadyBeforeOwnerApproval === true &&
-      packet.evidenceSources?.jsRuntimeProofsAccepted === true &&
-      packet.evidenceSources?.modelWeightManifestReviewPacketAccepted === true &&
-      packet.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted === true &&
-      packet.evidenceSources?.nativeGpuRuntimeProofTargetsExact === true &&
-      packet.booleans?.gpuRuntimeOnDemandOnly === true &&
-      packet.booleans?.agentCanExecuteToolsNow === false &&
-      packet.booleans?.externalBetaReadyNow === false &&
-      packet.booleans?.productionReadyNow === false,
+      packet.gpuRuntimePolicy?.onDemandOnly === true &&
+      packet.gpuRuntimePolicy?.noIdleGpuRuntimeApproved === true &&
+      packet.gpuRuntimePolicy?.startsOnlyForApprovedWorkerOrToolCall === true &&
+      packet.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools === false &&
+      evidence?.approvedPlanSnapshotGatePassed === true &&
+      evidence?.creditReservationGatePassed === true &&
+      evidence?.artifactBoundaryGatePassed === true &&
+      evidence?.toolRouteGatePassed === true &&
+      evidence?.workerGatePassed === true &&
+      evidence?.browserCanvasWebglSandboxPassed === true &&
+      evidence?.nativeGpuRuntimeProofPassed === true &&
+      evidence?.modelWeightManifestsApproved === true &&
+      evidence?.modelWeightManifestReviewPacketAccepted === true &&
+      evidenceSources?.jsRuntimeProofsAccepted === true &&
+      evidenceSources?.nodeRuntimeProofPacketAccepted === true &&
+      evidenceSources?.browserRuntimeProofPacketAccepted === true &&
+      evidenceSources?.satoriFontRuntimeProofPacketAccepted === true &&
+      evidenceSources?.modelWeightManifestReviewPacketProvided === true &&
+      evidenceSources?.modelWeightManifestReviewPacketAccepted === true &&
+      evidenceSources?.nativeGpuRuntimeProofResultPacketProvided === true &&
+      evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted === true &&
+      evidenceSources?.nativeGpuRuntimeProofTargetsExact === true &&
+      evidenceSources?.privateArtifactRefNamespaceAccepted === true &&
+      booleans?.all21ToolsCovered === true &&
+      booleans?.all21ToolsInstallReadyForPlannedSurface === true &&
+      booleans?.all21ToolsMappedToProductionRegistry === true &&
+      booleans?.all21ToolsPlanningSelectable === true &&
+      booleans?.gpuRuntimeTargetsExact === true &&
+      booleans?.gpuRuntimeOnDemandOnly === true &&
+      booleans?.privateArtifactRefNamespaceRequired === true &&
+      booleans?.readyForInternalBetaOwnerGate === true &&
+      booleans?.agentCanExecuteToolsNow === false &&
+      booleans?.externalBetaReadyNow === false &&
+      booleans?.productionReadyNow === false &&
+      expectedToolsCovered &&
+      gpuTargets.length === 8 &&
+      missingTechnicalEvidenceBeforeOwnerApproval?.length === 0,
   )
 }
 

@@ -34,6 +34,7 @@ const diagnosticScriptName = 'ai-graphics:external-beta-launch-gap-report:diagno
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-beta-launch-gap-report-diagnostics.mjs'
 const packetScriptName = 'ai-graphics:external-beta-evidence-packet:validate'
+const admissionBundleScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
 
 const allTools = [
   'torch_torchvision',
@@ -170,6 +171,137 @@ function acceptedRecord(toolId) {
   }
 }
 
+function acceptedBetaEvidenceBundleFixture() {
+  const expectedGpuRuntimeTargets = {
+    torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+    birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+    real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+    kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  }
+
+  return {
+    decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
+    totalAiGraphicsTools: 21,
+    installReadyForPlannedSurfaceTools: 21,
+    productionMappedTools: 21,
+    planningSelectableTools: 21,
+    betaTestingReadyTools: 21,
+    blockedTools: 0,
+    all21BetaEvidenceReady: true,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+    evidence: {
+      approvedPlanSnapshotGatePassed: true,
+      creditReservationGatePassed: true,
+      artifactBoundaryGatePassed: true,
+      toolRouteGatePassed: true,
+      workerGatePassed: true,
+      browserCanvasWebglSandboxPassed: true,
+      nativeGpuRuntimeProofPassed: true,
+      modelWeightManifestsApproved: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      internalBetaOwnerApprovalGranted: true,
+    },
+    evidenceSources: {
+      jsRuntimeProofsAccepted: true,
+      nodeRuntimeProofPacketAccepted: true,
+      browserRuntimeProofPacketAccepted: true,
+      satoriFontRuntimeProofPacketAccepted: true,
+      nodeRuntimeProofPacketProvided: true,
+      browserRuntimeProofPacketProvided: true,
+      satoriFontRuntimeProofPacketProvided: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      modelWeightManifestReviewPacketProvided: true,
+      nativeGpuRuntimeProofResultPacketAccepted: true,
+      nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuRuntimeProofTargetsExact: true,
+      privateArtifactRefNamespaceAccepted: true,
+    },
+    gpuRuntimeTargetedTools: gpuTools,
+    expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
+      cpuFallbackAllowedForHeavyTools: false,
+    },
+    tools: allTools.map((toolId) => ({
+      toolId,
+      installReadyForPlannedSurface: true,
+      productionMapped: true,
+      planningSelectable: true,
+      gpuRequiredForRuntime: gpuTools.includes(toolId),
+      runtimeTargetForPlannedSurface: expectedGpuRuntimeTargets[toolId] ?? null,
+      betaTestingReadyNow: true,
+      evidenceMissing: [],
+      blockers: [],
+    })),
+    missingEvidence: [],
+    missingTechnicalEvidenceBeforeOwnerApproval: [],
+    booleans: {
+      betaEvidenceBundleValidatorPrepared: true,
+      all21ToolsCovered: true,
+      all21ToolsInstallReadyForPlannedSurface: true,
+      all21ToolsMappedToProductionRegistry: true,
+      all21ToolsPlanningSelectable: true,
+      agentCanSelectForPlanning: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
+      privateArtifactRefNamespaceRequired: true,
+      all21BetaEvidenceReady: true,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+      readyForInternalBetaOwnerGate: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
+function acceptedWorkerDispatchSmokeProofFixture() {
+  return {
+    sourceDecision: 'ai_graphics_external_beta_worker_dispatch_smoke_proof_prepared_with_runtime_blocks',
+    decision: 'external_beta_worker_dispatch_smoke_proof_accepted_with_runtime_blocks',
+    proofAcceptedWithProvidedEvidence: true,
+    counts: {
+      workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: 21,
+      sourceSmokeJobsCompletedWithProvidedEvidence: 21,
+      sourceCapabilityScenariosCompletedWithProvidedEvidence: 12,
+      sourceInMemoryLeaseRecordsCreated: 21,
+      sourceInMemoryLeaseRecordsReleased: 21,
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+      sourceLiveWorkerLeasesCreatedNow: 0,
+      sourceLiveWorkerDispatchesNow: 0,
+      sourceLiveToolExecutionsNow: 0,
+      externalBetaReadyNowTools: 0,
+      productionReadyNowTools: 0,
+    },
+    evidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+    },
+    booleans: {
+      sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      agentCanExecuteToolsNow: false,
+      workerDispatchPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-external-beta-launch-gap-report.ts',
   'server/cli/ai-graphics-external-beta-launch-gap-report.ts',
@@ -181,6 +313,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-launch-gap-report.md',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-scaffold.json',
   'docs/tool-intelligence/ai-graphics/external-beta-evidence-packet.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
   'docs/tool-intelligence/ai-graphics/external-beta-readiness-gate.json',
 ]
 
@@ -287,6 +420,7 @@ for (const needle of [
 }
 for (const needle of [
   '--external-beta-evidence-packet',
+  '--external-beta-evidence-admission-bundle',
   '--external-beta-worker-dispatch-smoke-proof',
   '--external-beta-worker-dispatch-smoke-proof-accepted',
   '--all-shared-gates-passed',
@@ -336,6 +470,26 @@ const fullPacketPath = writeJson(
     'full_packet_source',
   ),
 )
+const betaEvidenceBundlePath = writeJson(
+  path.join(tempRoot, 'accepted-beta-evidence-bundle.json'),
+  acceptedBetaEvidenceBundleFixture(),
+)
+const admissionBundlePath = writeJson(
+  path.join(tempRoot, 'external-beta-evidence-admission-bundle.json'),
+  parseJsonOutput(
+    runNpm(admissionBundleScriptName, [
+      '--beta-evidence-bundle-packet',
+      betaEvidenceBundlePath,
+      '--external-beta-evidence-packet',
+      fullPacketPath,
+    ]),
+    'external_beta_evidence_admission_bundle_source',
+  ),
+)
+const workerDispatchSmokeProofPath = writeJson(
+  path.join(tempRoot, 'worker-dispatch-smoke-proof.json'),
+  acceptedWorkerDispatchSmokeProofFixture(),
+)
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_launch_gap_report')
 const fullOutput = parseJsonOutput(runNpm(runScriptName, [
@@ -346,7 +500,10 @@ const fullOutput = parseJsonOutput(runNpm(runScriptName, [
   '--model-weight-review-packet-accepted',
   '--external-beta-evidence-packet',
   fullPacketPath,
-  '--external-beta-worker-dispatch-smoke-proof-accepted',
+  '--external-beta-evidence-admission-bundle',
+  admissionBundlePath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
 ]), 'full_launch_gap_report')
 
 if (defaultOutput.externalBetaCandidatesWithProvidedEvidenceTools !== 0) {

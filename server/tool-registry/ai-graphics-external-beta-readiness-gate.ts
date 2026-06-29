@@ -168,7 +168,6 @@ const requiredExternalBetaGates = [
 function normalizeEvidence(
   evidence: AiGraphicsExternalBetaReadinessEvidence = {},
 ): NormalizedAiGraphicsExternalBetaReadinessEvidence {
-  const packet = evidence.externalBetaEvidencePacket
   const admissionBundle = evidence.externalBetaEvidenceAdmissionBundle
   const workerDispatchSmokeProof = evidence.externalBetaWorkerDispatchSmokeProof
   const externalBetaEvidenceAdmissionBundleAccepted =
@@ -200,41 +199,22 @@ function normalizeEvidence(
     workerDispatchSmokeProof.booleans.agentCanExecuteToolsNow === false &&
     workerDispatchSmokeProof.booleans.workerDispatchPerformed === false &&
     workerDispatchSmokeProof.booleans.gpuRuntimeShouldStartNow === false
-  const externalBetaWorkerDispatchSmokeProofAccepted =
-    evidence.externalBetaWorkerDispatchSmokeProofAccepted ??
-    externalBetaWorkerDispatchSmokeProofAcceptedFromPacket ??
-    false
   return {
     ...defaultExternalEvidence,
     ...evidence,
     internalBetaRuntimeSoakAccepted:
-      evidence.internalBetaRuntimeSoakAccepted ??
-      packet?.booleans.internalBetaRuntimeSoakAcceptedWithProvidedEvidence ??
-      externalBetaEvidenceAdmissionBundleAccepted ??
-      false,
+      externalBetaEvidenceAdmissionBundleAccepted,
     externalBetaQaAccepted:
-      evidence.externalBetaQaAccepted ??
-      packet?.booleans.externalBetaQaAcceptedWithProvidedEvidence ??
-      externalBetaEvidenceAdmissionBundleAccepted ??
-      false,
+      externalBetaEvidenceAdmissionBundleAccepted,
     externalBetaCostConcurrencyPrivacyRollbackAccepted:
-      evidence.externalBetaCostConcurrencyPrivacyRollbackAccepted ??
-      packet?.booleans.externalBetaCostConcurrencyPrivacyRollbackAcceptedWithProvidedEvidence ??
-      externalBetaEvidenceAdmissionBundleAccepted ??
-      false,
+      externalBetaEvidenceAdmissionBundleAccepted,
     externalBetaIncidentResponseAccepted:
-      evidence.externalBetaIncidentResponseAccepted ??
-      packet?.booleans.externalBetaIncidentResponseAcceptedWithProvidedEvidence ??
-      externalBetaEvidenceAdmissionBundleAccepted ??
-      false,
+      externalBetaEvidenceAdmissionBundleAccepted,
     externalBetaOwnerApprovalGranted:
-      evidence.externalBetaOwnerApprovalGranted ??
-      packet?.booleans.externalBetaOwnerApprovalGrantedWithProvidedEvidence ??
-      externalBetaEvidenceAdmissionBundleAccepted ??
-      false,
+      externalBetaEvidenceAdmissionBundleAccepted,
     externalBetaEvidenceAdmissionBundleAccepted,
     externalBetaWorkerDispatchSmokeProofAccepted:
-      externalBetaWorkerDispatchSmokeProofAccepted,
+      externalBetaWorkerDispatchSmokeProofAcceptedFromPacket,
   }
 }
 

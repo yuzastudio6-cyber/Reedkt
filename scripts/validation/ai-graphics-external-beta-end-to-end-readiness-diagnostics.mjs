@@ -50,6 +50,7 @@ const requiredFiles = [
   'scripts/validation/ai-graphics-external-beta-end-to-end-readiness-diagnostics.mjs',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
 ]
@@ -178,6 +179,132 @@ function runWorkerDispatchProof(args = []) {
     },
   )
   return JSON.parse(output)
+}
+
+function runNpm(scriptName, args = []) {
+  const output = execFileSync(
+    'npm',
+    ['run', '--silent', scriptName, '--', ...args],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
+function acceptedExternalBetaEvidenceRecord(toolId) {
+  const prefix = `external-beta-evidence://${toolId}`
+  return {
+    toolId,
+    internalRuntimeSoakEvidenceRef: `${prefix}:internal-runtime-soak`,
+    externalBetaQaEvidenceRef: `${prefix}:external-qa`,
+    costConcurrencyPrivacyRollbackEvidenceRef: `${prefix}:cost-concurrency-privacy-rollback`,
+    incidentResponseEvidenceRef: `${prefix}:incident-response`,
+    ownerApprovalRef: `${prefix}:owner-approval`,
+  }
+}
+
+function acceptedBetaEvidenceBundleFixture() {
+  const expectedGpuRuntimeTargets = {
+    torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+    birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+    real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+    kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+    transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  }
+
+  return {
+    decision: 'ai_graphics_beta_evidence_bundle_validator_prepared_with_fail_closed_defaults',
+    totalAiGraphicsTools: 21,
+    installReadyForPlannedSurfaceTools: 21,
+    productionMappedTools: 21,
+    planningSelectableTools: 21,
+    betaTestingReadyTools: 21,
+    blockedTools: 0,
+    all21BetaEvidenceReady: true,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+    evidence: {
+      approvedPlanSnapshotGatePassed: true,
+      creditReservationGatePassed: true,
+      artifactBoundaryGatePassed: true,
+      toolRouteGatePassed: true,
+      workerGatePassed: true,
+      browserCanvasWebglSandboxPassed: true,
+      nativeGpuRuntimeProofPassed: true,
+      modelWeightManifestsApproved: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      internalBetaOwnerApprovalGranted: true,
+    },
+    evidenceSources: {
+      jsRuntimeProofsAccepted: true,
+      nodeRuntimeProofPacketAccepted: true,
+      browserRuntimeProofPacketAccepted: true,
+      satoriFontRuntimeProofPacketAccepted: true,
+      nodeRuntimeProofPacketProvided: true,
+      browserRuntimeProofPacketProvided: true,
+      satoriFontRuntimeProofPacketProvided: true,
+      modelWeightManifestReviewPacketAccepted: true,
+      modelWeightManifestReviewPacketProvided: true,
+      nativeGpuRuntimeProofResultPacketAccepted: true,
+      nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuRuntimeProofTargetsExact: true,
+      privateArtifactRefNamespaceAccepted: true,
+    },
+    gpuRuntimeTargetedTools: gpuTools,
+    expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
+      cpuFallbackAllowedForHeavyTools: false,
+    },
+    tools: allTools.map((toolId) => ({
+      toolId,
+      installReadyForPlannedSurface: true,
+      productionMapped: true,
+      planningSelectable: true,
+      gpuRequiredForRuntime: gpuTools.includes(toolId),
+      runtimeTargetForPlannedSurface: expectedGpuRuntimeTargets[toolId] ?? null,
+      betaTestingReadyNow: true,
+      evidenceMissing: [],
+      blockers: [],
+    })),
+    missingEvidence: [],
+    missingTechnicalEvidenceBeforeOwnerApproval: [],
+    booleans: {
+      betaEvidenceBundleValidatorPrepared: true,
+      all21ToolsCovered: true,
+      all21ToolsInstallReadyForPlannedSurface: true,
+      all21ToolsMappedToProductionRegistry: true,
+      all21ToolsPlanningSelectable: true,
+      agentCanSelectForPlanning: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
+      privateArtifactRefNamespaceRequired: true,
+      all21BetaEvidenceReady: true,
+      all21TechnicalEvidenceReadyBeforeOwnerApproval: true,
+      readyForInternalBetaOwnerGate: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
 }
 
 function git(args) {
@@ -352,6 +479,10 @@ const indexTs = read('server/tool-registry/index.ts')
 if (!indexTs.includes("export * from './ai-graphics-external-beta-end-to-end-readiness'")) {
   fail('missing_registry_export')
 }
+const moduleSource = read('server/tool-registry/ai-graphics-external-beta-end-to-end-readiness.ts')
+if (!moduleSource.includes('sourceServiceRoleQueueSmokeProofAccepted &&\n      sourceWorkerDispatchSmokeProofAccepted')) {
+  fail('tool_candidate_missing_worker_dispatch_proof_requirement')
+}
 
 const docsJson = readJson('docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json')
 if (docsJson.decision !== 'ai_graphics_external_beta_end_to_end_readiness_prepared_with_remaining_blocks') {
@@ -378,6 +509,12 @@ if (docsJson.counts?.defaultServiceRoleQueueSmokeProofAcceptedToolsWithProvidedE
 if (docsJson.counts?.defaultWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 0) {
   fail('docs_default_worker_dispatch_proof_tools_not_0')
 }
+if (
+  docsJson.counts
+    ?.overrideFlagWithQueueAndWorkerProofExternalBetaCandidateReadyWithProvidedEvidenceTools !== 0
+) {
+  fail('docs_override_flag_queue_worker_candidate_count_not_0')
+}
 if (docsJson.counts?.fullEvidenceServiceRoleQueueSmokePreflightReadyToExecute !== 1) {
   fail('docs_full_service_role_ready_not_1')
 }
@@ -399,6 +536,10 @@ if (docsJson.counts?.fullEvidenceExternalBetaCandidateReadyWithProvidedEvidenceT
 if (docsJson.sourceEvidence?.externalBetaWorkerDispatchSmokeProof !==
   'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json') {
   fail('docs_missing_worker_dispatch_proof_source_evidence')
+}
+if (docsJson.sourceEvidence?.externalBetaEvidenceAdmissionBundle !==
+  'docs/tool-intelligence/ai-graphics/external-beta-evidence-admission-bundle.json') {
+  fail('docs_missing_external_beta_admission_bundle_source_evidence')
 }
 if (docsJson.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight !==
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json') {
@@ -482,6 +623,46 @@ if (readyServiceRolePreflight.readyToExecuteLiveNonProductionSmoke !== true) {
   fail('ready_service_role_preflight_not_ready')
 }
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-e2e-readiness-'))
+const betaEvidenceBundlePath = path.join(tmpDir, 'accepted-beta-evidence-bundle.json')
+fs.writeFileSync(
+  betaEvidenceBundlePath,
+  `${JSON.stringify(acceptedBetaEvidenceBundleFixture(), null, 2)}\n`,
+)
+const externalBetaEvidenceRecordsPath = path.join(tmpDir, 'external-beta-evidence-records.json')
+fs.writeFileSync(
+  externalBetaEvidenceRecordsPath,
+  `${JSON.stringify(allTools.map(acceptedExternalBetaEvidenceRecord), null, 2)}\n`,
+)
+const externalBetaEvidencePacket = runNpm('ai-graphics:external-beta-evidence-packet:validate', [
+  '--evidence-records',
+  externalBetaEvidenceRecordsPath,
+])
+const externalBetaEvidencePacketPath = path.join(tmpDir, 'external-beta-evidence-packet.json')
+fs.writeFileSync(
+  externalBetaEvidencePacketPath,
+  `${JSON.stringify(externalBetaEvidencePacket, null, 2)}\n`,
+)
+const externalBetaEvidenceAdmissionBundle = runNpm(
+  'ai-graphics:external-beta-evidence-admission-bundle',
+  [
+    '--beta-evidence-bundle-packet',
+    betaEvidenceBundlePath,
+    '--external-beta-evidence-packet',
+    externalBetaEvidencePacketPath,
+  ],
+)
+if (
+  externalBetaEvidenceAdmissionBundle.status !==
+  'external_beta_admission_candidate_with_provided_evidence_runtime_still_blocked'
+) {
+  fail(`external_beta_admission_bundle_status:${externalBetaEvidenceAdmissionBundle.status}`)
+}
+const externalBetaEvidenceAdmissionBundlePath =
+  path.join(tmpDir, 'external-beta-evidence-admission-bundle.json')
+fs.writeFileSync(
+  externalBetaEvidenceAdmissionBundlePath,
+  `${JSON.stringify(externalBetaEvidenceAdmissionBundle, null, 2)}\n`,
+)
 const readyServiceRolePreflightPath = path.join(tmpDir, 'service-role-preflight.json')
 fs.writeFileSync(
   readyServiceRolePreflightPath,
@@ -601,6 +782,29 @@ assertCount(queueProofOnlyFullEvidenceReport, 'serviceRoleQueueSmokeProofAccepte
 assertCount(queueProofOnlyFullEvidenceReport, 'workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence', 0, 'queue_proof_only_full')
 assertBooleanMap(queueProofOnlyFullEvidenceReport, 'queue_proof_only_full', true, true, false)
 
+const workerProofOnlyFullEvidenceReport = runCli([
+  '--all-shared-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--native-gpu-runtime-proof-passed',
+  '--model-weight-manifests-approved',
+  '--model-weight-review-packet-accepted',
+  '--internal-beta-owner-approval-granted',
+  '--all-external-beta-evidence-passed',
+  '--external-beta-service-role-queue-smoke-preflight-packet',
+  readyServiceRolePreflightPath,
+  '--external-beta-service-role-queue-smoke-proof-packet',
+  serviceRoleQueueSmokeProofPath,
+  '--external-beta-worker-dispatch-smoke-proof',
+  workerDispatchSmokeProofPath,
+])
+if (workerProofOnlyFullEvidenceReport.status !== 'installed_and_mapped_runtime_blocked') {
+  fail(`worker_proof_only_full_status:${workerProofOnlyFullEvidenceReport.status}`)
+}
+assertCount(workerProofOnlyFullEvidenceReport, 'externalBetaCandidateReadyWithProvidedEvidenceTools', 0, 'worker_proof_only_full')
+assertCount(workerProofOnlyFullEvidenceReport, 'serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence', 21, 'worker_proof_only_full')
+assertCount(workerProofOnlyFullEvidenceReport, 'workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence', 21, 'worker_proof_only_full')
+assertBooleanMap(workerProofOnlyFullEvidenceReport, 'worker_proof_only_full', true, true, true)
+
 const fullEvidenceReport = runCli([
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
@@ -609,6 +813,8 @@ const fullEvidenceReport = runCli([
   '--model-weight-review-packet-accepted',
   '--internal-beta-owner-approval-granted',
   '--all-external-beta-evidence-passed',
+  '--external-beta-evidence-admission-bundle',
+  externalBetaEvidenceAdmissionBundlePath,
   '--external-beta-service-role-queue-smoke-preflight-packet',
   readyServiceRolePreflightPath,
   '--external-beta-service-role-queue-smoke-proof-packet',

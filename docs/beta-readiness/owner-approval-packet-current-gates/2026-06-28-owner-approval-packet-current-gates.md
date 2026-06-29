@@ -3,16 +3,16 @@
 Decision: `beta_readiness_owner_approval_packet_passed_ready_for_owner_review`
 
 Source branch: `codex/sound-music-audio-1abc-checkpoint`
-Source SHA: `d997d567d40853f59741763c8e9ca8b2c361148a`
+Source SHA: `17a9a2d2b015ab325cf13ce5135d083af070ab00`
 
 ## Current Evidence
 
 - Platform technical probe packet: `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json`
-- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-28-d997-api-staging-deploy.json`
-- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00010-c6h` in `us-east1`
-- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-d997d567d408-20260628T2058Z`
-- Normal API image digest: `sha256:b3c5a028ad5385683c9beed7ef8b8fc96a0c2b7342849864ceb843db60f323bf`
-- Normal API deploy run: [28335776268](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28335776268)
+- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json`
+- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00011-cts` in `us-east1`
+- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-17a9a2d2b015-20260629T0034Z`
+- Normal API image digest: `sha256:35fcf6401f15baab8206fc7b3bf5436416c6ef24419f545f8e813504a7c1ab4c`
+- Normal API deploy run: [28341446109](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28341446109)
 - Normal API public unauthenticated `/health`: HTTP `403`
 - Normal API authenticated health readback: `not_rerun_local_cloud_cli_auth_expired`
 - Tool-readiness API: `reeditpro-tool-readiness-staging` revision `reeditpro-tool-readiness-staging-00002-qdp`

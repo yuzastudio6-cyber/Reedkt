@@ -39,6 +39,43 @@
     "platformTechnicalProbeAtD997": "not_rerun_owner_approval_and_authenticated_preflight_still_required",
     "remainingPlatformTechnicalOrApprovalGap": "current-source API deploy is recorded, but owner approvals and current-source platform preflight/probe remain required before evidence collection"
   },
+  "current17a9ApiDeployReadback": {
+    "sourceSha": "17a9a2d2b015ab325cf13ce5135d083af070ab00",
+    "normalApiService": "reeditpro-api-staging",
+    "normalApiRegion": "us-east1",
+    "normalApiRevision": "reeditpro-api-staging-00011-cts",
+    "normalApiServiceUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+    "normalApiCanonicalServiceUrl": "https://reeditpro-api-staging-390722338345.us-east1.run.app",
+    "normalApiImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-17a9a2d2b015-20260629T0034Z",
+    "normalApiImageDigest": "sha256:35fcf6401f15baab8206fc7b3bf5436416c6ef24419f545f8e813504a7c1ab4c",
+    "deployWorkflowRunId": "28341446109",
+    "deployWorkflowRunUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28341446109",
+    "deployEvidenceReport": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-17a9-api-staging-deploy.json",
+    "apiDeploymentPreflightReport": "docs/beta-readiness/api-deployment-preflight/2026-06-29-17a9-api-deployment-preflight-passed.json",
+    "apiDeploymentPreflightDecision": "beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest",
+    "sourceFreshnessPreflightReport": "docs/beta-readiness/source-freshness-preflight/2026-06-29-17a9-source-freshness-passed.json",
+    "sourceFreshnessPreflightDecision": "beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence",
+    "technicalInputOwnerApprovalGapReport": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json",
+    "technicalInputOwnerApprovalGapDecision": "beta_deployed_evidence_input_manifest_blocked_only_by_owner_approvals_and_attestations",
+    "publicUnauthenticatedHealthStatus": 403,
+    "authenticatedHealthReadback": "not_rerun_local_cloud_cli_auth_expired",
+    "platformTechnicalProbeAt17a9": "not_rerun_owner_approval_and_authenticated_preflight_still_required",
+    "scopedBlockerForwardProgressPolicy": {
+      "intentionalBlanketBlocksAllowed": false,
+      "safeBlockerReductionAllowed": true,
+      "blockedActionScope": [
+        "external_beta_launch",
+        "real_user_media_beta",
+        "paid_production_launch"
+      ],
+      "allowedForwardProgressScopes": [
+        "owner_approval_packet_collection",
+        "deployed_evidence_preflight",
+        "diagnostics_and_qa_packets"
+      ]
+    },
+    "remainingPlatformTechnicalOrApprovalGap": "current-source API deploy, API deployment preflight, and source freshness now pass for 17a9; owner approvals and authenticated platform probe/readback remain required before evidence collection"
+  },
   "localAcceptedEvidenceSnapshot": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-27-local-accepted-evidence-bundle.json",
   "localAcceptedEvidenceSourceSha": "5bc6abf0ef238d8038ea0b95877ca06dd73738fc",
   "locallyAcceptedToolCount": 14,

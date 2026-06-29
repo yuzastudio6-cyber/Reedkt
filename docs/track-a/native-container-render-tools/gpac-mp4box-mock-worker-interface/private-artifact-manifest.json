@@ -1,0 +1,13 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-MOCK-WORKER-INTERFACE-1",
+  "privateArtifacts": [],
+  "publicArtifacts": [],
+  "signedUrls": [],
+  "committedMediaArtifacts": [],
+  "generatedOutputsCommitted": [],
+  "runtimeOutputs": [],
+  "notes": [
+    "This packet defines private artifact manifest references only.",
+    "No storage transfer, media processing, or artifact creation occurred."
+  ]
+}

@@ -37,7 +37,22 @@ const requiredFiles = [
   'docs/track-a/track-a-tool-status-matrix.md',
   'package.json',
   'scripts/validation/tracka-gpac-mp4box-worker-integration-plan-diagnostics.mjs',
-  'scripts/validation/tracka-gpac-mp4box-worker-route-contract-diagnostics.mjs'
+  'scripts/validation/tracka-gpac-mp4box-worker-route-contract-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-mock-worker-interface-diagnostics.mjs',
+  'server/smoke/tracka-gpac-mp4box-mock-worker-interface-smoke.ts',
+  'src/backend/contracts/gpac-mp4box-mock-worker-interface-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'docs/activation-phase-tracka-gpac-mp4box-mock-worker-interface-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-service-role-route-implementation-plan-1.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/gpac-mp4box-mock-worker-interface-decision.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/gpac-mp4box-mock-worker-interface-decision.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/mock-worker-interface-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/mock-worker-interface-contract.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/private-artifact-manifest.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-mock-worker-interface/validation-results.md'
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
@@ -207,7 +222,9 @@ const changedFiles = [...new Set([
 
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (/^src\/|^server\/|^supabase\/|^database\/|^public\//.test(file)) fail(`forbidden changed path ${file}`)
+  if (/^src\//.test(file) && !file.startsWith('src/backend/contracts/')) fail(`forbidden src path changed ${file}`)
+  if (/^server\//.test(file) && !file.startsWith('server/smoke/')) fail(`forbidden server path changed ${file}`)
+  if (/^supabase\/|^database\/|^public\//.test(file)) fail(`forbidden changed path ${file}`)
   if (/^docker\//.test(file)) fail(`Docker path changed ${file}`)
   if (/\.(mp4|mov|mkv|webm|srt|ass|png|jpg|jpeg|gif|wav|mp3|deb|gpg|asc)$/i.test(file)) fail(`artifact changed ${file}`)
   if (/^dist(?:-|\/|$)|^node_modules\//.test(file)) fail(`generated output changed ${file}`)

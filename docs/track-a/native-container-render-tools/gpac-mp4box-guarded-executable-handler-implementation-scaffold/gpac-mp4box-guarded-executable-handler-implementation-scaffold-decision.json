@@ -1,0 +1,49 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1",
+  "decision": "tracka_gpac_mp4box_guarded_executable_handler_implementation_scaffold_passed_ready_for_guarded_executable_handler_implementation_scaffold_negative_tests",
+  "execution": "completed_guarded_executable_handler_scaffold_no_route_worker_or_tool_execution",
+  "prior": {
+    "guardedExecutableHandlerImplementationPlan": "tracka_gpac_mp4box_guarded_executable_handler_implementation_plan_passed_ready_for_guarded_executable_handler_implementation_scaffold",
+    "guardedExecutableHandlerImplementationPlanMergeSha": "dffe01da398042843add779b6bd33a195a4e9e58",
+    "priorPr": "#1646"
+  },
+  "scaffold": {
+    "id": "handlerImplementationScaffold.gpacMp4box.guardedExecutable",
+    "routeId": "render.gpacMp4box.guardedExecutableHandlerImplementationScaffold",
+    "mode": "guarded_executable_handler_implementation_scaffold_only",
+    "status": "guarded_executable_handler_implementation_scaffold_registered_disabled_no_runtime_execution",
+    "handlerScaffoldRegistered": true,
+    "routeRegistered": false,
+    "routeExecutable": false,
+    "workerDispatchEnabled": false,
+    "featureFlagDefault": false,
+    "runtimeExecutionApproved": false
+  },
+  "safety": {
+    "executableHandlerImplementation": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalDeliveryExport": false
+  },
+  "productReadyLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "supabase": {
+    "classification": "no write / environment none / SQL none / migration no"
+  },
+  "excludedPrs": {
+    "577": "open/draft/blocked/conflicting/excluded"
+  },
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-NEGATIVE-TESTS-1"
+}

@@ -289,3 +289,14 @@ Executable handler implementation in this phase, route execution, worker dispatc
 Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1`.
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+## Track A GPAC/MP4Box Guarded Executable Handler Implementation Scaffold
+
+`TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-1` records decision `tracka_gpac_mp4box_guarded_executable_handler_implementation_scaffold_passed_ready_for_guarded_executable_handler_implementation_scaffold_negative_tests` and execution `completed_guarded_executable_handler_scaffold_no_route_worker_or_tool_execution`.
+
+The TypeScript scaffold remains disabled by default, feature-flag false by default, backend/service-role owned, and guarded by approved snapshot, route idempotency, private artifact manifest, command allowlist, storage/public artifact gates, cleanup/audit, and operator confirmation references.
+
+Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, media processing, storage transfer, signed URL creation, public artifact creation, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-GUARDED-EXECUTABLE-HANDLER-IMPLEMENTATION-SCAFFOLD-NEGATIVE-TESTS-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.

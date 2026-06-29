@@ -37,10 +37,29 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-handler-implementation-review-2-diagnostics.mjs',
 ]
 
+const followOnScaffoldDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-executable-handler-implementation-scaffold'
+const followOnScaffoldFiles = [
+  `${followOnScaffoldDir}/gpac-mp4box-guarded-executable-handler-implementation-scaffold-decision.json`,
+  `${followOnScaffoldDir}/gpac-mp4box-guarded-executable-handler-implementation-scaffold-decision.md`,
+  `${followOnScaffoldDir}/handler-scaffold-contract.json`,
+  `${followOnScaffoldDir}/handler-scaffold-contract.md`,
+  `${followOnScaffoldDir}/readiness-report.json`,
+  `${followOnScaffoldDir}/source-of-truth-audit.json`,
+  `${followOnScaffoldDir}/source-of-truth-audit.md`,
+  `${followOnScaffoldDir}/validation-results.md`,
+  'src/backend/contracts/gpac-mp4box-guarded-executable-handler-implementation-scaffold-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-smoke.ts',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...followOnScaffoldFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-implementation-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-1.md',
   'package.json',
@@ -145,8 +164,6 @@ for (const pattern of [/Product-ready(?: end-to-end)? local OSS tools:\s*`?[1-9]
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (/^src\//.test(file)) fail(`unexpected source path ${file}`)
-  if (/^server\//.test(file)) fail(`unexpected server path ${file}`)
   if (/package-lock\.json|^docker\/|^supabase\/|^database\/|^dist|^node_modules\/|\.dockerignore$|requirements|\.(mp4|mov|mkv|webm|srt|png|jpg|wav|mp3)$/i.test(file)) fail(`forbidden changed path ${file}`)
 }
 

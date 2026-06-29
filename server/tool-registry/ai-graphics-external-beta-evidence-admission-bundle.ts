@@ -35,6 +35,8 @@ export interface AiGraphicsExternalBetaEvidenceAdmissionBundleInput {
   internalBetaOwnerApprovalGranted?: AiGraphicsBetaEvidenceBundleInput['internalBetaOwnerApprovalGranted']
   modelWeightManifestReviewPacket?: AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket']
   gpuRuntimeProofResultPacket?: AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket']
+  sourceExternalBetaNativeGpuProofCollectionPacket?:
+    AiGraphicsBetaEvidenceBundleInput['sourceExternalBetaNativeGpuProofCollectionPacket']
   nodeRuntimeProofPacket?: AiGraphicsBetaEvidenceBundleInput['nodeRuntimeProofPacket']
   browserRuntimeProofPacket?: AiGraphicsBetaEvidenceBundleInput['browserRuntimeProofPacket']
   satoriFontRuntimeProofPacket?: AiGraphicsBetaEvidenceBundleInput['satoriFontRuntimeProofPacket']
@@ -180,6 +182,8 @@ function betaEvidenceBundleAccepted(
       evidenceSources?.modelWeightManifestReviewPacketAccepted === true &&
       evidenceSources?.nativeGpuRuntimeProofResultPacketProvided === true &&
       evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted === true &&
+      evidenceSources?.nativeGpuProofCollectionPacketProvided === true &&
+      evidenceSources?.nativeGpuProofCollectionPacketAccepted === true &&
       evidenceSources?.nativeGpuRuntimeProofTargetsExact === true &&
       evidenceSources?.privateArtifactRefNamespaceAccepted === true &&
       booleans?.all21ToolsCovered === true &&
@@ -232,6 +236,8 @@ function sourceProofBundleInput(
     internalBetaOwnerApprovalGranted: input.internalBetaOwnerApprovalGranted,
     modelWeightManifestReviewPacket: input.modelWeightManifestReviewPacket,
     gpuRuntimeProofResultPacket: input.gpuRuntimeProofResultPacket,
+    sourceExternalBetaNativeGpuProofCollectionPacket:
+      input.sourceExternalBetaNativeGpuProofCollectionPacket,
     nodeRuntimeProofPacket: input.nodeRuntimeProofPacket,
     browserRuntimeProofPacket: input.browserRuntimeProofPacket,
     satoriFontRuntimeProofPacket: input.satoriFontRuntimeProofPacket,
@@ -244,6 +250,7 @@ function sourceProofPacketsProvided(
   return Boolean(
     input.modelWeightManifestReviewPacket ||
       input.gpuRuntimeProofResultPacket ||
+      input.sourceExternalBetaNativeGpuProofCollectionPacket ||
       input.nodeRuntimeProofPacket ||
       input.browserRuntimeProofPacket ||
       input.satoriFontRuntimeProofPacket,

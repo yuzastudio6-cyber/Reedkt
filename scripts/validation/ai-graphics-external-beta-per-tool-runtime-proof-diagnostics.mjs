@@ -2,8 +2,7 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
-import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const perToolRuntimeProofScriptName =
   'ai-graphics:external-beta-per-tool-runtime-proof'
@@ -99,15 +98,6 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
-const runtimeProfiles = [
-  'gpu_worker_ai_graphics',
-  'sam2',
-  'birefnet',
-  'real_esrgan',
-  'rembg',
-  'transparent_background',
-]
-
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -199,48 +189,6 @@ function parseJsonOutput(output, label) {
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
   return filePath
-}
-
-function acceptedChecksumEvidenceFixture() {
-  return {
-    decision: 'ai_graphics_model_weight_checksum_evidence_prepared_with_no_private_records',
-    totalAiGraphicsTools: 21,
-    modelWeightChecksumEvidenceRequiredTools: [
-      'sam2',
-      'birefnet',
-      'real_esrgan',
-      'rembg',
-      'transparent_background',
-    ],
-    checksumEvidenceRecordsProvided: 5,
-    checksumEvidenceRecordsAccepted: 5,
-    manifestAuthoringEligibleRecords: 5,
-    privateArtifactRefsLogged: 0,
-    betaReadyModelWeightTools: 0,
-    booleans: {
-      all5ModelWeightToolsCovered: true,
-      privateArtifactRefsNotLogged: true,
-    },
-  }
-}
-
-function acceptedCloudRunResultCollectorFixture() {
-  return {
-    decision: 'ai_graphics_external_beta_native_gpu_proof_cloud_run_result_collector_prepared_local_only',
-    currentStatus: 'external_beta_native_gpu_proof_cloud_run_result_collector_prepared_pending_private_cloud_run_logs',
-    sourceCloudRunJobScaffoldBridgeAccepted: true,
-    runtimeProfilesRequired: runtimeProfiles,
-    counts: {
-      runtimeProfilesExtracted: 6,
-    },
-    booleans: {
-      sourceCloudRunJobScaffoldAccepted: true,
-      sourceNativeGpuProofCollectionBridgeAccepted: true,
-      gpuRuntimeApprovedNow: false,
-      externalBetaReadyNow: false,
-      productionReadyNow: false,
-    },
-  }
 }
 
 const requiredFiles = [
@@ -576,46 +524,7 @@ try {
     fail('accepted_source_runtime_queue_service_proof_bridge_boolean_not_true')
   }
 
-  const acceptedPerToolPath = writeJson(path.join(tmpRoot, 'accepted-per-tool-runtime-proof.json'), accepted)
-  const checksumPath = writeJson(path.join(tmpRoot, 'accepted-checksum-evidence.json'), acceptedChecksumEvidenceFixture())
-  const manifestReviewPath = writeJson(
-    path.join(tmpRoot, 'accepted-model-manifest-review.json'),
-    acceptedModelWeightManifestReviewPacket(),
-  )
-  const gpuResultPath = writeJson(
-    path.join(tmpRoot, 'accepted-gpu-runtime-result.json'),
-    acceptedGpuRuntimeProofResultPacket(),
-  )
-  const collectorPath = writeJson(
-    path.join(tmpRoot, 'accepted-cloud-run-result-collector.json'),
-    acceptedCloudRunResultCollectorFixture(),
-  )
-  const collection = parseJsonOutput(runNpm(nativeGpuProofCollectionScriptName, [
-    '--external-beta-per-tool-runtime-proof-packet',
-    acceptedPerToolPath,
-    '--gpu-runtime-proof-command-plan-packet',
-    'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
-    '--model-weight-checksum-evidence-packet',
-    checksumPath,
-    '--model-weight-manifest-review-packet',
-    manifestReviewPath,
-    '--gpu-runtime-proof-result-packet',
-    gpuResultPath,
-    '--cloud-run-result-collector-packet',
-    collectorPath,
-    '--external-beta-native-gpu-proof-collection-policy-ref',
-    'external-beta-evidence://ai-graphics/native-gpu-proof/policy',
-    '--external-beta-native-gpu-proof-collection-schema-ref',
-    'external-beta-evidence://ai-graphics/native-gpu-proof/schema',
-    '--external-beta-native-gpu-proof-collection-host-pool-ref',
-    'backend-evidence://ai-graphics/native-gpu-proof/nvidia-l4-host-pool',
-    '--external-beta-native-gpu-proof-collection-private-artifact-namespace-ref',
-    'private://ai-graphics/model-weight-artifacts',
-    '--external-beta-native-gpu-proof-collection-telemetry-ref',
-    'backend-evidence://ai-graphics/native-gpu-proof/telemetry',
-    '--external-beta-native-gpu-proof-collection-rollback-ref',
-    'backend-evidence://ai-graphics/native-gpu-proof/rollback',
-  ]), 'native-gpu-collection')
+  const collection = acceptedNativeGpuProofCollectionPacket()
   if (collection.decision !== 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready') {
     fail(`native_gpu_collection_decision:${collection.decision}`)
   }

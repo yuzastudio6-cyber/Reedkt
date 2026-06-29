@@ -692,7 +692,7 @@ const awaitingOutput = parseJsonOutput(awaitingOutputText, 'awaiting_rollup')
 if (!awaitingExited) fail('awaiting_owner_approval_require_did_not_fail')
 if (awaitingOutput.status !== 'awaiting_owner_approval') fail(`awaiting_status:${awaitingOutput.status}`)
 
-const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
+const sourceGatePacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-production-worker-gate-readiness', [
   '--use-committed-js-runtime-proofs',
   '--all-technical-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
@@ -705,20 +705,6 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
-  '--require-internal-beta-go-no-go-ready',
-]), 'approved_rollup')
-
-const sourceGatePacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-production-worker-gate-readiness', [
-  '--use-committed-js-runtime-proofs',
-  '--all-technical-gates-passed',
-  '--browser-canvas-webgl-sandbox-passed',
-  '--model-weight-manifest-review-packet',
-  manifestPacketPath,
-  '--gpu-runtime-proof-result-packet',
-  gpuPacketPath,
-  '--owner-approval-granted',
-  '--owner-approval-ref',
-  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
   '--require-owner-approved-production-worker-gates-ready',
 ]), 'source_production_worker_gate_packet')
 const sourceGatePacketPath = writeJsonPacket(
@@ -726,6 +712,23 @@ const sourceGatePacketPath = writeJsonPacket(
   'internal-beta-production-worker-gate-readiness-packet.json',
   sourceGatePacket,
 )
+const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
+  '--internal-beta-production-worker-gate-readiness-packet',
+  sourceGatePacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-ready',
+]), 'approved_rollup')
 const packetFedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--internal-beta-production-worker-gate-readiness-packet',
   sourceGatePacketPath,

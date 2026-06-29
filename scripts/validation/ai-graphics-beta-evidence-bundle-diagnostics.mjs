@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const validateScriptName = 'ai-graphics:beta-evidence-bundle:validate'
@@ -366,6 +367,10 @@ function writePacketFixtures() {
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
   const countOnlyGpuPacketPath = path.join(root, 'count-only-gpu-runtime-proof-result-packet.json')
   const staleNamespaceGpuPacketPath = path.join(root, 'stale-namespace-gpu-runtime-proof-result-packet.json')
+  const nativeGpuProofCollectionPacketPath =
+    path.join(root, 'external-beta-native-gpu-proof-collection-packet.json')
+  const staleNativeGpuProofCollectionPacketPath =
+    path.join(root, 'stale-external-beta-native-gpu-proof-collection-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
   fs.writeFileSync(staleNamespaceManifestPacketPath, `${JSON.stringify({
     ...manifestPacket,
@@ -389,6 +394,18 @@ function writePacketFixtures() {
     },
   }, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(
+    nativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
+  fs.writeFileSync(staleNativeGpuProofCollectionPacketPath, `${JSON.stringify({
+    ...acceptedNativeGpuProofCollectionPacket(),
+    booleans: {
+      ...acceptedNativeGpuProofCollectionPacket().booleans,
+      privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools: false,
+    },
+  }, null, 2)}\n`, 'utf8')
   fs.writeFileSync(staleNamespaceGpuPacketPath, `${JSON.stringify({
     ...gpuPacket,
     requiredProofChecks: (gpuPacket.requiredProofChecks || [])
@@ -418,6 +435,8 @@ function writePacketFixtures() {
     gpuPacketPath,
     countOnlyGpuPacketPath,
     staleNamespaceGpuPacketPath,
+    nativeGpuProofCollectionPacketPath,
+    staleNativeGpuProofCollectionPacketPath,
   }
 }
 
@@ -480,6 +499,7 @@ for (const tool of browserRuntimeTools) {
 for (const token of [
   'modelWeightManifestReviewPacketAccepted',
   'nativeGpuRuntimeProofResultPacketAccepted',
+  'nativeGpuProofCollectionPacketAccepted',
   'buildAiGraphicsBetaReadinessGate',
   'nodeRuntimeProofPacketAccepted',
   'browserRuntimeProofPacketAccepted',
@@ -493,6 +513,7 @@ for (const token of [
   '--satori-font-runtime-proof-packet',
   '--model-weight-manifest-review-packet',
   '--gpu-runtime-proof-result-packet',
+  '--external-beta-native-gpu-proof-collection-packet',
   '--require-all-21-beta-ready',
   'listAiGraphicsModelWeightManifestRequiredTools',
   'listAiGraphicsGpuRuntimeProofRequiredProfiles',
@@ -502,6 +523,9 @@ for (const token of [
   'present_private_ref_not_logged',
   'ready_for_owner_review_not_beta_ready',
   'privateArtifactRefNamespaceAccepted',
+  'external_beta_native_gpu_proof_collection_packet',
+  'sourceExternalBetaNativeGpuProofCollectionPacket',
+  'privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools',
   'privateArtifactRefNamespaceRequired',
   'model_manifest_private_namespace_enforced',
 ]) {
@@ -519,6 +543,7 @@ for (const token of [
   'tool_route_gate',
   'worker_gate',
   'browser_canvas_webgl_sandbox_proof',
+  'external_beta_native_gpu_proof_collection_packet',
   'native_gpu_runtime_proof_packet',
   'model_weight_manifest_review_packet',
   'internal_beta_owner_approval',
@@ -538,6 +563,9 @@ if (docs.counts?.fullEvidenceBlockedTools !== 0) fail('docs_full_blocked_not_0')
 if (docs.ownerApprovalGate !== 'internal_beta_owner_approval') fail('docs_owner_gate_missing')
 if (!docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('native_gpu_runtime_proof_packet')) {
   fail('docs_required_technical_evidence_missing_gpu_packet')
+}
+if (!docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('external_beta_native_gpu_proof_collection_packet')) {
+  fail('docs_required_technical_evidence_missing_native_gpu_collection_packet')
 }
 if (docs.requiredTechnicalEvidenceBeforeOwnerApproval?.includes('internal_beta_owner_approval')) {
   fail('docs_technical_evidence_should_not_include_owner_approval')
@@ -580,6 +608,30 @@ if (docs.nativeGpuRuntimeProofResultPacketPolicy?.gpuRuntimeOnDemandOnly !== tru
 if (docs.nativeGpuRuntimeProofResultPacketPolicy?.privateArtifactRefNamespaceRequired !== true) {
   fail('docs_gpu_private_namespace_not_required')
 }
+if (docs.nativeGpuProofCollectionPacketPolicy?.sourcePacketFlag !== '--external-beta-native-gpu-proof-collection-packet') {
+  fail('docs_native_gpu_collection_source_packet_flag_missing')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.requiredStatus !== 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready') {
+  fail('docs_native_gpu_collection_required_status_unexpected')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.privateModelWeightEvidenceIntakeAcceptedRequired !== true) {
+  fail('docs_native_gpu_collection_private_intake_not_required')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.nativeGpuRuntimeProofAcceptedToolsRequired !== 8) {
+  fail('docs_native_gpu_collection_accepted_tool_count_not_8')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.nativeGpuRuntimeProofProfilesRequired !== 6) {
+  fail('docs_native_gpu_collection_profile_count_not_6')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.rawComponentPacketsAloneRejected !== true) {
+  fail('docs_native_gpu_collection_raw_component_rejection_missing')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.readyForPerToolRuntimeProofRecheckRequired !== true) {
+  fail('docs_native_gpu_collection_recheck_not_required')
+}
+if (docs.nativeGpuProofCollectionPacketPolicy?.gpuRuntimeOnDemandOnly !== true) {
+  fail('docs_native_gpu_collection_on_demand_missing')
+}
 if (!docs.nativeGpuRuntimeProofResultPacketPolicy?.requiredProofChecks?.includes('model_manifest_private_namespace_enforced')) {
   fail('docs_gpu_private_namespace_proof_check_missing')
 }
@@ -605,6 +657,12 @@ if (!markdown.includes('Count-only GPU proof packets are rejected')) {
 }
 if (!markdown.includes('model_manifest_private_namespace_enforced')) {
   fail('markdown_missing_gpu_private_namespace_proof_check')
+}
+if (!markdown.includes('Raw component packets alone are rejected')) {
+  fail('markdown_missing_raw_component_packet_rejection')
+}
+if (!markdown.includes('--external-beta-native-gpu-proof-collection-packet')) {
+  fail('markdown_missing_native_gpu_collection_flag')
 }
 if (!scorecard.includes('rejects count-only or stale-namespace native GPU proof packets')) {
   fail('scorecard_missing_count_only_gpu_packet_rejection')
@@ -727,6 +785,8 @@ const {
   gpuPacketPath,
   countOnlyGpuPacketPath,
   staleNamespaceGpuPacketPath,
+  nativeGpuProofCollectionPacketPath,
+  staleNativeGpuProofCollectionPacketPath,
 } = writePacketFixtures()
 const technicalPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   '--use-committed-js-runtime-proofs',
@@ -736,6 +796,8 @@ const technicalPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--require-ready-for-owner-gate',
 ]), 'technical_packet_bundle')
 if (technicalPacketBundle.betaTestingReadyTools !== 0) fail('technical_packet_bundle_ready_should_still_be_0')
@@ -762,6 +824,8 @@ const fullPacketBundle = parseJsonOutput(runNpm(validateScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--require-all-21-beta-ready',
 ]), 'full_packet_bundle')
 if (fullPacketBundle.betaTestingReadyTools !== 21) fail('full_packet_bundle_ready_not_21')
@@ -775,8 +839,14 @@ if (fullPacketBundle.evidenceSources?.browserRuntimeProofPacketAccepted !== true
 if (fullPacketBundle.evidenceSources?.satoriFontRuntimeProofPacketAccepted !== true) fail('full_packet_bundle_satori_proof_not_accepted')
 if (fullPacketBundle.evidenceSources?.modelWeightManifestReviewPacketProvided !== true) fail('full_packet_bundle_model_packet_not_provided')
 if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketProvided !== true) fail('full_packet_bundle_gpu_packet_not_provided')
+if (fullPacketBundle.evidenceSources?.nativeGpuProofCollectionPacketProvided !== true) {
+  fail('full_packet_bundle_native_gpu_collection_packet_not_provided')
+}
 if (fullPacketBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== true) fail('full_packet_bundle_model_packet_not_accepted')
 if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted !== true) fail('full_packet_bundle_gpu_packet_not_accepted')
+if (fullPacketBundle.evidenceSources?.nativeGpuProofCollectionPacketAccepted !== true) {
+  fail('full_packet_bundle_native_gpu_collection_packet_not_accepted')
+}
 if (fullPacketBundle.evidenceSources?.nativeGpuRuntimeProofTargetsExact !== true) {
   fail('full_packet_bundle_gpu_targets_not_exact')
 }
@@ -791,6 +861,44 @@ if (fullPacketBundle.booleans?.privateArtifactRefNamespaceRequired !== true) {
 }
 if (fullPacketBundle.gpuRuntimePolicy?.proofContainerIsEphemeral !== true) fail('full_packet_bundle_gpu_policy_not_ephemeral')
 
+let rawComponentOnlyExited = false
+let rawComponentOnlyOutput = ''
+try {
+  rawComponentOnlyOutput = runNpm(validateScriptName, [
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--model-weight-manifest-review-packet',
+    manifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuPacketPath,
+    '--require-ready-for-owner-gate',
+  ])
+} catch (error) {
+  rawComponentOnlyExited = true
+  rawComponentOnlyOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const rawComponentOnlyBundle = parseJsonOutput(rawComponentOnlyOutput, 'raw_component_only_bundle')
+if (!rawComponentOnlyExited) fail('raw_component_only_bundle_did_not_exit_nonzero')
+if (rawComponentOnlyBundle.evidenceSources?.nativeGpuProofCollectionPacketProvided !== false) {
+  fail('raw_component_only_collection_packet_unexpectedly_provided')
+}
+if (rawComponentOnlyBundle.evidenceSources?.nativeGpuProofCollectionPacketAccepted !== false) {
+  fail('raw_component_only_collection_packet_unexpectedly_accepted')
+}
+if (rawComponentOnlyBundle.evidenceSources?.modelWeightManifestReviewPacketAccepted !== true) {
+  fail('raw_component_only_manifest_packet_not_accepted')
+}
+if (rawComponentOnlyBundle.evidenceSources?.nativeGpuRuntimeProofResultPacketAccepted !== true) {
+  fail('raw_component_only_gpu_packet_not_accepted')
+}
+if (!rawComponentOnlyBundle.missingEvidence?.includes('external_beta_native_gpu_proof_collection_packet')) {
+  fail('raw_component_only_missing_collection_gap')
+}
+if (!rawComponentOnlyBundle.missingTechnicalEvidenceBeforeOwnerApproval?.includes('external_beta_native_gpu_proof_collection_packet')) {
+  fail('raw_component_only_missing_technical_collection_gap')
+}
+
 let countOnlyExited = false
 let countOnlyOutput = ''
 try {
@@ -802,6 +910,8 @@ try {
     countOnlyManifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-ready-for-owner-gate',
   ])
 } catch (error) {
@@ -828,6 +938,8 @@ try {
     staleNamespaceManifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-ready-for-owner-gate',
   ])
 } catch (error) {
@@ -857,6 +969,8 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     countOnlyGpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-ready-for-owner-gate',
   ])
 } catch (error) {
@@ -883,6 +997,8 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     staleNamespaceGpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-ready-for-owner-gate',
   ])
 } catch (error) {
@@ -899,6 +1015,34 @@ if (staleNamespaceGpuBundle.evidenceSources?.privateArtifactRefNamespaceAccepted
 }
 if (!staleNamespaceGpuBundle.missingEvidence?.includes('native_gpu_runtime_proof_packet')) {
   fail('stale_namespace_gpu_bundle_missing_gpu_gap')
+}
+
+let staleCollectionExited = false
+let staleCollectionOutput = ''
+try {
+  staleCollectionOutput = runNpm(validateScriptName, [
+    '--use-committed-js-runtime-proofs',
+    '--all-technical-gates-passed',
+    '--browser-canvas-webgl-sandbox-passed',
+    '--model-weight-manifest-review-packet',
+    manifestPacketPath,
+    '--gpu-runtime-proof-result-packet',
+    gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    staleNativeGpuProofCollectionPacketPath,
+    '--require-ready-for-owner-gate',
+  ])
+} catch (error) {
+  staleCollectionExited = true
+  staleCollectionOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+const staleCollectionBundle = parseJsonOutput(staleCollectionOutput, 'stale_native_gpu_collection_bundle')
+if (!staleCollectionExited) fail('stale_native_gpu_collection_bundle_did_not_exit_nonzero')
+if (staleCollectionBundle.evidenceSources?.nativeGpuProofCollectionPacketAccepted !== false) {
+  fail('stale_native_gpu_collection_packet_unexpectedly_accepted')
+}
+if (!staleCollectionBundle.missingEvidence?.includes('external_beta_native_gpu_proof_collection_packet')) {
+  fail('stale_native_gpu_collection_bundle_missing_collection_gap')
 }
 
 let partialExited = false
@@ -918,10 +1062,12 @@ for (const output of [
   jsProofOverrideBundle,
   technicalPacketBundle,
   fullPacketBundle,
+  rawComponentOnlyBundle,
   countOnlyBundle,
   countOnlyGpuBundle,
   staleNamespaceManifestBundle,
   staleNamespaceGpuBundle,
+  staleCollectionBundle,
 ]) {
   for (const key of [
     'agentCanExecuteToolsNow',
@@ -1037,6 +1183,8 @@ console.log(JSON.stringify({
   defaultBetaTestingReadyTools: defaultBundle.betaTestingReadyTools,
   fullEvidenceBetaTestingReadyTools: fullPacketBundle.betaTestingReadyTools,
   all21BetaEvidenceReady: fullPacketBundle.all21BetaEvidenceReady,
+  nativeGpuProofCollectionPacketAccepted:
+    fullPacketBundle.evidenceSources.nativeGpuProofCollectionPacketAccepted,
   agentCanExecuteToolsNow: fullPacketBundle.booleans.agentCanExecuteToolsNow,
   runtimeReadyNow: fullPacketBundle.booleans.runtimeReadyNow,
   packageLockChanged: false,

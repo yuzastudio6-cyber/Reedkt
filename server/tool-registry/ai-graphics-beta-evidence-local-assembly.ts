@@ -1,6 +1,7 @@
 import {
   buildAiGraphicsBetaEvidenceBundle,
   type AiGraphicsBetaEvidenceBundle,
+  type AiGraphicsBetaEvidenceBundleInput,
 } from './ai-graphics-beta-evidence-bundle'
 import {
   buildAiGraphicsGpuRuntimeProofResultPacket,
@@ -37,6 +38,8 @@ export interface AiGraphicsBetaEvidenceLocalAssemblyInput {
   workerGatePassed?: boolean
   browserCanvasWebglSandboxPassed?: boolean
   internalBetaOwnerApprovalGranted?: boolean
+  sourceExternalBetaNativeGpuProofCollectionPacket?:
+    AiGraphicsBetaEvidenceBundleInput['sourceExternalBetaNativeGpuProofCollectionPacket']
   nodeRuntimeProofPacket?: Record<string, unknown>
   browserRuntimeProofPacket?: Record<string, unknown>
   satoriFontRuntimeProofPacket?: Record<string, unknown>
@@ -220,6 +223,8 @@ export function buildAiGraphicsBetaEvidenceLocalAssembly(
     internalBetaOwnerApprovalGranted: input.internalBetaOwnerApprovalGranted,
     modelWeightManifestReviewPacket,
     gpuRuntimeProofResultPacket,
+    sourceExternalBetaNativeGpuProofCollectionPacket:
+      input.sourceExternalBetaNativeGpuProofCollectionPacket,
     nodeRuntimeProofPacket: input.nodeRuntimeProofPacket,
     browserRuntimeProofPacket: input.browserRuntimeProofPacket,
     satoriFontRuntimeProofPacket: input.satoriFontRuntimeProofPacket,

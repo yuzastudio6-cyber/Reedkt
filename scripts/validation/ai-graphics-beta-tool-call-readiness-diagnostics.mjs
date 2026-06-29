@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const validateScriptName = 'ai-graphics:beta-tool-call-readiness'
@@ -356,10 +357,17 @@ function writePacketFixtures() {
   )
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
+  const nativeGpuProofCollectionPacketPath =
+    path.join(root, 'external-beta-native-gpu-proof-collection-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(
+    nativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
 
-  return { manifestDir, proofDir, manifestPacketPath, gpuPacketPath }
+  return { manifestDir, proofDir, manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath }
 }
 
 const requiredFiles = [
@@ -434,6 +442,7 @@ for (const needle of [
   '--use-committed-js-runtime-proofs',
   '--model-weight-manifest-review-packet',
   '--gpu-runtime-proof-result-packet',
+  '--external-beta-native-gpu-proof-collection-packet',
   '--beta-evidence-bundle-packet',
   '--beta-evidence-local-assembly-packet',
 ]) {
@@ -539,7 +548,13 @@ if (partialOutput.externalBetaToolCallableNowTools !== 0) fail('partial_external
 if (partialOutput.externalBetaToolCallBlockedTools !== 21) fail('partial_external_beta_blocked_not_21')
 if (partialOutput.all21BetaCallableWhenEvidenceBundlePasses !== false) fail('partial_all21_callable_not_false')
 
-const { manifestDir, proofDir, manifestPacketPath, gpuPacketPath } = writePacketFixtures()
+const {
+  manifestDir,
+  proofDir,
+  manifestPacketPath,
+  gpuPacketPath,
+  nativeGpuProofCollectionPacketPath,
+} = writePacketFixtures()
 const fullOutput = parseJsonOutput(runNpm(validateScriptName, [
   '--use-committed-js-runtime-proofs',
   '--all-shared-gates-passed',
@@ -548,6 +563,8 @@ const fullOutput = parseJsonOutput(runNpm(validateScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--require-all-21-beta-tool-call-ready',
 ]), 'full_beta_tool_call_readiness')
 
@@ -599,6 +616,8 @@ const evidenceBundlePacket = parseJsonOutput(runNpm('ai-graphics:beta-evidence-b
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
 ]), 'beta_evidence_bundle_packet')
 const evidenceBundlePacketPath = path.join(path.dirname(manifestPacketPath), 'beta-evidence-bundle-packet.json')
 fs.writeFileSync(evidenceBundlePacketPath, `${JSON.stringify(evidenceBundlePacket, null, 2)}\n`, 'utf8')
@@ -632,6 +651,8 @@ const localAssemblyPacket = parseJsonOutput(runNpm('ai-graphics:beta-evidence-lo
   '--use-committed-js-runtime-proofs',
   '--all-shared-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--full-output',
 ]), 'beta_evidence_local_assembly_packet')
 const localAssemblyPacketPath = path.join(path.dirname(manifestPacketPath), 'beta-evidence-local-assembly-packet.json')

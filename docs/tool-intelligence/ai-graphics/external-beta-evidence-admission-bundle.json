@@ -52,6 +52,8 @@
     "jsRuntimeProofPacketsRequired": true,
     "modelWeightManifestReviewPacketRequired": true,
     "nativeGpuRuntimeProofResultPacketRequired": true,
+    "nativeGpuProofCollectionPacketRequired": true,
+    "rawModelAndGpuComponentPacketsAloneRejected": true,
     "directSourceProofPacketAdmissionSupported": true,
     "sourceProofPacketStrictModeSupported": true,
     "strictSourceProofModeRejectsPrebuiltSummaryWithoutSourcePackets": true,

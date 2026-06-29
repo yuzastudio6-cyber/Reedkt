@@ -11,6 +11,10 @@ import {
   type AiGraphicsGpuRuntimeProofResultValidation,
 } from './ai-graphics-gpu-runtime-proof-result'
 import {
+  AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION,
+  type AiGraphicsExternalBetaNativeGpuProofCollection,
+} from './ai-graphics-external-beta-native-gpu-proof-collection'
+import {
   AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_READINESS_DECISION,
   AI_GRAPHICS_MODEL_WEIGHT_MANIFEST_REVIEW_PACKET_DECISION,
   listAiGraphicsModelWeightManifestRequiredTools,
@@ -35,6 +39,7 @@ export interface AiGraphicsBetaEvidenceBundleInput {
   internalBetaOwnerApprovalGranted?: boolean
   modelWeightManifestReviewPacket?: Partial<AiGraphicsModelWeightManifestReviewPacket>
   gpuRuntimeProofResultPacket?: Partial<AiGraphicsGpuRuntimeProofResultPacket>
+  sourceExternalBetaNativeGpuProofCollectionPacket?: Partial<AiGraphicsExternalBetaNativeGpuProofCollection>
   nodeRuntimeProofPacket?: Record<string, unknown>
   browserRuntimeProofPacket?: Record<string, unknown>
   satoriFontRuntimeProofPacket?: Record<string, unknown>
@@ -73,10 +78,12 @@ export interface AiGraphicsBetaEvidenceBundle {
     satoriFontRuntimeProofPacketProvided: boolean
     modelWeightManifestReviewPacketAccepted: boolean
     nativeGpuRuntimeProofResultPacketAccepted: boolean
+    nativeGpuProofCollectionPacketAccepted: boolean
     nativeGpuRuntimeProofTargetsExact: boolean
     privateArtifactRefNamespaceAccepted: boolean
     modelWeightManifestReviewPacketProvided: boolean
     nativeGpuRuntimeProofResultPacketProvided: boolean
+    nativeGpuProofCollectionPacketProvided: boolean
   }
   gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
   expectedGpuRuntimeTargets: Record<string, string>
@@ -222,12 +229,10 @@ function gpuRuntimePacketAccepted(
   )
 }
 
-function gpuRuntimeTargetsExact(
-  packet: Partial<AiGraphicsGpuRuntimeProofResultPacket> | undefined,
+function expectedGpuRuntimeTargetsExact(
+  actualTargets: unknown,
 ): boolean {
-  if (!packet) return false
   const expectedTargets = listAiGraphicsExpectedGpuRuntimeTargets()
-  const actualTargets = packet.expectedGpuRuntimeTargets
   if (typeof actualTargets !== 'object' || actualTargets === null || Array.isArray(actualTargets)) {
     return false
   }
@@ -236,6 +241,61 @@ function gpuRuntimeTargetsExact(
   const expectedEntries = Object.entries(expectedTargets)
   return expectedEntries.length === Object.keys(actual).length &&
     expectedEntries.every(([toolId, runtimeTarget]) => actual[toolId] === runtimeTarget)
+}
+
+function gpuRuntimeTargetsExact(
+  packet: Partial<AiGraphicsGpuRuntimeProofResultPacket> | undefined,
+): boolean {
+  if (!packet) return false
+  return expectedGpuRuntimeTargetsExact(packet.expectedGpuRuntimeTargets)
+}
+
+function nativeGpuProofCollectionAccepted(
+  packet: Partial<AiGraphicsExternalBetaNativeGpuProofCollection> | undefined,
+): boolean {
+  if (!packet) return false
+
+  const counts = packet.counts
+  const booleans = packet.booleans
+  return Boolean(
+    packet.sourceDecision === AI_GRAPHICS_EXTERNAL_BETA_NATIVE_GPU_PROOF_COLLECTION_DECISION &&
+      packet.decision === 'external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready' &&
+      packet.sourcePerToolRuntimeProofAccepted === true &&
+      packet.sourcePerToolRuntimeProofBridgeAccepted === true &&
+      packet.sourceCloudRunResultCollectorAccepted === true &&
+      counts?.totalAiGraphicsTools === 21 &&
+      counts?.gpuRuntimeTargetedTools === 8 &&
+      counts?.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
+      counts?.modelWeightManifestReviewAccepted === 5 &&
+      counts?.modelWeightPrivateEvidenceIntakeAccepted === 5 &&
+      counts?.nativeGpuRuntimeProofProfilesAccepted === 6 &&
+      counts?.cloudRunResultCollectorProfilesAccepted === 6 &&
+      counts?.nativeGpuRuntimeProofAcceptedTools === 8 &&
+      counts?.blockedPendingPrivateManifestTools === 0 &&
+      counts?.blockedPendingNativeGpuRuntimeProofTools === 0 &&
+      counts?.externalBetaReadyNowTools === 0 &&
+      counts?.productionReadyNowTools === 0 &&
+      expectedGpuRuntimeTargetsExact(packet.expectedGpuRuntimeTargets) &&
+      booleans?.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
+      booleans?.sourceNativeGpuProofCollectionBridgeAccepted === true &&
+      booleans?.privateModelManifestsAcceptedForAll5ModelTools === true &&
+      booleans?.privateModelWeightEvidenceIntakeAcceptedForAll5ModelTools === true &&
+      booleans?.nativeGpuRuntimeProofResultsAcceptedForAll6Profiles === true &&
+      booleans?.gpuRuntimeTargetsExact === true &&
+      booleans?.gpuRuntimeOnDemandOnly === true &&
+      booleans?.noIdleGpuRuntimeApproved === true &&
+      booleans?.gpuStartsOnlyForApprovedWorkerOrToolCall === true &&
+      booleans?.cpuFallbackAllowedForHeavyTools === false &&
+      booleans?.privateArtifactRefsRequired === true &&
+      booleans?.privateArtifactRefsNotLogged === true &&
+      booleans?.readyForPerToolRuntimeProofRecheck === true &&
+      booleans?.agentCanExecuteToolsNow === false &&
+      booleans?.gpuRuntimeApprovedNow === false &&
+      booleans?.gpuRuntimeShouldStartNow === false &&
+      booleans?.runtimeReadyNow === false &&
+      booleans?.externalBetaReadyNow === false &&
+      booleans?.productionReadyNow === false,
+  )
 }
 
 function gpuRuntimeValidationResultAccepted(
@@ -348,6 +408,9 @@ function buildMissingEvidence(
     !evidence.toolRouteGatePassed ? 'tool_route_gate' : undefined,
     !evidence.workerGatePassed ? 'worker_gate' : undefined,
     !evidence.browserCanvasWebglSandboxPassed ? 'browser_canvas_webgl_sandbox_proof' : undefined,
+    !nativeGpuProofCollectionAccepted(input.sourceExternalBetaNativeGpuProofCollectionPacket)
+      ? 'external_beta_native_gpu_proof_collection_packet'
+      : undefined,
     !evidence.nativeGpuRuntimeProofPassed ? 'native_gpu_runtime_proof_packet' : undefined,
     !evidence.modelWeightManifestsApproved ? 'model_weight_manifest_review_packet' : undefined,
     !evidence.internalBetaOwnerApprovalGranted ? 'internal_beta_owner_approval' : undefined,
@@ -412,9 +475,13 @@ export function buildAiGraphicsBetaEvidenceBundle(
   const modelWeightManifestReviewPacketAccepted = modelWeightPacketAccepted(input.modelWeightManifestReviewPacket)
   const nativeGpuRuntimeProofResultPacketAccepted = gpuRuntimePacketAccepted(input.gpuRuntimeProofResultPacket)
   const nativeGpuRuntimeProofTargetsExact = gpuRuntimeTargetsExact(input.gpuRuntimeProofResultPacket)
+  const nativeGpuProofCollectionPacketAccepted =
+    nativeGpuProofCollectionAccepted(input.sourceExternalBetaNativeGpuProofCollectionPacket)
   const privateArtifactRefNamespaceAccepted =
     input.modelWeightManifestReviewPacket?.booleans?.privateArtifactRefNamespaceRequired === true &&
-    input.gpuRuntimeProofResultPacket?.booleans?.privateArtifactRefNamespaceRequired === true
+    input.gpuRuntimeProofResultPacket?.booleans?.privateArtifactRefNamespaceRequired === true &&
+    input.sourceExternalBetaNativeGpuProofCollectionPacket?.booleans?.privateArtifactRefsRequired === true &&
+    input.sourceExternalBetaNativeGpuProofCollectionPacket?.booleans?.privateArtifactRefsNotLogged === true
   const expectedGpuRuntimeTargets = listAiGraphicsExpectedGpuRuntimeTargets()
 
   const evidence: Required<AiGraphicsBetaReadinessEvidence> = {
@@ -424,8 +491,10 @@ export function buildAiGraphicsBetaEvidenceBundle(
     toolRouteGatePassed: input.toolRouteGatePassed === true,
     workerGatePassed: input.workerGatePassed === true,
     browserCanvasWebglSandboxPassed: input.browserCanvasWebglSandboxPassed === true,
-    nativeGpuRuntimeProofPassed: nativeGpuRuntimeProofResultPacketAccepted,
-    modelWeightManifestsApproved: modelWeightManifestReviewPacketAccepted,
+    nativeGpuRuntimeProofPassed:
+      nativeGpuRuntimeProofResultPacketAccepted && nativeGpuProofCollectionPacketAccepted,
+    modelWeightManifestsApproved:
+      modelWeightManifestReviewPacketAccepted && nativeGpuProofCollectionPacketAccepted,
     modelWeightManifestReviewPacketAccepted,
     internalBetaOwnerApprovalGranted: input.internalBetaOwnerApprovalGranted === true,
   }
@@ -494,10 +563,13 @@ export function buildAiGraphicsBetaEvidenceBundle(
       satoriFontRuntimeProofPacketProvided: packetProvided(input.satoriFontRuntimeProofPacket),
       modelWeightManifestReviewPacketAccepted,
       nativeGpuRuntimeProofResultPacketAccepted,
+      nativeGpuProofCollectionPacketAccepted,
       nativeGpuRuntimeProofTargetsExact,
       privateArtifactRefNamespaceAccepted,
       modelWeightManifestReviewPacketProvided: packetProvided(input.modelWeightManifestReviewPacket),
       nativeGpuRuntimeProofResultPacketProvided: packetProvided(input.gpuRuntimeProofResultPacket),
+      nativeGpuProofCollectionPacketProvided:
+        packetProvided(input.sourceExternalBetaNativeGpuProofCollectionPacket),
     },
     gpuRuntimeTargetedTools: Object.keys(expectedGpuRuntimeTargets) as AiGraphicsCanonicalToolId[],
     expectedGpuRuntimeTargets,

@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:external-beta-evidence-admission-bundle'
@@ -186,6 +187,8 @@ function acceptedBetaEvidenceBundleFixture() {
       modelWeightManifestReviewPacketProvided: true,
       nativeGpuRuntimeProofResultPacketAccepted: true,
       nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuProofCollectionPacketAccepted: true,
+      nativeGpuProofCollectionPacketProvided: true,
       nativeGpuRuntimeProofTargetsExact: true,
       privateArtifactRefNamespaceAccepted: true,
     },
@@ -331,6 +334,8 @@ for (const needle of [
   'installReadyForPlannedSurfaceTools === 21',
   'modelWeightManifestReviewPacketProvided === true',
   'nativeGpuRuntimeProofResultPacketProvided === true',
+  'nativeGpuProofCollectionPacketProvided === true',
+  'nativeGpuProofCollectionPacketAccepted === true',
   'privateArtifactRefNamespaceAccepted === true',
   'missingTechnicalEvidenceBeforeOwnerApproval?.length === 0',
   'externalBetaReadyNowTools: 0',
@@ -346,6 +351,7 @@ for (const needle of [
   '--require-source-proof-packets',
   '--model-weight-manifest-review-packet',
   '--gpu-runtime-proof-result-packet',
+  '--external-beta-native-gpu-proof-collection-packet',
   '--use-committed-js-runtime-proofs',
   'evaluatorOnly: true',
   'sourceProofPacketFilesRead',
@@ -385,6 +391,12 @@ if (docs.technicalEvidenceBundleAcceptancePolicy?.modelWeightManifestReviewPacke
 if (docs.technicalEvidenceBundleAcceptancePolicy?.nativeGpuRuntimeProofResultPacketRequired !== true) {
   fail('docs_gpu_packet_not_required_for_admission')
 }
+if (docs.technicalEvidenceBundleAcceptancePolicy?.nativeGpuProofCollectionPacketRequired !== true) {
+  fail('docs_native_gpu_collection_packet_not_required_for_admission')
+}
+if (docs.technicalEvidenceBundleAcceptancePolicy?.rawModelAndGpuComponentPacketsAloneRejected !== true) {
+  fail('docs_raw_model_gpu_components_not_rejected_for_admission')
+}
 if (docs.technicalEvidenceBundleAcceptancePolicy?.missingTechnicalEvidenceBeforeOwnerApprovalMustBeEmpty !== true) {
   fail('docs_missing_technical_evidence_empty_not_required')
 }
@@ -423,6 +435,10 @@ const gpuRuntimeProofResultPacketPath = writeJson(
   path.join(tempRoot, 'gpu-runtime-proof-result-packet.json'),
   acceptedGpuRuntimeProofResultPacket(),
 )
+const nativeGpuProofCollectionPacketPath = writeJson(
+  path.join(tempRoot, 'external-beta-native-gpu-proof-collection-packet.json'),
+  acceptedNativeGpuProofCollectionPacket(),
+)
 
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_admission_bundle')
 const summaryOnlyOutput = parseJsonOutput(runNpm(runScriptName, [
@@ -455,6 +471,8 @@ const sourcePacketStrictOutput = parseJsonOutput(runNpm(runScriptName, [
   modelWeightManifestReviewPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuRuntimeProofResultPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--external-beta-evidence-packet',
   externalBetaPacketPath,
 ]), 'source_packet_strict_admission_bundle')
@@ -536,7 +554,7 @@ if (sourcePacketStrictOutput.technicalEvidenceReadyBeforeOwnerApprovalTools !== 
 if (sourcePacketStrictOutput.externalBetaAdmissionCandidateToolsWithProvidedEvidence !== 21) {
   fail('source_packet_strict_admission_candidate_tools_not_21')
 }
-if (sourcePacketStrictOutput.input?.sourceProofPacketFilesRead !== 2) {
+if (sourcePacketStrictOutput.input?.sourceProofPacketFilesRead !== 3) {
   fail(`source_packet_strict_file_count_unexpected:${sourcePacketStrictOutput.input?.sourceProofPacketFilesRead}`)
 }
 if (sourcePacketStrictOutput.input?.committedJsRuntimeProofsRead !== true) {

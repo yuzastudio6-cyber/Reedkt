@@ -627,6 +627,9 @@ async function main() {
     gpuRuntimeProofResultPacket: readJsonFile(
       '--gpu-runtime-proof-result-packet',
     ) as AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket'],
+    sourceExternalBetaNativeGpuProofCollectionPacket: readJsonFile(
+      '--external-beta-native-gpu-proof-collection-packet',
+    ) as AiGraphicsBetaEvidenceBundleInput['sourceExternalBetaNativeGpuProofCollectionPacket'],
     nodeRuntimeProofPacket: readProofPacket(
       '--node-runtime-proof-packet',
       'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',

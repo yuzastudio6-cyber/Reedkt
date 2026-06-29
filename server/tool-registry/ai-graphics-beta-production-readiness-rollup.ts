@@ -212,6 +212,12 @@ function nativeGpuProofCollectionAccepted(
 export function buildAiGraphicsBetaProductionReadinessRollup(
   input: AiGraphicsBetaProductionReadinessRollupInput = {},
 ): AiGraphicsBetaProductionReadinessRollup {
+  const nestedEvidenceBundleInput = {
+    ...(input.evidenceBundleInput ?? {}),
+    sourceExternalBetaNativeGpuProofCollectionPacket:
+      input.evidenceBundleInput?.sourceExternalBetaNativeGpuProofCollectionPacket ??
+      input.sourceExternalBetaNativeGpuProofCollectionPacket,
+  }
   const evidenceBundle = input.evidenceBundle
   const activationGapReport = buildAiGraphicsBetaActivationGapReport({
     nodeRuntimeProofAccepted: Boolean(input.evidenceBundleInput?.nodeRuntimeProofPacket) ||
@@ -226,7 +232,10 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
   const crossOwnerCoordination = buildAiGraphicsCrossOwnerCoordinationPacket()
   const productionWorkerGateReadiness =
     input.sourceProductionWorkerGateReadinessPacket ??
-    buildAiGraphicsInternalBetaProductionWorkerGateReadiness(input)
+    buildAiGraphicsInternalBetaProductionWorkerGateReadiness({
+      ...input,
+      evidenceBundleInput: nestedEvidenceBundleInput,
+    })
   const status = statusFromGate(productionWorkerGateReadiness)
   const sourceProductionWorkerGateAcceptedWithProvidedEvidence =
     productionWorkerGateReadiness.ownerApprovedProductionWorkerGateEvidenceAccepted &&

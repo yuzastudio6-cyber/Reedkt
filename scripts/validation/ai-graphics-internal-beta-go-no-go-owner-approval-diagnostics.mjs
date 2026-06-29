@@ -5,6 +5,7 @@ import path from 'node:path'
 
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-go-no-go-owner-approval'
@@ -149,6 +150,7 @@ function writeAcceptedEvidencePackets() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-go-no-go-owner-approval-'))
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
+  const nativeGpuProofCollectionPacketPath = path.join(root, 'native-gpu-proof-collection-packet.json')
   fs.writeFileSync(
     manifestPacketPath,
     `${JSON.stringify(acceptedModelWeightManifestReviewPacket(), null, 2)}\n`,
@@ -159,7 +161,12 @@ function writeAcceptedEvidencePackets() {
     `${JSON.stringify(acceptedGpuRuntimeProofResultPacket(), null, 2)}\n`,
     'utf8',
   )
-  return { manifestPacketPath, gpuPacketPath }
+  fs.writeFileSync(
+    nativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
+  return { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath }
 }
 
 function writeJsonPacket(root, fileName, packet) {
@@ -382,7 +389,7 @@ for (const key of falseGateKeys) {
 const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_owner_approval')
 if (defaultOutput.status !== 'missing_technical_evidence') fail(`default_status:${defaultOutput.status}`)
 
-const { manifestPacketPath, gpuPacketPath } = writeAcceptedEvidencePackets()
+const { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath } = writeAcceptedEvidencePackets()
 let awaitingExited = false
 let awaitingOutputText = ''
 try {
@@ -394,6 +401,8 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--owner-approval-granted',
     '--owner-approval-ref',
     'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
@@ -420,6 +429,8 @@ const approvedArgs = [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
@@ -457,6 +468,8 @@ const sourceGoNoGoPacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-go-
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
@@ -630,6 +643,8 @@ const sourceRollupPacket = parseJsonOutput(runNpm('ai-graphics:beta-production-r
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',

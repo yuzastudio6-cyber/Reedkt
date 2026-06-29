@@ -9,9 +9,9 @@ This packet is the external-beta bridge between the all-21 technical proof bundl
 
 It does not enable tool execution. External beta still requires launch go/no-go, runtime admission, approved plan snapshot, credit, Tool Route, Worker, private artifact, feature flag, rollout, cost, concurrency, rollback, support, and incident-response gates.
 
-Summary-only technical evidence is rejected. The source beta evidence bundle must carry detailed install, production mapping, planning, shared gate, JS runtime proof, model-weight review, native GPU proof, private artifact namespace, GPU policy, per-tool coverage, and empty technical-gap fields before the admission bundle can count technical evidence for all 21 tools.
+Summary-only technical evidence is rejected. The source beta evidence bundle must carry detailed install, production mapping, planning, shared gate, JS runtime proof, model-weight review, native GPU proof, native GPU proof collection, private artifact namespace, GPU policy, per-tool coverage, and empty technical-gap fields before the admission bundle can count technical evidence for all 21 tools.
 
-For the stricter external-beta path, the admission CLI also supports direct source-proof packet intake. Use `--require-source-proof-packets` with the model-weight manifest review packet, native GPU runtime proof result packet, committed or explicit JS runtime proof packets, and the external-beta private evidence packet. In that mode, a prebuilt beta evidence summary without source proof packets is rejected even if the summary claims all technical gates passed.
+For the stricter external-beta path, the admission CLI also supports direct source-proof packet intake. Use `--require-source-proof-packets` with the model-weight manifest review packet, native GPU runtime proof result packet, external-beta native GPU proof collection packet, committed or explicit JS runtime proof packets, and the external-beta private evidence packet. Raw model-weight and GPU proof component packets alone are rejected until the assembled collection packet proves private evidence intake and native proof collection together. In that mode, a prebuilt beta evidence summary without source proof packets is rejected even if the summary claims all technical gates passed.
 
 ## Tools
 
@@ -36,6 +36,7 @@ npm run --silent ai-graphics:external-beta-evidence-admission-bundle -- \
   --use-committed-js-runtime-proofs \
   --model-weight-manifest-review-packet <private-review-packet.json> \
   --gpu-runtime-proof-result-packet <native-gpu-proof-result-packet.json> \
+  --external-beta-native-gpu-proof-collection-packet <native-gpu-proof-collection-packet.json> \
   --external-beta-evidence-packet <private-external-beta-evidence-packet.json>
 ```
 

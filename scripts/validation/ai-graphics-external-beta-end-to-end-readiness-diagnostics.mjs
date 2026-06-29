@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const runScriptName = 'ai-graphics:external-beta-end-to-end-readiness'
 const runScriptCommand = 'tsx server/cli/ai-graphics-external-beta-end-to-end-readiness.ts'
@@ -256,6 +257,8 @@ function acceptedBetaEvidenceBundleFixture() {
       modelWeightManifestReviewPacketProvided: true,
       nativeGpuRuntimeProofResultPacketAccepted: true,
       nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuProofCollectionPacketAccepted: true,
+      nativeGpuProofCollectionPacketProvided: true,
       nativeGpuRuntimeProofTargetsExact: true,
       privateArtifactRefNamespaceAccepted: true,
     },
@@ -640,6 +643,12 @@ fs.writeFileSync(
   gpuRuntimeProofResultPacketPath,
   `${JSON.stringify(acceptedGpuRuntimeProofResultPacket(), null, 2)}\n`,
 )
+const nativeGpuProofCollectionPacketPath =
+  path.join(tmpDir, 'external-beta-native-gpu-proof-collection-packet.json')
+fs.writeFileSync(
+  nativeGpuProofCollectionPacketPath,
+  `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+)
 const externalBetaEvidenceRecordsPath = path.join(tmpDir, 'external-beta-evidence-records.json')
 fs.writeFileSync(
   externalBetaEvidenceRecordsPath,
@@ -665,6 +674,8 @@ const externalBetaEvidenceAdmissionBundle = runNpm(
     modelWeightManifestReviewPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuRuntimeProofResultPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--external-beta-evidence-packet',
     externalBetaEvidencePacketPath,
   ],

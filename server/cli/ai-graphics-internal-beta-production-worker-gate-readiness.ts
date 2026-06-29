@@ -211,6 +211,9 @@ const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput = {
   browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
   modelWeightManifestReviewPacket: readJsonFile('--model-weight-manifest-review-packet') as AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket'],
   gpuRuntimeProofResultPacket: readJsonFile('--gpu-runtime-proof-result-packet') as AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket'],
+  sourceExternalBetaNativeGpuProofCollectionPacket:
+    readJsonFile('--external-beta-native-gpu-proof-collection-packet') as
+      AiGraphicsBetaEvidenceBundleInput['sourceExternalBetaNativeGpuProofCollectionPacket'],
   nodeRuntimeProofPacket: readProofPacket(
     '--node-runtime-proof-packet',
     'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
@@ -250,6 +253,8 @@ const output = {
       Boolean(sourcePacket.sourceProductionWorkerJobReadinessPacket),
     ownerApprovalRefProvided: Boolean(valueAfterFlag('--owner-approval-ref')),
     committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
+    nativeGpuProofCollectionPacketRead:
+      Boolean(valueAfterFlag('--external-beta-native-gpu-proof-collection-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

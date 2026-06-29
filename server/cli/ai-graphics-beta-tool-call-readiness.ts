@@ -132,6 +132,9 @@ const evidenceBundleInput: AiGraphicsBetaEvidenceBundleInput | undefined =
           AiGraphicsBetaEvidenceBundleInput['modelWeightManifestReviewPacket'],
         gpuRuntimeProofResultPacket: readJsonFile('--gpu-runtime-proof-result-packet') as
           AiGraphicsBetaEvidenceBundleInput['gpuRuntimeProofResultPacket'],
+        sourceExternalBetaNativeGpuProofCollectionPacket:
+          readJsonFile('--external-beta-native-gpu-proof-collection-packet') as
+            AiGraphicsBetaEvidenceBundleInput['sourceExternalBetaNativeGpuProofCollectionPacket'],
         nodeRuntimeProofPacket: readProofPacket(
           '--node-runtime-proof-packet',
           'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
@@ -163,6 +166,7 @@ const output = {
       valueAfterFlag('--beta-evidence-local-assembly-packet'),
       valueAfterFlag('--model-weight-manifest-review-packet'),
       valueAfterFlag('--gpu-runtime-proof-result-packet'),
+      valueAfterFlag('--external-beta-native-gpu-proof-collection-packet'),
       valueAfterFlag('--node-runtime-proof-packet'),
       valueAfterFlag('--browser-runtime-proof-packet'),
       valueAfterFlag('--satori-font-runtime-proof-packet'),

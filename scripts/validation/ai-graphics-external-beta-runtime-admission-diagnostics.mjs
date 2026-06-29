@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -234,6 +235,8 @@ function acceptedBetaEvidenceBundleFixture() {
       modelWeightManifestReviewPacketProvided: true,
       nativeGpuRuntimeProofResultPacketAccepted: true,
       nativeGpuRuntimeProofResultPacketProvided: true,
+      nativeGpuProofCollectionPacketAccepted: true,
+      nativeGpuProofCollectionPacketProvided: true,
       nativeGpuRuntimeProofTargetsExact: true,
       privateArtifactRefNamespaceAccepted: true,
     },
@@ -692,6 +695,10 @@ const gpuRuntimeProofResultPacketPath = writeJson(
   path.join(tmpRoot, 'gpu-runtime-proof-result-packet.json'),
   acceptedGpuRuntimeProofResultPacket(),
 )
+const nativeGpuProofCollectionPacketPath = writeJson(
+  path.join(tmpRoot, 'external-beta-native-gpu-proof-collection-packet.json'),
+  acceptedNativeGpuProofCollectionPacket(),
+)
 const admissionBundlePath = writeJson(
   path.join(tmpRoot, 'external-beta-evidence-admission-bundle.json'),
   parseJsonOutput(
@@ -704,6 +711,8 @@ const admissionBundlePath = writeJson(
       modelWeightManifestReviewPacketPath,
       '--gpu-runtime-proof-result-packet',
       gpuRuntimeProofResultPacketPath,
+      '--external-beta-native-gpu-proof-collection-packet',
+      nativeGpuProofCollectionPacketPath,
       '--external-beta-evidence-packet',
       fullPacketPath,
     ]),

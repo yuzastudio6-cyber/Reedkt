@@ -30,11 +30,12 @@ The validator stays fail-closed until all of these are supplied:
 - Tool Route gate.
 - Worker gate.
 - Browser/canvas/WebGL sandbox proof.
-- Native NVIDIA L4 GPU runtime proof packet.
+- External-beta native GPU proof collection packet.
+- Native NVIDIA L4 GPU runtime proof result packet.
 - Reviewed private model-weight manifest packet.
 - Internal beta owner approval.
 
-The first eleven items form the technical owner-review packet. The final
+The first twelve items form the technical owner-review packet. The final
 `internal_beta_owner_approval` item is intentionally separate: technical
 evidence can be ready for owner review before the owner grants the beta gate.
 
@@ -51,6 +52,14 @@ keep `approvedForAgentExecutionNow` false.
 The packet must also prove `privateArtifactRefNamespaceRequired=true` so stale
 evidence from before reviewed private namespace enforcement cannot satisfy beta
 readiness.
+
+Raw component packets alone are rejected. The beta evidence validator also
+requires `--external-beta-native-gpu-proof-collection-packet` with
+`external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`.
+That collection packet is the bridge showing private model-weight evidence
+intake, private manifest review, native GPU proof results, Cloud Run result
+collector evidence, exact runtime targets, and on-demand GPU policy were accepted
+together before any all-21 technical owner gate can pass.
 
 The native GPU runtime proof packet must also include exact per-profile
 validation rows for `gpu_worker_ai_graphics`, `sam2`, `birefnet`,

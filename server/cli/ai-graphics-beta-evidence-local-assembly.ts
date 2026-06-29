@@ -223,6 +223,9 @@ const input: AiGraphicsBetaEvidenceLocalAssemblyInput = {
   workerGatePassed: allTechnicalGatesPassed || hasFlag('--worker-gate-passed'),
   browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
   internalBetaOwnerApprovalGranted: allSharedGatesPassed || hasFlag('--internal-beta-owner-approval-granted'),
+  sourceExternalBetaNativeGpuProofCollectionPacket:
+    readOptionalJsonFile('--external-beta-native-gpu-proof-collection-packet') as
+      AiGraphicsBetaEvidenceLocalAssemblyInput['sourceExternalBetaNativeGpuProofCollectionPacket'],
   nodeRuntimeProofPacket: readProofPacket(
     '--node-runtime-proof-packet',
     'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
@@ -245,6 +248,7 @@ const inputSummary = {
   localPrivateChecksumEvidenceFilesRead: checksumEvidenceFiles.length,
   localPrivateManifestSupplementFilesRead: manifestSupplementFiles.length,
   localGpuRuntimeProofResultFilesRead: resultFiles.length,
+  nativeGpuProofCollectionPacketRead: Boolean(valueAfterFlag('--external-beta-native-gpu-proof-collection-packet')),
   committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
   privateArtifactRefsLogged: 0,
   dependencyInstallPerformed: false,

@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:beta-execution-handoff-readiness'
 const runScriptCommand = 'tsx server/cli/ai-graphics-beta-execution-handoff-readiness.ts'
@@ -300,10 +302,16 @@ function writePacketFixtures() {
   )
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
+  const nativeGpuProofCollectionPacketPath = path.join(root, 'native-gpu-proof-collection-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(
+    nativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
 
-  return { manifestPacketPath, gpuPacketPath }
+  return { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath }
 }
 
 const requiredFiles = [
@@ -397,7 +405,7 @@ if (defaultOutput.ownerApprovedEvidenceReadyForRouteWorkerHandoff !== false) {
 }
 if (defaultOutput.ownerApprovedHandoffReadyToolsWithProvidedEvidence !== 0) fail('default_handoff_tools_not_0')
 
-const { manifestPacketPath, gpuPacketPath } = writePacketFixtures()
+const { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath } = writePacketFixtures()
 let awaitingExited = false
 let awaitingOutputText = ''
 try {
@@ -409,6 +417,8 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-owner-approved-handoff-ready',
   ])
 } catch (error) {
@@ -435,6 +445,8 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',

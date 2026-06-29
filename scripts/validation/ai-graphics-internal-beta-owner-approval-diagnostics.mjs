@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-owner-approval'
 const runScriptCommand = 'tsx server/cli/ai-graphics-internal-beta-owner-approval.ts'
@@ -300,10 +302,16 @@ function writePacketFixtures() {
   )
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
+  const nativeGpuProofCollectionPacketPath = path.join(root, 'native-gpu-proof-collection-packet.json')
   fs.writeFileSync(manifestPacketPath, `${JSON.stringify(manifestPacket, null, 2)}\n`, 'utf8')
   fs.writeFileSync(gpuPacketPath, `${JSON.stringify(gpuPacket, null, 2)}\n`, 'utf8')
+  fs.writeFileSync(
+    nativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
 
-  return { manifestDir, proofDir, manifestPacketPath, gpuPacketPath }
+  return { manifestDir, proofDir, manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath }
 }
 
 const requiredFiles = [
@@ -401,7 +409,13 @@ if (defaultOutput.ownerApprovalRecordAccepted !== false) fail('default_owner_app
 if (defaultOutput.all21BetaEvidenceReadyAfterOwnerApproval !== false) fail('default_all21_after_approval_not_false')
 if (defaultOutput.betaToolCallableWithOwnerApprovalTools !== 0) fail('default_callable_not_0')
 
-const { manifestDir, proofDir, manifestPacketPath, gpuPacketPath } = writePacketFixtures()
+const {
+  manifestDir,
+  proofDir,
+  manifestPacketPath,
+  gpuPacketPath,
+  nativeGpuProofCollectionPacketPath,
+} = writePacketFixtures()
 let awaitingExited = false
 let awaitingOutputText = ''
 try {
@@ -413,6 +427,8 @@ try {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    '--external-beta-native-gpu-proof-collection-packet',
+    nativeGpuProofCollectionPacketPath,
     '--require-owner-approved-evidence',
   ])
 } catch (error) {
@@ -437,6 +453,8 @@ const approvedOutput = parseJsonOutput(runNpm(runScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
@@ -466,6 +484,8 @@ const wrongRoleOutput = parseJsonOutput(runNpm(runScriptName, [
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--owner-approval-granted',
   '--owner-approval-ref',
   'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
@@ -485,6 +505,8 @@ const technicalBundlePacket = parseJsonOutput(runNpm('ai-graphics:beta-evidence-
   manifestPacketPath,
   '--gpu-runtime-proof-result-packet',
   gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
 ]), 'technical_beta_evidence_bundle_packet')
 const technicalBundlePacketPath = path.join(path.dirname(manifestPacketPath), 'technical-beta-evidence-bundle-packet.json')
 fs.writeFileSync(technicalBundlePacketPath, `${JSON.stringify(technicalBundlePacket, null, 2)}\n`, 'utf8')
@@ -545,6 +567,8 @@ const technicalLocalAssemblyPacket = parseJsonOutput(runNpm('ai-graphics:beta-ev
   '--use-committed-js-runtime-proofs',
   '--all-technical-gates-passed',
   '--browser-canvas-webgl-sandbox-passed',
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
   '--full-output',
 ]), 'technical_beta_evidence_local_assembly_packet')
 const technicalLocalAssemblyPacketPath = path.join(

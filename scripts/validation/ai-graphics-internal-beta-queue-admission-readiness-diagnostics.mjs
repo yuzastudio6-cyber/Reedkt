@@ -5,6 +5,7 @@ import path from 'node:path'
 
 import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
 import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
 
 const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
 const runScriptName = 'ai-graphics:internal-beta-queue-admission-readiness'
@@ -117,6 +118,7 @@ const falseGateKeys = [
 ]
 
 const failures = []
+let acceptedNativeGpuProofCollectionPacketPath
 
 function fail(message) {
   failures.push(message)
@@ -167,6 +169,7 @@ function writeAcceptedEvidencePackets() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-queue-admission-'))
   const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
   const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
+  acceptedNativeGpuProofCollectionPacketPath = path.join(root, 'native-gpu-proof-collection-packet.json')
   fs.writeFileSync(
     manifestPacketPath,
     `${JSON.stringify(acceptedModelWeightManifestReviewPacket(), null, 2)}\n`,
@@ -177,7 +180,12 @@ function writeAcceptedEvidencePackets() {
     `${JSON.stringify(acceptedGpuRuntimeProofResultPacket(), null, 2)}\n`,
     'utf8',
   )
-  return { manifestPacketPath, gpuPacketPath }
+  fs.writeFileSync(
+    acceptedNativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
+  return { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath: acceptedNativeGpuProofCollectionPacketPath }
 }
 
 function acceptedSourceArgs(manifestPacketPath, gpuPacketPath) {
@@ -189,6 +197,9 @@ function acceptedSourceArgs(manifestPacketPath, gpuPacketPath) {
     manifestPacketPath,
     '--gpu-runtime-proof-result-packet',
     gpuPacketPath,
+    ...(acceptedNativeGpuProofCollectionPacketPath
+      ? ['--external-beta-native-gpu-proof-collection-packet', acceptedNativeGpuProofCollectionPacketPath]
+      : []),
     '--owner-approval-granted',
     '--owner-approval-ref',
     'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_PACKET',

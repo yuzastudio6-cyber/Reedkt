@@ -64,6 +64,42 @@ assert.equal(ready.recommendedCommands.some((command) => command.includes('gclou
 assert.equal(ready.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'), false)
 assert.ok(ready.blockedScopes.includes('external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass'))
 
+const metadataOnlySourceSha = '1111111111111111111111111111111111111111'
+const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
+  currentSourceSha: metadataOnlySourceSha,
+  deployedSourceSha: currentSourceSha,
+  apiDeployPacketPath: deployPacketPath,
+  apiDeploymentPreflightPacketPath: apiPreflightPacketPath,
+  deployedEvidenceManifestPath: manifestPath,
+  changedFiles: [
+    'docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json',
+    'docs/production-beta-readiness-runbook.md',
+    'server/smoke/beta-readiness-source-freshness-preflight-smoke.mjs',
+  ],
+  resolveGit: false,
+})
+
+assert.equal(metadataOnly.readyForDeployedEvidenceInputManifest, true)
+assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift')
+assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
+assert.deepEqual(metadataOnly.valueGaps, [])
+
+const runtimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {
+  currentSourceSha: metadataOnlySourceSha,
+  deployedSourceSha: currentSourceSha,
+  apiDeployPacketPath: deployPacketPath,
+  apiDeploymentPreflightPacketPath: apiPreflightPacketPath,
+  deployedEvidenceManifestPath: manifestPath,
+  changedFiles: [
+    'server/index.ts',
+  ],
+  resolveGit: false,
+})
+
+assert.equal(runtimeDrift.readyForDeployedEvidenceInputManifest, false)
+assert.equal(runtimeDrift.decision, 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale')
+assert.deepEqual(runtimeDrift.sourceDriftClassification.blockingChangedFiles, ['server/index.ts'])
+
 const missingCurrent = buildBetaReadinessSourceFreshnessPreflight({}, {
   currentSourceSha: '',
   deployedSourceSha,

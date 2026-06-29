@@ -40,13 +40,19 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
     clean(deployedEvidenceManifest?.current769ApiDeployReadback?.sourceSha) ??
     clean(deployedEvidenceManifest?.current17a9ApiDeployReadback?.sourceSha) ??
     clean(deployedEvidenceManifest?.currentD997ApiDeployReadback?.sourceSha)
+  const sourceShaMismatch = Boolean(currentSourceSha && deployedSourceSha && currentSourceSha !== deployedSourceSha)
+  const changedFiles = sourceShaMismatch ? resolveChangedFiles(deployedSourceSha, currentSourceSha, options) : []
+  const metadataOnlySourceDriftAllowed = sourceShaMismatch &&
+    changedFiles.length > 0 &&
+    changedFiles.every(isAllowedMetadataOnlyDriftPath)
+  const sourceDriftGap = sourceShaMismatch && !metadataOnlySourceDriftAllowed
+    ? [`Current source SHA ${currentSourceSha} does not match deployed evidence source SHA ${deployedSourceSha}.`]
+    : []
 
   const valueGaps = [
     ...(validSha(currentSourceSha) ? [] : ['Current source SHA is required and must be a 40-character lowercase git SHA.']),
     ...(validSha(deployedSourceSha) ? [] : ['Deployed evidence source SHA is required and must be a 40-character lowercase git SHA.']),
-    ...(currentSourceSha && deployedSourceSha && currentSourceSha !== deployedSourceSha
-      ? [`Current source SHA ${currentSourceSha} does not match deployed evidence source SHA ${deployedSourceSha}.`]
-      : []),
+    ...sourceDriftGap,
     ...(apiDeploySourceSha && deployedSourceSha && apiDeploySourceSha !== deployedSourceSha
       ? [`API deploy packet source SHA ${apiDeploySourceSha} does not match deployed evidence source SHA ${deployedSourceSha}.`]
       : []),
@@ -59,15 +65,31 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
   ]
   const readyForOwnerApprovalIntake = valueGaps.length === 0
   const readyForDeployedEvidenceInputManifest = readyForOwnerApprovalIntake
+  const decision = readyForDeployedEvidenceInputManifest
+    ? (metadataOnlySourceDriftAllowed
+        ? 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift'
+        : PASS_DECISION)
+    : BLOCKED_DECISION
 
   return {
     ok: true,
     preflightId: 'beta-readiness-source-freshness-preflight-2026-06-29',
-    decision: readyForDeployedEvidenceInputManifest ? PASS_DECISION : BLOCKED_DECISION,
+    decision,
     readyForOwnerApprovalIntake,
     readyForDeployedEvidenceInputManifest,
     currentSourceSha,
     deployedSourceSha,
+    sourceDriftClassification: {
+      sourceShaMismatch,
+      metadataOnlySourceDriftAllowed,
+      changedFiles,
+      allowedMetadataOnlyPathPolicy: [
+        'docs/**',
+        'server/smoke/**',
+        'server/cli/beta-readiness-source-freshness-preflight.mjs',
+      ],
+      blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path)),
+    },
     sourceTruth: {
       sourceBranch: 'codex/sound-music-audio-1abc-checkpoint',
       apiDeployPacketPath,
@@ -105,7 +127,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
     warnings: [
       'This preflight does not deploy, call gcloud, call the deployed backend, record evidence, run tools, process media, write Supabase/GCS, enable beta, or enable production.',
       'Owner approval notes may still be drafted, but deployment-owner acceptance and deployed evidence manifests must be rerun after source-fresh deploy evidence exists.',
-      'This guard blocks only stale source evidence; it passes as soon as current source and deployed evidence source SHA match.',
+      'This guard blocks runtime-affecting stale source evidence; metadata-only drift is allowed so evidence documentation does not create an intentional blanket blocker.',
     ],
   }
 }
@@ -117,6 +139,27 @@ function resolveGitSha(options) {
   } catch {
     return undefined
   }
+}
+
+function resolveChangedFiles(deployedSourceSha, currentSourceSha, options) {
+  if (Array.isArray(options.changedFiles)) return options.changedFiles
+  if (options.resolveGit === false) return []
+  if (!validSha(deployedSourceSha) || !validSha(currentSourceSha)) return []
+  try {
+    const output = execFileSync('git', ['diff', '--name-only', deployedSourceSha, currentSourceSha], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    return output.split('\n').map((line) => line.trim()).filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+function isAllowedMetadataOnlyDriftPath(path) {
+  return path.startsWith('docs/') ||
+    path.startsWith('server/smoke/') ||
+    path === 'server/cli/beta-readiness-source-freshness-preflight.mjs'
 }
 
 function readJson(path) {

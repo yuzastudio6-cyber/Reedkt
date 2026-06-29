@@ -22,14 +22,13 @@ const baseEnv: BetaReadinessExternalBetaEvidenceCollectorEnv = {
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'external-beta-tools-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES: 'Smoke records deployed evidence before external beta final readback.',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS: 'hyperframe',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '2',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT: '2',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '0',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE: 'host',
   REEDITPRO_READINESS_PYTHON_BIN: findPythonPath(),
   REEDITPRO_BETA_PLATFORM_SOURCE_ID: 'external-beta-platform-smoke',
@@ -95,6 +94,7 @@ assert.equal(result.steps.toolEvidence.localBundle.locallyAcceptedToolCount, 2, 
 assert.equal(result.steps.platformEvidence.evidencePacketReady, true, 'collector should require platform evidence readiness')
 assert.equal(result.steps.launchApprovalEvidence.externalBetaAllowed, true, 'collector should require launch approval readback')
 assert.equal(result.steps.finalOperatorStatus.readyForExternalBeta, true, 'collector should require final external beta readback')
+assert.equal(result.steps.finalOperatorStatus.currentGate.productReadyLocalOssCount, 0, 'all-up collector must preserve zero product-ready local OSS')
 assert.equal(result.readinessRequirements.finalRealUserMediaBetaReady, false, 'collector must not open real-user-media beta')
 assert.equal(result.readinessRequirements.finalPaidProductionReady, false, 'collector must not open paid production')
 assert.ok(result.remainingBlockedScopes.includes('paid_production_scope_approval'), 'collector must preserve later paid production blocker')
@@ -103,8 +103,15 @@ assert.equal(JSON.stringify(result).includes('external-beta-secret-token'), fals
 assert.equal(calls.length, 6, 'collector should run tool core, tool libass, initial status, platform, launch, final status')
 assert.equal(calls[0]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence/core-real-check')
 assert.equal(calls[0]?.idempotencyKey, 'external-beta-tools-core-smoke')
+assert.equal(calls[0]?.body?.acceptProductionReadiness, true, 'bounded evidence should reduce production-readiness blockers')
+assert.equal(calls[0]?.body?.acceptProductReadyLocalOss, false, 'bounded evidence must not request product-ready local OSS')
 assert.equal(calls[1]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
 assert.equal(calls[1]?.idempotencyKey, 'external-beta-tools-libass-smoke')
+assert.equal(
+  ((calls[1]?.body?.acceptedToolEvidence as Array<{ productReadyLocalOss?: boolean }> | undefined) ?? [])[0]?.productReadyLocalOss,
+  false,
+  'bounded libass evidence must keep product-ready local OSS false',
+)
 assert.equal(calls[2]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
 assert.equal(calls[3]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/platform-deployed-evidence/probe')
 assert.equal(calls[3]?.idempotencyKey, 'external-beta-platform-smoke')
@@ -146,7 +153,7 @@ function fakeFetch(
           readinessSummary: { totalSpecs: 1, statuses: { passed: 1 } },
           report: {
             toolExecutionReadiness: {
-              productReadyLocalOssCount: 1,
+              productReadyLocalOssCount: 0,
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
               blockers: [],
@@ -169,7 +176,7 @@ function fakeFetch(
           },
           report: {
             toolExecutionReadiness: {
-              productReadyLocalOssCount: 2,
+              productReadyLocalOssCount: 0,
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
             },
@@ -248,7 +255,7 @@ function operatorStatusPayload(externalBetaReady: boolean): unknown {
           readinessSpecToolCount: 49,
           toolBlockers: externalBetaReady ? 0 : 2,
           platformBlockers: externalBetaReady ? 0 : 1,
-          productReadyLocalOssCount: 2,
+          productReadyLocalOssCount: 0,
           externalBetaToolExecutionAllowed: externalBetaReady,
           productionToolExecutionAllowed: false,
           blockerPolicy: 'evidence_driven_block_unsafe_actions_only',

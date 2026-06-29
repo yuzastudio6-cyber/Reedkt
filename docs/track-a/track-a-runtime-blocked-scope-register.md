@@ -163,6 +163,18 @@ The plan allows only a future disabled-by-default runtime scaffold packet. It do
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Disabled Runtime Scaffold
+
+`TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1` records `tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests` and execution `completed_disabled_runtime_scaffold_contract_no_runtime_execution`.
+
+The TypeScript scaffold id is `runtimeScaffold.gpacMp4box.disabled`; mode is `disabled_scaffold_only`; success status is `disabled_scaffold_registered_no_runtime`. It requires approved snapshot refs, disabled service-role route refs, disabled worker dispatch refs, private artifact manifest/checksum refs, command allowlist refs, QA, cleanup, audit, rollback, and residue refs.
+
+Rejected inputs remain `raw_chat`, `raw_command_string`, `frontend_file_path`, `public_url_source_of_truth`, `signed_url_source_of_truth`, `arbitrary_private_media`, `provider_or_model_prompt_payload`, `service_role_secret_payload`, and `broad_service_role_handler_payload`.
+
+Route execution, worker dispatch, worker execution, GPAC/MP4Box execution, storage transfer, signed/public artifacts, media processing, Supabase mutation, SQL execution, external beta expansion, paid production unlock, production unlock, and final delivery/export remain blocked pending `TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

@@ -1598,6 +1598,16 @@ Route execution, worker execution, GPAC/MP4Box execution, storage transfer, sign
 
 Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
 
+## Track A GPAC/MP4Box Disabled Runtime Scaffold
+
+`TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1` records decision `tracka_gpac_mp4box_disabled_runtime_scaffold_passed_ready_for_runtime_scaffold_negative_tests` and execution `completed_disabled_runtime_scaffold_contract_no_runtime_execution`.
+
+The scaffold is contract/smoke only with scaffold id `runtimeScaffold.gpacMp4box.disabled`, runtime mode `disabled_scaffold_only`, and status `disabled_scaffold_registered_no_runtime`. It does not register a live HTTP handler, dispatch a worker, execute GPAC/MP4Box, process media, transfer storage, create signed URLs, create public artifacts, mutate Supabase, run SQL, or unlock external beta, paid production, production, or final delivery.
+
+Next required gate: `TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1`.
+
+Product-ready local OSS tools: `0`. Package-lock: `unchanged`. Generated artifacts committed: `none`. Supabase classification: no write / environment none / SQL none / migration no.
+
 ## Track A GPAC/MP4Box Private Artifact Final Runtime Readiness Review
 
 `TRACKA-GPAC-MP4BOX-PRIVATE-ARTIFACT-FINAL-RUNTIME-READINESS-REVIEW-1` records decision `tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan` and execution `completed_docs_only_final_runtime_readiness_review_no_runtime_execution`.

@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-enablement-plan'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-private-artifact-final-runtime-readiness-review'
+const scaffoldDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-runtime-scaffold'
 const decisionText = 'tracka_gpac_mp4box_guarded_runtime_enablement_plan_passed_ready_for_disabled_runtime_scaffold'
 const executionText = 'completed_docs_only_guarded_runtime_enablement_plan_no_runtime_execution'
 const priorDecision = 'tracka_gpac_mp4box_private_artifact_final_runtime_readiness_review_passed_ready_for_guarded_runtime_enablement_plan'
@@ -36,10 +37,28 @@ const priorFiles = [
   'scripts/validation/tracka-gpac-mp4box-private-artifact-final-runtime-readiness-review-diagnostics.mjs',
 ]
 
+const scaffoldFiles = [
+  `${scaffoldDir}/gpac-mp4box-disabled-runtime-scaffold-decision.json`,
+  `${scaffoldDir}/gpac-mp4box-disabled-runtime-scaffold-decision.md`,
+  `${scaffoldDir}/readiness-report.json`,
+  `${scaffoldDir}/runtime-scaffold-contract.json`,
+  `${scaffoldDir}/runtime-scaffold-contract.md`,
+  `${scaffoldDir}/source-of-truth-audit.json`,
+  `${scaffoldDir}/source-of-truth-audit.md`,
+  `${scaffoldDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-runtime-scaffold-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-runtime-scaffold-negative-tests-1.md',
+  'src/backend/contracts/gpac-mp4box-disabled-runtime-scaffold-contracts.ts',
+  'src/backend/contracts/index.ts',
+  'server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts',
+  'scripts/validation/tracka-gpac-mp4box-disabled-runtime-scaffold-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
+  ...scaffoldFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-enablement-plan-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-runtime-scaffold-1.md',
   'package.json',
@@ -220,8 +239,8 @@ if (prior.decision !== priorDecision) fail('prior final readiness decision drift
 const changedFiles = [...new Set([...gitLines(['diff', '--name-only', 'HEAD']), ...gitLines(['ls-files', '--others', '--exclude-standard']), ...gitLines(['diff', '--cached', '--name-only'])])]
 for (const file of changedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file ${file}`)
-  if (/^src\//.test(file)) fail(`runtime source path changed ${file}`)
-  if (/^server\//.test(file)) fail(`server path changed ${file}`)
+  if (/^src\//.test(file) && file !== 'src/backend/contracts/gpac-mp4box-disabled-runtime-scaffold-contracts.ts' && file !== 'src/backend/contracts/index.ts') fail(`runtime source path changed ${file}`)
+  if (/^server\//.test(file) && file !== 'server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts') fail(`server path changed ${file}`)
   if (/^supabase\/|^database\/|^public\//.test(file)) fail(`forbidden changed path ${file}`)
   if (/^docker\//.test(file)) fail(`Docker path changed ${file}`)
   if (/\.(mp4|mov|mkv|webm|srt|ass|png|jpg|jpeg|gif|wav|mp3|deb|gpg|asc)$/i.test(file)) fail(`artifact changed ${file}`)

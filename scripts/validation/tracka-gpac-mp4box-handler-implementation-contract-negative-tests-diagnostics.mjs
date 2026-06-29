@@ -19,6 +19,21 @@ const packetFiles = [
   `${packetDir}/validation-results.md`,
 ]
 
+const planDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-handler-implementation-plan'
+const planFiles = [
+  `${planDir}/gpac-mp4box-guarded-handler-implementation-plan-decision.json`,
+  `${planDir}/gpac-mp4box-guarded-handler-implementation-plan-decision.md`,
+  `${planDir}/handler-implementation-guard-matrix.json`,
+  `${planDir}/handler-implementation-guard-matrix.md`,
+  `${planDir}/readiness-report.json`,
+  `${planDir}/source-of-truth-audit.json`,
+  `${planDir}/source-of-truth-audit.md`,
+  `${planDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-handler-implementation-plan-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-implementation-scaffold-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-handler-implementation-plan-diagnostics.mjs',
+]
+
 const statusFiles = [
   'docs/production-beta-blocker-inventory.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -34,6 +49,7 @@ const priorFiles = [
 
 const requiredFiles = [
   ...packetFiles,
+  ...planFiles,
   ...statusFiles,
   ...priorFiles,
   'docs/activation-phase-tracka-gpac-mp4box-handler-implementation-contract-negative-tests-1-results.md',

@@ -13,3 +13,9 @@ Phase 37D metadata planning defines private controlled-real-video OCR safe-zone 
 `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37d/controlled-real-video-ocr-safe-zone/phase37d-20260531T002046/`
 
 Future Phase 37D execution reruns require `REEDITPRO_CONFIRM_CONTROLLED_REAL_VIDEO_ARTIFACT_UPLOAD=true` in the current shell. The metadata-only gate still rejects that confirmation when set. Raw frames, overlays, source media, model files, venvs, temp folders, signed URLs, public URLs, credentials, and Track A outputs remain disallowed.
+
+Phase 37E caption/render QA metadata integration run `phase37e-20260531T011259` uploaded only private JSON QA artifacts to:
+
+`gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37e/ocr-caption-render-qa/phase37e-20260531T011259/`
+
+Phase 37E artifacts may include generated synthetic fixture text, redacted controlled OCR metadata, normalized boxes, counts, hashes, candidate zones, overlap reports, QA gates, and private object metadata. They must not include raw controlled real-media OCR text, raw frames, overlays, source video, model files, venvs, temp folders, signed URLs, credentials, public URLs, Track A outputs, or rendered media.

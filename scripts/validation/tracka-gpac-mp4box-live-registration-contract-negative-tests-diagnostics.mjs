@@ -5,6 +5,7 @@ import fs from 'node:fs'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 const packetDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-live-registration-contract-negative-tests'
 const priorDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-live-registration-contract'
+const disabledHandlerReviewDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-disabled-handler-registration-review'
 const lane = 'TRACKA-GPAC-MP4BOX-LIVE-REGISTRATION-CONTRACT-NEGATIVE-TESTS-1'
 const decisionText = 'tracka_gpac_mp4box_live_registration_contract_negative_tests_passed_ready_for_disabled_handler_registration_review'
 const executionText = 'completed_live_registration_contract_negative_tests_no_route_or_worker_execution'
@@ -36,6 +37,20 @@ const priorFiles = [
   'server/smoke/tracka-gpac-mp4box-disabled-live-registration-contract-smoke.ts',
 ]
 
+const disabledHandlerReviewFiles = [
+  `${disabledHandlerReviewDir}/gpac-mp4box-disabled-handler-registration-review-decision.json`,
+  `${disabledHandlerReviewDir}/gpac-mp4box-disabled-handler-registration-review-decision.md`,
+  `${disabledHandlerReviewDir}/handler-registration-boundary.json`,
+  `${disabledHandlerReviewDir}/handler-registration-boundary.md`,
+  `${disabledHandlerReviewDir}/readiness-report.json`,
+  `${disabledHandlerReviewDir}/source-of-truth-audit.json`,
+  `${disabledHandlerReviewDir}/source-of-truth-audit.md`,
+  `${disabledHandlerReviewDir}/validation-results.md`,
+  'docs/activation-phase-tracka-gpac-mp4box-disabled-handler-registration-review-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-contract-1.md',
+  'scripts/validation/tracka-gpac-mp4box-disabled-handler-registration-review-diagnostics.mjs',
+]
+
 const statusFiles = [
   'docs/production-beta-blocker-inventory.md',
   'docs/track-a/track-a-runtime-blocked-scope-register.md',
@@ -46,6 +61,7 @@ const requiredFiles = [
   ...packetFiles,
   ...smokeFiles,
   ...priorFiles,
+  ...disabledHandlerReviewFiles,
   ...statusFiles,
   'docs/activation-phase-tracka-gpac-mp4box-live-registration-contract-negative-tests-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-disabled-handler-registration-review-1.md',

@@ -30,9 +30,18 @@ const requiredExistingFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/auth-path-readback.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/readiness-boundary.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-auth-path-readback-1/qwen-real-dispatch-auth-path-readback-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-auth-path-readback-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-real-dispatch-auth-path-readback-1.md',
   'scripts/validation/rp-external-beta-current-readiness-rollup-after-qwen-orchestration-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-auth-path-readback-1-diagnostics.mjs',
   'package.json',
 ])
 

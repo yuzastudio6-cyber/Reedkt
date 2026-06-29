@@ -876,6 +876,7 @@
     "rp-external-beta-qa-cleanup-observability-rollback-review-1:diagnostics": "node scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs",
     "rp-external-beta-release-go-no-go-1:diagnostics": "node scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs",
     "rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker:diagnostics": "node scripts/validation/rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-diagnostics.mjs",
+    "rp-external-beta-qwen-real-dispatch-auth-path-readback-1:diagnostics": "node scripts/validation/rp-external-beta-qwen-real-dispatch-auth-path-readback-1-diagnostics.mjs",
     "smoke:external-beta-controlled-enablement-contract": "tsx server/smoke/external-beta-controlled-enablement-contract-smoke.ts",
     "rp-external-beta-controlled-enablement-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-enablement-1-diagnostics.mjs",
     "rp-external-beta-staging-flag-application-1:diagnostics": "node scripts/validation/rp-external-beta-staging-flag-application-1-diagnostics.mjs",

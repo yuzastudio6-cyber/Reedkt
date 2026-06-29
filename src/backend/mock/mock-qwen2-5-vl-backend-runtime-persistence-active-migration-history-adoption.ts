@@ -1,0 +1,93 @@
+import { QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_RECONCILIATION } from './mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation'
+
+export const QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_ADOPTION = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_backend_runtime_persistence_active_migration_history_adoption',
+  decision:
+    'qwen2_5_vl_backend_runtime_persistence_active_migration_history_adopted_remote_version_local_validation_required',
+  upstreamHistoryReconciliationDecision:
+    QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_RECONCILIATION.decision,
+  adoptionInputs: {
+    historyReconciliationDoc:
+      'docs/qwen2-5-vl-7b-backend-runtime-persistence-active-migration-history-reconciliation.md',
+    deployExecuteResultDoc:
+      'docs/qwen2-5-vl-7b-backend-runtime-persistence-active-migration-deploy-execute-result.md',
+    adoptedActiveMigration:
+      'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
+    supersededLocalCandidate:
+      'supabase/migrations/20260629011700_qwen2_5_vl_backend_runtime_persistence.sql',
+    localSqlTests: 'database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql',
+    migrationOrder: 'supabase/migration-order.md',
+  },
+  adoptionResult: {
+    remoteSemanticMigrationVersionAdoptedLocally: '20260628000100',
+    supersededLocalSemanticDuplicateRemoved: '20260629011700',
+    semanticMigrationName: 'qwen2_5_vl_backend_runtime_persistence',
+    adoptedActiveMigrationFilePresent: true,
+    supersededLocalCandidateFilePresent: false,
+    duplicateSemanticMigrationHistoryAvoided: true,
+    sqlContentPreservesValidatedGuardSet: true,
+    adoptedLocalValidationRequired: true,
+    deployDecisionRequiredAfterAdoptedLocalValidation: true,
+  },
+  runtimeFlags: {
+    backendRuntimePersistenceActiveMigrationHistoryAdoptionRecorded: true,
+    backendRuntimePersistenceActiveMigrationAdoptedRemoteVersion: '20260628000100',
+    backendRuntimePersistenceActiveMigrationAdoptedFilePresent: true,
+    backendRuntimePersistenceActiveMigrationSupersededLocalVersionRemoved: true,
+    backendRuntimePersistenceActiveMigrationDuplicateSemanticHistoryAvoided: true,
+    backendRuntimePersistenceActiveMigrationAdoptedLocalValidationRequired: true,
+    backendRuntimePersistenceActiveMigrationDeployShouldBeSkippedNow: true,
+    backendRuntimePersistenceActiveMigrationDeployCommandRun: false,
+    backendRuntimePersistenceActiveMigrationDeployed: false,
+    migrationDeployed: false,
+    supabaseCloudMutationOccurred: false,
+    sqlMutationExecuted: false,
+    readUserRows: false,
+    stagingTouched: false,
+    productionTouched: false,
+    readyForRealWorkerDispatch: false,
+    privateInvokeReady: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    creditMutationCreated: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt:
+    'QWEN2_5_VL_STACK_TOOL_58BH-BACKEND-RUNTIME-PERSISTENCE-ACTIVE-MIGRATION-ADOPTED-LOCAL-VALIDATION: validate adopted remote-version Qwen migration locally, no deploy/no assets/no beta',
+} as const
+
+export type Qwen25VlBackendRuntimePersistenceActiveMigrationHistoryAdoption =
+  typeof QWEN2_5_VL_BACKEND_RUNTIME_PERSISTENCE_ACTIVE_MIGRATION_HISTORY_ADOPTION

@@ -1,5 +1,7 @@
 -- Qwen2.5-VL backend runtime persistence guards.
 -- Created from validated local draft database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql.
+-- Local history adoption: this file uses the already-applied remote semantic
+-- migration version 20260628000100 to avoid duplicate Qwen persistence history.
 -- This active migration defines schema guards only; it does not execute Qwen inference, dispatch workers, create generated assets, create signed URLs, or touch provider secrets.
 
 -- Purpose: Qwen2.5-VL backend runtime persistence constraints on top of

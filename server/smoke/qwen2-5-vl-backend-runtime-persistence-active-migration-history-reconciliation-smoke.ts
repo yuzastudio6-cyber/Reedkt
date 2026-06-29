@@ -146,14 +146,14 @@ for (const file of [
   'docs/qwen2-5-vl-7b-backend-runtime-persistence-active-migration-deploy-execute-result.md',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-history-reconciliation.ts',
   'src/backend/mock/mock-qwen2-5-vl-backend-runtime-persistence-active-migration-deploy-execute-result.ts',
-  LOCAL_MIGRATION,
+  REMOTE_MIGRATION,
   TEST_SQL,
   'package.json',
 ]) {
   check(fs.existsSync(path.join(ROOT, file)), `Missing required file: ${file}`)
 }
 
-check(!fs.existsSync(path.join(ROOT, REMOTE_MIGRATION)), 'Remote semantic migration file must still be absent until adoption.')
+check(!fs.existsSync(path.join(ROOT, LOCAL_MIGRATION)), 'Superseded local semantic migration file must be absent after adoption.')
 check(!fs.existsSync(path.join(ROOT, 'supabase/.temp')), 'Supabase temp metadata must not be left behind.')
 check(!fs.existsSync(path.join(ROOT, 'supabase/.branches')), 'Supabase branch metadata must not be left behind.')
 

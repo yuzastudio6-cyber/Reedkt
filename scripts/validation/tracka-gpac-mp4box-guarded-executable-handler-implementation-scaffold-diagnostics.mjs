@@ -43,11 +43,28 @@ const sourceFiles = [
   'server/smoke/tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-smoke.ts',
 ]
 
+const followOnNegativeDir = 'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests'
+const followOnNegativeFiles = [
+  `${followOnNegativeDir}/gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-decision.json`,
+  `${followOnNegativeDir}/gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-decision.md`,
+  `${followOnNegativeDir}/negative-test-matrix.json`,
+  `${followOnNegativeDir}/negative-test-matrix.md`,
+  `${followOnNegativeDir}/readiness-report.json`,
+  `${followOnNegativeDir}/source-of-truth-audit.json`,
+  `${followOnNegativeDir}/source-of-truth-audit.md`,
+  `${followOnNegativeDir}/validation-results.md`,
+  'server/smoke/tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-smoke.ts',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-runtime-enablement-review-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-diagnostics.mjs',
+]
+
 const requiredFiles = [
   ...packetFiles,
   ...statusFiles,
   ...priorFiles,
   ...sourceFiles,
+  ...followOnNegativeFiles,
   'docs/activation-phase-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-1-results.md',
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-executable-handler-implementation-scaffold-negative-tests-1.md',
   'package.json',

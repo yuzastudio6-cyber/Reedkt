@@ -1498,6 +1498,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted source packets and private controlled-worker proof controls, it prepares one controlled worker-runtime proof candidate for the requested admission tool. The requested tool must have accepted per-tool runtime proof evidence; live worker lease creation, worker dispatch, private artifact write, Tool Route execution, and tool execution remain blocked.
 - Runtime/beta/production: no unlock; this packet does not create live worker leases, dispatch workers, execute tools, write private artifacts, execute Tool Routes, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta API Route Worker Runtime Smoke Authorization
+
+- Decision: `ai_graphics_external_beta_api_route_worker_runtime_smoke_authorization_prepared_with_runtime_blocks`.
+- Scope: side-effect-free authorization bridge from accepted controlled worker runtime proof plus accepted all-21 live-enqueue authorization into one future private non-production worker-runtime smoke candidate.
+- Result: with accepted source packets and private operator confirmation, environment, runbook, lease TTL, claim isolation, artifact sandbox, result capture, GPU on-demand, cost, QA, telemetry, and rollback refs, it prepares one worker-runtime smoke authorization candidate. The candidate remains metadata only and does not authorize a live smoke now.
+- Runtime/beta/production: no unlock; this packet does not create worker leases, dispatch workers, execute tools, write private artifacts, execute Tool Routes, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later explicitly run worker/tool job and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

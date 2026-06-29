@@ -108,7 +108,7 @@ for (const spec of productionToolReadinessSpecs) {
 
 const revideo = requireSpec('revideo')
 check(revideo.evaluationOnly, 'Revideo readiness spec must be evaluation-only.')
-check(revideo.blocksProductionIfMissing, 'Revideo readiness spec must block production.')
+check(!revideo.blocksProductionIfMissing, 'Revideo readiness spec must not hard-block static readiness solely for evaluation-only status.')
 check(revideo.readinessStatusWhenMissing === 'evaluation_only', 'Revideo readiness status must be evaluation_only.')
 
 const apiExpectation = getContainerImageExpectation('api')
@@ -139,7 +139,7 @@ check(dryRun.summary.missingTools.length > 0, 'Summary must list missing launch/
 check(dryRun.summary.futureOnlyTools.length > 0, 'Summary must list future-only tools.')
 check(dryRun.summary.evaluationOnlyTools.includes('revideo'), 'Summary must list Revideo as evaluation-only.')
 check(dryRun.summary.modelWeightTools.length === getToolsWithModelWeights().length, 'Summary must list model-weight tools.')
-check(dryRun.summary.productionBlockedTools.includes('revideo'), 'Summary must list Revideo as production-blocked.')
+check(!dryRun.summary.productionBlockedTools.includes('revideo'), 'Summary must not list Revideo as production-blocked solely for evaluation-only status.')
 
 const remotion = requireSpec('remotion')
 check(remotion.imageRoles.includes('render_worker'), 'Remotion must be render worker readiness.')

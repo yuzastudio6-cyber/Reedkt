@@ -111,8 +111,9 @@ assert(
 
 const readinessPolicy = read('server/workers/production-readiness/production-tool-readiness-policy.ts')
 assert(
-  readinessPolicy.includes('Revideo must be production-blocked and not launch core.'),
-  'current Revideo hard-block assertion missing',
+  readinessPolicy.includes('Revideo must be production-blocked and not launch core.') ||
+    readinessPolicy.includes('Revideo must be evaluation-only, static-readiness visible, execution-blocked, and not launch core.'),
+  'Revideo evaluation-only execution-blocked assertion missing',
 )
 
 const reportBuilder = read('server/workers/readiness-validation/production-readiness-report-builder.ts')

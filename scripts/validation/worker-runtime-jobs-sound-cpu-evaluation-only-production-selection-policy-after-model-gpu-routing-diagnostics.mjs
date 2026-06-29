@@ -118,7 +118,11 @@ assert(specs.includes('blocksProductionIfMissing'), 'readiness specs missing blo
 
 const policy = read('server/workers/production-readiness/production-tool-readiness-policy.ts')
 assert(policy.includes('assertRevideoReadinessBlocked'), 'policy missing Revideo readiness assertion')
-assert(policy.includes('Revideo must be production-blocked and not launch core.'), 'policy missing current Revideo production-blocked expectation')
+assert(
+  policy.includes('Revideo must be production-blocked and not launch core.') ||
+    policy.includes('Revideo must be evaluation-only, static-readiness visible, execution-blocked, and not launch core.'),
+  'policy missing Revideo evaluation-only execution-blocked expectation',
+)
 
 const runtimePolicy = read('server/tool-registry/tool-runtime-policy.ts')
 assert(runtimePolicy.includes('productionExecutionAllowed: !evaluationOnly'), 'runtime policy must deny evaluation-only production execution')

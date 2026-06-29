@@ -81,12 +81,16 @@ function statusBlocksProduction(status: ReadinessValidationStatus): boolean {
   return [
     'missing',
     'blocked',
-    'evaluation_only',
     'needs_license_review',
     'needs_model_weight_review',
     'model_weight_missing',
     'model_weight_blocked',
   ].includes(status)
+}
+
+function toolBlocksProduction(tool: ReadinessToolSummary): boolean {
+  return statusBlocksProduction(tool.status) ||
+    tool.blockers.some((blocker) => blocker.severity === 'hard_blocker')
 }
 
 function statusIsWarning(status: ReadinessValidationStatus): boolean {
@@ -126,7 +130,11 @@ function buildToolBlockers(toolId: ProductionToolId, status: ReadinessValidation
   }
 
   if (profile?.productionStatus === 'evaluation_only') {
-    candidates.push({ kind: toolId === 'revideo' ? 'revideo_production_execution' : 'evaluation_only_production_execution', toolId, detail: `${profile.displayName} is evaluation-only.` })
+    candidates.push({
+      kind: profile.launchCore ? 'evaluation_only_production_execution' : 'evaluation_only_static_visibility',
+      toolId,
+      detail: `${profile.displayName} is evaluation-only.`,
+    })
   }
 
   if (profile?.productionStatus === 'future') {
@@ -238,7 +246,7 @@ function buildImageSummaries(toolSummaries: ReadinessToolSummary[]): ReadinessIm
         .filter((tool) => tool.status === 'missing' || tool.status === 'not_checked')
         .map((tool) => tool.toolId),
       blockedTools: expectedSummaries
-        .filter((tool) => statusBlocksProduction(tool.status))
+        .filter((tool) => toolBlocksProduction(tool))
         .map((tool) => tool.toolId),
       modelWeightBlockedTools: expectedSummaries
         .filter((tool) => tool.modelWeightsRequired)
@@ -335,7 +343,7 @@ function buildLicenseSummaries(modelWeightSummaries: ReadinessModelWeightSummary
       id: 'revideo_evaluation_only',
       toolId: 'revideo',
       status: 'evaluation_only',
-      message: 'Revideo remains evaluation-only and production-blocked.',
+      message: 'Revideo remains evaluation-only and blocked from production execution.',
       manualReviewRequired: true,
     },
   ]

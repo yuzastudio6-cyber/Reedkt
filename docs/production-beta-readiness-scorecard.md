@@ -1491,6 +1491,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted source packets and private artifact/Tool Route admission controls, it prepares one artifact plus Tool Route admission candidate for the requested handoff tool. The requested tool must have matching private artifact and Tool Route records; private artifact writes, Tool Route execution, worker dispatch, and tool execution remain blocked.
 - Runtime/beta/production: no unlock; this packet does not write private artifacts, execute Tool Routes, create worker leases, dispatch workers, execute tools, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta API Route Controlled Worker Runtime Proof
+
+- Decision: `ai_graphics_external_beta_api_route_controlled_worker_runtime_proof_prepared_with_runtime_blocks`.
+- Scope: side-effect-free bridge from the accepted artifact plus Tool Route admission packet into the accepted all-21 per-tool runtime proof packet.
+- Result: with accepted source packets and private controlled-worker proof controls, it prepares one controlled worker-runtime proof candidate for the requested admission tool. The requested tool must have accepted per-tool runtime proof evidence; live worker lease creation, worker dispatch, private artifact write, Tool Route execution, and tool execution remain blocked.
+- Runtime/beta/production: no unlock; this packet does not create live worker leases, dispatch workers, execute tools, write private artifacts, execute Tool Routes, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

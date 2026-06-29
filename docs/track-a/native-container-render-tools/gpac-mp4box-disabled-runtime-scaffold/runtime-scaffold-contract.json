@@ -1,0 +1,18 @@
+{
+  "contractFile": "src/backend/contracts/gpac-mp4box-disabled-runtime-scaffold-contracts.ts",
+  "smokeFile": "server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts",
+  "exports": [
+    "buildGpacMp4boxDisabledRuntimeScaffoldInput",
+    "validateGpacMp4boxDisabledRuntimeScaffoldInput",
+    "summarizeGpacMp4boxDisabledRuntimeScaffoldBoundary"
+  ],
+  "scaffoldId": "runtimeScaffold.gpacMp4box.disabled",
+  "runtimeMode": "disabled_scaffold_only",
+  "successStatus": "disabled_scaffold_registered_no_runtime",
+  "nextRequiredGate": "TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1",
+  "liveRouteRegistration": false,
+  "workerImplementation": false,
+  "toolExecutionPath": false,
+  "storageTransferPath": false,
+  "productionRuntimePath": false
+}

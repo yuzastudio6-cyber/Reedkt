@@ -1,0 +1,20 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-RUNTIME-SCAFFOLD-1",
+  "disabledRuntimeScaffoldPassed": true,
+  "runtimeScaffoldStatus": "disabled_scaffold_registered_no_runtime",
+  "readyForRuntimeScaffoldNegativeTests": true,
+  "readyForLiveRouteRegistration": false,
+  "readyForWorkerDispatch": false,
+  "readyForWorkerExecution": false,
+  "readyForGpacMp4boxExecution": false,
+  "readyForMediaProcessing": false,
+  "readyForStorageTransfer": false,
+  "readyForSignedUrlCreation": false,
+  "readyForPublicArtifactCreation": false,
+  "readyForProductRuntime": false,
+  "readyForExternalBetaProductUse": false,
+  "readyForPaidProduction": false,
+  "readyForProduction": false,
+  "productReadyLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-RUNTIME-SCAFFOLD-NEGATIVE-TESTS-1"
+}

@@ -97,7 +97,8 @@ if (!revideoTool) {
   throw new Error('Report must include Revideo.')
 }
 check(revideoTool.status === 'evaluation_only', 'Report must mark Revideo evaluation_only.')
-check(revideoTool.blockers.some((blocker) => blocker.severity === 'hard_blocker'), 'Revideo must be production-blocked.')
+check(!revideoTool.blockers.some((blocker) => blocker.severity === 'hard_blocker'), 'Revideo must not hard-block static readiness solely for evaluation-only status.')
+check(revideoTool.blockers.some((blocker) => blocker.severity === 'warning'), 'Revideo evaluation-only visibility must remain represented as a warning.')
 
 const modelWeightTools = staticReport.toolSummaries.filter((tool) => tool.modelWeightsRequired)
 check(modelWeightTools.length > 0, 'Report must include model-weight tools.')

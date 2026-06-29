@@ -15,6 +15,7 @@ export type ProductionReadinessBlockerKind =
   | 'model_weight_blocked'
   | 'non_commercial_model_weight'
   | 'unknown_model_weight_license'
+  | 'evaluation_only_static_visibility'
   | 'evaluation_only_production_execution'
   | 'gpu_tool_on_non_gpu_worker'
   | 'revideo_production_execution'
@@ -59,6 +60,7 @@ const statusByKind: Record<ProductionReadinessBlockerKind, ReadinessValidationSt
   model_weight_blocked: 'model_weight_blocked',
   non_commercial_model_weight: 'model_weight_blocked',
   unknown_model_weight_license: 'needs_model_weight_review',
+  evaluation_only_static_visibility: 'evaluation_only',
   evaluation_only_production_execution: 'evaluation_only',
   gpu_tool_on_non_gpu_worker: 'blocked',
   revideo_production_execution: 'evaluation_only',
@@ -81,6 +83,7 @@ const messageByKind: Record<ProductionReadinessBlockerKind, string> = {
   model_weight_blocked: 'Model weight is blocked for production execution.',
   non_commercial_model_weight: 'Non-commercial model weight cannot be used for paid production.',
   unknown_model_weight_license: 'Unknown model-weight license blocks production execution.',
+  evaluation_only_static_visibility: 'Evaluation-only tool remains visible in static readiness but is not approved for production execution.',
   evaluation_only_production_execution: 'Evaluation-only tool was requested for production execution.',
   gpu_tool_on_non_gpu_worker: 'GPU/model tool is assigned to a non-GPU worker.',
   revideo_production_execution: 'Revideo remains evaluation-only and blocked from production execution.',
@@ -103,6 +106,7 @@ const remediationByKind: Record<ProductionReadinessBlockerKind, string> = {
   model_weight_blocked: 'Replace or review the model weight before production execution.',
   non_commercial_model_weight: 'Select a commercially allowed model weight or block the feature for paid production.',
   unknown_model_weight_license: 'Complete model-weight license review and update the manifest.',
+  evaluation_only_static_visibility: 'Keep the tool out of production execution paths or graduate it through a future approval milestone.',
   evaluation_only_production_execution: 'Keep the tool out of production paths or graduate it through a future approval milestone.',
   gpu_tool_on_non_gpu_worker: 'Move the tool to gpu_ai_worker or mark it future/evaluation-only.',
   revideo_production_execution: 'Use the approved Hyperframe + Remotion + FFmpeg + libass + OpenTimelineIO render path.',

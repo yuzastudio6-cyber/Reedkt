@@ -175,7 +175,7 @@ for (const toolId of M11_GPU_MODEL_WEIGHT_TOOL_IDS) {
 const revideoProfile = getProductionToolProfile('revideo')
 const revideoSpec = getProductionReadinessSpec('revideo')
 check(revideoProfile?.productionStatus === 'evaluation_only', 'Revideo must remain evaluation-only.')
-check(revideoSpec?.blocksProductionIfMissing === true, 'Revideo readiness must remain production-blocked.')
+check(revideoSpec?.blocksProductionIfMissing === false, 'Revideo readiness must not hard-block static readiness solely for evaluation-only status.')
 
 const gpuJob = GCP_PRODUCTION_CLOUD_RUN_JOBS.find((job) => job.name === 'reeditpro-gpu-ai-worker')
 check(gpuJob?.gpuType === 'nvidia-l4', 'Cloud Run GPU template must use nvidia-l4 first.')

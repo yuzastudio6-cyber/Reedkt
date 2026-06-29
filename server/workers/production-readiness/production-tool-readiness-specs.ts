@@ -206,8 +206,7 @@ function buildSpec(profile: ProductionToolProfile): ProductionToolReadinessSpec 
     expectedArtifacts: profile.producedArtifacts,
     blocksProductionIfMissing: productionRequired ||
       profile.modelWeightsRequired ||
-      profile.productionStatus === 'needs_license_review' ||
-      profile.productionStatus === 'evaluation_only',
+      profile.productionStatus === 'needs_license_review',
     blocksWorkerTypes: workerOverrides[profile.toolId] ?? [profile.workerType],
     readinessStatusWhenMissing: readinessStatusWhenMissing(profile),
     evaluationOnly: profile.productionStatus === 'evaluation_only',

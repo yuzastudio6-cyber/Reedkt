@@ -134,7 +134,7 @@ check(nodePackages.has('hyperframe'), 'Node package checks must include Hyperfra
 
 const revideoSpec = getProductionReadinessSpec('revideo')
 check(revideoSpec?.evaluationOnly === true, 'Revideo readiness must remain evaluation-only.')
-check(revideoSpec?.blocksProductionIfMissing === true, 'Revideo readiness must remain production-blocked.')
+check(revideoSpec?.blocksProductionIfMissing === false, 'Revideo readiness must not hard-block static readiness solely for evaluation-only status.')
 
 check(realCore.coreToolReadiness?.report.ffmpegLgplVerificationStatus === 'pending_manual_review', 'FFmpeg LGPL-safe verification must remain pending/manual.')
 check(realCore.coreToolReadiness?.report.gpuModelToolsExcluded === true, 'Core readiness report must state GPU/model tools are excluded.')

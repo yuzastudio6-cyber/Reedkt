@@ -197,7 +197,7 @@ export function assertRevideoReadinessBlocked(): void {
     throw new Error('Revideo readiness must be evaluation-only.')
   }
 
-  if (!revideo.blocksProductionIfMissing || profile.launchCore) {
-    throw new Error('Revideo must be production-blocked and not launch core.')
+  if (revideo.blocksProductionIfMissing || revideo.productionRequired || profile.launchCore) {
+    throw new Error('Revideo must be evaluation-only, static-readiness visible, execution-blocked, and not launch core.')
   }
 }

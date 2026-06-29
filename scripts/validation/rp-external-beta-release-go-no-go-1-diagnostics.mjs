@@ -17,6 +17,15 @@ const releaseFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-controlled-enablement-1.md',
 ]
 
+const release1rFiles = [
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/source-audit.md',
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/compatibility-decision.md',
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/validation-results.md',
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/release-go-no-go-1r-record.json',
+  'docs/activation-phase-rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker.md',
+]
+
 const rollupFiles = [
   'docs/external-beta/current-readiness-rollup-1/readiness-gate.md',
   'docs/external-beta/current-readiness-rollup-1/source-of-truth-audit.md',
@@ -27,6 +36,21 @@ const rollupFiles = [
   'docs/product-internal-beta-readiness-aggregation.md',
   'docs/production-beta-blocker-inventory.md',
   'implementation-status-and-next-phase.md',
+]
+
+const afterQwenRollupFiles = [
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/blocker-matrix.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/current-readiness-rollup-record.json',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/qwen-evidence-review.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/readiness-rollup.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/safety-boundary.md',
+  'docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/validation-results.md',
+]
+
+const qwenDryRunFiles = [
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/qwen-real-dispatch-dry-run-attempt-record.json',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/dry-run-blocker.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/transport-readback.md',
 ]
 
 const controlledEnablementFiles = [
@@ -43,13 +67,23 @@ const controlledEnablementFiles = [
 ]
 
 const diagnosticFiles = [
+  'scripts/validation/rp-external-beta-current-readiness-rollup-after-qwen-orchestration-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qa-cleanup-observability-rollback-review-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-beta-current-readiness-rollup-1-diagnostics.mjs',
   'package.json',
 ]
 
-const requiredFiles = [...releaseFiles, ...rollupFiles, ...controlledEnablementFiles, ...diagnosticFiles]
+const requiredFiles = [
+  ...releaseFiles,
+  ...release1rFiles,
+  ...rollupFiles,
+  ...afterQwenRollupFiles,
+  ...qwenDryRunFiles,
+  ...controlledEnablementFiles,
+  ...diagnosticFiles,
+]
 
 const requiredText = [
   packet,
@@ -58,6 +92,11 @@ const requiredText = [
   'ready_for_explicit_staging_flag_application',
   'External beta unlocked in this packet: `false`',
   'RP-EXTERNAL-BETA-STAGING-FLAG-APPLICATION-1',
+  'completed_release_go_no_go_compatibility_after_qwen_dry_run_blocker',
+  'blocked_gcloud_reauthentication_required_before_qwen_real_dispatch_dry_run_attempt',
+  'completed_external_beta_current_readiness_rollup_after_qwen_orchestration',
+  'go_controlled_single_tester_external_beta_lane_remains_open',
+  'blocked_no_additional_named_tester_list',
   'Reeditpro` / `wmyyttnynmteqgcdishd` / `staging',
   'fajinbvwhcjnutkaumkm',
   'PR #577 remains open/draft/blocked and excluded',
@@ -228,9 +267,16 @@ const rollupRecord = JSON.parse(read('docs/external-beta/current-readiness-rollu
 const acceptedRollupDecisions = new Set([
   'approved_external_beta_release_go_no_go_source_chain_accepted',
   'completed_controlled_external_beta_enablement_source_contract_default_off',
+  'blocked_no_additional_named_tester_list',
 ])
 if (!acceptedRollupDecisions.has(rollupRecord.decision)) fail('rollup decision mismatch')
-if (!['d365e1195690daabe00edf10c95b13f62bfd3c7c', '05a815f0f9b210393a1b02c8b4257046f11ca5a7'].includes(rollupRecord.integrationHead)) {
+if (
+  ![
+    'd365e1195690daabe00edf10c95b13f62bfd3c7c',
+    '05a815f0f9b210393a1b02c8b4257046f11ca5a7',
+    '3c56071c0274abeb513f302414d702c113cc6ab7',
+  ].includes(rollupRecord.integrationHead)
+) {
   fail('rollup integration head mismatch')
 }
 if (rollupRecord.sourceClosure?.releaseGoNoGo !== 'rp_external_beta_release_go_no_go_1') fail('rollup release closure missing')
@@ -240,7 +286,27 @@ if (rollupRecord.mainSupabaseTarget?.releaseGoNoGo !== 'approved_external_beta_r
 if (rollupRecord.mainSupabaseTarget?.externalBetaUnlock !== false) fail('rollup external beta unlock must remain false')
 if (rollupRecord.safety?.releaseGoNoGoApproved !== true) fail('rollup release approval flag mismatch')
 if (rollupRecord.safety?.externalBetaUnlock !== false) fail('rollup external beta unlock safety mismatch')
-if (rollupRecord.decision === 'completed_controlled_external_beta_enablement_source_contract_default_off') {
+if (rollupRecord.decision === 'blocked_no_additional_named_tester_list') {
+  if (rollupRecord.integrationHead !== '3c56071c0274abeb513f302414d702c113cc6ab7') fail('bounded tester integration head mismatch')
+  if (
+    rollupRecord.statuses?.externalProductBeta !==
+    'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list'
+  ) {
+    fail('bounded tester external beta readiness mismatch')
+  }
+  if (rollupRecord.sourceClosure?.boundedTesterExpansionDecision !== 'rp_external_beta_bounded_tester_expansion_decision_1') {
+    fail('bounded tester expansion source closure missing')
+  }
+  if (rollupRecord.mainSupabaseTarget?.boundedTesterExpansionDecision !== 'blocked_no_additional_named_tester_list') {
+    fail('bounded tester expansion decision mismatch')
+  }
+  if (rollupRecord.mainSupabaseTarget?.boundedTesterExpansionApproved !== false) fail('bounded tester expansion must remain false')
+  if (rollupRecord.mainSupabaseTarget?.currentApprovedTesterEmail !== 'aiediting@reeditpro.com') fail('current tester mismatch')
+  if (rollupRecord.safety?.additionalTesterExpansionApproved !== false) fail('additional tester expansion must remain false')
+  if (rollupRecord.safety?.boundedTesterExpansionDecision !== 'blocked_no_additional_named_tester_list_no_access_mutation') {
+    fail('bounded tester expansion safety mismatch')
+  }
+} else if (rollupRecord.decision === 'completed_controlled_external_beta_enablement_source_contract_default_off') {
   if (rollupRecord.integrationHead !== '05a815f0f9b210393a1b02c8b4257046f11ca5a7') fail('post-controlled integration head mismatch')
   if (rollupRecord.sourceClosure?.controlledEnablement !== 'rp_external_beta_controlled_enablement_1') fail('rollup controlled enablement closure missing')
   if (rollupRecord.statuses?.externalProductBeta !== 'ready_for_explicit_staging_flag_application') fail('rollup controlled readiness mismatch')
@@ -258,6 +324,31 @@ if (rollupRecord.decision === 'completed_controlled_external_beta_enablement_sou
 }
 if (rollupRecord.packageLock !== 'unchanged') fail('rollup package-lock status mismatch')
 if (rollupRecord.generatedArtifactsCommitted !== 'none') fail('rollup generated artifact status mismatch')
+
+const afterQwenRollupRecord = JSON.parse(
+  read('docs/external-beta/current-readiness-rollup-after-qwen-orchestration-1/current-readiness-rollup-record.json'),
+)
+if (afterQwenRollupRecord.decision !== 'completed_external_beta_current_readiness_rollup_after_qwen_orchestration') {
+  fail('after-QWEN rollup decision mismatch')
+}
+if (
+  afterQwenRollupRecord.statuses?.externalProductBeta !==
+  'controlled_single_tester_external_beta_ready_bounded_expansion_blocked_no_additional_named_tester_list'
+) {
+  fail('after-QWEN external beta readiness mismatch')
+}
+if (afterQwenRollupRecord.statuses?.productReadyEndToEndLocalOssTools !== 0) fail('after-QWEN product-ready count mismatch')
+if (afterQwenRollupRecord.safety?.externalBetaGlobalUnlock !== false) fail('after-QWEN global unlock must remain false')
+
+const qwenDryRunRecord = JSON.parse(read('docs/external-beta/qwen-real-dispatch-dry-run-attempt-1/qwen-real-dispatch-dry-run-attempt-record.json'))
+if (qwenDryRunRecord.decision !== 'blocked_gcloud_reauthentication_required_before_qwen_real_dispatch_dry_run_attempt') {
+  fail('QWEN dry-run blocker decision mismatch')
+}
+if (qwenDryRunRecord.transportReadback?.result !== 'blocked_reauthentication_required') fail('QWEN dry-run readback mismatch')
+if (qwenDryRunRecord.transportReadback?.remoteRequestSent !== false) fail('QWEN dry-run remote request must be false')
+if (qwenDryRunRecord.runtimePosture?.cloudRunInvocation !== false) fail('QWEN dry-run Cloud Run invocation must be false')
+if (qwenDryRunRecord.runtimePosture?.identityTokenFetch !== false) fail('QWEN dry-run identity token fetch must be false')
+if (qwenDryRunRecord.runtimePosture?.qwen25VlExecution !== false) fail('QWEN dry-run execution must be false')
 
 const packageJson = JSON.parse(read('package.json'))
 if (

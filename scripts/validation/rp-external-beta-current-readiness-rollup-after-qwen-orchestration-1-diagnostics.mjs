@@ -35,6 +35,17 @@ const followOnControlledSingleTesterProductFlowAfterQwenFiles = [
   'scripts/validation/rp-external-beta-controlled-single-tester-product-flow-after-qwen-orchestration-1-diagnostics.mjs',
 ]
 
+const followOnReleaseGoNoGo1rFiles = [
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/source-audit.md',
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/compatibility-decision.md',
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/validation-results.md',
+  'docs/external-beta/release-go-no-go-1r-after-qwen-dry-run-blocker/release-go-no-go-1r-record.json',
+  'docs/activation-phase-rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker.md',
+  'scripts/validation/rp-external-beta-release-go-no-go-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-release-go-no-go-1r-after-qwen-dry-run-blocker-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_external_beta_current_readiness_rollup_after_qwen_orchestration',
@@ -165,6 +176,7 @@ const allowedFiles = new Set([
   ...requiredFiles,
   ...allowedSupportFiles,
   ...followOnControlledSingleTesterProductFlowAfterQwenFiles,
+  ...followOnReleaseGoNoGo1rFiles,
 ])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)

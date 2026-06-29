@@ -1,0 +1,24 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-REVIEW-1",
+  "acceptedSources": [
+    {
+      "pr": 1588,
+      "mergeSha": "7905f29b16d7bdcaa95bdaefdc55d2ccd4b734ae",
+      "decision": "tracka_gpac_mp4box_disabled_live_registration_contract_passed_ready_for_live_registration_contract_negative_tests"
+    },
+    {
+      "pr": 1593,
+      "mergeSha": "d5afe1a55b6e5c566a84d3cbdba2a1d7c8d530d8",
+      "decision": "tracka_gpac_mp4box_live_registration_contract_negative_tests_passed_ready_for_disabled_handler_registration_review"
+    }
+  ],
+  "excludedSources": [
+    {
+      "pr": 577,
+      "status": "open/draft/blocked/conflicting/excluded"
+    }
+  ],
+  "decision": "tracka_gpac_mp4box_disabled_handler_registration_review_passed_ready_for_disabled_handler_registration_contract",
+  "execution": "completed_docs_only_disabled_handler_registration_review_no_runtime_execution",
+  "productReadyLocalOssTools": 0
+}

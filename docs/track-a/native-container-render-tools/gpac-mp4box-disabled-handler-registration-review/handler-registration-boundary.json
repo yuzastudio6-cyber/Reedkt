@@ -1,0 +1,33 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-DISABLED-HANDLER-REGISTRATION-REVIEW-1",
+  "allowedFutureMetadata": [
+    "handler_registration_id",
+    "route_id",
+    "disabled_status",
+    "backend_service_role_ownership_requirement",
+    "approved_snapshot_guard_requirement",
+    "route_idempotency_guard_requirement",
+    "private_artifact_manifest_guard_requirement",
+    "command_allowlist_guard_requirement",
+    "negative_test_dependency_requirement",
+    "storage_signed_public_artifact_cleanup_audit_operator_confirmation_gates"
+  ],
+  "blocked": {
+    "executableHttpHandlerRegistration": "blocked",
+    "routeExecution": "blocked",
+    "workerDispatch": "blocked",
+    "workerExecution": "blocked",
+    "gpacMp4boxExecution": "blocked",
+    "mediaProcessing": "blocked",
+    "storageTransfer": "blocked",
+    "signedUrlCreation": "blocked",
+    "publicArtifactCreation": "blocked",
+    "supabaseMutation": "blocked",
+    "sqlExecution": "blocked",
+    "externalBetaExpansion": "blocked",
+    "paidProductionUnlock": "blocked",
+    "productionUnlock": "blocked",
+    "finalDeliveryExport": "blocked"
+  },
+  "nextPacketType": "contract_metadata_only"
+}

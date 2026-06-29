@@ -1505,6 +1505,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted source packets and private operator confirmation, environment, runbook, lease TTL, claim isolation, artifact sandbox, result capture, GPU on-demand, cost, QA, telemetry, and rollback refs, it prepares one worker-runtime smoke authorization candidate. The candidate remains metadata only and does not authorize a live smoke now.
 - Runtime/beta/production: no unlock; this packet does not create worker leases, dispatch workers, execute tools, write private artifacts, execute Tool Routes, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later explicitly run worker/tool job and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta API Route Worker Runtime Smoke Proof
+
+- Decision: `ai_graphics_external_beta_api_route_worker_runtime_smoke_proof_prepared_with_runtime_blocks`.
+- Scope: saved-result validator for one private non-production worker-runtime smoke after worker-runtime smoke authorization.
+- Result: with an accepted authorization packet and saved sanitized smoke result, it accepts one worker lease lifecycle and one worker dispatch with provided evidence, while requiring zero tool executions, zero private artifact writes, zero route executions, no public artifacts, and no signed URLs. For GPU/model tools, saved evidence may prove GPU started only for the accepted job and was released/idle after cleanup; for CPU/static tools, saved evidence must prove no GPU startup.
+- Runtime/beta/production: no unlock; this validator does not run the smoke, create leases, dispatch workers, execute tools, write artifacts, execute Tool Routes, call providers/models, start GPU runtime, unlock external beta traffic, or unlock production. `gpuRuntimeShouldStartNow` remains false.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

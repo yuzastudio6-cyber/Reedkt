@@ -41,6 +41,8 @@ export interface BetaReadinessBlockerCloseoutQueueReport {
     operatorTemplatePath: string
     requiredOperatorInputs: number
     pendingOperatorInputsInBlankEnv: number
+    humanActionablePendingOperatorInputs: number
+    autoFillablePendingOperatorInputs: number
   }
   blockerCounts: {
     byClearanceType: Record<string, number>
@@ -81,6 +83,9 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
   const acceptedToolIds = stringArray(localBundle.locallyAcceptedToolIds)
   const requiredOperatorInputs = numberValue(operatorTemplate.inputCounts?.required)
   const pendingOperatorInputsInBlankEnv = numberValue(operatorTemplate.inputCounts?.currentlyPendingInBlankEnvironment)
+  const pendingTemplateInputs = arrayValue(operatorTemplate.requiredInputs).filter((input) => input.present !== true)
+  const humanActionablePendingOperatorInputs = pendingTemplateInputs.filter(isHumanActionableOperatorInput).length
+  const autoFillablePendingOperatorInputs = pendingTemplateInputs.length - humanActionablePendingOperatorInputs
 
   return {
     reportId: 'beta-readiness-blocker-closeout-queue-2026-06-29',
@@ -105,12 +110,22 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
       operatorTemplatePath: EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH,
       requiredOperatorInputs,
       pendingOperatorInputsInBlankEnv,
+      humanActionablePendingOperatorInputs,
+      autoFillablePendingOperatorInputs,
     },
     blockerCounts: {
       byClearanceType,
       byBlockerId,
     },
-    batches: buildBatches(byClearanceType, byBlockerId, acceptedToolIds, requiredOperatorInputs, pendingOperatorInputsInBlankEnv),
+    batches: buildBatches(
+      byClearanceType,
+      byBlockerId,
+      acceptedToolIds,
+      requiredOperatorInputs,
+      pendingOperatorInputsInBlankEnv,
+      humanActionablePendingOperatorInputs,
+      autoFillablePendingOperatorInputs,
+    ),
     blockedScopeConfirmations: {
       deployedBackendCalled: false,
       toolExecutionRan: false,
@@ -145,6 +160,8 @@ function buildBatches(
   acceptedToolIds: string[],
   requiredOperatorInputs: number,
   pendingOperatorInputsInBlankEnv: number,
+  humanActionablePendingOperatorInputs: number,
+  autoFillablePendingOperatorInputs: number,
 ): BetaReadinessBlockerCloseoutQueueBatch[] {
   return [
     {
@@ -156,7 +173,7 @@ function buildBatches(
       canRunWithoutOperatorSecrets: false,
       canEnableBetaOrProduction: false,
       sourceEvidence: [
-        `${EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH} (${requiredOperatorInputs} required inputs, ${pendingOperatorInputsInBlankEnv} pending in blank env)`,
+        `${EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH} (${requiredOperatorInputs} required inputs, ${pendingOperatorInputsInBlankEnv} pending in blank env: ${humanActionablePendingOperatorInputs} human-actionable, ${autoFillablePendingOperatorInputs} auto-fillable constants/keys)`,
       ],
       nextCommands: [
         'npm run beta:readiness:external-beta-operator-input-template -- --status',
@@ -165,7 +182,7 @@ function buildBatches(
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],
       blockedUntil: [
-        'Operators review the value-free pending-input status, then supply bearer token, workspace/project IDs, idempotency keys, non-secret owner evidence notes, and explicit owner approval booleans from an operator shell or secret manager session.',
+        `Operators review the value-free pending-input status, then supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, and non-secret owner evidence notes) and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.`,
       ],
     },
     {
@@ -331,6 +348,18 @@ function countBy(values: string[]): Record<string, number> {
 
 function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+function arrayValue(value: unknown): any[] {
+  return Array.isArray(value) ? value : []
+}
+
+function isHumanActionableOperatorInput(input: any): boolean {
+  return (
+    input?.valuePolicy === 'operator_secret_or_sensitive' ||
+    input?.valuePolicy === 'operator_non_secret_value' ||
+    input?.valuePolicy === 'owner_evidence_note'
+  )
 }
 
 function numberValue(value: unknown): number {

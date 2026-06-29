@@ -5,15 +5,17 @@ import {
   buildBetaReadinessOwnerApprovalIntakePreflight,
 } from './beta-readiness-owner-approval-intake-preflight.mjs'
 
-const OWNER_GAP_PACKET_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json'
-const SOURCE_FRESHNESS_PACKET_PATH = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-17a9-source-freshness-passed.json'
-const HANDOFF_JSON_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-17a9-owner-approval-collection-handoff.json'
-const HANDOFF_MD_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-17a9-owner-approval-collection-handoff.md'
+const DETAILED_OWNER_GAP_PACKET_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-17a9-technical-inputs-owner-approval-gap.json'
+const CURRENT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-769f-deployed-evidence-input-manifest.json'
+const SOURCE_FRESHNESS_PACKET_PATH = 'docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json'
+const HANDOFF_JSON_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.json'
+const HANDOFF_MD_PATH = 'docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-769f-owner-approval-collection-handoff.md'
 
 export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
   const packet = buildBetaReadinessOwnerApprovalPacket()
   const intake = buildBetaReadinessOwnerApprovalIntakePreflight({})
-  const ownerGap = readJson(OWNER_GAP_PACKET_PATH)
+  const detailedOwnerGap = readJson(DETAILED_OWNER_GAP_PACKET_PATH)
+  const currentManifest = readJson(CURRENT_DEPLOYED_EVIDENCE_MANIFEST_PATH)
   const template = buildBetaReadinessOwnerApprovalEnvTemplate()
   const templateLines = template.split('\n').filter((line) => line.trim().length > 0)
   const requiredInputs = intake.requiredInputs.map((input) => ({
@@ -27,29 +29,34 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
 
   return {
     ok: true,
-    handoffId: 'beta-readiness-owner-approval-collection-handoff-17a9-2026-06-29',
-    createdAt: '2026-06-29T01:05:00Z',
+    handoffId: 'beta-readiness-owner-approval-collection-handoff-769f-2026-06-29',
+    createdAt: '2026-06-29T01:55:00Z',
     decision: 'beta_readiness_owner_approval_collection_handoff_passed_ready_for_owner_input_collection',
     sourceTruth: {
       sourceBranch: packet.sourceTruth.sourceBranch,
       sourceSha: packet.sourceTruth.sourceSha,
+      deployedEvidenceSourceSha: packet.sourceTruth.deployedEvidenceSourceSha,
       apiDeployPacket: packet.sourceTruth.currentSourceApiDeployPacket,
       apiRevision: packet.sourceTruth.normalApiRevision,
       apiDeployRunUrl: packet.sourceTruth.normalApiDeployRunUrl,
       sourceFreshnessPacket: SOURCE_FRESHNESS_PACKET_PATH,
+      sourceFreshnessDecision: packet.sourceTruth.sourceFreshnessDecision,
       ownerApprovalPacket: intake.sourceTruth.ownerApprovalPacket,
-      ownerGapPacket: OWNER_GAP_PACKET_PATH,
-      ownerGapDecision: ownerGap.decision,
-      ownerGapPendingInputCount: ownerGap.manifestResult?.pendingRequiredInputCount,
+      currentDeployedEvidenceManifest: CURRENT_DEPLOYED_EVIDENCE_MANIFEST_PATH,
+      currentDeployedEvidenceManifestDecision: currentManifest.decision,
+      detailedOwnerGapPacket: DETAILED_OWNER_GAP_PACKET_PATH,
+      detailedOwnerGapDecision: detailedOwnerGap.decision,
+      detailedOwnerGapPendingInputCount: detailedOwnerGap.manifestResult?.pendingRequiredInputCount,
       productReadyLocalOssCount: packet.productReadyLocalOssCount,
+      trackBToolTotals: packet.sourceTruth.trackBToolTotals,
     },
     ownerApprovalState: {
       approvalsGrantedByThisHandoff: false,
       readyForDeployedEvidenceInputManifest: false,
       pendingRequiredInputCount: intake.pendingInputs.length,
       requiredInputCount: intake.requiredInputCount,
-      valueGapsInTechnicalInputs: ownerGap.manifestResult?.valueGaps?.length ?? 0,
-      secretLikeInputPathsInTechnicalInputs: ownerGap.manifestResult?.secretLikeInputPaths?.length ?? 0,
+      valueGapsInTechnicalInputs: detailedOwnerGap.manifestResult?.valueGaps?.length ?? 0,
+      secretLikeInputPathsInTechnicalInputs: detailedOwnerGap.manifestResult?.secretLikeInputPaths?.length ?? 0,
     },
     requiredInputGroups: groups,
     requiredInputs,
@@ -71,7 +78,8 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
-    scopedBlockerForwardProgressPolicy: ownerGap.scopedBlockerForwardProgressPolicy,
+    scopedBlockerForwardProgressPolicy: currentManifest.currentApiDeployReadback?.scopedBlockerForwardProgressPolicy ??
+      detailedOwnerGap.scopedBlockerForwardProgressPolicy,
     blockedScopeConfirmations: {
       approvalsForgedOrGranted: false,
       deployedBackendCalled: false,
@@ -99,14 +107,18 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
 
 export function renderBetaReadinessOwnerApprovalCollectionHandoffMarkdown(handoff) {
   const lines = [
-    '# Beta Readiness Owner Approval Collection Handoff - 17a9',
+    '# Beta Readiness Owner Approval Collection Handoff - 769f',
     '',
     `Decision: \`${handoff.decision}\``,
     '',
     `Source SHA: \`${handoff.sourceTruth.sourceSha}\``,
+    `Deployed evidence source SHA: \`${handoff.sourceTruth.deployedEvidenceSourceSha}\``,
     `API revision: \`${handoff.sourceTruth.apiRevision}\``,
-    `Owner gap packet: \`${handoff.sourceTruth.ownerGapPacket}\``,
-    `Owner gap decision: \`${handoff.sourceTruth.ownerGapDecision}\``,
+    `Current deployed evidence manifest: \`${handoff.sourceTruth.currentDeployedEvidenceManifest}\``,
+    `Current deployed evidence manifest decision: \`${handoff.sourceTruth.currentDeployedEvidenceManifestDecision}\``,
+    `Detailed owner gap packet: \`${handoff.sourceTruth.detailedOwnerGapPacket}\``,
+    `Detailed owner gap decision: \`${handoff.sourceTruth.detailedOwnerGapDecision}\``,
+    `Source freshness decision: \`${handoff.sourceTruth.sourceFreshnessDecision}\``,
     '',
     '## Current State',
     '',
@@ -115,6 +127,7 @@ export function renderBetaReadinessOwnerApprovalCollectionHandoffMarkdown(handof
     `- Pending owner inputs: \`${handoff.ownerApprovalState.pendingRequiredInputCount}\``,
     `- Technical input value gaps: \`${handoff.ownerApprovalState.valueGapsInTechnicalInputs}\``,
     `- Technical secret-like input paths: \`${handoff.ownerApprovalState.secretLikeInputPathsInTechnicalInputs}\``,
+    `- Track B tool totals: \`${handoff.sourceTruth.trackBToolTotals.owned} owned / ${handoff.sourceTruth.trackBToolTotals.boundedAcceptedProven} bounded accepted-proven / ${handoff.sourceTruth.trackBToolTotals.blockedNotInstalledProven} blocked-not-installed-proven / ${handoff.sourceTruth.trackBToolTotals.productReady} product-ready\``,
     '',
     '## Required Input Groups',
     '',

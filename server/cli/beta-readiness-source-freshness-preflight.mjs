@@ -87,6 +87,9 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'docs/**',
         'server/smoke/**',
         'server/cli/beta-readiness-source-freshness-preflight.mjs',
+        'server/cli/beta-readiness-owner-approval-packet.mjs',
+        'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
+        'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
       ],
       blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path)),
     },
@@ -159,7 +162,10 @@ function resolveChangedFiles(deployedSourceSha, currentSourceSha, options) {
 function isAllowedMetadataOnlyDriftPath(path) {
   return path.startsWith('docs/') ||
     path.startsWith('server/smoke/') ||
-    path === 'server/cli/beta-readiness-source-freshness-preflight.mjs'
+    path === 'server/cli/beta-readiness-source-freshness-preflight.mjs' ||
+    path === 'server/cli/beta-readiness-owner-approval-packet.mjs' ||
+    path === 'server/cli/beta-readiness-owner-approval-intake-preflight.mjs' ||
+    path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs'
 }
 
 function readJson(path) {

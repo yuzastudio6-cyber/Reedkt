@@ -17,6 +17,8 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:scope-approval-evidence',
   'beta:readiness:scope-approval-evidence-preflight',
   'beta:readiness:scope-approval-sequence',
+  'beta:platform:staging-evidence-preflight',
+  'beta:platform:staging-evidence-probe',
   'smoke:beta-readiness-deployed-evidence-input-manifest',
   'smoke:beta-readiness-external-beta-evidence-collector',
   'smoke:beta-readiness-launch-approval-evidence-cli',
@@ -26,6 +28,8 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'smoke:beta-readiness-scope-approval-evidence-cli',
   'smoke:beta-readiness-scope-approval-evidence-preflight',
   'smoke:beta-readiness-scope-approval-sequence',
+  'smoke:beta-platform-staging-evidence-collector-cli',
+  'smoke:beta-platform-staging-evidence-preflight',
 ]
 
 export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, options = {}) {

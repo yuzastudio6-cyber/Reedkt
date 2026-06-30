@@ -111,6 +111,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-attempt-result'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_IMPLEMENTATION } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-implementation'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -227,6 +228,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_implementation_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -243,7 +245,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -472,6 +474,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_PLAN.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchPersistedJobLeaseBridgeImplementationDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_IMPLEMENTATION.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchPersistedJobLeaseBridgeResultReviewDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1872,15 +1876,28 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review',
       label:
         'Controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge result review',
-      status:
-        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required',
+      status: 'ready',
       evidence: [
         'The 58DD bridge implementation is recorded and validated as fail-closed.',
-        'Persisted job, lease, idempotency, sanitized event, backend runtime message, worker-claim, and private invoke preview references are metadata-only.',
+        'The 58DE bridge result review accepts the fail-closed persisted job, lease, idempotency, sanitized event, backend runtime message, worker-claim, and private invoke preview references as metadata-only evidence.',
+        'The review accepts the default blocked_private_invoke_transport_preview_only bridge status and blocked_idempotency_conflict guard.',
         'No Cloud Run invocation, Qwen model import, model load, vLLM initialization, inference, Supabase mutation, generated asset, signed URL, credit mutation, beta, or production unlock occurs.',
       ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review',
+      label:
+        'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke readiness review',
+      status:
+        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required',
+      evidence: [
+        'The 58DE bridge result review is accepted and preserves approved snapshot, private source-of-truth, idempotency, lease, QA/audit/cost/credit, and beta locks.',
+        'The next review must decide whether the approved-fixture private invoke path is ready for a future bounded attempt through the persisted job and lease bridge.',
+        'No private invoke request, model import, model load, vLLM initialization, forward pass, inference, generated asset, Supabase mutation, signed URL, public artifact, credit mutation, beta, or production unlock occurs now.',
+      ],
       missingEvidence: [
-        'Review and accept the fail-closed bridge result before any later approved-fixture Qwen inference attempt.',
+        'Review and accept approved-fixture private invoke readiness through the persisted job and lease bridge before any later bounded Qwen inference attempt.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2467,8 +2484,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     persistedJobLeaseBridgePlanRecorded: true,
     persistedJobLeaseBridgeImplementationRequired: false,
     persistedJobLeaseBridgeImplemented: true,
-    persistedJobLeaseBridgeResultReviewRequired: true,
-    persistedJobLeaseBridgeResultReviewRecorded: false,
+    persistedJobLeaseBridgeResultReviewRequired: false,
+    persistedJobLeaseBridgeResultReviewRecorded: true,
+    persistedJobLeaseBridgeResultReviewAccepted: true,
+    approvedFixturePrivateInvokeReadinessReviewRequired: true,
+    approvedFixturePrivateInvokeReadinessReviewRecorded: false,
     cpuCallerInferencePathReusedForPersistedDispatchAttempt: false,
     approvedSnapshotAndFixtureScopePlanned: true,
     persistedWorkerDispatchRefsPlanned: true,
@@ -2616,11 +2636,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DE-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-PERSISTED-JOB-LEASE-BRIDGE-RESULT-REVIEW: review the fail-closed persisted job and lease bridge result, no inference/no generated assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58DF-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-READINESS-REVIEW: review readiness for one approved-fixture private invoke through the persisted job and lease bridge, no inference/no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

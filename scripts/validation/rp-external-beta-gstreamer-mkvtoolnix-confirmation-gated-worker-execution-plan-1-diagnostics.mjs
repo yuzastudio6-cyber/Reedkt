@@ -41,7 +41,18 @@ const sourceFiles = [
   'editing-asset-manifest.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const dryRunFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1/dry-run-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1/blocked-scope-register.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...dryRunFiles])
 
 const requiredText = [
   packet,

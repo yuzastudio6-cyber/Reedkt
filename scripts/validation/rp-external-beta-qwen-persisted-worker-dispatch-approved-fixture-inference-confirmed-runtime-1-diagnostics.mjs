@@ -63,12 +63,27 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+for (const file of [
+  'docs/external-beta/qwen-persisted-worker-dispatch-runtime-source-bridge-1/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-runtime-source-bridge-1/bridge-contract.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-runtime-source-bridge-1/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-runtime-source-bridge-1/validation-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-runtime-source-bridge-1/qwen-persisted-worker-dispatch-runtime-source-bridge-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r.md',
+  'server/services/rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge.ts',
+  'server/smoke/rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge-1-smoke.ts',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^supabase\//,
   /^database\//,
   /^src\/(?!server\/server-router\.ts$)/,
-  /^server\/(?!services\/qwen2-5-vl-external-beta-product-route-handler-source\.ts$|smoke\/)/,
+  /^server\/(?!services\/qwen2-5-vl-external-beta-product-route-handler-source\.ts$|services\/rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge\.ts$|smoke\/)/,
   /^docker\//,
   /^\.github\//,
   /^\.dockerignore$/,

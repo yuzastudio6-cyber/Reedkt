@@ -121,6 +121,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_RESULT_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-approval'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_PREFLIGHT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-preflight'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -246,6 +247,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_result_review_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_approval_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_preflight_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -262,7 +264,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_preflight_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -511,6 +513,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_PLAN.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInferenceApprovalDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_APPROVAL.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInferencePreflightDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_PREFLIGHT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -2016,7 +2020,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'The 58DL review accepts the 58DK private invoke attempt result as fail-closed contract evidence only.',
         'The 58DM private inference plan is recorded for one bounded approved-fixture private Qwen inference attempt through the persisted job and lease bridge.',
         'The plan defines approved snapshot scope, persisted job/lease/idempotency refs, private source-of-truth refs, Qwen request envelope, private transport and credential handling, model runtime boundary, metadata-only response contract, QA/audit/cost/no-spend evidence, cleanup, retry, rollback, and review requirements.',
-        'Qwen inference, model import, model load, vLLM initialization, forward pass, generated assets, Supabase persistence, signed URLs, public artifacts, credits, beta, and production remain blocked until a separate 58DN approval gate.',
+        'Qwen inference, model import, model load, vLLM initialization, forward pass, generated assets, Supabase persistence, signed URLs, public artifacts, credits, beta, and production remain blocked by later preflight, attempt approval, attempt, and review gates.',
       ],
       missingEvidence: [],
     },
@@ -2037,14 +2041,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference preflight',
       status:
-        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_preflight_required',
+        'ready',
       evidence: [
         'The 58DN approval is recorded for a future no-execution private inference preflight only.',
-        'No static preflight evidence has yet re-verified approved snapshot binding, persisted job/lease/idempotency refs, private source-of-truth refs, request envelope, private invoke transport/credential boundary, model runtime boundary, response contract, QA/audit/cost/no-spend evidence, cleanup, rollback, or result-review requirements.',
-        'The next movement must be a no-execution preflight packet before any bounded private inference attempt can be considered.',
+        'The 58DO preflight verifies approved snapshot binding, persisted job/lease/idempotency refs, private source-of-truth refs, request envelope, private invoke transport/credential boundary, model runtime boundary, response contract, QA/audit/cost/no-spend evidence, cleanup, rollback, and result-review requirements as static evidence.',
+        'The preflight keeps Cloud Run invocation, model import, model load, vLLM initialization, prompt processing, forward pass, inference, generated assets, beta, and production blocked.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval',
+      label:
+        'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval',
+      status:
+        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval_required',
+      evidence: [
+        'The 58DO preflight is recorded and passed as static envelope evidence only.',
+        'No attempt-approval packet has yet accepted one bounded approved-fixture private Qwen inference attempt.',
+        'The next movement must approve the exact single-attempt envelope while keeping Cloud Run invocation, inference execution, generated assets, beta, and production blocked in the approval packet.',
       ],
       missingEvidence: [
-        'Verify the bounded approved-fixture private Qwen inference preflight while keeping Cloud Run invocation, inference execution, generated assets, beta, and production blocked.',
+        'Approve one bounded approved-fixture private Qwen inference attempt through the persisted job and lease bridge without running Cloud Run invocation or inference.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2660,8 +2677,20 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     approvedFixturePrivateInferenceApprovalRequired: false,
     approvedFixturePrivateInferenceApprovalRecorded: true,
     approvedFixturePrivateInferenceApprovalAccepted: true,
-    approvedFixturePrivateInferencePreflightRequired: true,
-    approvedFixturePrivateInferencePreflightRecorded: false,
+    approvedFixturePrivateInferencePreflightRequired: false,
+    approvedFixturePrivateInferencePreflightRecorded: true,
+    approvedFixturePrivateInferencePreflightPassed: true,
+    approvedFixturePrivateInferenceAttemptApprovalRequired: true,
+    persistedJobLeaseAndIdempotencyRefsPreflightVerified: true,
+    qwenPrivateInferenceRequestEnvelopePreflightVerified: true,
+    privateInvokeTransportAndCredentialHandlingPreflightVerified: true,
+    modelRuntimeBoundaryPreflightVerified: true,
+    metadataOnlyResponseContractPreflightVerified: true,
+    qaAuditCostCreditNoSpendPreflightVerified: true,
+    cleanupRetryRollbackReviewPreflightVerified: true,
+    approvedFixturePrivateInferencePreflightExecuted: false,
+    approvedFixturePrivateInferenceAttemptExecuted: false,
+    approvedFixturePrivateInferenceAcceptedForPersistedDispatch: false,
     approvedFixturePrivateInvokeAttemptLocalOutputTargetUrlDetected: true,
     approvedFixturePrivateInvokeAttemptTargetUrlValueStoredInRepo: false,
     approvedFixturePrivateInvokeAttemptLogPayloadUrlValueDetected: false,
@@ -2674,7 +2703,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     readyForApprovedFixturePrivateInvokeAttemptResultReview: false,
     readyForApprovedFixturePrivateInferencePlan: false,
     readyForApprovedFixturePrivateInferenceApproval: false,
-    readyForApprovedFixturePrivateInferencePreflight: true,
+    readyForApprovedFixturePrivateInferencePreflight: false,
+    readyForApprovedFixturePrivateInferenceAttemptApproval: true,
     approvedSnapshotAndFixtureScopeReadinessAccepted: true,
     persistedWorkerDispatchRefsReadinessAccepted: true,
     privateSourceOfTruthRefsReadinessAccepted: true,
@@ -2831,11 +2861,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_preflight_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DO-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INFERENCE-PREFLIGHT: verify one bounded approved-fixture private Qwen inference preflight through the persisted job and lease bridge, no Cloud Run invocation/no inference/no generated assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58DP-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INFERENCE-ATTEMPT-APPROVAL: approve one bounded approved-fixture private Qwen inference attempt through the persisted job and lease bridge, no Cloud Run invocation/no inference/no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

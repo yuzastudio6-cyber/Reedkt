@@ -1048,6 +1048,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-api-route-mount-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-readiness-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-mount-implementation-review": "tsx server/cli/ai-graphics-external-beta-api-route-mount-implementation-review.ts",',
   '+    "ai-graphics:external-beta-api-route-mount-implementation-review:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-implementation-review-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-mount-implementation-qa": "tsx server/cli/ai-graphics-external-beta-api-route-mount-implementation-qa.ts",',
+  '+    "ai-graphics:external-beta-api-route-mount-implementation-qa:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-implementation-qa-diagnostics.mjs",',
   '+    "ai-graphics:production-launch-controls": "tsx server/cli/ai-graphics-production-launch-controls.ts",',
   '+    "ai-graphics:production-launch-controls:diagnostics": "node scripts/validation/ai-graphics-production-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',

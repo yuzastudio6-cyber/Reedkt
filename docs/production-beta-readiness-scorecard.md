@@ -1604,6 +1604,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records `apiRouteMountImplementationReadyToolsWithProvidedEvidence=21`, `apiRouteMountReadyToolsWithProvidedEvidence=21`, `runtimeAdmissionAcceptedToolsWithProvidedEvidence=21`, `gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this packet does not mount the new route in the app, execute a route, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
 
+## AI Graphics External-Beta API Route Mount Implementation QA
+
+- Decision: `ai_graphics_external_beta_api_route_mount_implementation_qa_passed_with_runtime_blocks`.
+- Scope: QA accepts the source-controlled disabled route implementation review after accepted route mount readiness. It verifies the route schema covers all 21 AI graphics tools and all 12 product-facing capabilities, `server/app.ts` still does not import or mount the route, and the handler remains blocked before side effects.
+- Result: it records `routeMountImplementationQaAcceptedToolsWithProvidedEvidence=21`, `apiRouteMountImplementationReadyToolsWithProvidedEvidence=21`, `apiRouteMountReadyToolsWithProvidedEvidence=21`, `runtimeAdmissionAcceptedToolsWithProvidedEvidence=21`, `gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Runtime/beta/production: no unlock; this QA packet does not mount or execute the API route, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

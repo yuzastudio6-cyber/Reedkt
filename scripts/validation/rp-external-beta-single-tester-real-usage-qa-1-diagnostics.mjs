@@ -20,6 +20,7 @@ const requiredFiles = [
   'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1.mjs',
   'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -42,6 +43,10 @@ const requiredText = [
   'daff6905af21d9623b14197a4c9a2d61eed47501',
   'completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked',
   'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r',
+  'RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1',
+  '387678f5b884364f078a424ca47210b5eca27c19',
+  'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation',
+  'REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1',
 ]
 
 const allowedFiles = new Set(requiredFiles)
@@ -148,6 +153,10 @@ if (record.post1738SourceClosure?.requestSent !== false) fail('post-#1738 reques
 if (record.post1738SourceClosure?.qwen25VlExecution !== false) fail('post-#1738 QWEN execution must remain false')
 if (record.post1738SourceClosure?.workerDispatch !== false) fail('post-#1738 worker dispatch must remain false')
 if (record.readback?.qwenTransportCurrentBaseBlocker !== 'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r') fail('QWEN transport blocker mismatch')
+if (record.post1744SourceClosure?.mergeSha !== '387678f5b884364f078a424ca47210b5eca27c19') fail('post-#1744 merge SHA mismatch')
+if (record.post1744SourceClosure?.decision !== 'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation') fail('post-#1744 decision mismatch')
+if (record.post1744SourceClosure?.runnerExecutedInThisRepair !== false) fail('operator helper must not run in this repair')
+if (record.readback?.operatorGcloudAuthPreflightHelper !== 'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation') fail('operator helper status mismatch')
 if (record.readback?.unauthenticatedRootStatus !== null) fail('unauthenticated root should not have run')
 if (!Array.isArray(record.readback?.authenticatedHtmlRoutes) || record.readback.authenticatedHtmlRoutes.length !== 0) fail('authenticated HTML routes should not have run')
 if (!Array.isArray(record.readback?.authenticatedJsonRoutes) || record.readback.authenticatedJsonRoutes.length !== 0) fail('authenticated JSON routes should not have run')

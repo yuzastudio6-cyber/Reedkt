@@ -16,6 +16,7 @@ Output directory: `/tmp/reeditpro-rp-external-beta-single-tester-real-usage-qa-1
 - active gcloud account matches approved tester: `true`
 - Cloud Run service readback: `blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa`
 - QWEN transport current-base blocker: `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r`
+- operator gcloud auth preflight helper: `completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation`
 - unauthenticated `/`: `not_run_gcloud_reauth_blocker`
 - authenticated `/`: `not_run_gcloud_reauth_blocker`
 - authenticated `/dashboard`: `not_run_gcloud_reauth_blocker`

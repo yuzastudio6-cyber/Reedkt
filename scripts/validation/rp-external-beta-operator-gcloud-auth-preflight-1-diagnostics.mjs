@@ -29,6 +29,18 @@ const requiredExistingFiles = [
 ]
 
 const allowedChangedFiles = new Set(packetFiles)
+const allowedSingleTesterQaRepairFiles = [
+  'docs/activation-phase-rp-external-beta-single-tester-real-usage-qa-1-results.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/readiness-gate.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/real-usage-qa-evidence.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/single-tester-real-usage-qa-record.json',
+  'docs/external-beta/single-tester-real-usage-qa-1/source-audit.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/validation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-usage-qa-1r-after-gcloud-reauth.md',
+  'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-single-tester-active-lane-closure-1-diagnostics.mjs',
+]
+for (const file of allowedSingleTesterQaRepairFiles) allowedChangedFiles.add(file)
 
 const requiredText = [
   packet,

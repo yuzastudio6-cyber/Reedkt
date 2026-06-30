@@ -20,6 +20,8 @@ Post-#1692 source closure: branch updated after `RP-EXTERNAL-PRODUCT-TOOL-READIN
 
 Post-#1738 current-base closure: branch updated after `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1` merged at `daff6905af21d9623b14197a4c9a2d61eed47501`; QWEN transport dependencies are recorded on the current integration base, but real dispatch and single-tester route readback remain blocked by `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r`.
 
+Post-#1744 operator helper closure: branch updated after `RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1` merged at `387678f5b884364f078a424ca47210b5eca27c19`; next operator step is the guarded local auth preflight before any single-tester QA or QWEN runtime retry.
+
 Product-ready end-to-end local OSS tools: `0`
 
 Package-lock: `unchanged`

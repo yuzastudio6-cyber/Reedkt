@@ -21,6 +21,13 @@
     "qwen25VlExecution": false,
     "workerDispatch": false
   },
+  "post1744SourceClosure": {
+    "operatorGcloudAuthPreflight": "RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1",
+    "mergeSha": "387678f5b884364f078a424ca47210b5eca27c19",
+    "decision": "completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation",
+    "runnerExecutedInThisRepair": false,
+    "nextOperatorCommand": "REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1"
+  },
   "target": {
     "projectName": "Reeditpro",
     "projectRef": "wmyyttnynmteqgcdishd",
@@ -49,6 +56,7 @@
   "readback": {
     "blocker": "blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa",
     "qwenTransportCurrentBaseBlocker": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
+    "operatorGcloudAuthPreflightHelper": "completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation",
     "unauthenticatedRootStatus": null,
     "authenticatedHtmlRoutes": [],
     "authenticatedJsonRoutes": [],

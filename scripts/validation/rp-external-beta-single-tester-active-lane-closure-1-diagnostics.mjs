@@ -56,6 +56,7 @@ const followOnSingleTesterRealUsageQa1Files = [
   'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-usage-qa-1r-after-gcloud-reauth.md',
   'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1.mjs',
   'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1-diagnostics.mjs',
   'package.json',
 ]
 

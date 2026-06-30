@@ -4,6 +4,14 @@ Use after `RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1` records `blocked_gclo
 
 Also require the current-base QWEN transport blocker from `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1` to be closed or intentionally rechecked: `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r`.
 
+Before route readback, run the operator helper from `RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1`:
+
+```bash
+REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1
+```
+
+Proceed only if it returns `completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry`.
+
 ## Goal
 
 Retry the bounded real-usage QA pass for the approved single tester `aiediting@reeditpro.com` after interactive gcloud reauthentication refreshes the active account.

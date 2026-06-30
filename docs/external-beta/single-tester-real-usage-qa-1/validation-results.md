@@ -8,6 +8,8 @@ Post-#1692 source closure: `passed_for_blocked_packet_after_tool_readiness_recon
 
 Post-#1738 source closure: `passed_for_blocked_packet_after_qwen_transport_dependency_preflight_current_merge`
 
+Post-#1744 source closure: `passed_for_blocked_packet_after_operator_gcloud_auth_preflight_helper_merge`
+
 Validation:
 
 - `npm ci --no-audit --no-fund --progress=false`
@@ -32,6 +34,7 @@ Observed result:
 - build:server: `passed`
 - guarded real-usage QA attempt: `blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa`
 - QWEN transport current-base blocker: `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r`
+- operator gcloud auth preflight helper: `completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation`
 - active-lane diagnostics: `passed`
 - real-usage QA diagnostics: `passed`
 - cached diff check: `passed`
@@ -57,6 +60,8 @@ Merged source closure included on this branch:
 - merge SHA `987dd4565bfa5cfedef74814fede477ae36a42d4`
 - `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1`
 - merge SHA `daff6905af21d9623b14197a4c9a2d61eed47501`
+- `RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1`
+- merge SHA `387678f5b884364f078a424ca47210b5eca27c19`
 
 Package-lock: `unchanged`
 

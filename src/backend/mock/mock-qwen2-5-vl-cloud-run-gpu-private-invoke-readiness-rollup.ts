@@ -108,6 +108,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_PREFLIGHT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-attempt-approval'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-attempt-result'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -221,6 +222,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_preflight_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_approval_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -237,7 +239,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -460,6 +462,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_PREFLIGHT.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptApprovalDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_APPROVAL.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptResultDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_RESULT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1818,16 +1822,31 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt',
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt',
-      status:
-        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_required',
+      status: 'ready',
       evidence: [
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt approval is recorded.',
         'The approval accepts one future bounded attempt with approved snapshot refs, persisted dispatch refs, private source-of-truth refs, Qwen request envelope, private invoke transport, model import, model load, vLLM initialization, prompt processing, one forward pass, one fixture inference, response schema, QA/audit/cost, cleanup, and beta locks.',
-        'No real job, lease, idempotency record, Cloud Run invocation, model import, model load, vLLM initialization, prompt processing, forward pass, or inference has been executed by this rollup.',
+        'The 58DB attempt result is recorded and blocked before runtime execution because the current persisted worker dispatch runtime still stops at blocked_real_lease_backend_required.',
+        'The older CPU-only caller inference path was not reused because it would not prove the persisted worker dispatch job/lease bridge.',
+        'No real job, lease, idempotency record, Cloud Run invocation, model import, model load, vLLM initialization, prompt processing, forward pass, or inference was executed by this attempt result.',
         'Generated assets, storage objects, signed URLs, public artifacts, credit mutation, beta, and production remain blocked.',
       ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge',
+      label:
+        'Controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge',
+      status:
+        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_required',
+      evidence: [
+        'The 58DB blocked attempt result confirms the model path and CPU caller path are not enough to prove persisted dispatch.',
+        'The current TypeScript persisted runtime validates approved snapshot, credit, private refs, and idempotency, then blocks at the real backend lease boundary by design.',
+        'Preview continuations remain non-executing and block at the fail-closed Qwen adapter or private invoke transport preview.',
+        'A paid Qwen inference should not run again until the persisted job, real lease, persisted idempotency, job event, backend runtime message, worker claim, and private invoke handoff bridge exists.',
+      ],
       missingEvidence: [
-        'Run one controlled Qwen approved-fixture inference attempt through persisted worker dispatch with no generated assets and no beta unlock.',
+        'Plan and implement the controlled persisted job/lease bridge before another approved-fixture Qwen inference attempt.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2407,6 +2426,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     minInstancesZeroAccepted: true,
     initialMaxInstancesOneAccepted: true,
     cpuFallbackDisabledAccepted: true,
+    approvedFixtureInferenceAttemptResultRecorded: true,
+    approvedFixtureInferenceAttemptExecuted: false,
+    approvedFixtureInferenceAttemptBlockedByPersistedJobLeaseBridge: true,
+    persistedJobLeaseBridgeRequired: true,
+    cpuCallerInferencePathReusedForPersistedDispatchAttempt: false,
     approvedSnapshotAndFixtureScopePlanned: true,
     persistedWorkerDispatchRefsPlanned: true,
     privateSourceOfTruthRefsPlanned: true,
@@ -2553,11 +2577,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DB-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-INFERENCE-ATTEMPT: run one controlled Qwen approved-fixture inference attempt through persisted worker dispatch, no generated assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58DC-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-PERSISTED-JOB-LEASE-BRIDGE-PLAN: plan the missing persisted job and lease bridge before another Qwen inference attempt, no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

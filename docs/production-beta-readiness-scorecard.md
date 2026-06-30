@@ -1562,6 +1562,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records all 21 AI graphics tools as ready for controlled on-demand external-beta tool calls and reports `externalBetaReadyNowTools=21`.
 - Runtime/beta/production: external-beta readiness remains limited to controlled on-demand tool-call readiness. This consumer does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics External-Beta Controlled On-Demand Status Bridge
+
+- Decision: `ai_graphics_external_beta_controlled_on_demand_status_bridge_prepared_with_runtime_blocks`.
+- Scope: status bridge over accepted `external-beta-activated-launch-readiness`, `external-beta-end-to-end-readiness`, and `beta-production-readiness-rollup` evidence.
+- Result: it records all 21 AI graphics tools as externally beta ready for controlled on-demand tool calls, reports `externalBetaCallableNowTools=21`, `externalBetaReadyNowTools=21`, and keeps `productionReadyNowTools=0`.
+- Runtime/beta/production: this is a reconciliation/status packet only. It does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false, `gpuRuntimeShouldStartNow=false`, and GPU remains cold until an accepted worker/tool-call job needs it.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

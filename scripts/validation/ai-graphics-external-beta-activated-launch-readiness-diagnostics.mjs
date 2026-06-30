@@ -477,6 +477,8 @@ function verifyPackageJson() {
   const allowedPackageAdditions = [
     `+    "${runScriptName}": "${runScriptCommand}",`,
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+    '+    "ai-graphics:external-beta-controlled-on-demand-status-bridge": "tsx server/cli/ai-graphics-external-beta-controlled-on-demand-status-bridge.ts",',
+    '+    "ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-on-demand-status-bridge-diagnostics.mjs",',
     '+    "ai-graphics:production-launch-controls": "tsx server/cli/ai-graphics-production-launch-controls.ts",',
     '+    "ai-graphics:production-launch-controls:diagnostics": "node scripts/validation/ai-graphics-production-launch-controls-diagnostics.mjs",',
     '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',

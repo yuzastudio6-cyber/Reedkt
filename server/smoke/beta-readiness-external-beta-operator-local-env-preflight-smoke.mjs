@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   buildBetaReadinessExternalBetaOperatorHumanInputChecklist,
   buildBetaReadinessExternalBetaOperatorInputTemplate,
@@ -89,6 +91,50 @@ assert.equal(markdown.includes('workspace-beta-local'), false)
 assert.equal(markdown.includes('non-secret evidence summary'), false)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 
+const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-operator-env-preflight-smoke-'))
+process.on('exit', () => {
+  rmSync(tempRoot, { recursive: true, force: true })
+})
+const secureEnvPath = join(tempRoot, 'secure.env')
+writeFileSync(secureEnvPath, completeEnvText)
+chmodSync(secureEnvPath, 0o600)
+const secureFile = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  env: {},
+  envFilePath: secureEnvPath,
+})
+assert.equal(secureFile.readyForExternalBetaEvidenceCollector, true)
+assert.equal(secureFile.envFile.permissionMode, '0600')
+assert.equal(secureFile.envFile.ownerOnlyPermissions, true)
+assert.equal(secureFile.envFile.symlink, false)
+assert.equal(secureFile.envFile.safetyGaps.length, 0)
+assert.equal(JSON.stringify(secureFile).includes('operator-local-bearer-token'), false)
+
+const openEnvPath = join(tempRoot, 'open.env')
+writeFileSync(openEnvPath, completeEnvText)
+chmodSync(openEnvPath, 0o644)
+const openFile = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  env: {},
+  envFilePath: openEnvPath,
+})
+assert.equal(openFile.readyForExternalBetaEvidenceCollector, false)
+assert.equal(openFile.envFile.permissionMode, '0644')
+assert.equal(openFile.envFile.ownerOnlyPermissions, false)
+assert.equal(openFile.envFile.safetyGaps.includes('operator_env_file_permissions_not_owner_only'), true)
+assert.equal(openFile.safetyGaps.includes('operator_env_file_permissions_not_owner_only'), true)
+assert.equal(JSON.stringify(openFile).includes('operator-local-bearer-token'), false)
+
+const symlinkPath = join(tempRoot, 'linked.env')
+symlinkSync(secureEnvPath, symlinkPath)
+const symlinkFile = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  env: {},
+  envFilePath: symlinkPath,
+})
+assert.equal(symlinkFile.readyForExternalBetaEvidenceCollector, false)
+assert.equal(symlinkFile.envFile.symlink, true)
+assert.equal(symlinkFile.envFile.safetyGaps.includes('operator_env_file_is_symlink'), true)
+assert.equal(symlinkFile.safetyGaps.includes('operator_env_file_is_symlink'), true)
+assert.equal(JSON.stringify(symlinkFile).includes('operator-local-bearer-token'), false)
+
 const unsafeEvidenceEnvText = completeEnvText.replace(
   /REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE="[^"]+"/,
   'REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE="Bearer leaked-secret-token"',
@@ -121,6 +167,9 @@ console.log(JSON.stringify({
   completeOperatorPending: complete.operatorInputs.pending,
   completeOwnerPending: complete.ownerApprovalIntake.counts.pending,
   completeManifestPending: complete.deployedEvidenceInputManifest.pendingRequiredInputs,
+  secureFileMode: secureFile.envFile.permissionMode,
+  openFileBlocked: openFile.safetyGaps.includes('operator_env_file_permissions_not_owner_only'),
+  symlinkBlocked: symlinkFile.safetyGaps.includes('operator_env_file_is_symlink'),
 }))
 
 function valueForInput(input, index) {

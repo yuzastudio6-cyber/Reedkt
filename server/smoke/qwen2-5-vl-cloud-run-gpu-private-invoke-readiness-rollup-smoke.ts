@@ -131,6 +131,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_PREFLIGHT } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-preflight'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_APPROVAL } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-approval'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_RESULT_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
@@ -140,9 +141,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_result_review_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_plan_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DL-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-ATTEMPT-RESULT-REVIEW: review bounded approved-fixture private invoke attempt result, no inference/no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58DM-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INFERENCE-PLAN: plan one bounded approved-fixture private Qwen inference attempt through the persisted job and lease bridge, no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -594,6 +595,12 @@ for (const file of [
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-approval.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-approval.ts',
   'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-approval-smoke.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-smoke.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review-smoke.ts',
   'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
   'package.json',
 ]) {
@@ -1117,6 +1124,20 @@ assert.equal(
   ],
   'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-attempt-approval-smoke.ts',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt approval package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.[
+    'smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result'
+  ],
+  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-smoke.ts',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt result package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.[
+    'smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review'
+  ],
+  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review-smoke.ts',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt result review package script mismatch',
 )
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
@@ -1876,7 +1897,8 @@ for (const phrase of [
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke preflight: ready, preflight recorded',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt approval: ready, attempt approval recorded',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt: ready, fail-closed attempt recorded',
-  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt result review: blocked, result review required',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt result review: ready, result review accepted',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference plan: blocked, plan required',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement implementation | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement execution plan | ready',
@@ -1906,7 +1928,8 @@ for (const phrase of [
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt approval | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt | ready',
-  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt result review | blocked controlled persisted worker dispatch runtime real-dispatch approved fixture private invoke attempt result review required',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke attempt result review | ready',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference plan | blocked controlled persisted worker dispatch runtime real-dispatch approved fixture private inference plan required',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
@@ -2488,6 +2511,11 @@ assert.equal(
     .upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInvokeAttemptResultDecision,
   QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_RESULT.decision,
 )
+assert.equal(
+  rollup
+    .upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInvokeAttemptResultReviewDecision,
+  QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_RESULT_REVIEW.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -2553,7 +2581,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_result_review_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_plan_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -2697,8 +2725,9 @@ assert.deepEqual(gateIds, [
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_approval',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_result_review',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_plan',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 122)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 123)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -3298,6 +3327,13 @@ assert.equal(
   rollup.readinessGates.filter(
     (gate) => String(gate.status) ===
       'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_result_review_required',
+  ).length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter(
+    (gate) => String(gate.status) ===
+      'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_plan_required',
   ).length,
   1,
 )
@@ -4305,9 +4341,10 @@ assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptApprovalAcce
 assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptRequired, false)
 assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptRecorded, true)
 assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptPassedFailClosed, true)
-assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptResultReviewRequired, true)
-assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptResultReviewRecorded, false)
-assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptResultReviewAccepted, false)
+assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptResultReviewRequired, false)
+assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptResultReviewRecorded, true)
+assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptResultReviewAccepted, true)
+assert.equal(rollup.runtimeFlags.approvedFixturePrivateInferencePlanRequired, true)
 assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptLocalOutputTargetUrlDetected, true)
 assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptTargetUrlValueStoredInRepo, false)
 assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeAttemptLogPayloadUrlValueDetected, false)
@@ -4317,10 +4354,11 @@ assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInvokeExecutionAp
 assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInvokePreflight, false)
 assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInvokeAttemptApproval, false)
 assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInvokeAttempt, false)
-assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInvokeAttemptResultReview, true)
+assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInvokeAttemptResultReview, false)
+assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferencePlan, true)
 assert.equal(
   rollup.blockedUntil[0],
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_attempt_result_review_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_plan_required',
 )
 assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopeReadinessAccepted, true)
 assert.equal(rollup.runtimeFlags.persistedWorkerDispatchRefsReadinessAccepted, true)
@@ -4504,6 +4542,10 @@ for (const file of [
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-plan.ts',
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-attempt-result-review.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -4659,6 +4701,8 @@ const forbiddenDataFindings = scanValues({
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW,
   controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInvokeExecutionPlan:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_EXECUTION_PLAN,
+  controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInvokeAttemptResultReview:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_ATTEMPT_RESULT_REVIEW,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

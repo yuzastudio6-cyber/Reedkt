@@ -1590,6 +1590,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records `routeHandlerGatewayFullProofToolsWithProvidedEvidence=21`, `runtimeAdmissionAcceptedToolsWithProvidedEvidence=21`, `gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence=21`, `routeHandlerToGatewayContinuityAcceptedTools=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, and `gpuRuntimeShouldStartNowTools=0`.
 - Runtime/beta/production: no unlock; this packet does not mount the route, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
 
+## AI Graphics External-Beta API Route Mount Readiness
+
+- Decision: `ai_graphics_external_beta_api_route_mount_readiness_prepared_with_runtime_blocks`.
+- Scope: source-controlled route mount readiness metadata after the accepted full 21-tool route-handler gateway proof. It verifies private/backend refs for route policy, schema, authorization middleware, request validation, approved snapshot and credit reservation resolvers, private artifact policy, asset manifest binding, dependency readiness, async checkback, queue submission authorization, service-role boundary, rate-limit, cost guardrail, idempotency, audit, telemetry, rollback, incident response, kill switch, and private network controls.
+- Result: it records `apiRouteMountReadyToolsWithProvidedEvidence=21`, `routeHandlerGatewayFullProofToolsWithProvidedEvidence=21`, `runtimeAdmissionAcceptedToolsWithProvidedEvidence=21`, `gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Runtime/beta/production: no unlock; this packet does not mount an API route, execute a route, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

@@ -55,6 +55,18 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         }
       }
 
+      if (hasTimelineFoundationRequest(payload)) {
+        const timelineFoundationResult = await runTimelineFoundation(buildTimelineFoundationInput(payload))
+        return {
+          summary: 'Milestone 8 CPU analysis worker timeline foundation route completed in explicit timelineFoundation mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: true,
+          futureHandler: 'cpu_analysis_worker_timeline_foundation',
+          timelineFoundationResult,
+        }
+      }
+
       if (hasAudioExecutionRequest(payload)) {
         const audioExecutionResult = await runAudioExecutionPipeline(buildAudioExecutionInput(payload))
         return {
@@ -125,6 +137,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           futureHandler: 'cpu_analysis_worker_audio_foundation',
           audioFoundationResult,
         }
+      }
+
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
       }
 
       return {
@@ -205,6 +221,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           futureHandler: 'gpu_ai_worker_speech_foundation',
           speechFoundationResult,
         }
+      }
+
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
       }
 
       return {
@@ -297,6 +317,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           futureHandler: 'render_worker_timeline_foundation',
           timelineFoundationResult,
         }
+      }
+
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
       }
 
       return {
@@ -403,6 +427,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         }
       }
 
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
+      }
+
       return {
         summary: 'Dry-run only: future QA worker will run caption, audio, color, mask, render, export, and final delivery quality gates.',
         workerType: payload.workerType,
@@ -411,6 +439,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'qa_worker_placeholder',
       }
     case 'tool_readiness_worker':
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
+      }
+
       return {
         summary: 'Dry-run only: future tool readiness worker will check installed tool versions, imports, capabilities, and review status.',
         workerType: payload.workerType,
@@ -418,6 +450,36 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         mockOnly: true,
         futureHandler: 'tool_readiness_worker_placeholder',
       }
+  }
+}
+
+function hasTrackBAgentToolRecipeRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.trackBAgentToolRecipe
+  return Boolean(request && typeof request === 'object')
+}
+
+function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJobPayload): ProductionWorkerRouteOutput {
+  const request = payload.metadata?.trackBAgentToolRecipe as Record<string, unknown>
+  const toolId = stringValue(request.toolId) ?? payload.requestedToolIds[0] ?? 'unknown_tool'
+  const action = stringValue(request.action) ?? payload.requestedRecipeIds[0] ?? 'unknown_action'
+  return {
+    summary: `Track B agent worker recipe selected for ${toolId}:${action} without running real tool binaries or media processing.`,
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: 'trackb_agent_tool_recipe_dry_run',
+    trackBAgentToolRecipeResult: {
+      toolId,
+      action,
+      routeClass: stringValue(request.routeClass) ?? 'trackb_agent_tool_recipe',
+      dryRunOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      sourceReferenceCount: payload.storageReferenceIds.length,
+      plannedHandler: stringValue(request.plannedHandler),
+      notes: Array.isArray(request.notes) ? request.notes.filter(isStringValue) : [],
+    },
   }
 }
 

@@ -12,6 +12,24 @@ assert.equal(report.agentContractsReady, true)
 assert.equal(report.paymentIndependentRuntimeReady, true)
 assert.equal(report.liveAgentExecutionReady, false)
 
+const expectedWorkerHandlers: Record<string, string> = {
+  ffmpeg: 'render_worker_final_render_export_execution',
+  ffprobe: 'cpu_analysis_worker_media_foundation',
+  pyav: 'cpu_analysis_worker_media_foundation',
+  opentimelineio: 'cpu_analysis_worker_timeline_foundation',
+  remotion: 'render_worker_final_render_export_execution',
+  sharp: 'trackb_agent_tool_recipe_dry_run',
+  duckdb: 'trackb_agent_tool_recipe_dry_run',
+  polars: 'trackb_agent_tool_recipe_dry_run',
+  pyscenedetect: 'cpu_analysis_worker_smart_cut_foundation',
+  opencv: 'cpu_analysis_worker_media_foundation',
+  opencolorio: 'cpu_analysis_worker_color_execution',
+  openimageio: 'cpu_analysis_worker_color_execution',
+  audioflux: 'cpu_analysis_worker_audio_foundation',
+  signalsmith_stretch: 'cpu_analysis_worker_audio_execution',
+  libass: 'render_worker_caption_execution',
+}
+
 for (const contract of report.contracts) {
   const result = await executeTrackBAgentTool({
     workspaceId: 'workspace-trackb-agent-smoke',
@@ -49,6 +67,12 @@ for (const contract of report.contracts) {
     assert.equal(result.workerPayload?.requestedToolIds[0], contract.toolId)
     assert.ok(result.workerPayload?.idempotencyKey.startsWith('prod-worker:'))
     assert.equal(result.workerResult?.status, 'completed')
+    assert.equal(
+      result.workerResult?.output?.futureHandler,
+      expectedWorkerHandlers[contract.toolId],
+      `${contract.toolId} should route to the intended Track B worker recipe handler`,
+    )
+    assert.notEqual(result.workerResult?.output?.futureHandler, `${contract.workerType}_placeholder`)
     assert.equal(result.workerResult?.toolCostMetadata?.serviceFeeIncluded, false)
     assert.equal(result.workerResult?.toolCostMetadata?.mockOnly, true)
   }
@@ -162,6 +186,7 @@ console.log(JSON.stringify({
   checks: [
     'all_16_trackb_agent_invocations_admit',
     'backend_tools_dispatch_mock_safe_worker_payloads',
+    'backend_tools_select_trackb_worker_recipe_handlers',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',
     'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',

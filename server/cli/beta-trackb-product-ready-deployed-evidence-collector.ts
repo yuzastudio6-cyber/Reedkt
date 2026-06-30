@@ -9,7 +9,7 @@ import {
 import type { LibassSyntheticBurninCommandRunner } from './beta-tools-libass-synthetic-burnin-qa-preflight'
 
 const RECONCILIATION_PATH = 'docs/beta-readiness/trackb-product-ready-source-reconciliation/2026-06-30-trackb-product-ready-source-reconciliation.json'
-const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json'
 const EXPECTED_DECISION = 'beta_trackb_product_ready_source_reconciliation_passed_ready_for_deployed_product_ready_evidence_collection'
 const EXPECTED_TRACKB_DECISION = 'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
 const REQUIRED_TRACKB_PRODUCT_READY_COUNT = 16

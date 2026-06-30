@@ -13,9 +13,10 @@ import {
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
-const expectedLocalEvidenceSourceSha = 'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca'
+const expectedLocalEvidenceSourceSha = 'df7fd0d0666070df538cf8bdb17ed8a9ebe7884b'
 const secretPlaceholderText = '<secret value supplied only in the operator shell>'
 const staleLocalEvidenceSourceShas = [
+  'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca',
   '94c37bb492a584c087247625dcb1fb53398c17f4',
   'e8821759a10a43a60795accb596b3b83c15f9dfb',
 ]
@@ -284,7 +285,7 @@ assert.equal(serializedChecklist.includes('secret value supplied only in the ope
 assert.equal(serializedChecklist.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)
 assert.equal(serializedChecklist.includes('non-secret owner evidence summary'), false)
 assert.equal(serializedChecklist.includes('reeditpro-beta-tools-local-bundle-core-idempotency-key'), false)
-assert.equal(serializedChecklist.includes('d47015e88943dd4760dd9eb6ee45ad0f8ead15ca'), false)
+assert.equal(serializedChecklist.includes(expectedLocalEvidenceSourceSha), false)
 assert.equal(serializedChecklist.includes('"valueEmitted":true'), false)
 assert.equal(statusMarkdown.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), true)
 assert.equal(statusMarkdown.includes('https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app'), false)

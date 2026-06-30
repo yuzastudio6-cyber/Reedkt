@@ -54,7 +54,7 @@ assert.ok(report.platformApprovalItems.some((item) => item.id === 'platform_bill
 assert.ok(report.launchApprovalItems.some((item) => item.id === 'launch_model_license_owner'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
-assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
+assert.ok(report.postApprovalCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:platform:staging-evidence-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))

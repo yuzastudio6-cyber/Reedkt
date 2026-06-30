@@ -66,7 +66,7 @@ assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-be
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
-assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
+assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template -- --status') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env'),
@@ -89,7 +89,7 @@ assert.ok(
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:owner-approval-intake-status') <
-    ready.recommendedCommands.indexOf('npm run beta:readiness:owner-approval-intake-preflight'),
+    ready.recommendedCommands.indexOf('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'),
   'owner approval status review should precede the hard owner approval intake preflight',
 )
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))

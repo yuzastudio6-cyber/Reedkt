@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   buildBetaReadinessOwnerApprovalEnvTemplate,
   buildBetaReadinessOwnerApprovalIntakePreflight,
@@ -71,6 +73,7 @@ assert.deepEqual(emptyStatus.inputCounts, {
   invalidBooleanInputs: 0,
   rejectedScopeInputs: 0,
   secretLikeEvidenceInputs: 0,
+  safetyGaps: 0,
 })
 assert.ok(emptyStatus.pendingInputs.some((input) => (
   input.name === 'REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY' &&
@@ -88,7 +91,7 @@ assert.ok(emptyStatus.pendingInputs.some((input) => (
   input.operatorAction === 'supply_non_secret_owner_evidence_note'
 )))
 assert.ok(emptyStatus.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
-assert.ok(emptyStatus.validationCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
+assert.ok(emptyStatus.validationCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.equal(serializedEmptyStatus.includes('Support owner approved incident intake'), false)
 assert.equal(serializedEmptyStatus.includes('Bearer '), false)
 assert.equal(serializedEmptyStatus.includes('service_role_key'), false)
@@ -157,6 +160,44 @@ assert.equal(readyStatus.inputCounts.present, 29)
 assert.equal(readyStatus.inputCounts.pending, 0)
 assert.deepEqual(readyStatus.pendingInputs, [])
 
+const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-owner-approval-preflight-smoke-'))
+process.on('exit', () => {
+  rmSync(tempRoot, { recursive: true, force: true })
+})
+const completeEnvText = Object.entries(completeEnv)
+  .map(([name, value]) => `${name}=${JSON.stringify(value)}`)
+  .join('\n')
+const secureEnvPath = join(tempRoot, 'secure.env')
+writeFileSync(secureEnvPath, completeEnvText)
+chmodSync(secureEnvPath, 0o600)
+const secureFile = buildBetaReadinessOwnerApprovalIntakePreflight({}, { envFilePath: secureEnvPath })
+assert.equal(secureFile.readyForDeployedEvidenceInputManifest, true)
+assert.equal(secureFile.envFile.permissionMode, '0600')
+assert.equal(secureFile.envFile.ownerOnlyPermissions, true)
+assert.equal(secureFile.envFile.symlink, false)
+assert.equal(secureFile.envFile.safetyGaps.length, 0)
+assert.equal(JSON.stringify(secureFile).includes('Support owner approved incident intake'), false)
+
+const openEnvPath = join(tempRoot, 'open.env')
+writeFileSync(openEnvPath, completeEnvText)
+chmodSync(openEnvPath, 0o644)
+const openFile = buildBetaReadinessOwnerApprovalIntakePreflight({}, { envFilePath: openEnvPath })
+assert.equal(openFile.readyForDeployedEvidenceInputManifest, false)
+assert.equal(openFile.envFile.permissionMode, '0644')
+assert.equal(openFile.envFile.ownerOnlyPermissions, false)
+assert.equal(openFile.envFile.safetyGaps.includes('owner_approval_env_file_permissions_not_owner_only'), true)
+assert.equal(openFile.safetyGaps.includes('owner_approval_env_file_permissions_not_owner_only'), true)
+assert.equal(JSON.stringify(openFile).includes('Support owner approved incident intake'), false)
+
+const symlinkPath = join(tempRoot, 'linked.env')
+symlinkSync(secureEnvPath, symlinkPath)
+const symlinkFile = buildBetaReadinessOwnerApprovalIntakePreflight({}, { envFilePath: symlinkPath })
+assert.equal(symlinkFile.readyForDeployedEvidenceInputManifest, false)
+assert.equal(symlinkFile.envFile.symlink, true)
+assert.equal(symlinkFile.envFile.safetyGaps.includes('owner_approval_env_file_is_symlink'), true)
+assert.equal(symlinkFile.safetyGaps.includes('owner_approval_env_file_is_symlink'), true)
+assert.equal(JSON.stringify(symlinkFile).includes('Support owner approved incident intake'), false)
+
 const falseApproval = buildBetaReadinessOwnerApprovalIntakePreflight({
   ...completeEnv,
   REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY: 'false',
@@ -183,6 +224,8 @@ assert.ok(template.includes('REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUN
 assert.ok(template.includes('REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(template.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE="<non-secret owner evidence summary>"'))
 assert.ok(template.includes('REEDITPRO_BETA_LAUNCH_APPROVE_PAID_PRODUCTION=false'))
+assert.ok(template.includes('chmod 600 .env.reeditpro-beta-operator.local'))
+assert.ok(template.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(template.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.equal((template.match(/^REEDITPRO_BETA_/gm) ?? []).length, 34)
 assert.equal(template.includes('Bearer '), false)

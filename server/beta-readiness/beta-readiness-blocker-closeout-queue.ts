@@ -182,11 +182,11 @@ function buildBatches(
         'npm run beta:readiness:external-beta-operator-local-env-preflight',
         'npm run beta:readiness:external-beta-operator-input-template',
         'npm run beta:readiness:owner-approval-intake-status',
-        'npm run beta:readiness:owner-approval-intake-preflight',
+        'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],
       blockedUntil: [
-        `Operators review the value-free pending-input status, supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) in a local ignored env file, validate that file with the local-env preflight, and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.`,
+        `Operators review the value-free pending-input status, supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) in the local ignored .env.reeditpro-beta-operator.local file, run chmod 600 on that file, validate that file with the operator local-env preflight, validate owner approvals from that same owner-only file, and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.`,
       ],
     },
     {

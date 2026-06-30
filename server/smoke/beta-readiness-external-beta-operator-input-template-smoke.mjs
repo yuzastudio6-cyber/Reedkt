@@ -198,6 +198,7 @@ assert.ok(report.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDE
 assert.ok(report.envTemplate.includes('operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL'))
 assert.ok(report.envTemplate.includes('chmod 600 .env.reeditpro-beta-operator.local'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.equal(report.envTemplate.includes('/path/to/local-only.env'), false)
 assert.ok(autofill.envTemplate.includes('export REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY='))
 assert.ok(autofill.envTemplate.includes(`export REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="${expectedLocalEvidenceSourceSha}"`))

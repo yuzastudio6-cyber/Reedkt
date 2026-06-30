@@ -1,0 +1,85 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-PROVIDER-RUNTIME-FIXTURE-CURRENT-1",
+  "decision": "blocked_native_staging_api_missing_verified_user_context_for_backend_handoff",
+  "execution": "completed_native_staging_api_backend_handoff_selection_no_provider_execution",
+  "sourceBase": "da97293c4a9fcbed7a1824994c26922cbd7603f7",
+  "sourceEvidence": {
+    "stagingApiRouteDeploymentAlignmentPr": 1782,
+    "stagingApiRouteDeploymentAlignmentMergeSha": "da97293c4a9fcbed7a1824994c26922cbd7603f7",
+    "backendJobHandoffPacket": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1",
+    "providerRuntimeFixturePacket": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_PROVIDER_RUNTIME_FIXTURE_1R",
+    "approvedSnapshotOrchestrationRuntimeFixturePacket": "RP-EXTERNAL-BETA-QWEN2_5_VL_APPROVED_SNAPSHOT_JOB_ORCHESTRATION_RUNTIME_FIXTURE_1",
+    "excludedPr": 577
+  },
+  "route": {
+    "method": "POST",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "nativeServerRouterBridge": "src/server/server-router.ts",
+    "defaultMode": "fail_closed_http_424",
+    "confirmedMode": "backend_only_handoff_contract_selected_but_blocked_without_verified_user_context",
+    "backendHandoffSelector": "REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF",
+    "routeBehaviorFailClosedByDefault": true,
+    "verifiedNativeApiUserContext": "blocked_native_staging_api_missing_verified_user_context_for_backend_handoff"
+  },
+  "confirmationGates": {
+    "backendJobHandoff": "REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF=true",
+    "routeReadbackValidation": "REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION=true",
+    "runtimeGate": "REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE=true",
+    "targetRef": "REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd",
+    "runtimeScope": "REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE=approved_snapshot_structured_metadata_only"
+  },
+  "runtime": {
+    "qwenProviderModelExecution": "not_run_in_this_phase",
+    "workerDispatch": "not_run",
+    "cloudRunJobExecution": "not_run",
+    "nextConfirmedRunner": "rp-external-beta-qwen2-5-vl-approved-snapshot-job-orchestration-runtime-fixture-1"
+  },
+  "validation": {
+    "npmCi": "passed",
+    "gitDiffCheck": "passed",
+    "smoke": "passed",
+    "routeDeploymentAlignmentDiagnostics": "passed",
+    "backendJobHandoffDiagnostics": "passed",
+    "currentDiagnostics": "passed",
+    "lint": "passed",
+    "typecheckServer": "passed",
+    "build": "passed",
+    "buildServer": "passed",
+    "changedFileSafetyScan": "passed",
+    "stagedSafetyScan": "passed"
+  },
+  "blocker": "blocked_native_staging_api_missing_verified_user_context_for_backend_handoff",
+  "safety": {
+    "routeBackendHandoffBridge": true,
+    "failClosedByDefault": true,
+    "providerCall": false,
+    "modelCall": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "cloudRunServiceUpdate": false,
+    "cloudRunJobExecution": false,
+    "identityTokenFetch": false,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "qwenNativeApiRouteBackendHandoff": "blocked_pending_verified_native_api_auth_context",
+    "qwenProviderRuntimeFixtureCurrent": "blocked_native_staging_api_missing_verified_user_context_for_backend_handoff",
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-NATIVE-API-AUTH-CONTEXT-BRIDGE-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

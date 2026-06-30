@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { chmodSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -27,7 +27,7 @@ assert.equal(
 assert.equal(RECOMMENDED_OPERATOR_ENV_FILE, '.env.reeditpro-beta-operator.local')
 assert.ok(gitignore.includes(RECOMMENDED_OPERATOR_ENV_FILE))
 execFileSync('git', ['check-ignore', '-q', RECOMMENDED_OPERATOR_ENV_FILE], {
-  env: { ...process.env, DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools' },
+  env: gitExecEnv(),
 })
 
 const blank = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
@@ -72,6 +72,8 @@ assert.equal(complete.envFile.loaded, true)
 assert.equal(complete.envFile.betaInputKeysLoaded, 45)
 assert.equal(complete.envFile.invalidLineCount, 0)
 assert.equal(complete.operatorInputs.pending, 0)
+assert.equal(complete.sourceFreshness.readyForDeployedEvidenceInputManifest, true)
+assert.equal(complete.sourceFreshness.blockingChangedFiles.length, 0)
 assert.equal(complete.ownerApprovalIntake.readyForDeployedEvidenceInputManifest, true)
 assert.equal(complete.ownerApprovalIntake.counts.pending, 0)
 assert.equal(complete.deployedEvidenceInputManifest.readyToRunExternalBetaEvidenceCollector, true)
@@ -84,12 +86,24 @@ assert.equal(serializedComplete.includes('workspace-beta-local'), false)
 assert.equal(serializedComplete.includes('non-secret evidence summary'), false)
 assert.equal(markdown.includes('Ready for external beta evidence collector: `true`'), true)
 assert.equal(markdown.includes('Operator inputs pending: `0`'), true)
+assert.equal(markdown.includes('Source freshness ready: `true`'), true)
 assert.equal(markdown.includes(`Recommended repo-local path: \`${RECOMMENDED_OPERATOR_ENV_FILE}\``), true)
 assert.equal(complete.validationCommands.includes(`REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`), true)
 assert.equal(markdown.includes('operator-local-bearer-token'), false)
 assert.equal(markdown.includes('workspace-beta-local'), false)
 assert.equal(markdown.includes('non-secret evidence summary'), false)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
+
+const completeButSourceStale = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  env: {},
+  envFileContent: completeEnvText,
+  resolveGit: false,
+})
+assert.equal(completeButSourceStale.operatorInputs.pending, 0)
+assert.equal(completeButSourceStale.ownerApprovalIntake.readyForDeployedEvidenceInputManifest, true)
+assert.equal(completeButSourceStale.deployedEvidenceInputManifest.readyToRunExternalBetaEvidenceCollector, true)
+assert.equal(completeButSourceStale.sourceFreshness.readyForDeployedEvidenceInputManifest, false)
+assert.equal(completeButSourceStale.readyForExternalBetaEvidenceCollector, false)
 
 const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-operator-env-preflight-smoke-'))
 process.on('exit', () => {
@@ -188,4 +202,13 @@ function valueForInput(input, index) {
     return `non-secret evidence summary ${index}`
   }
   return `operator-value-${index}`
+}
+
+function gitExecEnv() {
+  if (process.platform !== 'darwin') return process.env
+  if (process.env.DEVELOPER_DIR && existsSync(process.env.DEVELOPER_DIR)) return process.env
+  return {
+    ...process.env,
+    DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+  }
 }

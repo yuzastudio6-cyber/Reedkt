@@ -11,6 +11,7 @@ import {
   buildBetaReadinessOwnerApprovalIntakeStatus,
 } from './beta-readiness-owner-approval-intake-preflight.mjs'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readiness-deployed-evidence-input-manifest.mjs'
+import { buildBetaReadinessSourceFreshnessPreflight } from './beta-readiness-source-freshness-preflight.mjs'
 
 const DECISION_READY = 'beta_readiness_external_beta_operator_local_env_preflight_passed_ready_for_external_beta_evidence_collector'
 const DECISION_BLOCKED = 'beta_readiness_external_beta_operator_local_env_preflight_blocked_missing_or_unsafe_operator_inputs'
@@ -30,6 +31,9 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
   }
   const operatorTemplate = buildBetaReadinessExternalBetaOperatorInputTemplate(effectiveEnv)
   const operatorStatus = buildBetaReadinessExternalBetaOperatorInputStatus(operatorTemplate)
+  const sourceFreshness = buildBetaReadinessSourceFreshnessPreflight(effectiveEnv, {
+    resolveGit: options.resolveGit,
+  })
   const ownerPreflight = buildBetaReadinessOwnerApprovalIntakePreflight(effectiveEnv)
   const ownerStatus = buildBetaReadinessOwnerApprovalIntakeStatus(ownerPreflight)
   const deployedManifest = buildBetaReadinessDeployedEvidenceInputManifest(effectiveEnv)
@@ -40,6 +44,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     ...(deployedManifest.secretLikeInputPaths.length > 0 ? ['deployed_manifest_inputs_contain_secret_like_material'] : []),
   ]
   const readyForExternalBetaEvidenceCollector = operatorStatus.pendingInputs.length === 0 &&
+    sourceFreshness.readyForDeployedEvidenceInputManifest === true &&
     ownerPreflight.readyForDeployedEvidenceInputManifest === true &&
     deployedManifest.readyToRunExternalBetaEvidenceCollector === true &&
     safetyGaps.length === 0
@@ -81,6 +86,16 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       pendingGroups: operatorStatus.pendingInputGroups,
       pendingValuePolicies: operatorStatus.pendingValuePolicies,
       pendingInputNames: operatorStatus.pendingInputs.map((input) => input.name),
+    },
+    sourceFreshness: {
+      decision: sourceFreshness.decision,
+      readyForOwnerApprovalIntake: sourceFreshness.readyForOwnerApprovalIntake,
+      readyForDeployedEvidenceInputManifest: sourceFreshness.readyForDeployedEvidenceInputManifest,
+      currentSourceSha: sourceFreshness.currentSourceSha,
+      deployedSourceSha: sourceFreshness.deployedSourceSha,
+      metadataOnlySourceDriftAllowed: sourceFreshness.sourceDriftClassification?.metadataOnlySourceDriftAllowed === true,
+      blockingChangedFiles: sourceFreshness.sourceDriftClassification?.blockingChangedFiles ?? [],
+      valueGaps: sourceFreshness.valueGaps,
     },
     ownerApprovalIntake: {
       decision: ownerPreflight.decision,
@@ -155,6 +170,8 @@ export function renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown
     `- Auto-fill inputs applied in memory: \`${report.autoFill.inputCount}\``,
     `- Operator inputs pending: \`${report.operatorInputs.pending}\``,
     `- Human-actionable pending: \`${report.operatorInputs.humanActionablePending}\``,
+    `- Source freshness ready: \`${report.sourceFreshness.readyForDeployedEvidenceInputManifest}\``,
+    `- Source freshness blocking files: \`${report.sourceFreshness.blockingChangedFiles.length}\``,
     `- Owner intake pending: \`${report.ownerApprovalIntake.counts.pending}\``,
     `- Deployed manifest pending inputs: \`${report.deployedEvidenceInputManifest.pendingRequiredInputs}\``,
     `- Deployed manifest value gaps: \`${report.deployedEvidenceInputManifest.valueGaps}\``,
@@ -313,11 +330,20 @@ function isGitIgnored(repoRoot, filePath) {
     execFileSync('git', ['check-ignore', '-q', path.relative(repoRoot, filePath)], {
       cwd: repoRoot,
       stdio: 'ignore',
-      env: { ...process.env, DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools' },
+      env: gitExecEnv(),
     })
     return true
   } catch {
     return false
+  }
+}
+
+function gitExecEnv() {
+  if (process.platform !== 'darwin') return process.env
+  if (process.env.DEVELOPER_DIR && existsSync(process.env.DEVELOPER_DIR)) return process.env
+  return {
+    ...process.env,
+    DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
   }
 }
 

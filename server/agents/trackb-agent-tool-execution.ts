@@ -6,6 +6,8 @@ import {
 import { findForbiddenWorkerPayloadEntries } from '../workers/production/production-worker-artifact-policy'
 import { dispatchProductionWorkerJob } from '../workers/production/production-worker-dispatcher'
 import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
+import { runProductionToolReadiness } from '../workers/production-readiness'
+import type { ProductionToolReadinessResult } from '../workers/production-readiness'
 import type {
   ProductionWorkerExecutionResult,
   ProductionWorkerJobPayload,
@@ -16,6 +18,7 @@ import type { ProductionToolId } from '../tool-registry'
 export type TrackBAgentToolExecutionMode =
   | 'mock_safe_worker_dispatch'
   | 'frontend_preview_boundary'
+  | 'bounded_runtime_probe'
   | 'deployed_live_execution'
 
 export type TrackBAgentToolExecutionStatus =
@@ -65,12 +68,28 @@ export interface TrackBAgentToolExecutionResult {
   serviceFeeIncluded: false
   workerPayload?: ProductionWorkerJobPayload
   workerResult?: ProductionWorkerExecutionResult
+  runtimeReadinessProof?: TrackBAgentRuntimeReadinessProof
   previewBoundary?: {
     approvedPreviewStateReference: string
     workerDispatchSkipped: true
     reason: string
   }
   blockedReason?: string
+  warnings: string[]
+}
+
+export interface TrackBAgentRuntimeReadinessProof {
+  toolId: ProductionToolId
+  probeKind: 'command_import_package_metadata_only'
+  mediaProcessing: false
+  productRuntimeExecution: false
+  backendEvidenceRecorded: false
+  status: ProductionToolReadinessResult['status']
+  checkedAt: string
+  checkModes: string[]
+  commandChecks: ProductionToolReadinessResult['commandChecks']
+  pythonImportChecks: ProductionToolReadinessResult['pythonImportChecks']
+  nodePackageChecks: ProductionToolReadinessResult['nodePackageChecks']
   warnings: string[]
 }
 
@@ -133,6 +152,30 @@ export async function executeTrackBAgentTool(
     }
   }
 
+  if (mode === 'bounded_runtime_probe') {
+    const proof = buildRuntimeReadinessProof(contract.toolId)
+    const proofPassed = isRuntimeReadinessProofAcceptable(proof)
+    return {
+      status: proofPassed ? 'completed' : 'blocked',
+      decision: proofPassed
+        ? 'trackb_agent_tool_execution_bounded_runtime_probe_completed'
+        : 'trackb_agent_tool_execution_bounded_runtime_probe_blocked',
+      toolId: contract.toolId,
+      agentInvocationId: contract.agentInvocationId,
+      mode,
+      liveExecutionReady: report.liveAgentExecutionReady,
+      paymentScope: 'excluded_from_this_runtime_boundary',
+      serviceFeeIncluded: false,
+      runtimeReadinessProof: proof,
+      blockedReason: proofPassed ? undefined : `Bounded runtime probe for ${contract.toolId} returned status ${proof.status}.`,
+      warnings: [
+        ...commonWarnings,
+        ...proof.warnings,
+        'Bounded runtime probe uses command/import/package-metadata checks only; it does not process media, dispatch product runtime work, write backend evidence, or enable beta/production.',
+      ],
+    }
+  }
+
   if (!input.storageReferenceIds || input.storageReferenceIds.length === 0) {
     return blocked(input, mode, 'Worker dispatch requires at least one private storage reference ID/path.', commonWarnings, contract)
   }
@@ -153,6 +196,52 @@ export async function executeTrackBAgentTool(
     blockedReason: workerResult.status === 'completed' ? undefined : workerResult.error?.message ?? 'Worker dispatch did not complete.',
     warnings: [...commonWarnings, ...workerResult.warnings],
   }
+}
+
+function buildRuntimeReadinessProof(toolId: ProductionToolId): TrackBAgentRuntimeReadinessProof {
+  const readiness = runProductionToolReadiness({
+    realCheckMode: true,
+    strict: false,
+    toolIds: [toolId],
+  })
+  const result = readiness.results.find((item) => item.toolId === toolId)
+  if (!result) {
+    return {
+      toolId,
+      probeKind: 'command_import_package_metadata_only',
+      mediaProcessing: false,
+      productRuntimeExecution: false,
+      backendEvidenceRecorded: false,
+      status: 'missing',
+      checkedAt: new Date().toISOString(),
+      checkModes: [],
+      commandChecks: [],
+      pythonImportChecks: [],
+      nodePackageChecks: [],
+      warnings: [`No scoped production-readiness result was returned for ${toolId}.`],
+    }
+  }
+
+  return {
+    toolId,
+    probeKind: 'command_import_package_metadata_only',
+    mediaProcessing: false,
+    productRuntimeExecution: false,
+    backendEvidenceRecorded: false,
+    status: result.status,
+    checkedAt: result.checkedAt,
+    checkModes: readiness.coreToolReadiness?.results
+      .filter((item) => item.toolId === toolId || (toolId === 'ffmpeg' && item.toolId === 'ffmpeg_lgpl_policy'))
+      .map((item) => item.checkKind) ?? [],
+    commandChecks: result.commandChecks,
+    pythonImportChecks: result.pythonImportChecks,
+    nodePackageChecks: result.nodePackageChecks,
+    warnings: result.warnings,
+  }
+}
+
+function isRuntimeReadinessProofAcceptable(proof: TrackBAgentRuntimeReadinessProof): boolean {
+  return proof.status === 'passed' || proof.status === 'warning'
 }
 
 function findContract(

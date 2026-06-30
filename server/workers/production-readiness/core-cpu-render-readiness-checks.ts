@@ -70,6 +70,7 @@ export interface CoreToolReadinessCheckResult {
 export interface RunCoreCpuRenderReadinessOptions {
   realCheckMode?: boolean
   strict?: boolean
+  toolIds?: ProductionToolId[]
   timeoutMs?: number
   maxBuffer?: number
 }
@@ -372,6 +373,18 @@ function policyResults(checkedAt: string): CoreToolReadinessCheckResult[] {
   ]
 }
 
+function filterPolicyResults(
+  results: CoreToolReadinessCheckResult[],
+  requestedToolIds?: Set<ProductionToolId>,
+): CoreToolReadinessCheckResult[] {
+  if (!requestedToolIds) return results
+
+  return results.filter((result) => {
+    if (result.toolId === 'ffmpeg_lgpl_policy') return requestedToolIds.has('ffmpeg')
+    return requestedToolIds.has(result.toolId as ProductionToolId)
+  })
+}
+
 function assertM10CoreResultsExcludeGpuModelTools(results: CoreToolReadinessCheckResult[]): void {
   const checkedToolIds = new Set(results.map((result) => result.toolId))
   const forbidden = M10_EXCLUDED_GPU_MODEL_TOOL_IDS.filter((toolId) => checkedToolIds.has(toolId))
@@ -390,19 +403,25 @@ export function runCoreCpuRenderReadinessChecks(
   const maxBuffer = options.maxBuffer ?? 1024 * 1024
   const checkedAt = new Date().toISOString()
   const pythonCommand = realCheckMode ? findPythonCommand(timeoutMs) : undefined
+  const requestedToolIds = options.toolIds ? new Set(options.toolIds) : undefined
+  const includeTool = (toolId: ProductionToolId) => !requestedToolIds || requestedToolIds.has(toolId)
+  const commandChecks = CORE_TOOL_COMMAND_CHECKS.filter((definition) => includeTool(definition.toolId))
+  const pythonImportChecks = CORE_TOOL_PYTHON_IMPORT_CHECKS.filter((definition) => includeTool(definition.toolId))
+  const nodePackageChecks = CORE_TOOL_NODE_PACKAGE_CHECKS.filter((definition) => includeTool(definition.toolId))
+  const policyCheckResults = filterPolicyResults(policyResults(checkedAt), requestedToolIds)
 
   const results: CoreToolReadinessCheckResult[] = realCheckMode
     ? [
-        ...CORE_TOOL_COMMAND_CHECKS.map((definition) => runCommandCheck(definition, checkedAt, { timeoutMs, maxBuffer })),
-        ...CORE_TOOL_PYTHON_IMPORT_CHECKS.map((definition) => runPythonImportCheck(definition, checkedAt, pythonCommand, { timeoutMs, maxBuffer })),
-        ...CORE_TOOL_NODE_PACKAGE_CHECKS.map((definition) => runNodePackageCheck(definition, checkedAt)),
-        ...policyResults(checkedAt),
+        ...commandChecks.map((definition) => runCommandCheck(definition, checkedAt, { timeoutMs, maxBuffer })),
+        ...pythonImportChecks.map((definition) => runPythonImportCheck(definition, checkedAt, pythonCommand, { timeoutMs, maxBuffer })),
+        ...nodePackageChecks.map((definition) => runNodePackageCheck(definition, checkedAt)),
+        ...policyCheckResults,
       ]
     : [
-        ...CORE_TOOL_COMMAND_CHECKS.map((definition) => dryRunResult(definition, checkedAt, 'command_version')),
-        ...CORE_TOOL_PYTHON_IMPORT_CHECKS.map((definition) => dryRunResult(definition, checkedAt, 'python_import')),
-        ...CORE_TOOL_NODE_PACKAGE_CHECKS.map((definition) => dryRunResult(definition, checkedAt, 'node_package_metadata')),
-        ...policyResults(checkedAt),
+        ...commandChecks.map((definition) => dryRunResult(definition, checkedAt, 'command_version')),
+        ...pythonImportChecks.map((definition) => dryRunResult(definition, checkedAt, 'python_import')),
+        ...nodePackageChecks.map((definition) => dryRunResult(definition, checkedAt, 'node_package_metadata')),
+        ...policyCheckResults,
       ]
 
   assertM10CoreResultsExcludeGpuModelTools(results)
@@ -420,7 +439,9 @@ export function runCoreCpuRenderReadinessChecks(
     checkedAt,
     results,
     report: buildCoreToolReadinessReport(results, true),
-    coreToolIds: [...M10_CORE_CPU_RENDER_TOOL_IDS],
+    coreToolIds: requestedToolIds
+      ? M10_CORE_CPU_RENDER_TOOL_IDS.filter((toolId) => requestedToolIds.has(toolId))
+      : [...M10_CORE_CPU_RENDER_TOOL_IDS],
     excludedGpuModelToolIds: [...M10_EXCLUDED_GPU_MODEL_TOOL_IDS],
   }
 }

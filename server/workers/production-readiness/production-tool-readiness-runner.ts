@@ -137,6 +137,7 @@ function runProductionToolReadinessRealChecks(
   const coreToolReadiness = runCoreCpuRenderReadinessChecks({
     realCheckMode: true,
     strict: options.strict,
+    toolIds: options.toolIds,
   })
   const allowedCoreToolIds = new Set(M10_CORE_CPU_RENDER_TOOL_IDS)
   const requestedToolIds = options.toolIds ? new Set(options.toolIds) : undefined

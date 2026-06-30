@@ -614,6 +614,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-runbook-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-runbook-authorization-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts",',
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-controlled-runtime-execution-approval": "tsx server/cli/ai-graphics-external-beta-controlled-runtime-execution-approval.ts",',
   '+    "ai-graphics:external-beta-controlled-runtime-execution-approval:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-runtime-execution-approval-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-candidate-evidence-assembly": "tsx server/cli/ai-graphics-external-beta-candidate-evidence-assembly.ts",',

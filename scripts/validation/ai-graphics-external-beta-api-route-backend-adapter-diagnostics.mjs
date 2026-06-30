@@ -483,6 +483,7 @@ const unexpectedPackageAdditions = packageDiff
   .filter((line) => !line.includes('ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate'))
   .filter((line) => !line.includes('ai-graphics:external-beta-route-bound-service-role-queue-smoke-runbook-authorization'))
   .filter((line) => !line.includes('ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract'))
+  .filter((line) => !line.includes('ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight'))
 if (unexpectedPackageAdditions.length > 0) {
   fail(`unexpected_package_json_additions:${unexpectedPackageAdditions.join('|')}`)
 }

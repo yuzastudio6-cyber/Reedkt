@@ -3,28 +3,28 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const decision =
-  'ai_graphics_external_beta_route_bound_service_role_queue_smoke_result_capture_contract_prepared_with_runtime_blocks'
+  'ai_graphics_external_beta_route_bound_service_role_queue_smoke_operator_preflight_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'route_bound_service_role_queue_smoke_result_capture_contract_ready_execution_still_blocked'
+  'route_bound_service_role_queue_smoke_operator_preflight_ready_execution_still_blocked'
 const runScriptName =
-  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract'
+  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts'
+  'tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract:diagnostics'
+  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight-diagnostics.mjs'
 
 const requiredFiles = [
-  'server/routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts',
-  'server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts',
-  'scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract-diagnostics.mjs',
+  'server/routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts',
+  'server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts',
+  'scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.md',
   'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-result-capture-contract.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-result-capture-contract.md',
   'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-runbook-authorization.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
 ]
@@ -80,21 +80,17 @@ const capabilities = [
 ]
 
 const trueKeys = [
-  'externalBetaRouteBoundServiceRoleQueueSmokeResultCaptureContractPrepared',
-  'sourceRouteBoundServiceRoleQueueSmokeRunbookAuthorizationAccepted',
-  'sourceServiceRoleQueueSmokeProofValidatorAccepted',
-  'routeBoundServiceRoleQueueSmokeResultCaptureContractReadyWithProvidedEvidence',
-  'routeBoundServiceRoleQueueSmokeResultCaptureToolContractsAccepted',
-  'routeBoundResultCaptureRefsAccepted',
-  'privateResultCaptureOnly',
-  'sanitizedSavedResultRequired',
-  'cleanupProofRequired',
-  'telemetryRequired',
-  'postRunReviewRequired',
+  'externalBetaRouteBoundServiceRoleQueueSmokeOperatorPreflightPrepared',
+  'sourceRouteBoundServiceRoleQueueSmokeResultCaptureContractAccepted',
+  'routeBoundServiceRoleQueueSmokeOperatorPreflightReadyWithProvidedEvidence',
+  'operatorEnvironmentAccepted',
+  'operatorFlagsAccepted',
+  'privateNonProductionOnly',
+  'serviceRoleCredentialsServerOnly',
+  'noServiceRoleCredentialValueReturned',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
-  'all21RouteBoundResultCaptureContractsPrepared',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -107,11 +103,9 @@ const falseKeys = [
   'routeExecutionApprovedNow',
   'routeBoundServiceRoleQueueSmokeRunApprovedNow',
   'serviceRoleQueueSmokeApprovedNow',
-  'serviceRoleQueueSmokePerformedByThisContract',
   'liveServiceRoleQueueSmokeExecutedNow',
   'backendQueueSubmissionApprovedNow',
   'liveQueueWriteApprovedNow',
-  'liveQueueWritePerformedByThisContract',
   'workerDispatchApprovedNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
@@ -144,34 +138,19 @@ const falseKeys = [
   'signedUrlCreated',
 ]
 
-const requiredSourceEvidence = [
-  'routeBoundServiceRoleQueueSmokeRunbookAuthorization',
-  'serviceRoleQueueSmokeProofValidator',
-  'serviceRoleQueueSmokeHarness',
-  'serviceRoleQueueSmokeReadiness',
-]
-
-const requiredResultCaptureRefs = [
-  'routeBoundServiceRoleQueueSmokeResultCaptureRef',
-  'routeBoundServiceRoleQueueSmokeEvidenceCaptureRef',
-  'routeBoundServiceRoleQueueSmokeTelemetryCaptureRef',
-  'routeBoundServiceRoleQueueSmokeCleanupProofCaptureRef',
-  'routeBoundServiceRoleQueueSmokeProofValidatorRef',
-  'routeBoundServiceRoleQueueSmokePostRunReviewRef',
-]
-
 const requiredPolicyKeys = [
-  'privateResultCaptureOnly',
-  'sourceRunbookAuthorizationRequired',
-  'sourceSavedResultProofValidatorRequired',
-  'sanitizedSavedResultRequired',
-  'privateEvidenceRefRequired',
-  'privateTelemetryRefRequired',
-  'privateCleanupProofRefRequired',
-  'postRunReviewRequired',
-  'noLiveSmokeByThisContract',
-  'noApiRouteExecution',
+  'sourceResultCaptureContractRequired',
+  'explicitOperatorConfirmationRequired',
+  'nonProductionEnvironmentRequired',
+  'serverOnlyServiceRoleCredentialsRequired',
+  'approvedPlanSnapshotRequired',
+  'creditReservationRequired',
+  'idempotencyPrefixRequired',
+  'privateResultEvidenceTelemetryCleanupRefsRequired',
+  'noSupabaseClientCreation',
+  'noServiceRoleQueueSmoke',
   'noBackendQueueSubmission',
+  'noLiveQueueWrite',
   'noWorkerDispatch',
   'noToolExecution',
   'onDemandGpuOnly',
@@ -179,16 +158,15 @@ const requiredPolicyKeys = [
 ]
 
 const forbiddenDocPatterns = [
+  /SUPABASE_SERVICE_ROLE_KEY\s*=\s*[^\s]+/i,
   /agentCanExecuteToolsNow["`:\s=]+true/i,
   /apiRouteExecutionApprovedNow["`:\s=]+true/i,
   /routeExecutionApprovedNow["`:\s=]+true/i,
   /routeBoundServiceRoleQueueSmokeRunApprovedNow["`:\s=]+true/i,
   /serviceRoleQueueSmokeApprovedNow["`:\s=]+true/i,
-  /serviceRoleQueueSmokePerformedByThisContract["`:\s=]+true/i,
   /liveServiceRoleQueueSmokeExecutedNow["`:\s=]+true/i,
   /backendQueueSubmissionApprovedNow["`:\s=]+true/i,
   /liveQueueWriteApprovedNow["`:\s=]+true/i,
-  /liveQueueWritePerformedByThisContract["`:\s=]+true/i,
   /workerDispatchApprovedNow["`:\s=]+true/i,
   /toolExecutionApprovedNow["`:\s=]+true/i,
   /providerRuntimeApprovedNow["`:\s=]+true/i,
@@ -220,8 +198,6 @@ const changedGeneratedArtifactPattern =
 const allowedPackageDiffLines = [
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts",',
-  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight-diagnostics.mjs",',
 ]
 
 const failures = []
@@ -248,12 +224,13 @@ function json(file) {
   }
 }
 
-function exec(command) {
+function exec(command, options = {}) {
   return childProcess.execSync(command, {
     cwd: process.cwd(),
     env: {
       ...process.env,
       DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      ...options.env,
     },
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -296,13 +273,15 @@ function checkCounts(packet, label) {
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
-    routeBoundServiceRoleQueueSmokeResultCaptureContractReadyToolsWithProvidedEvidence: 21,
-    sourceRouteBoundServiceRoleQueueSmokeRunbookAuthorizationReadyToolsWithProvidedEvidence: 21,
-    sourceServiceRoleQueueSmokeProofValidatorReadyToolsWithProvidedEvidence: 21,
-    routeBoundServiceRoleQueueSmokeResultCaptureToolContractsPreparedWithProvidedEvidence: 21,
+    routeBoundServiceRoleQueueSmokeOperatorPreflightReadyToolsWithProvidedEvidence: 21,
+    sourceRouteBoundServiceRoleQueueSmokeResultCaptureContractReadyToolsWithProvidedEvidence: 21,
+    operatorEnvironmentAcceptedToolsWithProvidedEvidence: 21,
+    operatorFlagsAcceptedToolsWithProvidedEvidence: 21,
     expectedLiveQueueRowsBeforeCleanup: 21,
     expectedWorkerClaimRowsBeforeCleanup: 21,
     expectedPersistedRowsAfterCleanup: 0,
+    routeBoundServiceRoleQueueSmokeRunApprovedNowTools: 0,
+    liveQueueWritesPerformedNowTools: 0,
     workerDispatchesApprovedNow: 0,
     toolExecutionsApprovedNow: 0,
     gpuRuntimeShouldStartNowTools: 0,
@@ -321,32 +300,36 @@ function checkPacket(packet, label) {
   if (packet.interfaces?.diagnosticScript !== diagnosticScriptName) {
     fail(`${label}:bad_diagnostic_script`)
   }
-  for (const key of requiredSourceEvidence) {
-    if (!packet.sourceEvidence?.[key]) fail(`${label}:missing_source_evidence:${key}`)
-  }
-  for (const key of requiredResultCaptureRefs) {
-    if (!packet.requiredResultCaptureRefs?.[key]) {
-      fail(`${label}:missing_result_capture_ref:${key}`)
-    }
+  if (packet.interfaces?.supabaseClientCreated !== false) {
+    fail(`${label}:supabase_client_created_not_false`)
   }
   for (const key of requiredPolicyKeys) {
-    if (packet.routeBoundResultCapturePolicy?.[key] !== true) {
+    if (packet.operatorPreflightPolicy?.[key] !== true) {
       fail(`${label}:policy_not_true:${key}`)
     }
   }
-  if (!packet.proofValidatorCommandTemplate?.includes('ai-graphics:external-beta-service-role-queue-smoke-proof')) {
-    fail(`${label}:missing_proof_validator_command`)
+  if (packet.requiredOperatorEnvironment?.secretValuesReturned !== false) {
+    fail(`${label}:secret_values_returned_not_false`)
   }
-  if (packet.savedResultAcceptanceContract?.acceptedDecision !== 'ai_graphics_external_beta_service_role_queue_smoke_passed_with_cleanup') {
-    fail(`${label}:bad_saved_result_decision`)
-  }
-  if (packet.savedResultAcceptanceContract?.fixtureRowsPersistedAfterCleanup !== 0) {
-    fail(`${label}:cleanup_rows_not_zero`)
+  for (const key of [
+    'confirmExternalBetaServiceRoleQueueSmoke',
+    'nonProductionSmokeEnvironment',
+    'supabaseUrlPresent',
+    'supabaseServiceRoleKeyPresent',
+    'e2eRuntimeModeLocal',
+    'workerRuntimeModeMock',
+    'nodeEnvNotProduction',
+    'productionFlagAbsent',
+  ]) {
+    if (packet.maskedOperatorEnvironment?.[key] !== true) {
+      fail(`${label}:masked_environment_not_true:${key}`)
+    }
   }
   for (const blocked of [
+    'Supabase client creation',
     'API route execution',
-    'service-role queue smoke execution by this contract',
-    'live queue write by this contract',
+    'service-role queue smoke execution now',
+    'live queue write',
     'Worker execution',
     'tool execution',
     'GPU/model runtime execution now',
@@ -370,44 +353,16 @@ function checkEvaluatorReport(report) {
   if (report.rejectionReasons?.length) {
     fail(`evaluator:unexpected_rejections:${report.rejectionReasons.join('|')}`)
   }
-  const items = report.routeBoundServiceRoleQueueSmokeResultCaptureToolContracts ?? []
-  if (items.length !== 21) fail('evaluator:expected_21_result_capture_contracts')
-  const itemTools = items.map((item) => item.toolId)
-  for (const tool of tools) {
-    if (!itemTools.includes(tool)) fail(`evaluator:missing_result_capture_contract:${tool}`)
+  if (report.input?.supabaseUrlValueReturned !== false) fail('evaluator:supabase_url_returned')
+  if (report.input?.supabaseServiceRoleKeyValueReturned !== false) {
+    fail('evaluator:service_role_key_returned')
   }
-  const gpuItemCount = items.filter((item) => (
-    item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true
-  )).length
-  if (gpuItemCount !== 8) fail('evaluator:expected_8_gpu_result_capture_contracts')
-  for (const item of items) {
-    if (item.expectedJobRowsBeforeCleanup !== 1) {
-      fail(`evaluator:bad_expected_job_rows:${item.toolId}`)
-    }
-    if (item.expectedWorkerClaimRowsBeforeCleanup !== 1) {
-      fail(`evaluator:bad_expected_claim_rows:${item.toolId}`)
-    }
-    if (item.expectedPersistedRowsAfterCleanup !== 0) {
-      fail(`evaluator:cleanup_rows_not_zero:${item.toolId}`)
-    }
-    for (const key of [
-      'gpuRuntimeShouldStartNow',
-      'routeExecutionApprovedNow',
-      'serviceRoleQueueSmokeApprovedNow',
-      'serviceRoleQueueSmokePerformedByThisContract',
-      'liveQueueWriteApprovedNow',
-      'liveQueueWritePerformedByThisContract',
-      'workerDispatchApprovedNow',
-      'workerDispatchPerformed',
-      'toolExecutionApprovedNow',
-      'toolExecutionPerformed',
-      'providerRuntimePerformed',
-      'privateArtifactWritePerformed',
-      'publicArtifactCreated',
-      'signedUrlCreated',
-    ]) {
-      if (item[key] !== false) fail(`evaluator:item_boolean_not_false:${item.toolId}:${key}`)
-    }
+  if (report.input?.supabaseClientCreated !== false) fail('evaluator:supabase_client_created')
+  if (report.missingOperatorEnvironment?.length) {
+    fail(`evaluator:missing_environment:${report.missingOperatorEnvironment.join('|')}`)
+  }
+  if (report.missingOperatorFlags?.length) {
+    fail(`evaluator:missing_flags:${report.missingOperatorFlags.join('|')}`)
   }
   checkCounts(report, 'evaluator')
   checkBooleans(report, 'evaluator')
@@ -461,29 +416,46 @@ function checkGitHygiene() {
 
 for (const file of requiredFiles) read(file)
 
-const packet = json('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-result-capture-contract.json')
+const packet = json('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json')
 checkPacket(packet, 'docs')
 
 const cliOutput = exec([
-  'npx tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts',
-  '--route-bound-service-role-queue-smoke-runbook-authorization-packet docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-runbook-authorization.json',
-  '--service-role-queue-smoke-proof-validator-packet docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-proof.json',
+  'npx tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts',
+  '--route-bound-service-role-queue-smoke-result-capture-contract-packet docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-result-capture-contract.json',
+  '--workspace-id non-production-workspace',
+  '--project-id non-production-project',
+  '--approved-plan-snapshot-id approved-plan-snapshot-for-preflight',
+  '--credit-reservation-id credit-reservation-for-preflight',
+  '--idempotency-prefix route-bound-smoke-preflight',
   '--route-bound-service-role-queue-smoke-result-capture-ref private://ai-graphics/external-beta/route-bound-service-role-queue-smoke/result.json',
   '--route-bound-service-role-queue-smoke-evidence-capture-ref private://ai-graphics/external-beta/route-bound-service-role-queue-smoke/evidence.json',
   '--route-bound-service-role-queue-smoke-telemetry-capture-ref private://ai-graphics/external-beta/route-bound-service-role-queue-smoke/telemetry.json',
   '--route-bound-service-role-queue-smoke-cleanup-proof-capture-ref private://ai-graphics/external-beta/route-bound-service-role-queue-smoke/cleanup-proof.json',
   '--route-bound-service-role-queue-smoke-proof-validator-ref ai-graphics:external-beta-service-role-queue-smoke-proof',
   '--route-bound-service-role-queue-smoke-post-run-review-ref route-bound-smoke://post-run-review/required-v1',
-].join(' '))
+  '--service-role-queue-smoke-readiness-ref route-bound-smoke://readiness/pr-862',
+  '--runtime-queue-service-proof-bridge-ref route-bound-smoke://runtime-queue-service-proof-bridge/pr-862',
+  '--source-runtime-queue-service-proof-bridge-accepted',
+].join(' '), {
+  env: {
+    REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE: 'true',
+    REEDITPRO_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_ENV: 'non_production',
+    SUPABASE_URL: 'https://non-production.example.invalid',
+    SUPABASE_SERVICE_ROLE_KEY: 'redacted_server_only_service_role_key_for_preflight',
+    E2E_RUNTIME_MODE: 'local',
+    WORKER_RUNTIME_MODE: 'mock',
+    NODE_ENV: 'test',
+  },
+})
 checkEvaluatorReport(JSON.parse(cliOutput))
 
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 for (const fragment of [
-  'AI Graphics External-Beta Route-Bound Service-Role Queue Smoke Result Capture Contract',
+  'AI Graphics External-Beta Route-Bound Service-Role Queue Smoke Operator Preflight',
   decision,
-  'routeBoundServiceRoleQueueSmokeResultCaptureContractReadyWithProvidedEvidence=true',
-  'expectedLiveQueueRowsBeforeCleanup=21',
-  'expectedPersistedRowsAfterCleanup=0',
+  'routeBoundServiceRoleQueueSmokeOperatorPreflightReadyWithProvidedEvidence=true',
+  'operatorEnvironmentAccepted=true',
+  'operatorFlagsAccepted=true',
   'serviceRoleQueueSmokeApprovedNow=false',
   'liveQueueWritePerformed=false',
   'workerDispatchPerformed=false',
@@ -498,9 +470,9 @@ checkPackageScripts()
 checkGitHygiene()
 
 if (failures.length) {
-  console.error(`AI graphics route-bound service-role queue-smoke result capture contract diagnostics failed (${failures.length})`)
+  console.error(`AI graphics route-bound service-role queue-smoke operator preflight diagnostics failed (${failures.length})`)
   for (const failure of failures) console.error(`- ${failure}`)
   process.exit(1)
 }
 
-console.log('AI graphics route-bound service-role queue-smoke result capture contract diagnostics passed')
+console.log('AI graphics route-bound service-role queue-smoke operator preflight diagnostics passed')

@@ -477,6 +477,8 @@ function verifyPackageJson() {
   const allowedPackageAdditions = [
     `+    "${runScriptName}": "${runScriptCommand}",`,
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+    '+    "ai-graphics:production-launch-readiness-gap": "tsx server/cli/ai-graphics-production-launch-readiness-gap.ts",',
+    '+    "ai-graphics:production-launch-readiness-gap:diagnostics": "node scripts/validation/ai-graphics-production-launch-readiness-gap-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')

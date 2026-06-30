@@ -1562,6 +1562,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records all 21 AI graphics tools as ready for controlled on-demand external-beta tool calls and reports `externalBetaReadyNowTools=21`.
 - Runtime/beta/production: external-beta readiness remains limited to controlled on-demand tool-call readiness. This consumer does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics Production Launch Readiness Gap
+
+- Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.
+- Scope: production-facing gap report after accepted external-beta activated launch readiness and the beta/production readiness rollup.
+- Result: it records 21 tools external-beta ready for controlled on-demand tool calls and 0 tools production-ready now.
+- Runtime/beta/production: no production unlock; this packet does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or mark production ready. Remaining production blockers are separate production launch owner approval, support/incident/rollback, cost/concurrency, monitoring, credit ledger, production Tool Route/Worker deployment, privacy, retention, and private artifact controls.
+
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 
 - Decision: `ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks`.

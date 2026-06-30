@@ -132,16 +132,27 @@ export async function dispatchProductionWorkerJob(input: {
   events.push(pushEvent(state, payload, 'heartbeat', 'Production worker lease heartbeat recorded.', 30, {
     leaseId: lease.leaseId,
   }))
-  events.push(pushEvent(state, payload, 'job_started', 'Production worker placeholder route started.', 40))
-  events.push(pushEvent(state, payload, 'step_started', 'Production worker placeholder step started.', 50))
+  const routeKind = payload.executionMode === 'bounded_rehearsal' ? 'bounded rehearsal' : 'placeholder'
+  events.push(pushEvent(state, payload, 'job_started', `Production worker ${routeKind} route started.`, 40))
+  events.push(pushEvent(state, payload, 'step_started', `Production worker ${routeKind} step started.`, 50))
 
   const output = await routeProductionWorkerJob(payload)
 
-  events.push(pushEvent(state, payload, 'step_completed', 'Production worker placeholder step completed without running real tools.', 80, {
-    futureHandler: output.futureHandler,
-  }))
+  events.push(pushEvent(
+    state,
+    payload,
+    'step_completed',
+    output.mockOnly
+      ? 'Production worker placeholder step completed without running real tools.'
+      : 'Production worker bounded rehearsal step completed with synthetic/no-user-media tool execution.',
+    80,
+    {
+      futureHandler: output.futureHandler,
+      mockOnly: output.mockOnly,
+    },
+  ))
   releaseWorkerLease(state, lease.leaseId)
-  events.push(pushEvent(state, payload, 'job_completed', 'Production worker placeholder job completed.', 100, {
+  events.push(pushEvent(state, payload, 'job_completed', `Production worker ${output.mockOnly ? 'placeholder' : 'bounded rehearsal'} job completed.`, 100, {
     leaseId: lease.leaseId,
   }))
 

@@ -29,6 +29,7 @@ export type ProductionWorkerJobStatus =
 export type ProductionWorkerExecutionMode =
   | 'dry_run'
   | 'mock_safe'
+  | 'bounded_rehearsal'
   | 'production_ready'
   | 'production_blocked'
 
@@ -130,7 +131,7 @@ export interface ProductionWorkerRouteOutput {
   summary: string
   workerType: ProductionWorkerRuntimeType
   executionMode: ProductionWorkerExecutionMode
-  mockOnly: true
+  mockOnly: boolean
   futureHandler: string
   mediaFoundationResult?: unknown
   speechFoundationResult?: unknown

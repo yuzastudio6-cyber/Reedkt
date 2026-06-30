@@ -133,6 +133,73 @@ assert.deepEqual(
   'scoped Hyperframe readiness must not execute unrelated command/import checks',
 )
 
+const sharpRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-sharp-rehearsal',
+  agentInvocationId: 'trackb.media_oss.sharp',
+  toolId: 'sharp',
+  action: 'asset_prepare',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-sharp-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['synthetic_private_rehearsal/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/sharp/no-user-media-reference'],
+})
+assert.equal(sharpRehearsal.status, 'completed')
+assert.equal(sharpRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+assert.equal(sharpRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(sharpRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(sharpRehearsal.workerResult?.toolCostMetadata?.mockOnly, true)
+assert.equal(sharpRehearsal.workerResult?.toolCostMetadata?.emittedEvents[0]?.billableToUser, false)
+const sharpRehearsalResult = sharpRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  status?: string
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  userMediaProcessed?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  publicArtifactCreated?: boolean
+  sharpVersions?: { sharp?: string; vips?: string }
+  syntheticInput?: { format?: string; width?: number; height?: number; sha256?: string }
+  syntheticOutput?: { format?: string; width?: number; height?: number; metadataFormat?: string; sha256?: string }
+} | undefined
+assert.equal(sharpRehearsalResult?.status, 'completed')
+assert.equal(sharpRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(sharpRehearsalResult?.productRuntimeExecution, false)
+assert.equal(sharpRehearsalResult?.mediaProcessing, false)
+assert.equal(sharpRehearsalResult?.userMediaProcessed, false)
+assert.equal(sharpRehearsalResult?.syntheticInputOnly, true)
+assert.equal(sharpRehearsalResult?.artifactFileWritten, false)
+assert.equal(sharpRehearsalResult?.publicArtifactCreated, false)
+assert.ok(sharpRehearsalResult?.sharpVersions?.sharp)
+assert.ok(sharpRehearsalResult?.sharpVersions?.vips)
+assert.equal(sharpRehearsalResult?.syntheticInput?.format, 'png')
+assert.equal(sharpRehearsalResult?.syntheticInput?.width, 2)
+assert.equal(sharpRehearsalResult?.syntheticInput?.height, 2)
+assert.match(sharpRehearsalResult?.syntheticInput?.sha256 ?? '', /^[a-f0-9]{64}$/)
+assert.equal(sharpRehearsalResult?.syntheticOutput?.format, 'webp')
+assert.equal(sharpRehearsalResult?.syntheticOutput?.metadataFormat, 'webp')
+assert.equal(sharpRehearsalResult?.syntheticOutput?.width, 1)
+assert.equal(sharpRehearsalResult?.syntheticOutput?.height, 1)
+assert.match(sharpRehearsalResult?.syntheticOutput?.sha256 ?? '', /^[a-f0-9]{64}$/)
+
+const duckdbRehearsalBlocked = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-duckdb-rehearsal-blocked',
+  agentInvocationId: 'trackb.media_oss.duckdb',
+  toolId: 'duckdb',
+  action: 'query_artifacts',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-duckdb-rehearsal-blocked',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['analysis_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/duckdb/source-reference'],
+})
+assert.equal(duckdbRehearsalBlocked.status, 'blocked')
+assert.match(duckdbRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for duckdb/i)
+assert.equal(duckdbRehearsalBlocked.workerResult, undefined)
+
 const liveBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -243,6 +310,8 @@ console.log(JSON.stringify({
     'backend_tools_dispatch_mock_safe_worker_payloads',
     'backend_tools_select_trackb_worker_recipe_handlers',
     'bounded_runtime_probe_runs_scoped_command_import_package_metadata_checks',
+    'sharp_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'bounded_execution_rehearsal_blocks_tools_without_explicit_handlers',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',
     'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',

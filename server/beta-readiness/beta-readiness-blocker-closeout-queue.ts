@@ -194,6 +194,7 @@ function buildBatches(
         'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
         `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown`,
         'npm run beta:readiness:external-beta-operator-autofill-env',
+        'npm run beta:readiness:external-beta-operator-autofill-local-env',
         'npm run beta:readiness:external-beta-operator-human-input-checklist',
         'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
         'npm run beta:readiness:external-beta-operator-input-template',

@@ -112,6 +112,7 @@
     "beta:readiness:api-deployment-preflight": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-api-deployment-preflight.ts",
     "beta:readiness:deployed-evidence-input-manifest": "node server/cli/beta-readiness-deployed-evidence-input-manifest.mjs",
     "beta:readiness:external-beta-operator-autofill-env": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --autofill-env",
+    "beta:readiness:external-beta-operator-autofill-local-env": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --apply-autofill-local-env",
     "beta:readiness:external-beta-operator-human-input-checklist": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --human-input-checklist",
     "beta:readiness:external-beta-operator-local-env-bootstrap": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --bootstrap-local-env",
     "beta:readiness:external-beta-operator-value-progress": "node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs --progress",

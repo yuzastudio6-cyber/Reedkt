@@ -1,4 +1,5 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readiness-deployed-evidence-input-manifest.mjs'
 
@@ -6,6 +7,8 @@ const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-i
 const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection'
 const STATUS_DECISION = 'beta_readiness_external_beta_operator_input_status_passed_ready_for_operator_value_collection'
 const AUTOFILL_DECISION = 'beta_readiness_external_beta_operator_autofill_env_passed_ready_for_human_operator_value_collection'
+const AUTOFILL_LOCAL_ENV_DECISION = 'beta_readiness_external_beta_operator_autofill_local_env_passed_ready_for_human_operator_value_collection'
+const AUTOFILL_LOCAL_ENV_BLOCKED_DECISION = 'beta_readiness_external_beta_operator_autofill_local_env_blocked_unsafe_local_env_file'
 const HUMAN_INPUT_CHECKLIST_DECISION = 'beta_readiness_external_beta_operator_human_input_checklist_passed_ready_for_operator_owner_collection'
 const BOOTSTRAP_DECISION = 'beta_readiness_external_beta_operator_local_env_bootstrap_passed_ready_for_human_operator_value_collection'
 
@@ -64,6 +67,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown',
       'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-autofill-local-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
@@ -191,6 +195,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown',
       'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-autofill-local-env',
       'npm run beta:readiness:external-beta-operator-input-template',
       'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
@@ -249,6 +254,7 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown',
       'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-autofill-local-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:external-beta-operator-input-template',
@@ -399,6 +405,93 @@ export function writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap(options 
     displayPath,
     permissionMode,
     safetyGaps: [],
+  }
+}
+
+export function applyBetaReadinessExternalBetaOperatorAutofillLocalEnv(options = {}) {
+  const report = options.report ?? buildBetaReadinessExternalBetaOperatorInputTemplate()
+  const autofill = buildBetaReadinessExternalBetaOperatorAutofillEnv(report)
+  const targetPath = clean(options.targetPath) ??
+    clean(options.env?.REEDITPRO_BETA_OPERATOR_ENV_FILE) ??
+    clean(process.env.REEDITPRO_BETA_OPERATOR_ENV_FILE) ??
+    RECOMMENDED_OPERATOR_ENV_FILE
+  const cwd = path.resolve(options.cwd ?? process.cwd())
+  const resolvedPath = path.resolve(cwd, targetPath)
+  const displayPath = path.isAbsolute(targetPath) ? resolvedPath : targetPath
+  const existingFile = existsSync(resolvedPath)
+  const safety = inspectAutofillTarget({ cwd, resolvedPath, existingFile })
+  const unsafeAutoFillInputs = autofill.autoFillableInputs.filter((input) => isHumanActionableInput(input) || input.secret === true)
+  const safetyGaps = [
+    ...safety.safetyGaps,
+    ...(unsafeAutoFillInputs.length > 0 ? ['autofill_input_set_contains_human_or_secret_values'] : []),
+  ]
+
+  if (safetyGaps.length > 0) {
+    return {
+      ok: false,
+      decision: AUTOFILL_LOCAL_ENV_BLOCKED_DECISION,
+      templateDecision: report.decision,
+      autofillDecision: autofill.decision,
+      targetPath: displayPath,
+      existingFile,
+      applied: false,
+      permissionMode: safety.permissionMode,
+      ownerOnlyPermissions: safety.ownerOnlyPermissions,
+      symlink: safety.symlink,
+      insideRepo: safety.insideRepo,
+      gitIgnored: safety.gitIgnored,
+      inputCounts: autofillLocalEnvInputCounts(autofill, [], [], autofill.autoFillableInputs),
+      updatedInputNames: [],
+      appendedInputNames: [],
+      unchangedInputNames: [],
+      skippedInputNames: autofill.autoFillableInputs.map((input) => input.name),
+      emittedSecretOrHumanValues: 0,
+      safetyGaps,
+      blockedScopeConfirmations: report.blockedScopeConfirmations,
+      supabaseClassification: report.supabaseClassification,
+      nextSafeAction: `Fix ${displayPath} safety gaps before applying auto-fill values; keep the file local, ignored, non-symlink, and owner-only.`,
+      warnings: autofillLocalEnvWarnings(),
+    }
+  }
+
+  const currentContent = existingFile ? readFileSync(resolvedPath, 'utf8') : ''
+  const update = applyAutofillAssignments(currentContent, autofill.autoFillableInputs)
+  mkdirSync(path.dirname(resolvedPath), { recursive: true })
+  writeFileSync(resolvedPath, update.content, 'utf8')
+  chmodSync(resolvedPath, 0o600)
+  const permissionMode = `0${(statSync(resolvedPath).mode & 0o777).toString(8).padStart(3, '0')}`
+
+  return {
+    ok: true,
+    decision: AUTOFILL_LOCAL_ENV_DECISION,
+    templateDecision: report.decision,
+    autofillDecision: autofill.decision,
+    targetPath: displayPath,
+    existingFile,
+    applied: true,
+    permissionMode,
+    ownerOnlyPermissions: true,
+    symlink: false,
+    insideRepo: safety.insideRepo,
+    gitIgnored: safety.gitIgnored,
+    inputCounts: autofillLocalEnvInputCounts(autofill, update.updatedInputNames, update.appendedInputNames, update.unchangedInputNames),
+    updatedInputNames: update.updatedInputNames,
+    appendedInputNames: update.appendedInputNames,
+    unchangedInputNames: update.unchangedInputNames,
+    skippedInputNames: [],
+    emittedSecretOrHumanValues: 0,
+    safetyGaps: [],
+    validationCommands: [
+      `REEDITPRO_BETA_OPERATOR_ENV_FILE=${displayPath} npm run beta:readiness:external-beta-operator-value-progress -- --markdown`,
+      `REEDITPRO_BETA_OPERATOR_ENV_FILE=${displayPath} npm run beta:readiness:external-beta-operator-local-env-preflight`,
+      `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${displayPath} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
+      'npm run beta:readiness:deployed-evidence-input-manifest',
+    ],
+    blockedScopeConfirmations: report.blockedScopeConfirmations,
+    supabaseClassification: report.supabaseClassification,
+    nextSafeAction: `Fill the remaining human-owned values in ${displayPath}, then rerun the value progress and local env preflight commands.`,
+    warnings: autofillLocalEnvWarnings(),
   }
 }
 
@@ -667,6 +760,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# npm run beta:readiness:source-freshness-preflight')
   lines.push('# npm run beta:readiness:external-beta-operator-local-env-bootstrap')
   lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
+  lines.push('# npm run beta:readiness:external-beta-operator-autofill-local-env')
   lines.push('# npm run beta:readiness:external-beta-operator-human-input-checklist')
   lines.push('# REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
@@ -789,6 +883,127 @@ function toHumanInputChecklistItem(input) {
   }
 }
 
+function inspectAutofillTarget({ cwd, resolvedPath, existingFile }) {
+  const insideRepo = isPathInside(cwd, resolvedPath)
+  const safetyGaps = []
+  let permissionMode
+  let ownerOnlyPermissions
+  let symlink = false
+  let gitIgnored
+
+  if (existingFile) {
+    const lstat = lstatSync(resolvedPath)
+    symlink = lstat.isSymbolicLink()
+    if (symlink) safetyGaps.push('operator_local_env_autofill_target_is_symlink')
+    const stat = statSync(resolvedPath)
+    permissionMode = `0${(stat.mode & 0o777).toString(8).padStart(3, '0')}`
+    ownerOnlyPermissions = (stat.mode & 0o077) === 0
+    if (!ownerOnlyPermissions) safetyGaps.push('operator_local_env_autofill_target_not_owner_only')
+  }
+
+  if (insideRepo) {
+    gitIgnored = isGitIgnored(cwd, resolvedPath)
+    if (!gitIgnored) safetyGaps.push('operator_local_env_autofill_target_not_git_ignored')
+  }
+
+  return {
+    permissionMode,
+    ownerOnlyPermissions,
+    symlink,
+    insideRepo,
+    gitIgnored,
+    safetyGaps,
+  }
+}
+
+function applyAutofillAssignments(content, inputs) {
+  const nextLines = content ? content.replace(/\r\n/g, '\n').split('\n') : []
+  const updatedInputNames = []
+  const appendedInputNames = []
+  const unchangedInputNames = []
+
+  for (const input of inputs) {
+    const assignment = `${input.name}="${escapeTemplateValue(input.value)}"`
+    const lineIndex = nextLines.findIndex((line) => activeAssignmentName(line) === input.name)
+    if (lineIndex === -1) {
+      appendedInputNames.push(input.name)
+      continue
+    }
+    if (nextLines[lineIndex] === assignment) {
+      unchangedInputNames.push(input.name)
+    } else {
+      nextLines[lineIndex] = assignment
+      updatedInputNames.push(input.name)
+    }
+  }
+
+  const appendInputs = inputs.filter((input) => appendedInputNames.includes(input.name))
+  if (appendInputs.length > 0) {
+    if (nextLines.length > 0 && nextLines.at(-1) !== '') nextLines.push('')
+    nextLines.push('# ReEditPro safe auto-fill values')
+    for (const input of appendInputs) {
+      nextLines.push(`${input.name}="${escapeTemplateValue(input.value)}"`)
+    }
+  }
+
+  return {
+    content: `${nextLines.join('\n').replace(/\n*$/, '')}\n`,
+    updatedInputNames,
+    appendedInputNames,
+    unchangedInputNames,
+  }
+}
+
+function activeAssignmentName(line) {
+  const match = line.match(/^\s*(?:export\s+)?([A-Z0-9_]+)\s*=/)
+  return match?.[1]
+}
+
+function autofillLocalEnvInputCounts(autofill, updatedInputNames, appendedInputNames, unchangedInputNames) {
+  return {
+    autoFillableInputs: autofill.autoFillableInputs.length,
+    generatedIdempotencyKeys: autofill.inputCounts.generatedIdempotencyKeys,
+    prefilledNonSecretConstants: autofill.inputCounts.prefilledNonSecretConstants,
+    updatedInputs: updatedInputNames.length,
+    appendedInputs: appendedInputNames.length,
+    unchangedInputs: unchangedInputNames.length,
+    humanActionableInputsWritten: 0,
+    secretOrSensitiveInputsWritten: 0,
+    ownerApprovalInputsWritten: 0,
+    ownerEvidenceNotesWritten: 0,
+    technicalVerificationInputsWritten: 0,
+  }
+}
+
+function autofillLocalEnvWarnings() {
+  return [
+    'This command writes only auto-fillable non-secret constants and generated idempotency keys.',
+    'It never writes bearer tokens, workspace/project IDs, owner approval confirmations, technical verification confirmations, evidence notes, signed URLs, raw prompts, or private media references.',
+    'It does not call deployed services, record evidence, write Supabase/GCS, run tools, process media, enable external beta, enable real-user-media beta, or enable paid production.',
+  ]
+}
+
+function isPathInside(parent, child) {
+  const relative = path.relative(parent, child)
+  return Boolean(relative) && !relative.startsWith('..') && !path.isAbsolute(relative)
+}
+
+function isGitIgnored(cwd, resolvedPath) {
+  try {
+    execFileSync('git', ['check-ignore', '-q', resolvedPath], {
+      cwd,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+      },
+      stdio: 'ignore',
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 function escapeTemplateValue(value) {
   return String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')
 }
@@ -813,6 +1028,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorAutofillEnv(report), null, 2))
   } else if (process.argv.includes('--autofill-markdown')) {
     console.log(renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(buildBetaReadinessExternalBetaOperatorAutofillEnv(report)))
+  } else if (process.argv.includes('--apply-autofill-local-env')) {
+    const applyResult = applyBetaReadinessExternalBetaOperatorAutofillLocalEnv({
+      report,
+      targetPath: readArg('--apply-autofill-path') ?? process.env.REEDITPRO_BETA_OPERATOR_ENV_FILE ?? RECOMMENDED_OPERATOR_ENV_FILE,
+    })
+    console.log(JSON.stringify(applyResult, null, 2))
+    if (applyResult.applied !== true) process.exitCode = 1
   } else if (process.argv.includes('--human-input-checklist')) {
     console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report), null, 2))
   } else if (process.argv.includes('--human-input-markdown')) {

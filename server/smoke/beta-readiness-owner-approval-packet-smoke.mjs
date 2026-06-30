@@ -60,6 +60,7 @@ assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
 assert.ok(report.postApprovalCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-autofill-local-env'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.postApprovalCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))

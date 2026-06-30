@@ -99,6 +99,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_T
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_READINESS_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-readiness-approval'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_READINESS_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-readiness-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-preflight-approval'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-preflight'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-preflight-plan'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
@@ -205,6 +206,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_plan_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_approval_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_attempt_approval_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -221,7 +223,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_transport_preflight_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_transport_attempt_approval_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -428,6 +430,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT_PLAN.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightApprovalDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT_APPROVAL.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1677,15 +1681,28 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight',
       label: 'Controlled persisted worker dispatch runtime real-dispatch transport preflight',
-      status: 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_required',
+      status: 'ready',
       evidence: [
         'Controlled persisted worker dispatch runtime real-dispatch transport preflight approval is recorded.',
-        'The approved preflight may verify only static transport envelope readiness until a later prompt explicitly authorizes a bounded request attempt.',
+        'The no-call preflight verifies only static transport envelope readiness.',
+        'Runtime values remain unresolved until a later transport attempt approval.',
+        'Service URL resolution, audience resolution, identity-token fetch, auth-header creation, private request send, Cloud Run invocation, Qwen inference, generated assets, beta, and production remain blocked.',
+        'NVIDIA L4, scale-to-zero, minimum instances zero, initial max instances one, and CPU fallback disabled remain accepted.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_attempt_approval',
+      label: 'Controlled persisted worker dispatch runtime real-dispatch transport attempt approval',
+      status: 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_attempt_approval_required',
+      evidence: [
+        'Controlled persisted worker dispatch runtime real-dispatch transport preflight is recorded.',
+        'The preflight verified static envelope readiness only; it did not resolve service URL, audience, identity-token, auth-header, or send a private request.',
         'Service URL resolution, audience resolution, identity-token fetch, auth-header creation, private request send, Cloud Run invocation, Qwen inference, generated assets, beta, and production remain blocked.',
         'NVIDIA L4, scale-to-zero, minimum instances zero, initial max instances one, and CPU fallback disabled remain accepted.',
       ],
       missingEvidence: [
-        'Verify the controlled Qwen real-dispatch transport preflight shape before any later prompt may resolve runtime values or attempt a bounded private request.',
+        'Approve the controlled Qwen real-dispatch transport attempt before any later prompt may resolve runtime values or attempt a bounded private request.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2186,6 +2203,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightApprovalAcceptedForPreflight:
       true,
     controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightRequired:
+      false,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightRecorded:
+      true,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightPassed:
+      true,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportAttemptApprovalRequired:
       true,
     approvedSnapshotTransportPreflightAccepted: true,
     serviceUrlResolutionPreflightAccepted: true,
@@ -2215,6 +2238,16 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     responseClassificationPreflightPlanned: true,
     persistenceQaAuditCostCreditPreflightPlanned: true,
     cleanupRollbackBetaProductionLockPreflightPlanned: true,
+    approvedSnapshotTransportPreflightVerified: true,
+    serviceUrlResolutionPreflightVerified: true,
+    audienceResolutionPreflightVerified: true,
+    identityTokenDependencyPreflightVerified: true,
+    authHeaderRedactionPreflightVerified: true,
+    privateRequestEnvelopePreflightVerified: true,
+    timeoutRetryIdempotencyPreflightVerified: true,
+    responseClassificationPreflightVerified: true,
+    persistenceQaAuditCostCreditPreflightVerified: true,
+    cleanupRollbackBetaProductionLockPreflightVerified: true,
     controlledPersistedWorkerDispatchRuntimeRealDispatchTransportDependencyPreviewAttemptBlocked:
       true,
     controlledPersistedWorkerDispatchRuntimeRealDispatchTransportDependencyInjectedCallsExecuted:
@@ -2298,11 +2331,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_attempt_approval_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58CT-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-TRANSPORT-PREFLIGHT: verify controlled Qwen real-dispatch transport preflight, no Cloud Run invocation/no inference/no generated assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58CU-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-TRANSPORT-ATTEMPT-APPROVAL: approve controlled Qwen real-dispatch transport attempt, no inference/no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

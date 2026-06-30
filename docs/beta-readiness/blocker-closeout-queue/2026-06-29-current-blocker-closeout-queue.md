@@ -23,11 +23,12 @@ Auto-fillable pending inputs: `12`
    - Next command: `npm run beta:readiness:external-beta-operator-input-template -- --status`
    - Next command: `npm run beta:readiness:external-beta-operator-autofill-env`
    - Next command: `npm run beta:readiness:external-beta-operator-human-input-checklist`
+   - Next command: `npm run beta:readiness:external-beta-operator-local-env-preflight`
    - Next command: `npm run beta:readiness:external-beta-operator-input-template`
    - Next command: `npm run beta:readiness:owner-approval-intake-status`
    - Next command: `npm run beta:readiness:owner-approval-intake-preflight`
    - Next command: `npm run beta:readiness:deployed-evidence-input-manifest`
-   - Blocked until: Operators review the value-free pending-input status, then supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.
+   - Blocked until: Operators review the value-free pending-input status, supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) in a local ignored env file, validate that file with the local-env preflight, and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.
 
 2. Record the 16-tool Track B accepted evidence bundle against deployed staging
    - Batch id: `trackb_deployed_tool_evidence_recording`

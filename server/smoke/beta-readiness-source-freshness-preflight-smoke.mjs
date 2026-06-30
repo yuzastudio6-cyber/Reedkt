@@ -63,6 +63,7 @@ assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-appro
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-preflight'))
@@ -78,8 +79,13 @@ assert.ok(
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-human-input-checklist') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-preflight'),
+  'human input checklist command should precede the local env preflight command',
+)
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-preflight') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template'),
-  'human input checklist command should precede the full operator template command',
+  'local env preflight command should precede the full operator template command',
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:owner-approval-intake-status') <
@@ -116,6 +122,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-operator-status-api.ts',
     'server/cli/beta-readiness-operator-status-api.d.ts',
     'server/cli/beta-readiness-operator-status-api.mjs',
+    'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
     'server/cli/beta-readiness-operator-status.ts',
     'server/cli/beta-readiness-summary.ts',
     'server/beta-readiness/platform-evidence-manifest.ts',
@@ -127,6 +134,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:readiness:blocker-ledger',
     'beta:readiness:external-beta-operator-autofill-env',
     'beta:readiness:external-beta-operator-human-input-checklist',
+    'beta:readiness:external-beta-operator-local-env-preflight',
     'beta:readiness:external-beta-operator-input-template',
     'beta:readiness:external-beta-evidence-collector',
     'beta:readiness:launch-approval-evidence',
@@ -157,6 +165,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'smoke:beta-readiness-api-staging-input-discovery-blocker',
     'smoke:beta-readiness-blocker-ledger',
     'smoke:beta-readiness-external-beta-operator-input-template',
+    'smoke:beta-readiness-external-beta-operator-local-env-preflight',
     'smoke:beta-readiness-external-beta-evidence-collector',
     'smoke:beta-readiness-launch-approval-evidence-cli',
     'smoke:beta-readiness-launch-approval-evidence-preflight',
@@ -197,6 +206,7 @@ assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_p
 assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-input-template.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-node-ts-register.mjs'))

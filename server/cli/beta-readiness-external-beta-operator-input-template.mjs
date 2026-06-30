@@ -11,8 +11,8 @@ const SECRET_PLACEHOLDER = '<secret value supplied only in the operator shell>'
 const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
 const EVIDENCE_PLACEHOLDER = '<non-secret owner evidence summary>'
 
-export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
-  const manifest = buildBetaReadinessDeployedEvidenceInputManifest({})
+export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
+  const manifest = buildBetaReadinessDeployedEvidenceInputManifest(env)
   const deployedEvidence = readJson(DEPLOYED_EVIDENCE_MANIFEST_PATH)
   const deployReadback = deployedEvidence.currentApiDeployReadback ?? {}
   const defaultApiBaseUrl = clean(deployReadback.normalApiServiceUrl) ?? clean(deployReadback.serviceUrl)
@@ -57,6 +57,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate() {
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
+      'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
@@ -178,6 +179,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
+      'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
@@ -231,6 +233,7 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
+      'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
@@ -515,6 +518,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# npm run beta:readiness:source-freshness-preflight')
   lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
   lines.push('# npm run beta:readiness:external-beta-operator-human-input-checklist')
+  lines.push('# REEDITPRO_BETA_OPERATOR_ENV_FILE=/path/to/local-only.env npm run beta:readiness:external-beta-operator-local-env-preflight')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')

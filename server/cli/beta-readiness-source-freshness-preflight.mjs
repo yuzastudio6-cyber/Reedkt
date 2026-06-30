@@ -14,6 +14,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:blocker-ledger',
   'beta:readiness:external-beta-operator-autofill-env',
   'beta:readiness:external-beta-operator-human-input-checklist',
+  'beta:readiness:external-beta-operator-local-env-preflight',
   'beta:readiness:external-beta-operator-input-template',
   'beta:readiness:external-beta-evidence-collector',
   'beta:readiness:launch-approval-evidence',
@@ -46,6 +47,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'smoke:beta-readiness-api-staging-input-discovery-blocker',
   'smoke:beta-readiness-blocker-ledger',
   'smoke:beta-readiness-external-beta-operator-input-template',
+  'smoke:beta-readiness-external-beta-operator-local-env-preflight',
   'smoke:beta-readiness-external-beta-evidence-collector',
   'smoke:beta-readiness-launch-approval-evidence-cli',
   'smoke:beta-readiness-launch-approval-evidence-preflight',
@@ -167,6 +169,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+        'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
         'server/cli/beta-readiness-blocker-closeout-queue.ts',
         'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
         'server/cli/beta-tools-core-real-check-preview.ts',
@@ -207,6 +210,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
+      'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
@@ -221,6 +225,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
+      'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'npm run beta:readiness:owner-approval-intake-preflight',
@@ -283,6 +288,7 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
     path === 'server/cli/beta-readiness-blocker-closeout-queue.ts' ||
     path === 'server/cli/beta-readiness-external-beta-operator-input-template.mjs' ||
+    path === 'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs' ||
     path === 'server/cli/beta-tools-core-real-check-preview.ts' ||
     path === 'server/cli/beta-tools-core-real-check-hydrated-preview.ts' ||
     path === 'server/cli/beta-tools-libass-synthetic-burnin-qa-preflight.ts' ||

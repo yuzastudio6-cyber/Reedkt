@@ -44,15 +44,20 @@ assert.equal(report.batches[0]?.batchId, 'operator_value_collection')
 assert.equal(report.batches[0]?.nextCommands[0], 'npm run beta:readiness:external-beta-operator-input-template -- --status')
 assert.equal(report.batches[0]?.nextCommands[1], 'npm run beta:readiness:external-beta-operator-autofill-env')
 assert.equal(report.batches[0]?.nextCommands[2], 'npm run beta:readiness:external-beta-operator-human-input-checklist')
-assert.equal(report.batches[0]?.nextCommands[3], 'npm run beta:readiness:external-beta-operator-input-template')
-assert.equal(report.batches[0]?.nextCommands[4], 'npm run beta:readiness:owner-approval-intake-status')
-assert.equal(report.batches[0]?.nextCommands[5], 'npm run beta:readiness:owner-approval-intake-preflight')
+assert.equal(report.batches[0]?.nextCommands[3], 'npm run beta:readiness:external-beta-operator-local-env-preflight')
+assert.equal(report.batches[0]?.nextCommands[4], 'npm run beta:readiness:external-beta-operator-input-template')
+assert.equal(report.batches[0]?.nextCommands[5], 'npm run beta:readiness:owner-approval-intake-status')
+assert.equal(report.batches[0]?.nextCommands[6], 'npm run beta:readiness:owner-approval-intake-preflight')
 assert.equal(
   report.batches[0]?.blockedUntil[0]?.includes('value-free pending-input status'),
   true,
 )
 assert.equal(
   report.batches[0]?.blockedUntil[0]?.includes('45 human-actionable values'),
+  true,
+)
+assert.equal(
+  report.batches[0]?.blockedUntil[0]?.includes('local-env preflight'),
   true,
 )
 assert.equal(

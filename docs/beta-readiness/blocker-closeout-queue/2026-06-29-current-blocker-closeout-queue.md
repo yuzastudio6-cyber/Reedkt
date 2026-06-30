@@ -46,8 +46,8 @@ Auto-fillable pending inputs: `12`
    - Rows: `98`
    - Can enable beta/production: `false`
    - Next command: `npm run beta:tools:core-real-check-preview -- --env-template`
-   - Next command: `npm run beta:tools:core-real-check-preview`
-   - Next command: `npm run beta:tools:core-real-check-preview:hydrated`
+   - Next command: `npm run beta:tools:core-real-check-preview -- --local-defaults`
+   - Next command: `npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults`
    - Next command: `npm run beta:tools:local-accepted-evidence-bundle`
    - Blocked until: Every registry tool has accepted bounded runtime evidence or an explicit source-truth exclusion; no user media or product runtime proof is implied.
 

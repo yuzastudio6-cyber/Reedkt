@@ -47,7 +47,6 @@ if (pythonPath) {
     REEDITPRO_READINESS_PYTHON_BIN: pythonPath,
     REEDITPRO_BETA_TOOLS_PREVIEW_READINESS_BIN_DIR: readinessBinDir,
   })
-  rmSync(readinessBinDir, { recursive: true, force: true })
   hydratedPassRan = true
   assert.equal(readyReport.previewOnly, true, 'hydrated preview report should be preview-only')
   assert.equal(readyReport.hydratedPythonReady, true, 'existing Python should satisfy hydration gate')
@@ -64,6 +63,27 @@ if (pythonPath) {
     undefined,
     'hydrated preview should restore REEDITPRO_READINESS_PYTHON_BIN after running',
   )
+
+  const localDefaultsReport = runBetaToolsCoreRealCheckHydratedPreview({
+    REEDITPRO_READINESS_PYTHON_BIN: pythonPath,
+    REEDITPRO_BETA_TOOLS_PREVIEW_READINESS_BIN_DIR: readinessBinDir,
+  }, {
+    localDefaults: true,
+    sourceSha: 'dddddddddddddddddddddddddddddddddddddddd',
+  })
+  assert.equal(localDefaultsReport.ok, true, 'hydrated local defaults preview should pass without manual preview env')
+  assert.equal(localDefaultsReport.previewReport?.localDefaultsApplied, true, 'hydrated local defaults should reach the underlying preview')
+  assert.ok(
+    localDefaultsReport.previewReport?.localDefaultedInputNames.includes('REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID'),
+    'hydrated local defaults should fill the workspace ID',
+  )
+  assert.equal(
+    localDefaultsReport.previewReport?.readyToRecordAcceptedEvidence,
+    true,
+    'hydrated local defaults should collect bounded accepted evidence',
+  )
+  assert.equal(process.env.PATH, previousPath, 'hydrated local defaults preview should restore PATH after running')
+  rmSync(readinessBinDir, { recursive: true, force: true })
 }
 
 console.log(JSON.stringify({

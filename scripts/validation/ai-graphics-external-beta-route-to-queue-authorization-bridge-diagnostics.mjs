@@ -3,28 +3,33 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const decision =
+  'ai_graphics_external_beta_route_to_queue_authorization_bridge_prepared_with_runtime_blocks'
+const acceptedStatus =
+  'route_to_queue_authorization_bridge_ready_runtime_still_blocked'
+const sourceHandlerDecision =
   'ai_graphics_external_beta_tool_call_handler_bridge_prepared_with_runtime_blocks'
-const acceptedStatus = 'disabled_handler_bridge_ready_runtime_still_blocked'
-const sourceDecision =
-  'ai_graphics_external_beta_api_route_backend_adapter_smoke_prepared_with_runtime_blocks'
-const sourceStatus = 'route_to_backend_adapter_smoke_ready_runtime_still_blocked'
-const runScriptName = 'ai-graphics:external-beta-tool-call-handler-bridge'
+const sourceHandlerStatus = 'disabled_handler_bridge_ready_runtime_still_blocked'
+const sourceQueueDecision =
+  'ai_graphics_external_beta_backend_queue_submission_envelope_prepared_with_runtime_blocks'
+const sourceQueueStatus =
+  'prepared_external_beta_backend_queue_submission_envelope_runtime_blocked'
+const runScriptName =
+  'ai-graphics:external-beta-route-to-queue-authorization-bridge'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-tool-call-handler-bridge.ts'
+  'tsx server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-tool-call-handler-bridge:diagnostics'
+  'ai-graphics:external-beta-route-to-queue-authorization-bridge:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-tool-call-handler-bridge-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-route-to-queue-authorization-bridge-diagnostics.mjs'
 
 const requiredFiles = [
-  'server/routes/ai-graphics-external-beta-tool-call-handler-bridge.ts',
-  'server/cli/ai-graphics-external-beta-tool-call-handler-bridge.ts',
-  'scripts/validation/ai-graphics-external-beta-tool-call-handler-bridge-diagnostics.mjs',
+  'server/routes/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts',
+  'server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts',
+  'scripts/validation/ai-graphics-external-beta-route-to-queue-authorization-bridge-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-to-queue-authorization-bridge.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-to-queue-authorization-bridge.md',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-handler-bridge.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-handler-bridge.md',
-  'docs/tool-intelligence/ai-graphics/external-beta-api-route-backend-adapter-smoke.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-api-route-backend-adapter.json',
-  'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
+  'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
 ]
@@ -69,14 +74,15 @@ const capabilities = [
 ]
 
 const trueKeys = [
-  'externalBetaToolCallHandlerBridgePrepared',
-  'sourceBackendAdapterSmokeAccepted',
-  'handlerBridgeRequestsAccepted',
-  'handlerBridgeReadyWithProvidedEvidence',
-  'cpuStaticHandlerBridgeAccepted',
-  'gpuModelHandlerBridgeAccepted',
-  'disabledExpressHandlerBridgeOnly',
-  'backendAdapterPreflightCallSitePrepared',
+  'externalBetaRouteToQueueAuthorizationBridgePrepared',
+  'sourceHandlerBridgeAccepted',
+  'sourceBackendQueueSubmissionAccepted',
+  'routeToQueueAuthorizationCandidatesAccepted',
+  'routeToQueueAuthorizationBridgeReadyWithProvidedEvidence',
+  'cpuStaticRouteToQueueAuthorizationAccepted',
+  'gpuModelRouteToQueueAuthorizationAccepted',
+  'privateRouteToQueueAuthorizationBridgeOnly',
+  'queueJobPreparedNotSubmittedOnly',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -94,6 +100,7 @@ const falseKeys = [
   'apiRouteExecutionApprovedNow',
   'apiRouteExecutionPerformed',
   'routeExecutionApprovedNow',
+  'routeToQueueAuthorizationApprovedNow',
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
   'workerEnqueueApprovedNow',
@@ -138,9 +145,9 @@ const falseKeys = [
 const forbiddenDocPatterns = [
   /agentCanExecuteToolsNow["`:\s=]+true/i,
   /apiRouteMountedNow["`:\s=]+true/i,
-  /expressRouteMountedInAppNow["`:\s=]+true/i,
   /apiRouteExecutionApprovedNow["`:\s=]+true/i,
   /routeExecutionApprovedNow["`:\s=]+true/i,
+  /routeToQueueAuthorizationApprovedNow["`:\s=]+true/i,
   /workerExecutionApprovedNow["`:\s=]+true/i,
   /workerEnqueueApprovedNow["`:\s=]+true/i,
   /backendQueueSubmissionApprovedNow["`:\s=]+true/i,
@@ -158,6 +165,8 @@ const forbiddenDocPatterns = [
   /packageLockMutationPerformed["`:\s=]+true/i,
   /toolExecutionPerformed["`:\s=]+true/i,
   /routeExecutionPerformed["`:\s=]+true/i,
+  /backendQueueSubmissionPerformed["`:\s=]+true/i,
+  /liveQueueWritePerformed["`:\s=]+true/i,
   /supabaseMutationPerformed["`:\s=]+true/i,
   /gpuRuntimePerformed["`:\s=]+true/i,
   /publicArtifactCreated["`:\s=]+true/i,
@@ -208,7 +217,7 @@ function exec(command) {
 function countFrom(packet, key) {
   const direct = packet?.[key]
   if (Array.isArray(direct)) return direct.length
-  return direct ?? packet?.counts?.[key] ?? packet?.coverage?.[key] ?? packet?.scope?.[key]
+  return direct ?? packet?.counts?.[key] ?? packet?.scope?.[key]
 }
 
 function checkBooleans(packet) {
@@ -224,47 +233,53 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(path.join(process.cwd(), file))) fail(`missing_file:${file}`)
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-tool-call-handler-bridge.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-tool-call-handler-bridge.md')
-const sourcePacket = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-backend-adapter-smoke.json')
-const source = read('server/routes/ai-graphics-external-beta-tool-call-handler-bridge.ts')
-const cli = read('server/cli/ai-graphics-external-beta-tool-call-handler-bridge.ts')
-const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
-const appSource = read('server/app.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-route-to-queue-authorization-bridge.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-route-to-queue-authorization-bridge.md')
+const sourceHandler = json('docs/tool-intelligence/ai-graphics/external-beta-tool-call-handler-bridge.json')
+const sourceQueue = json('docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json')
+const source = read('server/routes/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts')
+const cli = read('server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts')
 const packageJson = json('package.json')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('decision_mismatch')
 if (docs.status !== acceptedStatus) fail('status_mismatch')
-if (sourcePacket.decision !== sourceDecision) fail('source_decision_mismatch')
-if (sourcePacket.status !== sourceStatus) fail('source_status_mismatch')
-if (sourcePacket.booleans?.backendAdapterSmokeReadyWithProvidedEvidence !== true) {
-  fail('source_backend_adapter_smoke_not_ready')
+if (sourceHandler.decision !== sourceHandlerDecision) fail('source_handler_decision_mismatch')
+if (sourceHandler.status !== sourceHandlerStatus) fail('source_handler_status_mismatch')
+if (sourceQueue.decision !== sourceQueueDecision) fail('source_queue_decision_mismatch')
+if (sourceQueue.status !== sourceQueueStatus) fail('source_queue_status_mismatch')
+if (countFrom(sourceQueue, 'liveBackendQueueSubmissionsNow') !== 0) {
+  fail('source_queue_live_submissions_not_zero')
 }
-if (sourcePacket.booleans?.agentCanExecuteToolsNow !== false) {
-  fail('source_agent_execution_not_false')
+if (sourceQueue.booleans?.backendQueueSubmissionPerformed !== false) {
+  fail('source_queue_submission_performed_not_false')
 }
 if (countFrom(docs, 'totalAiGraphicsTools') !== 21) fail('total_tools_mismatch')
 if (countFrom(docs, 'totalProductFacingCapabilities') !== 12) fail('total_capabilities_mismatch')
 if (countFrom(docs, 'gpuRuntimeTargetedTools') !== 8) fail('gpu_tools_mismatch')
-if (countFrom(docs, 'handlerBridgeReadyToolsWithProvidedEvidence') !== 21) {
-  fail('handler_bridge_ready_count_mismatch')
+if (countFrom(docs, 'routeToQueueAuthorizationBridgeReadyToolsWithProvidedEvidence') !== 21) {
+  fail('bridge_ready_count_mismatch')
 }
-if (countFrom(docs, 'backendAdapterSmokeReadyToolsWithProvidedEvidence') !== 21) {
-  fail('source_smoke_ready_count_mismatch')
+if (countFrom(docs, 'sourceHandlerBridgeReadyToolsWithProvidedEvidence') !== 21) {
+  fail('source_handler_ready_count_mismatch')
 }
-if (countFrom(docs, 'handlerBridgeRequestsAcceptedWithProvidedEvidence') !== 2) {
-  fail('handler_bridge_request_count_mismatch')
+if (countFrom(docs, 'sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence') !== 3) {
+  fail('source_queue_examples_count_mismatch')
 }
-if (countFrom(docs, 'cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence') !== 1) {
-  fail('cpu_static_bridge_count_mismatch')
+if (countFrom(docs, 'routeToQueueAuthorizationCandidatesWithProvidedEvidence') !== 2) {
+  fail('candidate_count_mismatch')
 }
-if (countFrom(docs, 'gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence') !== 1) {
-  fail('gpu_model_bridge_count_mismatch')
+if (countFrom(docs, 'cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence') !== 1) {
+  fail('cpu_static_candidate_count_mismatch')
+}
+if (countFrom(docs, 'gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence') !== 1) {
+  fail('gpu_model_candidate_count_mismatch')
 }
 for (const zeroKey of [
   'apiRouteMountedNowTools',
   'routeExecutionsApprovedNow',
+  'routeToQueueAuthorizationsApprovedNow',
+  'backendQueueSubmissionApprovedNowTools',
   'liveQueueWriteApprovedNowTools',
   'workerEnqueueApprovedNowTools',
   'workerDispatchesApprovedNow',
@@ -278,54 +293,53 @@ for (const zeroKey of [
 
 checkBooleans(docs)
 
-const cases = docs.handlerBridgeCases ?? []
-if (cases.length !== 2) fail('handler_bridge_cases_length_mismatch')
-const d3Case = cases.find((item) => item.toolId === 'd3')
-const sam2Case = cases.find((item) => item.toolId === 'sam2')
-if (!d3Case) fail('missing_d3_bridge_case')
-if (!sam2Case) fail('missing_sam2_bridge_case')
-if (d3Case) {
-  if (d3Case.capabilityId !== 'chart_overlay') fail('d3_capability_mismatch')
-  if (d3Case.runtimeTarget !== 'node_cpu_static') fail('d3_runtime_target_mismatch')
-  if (d3Case.responseStatusWhileDisabled !== 409) fail('d3_disabled_response_status_mismatch')
-  if (d3Case.responseCodeWhileDisabled !== 'TOOL_NOT_READY') fail('d3_disabled_response_code_mismatch')
-  if (d3Case.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
+const candidates = docs.routeToQueueAuthorizationCandidates ?? []
+if (candidates.length !== 2) fail('candidate_length_mismatch')
+const d3Candidate = candidates.find((item) => item.toolId === 'd3')
+const sam2Candidate = candidates.find((item) => item.toolId === 'sam2')
+if (!d3Candidate) fail('missing_d3_candidate')
+if (!sam2Candidate) fail('missing_sam2_candidate')
+if (d3Candidate) {
+  if (d3Candidate.capabilityId !== 'chart_overlay') fail('d3_capability_mismatch')
+  if (d3Candidate.runtimeTarget !== 'node_cpu_static') fail('d3_runtime_target_mismatch')
+  if (d3Candidate.workerType !== 'render_worker') fail('d3_worker_type_mismatch')
+  if (d3Candidate.queueJobStatus !== 'prepared_not_submitted') fail('d3_queue_status_mismatch')
+  if (d3Candidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
     fail('d3_gpu_start_allowed_not_false')
   }
-  if (d3Case.gpuRuntimeShouldStartNow !== false) fail('d3_gpu_should_start_not_false')
 }
-if (sam2Case) {
-  if (sam2Case.capabilityId !== 'subject_segmentation') fail('sam2_capability_mismatch')
-  if (sam2Case.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
+if (sam2Candidate) {
+  if (sam2Candidate.capabilityId !== 'subject_segmentation') fail('sam2_capability_mismatch')
+  if (sam2Candidate.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
     fail('sam2_runtime_target_mismatch')
   }
-  if (sam2Case.responseStatusWhileDisabled !== 409) fail('sam2_disabled_response_status_mismatch')
-  if (sam2Case.responseCodeWhileDisabled !== 'TOOL_NOT_READY') fail('sam2_disabled_response_code_mismatch')
-  if (sam2Case.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
+  if (sam2Candidate.workerType !== 'gpu_ai_worker') fail('sam2_worker_type_mismatch')
+  if (sam2Candidate.queueJobStatus !== 'prepared_not_submitted') fail('sam2_queue_status_mismatch')
+  if (sam2Candidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
     fail('sam2_gpu_start_allowed_not_true')
   }
-  if (sam2Case.gpuRuntimeShouldStartNow !== false) fail('sam2_gpu_should_start_not_false')
 }
 
-for (const bridgeCase of cases) {
+for (const candidate of candidates) {
   for (const key of [
-    'appRouteMountedNow',
-    'expressRouteMountedInAppNow',
+    'apiRouteMountedNow',
     'apiRouteExecutionApprovedNow',
     'routeExecutionPerformed',
-    'backendAdapterCalledWithSideEffectsNow',
+    'routeToQueueAuthorizationApprovedNow',
     'backendQueueSubmissionApprovedNow',
     'backendQueueSubmissionPerformed',
     'liveQueueWriteApprovedNow',
+    'liveQueueWritePerformed',
     'workerEnqueueApprovedNow',
     'workerEnqueuePerformed',
     'workerDispatchPerformed',
     'toolExecutionPerformed',
     'publicArtifactCreated',
     'signedUrlCreated',
+    'gpuRuntimeShouldStartNow',
   ]) {
-    if (bridgeCase[key] !== false) {
-      fail(`bridge_case_flag_not_false:${bridgeCase.toolId}:${key}`)
+    if (candidate[key] !== false) {
+      fail(`candidate_flag_not_false:${candidate.toolId}:${key}`)
     }
   }
 }
@@ -340,10 +354,10 @@ for (const capability of capabilities) {
 }
 
 for (const required of [
-  'external-beta-api-route-backend-adapter-smoke.json',
-  'external-beta-api-route-backend-adapter.json',
-  'external-beta-api-route-handler-contract.json',
-  'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
+  'external-beta-tool-call-handler-bridge.json',
+  'external-beta-backend-queue-submission.json',
+  'external-beta-worker-enqueue-adapter.json',
+  'external-beta-runtime-admission.json',
 ]) {
   if (!JSON.stringify(docs.sourceEvidence ?? {}).includes(required) && !docsMd.includes(required)) {
     fail(`missing_source_evidence:${required}`)
@@ -351,11 +365,10 @@ for (const required of [
 }
 
 for (const required of [
-  'disabledExpressHandlerBridgeOnly',
-  'sourceBackendAdapterSmokeRequired',
-  'routeSchemaValidationRequired',
-  'backendAdapterPreflightCallSitePrepared',
-  'appRouteMountDeferred',
+  'privateRouteToQueueAuthorizationBridgeOnly',
+  'sourceHandlerBridgeRequired',
+  'sourceBackendQueueSubmissionRequired',
+  'queueJobPreparedNotSubmittedOnly',
   'noApiRouteExecution',
   'noBackendQueueSubmission',
   'noLiveQueueWrite',
@@ -365,8 +378,8 @@ for (const required of [
   'onDemandGpuOnly',
   'noIdleGpuRuntimeApproved',
 ]) {
-  if (!JSON.stringify(docs.handlerBridgePolicy ?? {}).includes(required) && !source.includes(required)) {
-    fail(`missing_handler_bridge_policy:${required}`)
+  if (!JSON.stringify(docs.routeToQueueAuthorizationPolicy ?? {}).includes(required) && !source.includes(required)) {
+    fail(`missing_bridge_policy:${required}`)
   }
 }
 
@@ -377,14 +390,16 @@ for (const pattern of forbiddenDocPatterns) {
 }
 
 for (const required of [
-  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_HANDLER_BRIDGE_DECISION',
-  'evaluateAiGraphicsExternalBetaToolCallHandlerBridge',
-  'buildAiGraphicsExternalBetaToolCallHandlerBridgeInput',
-  'aiGraphicsExternalBetaToolCallRequestSchema.safeParse',
-  'handler-bridge-d3-cpu-static',
-  'handler-bridge-sam2-gpu-model',
-  'backendQueueSubmissionApprovedNow: false',
-  'workerEnqueueApprovedNow: false',
+  'AI_GRAPHICS_EXTERNAL_BETA_ROUTE_TO_QUEUE_AUTHORIZATION_BRIDGE_DECISION',
+  'evaluateAiGraphicsExternalBetaRouteToQueueAuthorizationBridge',
+  'buildAiGraphicsExternalBetaRouteToQueueAuthorizationBridgeInput',
+  'route-to-queue-authorization-d3',
+  'route-to-queue-authorization-sam2',
+  'queueJobStatus',
+  'prepared_not_submitted',
+  'backendQueueSubmissionPerformed: false',
+  'liveQueueWritePerformed: false',
+  'workerEnqueuePerformed: false',
   'toolExecutionPerformed: false',
   'gpuRuntimeShouldStartNow: false',
 ]) {
@@ -392,20 +407,15 @@ for (const required of [
 }
 
 for (const required of [
-  '--backend-adapter-smoke-packet',
-  'evaluateAiGraphicsExternalBetaToolCallHandlerBridge',
-  'handlerBridgeRequestsBuilt',
-  'toolExecutionPerformed: false',
+  '--handler-bridge-packet',
+  '--backend-queue-submission-packet',
+  'evaluateAiGraphicsExternalBetaRouteToQueueAuthorizationBridge',
+  'sourceHandlerBridgePacketRead',
+  'sourceBackendQueueSubmissionPacketRead',
+  'liveQueueWritePerformed: false',
   'gpuRuntimePerformed: false',
 ]) {
   if (!cli.includes(required)) fail(`cli_missing:${required}`)
-}
-
-if (!routeSource.includes('aiGraphicsExternalBetaToolCallRequestSchema')) {
-  fail('route_schema_missing')
-}
-if (appSource.includes('createAiGraphicsExternalBetaToolCallRoutes')) {
-  fail('route_is_mounted_in_app')
 }
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) {
@@ -416,8 +426,8 @@ if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
 }
 
 if (!scorecard.includes(decision) ||
-    !scorecard.toLowerCase().includes('handler bridge')) {
-  fail('scorecard_missing_handler_bridge_status')
+    !scorecard.toLowerCase().includes('route-to-queue authorization bridge')) {
+  fail('scorecard_missing_route_to_queue_authorization_bridge_status')
 }
 if (/runtimeReadyNow["`:\s=]+true/i.test(scorecard) ||
     /externalBetaReadyNow["`:\s=]+true/i.test(scorecard) ||
@@ -430,9 +440,11 @@ try {
   cliReport = JSON.parse(exec([
     'npx',
     'tsx',
-    'server/cli/ai-graphics-external-beta-tool-call-handler-bridge.ts',
-    '--backend-adapter-smoke-packet',
-    'docs/tool-intelligence/ai-graphics/external-beta-api-route-backend-adapter-smoke.json',
+    'server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts',
+    '--handler-bridge-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-tool-call-handler-bridge.json',
+    '--backend-queue-submission-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json',
   ].join(' ')))
 } catch (error) {
   fail(`cli_execution_failed:${error.message}`)
@@ -440,11 +452,14 @@ try {
 
 if (cliReport.decision !== decision) fail('cli_decision_mismatch')
 if (cliReport.status !== acceptedStatus) fail('cli_status_mismatch')
-if (cliReport.booleans?.handlerBridgeReadyWithProvidedEvidence !== true) {
-  fail('cli_handler_bridge_ready_not_true')
+if (cliReport.booleans?.routeToQueueAuthorizationBridgeReadyWithProvidedEvidence !== true) {
+  fail('cli_bridge_ready_not_true')
 }
 if (cliReport.booleans?.agentCanExecuteToolsNow !== false) {
   fail('cli_agent_execution_not_false')
+}
+if (cliReport.booleans?.liveQueueWritePerformed !== false) {
+  fail('cli_live_queue_write_not_false')
 }
 if (cliReport.booleans?.gpuRuntimeShouldStartNow !== false) {
   fail('cli_gpu_start_not_false')
@@ -452,6 +467,7 @@ if (cliReport.booleans?.gpuRuntimeShouldStartNow !== false) {
 if (cliReport.input?.routeExecutionPerformed !== false ||
     cliReport.input?.backendQueueSubmissionPerformed !== false ||
     cliReport.input?.workerEnqueuePerformed !== false ||
+    cliReport.input?.liveQueueWritePerformed !== false ||
     cliReport.input?.gpuRuntimePerformed !== false) {
   fail('cli_input_runtime_flags_not_false')
 }
@@ -463,8 +479,6 @@ const packageDiff = [
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-beta-route-to-queue-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts",',
-  '+    "ai-graphics:external-beta-route-to-queue-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-to-queue-authorization-bridge-diagnostics.mjs",',
 ])
 const unexpectedPackageAdditions = packageDiff
   .split('\n')
@@ -510,9 +524,10 @@ console.log(JSON.stringify({
   acceptedStatus,
   tools: tools.length,
   capabilities: capabilities.length,
-  handlerBridgeRequestsAcceptedWithProvidedEvidence: 2,
-  cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence: 1,
-  gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence: 1,
+  routeToQueueAuthorizationCandidatesWithProvidedEvidence: 2,
+  cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 1,
+  gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 1,
+  liveQueueWritePerformed: false,
   packageLockUnchanged: true,
   runtimeReadyNow: false,
   externalBetaReadyNow: false,

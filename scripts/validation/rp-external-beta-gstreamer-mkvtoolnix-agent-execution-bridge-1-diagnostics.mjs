@@ -49,7 +49,24 @@ const followOnBridgeDryRunFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnBridgeDryRunFiles])
+const followOnControlledDispatchFiles = [
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/controlled-dispatch-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/dispatch-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-record.json',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...followOnBridgeDryRunFiles, ...followOnControlledDispatchFiles])
 
 const requiredText = [
   packet,
@@ -82,7 +99,7 @@ const requiredText = [
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^src\/(?!backend\/contracts\/index\.ts$)/,
-  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-smoke\.ts$)/,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-smoke\.ts$|services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke\.ts$)/,
   /^docker\//,
   /^\.dockerignore$/,
   /^supabase\//,

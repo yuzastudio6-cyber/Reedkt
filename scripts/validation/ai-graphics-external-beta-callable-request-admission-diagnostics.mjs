@@ -632,6 +632,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-api-route-backend-adapter-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-contract-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-backend-adapter": "tsx server/cli/ai-graphics-external-beta-api-route-backend-adapter.ts",',
   '+    "ai-graphics:external-beta-api-route-backend-adapter:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-backend-adapter-smoke": "tsx server/cli/ai-graphics-external-beta-api-route-backend-adapter-smoke.ts",',
+  '+    "ai-graphics:external-beta-api-route-backend-adapter-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-smoke-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission": "tsx server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts",',
   '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof": "tsx server/cli/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts",',

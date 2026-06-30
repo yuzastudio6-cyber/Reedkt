@@ -59,6 +59,7 @@ export * from './ai-graphics-external-beta-api-route-mount-implementation-review
 export * from './ai-graphics-external-beta-api-route-mount-implementation-qa'
 export * from './ai-graphics-external-beta-api-route-backend-adapter-contract'
 export * from './ai-graphics-external-beta-api-route-backend-adapter'
+export * from './ai-graphics-external-beta-api-route-backend-adapter-smoke'
 export * from './ai-graphics-production-launch-controls'
 export * from './ai-graphics-production-launch-go-no-go'
 export * from './ai-graphics-production-traffic-cutover'

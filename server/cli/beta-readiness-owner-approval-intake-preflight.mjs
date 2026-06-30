@@ -224,6 +224,7 @@ export function buildBetaReadinessOwnerApprovalIntakeStatus(
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:owner-approval-intake-status',
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OWNER_APPROVAL_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
     blockedScopes: report.blockedScopes,

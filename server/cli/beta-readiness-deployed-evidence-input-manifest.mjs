@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
 const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
@@ -44,6 +45,9 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   const defaultCurrentSourceSha = clean(deployedReadback.sourceSha)
   const defaultExternalApiBaseUrl = clean(deployedReadback.normalApiServiceUrl) ??
     clean(deployedReadback.serviceUrl)
+  const currentCentralSourceSha = clean(options.currentCentralSourceSha) ??
+    clean(env.REEDITPRO_BETA_CURRENT_SOURCE_SHA) ??
+    resolveCurrentGitSha(options)
   const currentSourceSha = clean(options.currentSourceSha) ??
     clean(env.REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA) ??
     defaultCurrentSourceSha
@@ -129,6 +133,12 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       deployedEvidenceManifestPath,
       localAcceptedEvidenceSourceSha,
       currentSourceSha,
+      currentSourceShaRole: 'deployed_evidence_source_sha_for_external_beta_collector',
+      currentCentralSourceSha,
+      deployedEvidenceSourceSha: currentSourceSha,
+      centralSourceMatchesDeployedEvidenceSource: Boolean(currentCentralSourceSha && currentSourceSha && currentCentralSourceSha === currentSourceSha),
+      metadataOnlyCentralSourceDriftFromDeployedEvidence: Boolean(currentCentralSourceSha && currentSourceSha && currentCentralSourceSha !== currentSourceSha),
+      sourceShaRolePolicy: 'External beta evidence collection uses the deployed evidence source SHA; current central source may advance through metadata-only readiness work and must be reviewed by source freshness before collectors run.',
       currentSourceDerivedFromSnapshot: Boolean(currentSourceSha && currentSourceSha !== localAcceptedEvidenceSourceSha),
       defaultedInputs: {
         externalApiBaseUrlFromDeployReadback: Boolean(defaultExternalApiBaseUrl && !clean(env.REEDITPRO_BETA_EXTERNAL_API_BASE_URL)),
@@ -169,6 +179,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
@@ -377,6 +388,22 @@ function loadOptionalJson(path) {
   }
 }
 
+function resolveCurrentGitSha(options = {}) {
+  if (options.resolveGit === false) return undefined
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+      },
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return undefined
+  }
+}
+
 function required(value, label) {
   const cleaned = clean(value)
   if (!cleaned) throw new Error(`${label} is required.`)
@@ -441,7 +468,7 @@ function visitSecretPaths(value, path, matches) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const manifest = buildBetaReadinessDeployedEvidenceInputManifest(process.env)
   console.log(JSON.stringify(manifest, null, 2))
-  if (!manifest.readyToRunExternalBetaEvidenceCollector) {
+  if (!process.argv.includes('--status') && !manifest.readyToRunExternalBetaEvidenceCollector) {
     process.exitCode = 1
   }
 }

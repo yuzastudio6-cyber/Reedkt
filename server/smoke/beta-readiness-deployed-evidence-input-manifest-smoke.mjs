@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
@@ -37,6 +38,8 @@ const committedManifestMarkdown = readFileSync(
 
 assert.equal(committedManifestJson.includes(expectedLocalEvidenceSourceSha), true)
 assert.equal(committedManifestMarkdown.includes(expectedLocalEvidenceSourceSha), true)
+assert.equal(committedManifestJson.includes('sourceShaRolePolicy'), true)
+assert.equal(committedManifestMarkdown.includes('Current source SHA role'), true)
 for (const staleSourceSha of staleLocalEvidenceSourceShas) {
   assert.equal(committedManifestJson.includes(staleSourceSha), false)
   assert.equal(committedManifestMarkdown.includes(staleSourceSha), false)
@@ -48,6 +51,18 @@ assert.equal(emptyManifest.readyToRunExternalBetaEvidenceCollector, false, 'empt
 assert.equal(emptyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs')
 assert.equal(emptyManifest.sourceTruth.locallyAcceptedToolCount, 16)
 assert.equal(emptyManifest.sourceTruth.currentSourceSha, expectedDeployedSourceSha)
+assert.equal(emptyManifest.sourceTruth.currentSourceShaRole, 'deployed_evidence_source_sha_for_external_beta_collector')
+assert.equal(emptyManifest.sourceTruth.deployedEvidenceSourceSha, expectedDeployedSourceSha)
+assert.equal(emptyManifest.sourceTruth.currentCentralSourceSha?.length, 40)
+assert.equal(
+  emptyManifest.sourceTruth.centralSourceMatchesDeployedEvidenceSource,
+  emptyManifest.sourceTruth.currentCentralSourceSha === expectedDeployedSourceSha,
+)
+assert.equal(
+  emptyManifest.sourceTruth.metadataOnlyCentralSourceDriftFromDeployedEvidence,
+  emptyManifest.sourceTruth.currentCentralSourceSha !== expectedDeployedSourceSha,
+)
+assert.ok(emptyManifest.sourceTruth.sourceShaRolePolicy.includes('deployed evidence source SHA'))
 assert.equal(emptyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedLocalEvidenceSourceSha)
 assert.deepEqual(emptyManifest.sourceTruth.trackBToolTotals, {
   owned: 16,
@@ -82,8 +97,26 @@ assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:ext
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(emptyManifest.recommendedCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
+assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest -- --status'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(emptyManifest.remainingBlockedScopes.includes('paid_production_until_separate_paid_production_evidence_collector_passes'))
+
+const cliEnv = {
+  PATH: process.env.PATH,
+  HOME: process.env.HOME,
+  DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+}
+const statusRun = spawnSync(process.execPath, ['server/cli/beta-readiness-deployed-evidence-input-manifest.mjs', '--status'], {
+  encoding: 'utf8',
+  env: cliEnv,
+})
+assert.equal(statusRun.status, 0, `status mode should exit cleanly: ${statusRun.stderr}`)
+
+const strictRun = spawnSync(process.execPath, ['server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'], {
+  encoding: 'utf8',
+  env: cliEnv,
+})
+assert.equal(strictRun.status, 1, 'strict mode must fail closed until operator inputs are present')
 
 const readyEnv = {
   REEDITPRO_BETA_EXTERNAL_API_BASE_URL: 'https://api.staging.reeditpro.example',
@@ -154,6 +187,7 @@ const readyManifest = buildBetaReadinessDeployedEvidenceInputManifest(readyEnv)
 assert.equal(readyManifest.readyToRunExternalBetaEvidenceCollector, true, 'complete env should be ready to run collector')
 assert.equal(readyManifest.decision, 'beta_deployed_evidence_input_manifest_passed_ready_to_run_external_beta_evidence_collector')
 assert.equal(readyManifest.sourceTruth.currentSourceSha, expectedDeployedSourceSha)
+assert.equal(readyManifest.sourceTruth.deployedEvidenceSourceSha, expectedDeployedSourceSha)
 assert.equal(readyManifest.sourceTruth.localAcceptedEvidenceSourceSha, expectedLocalEvidenceSourceSha)
 assert.equal(readyManifest.sourceTruth.currentSourceDerivedFromSnapshot, true)
 assert.deepEqual(readyManifest.pendingRequiredInputs, [])

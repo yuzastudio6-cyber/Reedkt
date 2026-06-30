@@ -105,6 +105,12 @@ assert.ok(
   'owner approval status review should precede the hard owner approval intake preflight',
 )
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest -- --status'))
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:deployed-evidence-input-manifest -- --status') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:deployed-evidence-input-manifest'),
+  'deployed evidence manifest status review should precede the strict collector gate',
+)
 assert.equal(ready.recommendedCommands.some((command) => command.includes('gcloud ')), false)
 assert.equal(ready.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'), false)
 assert.ok(ready.blockedScopes.includes('external_beta_evidence_collector_until_source_freshness_owner_intake_manifest_and_operator_readback_pass'))
@@ -123,6 +129,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-owner-approval-packet.mjs',
     'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
     'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
+    'server/cli/beta-readiness-api-deployment-preflight.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
     'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
@@ -228,6 +235,7 @@ assert.equal(metadataOnly.readyForDeployedEvidenceInputManifest, true)
 assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift')
 assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-api-deployment-preflight.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))

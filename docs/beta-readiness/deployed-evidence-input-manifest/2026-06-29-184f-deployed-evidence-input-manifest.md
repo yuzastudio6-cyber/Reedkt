@@ -4,6 +4,8 @@ Decision: `beta_deployed_evidence_input_manifest_passed_ready_for_operator_stagi
 
 Current deployed source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
 
+Current source SHA role: deployed evidence source SHA for the external beta collector. Later metadata-only central source changes must pass source-freshness review before collector execution, but they do not replace the deployed evidence SHA recorded here.
+
 Current staging API revision: `reeditpro-api-staging-00014-xdj`
 
 Current image digest: `sha256:57ad5f03353ea9944b026c71ea35fbd9e478e98b7dd757df68e994a746c683ca`
@@ -27,6 +29,7 @@ The missing inputs include bearer/token-bearing values, workspace/project IDs, i
 - `npm run beta:readiness:external-beta-operator-input-template`
 - `npm run beta:readiness:owner-approval-intake-status`
 - `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
+- `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 
 ## Tool Evidence Boundary

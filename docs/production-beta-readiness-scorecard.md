@@ -1618,6 +1618,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the dispatcher evaluates gates and must block at `worker_mode` before worker lease creation or route output. Diagnostics validate both `sam2` and `vega_lite` source paths.
 - Runtime/beta/production: no runtime unlock; this packet does not create live worker leases, dispatch workers, execute Tool Routes, execute tools, call providers/models, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. `workerLeaseCreated=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics Production Controlled Worker Runtime Smoke Authorization
+
+- Decision: `ai_graphics_production_controlled_worker_runtime_smoke_authorization_prepared_runtime_still_blocked`.
+- Scope: private/backend authorization boundary after accepted production controlled worker dispatch smoke proof, preparing a later private non-production worker-runtime smoke.
+- Result: with private operator authorization, runbook, environment, dry-run mode, lease, dispatch, GPU on-demand, artifact sandbox, telemetry, cost, rollback, cleanup, and post-review refs, it prepares the next worker-runtime smoke authorization for all 21 tools and validates both `sam2` and `vega_lite` source paths.
+- Runtime/beta/production: no runtime unlock; this packet does not create worker leases, dispatch workers, execute Tool Routes, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. The future smoke must use private non-production `dry_run`; `workerLeaseCreated=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.

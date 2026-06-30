@@ -109,6 +109,7 @@
     "beta:readiness:deployed-evidence-input-manifest": "node server/cli/beta-readiness-deployed-evidence-input-manifest.mjs",
     "beta:readiness:external-beta-operator-autofill-env": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --autofill-env",
     "beta:readiness:external-beta-operator-human-input-checklist": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --human-input-checklist",
+    "beta:readiness:external-beta-operator-local-env-bootstrap": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs --bootstrap-local-env",
     "beta:readiness:external-beta-operator-local-env-preflight": "node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs",
     "beta:readiness:external-beta-operator-input-template": "node server/cli/beta-readiness-external-beta-operator-input-template.mjs",
     "beta:readiness:external-beta-evidence-collector": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/cli/beta-readiness-external-beta-evidence-collector.ts",

@@ -38,7 +38,7 @@ The missing inputs include bearer/token-bearing values, workspace/project IDs, i
 
 Track B current totals are `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready` for the ranked tool-call lane, based on the merged PR #987 source truth reconciled into the active beta branch by PR #1790.
 
-The current local accepted evidence snapshot remains prerequisite evidence from source `d47015e88943dd4760dd9eb6ee45ad0f8ead15ca`. It is not a deployed backend collector result until the deployed product-ready evidence collector records and reads back product-ready local OSS count `16`.
+The current local accepted evidence snapshot remains prerequisite evidence from source `df7fd0d0666070df538cf8bdb17ed8a9ebe7884b`. It is not a deployed backend collector result until the deployed product-ready evidence collector records and reads back product-ready local OSS count `16`.
 
 The deployed evidence input manifest must require bounded evidence plus explicit product-ready local OSS acceptance and readback count `16`, not broad paid-production approval:
 

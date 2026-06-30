@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const reportPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
-const markdownPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.md'
+const reportPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json'
+const markdownPath = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.md'
 
 const report = JSON.parse(readFileSync(reportPath, 'utf8')) as {
   decision?: string
@@ -62,7 +62,7 @@ const expectedTools = [
 ]
 
 assert.equal(report.decision, 'beta_tools_current_source_local_accepted_evidence_bundle_passed_ready_for_deployed_staging_evidence_recording')
-assert.equal(report.sourceSha, 'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca')
+assert.equal(report.sourceSha, 'df7fd0d0666070df538cf8bdb17ed8a9ebe7884b')
 assert.equal(report.previewOnly, true)
 assert.equal(report.noBackendEvidenceRecorded, true)
 assert.equal(report.readyToRecordDeployedEvidence, true)

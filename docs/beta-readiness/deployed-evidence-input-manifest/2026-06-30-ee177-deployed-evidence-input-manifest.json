@@ -48,8 +48,8 @@
     "boundedAcceptedProvenToolCount": 16,
     "blockedNotInstalledProvenToolCount": 0,
     "productReadyLocalOssCount": 16,
-    "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json",
-    "localAcceptedEvidenceBundleSourceSha": "d47015e88943dd4760dd9eb6ee45ad0f8ead15ca",
+    "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json",
+    "localAcceptedEvidenceBundleSourceSha": "df7fd0d0666070df538cf8bdb17ed8a9ebe7884b",
     "deployedEvidenceRequiredBoundedAcceptedToolCount": 16,
     "deployedEvidenceRequiredProductReadyLocalOssCount": 16,
     "boundedAcceptedEvidenceEnv": [

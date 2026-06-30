@@ -17,7 +17,7 @@ import type { BetaPlatformStagingEvidenceProbeEnv } from './beta-platform-stagin
 import type { BetaToolsCoreRealCheckEvidenceEnv } from './beta-tools-core-real-check-evidence'
 import type { BetaReadinessLaunchApprovalEvidenceEnv } from './beta-readiness-launch-approval-evidence'
 
-const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json'
 
 export interface BetaReadinessOperatorStatusEnv extends
   BetaPlatformStagingEvidenceProbeEnv,

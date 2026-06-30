@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
-const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const DEFAULT_SNAPSHOT_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json'
 const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json'
 const DEFAULT_SOURCE_ID = 'beta-tools-current-source-16-tool-local-accepted-evidence-bundle'
 const CURRENT_TRACKB_TOOL_TOTALS = {

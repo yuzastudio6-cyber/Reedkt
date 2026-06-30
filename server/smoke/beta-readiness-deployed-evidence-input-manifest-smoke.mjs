@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from '../cli/beta-readiness-deployed-evidence-input-manifest.mjs'
 
-const expectedLocalEvidenceSourceSha = 'd47015e88943dd4760dd9eb6ee45ad0f8ead15ca'
+const expectedLocalEvidenceSourceSha = 'df7fd0d0666070df538cf8bdb17ed8a9ebe7884b'
 const staleLocalEvidenceSourceShas = [
   '94c37bb492a584c087247625dcb1fb53398c17f4',
   'e8821759a10a43a60795accb596b3b83c15f9dfb',

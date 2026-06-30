@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { buildBetaReadinessBlockerLedger } from './beta-readiness-blocker-ledger'
 
-const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
+const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json'
 const EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH = 'docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json'
 const TRACKB_PRODUCT_READY_SOURCE_RECONCILIATION_PATH = 'docs/beta-readiness/trackb-product-ready-source-reconciliation/2026-06-30-trackb-product-ready-source-reconciliation.json'
 

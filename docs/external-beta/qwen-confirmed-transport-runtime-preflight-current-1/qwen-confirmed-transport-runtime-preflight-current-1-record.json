@@ -1,0 +1,114 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-CONFIRMED-TRANSPORT-RUNTIME-PREFLIGHT-CURRENT-1",
+  "decision": "blocked_confirmed_qwen_transport_runtime_preflight",
+  "execution": "blocked_route_response_classification_no_provider_or_worker_execution",
+  "blocker": "blocked_route_response_classification_failed",
+  "sourceChain": {
+    "transportReadinessPlanMerge": "0258873cd11acd4fbc91f829e4c45ce25a44ebc8",
+    "transportDependencyAttemptReviewMerge": "805bad1f3d5ad738ecb0204ebf696552a4364eca",
+    "operatorGcloudAuthPreflightRunId": "2026-06-30T02-01-10-237Z-03964b88",
+    "excludedRemotionPr": "#577 open/draft/blocked/excluded"
+  },
+  "run": {
+    "runId": "2026-06-30T03-16-55-250Z-e8495c3f",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1/2026-06-30T03-16-55-250Z-e8495c3f",
+    "operatorAccount": "aiediting@reeditpro.com",
+    "googleCloudProject": "reeditpro",
+    "region": "us-central1",
+    "targetRef": "wmyyttnynmteqgcdishd",
+    "runtimeScope": "approved_snapshot_structured_metadata_only"
+  },
+  "gates": {
+    "REEDITPRO_CONFIRM_QWEN_TRANSPORT_RUNTIME_PREFLIGHT_CURRENT_1": "true",
+    "REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE": "true",
+    "REEDITPRO_EXTERNAL_BETA_TARGET_REF": "wmyyttnynmteqgcdishd",
+    "REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE": "approved_snapshot_structured_metadata_only"
+  },
+  "services": {
+    "stagingApi": {
+      "service": "reeditpro-staging-api",
+      "ready": true,
+      "latestReadyRevisionName": "reeditpro-staging-api-00006-6gw"
+    },
+    "qwenWorker": {
+      "service": "reeditpro-qwen2-5-vl-l4-worker",
+      "ready": true,
+      "latestReadyRevisionName": "reeditpro-qwen2-5-vl-l4-worker-00037-658"
+    }
+  },
+  "route": {
+    "routeId": "providers.qwen25Vl.structuredVisualMetadataPlan",
+    "method": "POST",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "idempotencyKey": "qwen-transport-runtime-preflight-current-1-single-tester-fixture-v1",
+    "responseStatus": 404,
+    "responseErrorCode": "not_found",
+    "classification": "deployed_staging_api_revision_missing_planned_source_route"
+  },
+  "artifacts": {
+    "report": {
+      "fileName": "qwen-confirmed-transport-runtime-preflight-current-1-report.json",
+      "bytes": 8148,
+      "sha256": "0ee9faacfc8c920dfec6094bcb213e4f4a57fee39690ec700670bb8bed4ce2ed"
+    },
+    "manifest": {
+      "fileName": "qwen-confirmed-transport-runtime-preflight-current-1-manifest.json",
+      "bytes": 743,
+      "sha256": "d1b107d7f17902d77d25faf95f925ac86d87e50e376172ac638c0a71b2703874"
+    }
+  },
+  "readiness": {
+    "qwenTransportRuntimePreflightCurrent1": "blocked_route_response_classification_failed",
+    "qwen25VlExecution": "blocked_pending_separate_confirmed_provider_runtime_packet",
+    "providerModelCall": "blocked_pending_separate_confirmed_provider_runtime_packet",
+    "workerDispatch": "blocked_pending_separate_confirmed_worker_dispatch_packet",
+    "broadExternalBetaExpansion": "blocked_no_additional_named_tester_list",
+    "externalProduction": "blocked_pending_broad_beta_tool_runtime_billing_support_legal_security_and_final_export_gates",
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-STAGING-API-ROUTE-DEPLOYMENT-ALIGNMENT-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "localGcloudConfigRead": true,
+    "cloudRunServiceMetadataReadback": true,
+    "cloudRunInvocation": true,
+    "cloudRunDeployment": false,
+    "cloudRunServiceUpdate": false,
+    "identityTokenFetch": true,
+    "identityTokenValuePrinted": false,
+    "identityTokenValuePersistedInRepo": false,
+    "authHeaderPersistedInRepo": false,
+    "boundedRouteRequestSent": true,
+    "boundedStructuredMetadataFixtureOnly": true,
+    "routeHandlerReached": false,
+    "qwen25VlExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "generatedAssetCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "iamMutation": false,
+    "groupMembershipMutation": false,
+    "broadServiceRoleHandler": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

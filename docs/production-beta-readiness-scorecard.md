@@ -1576,6 +1576,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it validates canonical 21-tool request shape, approved snapshot refs, credit reservation refs, private artifact refs, idempotency, audit, rate-limit, cost guardrail, and kill-switch controls for the future `POST /api/ai-graphics/external-beta/tool-call` route. It reports `apiRouteHandlerContractReadyToolsWithProvidedEvidence=21`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `workerDispatchesApprovedNow=0`, `toolExecutionsApprovedNow=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: this is a route-handler contract only. It does not mount the Express route, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. GPU remains cold until an accepted worker/tool-call job needs it.
 
+## AI Graphics External-Beta API Route Handler Gateway Binding
+
+- Decision: `ai_graphics_external_beta_api_route_handler_gateway_binding_prepared_with_runtime_blocks`.
+- Scope: source-controlled binding between the future API route-handler ingress contract and the existing external-beta tool-call gateway candidate contract.
+- Result: it records `routeHandlerRequestShapeAcceptedTools=21`, `gatewayContractCoveredTools=21`, `gatewayWorkerEnqueueCandidateReadyExamples=3`, `routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence=21`, and `fullPerToolGatewayBindingProofToolsNow=0`.
+- Runtime/beta/production: this is a contract-binding proof only. It does not mount the route, write a queue row, enqueue or dispatch a worker, execute tools, start GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. The next gap is full 21-tool route-handler-to-gateway binding proof with accepted runtime admission packets for every tool.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

@@ -1583,6 +1583,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records `routeHandlerRequestShapeAcceptedTools=21`, `gatewayContractCoveredTools=21`, `gatewayWorkerEnqueueCandidateReadyExamples=3`, `routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence=21`, and `fullPerToolGatewayBindingProofToolsNow=0`.
 - Runtime/beta/production: this is a contract-binding proof only. It does not mount the route, write a queue row, enqueue or dispatch a worker, execute tools, start GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. The next gap is full 21-tool route-handler-to-gateway binding proof with accepted runtime admission packets for every tool.
 
+## AI Graphics External-Beta API Route Handler Gateway Full 21 Proof
+
+- Decision: `ai_graphics_external_beta_api_route_handler_gateway_full_21_proof_prepared_with_runtime_blocks`.
+- Scope: side-effect-free full 21-tool proof after accepted route-handler gateway binding, using accepted runtime-admission packets and gateway worker-enqueue candidates for every AI graphics tool.
+- Result: it records `routeHandlerGatewayFullProofToolsWithProvidedEvidence=21`, `runtimeAdmissionAcceptedToolsWithProvidedEvidence=21`, `gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence=21`, `routeHandlerToGatewayContinuityAcceptedTools=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, and `gpuRuntimeShouldStartNowTools=0`.
+- Runtime/beta/production: no unlock; this packet does not mount the route, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

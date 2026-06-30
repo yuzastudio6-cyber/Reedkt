@@ -1,0 +1,283 @@
+{
+  "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-handler-gateway-full-proof",
+  "decision": "ai_graphics_external_beta_api_route_handler_gateway_full_21_proof_prepared_with_runtime_blocks",
+  "status": "api_route_handler_gateway_full_21_proof_ready_runtime_still_blocked",
+  "summary": "Full 21-tool route-handler-to-gateway proof for AI graphics external-beta tool calls. The proof consumes the accepted route-handler gateway binding packet, builds accepted runtime-admission packets and gateway enqueue candidates for each of the 21 tools, proves continuity across approved snapshot, credit reservation, private artifact manifest, trace, and idempotency metadata, and keeps all live execution, route, worker, GPU-start, public artifact, external-beta traffic, and production gates false.",
+  "interfaces": {
+    "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-handler-gateway-full-proof.ts",
+    "cli": "server/cli/ai-graphics-external-beta-api-route-handler-gateway-full-proof.ts",
+    "packageScript": "ai-graphics:external-beta-api-route-handler-gateway-full-proof",
+    "diagnostic": "scripts/validation/ai-graphics-external-beta-api-route-handler-gateway-full-proof-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:external-beta-api-route-handler-gateway-full-proof:diagnostics"
+  },
+  "sourceEvidence": {
+    "routeHandlerGatewayBinding": "docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-gateway-binding.json",
+    "apiRouteHandlerContract": "docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-contract.json",
+    "toolCallGateway": "docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.json",
+    "runtimeAdmission": "docs/tool-intelligence/ai-graphics/external-beta-runtime-admission.json",
+    "toolCallReadiness": "docs/tool-intelligence/ai-graphics/tool-call-readiness-contract.json",
+    "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+    "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "totalProductFacingCapabilities": 12,
+    "gpuRuntimeTargetedTools": 8,
+    "routeHandlerGatewayFullProofToolsWithProvidedEvidence": 21,
+    "runtimeAdmissionAcceptedToolsWithProvidedEvidence": 21,
+    "gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence": 21,
+    "routeHandlerToGatewayContinuityAcceptedTools": 21,
+    "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "routeExecutionsApprovedNow": 0,
+    "workerEnqueuePerformedNow": 0,
+    "workerDispatchesApprovedNow": 0,
+    "toolExecutionsApprovedNow": 0,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "capabilityId": "model_runtime_foundation",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "transformers",
+      "capabilityId": "model_runtime_foundation",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "sam2",
+      "capabilityId": "subject_segmentation",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "birefnet",
+      "capabilityId": "background_removal",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "real_esrgan",
+      "capabilityId": "upscaling",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "rembg",
+      "capabilityId": "background_removal",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "transparent_background",
+      "capabilityId": "background_removal",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": true
+    },
+    {
+      "toolId": "d3",
+      "capabilityId": "chart_overlay",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "echarts",
+      "capabilityId": "data_visualization",
+      "runtimeTarget": "browser_chart_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "vega_lite",
+      "capabilityId": "data_visualization",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "vega",
+      "capabilityId": "data_visualization",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "satori",
+      "capabilityId": "svg_graphics",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "capabilityId": "svg_graphics",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "viz_js",
+      "capabilityId": "diagram_graphics",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "lottie_web",
+      "capabilityId": "animation_overlay",
+      "runtimeTarget": "browser_animation_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "animejs",
+      "capabilityId": "animation_overlay",
+      "runtimeTarget": "browser_animation_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "three_js",
+      "capabilityId": "webgl_3d_scene",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "pixi_js",
+      "capabilityId": "canvas_scene",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "konva",
+      "capabilityId": "canvas_scene",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    },
+    {
+      "toolId": "babylonjs",
+      "capabilityId": "webgl_3d_scene",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false
+    }
+  ],
+  "proofPolicy": {
+    "sideEffectFreeFull21Proof": true,
+    "consumesRouteHandlerGatewayBinding": true,
+    "createsPerToolRuntimeAdmissionPackets": true,
+    "createsPerToolGatewayCandidatePackets": true,
+    "requiresApprovedSnapshotAndCreditReservationContinuity": true,
+    "requiresPrivateArtifactManifestContinuity": true,
+    "routeMountDeferred": true,
+    "queueWriteDeferred": true,
+    "workerDispatchDeferred": true,
+    "toolExecutionDeferred": true,
+    "onDemandGpuOnly": true,
+    "noIdleGpuRuntimeApproved": true
+  },
+  "blockedRuntimeActions": [
+    "mounted API route creation",
+    "API route execution",
+    "direct agent/tool execution",
+    "Tool Route execution",
+    "live queue write",
+    "Worker queue enqueue",
+    "Worker execution",
+    "production worker dispatch",
+    "provider/model execution",
+    "browser/WebGL/canvas runtime execution",
+    "GPU/model runtime execution now",
+    "idle or always-on GPU runtime",
+    "model weight download or load",
+    "media processing",
+    "Supabase/GCS mutation",
+    "signed URL creation",
+    "public artifact creation",
+    "external beta traffic enablement",
+    "production unlock"
+  ],
+  "booleans": {
+    "externalBetaApiRouteHandlerGatewayFull21ProofPrepared": true,
+    "sourceRouteHandlerGatewayBindingAccepted": true,
+    "all21ToolsCovered": true,
+    "all12CapabilitiesCovered": true,
+    "all8GpuToolsTargetGpuRuntime": true,
+    "all21RuntimeAdmissionsAcceptedWithProvidedEvidence": true,
+    "all21GatewayCandidatesReadyWithProvidedEvidence": true,
+    "all21RouteHandlerToGatewayContinuityAccepted": true,
+    "full21RouteHandlerGatewayProofReadyWithProvidedEvidence": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "gpuRuntimeStartAllowedOnlyForAcceptedExternalBetaJobs": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "directAgentToolExecutionApprovedNow": false,
+    "apiRouteMountedNow": false,
+    "apiRouteExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "workerQueueApprovedNow": false,
+    "workerEnqueueApprovedNow": false,
+    "backendQueueSubmissionApprovedNow": false,
+    "serviceRoleQueueTransactionApprovedNow": false,
+    "liveQueueWriteApprovedNow": false,
+    "workerLeaseCreationApprovedNow": false,
+    "workerDispatchApprovedNow": false,
+    "productionWorkerDispatchApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "workerEnqueuePerformed": false,
+    "routeExecutionPerformed": false,
+    "backendQueueSubmissionPerformed": false,
+    "serviceRoleTransactionPerformed": false,
+    "supabaseMutationPerformed": false,
+    "workerLeaseCreated": false,
+    "workerDispatchPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "mediaProcessingPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "nextExternalBetaGap": "Route mount readiness review with backend auth, approved snapshot lookup, credit reservation lookup, private artifact policy, and queue write authorization still blocked until explicitly approved."
+}

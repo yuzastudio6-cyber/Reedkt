@@ -1632,6 +1632,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: the dispatcher passes gates, creates one in-memory lease, records a heartbeat, routes to `aiGraphicsToolCallHandoffResult`, and releases the lease for both the GPU/model path (`sam2`) and CPU/static path (`vega_lite`). Tool results, artifact records, quality gate records, fallback records, signed URLs, public artifacts, and GPU runtime startup remain zero/false.
 - Runtime/beta/production: no runtime unlock; this packet does not create live worker leases, dispatch live workers, execute Tool Routes, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU/model runtime, unlock external beta traffic, or unlock production. `workerLeaseCreated=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
+## AI Graphics Production Controlled Private Artifact Tool Route Handoff Proof
+
+- Decision: `ai_graphics_production_controlled_private_artifact_tool_route_handoff_proof_prepared_with_runtime_blocks`.
+- Scope: private artifact and future Tool Route handoff proof after accepted production controlled worker runtime smoke proof.
+- Result: with private/backend evidence refs, it binds the source dry-run `aiGraphicsToolCallHandoffResult` to private input/output manifests, private telemetry, private lease audit, Tool Route policy/schema/admission/authz/execution-block/audit/rollback, GPU on-demand policy, and GPU model-cache evidence for `sam2`. Diagnostics validate both the GPU/model path (`sam2`) and CPU/static path (`vega_lite`) and reject public/signed-style refs.
+- Runtime/beta/production: no runtime unlock; this packet does not write artifacts, execute Tool Routes, dispatch live workers, execute tools, call providers/models, start browser/WebGL/canvas or GPU/model runtime, unlock external beta traffic, or unlock production. `privateArtifactWritePerformed=false`, `routeExecutionPerformed=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.

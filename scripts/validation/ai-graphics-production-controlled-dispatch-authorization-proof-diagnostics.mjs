@@ -3,23 +3,24 @@ import fs from 'node:fs'
 import os from 'node:os'
 
 const decision =
-  'ai_graphics_production_service_role_queue_transaction_dry_proof_prepared_dispatch_blocked'
+  'ai_graphics_production_controlled_dispatch_authorization_proof_recorded_dispatch_blocked'
 const acceptedStatus =
-  'production_service_role_queue_transaction_dry_proof_prepared_dispatch_blocked'
-const runScriptName = 'ai-graphics:production-service-role-queue-transaction-dry-proof'
+  'production_controlled_dispatch_authorization_recorded_dispatch_still_blocked'
+const runScriptName = 'ai-graphics:production-controlled-dispatch-authorization-proof'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-production-service-role-queue-transaction-dry-proof.ts'
+  'tsx server/cli/ai-graphics-production-controlled-dispatch-authorization-proof.ts'
 const diagnosticScriptName =
-  'ai-graphics:production-service-role-queue-transaction-dry-proof:diagnostics'
+  'ai-graphics:production-controlled-dispatch-authorization-proof:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-production-service-role-queue-transaction-dry-proof-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-production-controlled-dispatch-authorization-proof-diagnostics.mjs'
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-production-service-role-queue-transaction-dry-proof.ts',
-  'server/cli/ai-graphics-production-service-role-queue-transaction-dry-proof.ts',
-  'scripts/validation/ai-graphics-production-service-role-queue-transaction-dry-proof-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-production-controlled-dispatch-authorization-proof.ts',
+  'server/cli/ai-graphics-production-controlled-dispatch-authorization-proof.ts',
+  'scripts/validation/ai-graphics-production-controlled-dispatch-authorization-proof-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/production-controlled-dispatch-authorization-proof.json',
+  'docs/tool-intelligence/ai-graphics/production-controlled-dispatch-authorization-proof.md',
   'docs/tool-intelligence/ai-graphics/production-service-role-queue-transaction-dry-proof.json',
-  'docs/tool-intelligence/ai-graphics/production-service-role-queue-transaction-dry-proof.md',
   'docs/tool-intelligence/ai-graphics/production-worker-queue-admission.json',
   'docs/tool-intelligence/ai-graphics/production-tool-call-gateway-handoff.json',
   'docs/production-beta-readiness-scorecard.md',
@@ -66,6 +67,17 @@ const all12Capabilities = [
   'upscaling',
   'tensor_image_ops',
   'model_runtime_foundation',
+]
+
+const gpuTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
 ]
 
 const privateControlsArgs = [
@@ -253,26 +265,49 @@ const privateTransactionArgs = [
   'production-evidence://ai-graphics/production/worker-dispatch-policy',
 ]
 
+const privateAuthorizationArgs = [
+  '--execution-requested',
+  '--production-controlled-dispatch-authorization-granted',
+  '--production-controlled-dispatch-authorization-ref',
+  'private://ai-graphics/production/controlled-dispatch-authorization',
+  '--production-controlled-dispatch-operator-role',
+  'AI_GRAPHICS_PRODUCTION_RUNTIME_OPERATOR',
+  '--production-worker-lease-approval-ref',
+  'backend://ai-graphics/production/worker-lease-approval',
+  '--production-worker-dispatch-approval-ref',
+  'production-evidence://ai-graphics/production/worker-dispatch-approval',
+  '--production-tool-route-execution-block-ref',
+  'private://ai-graphics/production/tool-route-execution-block',
+  '--production-private-artifact-runtime-binding-ref',
+  'backend://ai-graphics/production/private-artifact-runtime-binding',
+  '--production-cost-guardrail-runtime-ref',
+  'production-evidence://ai-graphics/production/cost-guardrail-runtime',
+  '--production-telemetry-runtime-ref',
+  'private://ai-graphics/production/telemetry-runtime',
+  '--production-rollback-runtime-ref',
+  'backend://ai-graphics/production/rollback-runtime',
+  '--production-post-dispatch-review-ref',
+  'production-evidence://ai-graphics/production/post-dispatch-review',
+]
+
 const trueAcceptedKeys = [
-  'productionServiceRoleQueueTransactionDryProofPrepared',
-  'sourceProductionWorkerQueueAdmissionAccepted',
-  'productionServiceRoleTransactionControlsAccepted',
-  'productionServiceRoleQueueTransactionDryProofReadyWithProvidedEvidence',
-  'productionControlledDispatchDryProofReadyWithProvidedEvidence',
-  'serviceRoleTransactionEnvelopeShapeValid',
-  'sourceQueueAdmissionEnvelopeAccepted',
-  'sourceQueueJobCandidateAccepted',
-  'sourceQueueBatchCandidateAccepted',
-  'sourceQueueAuditCandidateAccepted',
-  'serviceRoleQueueTransactionRefAccepted',
-  'serviceRoleRpcSchemaAccepted',
-  'serviceRoleTablesAccepted',
-  'workerLeasePolicyAccepted',
-  'workerDispatchPolicyAccepted',
-  'rollbackPlanAccepted',
-  'workerPayloadAcceptedByPreDispatchGates',
-  'dispatchBlockedByProductionBlockedMode',
-  'workerModeGateBlocksDispatch',
+  'productionControlledDispatchAuthorizationProofPrepared',
+  'sourceProductionServiceRoleQueueTransactionDryProofAccepted',
+  'productionControlledDispatchAuthorizationRecordAccepted',
+  'productionControlledDispatchAuthorizationPreparedWithProvidedEvidence',
+  'sourceServiceRoleTransactionEnvelopeAccepted',
+  'sourceControlledDispatchDryProofAccepted',
+  'sourceWorkerPayloadAcceptedByPreDispatchGates',
+  'sourceWorkerModeGateBlocksDispatch',
+  'controlledDispatchAuthorizationRefAccepted',
+  'workerLeaseApprovalRefAccepted',
+  'workerDispatchApprovalRefAccepted',
+  'toolRouteExecutionBlockRefAccepted',
+  'privateArtifactRuntimeBindingRefAccepted',
+  'costGuardrailRuntimeRefAccepted',
+  'telemetryRuntimeRefAccepted',
+  'rollbackRuntimeRefAccepted',
+  'postDispatchReviewRefAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -292,14 +327,10 @@ const falseKeysAlways = [
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
+  'workerLeaseCreationApprovedNow',
   'productionWorkerDispatchApprovedNow',
   'serviceRoleQueueTransactionApprovedNow',
   'liveQueueWriteApprovedNow',
-  'liveJobBatchInsertApprovedNow',
-  'liveJobInsertApprovedNow',
-  'liveWorkerClaimInsertApprovedNow',
-  'liveWorkerEventInsertApprovedNow',
-  'liveAuditEventInsertApprovedNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
@@ -332,8 +363,6 @@ const falseKeysAlways = [
 ]
 
 const allowedPackageDiffLines = [
-  '+    "ai-graphics:production-service-role-queue-transaction-dry-proof": "tsx server/cli/ai-graphics-production-service-role-queue-transaction-dry-proof.ts",',
-  '+    "ai-graphics:production-service-role-queue-transaction-dry-proof:diagnostics": "node scripts/validation/ai-graphics-production-service-role-queue-transaction-dry-proof-diagnostics.mjs",',
   '+    "ai-graphics:production-controlled-dispatch-authorization-proof": "tsx server/cli/ai-graphics-production-controlled-dispatch-authorization-proof.ts",',
   '+    "ai-graphics:production-controlled-dispatch-authorization-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-dispatch-authorization-proof-diagnostics.mjs",',
 ]
@@ -397,75 +426,94 @@ function assertFalseKeys(record, label) {
 function assertAccepted(record, label, expectedToolId, expectedCapabilityId) {
   if (record.decision !== decision) fail(`${label}_decision:${record.decision}`)
   if (record.status !== acceptedStatus) fail(`${label}_status:${record.status}`)
-  if (record.sourceProductionWorkerQueueAdmissionAccepted !== true) {
-    fail(`${label}_source_queue_admission_not_true`)
+  if (record.sourceProductionServiceRoleQueueTransactionDryProofAccepted !== true) {
+    fail(`${label}_source_dry_proof_not_true`)
   }
-  if (record.productionServiceRoleTransactionControlsAccepted !== true) {
-    fail(`${label}_controls_not_true`)
+  if (record.productionControlledDispatchAuthorizationRecordAccepted !== true) {
+    fail(`${label}_authorization_not_true`)
   }
-  if (record.productionServiceRoleQueueTransactionDryProofReadyWithProvidedEvidence !== true) {
-    fail(`${label}_transaction_not_ready`)
-  }
-  if (record.productionControlledDispatchDryProofReadyWithProvidedEvidence !== true) {
-    fail(`${label}_dispatch_dry_proof_not_ready`)
+  if (record.productionControlledDispatchAuthorizationPreparedWithProvidedEvidence !== true) {
+    fail(`${label}_authorization_prepared_not_true`)
   }
   if (record.rejectionReasons?.length !== 0) fail(`${label}_rejections_not_empty`)
   if (record.totalAiGraphicsTools !== 21) fail(`${label}_tools_not_21`)
   if (record.totalProductFacingCapabilities !== 12) fail(`${label}_caps_not_12`)
   if (record.gpuRuntimeTargetedTools !== 8) fail(`${label}_gpu_not_8`)
   if (record.productionReadyNowTools !== 0) fail(`${label}_production_tools_not_0`)
-  const envelope = record.productionServiceRoleQueueTransactionDryProofEnvelope
-  if (!envelope) fail(`${label}_envelope_missing`)
-  if (envelope && envelope.toolId !== expectedToolId) fail(`${label}_tool_mismatch`)
-  if (envelope && envelope.capabilityId !== expectedCapabilityId) fail(`${label}_capability_mismatch`)
-  if (envelope && envelope.jobBatchRowCandidate.status !== 'prepared_not_inserted') {
+  if (record.liveWorkerLeasesCreatedNow !== 0) fail(`${label}_leases_not_0`)
+  if (record.liveWorkerDispatchesNow !== 0) fail(`${label}_dispatches_not_0`)
+  if (record.liveToolExecutionsNow !== 0) fail(`${label}_executions_not_0`)
+  if (record.gpuRuntimeShouldStartNow !== false) fail(`${label}_gpu_should_start_not_false`)
+  const sourceEnvelope = record.sourceServiceRoleQueueTransactionDryProofEnvelope
+  const candidate = record.controlledDispatchAuthorizationCandidate
+  const authorization = record.controlledDispatchAuthorizationRecord
+  if (!sourceEnvelope) fail(`${label}_source_envelope_missing`)
+  if (!candidate) fail(`${label}_candidate_missing`)
+  if (sourceEnvelope?.toolId !== expectedToolId) fail(`${label}_source_tool_mismatch`)
+  if (sourceEnvelope?.capabilityId !== expectedCapabilityId) fail(`${label}_source_capability_mismatch`)
+  if (sourceEnvelope?.jobBatchRowCandidate?.status !== 'prepared_not_inserted') {
     fail(`${label}_batch_not_prepared`)
   }
-  if (envelope && envelope.jobRowCandidate.status !== 'prepared_not_inserted') {
-    fail(`${label}_job_not_prepared`)
-  }
-  if (envelope && envelope.workerClaimInputCandidate.status !== 'prepared_not_claimed') {
+  if (sourceEnvelope?.workerClaimInputCandidate?.status !== 'prepared_not_claimed') {
     fail(`${label}_claim_not_prepared`)
   }
-  if (envelope && envelope.controlledDispatchDryProofCandidate.status !== 'prepared_not_dispatched') {
+  if (sourceEnvelope?.controlledDispatchDryProofCandidate?.status !== 'prepared_not_dispatched') {
     fail(`${label}_dispatch_not_prepared`)
   }
-  if (envelope && envelope.controlledDispatchDryProofCandidate.sourceWorkerModeGate?.status !== 'blocked') {
-    fail(`${label}_worker_mode_not_blocked`)
+  if (
+    sourceEnvelope?.controlledDispatchDryProofCandidate
+      ?.dispatchBlockedByProductionBlockedMode !== true
+  ) {
+    fail(`${label}_source_dispatch_block_not_true`)
   }
-  if (envelope && envelope.controlledDispatchDryProofCandidate.dispatchBlockedByProductionBlockedMode !== true) {
-    fail(`${label}_dispatch_block_not_true`)
+  if (candidate?.toolId !== expectedToolId) fail(`${label}_candidate_tool_mismatch`)
+  if (candidate?.capabilityId !== expectedCapabilityId) {
+    fail(`${label}_candidate_capability_mismatch`)
   }
-  if (envelope && envelope.enqueueRpcName !== 'enqueue_ai_graphics_tool_runtime_jobs') {
-    fail(`${label}_enqueue_rpc_mismatch`)
+  if (candidate?.status !== 'authorization_recorded_dispatch_blocked') {
+    fail(`${label}_candidate_status:${candidate?.status}`)
   }
-  if (envelope && envelope.claimRpcName !== 'claim_ai_graphics_tool_runtime_job') {
-    fail(`${label}_claim_rpc_mismatch`)
+  if (candidate?.sourceWorkerModeGateBlocksDispatch !== true) {
+    fail(`${label}_worker_mode_block_not_true`)
   }
-  if (envelope && envelope.serviceRoleTransactionEnvelopeShapeValid !== true) {
-    fail(`${label}_shape_not_valid`)
+  if (candidate?.workerLeaseCreationApprovedNow !== false) {
+    fail(`${label}_lease_approval_not_false`)
   }
-  if (envelope && envelope.canRunServiceRoleTransactionNow !== false) {
-    fail(`${label}_can_run_service_role_not_false`)
+  if (candidate?.workerDispatchApprovedNow !== false) {
+    fail(`${label}_dispatch_approval_not_false`)
   }
-  if (envelope && envelope.canDispatchWorkerNow !== false) {
-    fail(`${label}_can_dispatch_not_false`)
+  if (candidate?.toolExecutionApprovedNow !== false) {
+    fail(`${label}_tool_approval_not_false`)
   }
-  const metadata = envelope?.jobRowCandidate?.payload?.metadata ?? {}
-  if (metadata.aiGraphicsCanonicalToolId !== expectedToolId) {
-    fail(`${label}_metadata_tool_mismatch`)
+  if (candidate?.gpuRuntimeShouldStartNow !== false) {
+    fail(`${label}_candidate_gpu_should_start_not_false`)
   }
-  if (metadata.gpuRuntimeShouldStartNow !== false) {
-    fail(`${label}_metadata_gpu_should_start_not_false`)
+  if (authorization?.accepted !== true) fail(`${label}_authorization_record_not_accepted`)
+  if (authorization?.operatorRole !== 'AI_GRAPHICS_PRODUCTION_RUNTIME_OPERATOR') {
+    fail(`${label}_operator_role_mismatch`)
+  }
+  if (authorization?.authorizesWorkerLeaseCreationNow !== false) {
+    fail(`${label}_record_lease_authorizes_not_false`)
+  }
+  if (authorization?.authorizesWorkerDispatchNow !== false) {
+    fail(`${label}_record_dispatch_authorizes_not_false`)
+  }
+  if (authorization?.authorizesToolExecutionNow !== false) {
+    fail(`${label}_record_tool_authorizes_not_false`)
   }
   if (expectedToolId === 'sam2') {
-    if (envelope?.workerType !== 'gpu_ai_worker') fail(`${label}_sam2_not_gpu_worker`)
-    if (metadata.cpuFallbackAllowedForHeavyTools !== false) {
-      fail(`${label}_cpu_fallback_not_false`)
+    if (candidate?.workerType !== 'gpu_ai_worker') fail(`${label}_sam2_not_gpu_worker`)
+    if (sourceEnvelope?.runtimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
+      fail(`${label}_sam2_not_gpu_runtime`)
     }
   }
-  if (expectedToolId === 'vega_lite' && envelope?.workerType !== 'cpu_analysis_worker') {
-    fail(`${label}_vega_lite_not_cpu_worker`)
+  if (expectedToolId === 'vega_lite') {
+    if (candidate?.workerType !== 'cpu_analysis_worker') {
+      fail(`${label}_vega_lite_not_cpu_worker`)
+    }
+    if (sourceEnvelope?.runtimeTarget !== 'node_cpu_static') {
+      fail(`${label}_vega_lite_not_cpu_static_runtime`)
+    }
   }
   for (const key of trueAcceptedKeys) {
     if (record.booleans?.[key] !== true) fail(`${label}_true_key_not_true:${key}`)
@@ -492,14 +540,15 @@ if (git(['diff', '--name-only', '--', 'package-lock.json']).trim().length > 0) {
 }
 
 const indexTs = read('server/tool-registry/index.ts')
-if (!indexTs.includes("export * from './ai-graphics-production-service-role-queue-transaction-dry-proof'")) {
+if (!indexTs.includes("export * from './ai-graphics-production-controlled-dispatch-authorization-proof'")) {
   fail('missing_registry_export')
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/production-service-role-queue-transaction-dry-proof.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/production-service-role-queue-transaction-dry-proof.md')
-const source = read('server/tool-registry/ai-graphics-production-service-role-queue-transaction-dry-proof.ts')
-const cli = read('server/cli/ai-graphics-production-service-role-queue-transaction-dry-proof.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/production-controlled-dispatch-authorization-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/production-controlled-dispatch-authorization-proof.md')
+const source = read('server/tool-registry/ai-graphics-production-controlled-dispatch-authorization-proof.ts')
+const cli = read('server/cli/ai-graphics-production-controlled-dispatch-authorization-proof.ts')
+const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
@@ -507,8 +556,23 @@ if (docs.coverage?.totalAiGraphicsTools !== 21) fail('docs_tools_not_21')
 if (docs.coverage?.totalProductFacingCapabilities !== 12) fail('docs_caps_not_12')
 if (docs.coverage?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_not_8')
 if (docs.coverage?.productionReadyNowTools !== 0) fail('docs_production_tools_not_0')
+if (docs.controlledDispatchAuthorization?.operatorRole !== 'AI_GRAPHICS_PRODUCTION_RUNTIME_OPERATOR') {
+  fail('docs_operator_role_mismatch')
+}
+if (docs.controlledDispatchAuthorization?.workerLeaseCreationApprovedNow !== false) {
+  fail('docs_lease_not_false')
+}
+if (docs.controlledDispatchAuthorization?.workerDispatchApprovedNow !== false) {
+  fail('docs_dispatch_not_false')
+}
+if (docs.controlledDispatchAuthorization?.toolExecutionApprovedNow !== false) {
+  fail('docs_tool_execution_not_false')
+}
 for (const tool of all21Tools) {
   if (!docs.toolCoverage?.includes(tool)) fail(`docs_missing_tool:${tool}`)
+}
+for (const tool of gpuTools) {
+  if (!docs.gpuToolCoverage?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
 }
 for (const capability of all12Capabilities) {
   if (!docs.capabilityCoverage?.includes(capability)) {
@@ -516,14 +580,27 @@ for (const capability of all12Capabilities) {
   }
 }
 for (const citation of [
+  'production-service-role-queue-transaction-dry-proof.json',
   'production-worker-queue-admission.json',
   'production-tool-call-gateway-handoff.json',
-  'production-traffic-cutover.json',
   'ai-graphics-tool-runtime-queue-service.ts',
   'production-worker-router.ts',
 ]) {
   if (!JSON.stringify(docs).includes(citation) || !docsMd.includes(citation)) {
     fail(`missing_citation:${citation}`)
+  }
+}
+for (const phrase of [
+  'AI_GRAPHICS_PRODUCTION_RUNTIME_OPERATOR',
+  'authorization_recorded_dispatch_blocked',
+  'production_blocked',
+  'worker_mode',
+  'private://',
+  'backend://',
+  'production-evidence://',
+]) {
+  if (!docsMd.includes(phrase) && !JSON.stringify(docs).includes(phrase)) {
+    fail(`missing_authorization_phrase:${phrase}`)
   }
 }
 for (const key of trueAcceptedKeys) {
@@ -533,21 +610,9 @@ for (const key of falseKeysAlways) {
   if (docs.booleans?.[key] !== false) fail(`docs_false_key_not_false:${key}`)
 }
 for (const phrase of [
-  'prepared_not_inserted',
-  'prepared_not_claimed',
-  'prepared_not_dispatched',
-  'production_blocked',
-  'worker_mode',
-  'enqueue_ai_graphics_tool_runtime_jobs',
-  'claim_ai_graphics_tool_runtime_job',
-]) {
-  if (!docsMd.includes(phrase) && !JSON.stringify(docs).includes(phrase)) {
-    fail(`missing_transaction_phrase:${phrase}`)
-  }
-}
-for (const phrase of [
   'dry_run_passed',
   'generated_local_fixture_passed',
+  '"workerLeaseCreated": true',
   '"workerEnqueuePerformed": true',
   '"workerDispatchPerformed": true',
   '"toolExecutionPerformed": true',
@@ -557,14 +622,19 @@ for (const phrase of [
   '"publicArtifactCreated": true',
   '"signedUrlCreated": true',
   '"runtimeReadyNow": true',
+  '"externalBetaReadyNow": true',
   '"productionReadyNow": true',
 ]) {
   if (docsMd.includes(phrase) || source.includes(phrase) || cli.includes(phrase)) {
     fail(`forbidden_claim:${phrase}`)
   }
 }
+if (!scorecard.includes('AI Graphics Production Controlled Dispatch Authorization Proof')) {
+  fail('scorecard_missing_section')
+}
+if (!scorecard.includes(decision)) fail('scorecard_missing_decision')
 
-const tmpRoot = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-service-role-transaction-`)
+const tmpRoot = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-dispatch-authorization-`)
 const controlsPath = `${tmpRoot}/production-launch-controls.json`
 const goNoGoPath = `${tmpRoot}/production-launch-go-no-go.json`
 const cutoverPath = `${tmpRoot}/production-traffic-cutover.json`
@@ -572,6 +642,8 @@ const sam2HandoffPath = `${tmpRoot}/sam2-production-gateway-handoff.json`
 const vegaLiteHandoffPath = `${tmpRoot}/vega-lite-production-gateway-handoff.json`
 const sam2QueueAdmissionPath = `${tmpRoot}/sam2-production-queue-admission.json`
 const vegaLiteQueueAdmissionPath = `${tmpRoot}/vega-lite-production-queue-admission.json`
+const sam2DryProofPath = `${tmpRoot}/sam2-production-service-role-dry-proof.json`
+const vegaLiteDryProofPath = `${tmpRoot}/vega-lite-production-service-role-dry-proof.json`
 
 const controlsPacket = runNpm('ai-graphics:production-launch-controls', privateControlsArgs)
 writeJson(controlsPath, controlsPacket)
@@ -618,39 +690,52 @@ const vegaLiteQueueAdmission = runNpm('ai-graphics:production-worker-queue-admis
 ])
 writeJson(vegaLiteQueueAdmissionPath, vegaLiteQueueAdmission)
 
-const sam2Accepted = runNpm(runScriptName, [
+const sam2DryProof = runNpm('ai-graphics:production-service-role-queue-transaction-dry-proof', [
   '--source-production-worker-queue-admission-packet',
   sam2QueueAdmissionPath,
   ...privateTransactionArgs,
 ])
-assertAccepted(sam2Accepted, 'sam2', 'sam2', 'subject_segmentation')
-
-const vegaLiteAccepted = runNpm(runScriptName, [
+writeJson(sam2DryProofPath, sam2DryProof)
+const vegaLiteDryProof = runNpm('ai-graphics:production-service-role-queue-transaction-dry-proof', [
   '--source-production-worker-queue-admission-packet',
   vegaLiteQueueAdmissionPath,
   ...privateTransactionArgs,
+])
+writeJson(vegaLiteDryProofPath, vegaLiteDryProof)
+
+const sam2Accepted = runNpm(runScriptName, [
+  '--source-production-service-role-queue-transaction-dry-proof-packet',
+  sam2DryProofPath,
+  ...privateAuthorizationArgs,
+])
+assertAccepted(sam2Accepted, 'sam2', 'sam2', 'subject_segmentation')
+
+const vegaLiteAccepted = runNpm(runScriptName, [
+  '--source-production-service-role-queue-transaction-dry-proof-packet',
+  vegaLiteDryProofPath,
+  ...privateAuthorizationArgs,
 ])
 assertAccepted(vegaLiteAccepted, 'vega_lite', 'vega_lite', 'chart_overlay')
 
 const noSource = runNpm(runScriptName, [
   '--execution-requested',
-  ...privateTransactionArgs,
+  ...privateAuthorizationArgs,
 ])
-if (noSource.status !== 'missing_production_worker_queue_admission') {
+if (noSource.status !== 'missing_production_service_role_queue_transaction_dry_proof') {
   fail(`no_source_status:${noSource.status}`)
 }
 assertFalseKeys(noSource, 'no_source')
 
-const publicEvidenceArgs = [...privateTransactionArgs]
+const publicEvidenceArgs = [...privateAuthorizationArgs]
 const publicRefIndex =
-  publicEvidenceArgs.indexOf('--production-service-role-queue-transaction-ref') + 1
+  publicEvidenceArgs.indexOf('--production-controlled-dispatch-authorization-ref') + 1
 publicEvidenceArgs[publicRefIndex] = 'https://example.com/signed-url/public-artifact'
 const publicEvidence = runNpm(runScriptName, [
-  '--source-production-worker-queue-admission-packet',
-  sam2QueueAdmissionPath,
+  '--source-production-service-role-queue-transaction-dry-proof-packet',
+  sam2DryProofPath,
   ...publicEvidenceArgs,
 ])
-if (publicEvidence.status !== 'missing_production_service_role_queue_transaction_controls') {
+if (publicEvidence.status !== 'awaiting_production_controlled_dispatch_authorization') {
   fail(`public_evidence_status:${publicEvidence.status}`)
 }
 if (!publicEvidence.rejectionReasons?.some((reason) => reason.includes('private/backend'))) {
@@ -662,7 +747,7 @@ const changedFiles = git(['diff', '--name-only']).split('\n').filter(Boolean)
 for (const file of changedFiles) {
   if (file.startsWith('.local-artifacts/')) fail(`local_artifact_changed:${file}`)
   if (/generated|render|browser|canvas|webgl|public-artifact|signed-url/i.test(file)) {
-    if (!file.includes('production-service-role-queue-transaction-dry-proof')) {
+    if (!file.includes('production-controlled-dispatch-authorization-proof')) {
       fail(`unexpected_generated_output_path:${file}`)
     }
   }
@@ -681,16 +766,17 @@ console.log(JSON.stringify({
   acceptedStatus,
   toolsCovered: 21,
   capabilitiesCovered: 12,
+  gpuToolsCovered: 8,
   acceptedPaths: ['sam2', 'vega_lite'],
-  serviceRoleTransactionEnvelopeShapeValid: true,
-  controlledDispatchDryProofReadyWithProvidedEvidence: true,
-  dispatchBlockedByProductionBlockedMode: true,
-  serviceRoleTransactionPerformed: false,
+  controlledDispatchAuthorizationRecordAccepted: true,
+  sourceServiceRoleQueueTransactionDryProofAccepted: true,
+  sourceWorkerModeGateBlocksDispatch: true,
   workerLeaseCreated: false,
   workerDispatchPerformed: false,
   toolExecutionPerformed: false,
   gpuRuntimeShouldStartNow: false,
   runtimeReadyNow: false,
+  externalBetaReadyNow: false,
   productionReadyNow: false,
   packageLockUnchanged: true,
 }, null, 2))

@@ -489,6 +489,8 @@ function verifyPackageJson() {
     '+    "ai-graphics:production-worker-queue-admission:diagnostics": "node scripts/validation/ai-graphics-production-worker-queue-admission-diagnostics.mjs",',
     '+    "ai-graphics:production-service-role-queue-transaction-dry-proof": "tsx server/cli/ai-graphics-production-service-role-queue-transaction-dry-proof.ts",',
     '+    "ai-graphics:production-service-role-queue-transaction-dry-proof:diagnostics": "node scripts/validation/ai-graphics-production-service-role-queue-transaction-dry-proof-diagnostics.mjs",',
+    '+    "ai-graphics:production-controlled-dispatch-authorization-proof": "tsx server/cli/ai-graphics-production-controlled-dispatch-authorization-proof.ts",',
+    '+    "ai-graphics:production-controlled-dispatch-authorization-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-dispatch-authorization-proof-diagnostics.mjs",',
     '+    "ai-graphics:production-launch-readiness-gap": "tsx server/cli/ai-graphics-production-launch-readiness-gap.ts",',
     '+    "ai-graphics:production-launch-readiness-gap:diagnostics": "node scripts/validation/ai-graphics-production-launch-readiness-gap-diagnostics.mjs",',
   ]

@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import {
   buildBetaReadinessReport,
   buildBetaScenarioReadinessMatrix,
@@ -133,5 +137,45 @@ const approvalOnlyGate = evaluateBetaGoNoGo({
 assert.equal(approvalOnlyGate.externalBetaAllowed, true, 'external beta gate should be evidence-driven, not hardcoded false')
 assert.equal(approvalOnlyGate.realUserMediaBetaAllowed, true, 'real user media beta should be evidence-driven, not hardcoded false')
 assert.equal(approvalOnlyGate.paidProductionAllowed, true, 'paid production should be evidence-driven, not hardcoded false')
+
+const summary = execFileSync(process.execPath, [
+  '--experimental-strip-types',
+  '--import',
+  './server/cli/beta-readiness-node-ts-register.mjs',
+  'server/cli/beta-readiness-summary.ts',
+], {
+  cwd: process.cwd(),
+  env: {
+    ...process.env,
+    REEDITPRO_BETA_OPERATOR_ENV_FILE: '',
+  },
+  encoding: 'utf8',
+})
+assert.ok(summary.includes('Pending operator inputs: 59/62'), 'default summary should keep blank-env pending count')
+assert.equal(summary.includes('Operator local env progress:'), false, 'default summary should not imply a local env was reviewed')
+
+const tempDir = mkdtempSync(path.join(tmpdir(), 'reeditpro-beta-summary-local-env-smoke-'))
+const tempEnvPath = path.join(tempDir, 'operator.env')
+writeFileSync(tempEnvPath, 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN="smoke-token-value-123456"\n')
+chmodSync(tempEnvPath, 0o600)
+const localEnvSummary = execFileSync(process.execPath, [
+  '--experimental-strip-types',
+  '--import',
+  './server/cli/beta-readiness-node-ts-register.mjs',
+  'server/cli/beta-readiness-summary.ts',
+], {
+  cwd: process.cwd(),
+  env: {
+    ...process.env,
+    REEDITPRO_BETA_OPERATOR_ENV_FILE: tempEnvPath,
+  },
+  encoding: 'utf8',
+})
+rmSync(tempDir, { recursive: true, force: true })
+assert.ok(localEnvSummary.includes('Operator local env progress:'), 'local-env summary should show redacted effective progress')
+assert.ok(localEnvSummary.includes('pending after auto-fill'), 'local-env summary should explain auto-fill-adjusted progress')
+assert.ok(localEnvSummary.includes('Operator local env safety: loaded=true'), 'local-env summary should show safety state')
+assert.ok(localEnvSummary.includes('collector ready=false'), 'local-env summary should keep collector blocked without approvals/evidence')
+assert.equal(localEnvSummary.includes('smoke-token-value-123456'), false, 'local-env summary must not echo token values')
 
 console.log('beta-readiness-smoke passed')

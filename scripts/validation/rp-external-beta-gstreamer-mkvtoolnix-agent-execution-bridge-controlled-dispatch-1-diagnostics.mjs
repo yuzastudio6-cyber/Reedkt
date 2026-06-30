@@ -2,97 +2,91 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-DRY-RUN-1'
-const dir = 'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1'
-const recordPath = `${dir}/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-record.json`
-const decision = 'completed_gstreamer_mkvtoolnix_agent_execution_bridge_dry_run_envelope_validation'
-const execution = 'completed_confirmation_gated_agent_execution_bridge_dry_run_no_route_worker_dispatch_or_tool_execution'
-const runId = '2026-06-30T18-13-47-512Z-1707fbec'
-const integrationBase = '4effa512450664c648db9cf9e95b0653de41e96d'
-const confirmationGate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_AGENT_EXECUTION_BRIDGE_DRY_RUN=true'
-const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-CONTROLLED-DISPATCH-1'
+const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-CONTROLLED-DISPATCH-1'
+const dir = 'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1'
+const recordPath = `${dir}/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-record.json`
+const decision = 'completed_gstreamer_mkvtoolnix_agent_execution_bridge_controlled_dispatch_boundary'
+const execution = 'completed_confirmation_gated_agent_execution_bridge_controlled_dispatch_metadata_only_no_route_worker_or_tool_execution'
+const runId = '2026-06-30T18-50-40-467Z-7ae8262d'
+const integrationBase = 'd5d0ab318eb98f5b08f3e6dce9c1e87cb5d6bc7f'
+const dryRunId = '2026-06-30T18-13-47-512Z-1707fbec'
+const confirmationGate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_AGENT_CONTROLLED_DISPATCH=true'
+const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-CONTROLLED-WORKER-QUEUE-INTEGRATION-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${dir}/source-audit.md`,
-  `${dir}/dry-run-result.md`,
-  `${dir}/request-envelope.md`,
+  `${dir}/controlled-dispatch-result.md`,
+  `${dir}/dispatch-envelope.md`,
   `${dir}/artifact-manifest-summary.md`,
   `${dir}/safety-boundary.md`,
   `${dir}/validation-results.md`,
   recordPath,
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.md',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1.md',
 ]
 
 const implementationFiles = [
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1.ts',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-diagnostics.mjs',
   'package.json',
 ]
 
-const followOnControlledDispatchFiles = [
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/source-audit.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/controlled-dispatch-result.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/dispatch-envelope.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/artifact-manifest-summary.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/safety-boundary.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/validation-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-record.json',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1.md',
-  'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
-  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke.ts',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-diagnostics.mjs',
-]
-
 const sourceFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/gstreamer-mkvtoolnix-agent-execution-bridge-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-record.json',
   'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1.ts',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...followOnControlledDispatchFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
 
 const requiredText = [
   packet,
   decision,
   execution,
-  runId,
   integrationBase,
+  dryRunId,
+  '4effa512450664c648db9cf9e95b0653de41e96d',
   '4dec43f1edce87531eee61a7704b58545afd50b9',
   '2026-06-30T16-19-10-513Z-a91246d2',
   confirmationGate,
   'Confirmation gate observed: `present_true`',
-  'completed_agent_execution_bridge_dry_run_envelope_validation',
-  'approved-snapshot-agent-execution-bridge-dry-run-1',
-  'approval-record-agent-execution-bridge-dry-run-1',
-  'no-spend-fixture-policy-agent-execution-bridge-dry-run-1',
-  'job-agent-execution-bridge-dry-run-1',
-  'worker-lease-agent-execution-bridge-dry-run-1',
-  'gstreamer-mkvtoolnix:agent-bridge-dry-run-1:approved-snapshot:job:template',
+  'accepted_controlled_dispatch_metadata_only',
+  'ready_for_confirmation_gated_agent_execution_bridge_dry_run',
+  'ready_for_agent_controlled_worker_queue_integration',
+  'dispatch-gstreamer-mkvtoolnix-agent-controlled-dispatch-1',
+  'metadata_only_controlled_dispatch',
+  'external-agent-request-gstreamer-mkvtoolnix-controlled-dispatch-1',
+  'approved-snapshot-agent-controlled-dispatch-1',
+  'approval-record-agent-controlled-dispatch-1',
+  'no-spend-fixture-policy-agent-controlled-dispatch-1',
+  'job-agent-controlled-dispatch-1',
+  'worker-lease-agent-controlled-dispatch-1',
+  'gstreamer-mkvtoolnix:agent-controlled-dispatch-1:approved-snapshot:job:template',
   'gst_controlled_generated_fixture_pipeline_v1',
-  'private-input-manifest-agent-execution-bridge-dry-run-1',
-  'output-manifest-schema-agent-execution-bridge-dry-run-1',
-  'qa-report-schema-agent-execution-bridge-dry-run-1',
-  'cleanup-policy-agent-execution-bridge-dry-run-1',
-  'retention-policy-agent-execution-bridge-dry-run-1',
-  'failure-policy-agent-execution-bridge-dry-run-1',
-  'audit-parent-agent-execution-bridge-dry-run-1',
-  'Route execution: `not_run_bridge_dry_run_envelope_validation_only`',
-  'Worker dispatch: `not_run_bridge_dry_run_envelope_validation_only`',
-  'Worker execution: `not_run_bridge_dry_run_envelope_validation_only`',
-  'Tool execution: `not_run_bridge_dry_run_envelope_validation_only`',
-  'GStreamer execution in this dry run: `false`',
-  'MKVToolNix execution in this dry run: `false`',
-  'ready_for_confirmation_gated_agent_execution_bridge_controlled_dispatch',
-  '9c2b3bb387022b6c225b52b20f4dbc7307ef156244d9638ad9b0cd5e8217cf0e',
-  '30696177ca97bb9d7cc959e516b1a2d28804ab778cbb8a2894a6e2945ade3aeb',
-  '6a04b03d54a6eb1e0f2df6a2a11314f9502bd2c086a496dfbc7c1900ae27728d',
-  '42b665c1c6aab924fa8fcf950e2381d5a93acf31ebcbd2fcf8ae1fdb526746e9',
-  '3690f29496dc41f350dbafb26c1012ddebc39dbc5b583de462f286710663828d',
+  'private-input-manifest-agent-controlled-dispatch-1',
+  'output-manifest-schema-agent-controlled-dispatch-1',
+  'qa-report-schema-agent-controlled-dispatch-1',
+  'cleanup-policy-agent-controlled-dispatch-1',
+  'retention-policy-agent-controlled-dispatch-1',
+  'failure-policy-agent-controlled-dispatch-1',
+  'audit-parent-agent-controlled-dispatch-1',
+  'Route execution: `not_run_controlled_dispatch_metadata_only`',
+  'Worker dispatch: `not_run_controlled_dispatch_metadata_only`',
+  'Worker execution: `not_run_controlled_dispatch_metadata_only`',
+  'Tool execution: `not_run_controlled_dispatch_metadata_only`',
+  'GStreamer execution in this dispatch: `false`',
+  'MKVToolNix execution in this dispatch: `false`',
+  '10dac7c0a8bd761ed89da72e75a620b0fae5adba36849dd495c6f6a77a3dfa20',
+  '8bc1b12620d137c11871a2ca90ada637211066f73764dbd5ac854f79e1929e11',
+  '2b3ac914256ab8d173914157e065edb4c9300057cbd268b8aef1240de4b9e2a4',
+  'bd804d9d7af81d8088aaf72b85382b132056d4e99e256f0ed65b7bac28c4df6a',
+  'eeca7f7b30ca940384c3c7c31b8a6e8d08cdf7dc7141037612fdb14b5269c9f1',
   nextMilestone,
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
@@ -103,7 +97,7 @@ const requiredText = [
 const forbiddenChangedPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1\.ts$|services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke\.ts$)/,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,
@@ -128,15 +122,21 @@ const forbiddenClaimPatterns = [
   /"routeExecution"\s*:\s*true/i,
   /"workerDispatch"\s*:\s*true/i,
   /"workerExecution"\s*:\s*true/i,
-  /"gstreamerExecutionInThisDryRun"\s*:\s*true/i,
-  /"mkvtoolnixExecutionInThisDryRun"\s*:\s*true/i,
+  /"gstreamerExecutionInThisDispatch"\s*:\s*true/i,
+  /"mkvtoolnixExecutionInThisDispatch"\s*:\s*true/i,
   /"ffmpegFfprobeExecution"\s*:\s*true/i,
   /"dockerExecution"\s*:\s*true/i,
+  /"dockerPushDeploy"\s*:\s*true/i,
+  /"remotionExecution"\s*:\s*true/i,
+  /"mediaProcessing"\s*:\s*true/i,
   /"supabaseMutation"\s*:\s*true/i,
   /"sqlExecution"\s*:\s*true/i,
   /"signedUrlCreation"\s*:\s*true/i,
   /"publicArtifactCreation"\s*:\s*true/i,
   /"finalRenderExport"\s*:\s*true/i,
+  /"broadExternalBetaUnlock"\s*:\s*true/i,
+  /"paidProductionUnlock"\s*:\s*true/i,
+  /"productionUnlock"\s*:\s*true/i,
   /"packageLockMutation"\s*:\s*true/i,
 ]
 
@@ -175,16 +175,22 @@ for (const file of [...packetFiles, ...implementationFiles, ...sourceFiles]) rea
 
 const packageJson = json('package.json')
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1'] !==
-  'tsx scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1.ts'
+  packageJson.scripts?.['smoke:rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1'] !==
+  'tsx server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke.ts'
 ) {
-  fail('missing bridge dry-run package script')
+  fail('missing controlled dispatch smoke package script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1'] !==
+  'tsx scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts'
 ) {
-  fail('missing bridge dry-run diagnostics package script')
+  fail('missing controlled dispatch runner package script')
+}
+if (
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-diagnostics.mjs'
+) {
+  fail('missing controlled dispatch diagnostics package script')
 }
 
 const corpus = packetFiles.map((file) => read(file)).join('\n')
@@ -202,32 +208,68 @@ if (record.execution !== execution) fail('execution mismatch')
 if (record.integrationBase !== integrationBase) fail('integration base mismatch')
 if (record.runId !== runId) fail('run ID mismatch')
 if (record.confirmationGate?.observed !== 'present_true') fail('confirmation gate mismatch')
+if (record.sourceChain?.agentExecutionBridgeDryRunPr !== 1892) fail('dry-run PR mismatch')
+if (record.sourceChain?.agentExecutionBridgeDryRunMergeSha !== integrationBase) fail('dry-run merge mismatch')
+if (record.sourceChain?.agentExecutionBridgeDryRunRunId !== dryRunId) fail('dry-run run ID mismatch')
 if (record.sourceChain?.agentExecutionBridgePr !== 1887) fail('bridge PR mismatch')
-if (record.sourceChain?.agentExecutionBridgeMergeSha !== integrationBase) fail('bridge merge mismatch')
+if (record.sourceChain?.agentExecutionBridgeMergeSha !== '4effa512450664c648db9cf9e95b0653de41e96d') fail('bridge merge mismatch')
 if (record.sourceChain?.runtimeExecutionImplementationPr !== 1882) fail('runtime source PR mismatch')
 if (record.sourceChain?.runtimeExecutionImplementationMergeSha !== '4dec43f1edce87531eee61a7704b58545afd50b9') fail('runtime source merge mismatch')
 if (record.sourceChain?.runtimeExecutionRunId !== '2026-06-30T16-19-10-513Z-a91246d2') fail('runtime source run id mismatch')
 if (record.sourceChain?.excludedRemotionPr !== '#577 open_draft_blocked_excluded') fail('#577 exclusion mismatch')
-if (record.bridgeDryRun?.status !== 'completed_agent_execution_bridge_dry_run_envelope_validation') fail('dry-run status mismatch')
-if (record.bridgeDryRun?.bridgeStatus !== 'ready_for_confirmation_gated_agent_execution_bridge_dry_run') fail('bridge status mismatch')
-if (record.bridgeDryRun?.directRuntimeExecutionInThisBridge !== false) fail('direct runtime execution flag mismatch')
+if (record.controlledDispatch?.status !== 'accepted_controlled_dispatch_metadata_only') fail('controlled dispatch status mismatch')
+if (record.controlledDispatch?.bridgeStatus !== 'ready_for_confirmation_gated_agent_execution_bridge_dry_run') fail('bridge status mismatch')
+if (record.controlledDispatch?.controlledDispatchAccepted !== true) fail('controlled dispatch accepted flag mismatch')
+if (record.controlledDispatch?.queueIntegration !== 'pending_next_milestone') fail('queue integration mismatch')
+if (record.controlledDispatch?.dispatchMode !== 'metadata_only_controlled_dispatch') fail('dispatch mode mismatch')
 for (const key of ['routeExecution', 'workerDispatch', 'workerExecution', 'toolExecution']) {
-  if (record.bridgeDryRun?.[key] !== 'not_run_bridge_dry_run_envelope_validation_only') fail(`${key} mismatch`)
+  if (record.controlledDispatch?.[key] !== 'not_run_controlled_dispatch_metadata_only') fail(`${key} mismatch`)
 }
-if (record.readiness?.gstreamer !== 'ready_for_confirmation_gated_agent_execution_bridge_controlled_dispatch') fail('GStreamer readiness mismatch')
-if (record.readiness?.mkvtoolnix !== 'ready_for_confirmation_gated_agent_execution_bridge_controlled_dispatch') fail('MKVToolNix readiness mismatch')
-if (record.nextMilestone !== nextMilestone) fail('next milestone mismatch')
+if (record.controlledDispatch?.nextSourceStatus !== 'ready_for_agent_controlled_worker_queue_integration') fail('next source status mismatch')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts status mismatch')
 if (record.validation !== 'passed') fail('validation status mismatch')
+if (record.nextMilestone !== nextMilestone) fail('next milestone mismatch')
 if (!Array.isArray(record.artifacts) || record.artifacts.length !== 5) fail('artifact count mismatch')
 for (const [key, value] of Object.entries(record.safety ?? {})) {
   if (value !== false) fail(`safety flag must be false: ${key}`)
 }
 
+const dryRunRecord = json('docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-record.json')
+if (dryRunRecord.decision !== 'completed_gstreamer_mkvtoolnix_agent_execution_bridge_dry_run_envelope_validation') fail('dry-run source decision mismatch')
+if (dryRunRecord.runId !== dryRunId) fail('dry-run source run ID mismatch')
+
 const bridgeRecord = json('docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/gstreamer-mkvtoolnix-agent-execution-bridge-record.json')
 if (bridgeRecord.decision !== 'completed_gstreamer_mkvtoolnix_agent_execution_bridge_ready_for_confirmation_gated_bridge_dry_run') fail('bridge source decision mismatch')
+
+const service = read('server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts')
+for (const text of [
+  'blocked_missing_controlled_dispatch_confirmation',
+  'blocked_bridge_validation_failed',
+  'blocked_controlled_dispatch_idempotency_mismatch',
+  'blocked_runtime_execution_not_enabled',
+  'workerDispatchRequestedNow',
+  'gstreamerExecutionRequestedNow',
+  "queueIntegration: 'pending_next_milestone'",
+  'routeExecution: false',
+  'workerDispatch: false',
+  'gstreamerExecution: false',
+]) {
+  if (!service.includes(text)) fail(`controlled dispatch service missing required text: ${text}`)
+}
+
+const smoke = read('server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-smoke.ts')
+for (const text of [
+  'confirmation_gate_blocks',
+  'invalid_bridge_blocks',
+  'raw_command_bridge_blocks',
+  'dispatch_idempotency_mismatch_blocks',
+  'runtime_dispatch_and_tool_execution_requests_block',
+  'missing_dispatch_refs_block',
+]) {
+  if (!smoke.includes(text)) fail(`smoke missing required assertion summary: ${text}`)
+}
 
 const changedFiles = [
   ...new Set([

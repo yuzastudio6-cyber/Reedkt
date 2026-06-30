@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-import type { PreviewEditCreditEstimateRequest } from '../../src/types'
+import type { CreditReservationRecord, PreviewEditCreditEstimateRequest } from '../../src/types'
 import { loadRuntimeEnv } from '../config/env'
 import { createProviderGatewayService } from '../services/provider-gateway-service'
 import { createRenderService } from '../services/render-service'
@@ -277,7 +277,7 @@ interface RuntimeGuardScenario {
   productEditLevel: 'normal'
   durationSeconds: number
   preview: ReturnType<typeof buildEditCreditEstimatePreview>
-  reservation: NonNullable<ReturnType<typeof reserveMaxEstimateCredits>['reservation']>
+  reservation: CreditReservationRecord
   estimateStore: MockCreditEstimateStore
   reservationStore: MockCreditReservationStore
   creditDataStore: MockCreditDataStore

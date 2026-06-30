@@ -431,7 +431,7 @@ function normalizeUsageInput(
 }
 
 function normalizeInteger(value: number | undefined): number {
-  return Number.isInteger(value) && value > 0 ? value : 0
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : 0
 }
 
 function asJsonObject(value: Record<string, unknown>): JSONObject {

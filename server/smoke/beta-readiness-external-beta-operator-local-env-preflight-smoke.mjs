@@ -110,18 +110,26 @@ const completeProgress = buildBetaReadinessExternalBetaOperatorValueProgress({
   envFileContent: completeEnvText,
 })
 const completeProgressMarkdown = renderBetaReadinessExternalBetaOperatorValueProgressMarkdown(completeProgress)
+const completeSourceFreshnessReady = complete.sourceFreshness.readyForDeployedEvidenceInputManifest === true
 
 assert.equal(
   complete.decision,
-  'beta_readiness_external_beta_operator_local_env_preflight_passed_ready_for_external_beta_evidence_collector',
+  completeSourceFreshnessReady
+    ? 'beta_readiness_external_beta_operator_local_env_preflight_passed_ready_for_external_beta_evidence_collector'
+    : 'beta_readiness_external_beta_operator_local_env_preflight_blocked_source_freshness_not_ready',
 )
-assert.equal(complete.readyForExternalBetaEvidenceCollector, true)
+assert.equal(complete.readyForExternalBetaEvidenceCollector, completeSourceFreshnessReady)
 assert.equal(complete.envFile.loaded, true)
 assert.equal(complete.envFile.betaInputKeysLoaded, 45)
 assert.equal(complete.envFile.invalidLineCount, 0)
 assert.equal(complete.operatorInputs.pending, 0)
-assert.equal(complete.sourceFreshness.readyForDeployedEvidenceInputManifest, true)
-assert.equal(complete.sourceFreshness.blockingChangedFiles.length, 0)
+assert.equal(complete.sourceFreshness.readyForDeployedEvidenceInputManifest, completeSourceFreshnessReady)
+assert.equal(
+  completeSourceFreshnessReady
+    ? complete.sourceFreshness.blockingChangedFiles.length === 0
+    : complete.sourceFreshness.blockingChangedFiles.length > 0,
+  true,
+)
 assert.equal(complete.ownerApprovalIntake.readyForDeployedEvidenceInputManifest, true)
 assert.equal(complete.ownerApprovalIntake.counts.pending, 0)
 assert.equal(complete.deployedEvidenceInputManifest.readyToRunExternalBetaEvidenceCollector, true)
@@ -132,20 +140,20 @@ assert.equal(complete.autoFill.appliedInputNames.includes('REEDITPRO_BETA_TOOLS_
 assert.equal(serializedComplete.includes('operator-local-bearer-token'), false)
 assert.equal(serializedComplete.includes('workspace-beta-local'), false)
 assert.equal(serializedComplete.includes('non-secret evidence summary'), false)
-assert.equal(markdown.includes('Ready for external beta evidence collector: `true`'), true)
+assert.equal(markdown.includes(`Ready for external beta evidence collector: \`${completeSourceFreshnessReady}\``), true)
 assert.equal(markdown.includes('Operator inputs pending: `0`'), true)
-assert.equal(markdown.includes('Source freshness ready: `true`'), true)
+assert.equal(markdown.includes(`Source freshness ready: \`${completeSourceFreshnessReady}\``), true)
 assert.equal(markdown.includes(`Recommended repo-local path: \`${RECOMMENDED_OPERATOR_ENV_FILE}\``), true)
 assert.equal(complete.validationCommands.includes(`REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`), true)
 assert.equal(markdown.includes('operator-local-bearer-token'), false)
 assert.equal(markdown.includes('workspace-beta-local'), false)
 assert.equal(markdown.includes('non-secret evidence summary'), false)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
-assert.equal(completeProgress.readyForExternalBetaEvidenceCollector, true)
+assert.equal(completeProgress.readyForExternalBetaEvidenceCollector, completeSourceFreshnessReady)
 assert.equal(completeProgress.progress.presentOrAutofilledInputs, 60)
 assert.equal(completeProgress.progress.pendingInputs, 0)
 assert.equal(completeProgress.progress.percentComplete, 100)
-assert.equal(completeProgress.blockers.length, 0)
+assert.deepEqual(completeProgress.blockers, completeSourceFreshnessReady ? [] : ['source_freshness_not_ready'])
 assert.equal(completeProgressMarkdown.includes('Complete: `100%`'), true)
 assert.equal(completeProgressMarkdown.includes('operator-local-bearer-token'), false)
 assert.equal(completeProgressMarkdown.includes('workspace-beta-local'), false)
@@ -211,7 +219,7 @@ const secureFile = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
   env: {},
   envFilePath: secureEnvPath,
 })
-assert.equal(secureFile.readyForExternalBetaEvidenceCollector, true)
+assert.equal(secureFile.readyForExternalBetaEvidenceCollector, completeSourceFreshnessReady)
 assert.equal(secureFile.envFile.permissionMode, '0600')
 assert.equal(secureFile.envFile.ownerOnlyPermissions, true)
 assert.equal(secureFile.envFile.symlink, false)

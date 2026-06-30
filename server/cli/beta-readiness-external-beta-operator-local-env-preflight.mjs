@@ -15,6 +15,7 @@ import { buildBetaReadinessSourceFreshnessPreflight } from './beta-readiness-sou
 
 const DECISION_READY = 'beta_readiness_external_beta_operator_local_env_preflight_passed_ready_for_external_beta_evidence_collector'
 const DECISION_BLOCKED = 'beta_readiness_external_beta_operator_local_env_preflight_blocked_missing_or_unsafe_operator_inputs'
+const DECISION_SOURCE_FRESHNESS_BLOCKED = 'beta_readiness_external_beta_operator_local_env_preflight_blocked_source_freshness_not_ready'
 const PROGRESS_DECISION = 'beta_readiness_external_beta_operator_value_progress_passed_redacted_progress_review'
 export const RECOMMENDED_OPERATOR_ENV_FILE = '.env.reeditpro-beta-operator.local'
 
@@ -53,10 +54,19 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     ownerPreflight.readyForDeployedEvidenceInputManifest === true &&
     deployedManifest.readyToRunExternalBetaEvidenceCollector === true &&
     safetyGaps.length === 0
+  const blockedOnlyBySourceFreshness = !readyForExternalBetaEvidenceCollector &&
+    operatorStatus.pendingInputs.length === 0 &&
+    sourceFreshness.readyForDeployedEvidenceInputManifest !== true &&
+    ownerPreflight.readyForDeployedEvidenceInputManifest === true &&
+    deployedManifest.readyToRunExternalBetaEvidenceCollector === true &&
+    safetyGaps.length === 0
+  const decision = readyForExternalBetaEvidenceCollector
+    ? DECISION_READY
+    : (blockedOnlyBySourceFreshness ? DECISION_SOURCE_FRESHNESS_BLOCKED : DECISION_BLOCKED)
 
   return {
     ok: true,
-    decision: readyForExternalBetaEvidenceCollector ? DECISION_READY : DECISION_BLOCKED,
+    decision,
     readyForExternalBetaEvidenceCollector,
     envFile: {
       provided: Boolean(envFilePath || options.envFileContent),
@@ -148,6 +158,8 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     ],
     nextSafeAction: readyForExternalBetaEvidenceCollector
       ? 'Run source freshness, owner approval intake preflight, deployed evidence input manifest, then the external beta evidence collector from an operator shell that contains the same approved values.'
+      : blockedOnlyBySourceFreshness
+        ? 'Redeploy or prove source freshness for the current central source, then rerun this local env preflight before any deployed evidence collector.'
       : 'Fill the listed pending human/operator/owner values in a local ignored env file, rerun this preflight, then run owner approval intake and deployed evidence input manifest before any deployed collector.',
   }
 }

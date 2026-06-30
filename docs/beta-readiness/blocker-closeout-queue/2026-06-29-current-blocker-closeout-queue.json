@@ -121,7 +121,7 @@
         "npm run beta:tools:core-real-check-preview -- --env-template",
         "npm run beta:tools:core-real-check-preview -- --local-defaults",
         "npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults",
-        "npm run beta:tools:local-accepted-evidence-bundle"
+        "npm run beta:tools:local-accepted-evidence-bundle -- --local-defaults"
       ],
       "blockedUntil": [
         "Every registry tool has accepted bounded runtime evidence or an explicit source-truth exclusion; no user media or product runtime proof is implied."

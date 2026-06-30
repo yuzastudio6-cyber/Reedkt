@@ -62,6 +62,43 @@ assert.equal(JSON.stringify(readyReport).includes('gs://'), false, 'bundle summa
 assert.equal(readyReport.duplicateContext.openDuplicatePrsObserved, 0, 'bundle should preserve duplicate-search result')
 assert.deepEqual(readyReport.duplicateContext.historicalContextPrs, [73], 'bundle should preserve historical libass PR context')
 
+const localDefaultsReport = runBetaToolsLocalAcceptedEvidenceBundle({}, createFakeLibassRunner(), {
+  localDefaults: true,
+  sourceSha: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+})
+assert.equal(localDefaultsReport.ok, true, 'local defaults bundle should pass without manual env')
+assert.equal(localDefaultsReport.previewOnly, true, 'local defaults bundle must remain preview-only')
+assert.equal(localDefaultsReport.noBackendEvidenceRecorded, true, 'local defaults bundle must not record backend evidence')
+assert.equal(localDefaultsReport.localDefaultsApplied, true, 'local defaults bundle should report default application')
+assert.ok(
+  localDefaultsReport.localDefaultedInputNames.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_WORKSPACE_ID'),
+  'local defaults should fill the workspace ID',
+)
+assert.equal(
+  localDefaultsReport.coreAcceptedToolIds.some((toolId) => toolId === 'libass'),
+  false,
+  'local defaults should keep libass in the separate QA lane',
+)
+assert.equal(
+  localDefaultsReport.libassPreview.acceptedToolEvidence[0]?.productReadyLocalOss,
+  false,
+  'local defaults must not claim product-ready local OSS for libass',
+)
+assert.equal(
+  localDefaultsReport.corePreview.previewReport?.acceptedToolIds.includes('signalsmith_stretch'),
+  true,
+  'local defaults should include the current 15-tool hydrated core scope',
+)
+assert.equal(
+  localDefaultsReport.readyToRecordDeployedEvidence,
+  true,
+  'local defaults bundle should be ready only for deployed evidence recording',
+)
+assert.ok(
+  localDefaultsReport.remainingGateBlockers.includes('final_operator_status_readback_pending'),
+  'local defaults bundle must preserve final operator readback blocker',
+)
+
 const secretReport = runBetaToolsLocalAcceptedEvidenceBundle({
   ...baseEnv,
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES: 'sk-should-not-be-here',
@@ -78,14 +115,27 @@ console.log(JSON.stringify({
 
 function createFakeLibassRunner(): LibassSyntheticBurninCommandRunner {
   return (command, args) => {
-    const first = command
+    const dockerImageIndex = command === 'docker' ? args.findIndex((arg) => arg.includes('reeditpro-staging-libass-burnin-validation')) : -1
+    const dockerWorkDir = command === 'docker'
+      ? args.find((arg) => arg.endsWith(':/work:rw'))?.replace(':/work:rw', '')
+      : undefined
+    const innerCommand = command === 'docker' && dockerImageIndex >= 0
+      ? args[dockerImageIndex + 1]
+      : command
+    const innerArgs = command === 'docker' && dockerImageIndex >= 0
+      ? args.slice(dockerImageIndex + 2)
+      : args
+    const first = innerCommand
     if (first === 'fc-match') return { stdout: 'sans: DejaVu Sans' }
     if (first === 'ffprobe') return { stdout: '1.000000\n' }
     if (first === 'ffmpeg') {
-      const outputPath = args.at(-1)
+      const rawOutputPath = innerArgs.at(-1)
+      const outputPath = rawOutputPath?.startsWith('/work/') && dockerWorkDir
+        ? path.join(dockerWorkDir, rawOutputPath.slice('/work/'.length))
+        : rawOutputPath
       if (outputPath) {
         mkdirSync(path.dirname(outputPath), { recursive: true })
-        writeFileSync(outputPath, `fake media output for ${args.join(' ')}`)
+        writeFileSync(outputPath, `fake media output for ${innerArgs.join(' ')}`)
       }
       return { stdout: 'ffmpeg fake ok' }
     }

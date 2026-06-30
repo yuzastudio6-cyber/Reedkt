@@ -192,6 +192,102 @@ try {
   assert.deepEqual(polarsResult.workerResult.output.trackBAgentToolRecipeResult.proof.shape, [3, 2])
   assert.equal(polarsResult.workerResult.output.trackBAgentToolRecipeResult.proof.weighted_sum, 120)
 
+  const otioRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-otio-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-otio-rehearsal',
+      agentInvocationId: 'trackb.media_oss.opentimelineio',
+      toolId: 'opentimelineio',
+      action: 'serialize_otio',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-otio-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['timeline_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/opentimelineio/source-reference'],
+    }),
+  }, 202)
+  const otioResult = otioRehearsal.data.trackBAgentToolExecution
+  assert.equal(otioResult.status, 'completed')
+  assert.equal(otioResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(otioResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(otioResult.workerResult.output.mockOnly, false)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.timeline_name, 'synthetic_trackb_timeline')
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.track_count, 1)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.clip_count, 1)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.duration_frames, 48)
+  assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.media_reference_kind, 'MissingReference')
+
+  const ocioRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-ocio-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-ocio-rehearsal',
+      agentInvocationId: 'trackb.media_oss.opencolorio',
+      toolId: 'opencolorio',
+      action: 'validate_color_space',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-ocio-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['color_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/opencolorio/source-reference'],
+    }),
+  }, 202)
+  const ocioResult = ocioRehearsal.data.trackBAgentToolExecution
+  assert.equal(ocioResult.status, 'completed')
+  assert.equal(ocioResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(ocioResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(ocioResult.workerResult.output.mockOnly, false)
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.proof.config_name, 'synthetic_trackb_raw_config')
+  assert.deepEqual(ocioResult.workerResult.output.trackBAgentToolRecipeResult.proof.color_spaces, ['raw'])
+  assert.equal(ocioResult.workerResult.output.trackBAgentToolRecipeResult.proof.processor_created, true)
+  assert.deepEqual(ocioResult.workerResult.output.trackBAgentToolRecipeResult.proof.output_rgba, [0.1, 0.2, 0.3, 1])
+
+  const oiioRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-oiio-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-oiio-rehearsal',
+      agentInvocationId: 'trackb.media_oss.openimageio',
+      toolId: 'openimageio',
+      action: 'read_metadata',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-oiio-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['image_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/openimageio/source-reference'],
+    }),
+  }, 202)
+  const oiioResult = oiioRehearsal.data.trackBAgentToolExecution
+  assert.equal(oiioResult.status, 'completed')
+  assert.equal(oiioResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(oiioResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(oiioResult.workerResult.output.mockOnly, false)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.spec_width, 2)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.spec_height, 2)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.nchannels, 3)
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.format, 'uint8')
+  assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.initialized, true)
+  assert.deepEqual(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.pixel, [1, 1, 0])
+
   const liveBlocked = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-live-blocked' },
@@ -345,7 +441,7 @@ try {
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
-      'http_route_runs_sharp_duckdb_polars_bounded_execution_rehearsals',
+      'http_route_runs_sharp_duckdb_polars_timeline_color_imageio_bounded_execution_rehearsals',
       'http_route_keeps_hyperframe_preview_boundary',
       'http_route_blocks_live_execution_until_deployed_evidence',
       'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',

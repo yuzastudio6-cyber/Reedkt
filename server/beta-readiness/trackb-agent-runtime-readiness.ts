@@ -293,7 +293,8 @@ function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
     toolId === 'audioflux' ||
     toolId === 'signalsmith_stretch' ||
     toolId === 'remotion' ||
-    toolId === 'hyperframe'
+    toolId === 'hyperframe' ||
+    toolId === 'libass'
 }
 
 function normalizeEvidenceCount(value: number | undefined): number | undefined {

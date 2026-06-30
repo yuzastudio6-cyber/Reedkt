@@ -494,6 +494,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'libass':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'synthetic_burnin_bounded_rehearsal')
+      }
       return {
         speechCaptionExecution: {
           mode: 'dry_run',

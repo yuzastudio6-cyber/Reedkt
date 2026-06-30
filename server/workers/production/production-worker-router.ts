@@ -33,8 +33,11 @@ import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
+import { runBetaToolsLibassSyntheticBurninQaPreflight } from '../../cli/beta-tools-libass-synthetic-burnin-qa-preflight'
 
 const requireFromProductionWorkerRouter = createRequire(import.meta.url)
+const DEFAULT_TRACKB_LIBASS_BOUNDED_REHEARSAL_IMAGE =
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   switch (payload.workerType) {
@@ -583,6 +586,9 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
   if (toolId === 'signalsmith_stretch' && routeClass === 'command_shape_bounded_rehearsal') {
     return runSignalsmithStretchCommandShapeBoundedRehearsal(payload, request, action, routeClass, handler)
   }
+  if (toolId === 'libass' && routeClass === 'synthetic_burnin_bounded_rehearsal') {
+    return runLibassSyntheticBurninBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
   if (toolId === 'remotion' && routeClass === 'composition_manifest_bounded_rehearsal') {
     return runRemotionCompositionManifestBoundedRehearsal(payload, request, action, routeClass, handler)
   }
@@ -742,6 +748,14 @@ function resolveTrackBAgentToolRecipeHandler(
   if (toolId === 'signalsmith_stretch' && routeClass === 'command_shape_bounded_rehearsal') {
     return {
       futureHandler: 'cpu_analysis_worker_signalsmith_stretch_command_shape_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'libass' && routeClass === 'synthetic_burnin_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_libass_synthetic_burnin_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -1118,6 +1132,160 @@ function buildBlockedSignalsmithStretchRehearsal(
       notes: [
         'Signalsmith Stretch bounded execution rehearsal failed closed.',
         'No audio input, user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+function runLibassSyntheticBurninBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  const image = stringValue(request.containerImage) ??
+    process.env.REEDITPRO_TRACKB_LIBASS_BOUNDED_REHEARSAL_CONTAINER_IMAGE ??
+    DEFAULT_TRACKB_LIBASS_BOUNDED_REHEARSAL_IMAGE
+  const imageInspection = inspectLocalDockerImage(image)
+  if (!imageInspection.available) {
+    return buildBlockedLibassSyntheticBurninRehearsal(payload, action, routeClass, handler, imageInspection.reason)
+  }
+
+  try {
+    const report = runBetaToolsLibassSyntheticBurninQaPreflight({
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_WORKSPACE_ID: payload.workspaceId,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_PROJECT_ID: payload.projectId,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_SOURCE_ID: `trackb-agent-libass-bounded-rehearsal-${payload.jobId}`,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_SOURCE_SHA: payload.approvedSnapshotId,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_MODE: 'docker',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_CONTAINER_IMAGE: image,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE: 'true',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_REQUIRE_ACCEPTED_EVIDENCE: 'true',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_TIMEOUT_MS: '60000',
+    })
+    if (!report.ok || !report.proof.burninCommandOk || !report.proof.decodeProbeOk || !report.proof.tempRootRemoved) {
+      const blockedReason = report.proof.failureMessage ??
+        ([...report.missingConfiguration, ...report.confirmationGaps, ...report.secretLikeInputPaths].join('; ') ||
+          'Libass synthetic burn-in bounded rehearsal did not produce accepted proof.')
+      return buildBlockedLibassSyntheticBurninRehearsal(
+        payload,
+        action,
+        routeClass,
+        handler,
+        blockedReason,
+      )
+    }
+
+    return {
+      summary: 'Track B agent libass bounded execution rehearsal completed with Docker network-disabled synthetic caption burn-in only; no user media or persistent artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'libass',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: true,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          operation: 'libass_synthetic_caption_burnin_docker_network_none',
+          mode: report.proof.mode,
+          containerImage: image,
+          localImageId: imageInspection.imageId,
+          syntheticOnly: report.proof.syntheticOnly,
+          noNetwork: report.proof.noNetwork,
+          noPrivateOrUserMedia: report.proof.noPrivateOrUserMedia,
+          tempRootRemoved: report.proof.tempRootRemoved,
+          fontDiscoveryOk: report.proof.fontDiscoveryOk,
+          burninCommandOk: report.proof.burninCommandOk,
+          decodeProbeOk: report.proof.decodeProbeOk,
+          inputVideoSizeBytes: report.proof.inputVideo.sizeBytes,
+          captionFileSizeBytes: report.proof.captionFile.sizeBytes,
+          outputVideoSizeBytes: report.proof.outputVideo.sizeBytes,
+          outputVideoSha256: report.proof.outputVideo.checksumSha256,
+          durationSeconds: report.proof.outputVideo.durationSeconds,
+          safeStylePresetAccepted: report.proof.captionFile.safeStylePresetAccepted,
+          commandSteps: report.proof.commandRecords.map((record) => ({
+            step: record.step,
+            exitOk: record.exitOk,
+            command: record.command,
+            networkDisabled: record.args.includes('--network') && record.args.includes('none'),
+          })),
+        },
+        cleanup: {
+          temporaryFilesCreated: 3,
+          temporaryOutputFilesCreated: 1,
+          tempRootRemoved: report.proof.tempRootRemoved,
+          persistentArtifactFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses only generated synthetic video/caption inputs in an approved local Docker image with --network none; it does not read user media, retain artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    return buildBlockedLibassSyntheticBurninRehearsal(
+      payload,
+      action,
+      routeClass,
+      handler,
+      error instanceof Error ? error.message : 'Unknown libass synthetic burn-in bounded rehearsal error.',
+    )
+  }
+}
+
+function buildBlockedLibassSyntheticBurninRehearsal(
+  payload: ProductionWorkerJobPayload,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: 'Track B agent libass bounded execution rehearsal was blocked before proof completion.',
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId: 'libass',
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      syntheticMediaProcessing: true,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        'libass bounded execution rehearsal failed closed.',
+        'No user media, persistent artifact file, Supabase/GCS write, beta, or production scope was attempted.',
       ],
     },
   }
@@ -1719,6 +1887,24 @@ function runSignalsmithStretchCommand(command: string, args: string[]): string {
     throw new Error(`Signalsmith Stretch ${args.join(' ')} failed with exit code ${result.status ?? 'unknown'}: ${cleanToolProcessDetail(output)}`)
   }
   return output
+}
+
+function inspectLocalDockerImage(image: string): { available: true; imageId: string } | { available: false; reason: string } {
+  try {
+    const imageId = firstOutputLine(execFileSync('docker', ['image', 'inspect', image, '--format', '{{.Id}}'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+      maxBuffer: 1024 * 32,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    return imageId ? { available: true, imageId } : { available: false, reason: `Docker image inspect returned no image ID for ${image}.` }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return {
+      available: false,
+      reason: cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || `Docker image is not available locally: ${image}.`,
+    }
+  }
 }
 
 function resolveBoundedRehearsalPython(): string | undefined {

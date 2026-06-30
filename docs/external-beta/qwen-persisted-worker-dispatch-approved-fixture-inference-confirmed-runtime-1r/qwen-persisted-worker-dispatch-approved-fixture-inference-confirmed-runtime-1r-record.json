@@ -1,0 +1,110 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-PERSISTED-WORKER-DISPATCH-APPROVED-FIXTURE-INFERENCE-CONFIRMED-RUNTIME-1R",
+  "decision": "completed_qwen_persisted_worker_dispatch_approved_fixture_inference_runtime",
+  "execution": "completed_single_bounded_qwen_persisted_worker_dispatch_approved_fixture_inference_runtime",
+  "integrationBase": "436bcbe644f3909c3b84c596defe9906c0e410d8",
+  "sourceChain": {
+    "sourceBridgePr": 1819,
+    "sourceBridgeMergeSha": "436bcbe644f3909c3b84c596defe9906c0e410d8",
+    "confirmedRuntimeClosurePr": 1815,
+    "approvedFixtureInferenceApprovalPr": 1810,
+    "approvedFixtureRunId": "qwen25-approved-snapshot-job-orchestration-runtime-fixture-1-2026-06-28T07-37-02-997Z-a0b72404",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "target": {
+    "tester": "aiediting@reeditpro.com",
+    "googleCloudProject": "reeditpro",
+    "region": "us-central1",
+    "supabaseProjectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "runtime": {
+    "runId": "2026-06-30T12-18-28-184Z-535a64dd",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/2026-06-30T12-18-28-184Z-535a64dd",
+    "confirmationGate": "REEDITPRO_CONFIRM_QWEN_PERSISTED_WORKER_DISPATCH_APPROVED_FIXTURE_INFERENCE=true",
+    "qwenRuntimeRunId": "qwen25-product-route-provider-runtime-fixture-1r-2026-06-30T12-18-33-730Z-5ef93fc7",
+    "qwenColdStartRetryRunId": "qwen25-product-route-provider-runtime-fixture-cold-start-retry-1-2026-06-30T12-18-33-675Z-bc9b7142",
+    "adapterRunId": "qwen25-adapter-runtime-fixture-2026-06-30T12-18-34-273Z-a2a720f0",
+    "cloudRunExecution": "reeditpro-qwen2-5-vl-private-caller-l57qt",
+    "httpStatus": 200,
+    "serviceReason": "qwen_fixture_inference_smoke_completed",
+    "structuredMetadataAccepted": true,
+    "schemaValid": true,
+    "objectCount": 3,
+    "textLikeRegionCount": 1,
+    "failClosedRestorePassed": true
+  },
+  "artifacts": [
+    {
+      "fileName": "qwen-persisted-dispatch-approved-fixture-inference-confirmed-runtime-1r-report.json",
+      "bytes": 8380,
+      "sha256": "6324d7ebef52a802d351e1151b21d74a7a773a587de716c6917293043ef39266"
+    },
+    {
+      "fileName": "qwen-persisted-dispatch-approved-fixture-inference-confirmed-runtime-1r-manifest.json",
+      "bytes": 613,
+      "sha256": "6e8d1e2ce072fcd2b01ba2894b8694a6cf7f8ae3e31b9e0b34279b20a5aef202"
+    },
+    {
+      "fileName": "qwen-persisted-dispatch-approved-fixture-inference-confirmed-runtime-1r-checksums.json",
+      "bytes": 836,
+      "sha256": "ceb124cb6909a60d8ae0bcdab8631762f440edad8294679d71d91536cc380b64"
+    }
+  ],
+  "safety": {
+    "localGcloudConfigRead": true,
+    "userAccessTokenProbe": true,
+    "adcAccessTokenProbe": true,
+    "cloudRunServiceMetadataReadback": true,
+    "sourceBridgeValidated": true,
+    "routeInvocation": false,
+    "qwenProviderCall": true,
+    "modelCall": true,
+    "qwenInference": true,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "cloudRunJobExecution": true,
+    "cloudRunServiceUpdate": true,
+    "cloudRunDeployment": false,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditMutation": false,
+    "stripePaymentProcessing": false,
+    "browserCapture": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "tokenTempFileDeleted": true,
+    "generatedArtifactCommitted": false
+  },
+  "stillBlocked": {
+    "arbitraryUserMedia": true,
+    "publicArtifacts": true,
+    "signedUrlSourceOfTruth": true,
+    "creditSpendOrPersistentCreditMutation": true,
+    "broadExternalBetaAudience": true,
+    "paidProduction": true,
+    "production": true,
+    "finalDeliveryExport": true
+  },
+  "readiness": {
+    "qwenApprovedFixtureInferenceRuntime": "passed",
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-SINGLE-TESTER-PRODUCT-FLOW-QA-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

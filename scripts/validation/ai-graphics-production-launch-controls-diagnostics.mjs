@@ -194,6 +194,8 @@ const allowedPackageAdditions = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',
   '+    "ai-graphics:production-launch-go-no-go:diagnostics": "node scripts/validation/ai-graphics-production-launch-go-no-go-diagnostics.mjs",',
+  '+    "ai-graphics:production-traffic-cutover": "tsx server/cli/ai-graphics-production-traffic-cutover.ts",',
+  '+    "ai-graphics:production-traffic-cutover:diagnostics": "node scripts/validation/ai-graphics-production-traffic-cutover-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (

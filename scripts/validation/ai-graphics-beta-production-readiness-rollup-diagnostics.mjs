@@ -1040,6 +1040,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:production-launch-controls:diagnostics": "node scripts/validation/ai-graphics-production-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',
   '+    "ai-graphics:production-launch-go-no-go:diagnostics": "node scripts/validation/ai-graphics-production-launch-go-no-go-diagnostics.mjs",',
+  '+    "ai-graphics:production-traffic-cutover": "tsx server/cli/ai-graphics-production-traffic-cutover.ts",',
+  '+    "ai-graphics:production-traffic-cutover:diagnostics": "node scripts/validation/ai-graphics-production-traffic-cutover-diagnostics.mjs",',
   '+    "ai-graphics:production-launch-readiness-gap": "tsx server/cli/ai-graphics-production-launch-readiness-gap.ts",',
   '+    "ai-graphics:production-launch-readiness-gap:diagnostics": "node scripts/validation/ai-graphics-production-launch-readiness-gap-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission": "tsx server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts",',

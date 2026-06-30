@@ -2,19 +2,22 @@ import childProcess from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 
-const decision = 'ai_graphics_production_launch_go_no_go_approved_with_runtime_blocks'
-const acceptedStatus = 'production_launch_go_no_go_approved_pending_traffic_cutover'
-const runScriptName = 'ai-graphics:production-launch-go-no-go'
-const runScriptCommand = 'tsx server/cli/ai-graphics-production-launch-go-no-go.ts'
-const diagnosticScriptName = 'ai-graphics:production-launch-go-no-go:diagnostics'
+const decision = 'ai_graphics_production_traffic_cutover_approved_controlled_tool_call_ready'
+const acceptedStatus = 'production_traffic_cutover_approved_controlled_tool_call_ready'
+const runScriptName = 'ai-graphics:production-traffic-cutover'
+const runScriptCommand = 'tsx server/cli/ai-graphics-production-traffic-cutover.ts'
+const diagnosticScriptName = 'ai-graphics:production-traffic-cutover:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-production-launch-go-no-go-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-production-traffic-cutover-diagnostics.mjs'
 const controlsScriptName = 'ai-graphics:production-launch-controls'
+const goNoGoScriptName = 'ai-graphics:production-launch-go-no-go'
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-production-launch-go-no-go.ts',
-  'server/cli/ai-graphics-production-launch-go-no-go.ts',
-  'scripts/validation/ai-graphics-production-launch-go-no-go-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-production-traffic-cutover.ts',
+  'server/cli/ai-graphics-production-traffic-cutover.ts',
+  'scripts/validation/ai-graphics-production-traffic-cutover-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/production-traffic-cutover.json',
+  'docs/tool-intelligence/ai-graphics/production-traffic-cutover.md',
   'docs/tool-intelligence/ai-graphics/production-launch-go-no-go.json',
   'docs/tool-intelligence/ai-graphics/production-launch-go-no-go.md',
   'docs/tool-intelligence/ai-graphics/production-launch-controls.json',
@@ -78,37 +81,73 @@ const privateGoNoGoArgs = [
   'AI_GRAPHICS_PRODUCTION_LAUNCH_OWNER',
 ]
 
+const privateCutoverArgs = [
+  '--production-traffic-switch-approval-ref',
+  'private://ai-graphics/production/traffic-switch-approval',
+  '--production-route-readiness-ref',
+  'backend://ai-graphics/production/route-readiness',
+  '--production-worker-readiness-ref',
+  'production-evidence://ai-graphics/production/worker-readiness',
+  '--production-private-artifact-store-ref',
+  'private://ai-graphics/production/private-artifact-store',
+  '--production-monitoring-live-dashboard-ref',
+  'backend://ai-graphics/production/monitoring-live-dashboard',
+  '--production-rollback-drill-ref',
+  'production-evidence://ai-graphics/production/rollback-drill',
+  '--production-canary-cohort-active-ref',
+  'private://ai-graphics/production/canary-cohort-active',
+  '--production-support-on-call-active-ref',
+  'backend://ai-graphics/production/support-on-call-active',
+  '--production-cost-guardrail-live-ref',
+  'production-evidence://ai-graphics/production/cost-guardrail-live',
+  '--production-privacy-retention-live-ref',
+  'private://ai-graphics/production/privacy-retention-live',
+  '--production-post-cutover-review-owner-ref',
+  'backend://ai-graphics/production/post-cutover-review-owner',
+  '--production-launch-approver-role',
+  'AI_GRAPHICS_PRODUCTION_LAUNCH_OWNER',
+]
+
 const trueAcceptedKeys = [
-  'productionLaunchGoNoGoPrepared',
-  'sourceProductionLaunchControlsAccepted',
-  'productionGoNoGoControlsAccepted',
-  'productionLaunchGoNoGoApprovedWithProvidedEvidence',
+  'productionTrafficCutoverPrepared',
+  'sourceProductionLaunchGoNoGoAccepted',
+  'productionTrafficCutoverControlsAccepted',
+  'productionTrafficCutoverApprovedWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
+  'productionControlledToolCallReadyNow',
+  'runtimeReadyForOnDemandProductionToolCall',
+  'productionRouteReadyNow',
+  'productionWorkerPathReadyNow',
+  'productionPrivateArtifactStoreReadyNow',
+  'productionMonitoringReadyNow',
+  'productionRollbackReadyNow',
+  'gpuRuntimeApprovedForAcceptedProductionJobs',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'agentCanSelectForPlanning',
+  'productionTrafficCutoverApprovedNow',
+  'productionTrafficEnabledNow',
+  'runtimeReadyNow',
   'externalBetaReadyNow',
+  'productionReadyNow',
 ]
 
 const falseKeysAlways = [
   'agentCanExecuteToolsNow',
+  'directAgentToolExecutionApprovedNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
   'productionWorkerDispatchApprovedNow',
-  'productionTrafficCutoverApprovedNow',
-  'productionTrafficEnabledNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
   'gpuRuntimeShouldStartNow',
-  'runtimeReadyNow',
   'internalBetaReadyNow',
-  'productionReadyNow',
   'dependencyInstallPerformed',
   'packageLockMutationPerformed',
   'toolExecutionPerformed',
@@ -181,23 +220,26 @@ function assertFalseKeys(record, label) {
 function assertAccepted(record, label) {
   if (record.decision !== decision) fail(`${label}_decision:${record.decision}`)
   if (record.status !== acceptedStatus) fail(`${label}_status:${record.status}`)
-  if (record.sourceProductionLaunchControlsAccepted !== true) {
-    fail(`${label}_source_controls_not_true`)
+  if (record.sourceProductionLaunchGoNoGoAccepted !== true) {
+    fail(`${label}_source_go_no_go_not_true`)
   }
-  if (record.productionGoNoGoControlsAccepted !== true) {
-    fail(`${label}_go_no_go_controls_not_true`)
+  if (record.productionTrafficCutoverControlsAccepted !== true) {
+    fail(`${label}_cutover_controls_not_true`)
   }
   if (record.rejectionReasons?.length !== 0) fail(`${label}_rejections_not_empty`)
   if (record.totalAiGraphicsTools !== 21) fail(`${label}_tools_not_21`)
   if (record.totalProductFacingCapabilities !== 12) fail(`${label}_caps_not_12`)
   if (record.gpuRuntimeTargetedTools !== 8) fail(`${label}_gpu_not_8`)
-  if (record.productionLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
-    fail(`${label}_approved_tools_not_21`)
+  if (record.productionTrafficCutoverApprovedToolsWithProvidedEvidence !== 21) {
+    fail(`${label}_cutover_tools_not_21`)
   }
-  if (record.productionTrafficCutoverApprovedNowTools !== 0) {
-    fail(`${label}_traffic_cutover_tools_not_0`)
+  if (record.productionControlledToolCallReadyNowTools !== 21) {
+    fail(`${label}_controlled_tool_call_tools_not_21`)
   }
-  if (record.productionReadyNowTools !== 0) fail(`${label}_production_tools_not_0`)
+  if (record.runtimeReadyForOnDemandProductionToolCallTools !== 21) {
+    fail(`${label}_runtime_ready_tools_not_21`)
+  }
+  if (record.productionReadyNowTools !== 21) fail(`${label}_production_tools_not_21`)
   if (record.gpuRuntimeShouldStartNow !== false) fail(`${label}_gpu_should_start_not_false`)
   for (const key of trueAcceptedKeys) {
     if (record.booleans?.[key] !== true) fail(`${label}_true_key_not_true:${key}`)
@@ -219,8 +261,6 @@ const packageDiff = git(['diff', '--unified=0', '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:production-traffic-cutover": "tsx server/cli/ai-graphics-production-traffic-cutover.ts",',
-  '+    "ai-graphics:production-traffic-cutover:diagnostics": "node scripts/validation/ai-graphics-production-traffic-cutover-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (
@@ -238,139 +278,140 @@ if (git(['diff', '--', 'package-lock.json']).trim().length > 0) {
 }
 
 const indexTs = read('server/tool-registry/index.ts')
-if (!indexTs.includes("export * from './ai-graphics-production-launch-go-no-go'")) {
+if (!indexTs.includes("export * from './ai-graphics-production-traffic-cutover'")) {
   fail('missing_registry_export')
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/production-launch-go-no-go.json')
+const docs = json('docs/tool-intelligence/ai-graphics/production-traffic-cutover.json')
 if (docs.decision !== decision) fail('docs_decision_mismatch')
-if (docs.status !== 'production_launch_go_no_go_contract_prepared') {
+if (docs.status !== 'production_traffic_cutover_contract_prepared') {
   fail(`docs_status:${docs.status}`)
 }
 if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_tools_not_21')
 if (docs.counts?.totalProductFacingCapabilities !== 12) fail('docs_caps_not_12')
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_not_8')
-if (docs.counts?.requiredGoNoGoRefs !== 9) fail('docs_required_refs_not_9')
-if (docs.counts?.acceptedFixtureApprovedGoNoGoRefs !== 9) {
-  fail('docs_accepted_refs_not_9')
+if (docs.counts?.requiredCutoverRefs !== 11) fail('docs_required_refs_not_11')
+if (docs.counts?.acceptedFixtureApprovedCutoverRefs !== 11) {
+  fail('docs_accepted_refs_not_11')
 }
-if (docs.counts?.productionLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 21) {
-  fail('docs_approved_tools_not_21')
-}
-if (docs.counts?.productionTrafficCutoverApprovedNowTools !== 0) {
-  fail('docs_cutover_tools_not_0')
-}
-if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_tools_not_0')
-if (docs.policy?.privateEvidenceRefsOnly !== true) fail('docs_private_refs_not_true')
-if (docs.policy?.approvesProductionTrafficCutoverNow !== false) {
-  fail('docs_cutover_not_false')
-}
-for (const key of [
-  'productionLaunchGoNoGoPrepared',
-  'sourceProductionLaunchControlsAcceptedWithProvidedEvidence',
-  'productionGoNoGoControlsAcceptedWithProvidedEvidence',
-  'productionLaunchGoNoGoApprovedWithProvidedEvidence',
-  'all21ToolsCovered',
-  'all12CapabilitiesCovered',
-  'all8GpuToolsTargetGpuRuntime',
-  'gpuRuntimeOnDemandOnly',
-  'agentCanSelectForPlanning',
-  'externalBetaReadyNow',
+for (const [key, expected] of [
+  ['productionTrafficCutoverApprovedToolsWithProvidedEvidence', 21],
+  ['productionControlledToolCallReadyNowTools', 21],
+  ['runtimeReadyForOnDemandProductionToolCallTools', 21],
+  ['productionReadyNowTools', 21],
 ]) {
+  if (docs.counts?.[key] !== expected) fail(`docs_count_${key}_${docs.counts?.[key]}`)
+}
+if (docs.policy?.privateEvidenceRefsOnly !== true) fail('docs_private_refs_not_true')
+if (docs.policy?.approvesControlledProductionToolCallReadiness !== true) {
+  fail('docs_controlled_tool_call_not_true')
+}
+if (docs.policy?.executionPerformedByThisGate !== false) {
+  fail('docs_execution_performed_not_false')
+}
+if (docs.policy?.gpuRuntimeApprovedForAcceptedProductionJobs !== true) {
+  fail('docs_gpu_for_jobs_not_true')
+}
+for (const key of trueAcceptedKeys) {
   if (docs.booleans?.[key] !== true) fail(`docs_true_key_not_true:${key}`)
 }
 for (const key of falseKeysAlways) {
   if (docs.booleans?.[key] !== false) fail(`docs_false_key_not_false:${key}`)
 }
 
-const markdown = read('docs/tool-intelligence/ai-graphics/production-launch-go-no-go.md')
+const markdown = read('docs/tool-intelligence/ai-graphics/production-traffic-cutover.md')
 for (const phrase of [
-  'Production go/no-go approved tools with provided evidence: 21',
-  'Production traffic cutover approved now: 0 tools',
-  'Production ready now: 0 tools',
+  'Production controlled tool-call ready tools: 21',
+  'Runtime ready for on-demand production tool calls: 21',
+  'Production-ready tools reported by this packet: 21',
+  'Direct agent tool execution approved now: false',
   'GPU runtime should start now: false',
-  'Agent can execute tools now: false',
-  'The next gate is explicit production traffic cutover',
+  'GPU runtime is',
+  'approved only for accepted production worker jobs',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing:${phrase}`)
 }
 
 const defaultReport = runNpm(runScriptName)
-if (defaultReport.status !== 'missing_production_launch_controls') {
+if (defaultReport.status !== 'missing_production_launch_go_no_go') {
   fail(`default_status:${defaultReport.status}`)
 }
-if (defaultReport.productionLaunchGoNoGoApprovedToolsWithProvidedEvidence !== 0) {
-  fail('default_approved_tools_not_0')
+if (defaultReport.productionControlledToolCallReadyNowTools !== 0) {
+  fail('default_tool_call_ready_not_0')
 }
 assertFalseKeys(defaultReport, 'default')
 
 const rejectedSourceReport = runNpm(runScriptName, [
-  '--production-launch-controls-packet',
-  'docs/tool-intelligence/ai-graphics/production-launch-controls.json',
+  '--production-launch-go-no-go-packet',
+  'docs/tool-intelligence/ai-graphics/production-launch-go-no-go.json',
 ])
-if (rejectedSourceReport.status !== 'production_launch_controls_rejected') {
+if (rejectedSourceReport.status !== 'production_launch_go_no_go_rejected') {
   fail(`rejected_source_status:${rejectedSourceReport.status}`)
 }
 assertFalseKeys(rejectedSourceReport, 'rejected_source')
 
+const tempDir = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-cutover-`)
 const controlsPacket = runNpm(controlsScriptName, privateControlsArgs)
-const tempDir = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-go-no-go-`)
 const controlsPacketPath = `${tempDir}/production-controls.json`
 fs.writeFileSync(controlsPacketPath, JSON.stringify(controlsPacket, null, 2))
-
-const missingGoNoGoReport = runNpm(runScriptName, [
-  '--production-launch-controls-packet',
-  controlsPacketPath,
-])
-if (missingGoNoGoReport.status !== 'missing_production_go_no_go_controls') {
-  fail(`missing_go_no_go_status:${missingGoNoGoReport.status}`)
-}
-if (missingGoNoGoReport.sourceProductionLaunchControlsAccepted !== true) {
-  fail('missing_go_no_go_source_controls_not_true')
-}
-assertFalseKeys(missingGoNoGoReport, 'missing_go_no_go')
-
-const acceptedReport = runNpm(runScriptName, [
+const goNoGoPacket = runNpm(goNoGoScriptName, [
   '--production-launch-controls-packet',
   controlsPacketPath,
   ...privateGoNoGoArgs,
 ])
+const goNoGoPacketPath = `${tempDir}/production-go-no-go.json`
+fs.writeFileSync(goNoGoPacketPath, JSON.stringify(goNoGoPacket, null, 2))
+
+const missingCutoverReport = runNpm(runScriptName, [
+  '--production-launch-go-no-go-packet',
+  goNoGoPacketPath,
+])
+if (missingCutoverReport.status !== 'missing_production_traffic_cutover_controls') {
+  fail(`missing_cutover_status:${missingCutoverReport.status}`)
+}
+if (missingCutoverReport.sourceProductionLaunchGoNoGoAccepted !== true) {
+  fail('missing_cutover_source_go_no_go_not_true')
+}
+assertFalseKeys(missingCutoverReport, 'missing_cutover')
+
+const acceptedReport = runNpm(runScriptName, [
+  '--production-launch-go-no-go-packet',
+  goNoGoPacketPath,
+  ...privateCutoverArgs,
+])
 assertAccepted(acceptedReport, 'accepted')
 
-const publicRefArgs = [...privateGoNoGoArgs]
+const publicRefArgs = [...privateCutoverArgs]
 publicRefArgs[1] = 'https://example.com/signed-url/public-artifact'
 const publicRefReport = runNpm(runScriptName, [
-  '--production-launch-controls-packet',
-  controlsPacketPath,
+  '--production-launch-go-no-go-packet',
+  goNoGoPacketPath,
   ...publicRefArgs,
 ])
 fs.rmSync(tempDir, { recursive: true, force: true })
-if (publicRefReport.status !== 'missing_production_go_no_go_controls') {
+if (publicRefReport.status !== 'missing_production_traffic_cutover_controls') {
   fail(`public_ref_status:${publicRefReport.status}`)
 }
-if (publicRefReport.productionGoNoGoControlsAccepted !== false) {
+if (publicRefReport.productionTrafficCutoverControlsAccepted !== false) {
   fail('public_ref_controls_not_false')
 }
-if (!publicRefReport.rejectionReasons?.some((entry) => entry.includes('productionFinalGoNoGoApprovalRef'))) {
-  fail('public_ref_missing_final_go_no_go_reason')
+if (!publicRefReport.rejectionReasons?.some((entry) => entry.includes('productionTrafficSwitchApprovalRef'))) {
+  fail('public_ref_missing_traffic_switch_reason')
 }
 assertFalseKeys(publicRefReport, 'public_ref')
 
 const forbiddenPatterns = [
   /agentCanExecuteToolsNow["`:\s]+true/i,
+  /directAgentToolExecutionApprovedNow["`:\s]+true/i,
   /routeExecutionApprovedNow["`:\s]+true/i,
   /workerExecutionApprovedNow["`:\s]+true/i,
   /workerQueueApprovedNow["`:\s]+true/i,
   /productionWorkerDispatchApprovedNow["`:\s]+true/i,
-  /productionTrafficCutoverApprovedNow["`:\s]+true/i,
-  /productionTrafficEnabledNow["`:\s]+true/i,
   /toolExecutionApprovedNow["`:\s]+true/i,
   /providerRuntimeApprovedNow["`:\s]+true/i,
   /browserWebglCanvasRuntimeApprovedNow["`:\s]+true/i,
   /gpuRuntimeApprovedNow["`:\s]+true/i,
   /gpuRuntimeShouldStartNow["`:\s]+true/i,
-  /runtimeReadyNow["`:\s]+true/i,
-  /productionReadyNow["`:\s]+true/i,
   /toolExecutionPerformed["`:\s]+true/i,
   /workerExecutionPerformed["`:\s]+true/i,
   /routeExecutionPerformed["`:\s]+true/i,
@@ -415,13 +456,15 @@ console.log(JSON.stringify({
   decision,
   defaultStatus: defaultReport.status,
   rejectedSourceStatus: rejectedSourceReport.status,
-  missingGoNoGoStatus: missingGoNoGoReport.status,
+  missingCutoverStatus: missingCutoverReport.status,
   acceptedStatus: acceptedReport.status,
   publicRefStatus: publicRefReport.status,
-  productionLaunchGoNoGoApprovedToolsWithProvidedEvidence:
-    acceptedReport.productionLaunchGoNoGoApprovedToolsWithProvidedEvidence,
-  productionTrafficCutoverApprovedNow:
-    acceptedReport.booleans.productionTrafficCutoverApprovedNow,
-  productionReadyNow: acceptedReport.booleans.productionReadyNow,
-  gpuRuntimeShouldStartNow: acceptedReport.booleans.gpuRuntimeShouldStartNow,
+  productionControlledToolCallReadyNowTools:
+    acceptedReport.productionControlledToolCallReadyNowTools,
+  runtimeReadyForOnDemandProductionToolCallTools:
+    acceptedReport.runtimeReadyForOnDemandProductionToolCallTools,
+  productionReadyNowTools: acceptedReport.productionReadyNowTools,
+  gpuRuntimeShouldStartNow: acceptedReport.gpuRuntimeShouldStartNow,
+  agentCanExecuteToolsNow: acceptedReport.booleans.agentCanExecuteToolsNow,
+  toolExecutionPerformed: acceptedReport.booleans.toolExecutionPerformed,
 }, null, 2))

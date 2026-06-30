@@ -1576,6 +1576,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted production controls and nine private/backend go/no-go refs, it approves production go/no-go metadata for all 21 tools while keeping traffic cutover as the next gate.
 - Runtime/beta/production: no production unlock; this packet does not enable traffic, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or mark production ready. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.
 
+## AI Graphics Production Traffic Cutover
+
+- Decision: `ai_graphics_production_traffic_cutover_approved_controlled_tool_call_ready`.
+- Scope: controlled production tool-call readiness gate after accepted production go/no-go, with private/backend refs for traffic switch approval, production route readiness, production worker readiness, private artifact store, monitoring, rollback drill, canary cohort, support/on-call, cost guardrails, privacy/retention, and post-cutover review ownership.
+- Result: with accepted go/no-go and 11 private/backend cutover refs, it reports 21 tools ready for controlled production tool calls through the route/worker path. Direct agent execution remains blocked; GPU runtime is approved only for accepted production worker jobs and should not start until a job calls a GPU/model tool.
+- Runtime/beta/production: controlled production tool-call readiness is available through the approved route/worker boundary. This packet does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, or create public artifacts. `agentCanExecuteToolsNow=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.

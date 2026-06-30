@@ -35,7 +35,21 @@ const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-enqueue-implementation-1/gstreamer-mkvtoolnix-guarded-worker-enqueue-implementation-record.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const followOnBridgeDryRunFiles = [
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/dry-run-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/request-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-record.json',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...followOnBridgeDryRunFiles])
 
 const requiredText = [
   packet,

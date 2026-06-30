@@ -1,0 +1,100 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-DRY-RUN-1",
+  "decision": "completed_gstreamer_mkvtoolnix_agent_execution_bridge_dry_run_envelope_validation",
+  "execution": "completed_confirmation_gated_agent_execution_bridge_dry_run_no_route_worker_dispatch_or_tool_execution",
+  "integrationBase": "4effa512450664c648db9cf9e95b0653de41e96d",
+  "runId": "2026-06-30T18-13-47-512Z-1707fbec",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/2026-06-30T18-13-47-512Z-1707fbec",
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_AGENT_EXECUTION_BRIDGE_DRY_RUN=true",
+    "observed": "present_true"
+  },
+  "sourceChain": {
+    "agentExecutionBridgePr": 1887,
+    "agentExecutionBridgeMergeSha": "4effa512450664c648db9cf9e95b0653de41e96d",
+    "agentExecutionBridgeDecision": "completed_gstreamer_mkvtoolnix_agent_execution_bridge_ready_for_confirmation_gated_bridge_dry_run",
+    "runtimeExecutionImplementationPr": 1882,
+    "runtimeExecutionImplementationMergeSha": "4dec43f1edce87531eee61a7704b58545afd50b9",
+    "runtimeExecutionRunId": "2026-06-30T16-19-10-513Z-a91246d2",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "bridgeDryRun": {
+    "status": "completed_agent_execution_bridge_dry_run_envelope_validation",
+    "bridgeStatus": "ready_for_confirmation_gated_agent_execution_bridge_dry_run",
+    "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_AGENT_EXECUTION_BRIDGE_DRY_RUN=true",
+    "directRuntimeExecutionInThisBridge": false,
+    "confirmationRequiredForFutureDispatch": true,
+    "routeExecution": "not_run_bridge_dry_run_envelope_validation_only",
+    "workerDispatch": "not_run_bridge_dry_run_envelope_validation_only",
+    "workerExecution": "not_run_bridge_dry_run_envelope_validation_only",
+    "toolExecution": "not_run_bridge_dry_run_envelope_validation_only",
+    "nextSourceStatus": "ready_for_confirmation_gated_agent_execution_bridge_dry_run",
+    "priorBridgeNextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-DRY-RUN-1"
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-report.json",
+      "bytes": 4021,
+      "sha256": "9c2b3bb387022b6c225b52b20f4dbc7307ef156244d9638ad9b0cd5e8217cf0e"
+    },
+    {
+      "fileName": "request-envelope.json",
+      "bytes": 2885,
+      "sha256": "30696177ca97bb9d7cc959e516b1a2d28804ab778cbb8a2894a6e2945ade3aeb"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 231,
+      "sha256": "6a04b03d54a6eb1e0f2df6a2a11314f9502bd2c086a496dfbc7c1900ae27728d"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 784,
+      "sha256": "42b665c1c6aab924fa8fcf950e2381d5a93acf31ebcbd2fcf8ae1fdb526746e9"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-manifest.json",
+      "bytes": 1190,
+      "sha256": "3690f29496dc41f350dbafb26c1012ddebc39dbc5b583de462f286710663828d"
+    }
+  ],
+  "readiness": {
+    "gstreamer": "ready_for_confirmation_gated_agent_execution_bridge_controlled_dispatch",
+    "mkvtoolnix": "ready_for_confirmation_gated_agent_execution_bridge_controlled_dispatch",
+    "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-CONTROLLED-DISPATCH-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gstreamerExecutionInThisDryRun": false,
+    "mkvtoolnixExecutionInThisDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "dockerPushDeploy": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "providerCall": false,
+    "modelCall": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false,
+    "dependencyMutation": false
+  },
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-CONTROLLED-DISPATCH-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed"
+}

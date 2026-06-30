@@ -2,74 +2,55 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-QWEN-PROVIDER-RUNTIME-FIXTURE-CURRENT-1'
-const packetDir = 'docs/external-beta/qwen-provider-runtime-fixture-current-1'
-const decision = 'blocked_native_staging_api_missing_verified_user_context_for_backend_handoff'
-const execution = 'completed_native_staging_api_backend_handoff_selection_no_provider_execution'
-const nextMilestone = 'RP-EXTERNAL-BETA-QWEN-NATIVE-API-AUTH-CONTEXT-BRIDGE-1'
+const packet = 'RP-EXTERNAL-BETA-QWEN-NATIVE-API-AUTH-CONTEXT-BRIDGE-1'
+const packetDir = 'docs/external-beta/qwen-native-api-auth-context-bridge-1'
+const decision = 'completed_qwen_native_api_auth_context_bridge_ready_for_confirmed_route_handoff_runtime_fixture'
+const execution = 'completed_verified_native_api_auth_context_source_bridge_no_provider_execution'
+const sourceBase = 'c334097c061b05b9413b131883871f5c4f5fd649'
+const nextMilestone = 'RP-EXTERNAL-BETA-QWEN-PROVIDER-RUNTIME-FIXTURE-CURRENT-1-CONFIRMED-RUN'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const requiredFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/route-handoff-bridge.md`,
+  `${packetDir}/auth-context-bridge.md`,
   `${packetDir}/runtime-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/qwen-provider-runtime-fixture-current-1-record.json`,
-  'docs/activation-phase-rp-external-beta-qwen-provider-runtime-fixture-current-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-qwen-provider-runtime-fixture-current-1-confirmed-run.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-qwen-native-api-auth-context-bridge-1.md',
+  `${packetDir}/qwen-native-api-auth-context-bridge-1-record.json`,
+  'docs/activation-phase-rp-external-beta-qwen-native-api-auth-context-bridge-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-provider-runtime-fixture-current-1-confirmed-after-auth-bridge.md',
   'src/server/server-router.ts',
   'server/smoke/rp-external-beta-qwen-provider-runtime-fixture-current-1-smoke.ts',
   'scripts/validation/rp-external-beta-qwen-provider-runtime-fixture-current-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-native-api-auth-context-bridge-1-diagnostics.mjs',
   'package.json',
 ]
 
-const authBridgeFiles = [
-  'docs/external-beta/qwen-native-api-auth-context-bridge-1/source-audit.md',
-  'docs/external-beta/qwen-native-api-auth-context-bridge-1/auth-context-bridge.md',
-  'docs/external-beta/qwen-native-api-auth-context-bridge-1/runtime-boundary.md',
-  'docs/external-beta/qwen-native-api-auth-context-bridge-1/validation-results.md',
-  'docs/external-beta/qwen-native-api-auth-context-bridge-1/qwen-native-api-auth-context-bridge-1-record.json',
-  'docs/activation-phase-rp-external-beta-qwen-native-api-auth-context-bridge-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-qwen-provider-runtime-fixture-current-1-confirmed-after-auth-bridge.md',
-  'scripts/validation/rp-external-beta-qwen-native-api-auth-context-bridge-1-diagnostics.mjs',
-]
-
 const requiredExistingFiles = [
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/qwen-provider-runtime-fixture-current-1-record.json',
   'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/qwen-staging-api-route-deployment-alignment-1-record.json',
-  'docs/external-beta/qwen2-5-vl-external-beta-product-route-backend-job-handoff-1/qwen2-5-vl-product-route-backend-job-handoff-record.json',
-  'docs/external-beta/qwen2-5-vl-product-route-runtime-readiness-rollup-1/qwen2-5-vl-product-route-runtime-readiness-rollup-record.json',
-  'scripts/validation/rp-external-beta-qwen-staging-api-route-deployment-alignment-1-diagnostics.mjs',
-  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-backend-job-handoff-1-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-native-api-auth-context-bridge-1.md',
 ]
 
 const allowedChangedFiles = new Set([
   ...requiredFiles,
-  ...authBridgeFiles,
-  'scripts/validation/rp-external-beta-qwen-staging-api-route-deployment-alignment-1-diagnostics.mjs',
-  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-backend-job-handoff-1-diagnostics.mjs',
 ])
 
 const requiredText = [
   packet,
   decision,
   execution,
-  'da97293c4a9fcbed7a1824994c26922cbd7603f7',
-  '#1782',
+  sourceBase,
+  '#1787',
   '#577 remains open/draft/blocked/conflicting and excluded',
-  'POST /api/providers/qwen2-5-vl/structured-visual-metadata',
-  'src/server/server-router.ts',
-  'buildBlockedResult(routeInput)',
-  'buildBackendJobHandoff(routeInput)',
-  'REEDITPRO_CONFIRM_QWEN2_5_VL_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF=true',
-  'REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION=true',
-  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE=true',
-  'REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd',
-  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE=approved_snapshot_structured_metadata_only',
-  'fail_closed_http_424',
-  'backend_only_handoff_contract_selected_but_blocked_without_verified_user_context',
-  'blocked_native_staging_api_missing_verified_user_context_for_backend_handoff',
-  'Provider/model runtime execution: `not_run_in_this_phase`',
+  'Authorization: Bearer <Supabase user JWT>',
+  'createSupabasePublicClient(env).auth.getUser(token)',
+  'publicClient.auth.getUser(token)',
+  'REEDITPRO_CONFIRM_QWEN_NATIVE_API_AUTH_CONTEXT_LOCAL_VALIDATION=true',
+  'blocked_missing_authorization_bearer_token',
+  'blocked_supabase_public_auth_client_unavailable',
+  'blocked_authorization_bearer_token_verification_failed',
+  'The bridge does not accept arbitrary user headers as auth.',
+  'Service-role secret usage: `false`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -175,31 +156,30 @@ for (const pattern of forbiddenPatterns) {
   if (pattern.test(currentPacketCorpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = parseJson(`${packetDir}/qwen-provider-runtime-fixture-current-1-record.json`)
+const record = parseJson(`${packetDir}/qwen-native-api-auth-context-bridge-1-record.json`)
 if (record.packet !== packet) fail('packet mismatch')
 if (record.decision !== decision) fail('decision mismatch')
 if (record.execution !== execution) fail('execution mismatch')
-if (record.sourceBase !== 'da97293c4a9fcbed7a1824994c26922cbd7603f7') fail('source base mismatch')
-if (record.sourceEvidence?.stagingApiRouteDeploymentAlignmentPr !== 1782) fail('missing #1782 evidence')
+if (record.sourceBase !== sourceBase) fail('source base mismatch')
+if (record.sourceEvidence?.nativeRouteHandoffBridgePr !== 1787) fail('missing #1787 evidence')
 if (record.sourceEvidence?.excludedPr !== 577) fail('missing #577 exclusion')
 if (record.route?.nativeServerRouterBridge !== 'src/server/server-router.ts') fail('native router bridge mismatch')
-if (record.route?.defaultMode !== 'fail_closed_http_424') fail('default route mode mismatch')
-if (record.route?.confirmedMode !== 'backend_only_handoff_contract_selected_but_blocked_without_verified_user_context') {
-  fail('confirmed route mode mismatch')
-}
-if (record.route?.routeBehaviorFailClosedByDefault !== true) fail('route must remain fail-closed by default')
-if (
-  record.route?.verifiedNativeApiUserContext !== 'blocked_native_staging_api_missing_verified_user_context_for_backend_handoff'
-) {
-  fail('verified native API auth context blocker mismatch')
-}
-if (record.runtime?.qwenProviderModelExecution !== 'not_run_in_this_phase') fail('provider runtime status mismatch')
-if (
-  record.readiness?.qwenProviderRuntimeFixtureCurrent !==
-  'blocked_native_staging_api_missing_verified_user_context_for_backend_handoff'
-) {
-  fail('readiness mismatch')
-}
+if (record.route?.failClosedByDefault !== true) fail('route must remain fail-closed by default')
+if (record.route?.verifiedAuthContext !== 'implemented_source_verified_bearer_token_path') fail('auth context status mismatch')
+if (record.route?.localValidationAuthContext !== 'explicit_test_only_env_gate') fail('local validation auth gate mismatch')
+if (record.auth?.runtimeBearerTokenRequired !== true) fail('runtime bearer token must be required')
+if (record.auth?.runtimeVerification !== 'supabase_public_auth_get_user') fail('auth runtime verification mismatch')
+if (record.auth?.serviceRoleSecretAccess !== false) fail('service-role auth access must be false')
+if (record.auth?.arbitraryUserHeaderAccepted !== false) fail('arbitrary user headers must be rejected')
+if (record.auth?.cloudRunIamOuterGateOnly !== true) fail('Cloud Run IAM must remain outer gate only')
+if (!Array.isArray(record.auth?.requiredPublicAuthEnv)) fail('missing public auth env list')
+if (!record.auth.requiredPublicAuthEnv.includes('SUPABASE_URL')) fail('missing SUPABASE_URL public auth env')
+if (!record.auth.requiredPublicAuthEnv.includes('SUPABASE_ANON_KEY')) fail('missing SUPABASE_ANON_KEY public auth env')
+if (record.runtime?.qwenProviderModelExecution !== false) fail('provider runtime must be false')
+if (record.runtime?.workerDispatch !== false) fail('worker dispatch must be false')
+if (record.runtime?.cloudRunJobExecution !== false) fail('Cloud Run job execution must be false')
+if (record.runtime?.supabaseMutation !== false) fail('Supabase mutation must be false')
+if (record.runtime?.sqlExecution !== false) fail('SQL execution must be false')
 if (record.readiness?.nextMilestone !== nextMilestone) fail('next milestone mismatch')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -207,7 +187,7 @@ if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact stat
 
 const safety = record.safety ?? {}
 for (const [key, value] of Object.entries(safety)) {
-  if (key === 'routeBackendHandoffBridge' || key === 'failClosedByDefault') {
+  if (key === 'nativeApiAuthContextBridge') {
     if (value !== true) fail(`safety flag must be true: ${key}`)
     continue
   }
@@ -216,13 +196,20 @@ for (const [key, value] of Object.entries(safety)) {
 
 const routeSource = read('src/server/server-router.ts')
 for (const text of [
-  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV',
-  'QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE',
-  'isQwenBackendJobHandoffConfirmed()',
+  'createSupabasePublicClient',
+  "parseBearerToken(getHeaderValue(request, 'authorization'))",
+  'publicClient.auth.getUser(token)',
+  'REEDITPRO_CONFIRM_QWEN_NATIVE_API_AUTH_CONTEXT_LOCAL_VALIDATION',
+  'blocked_missing_authorization_bearer_token',
+  'blocked_supabase_public_auth_client_unavailable',
+  'blocked_authorization_bearer_token_verification_failed',
   'handlerSource.buildBackendJobHandoff(routeInput)',
   'handlerSource.buildBlockedResult(routeInput)',
 ]) {
   if (!routeSource.includes(text)) fail(`native server router missing ${text}`)
+}
+if (/x-reeditpro-authenticated-user-ref|x-authenticated-user|x-goog-authenticated-user/i.test(routeSource)) {
+  fail('native server router must not accept arbitrary user headers')
 }
 if (/execFileSync|spawnSync|gcloud|run jobs execute|identity token/i.test(routeSource)) {
   fail('native server router must not shell out or execute Cloud Run')
@@ -230,13 +217,11 @@ if (/execFileSync|spawnSync|gcloud|run jobs execute|identity token/i.test(routeS
 
 const smoke = read('server/smoke/rp-external-beta-qwen-provider-runtime-fixture-current-1-smoke.ts')
 for (const text of [
-  'completed_qwen2_5_vl_product_route_handler_source_fail_closed_contract',
-  'blocked_pending_route_readback_validation_gate',
   'blocked_missing_authorization_bearer_token',
   'REEDITPRO_CONFIRM_QWEN_NATIVE_API_AUTH_CONTEXT_LOCAL_VALIDATION',
+  'ready_for_guarded_qwen2_5_vl_product_route_provider_runtime_fixture',
   'assert.equal(readyWithValidationAuth.body.backendHandoff.handoffPrepared, true)',
   'assert.equal(readyWithValidationAuth.body.backendHandoff.providerRuntimeExecutedNow, false)',
-  'assert.equal(readyWithValidationAuth.body.allowedExecution.cloudRunJobExecutionAllowedNow, false)',
   'assert.equal(readyWithValidationAuth.body.safety.providerCall, false)',
   'assert.equal(readyWithValidationAuth.body.safety.modelCall, false)',
 ]) {
@@ -245,16 +230,16 @@ for (const text of [
 
 const packageJson = parseJson('package.json')
 if (
-  packageJson.scripts?.['smoke:rp-external-beta-qwen-provider-runtime-fixture-current-1'] !==
+  packageJson.scripts?.['smoke:rp-external-beta-qwen-native-api-auth-context-bridge-1'] !==
   'tsx server/smoke/rp-external-beta-qwen-provider-runtime-fixture-current-1-smoke.ts'
 ) {
-  fail('missing smoke package script')
+  fail('missing auth bridge smoke package script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-qwen-provider-runtime-fixture-current-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-qwen-provider-runtime-fixture-current-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-qwen-native-api-auth-context-bridge-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-qwen-native-api-auth-context-bridge-1-diagnostics.mjs'
 ) {
-  fail('missing diagnostics package script')
+  fail('missing auth bridge diagnostics package script')
 }
 
 const changedFiles = new Set([

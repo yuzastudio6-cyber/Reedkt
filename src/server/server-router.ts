@@ -11,7 +11,8 @@ import {
   createQwen25VlExternalBetaProductRouteHandlerSource,
   type Qwen25VlExternalBetaProductRouteHandlerSourceInput,
 } from '../../server/services/qwen2-5-vl-external-beta-product-route-handler-source'
-import type { ServiceContext } from '../../server/types'
+import { createSupabasePublicClient } from '../../server/supabase/public-client'
+import type { AuthContext, ServiceContext } from '../../server/types'
 import { getBackendEnvStatus } from './server-env'
 import { createHealthResponse, createJsonResponse, createNotFoundResponse, createReadinessResponse, createServerErrorResponse, sendJsonResponse } from './server-response'
 import { getServerRuntimeConfig, getServerRuntimeWarnings } from './server-runtime-config'
@@ -97,7 +98,7 @@ export async function handleServerRequest(
 
     if (method === 'POST' && url.pathname === QWEN_STRUCTURED_VISUAL_METADATA_PATH) {
       const body = await readJsonBody(request)
-      sendJsonResponse(response, createQwenStructuredVisualMetadataRouteResponse(request, body))
+      sendJsonResponse(response, await createQwenStructuredVisualMetadataRouteResponse(request, body))
       return
     }
 
@@ -114,35 +115,44 @@ export async function handleServerRequest(
   }
 }
 
-function createQwenStructuredVisualMetadataRouteResponse(
+async function createQwenStructuredVisualMetadataRouteResponse(
   request: IncomingMessage,
   body: unknown,
 ) {
   const routeIdempotencyKey = getHeaderValue(request, 'idempotency-key')
   if (!routeIdempotencyKey) {
-    return createJsonResponse({
-      ok: false,
-      error: {
-        code: 'IDEMPOTENCY_KEY_REQUIRED',
-        message: 'Idempotency-Key header is required for this provider route.',
+    return createJsonResponse(
+      {
+        ok: false,
+        error: {
+          code: 'IDEMPOTENCY_KEY_REQUIRED',
+          message: 'Idempotency-Key header is required for this provider route.',
+        },
       },
-    }, 400)
+      400,
+    )
   }
 
+  const env = loadRuntimeEnv()
+  const handoffConfirmed = isQwenBackendJobHandoffConfirmed()
+  const authResult = await resolveQwenNativeRouteAuthContext(request, env, handoffConfirmed)
+  if (!authResult.ok) return authResult.response
+
   const context: ServiceContext = {
-    env: loadRuntimeEnv(),
+    env,
     clients: {
       admin: null,
-      public: null,
+      public: authResult.publicClient,
     },
     requestId: getHeaderValue(request, 'x-request-id') ?? 'qwen-structured-visual-metadata-route-preflight',
+    auth: authResult.auth,
   }
   const routeInput = {
     ...coerceRecord(body),
     routeIdempotencyKey,
   } as Qwen25VlExternalBetaProductRouteHandlerSourceInput
   const handlerSource = createQwen25VlExternalBetaProductRouteHandlerSource(context)
-  const result = isQwenBackendJobHandoffConfirmed()
+  const result = handoffConfirmed
     ? handlerSource.buildBackendJobHandoff(routeInput)
     : handlerSource.buildBlockedResult(routeInput)
 
@@ -154,6 +164,135 @@ function isQwenBackendJobHandoffConfirmed(): boolean {
     process.env[QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV] ===
     QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE
   )
+}
+
+type QwenNativeRouteAuthResult =
+  | {
+      ok: true
+      auth?: AuthContext
+      publicClient: ReturnType<typeof createSupabasePublicClient>
+    }
+  | {
+      ok: false
+      response: ReturnType<typeof createJsonResponse>
+    }
+
+async function resolveQwenNativeRouteAuthContext(
+  request: IncomingMessage,
+  env: ReturnType<typeof loadRuntimeEnv>,
+  handoffConfirmed: boolean,
+): Promise<QwenNativeRouteAuthResult> {
+  if (!handoffConfirmed) {
+    return {
+      ok: true,
+      auth: undefined,
+      publicClient: null,
+    }
+  }
+
+  const localValidationAuth = resolveQwenNativeRouteLocalValidationAuth()
+  if (localValidationAuth) {
+    return {
+      ok: true,
+      auth: localValidationAuth,
+      publicClient: null,
+    }
+  }
+
+  const token = parseBearerToken(getHeaderValue(request, 'authorization'))
+  if (!token) {
+    return createQwenNativeRouteAuthError(
+      'AUTH_REQUIRED',
+      'Authorization bearer token is required before QWEN backend handoff can be prepared.',
+      'blocked_missing_authorization_bearer_token',
+    )
+  }
+
+  const publicClient = createSupabasePublicClient(env)
+  if (!publicClient) {
+    return createQwenNativeRouteAuthError(
+      'AUTH_INVALID',
+      'Supabase public auth client is unavailable for native API token verification.',
+      'blocked_supabase_public_auth_client_unavailable',
+    )
+  }
+
+  const { data, error } = await publicClient.auth.getUser(token)
+  if (error || !data.user) {
+    return createQwenNativeRouteAuthError(
+      'AUTH_INVALID',
+      'Authorization token could not be verified before QWEN backend handoff.',
+      'blocked_authorization_bearer_token_verification_failed',
+    )
+  }
+
+  return {
+    ok: true,
+    publicClient,
+    auth: {
+      userId: data.user.id,
+      email: data.user.email,
+      user: data.user,
+      isMockUser: false,
+    },
+  }
+}
+
+function resolveQwenNativeRouteLocalValidationAuth(): AuthContext | null {
+  if (process.env.REEDITPRO_CONFIRM_QWEN_NATIVE_API_AUTH_CONTEXT_LOCAL_VALIDATION !== 'true') return null
+  const userId = process.env.REEDITPRO_ROUTE_VALIDATION_AUTH_USER_ID?.trim()
+  if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+    return null
+  }
+  return {
+    userId,
+    email: process.env.REEDITPRO_ROUTE_VALIDATION_AUTH_EMAIL?.trim() || 'route-validation@reeditpro.local',
+    isMockUser: true,
+  }
+}
+
+function createQwenNativeRouteAuthError(
+  code: 'AUTH_REQUIRED' | 'AUTH_INVALID',
+  message: string,
+  blocker: string,
+): QwenNativeRouteAuthResult {
+  return {
+    ok: false,
+    response: createJsonResponse(
+      {
+        ok: false,
+        error: {
+          code,
+          message,
+        },
+        blocker,
+        safety: {
+          providerCall: false,
+          modelCall: false,
+          workerDispatch: false,
+          workerExecution: false,
+          cloudRunServiceUpdate: false,
+          cloudRunJobExecution: false,
+          identityTokenFetch: false,
+          secretPayloadAccess: false,
+          supabaseMutation: false,
+          sqlExecution: false,
+          signedUrlCreation: false,
+          publicArtifactCreation: false,
+          mediaProcessing: false,
+          finalRenderExport: false,
+          externalBetaUnlockAppliedToEnvironment: false,
+          productionUnlock: false,
+        },
+      },
+      401,
+    ),
+  }
+}
+
+function parseBearerToken(headerValue: string | null): string | null {
+  const match = headerValue?.match(/^Bearer\s+(.+)$/i)
+  return match?.[1]?.trim() ?? null
 }
 
 function getHeaderValue(request: IncomingMessage, header: string): string | null {

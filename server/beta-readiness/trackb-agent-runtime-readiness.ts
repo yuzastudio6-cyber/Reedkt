@@ -36,6 +36,7 @@ export type TrackBAgentRuntimeAdmissionMode =
   | 'mock_safe_worker_dispatch'
   | 'frontend_preview_boundary'
   | 'bounded_runtime_probe'
+  | 'bounded_execution_rehearsal'
   | 'deployed_live_execution'
 
 export type TrackBAgentRuntimeBlockedScope =
@@ -157,9 +158,12 @@ export function buildTrackBAgentRuntimeReadinessReport(
       productReadySourceCloseoutReady
     const paymentIndependentRuntimeReady = agentContractReady
     const liveExecutionReady = paymentIndependentRuntimeReady && deployedEvidenceRecorded
+    const rehearsalModes: TrackBAgentRuntimeAdmissionMode[] = supportsBoundedExecutionRehearsal(toolId)
+      ? ['bounded_execution_rehearsal']
+      : []
     const baseAdmittedModes: TrackBAgentRuntimeAdmissionMode[] = isFrontendPreviewBoundary
       ? ['frontend_preview_boundary', 'bounded_runtime_probe']
-      : ['mock_safe_worker_dispatch', 'bounded_runtime_probe']
+      : ['mock_safe_worker_dispatch', 'bounded_runtime_probe', ...rehearsalModes]
     const admittedModes: TrackBAgentRuntimeAdmissionMode[] = !isFrontendPreviewBoundary && liveExecutionReady
       ? [...baseAdmittedModes, 'deployed_live_execution']
       : baseAdmittedModes
@@ -260,6 +264,7 @@ export function buildTrackBAgentRuntimeReadinessReport(
     nextActions: [
       'Use this report as the server-side admission map for Track B agent tool calls.',
       'Use bounded_runtime_probe mode to run the approved command/import/package-metadata check for a single Track B tool without user media.',
+      'Use bounded_execution_rehearsal only for backend tools with explicit synthetic/no-user-media handlers; it is non-billable and does not enable live beta or production.',
       'Keep agent calls in mock_safe_worker_dispatch or frontend_preview_boundary mode until deployed evidence readback records all 16 tools.',
       'Run npm run beta:tools:trackb-product-ready-deployed-evidence-collector with operator-supplied staging values to record product-ready deployed evidence.',
       'Rerun npm run beta:readiness:operator-status-api after deployed evidence recording and require productReadyLocalOssCount=16 before live execution.',
@@ -271,6 +276,10 @@ export function buildTrackBAgentRuntimeReadinessReport(
       'Live agent execution remains blocked until deployed staging evidence and operator-status readback prove the 16-tool bundle.',
     ],
   }
+}
+
+function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
+  return toolId === 'sharp'
 }
 
 function normalizeEvidenceCount(value: number | undefined): number | undefined {

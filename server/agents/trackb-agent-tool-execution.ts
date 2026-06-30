@@ -19,6 +19,7 @@ export type TrackBAgentToolExecutionMode =
   | 'mock_safe_worker_dispatch'
   | 'frontend_preview_boundary'
   | 'bounded_runtime_probe'
+  | 'bounded_execution_rehearsal'
   | 'deployed_live_execution'
 
 export type TrackBAgentToolExecutionStatus =
@@ -182,9 +183,10 @@ export async function executeTrackBAgentTool(
 
   const payload = buildWorkerPayload(input, contract, mode, report)
   const workerResult = await dispatchProductionWorkerJob({ payload, workerInstanceId: input.workerInstanceId })
+  const completed = isWorkerResultCompletedForMode(mode, workerResult)
   return {
-    status: workerResult.status === 'completed' ? 'completed' : 'blocked',
-    decision: workerDecision(mode, workerResult.status === 'completed'),
+    status: completed ? 'completed' : 'blocked',
+    decision: workerDecision(mode, completed),
     toolId: contract.toolId,
     agentInvocationId: contract.agentInvocationId,
     mode,
@@ -193,7 +195,7 @@ export async function executeTrackBAgentTool(
     serviceFeeIncluded: false,
     workerPayload: payload,
     workerResult,
-    blockedReason: workerResult.status === 'completed' ? undefined : workerResult.error?.message ?? 'Worker dispatch did not complete.',
+    blockedReason: completed ? undefined : workerResult.error?.message ?? workerRecipeBlockedReason(workerResult) ?? 'Worker dispatch did not complete.',
     warnings: [...commonWarnings, ...workerResult.warnings],
   }
 }
@@ -282,7 +284,7 @@ function buildWorkerPayload(
   mode: TrackBAgentToolExecutionMode,
   report: TrackBAgentRuntimeReadinessReport,
 ): ProductionWorkerJobPayload {
-  const agentRecipeMetadata = buildDefaultTrackBWorkerRecipeMetadata(input, contract)
+  const agentRecipeMetadata = buildDefaultTrackBWorkerRecipeMetadata(input, contract, mode)
   const candidate: ProductionWorkerJobPayload = {
     jobId: input.jobId,
     workspaceId: input.workspaceId,
@@ -293,7 +295,7 @@ function buildWorkerPayload(
     toolExecutionPlanId: input.toolExecutionPlanId,
     mediaAnalysisReportId: input.mediaAnalysisReportId,
     workerType: contract.workerType as ProductionWorkerRuntimeType,
-    executionMode: mode === 'deployed_live_execution' ? 'production_ready' : 'mock_safe',
+    executionMode: workerExecutionMode(mode),
     idempotencyKey: '',
     attempt: input.attempt ?? 1,
     maxAttempts: input.maxAttempts ?? 1,
@@ -347,6 +349,7 @@ const EXPLICIT_WORKER_RECIPE_KEYS = [
 function buildDefaultTrackBWorkerRecipeMetadata(
   input: TrackBAgentToolExecutionInput,
   contract: TrackBAgentRuntimeToolContract,
+  mode: TrackBAgentToolExecutionMode,
 ): Record<string, unknown> {
   if (hasExplicitWorkerRecipe(input.metadata)) return {}
 
@@ -467,7 +470,11 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'sharp':
-      return trackBAgentToolRecipe(contract.toolId, input.action, 'image_asset_prepare_dry_run')
+      return trackBAgentToolRecipe(
+        contract.toolId,
+        input.action,
+        mode === 'bounded_execution_rehearsal' ? 'image_asset_prepare_bounded_rehearsal' : 'image_asset_prepare_dry_run',
+      )
     case 'duckdb':
       return trackBAgentToolRecipe(contract.toolId, input.action, 'structured_artifact_query_dry_run')
     case 'polars':
@@ -519,9 +526,45 @@ function workerDecision(mode: TrackBAgentToolExecutionMode, completed: boolean):
       : 'trackb_agent_tool_execution_deployed_live_execution_blocked'
   }
 
+  if (mode === 'bounded_execution_rehearsal') {
+    return completed
+      ? 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed'
+      : 'trackb_agent_tool_execution_bounded_execution_rehearsal_blocked'
+  }
+
   return completed
     ? 'trackb_agent_tool_execution_mock_safe_worker_dispatch_completed'
     : 'trackb_agent_tool_execution_mock_safe_worker_dispatch_blocked'
+}
+
+function workerExecutionMode(mode: TrackBAgentToolExecutionMode): ProductionWorkerJobPayload['executionMode'] {
+  if (mode === 'deployed_live_execution') return 'production_ready'
+  if (mode === 'bounded_execution_rehearsal') return 'bounded_rehearsal'
+  return 'mock_safe'
+}
+
+function isWorkerResultCompletedForMode(
+  mode: TrackBAgentToolExecutionMode,
+  workerResult: ProductionWorkerExecutionResult,
+): boolean {
+  if (workerResult.status !== 'completed') return false
+  if (mode !== 'bounded_execution_rehearsal') return true
+  const recipeResult = workerResult.output?.trackBAgentToolRecipeResult
+  return Boolean(
+    recipeResult &&
+    typeof recipeResult === 'object' &&
+    (recipeResult as Record<string, unknown>).status === 'completed' &&
+    (recipeResult as Record<string, unknown>).realToolBinaryExecution === true &&
+    (recipeResult as Record<string, unknown>).productRuntimeExecution === false &&
+    (recipeResult as Record<string, unknown>).mediaProcessing === false,
+  )
+}
+
+function workerRecipeBlockedReason(workerResult: ProductionWorkerExecutionResult): string | undefined {
+  const recipeResult = workerResult.output?.trackBAgentToolRecipeResult
+  if (!recipeResult || typeof recipeResult !== 'object') return undefined
+  const blockedReason = (recipeResult as Record<string, unknown>).blockedReason
+  return typeof blockedReason === 'string' && blockedReason.length > 0 ? blockedReason : undefined
 }
 
 function stringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | undefined {

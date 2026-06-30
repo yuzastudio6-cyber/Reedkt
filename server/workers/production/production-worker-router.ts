@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type { ProductionWorkerJobPayload, ProductionWorkerRouteOutput } from './production-worker-types'
 import { buildStorageArtifactReference, runMediaAnalysisFoundation } from '../media'
 import type { MediaFoundationRunMode, MediaFoundationTask } from '../media'
@@ -458,12 +459,16 @@ function hasTrackBAgentToolRecipeRequest(payload: ProductionWorkerJobPayload): b
   return Boolean(request && typeof request === 'object')
 }
 
-function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJobPayload): ProductionWorkerRouteOutput {
+async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   const request = payload.metadata?.trackBAgentToolRecipe as Record<string, unknown>
   const toolId = stringValue(request.toolId) ?? payload.requestedToolIds[0] ?? 'unknown_tool'
   const action = stringValue(request.action) ?? payload.requestedRecipeIds[0] ?? 'unknown_action'
   const routeClass = stringValue(request.routeClass) ?? 'trackb_agent_tool_recipe'
   const handler = resolveTrackBAgentToolRecipeHandler(toolId, action, routeClass)
+  if (toolId === 'sharp' && routeClass === 'image_asset_prepare_bounded_rehearsal') {
+    return runSharpImageAssetPrepareBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+
   return {
     summary: `Track B agent worker recipe selected for ${toolId}:${action} through ${handler.futureHandler} without running real tool binaries or media processing.`,
     workerType: payload.workerType,
@@ -504,6 +509,14 @@ function resolveTrackBAgentToolRecipeHandler(
     }
   }
 
+  if (toolId === 'sharp' && routeClass === 'image_asset_prepare_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_sharp_image_asset_prepare_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
   if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_dry_run') {
     return {
       futureHandler: 'cpu_analysis_worker_duckdb_structured_artifact_query_dry_run',
@@ -525,6 +538,123 @@ function resolveTrackBAgentToolRecipeHandler(
     handlerKind: 'unmapped_trackb_agent_recipe_handler',
     namedHandlerReady: false,
   }
+}
+
+async function runSharpImageAssetPrepareBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): Promise<ProductionWorkerRouteOutput> {
+  try {
+    const sharpModule = await import('sharp')
+    const sharp = sharpModule.default
+    const created = await sharp({
+      create: {
+        width: 2,
+        height: 2,
+        channels: 4,
+        background: { r: 12, g: 108, b: 242, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer({ resolveWithObject: true })
+    const transformed = await sharp(created.data)
+      .resize(1, 1, { fit: 'fill' })
+      .webp({ quality: 90 })
+      .toBuffer({ resolveWithObject: true })
+    const transformedMetadata = await sharp(transformed.data).metadata()
+
+    return {
+      summary: 'Track B agent Sharp bounded execution rehearsal completed with synthetic in-memory image data only; no user media or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'sharp',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        sharpVersions: {
+          sharp: sharp.versions.sharp,
+          vips: sharp.versions.vips,
+        },
+        syntheticInput: {
+          format: created.info.format,
+          width: created.info.width,
+          height: created.info.height,
+          byteLength: created.data.byteLength,
+          sha256: sha256Hex(created.data),
+        },
+        syntheticOutput: {
+          format: transformed.info.format,
+          width: transformed.info.width,
+          height: transformed.info.height,
+          metadataFormat: transformedMetadata.format,
+          byteLength: transformed.data.byteLength,
+          sha256: sha256Hex(transformed.data),
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          inMemoryBuffersOnly: true,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses synthetic in-memory pixels only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    return {
+      summary: 'Track B agent Sharp bounded execution rehearsal was blocked before proof completion.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: true,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'blocked',
+        toolId: 'sharp',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        blockedReason: error instanceof Error ? error.message : 'Unknown Sharp bounded execution rehearsal error.',
+        notes: [
+          'Sharp bounded execution rehearsal failed closed.',
+          'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+        ],
+      },
+    }
+  }
+}
+
+function sha256Hex(buffer: Buffer): string {
+  return createHash('sha256').update(buffer).digest('hex')
 }
 
 function hasFinalRenderExecutionRequest(payload: ProductionWorkerJobPayload): boolean {

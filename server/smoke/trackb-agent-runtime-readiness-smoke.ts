@@ -65,6 +65,15 @@ for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !==
   assert.ok(contract, `${toolId} contract must exist`)
   assert.ok(contract?.admittedModes.includes('mock_safe_worker_dispatch'), `${toolId} should be mock-safe worker admitted`)
   assert.ok(contract?.admittedModes.includes('bounded_runtime_probe'), `${toolId} should be bounded runtime probe admitted`)
+  if (toolId === 'sharp') {
+    assert.ok(contract?.admittedModes.includes('bounded_execution_rehearsal'), 'Sharp should admit bounded execution rehearsal')
+  } else {
+    assert.equal(
+      contract?.admittedModes.includes('bounded_execution_rehearsal'),
+      false,
+      `${toolId} should not claim bounded execution rehearsal until an explicit handler exists`,
+    )
+  }
   assert.ok(contract?.expectedWorkerTypes.length, `${toolId} should expose expected worker types`)
   assert.ok(contract?.imageRoles.length, `${toolId} should expose image roles`)
 }
@@ -93,6 +102,11 @@ for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !==
   assert.ok(contract, `${toolId} deployed contract must exist`)
   assert.ok(contract.admittedModes.includes('mock_safe_worker_dispatch'))
   assert.ok(contract.admittedModes.includes('bounded_runtime_probe'))
+  if (toolId === 'sharp') {
+    assert.ok(contract.admittedModes.includes('bounded_execution_rehearsal'))
+  } else {
+    assert.equal(contract.admittedModes.includes('bounded_execution_rehearsal'), false)
+  }
   assert.ok(contract.admittedModes.includes('deployed_live_execution'))
   assert.equal(contract.deployedEvidenceRecorded, true)
   assert.equal(contract.blockedActionScope.length, 0)

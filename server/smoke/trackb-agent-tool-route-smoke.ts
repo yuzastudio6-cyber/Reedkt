@@ -104,6 +104,35 @@ try {
   assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.backendEvidenceRecorded, false)
   assert.equal(boundedProbe.data.trackBAgentToolExecution.workerResult, undefined)
 
+  const sharpRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-sharp-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-sharp-rehearsal',
+      agentInvocationId: 'trackb.media_oss.sharp',
+      toolId: 'sharp',
+      action: 'asset_prepare',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-sharp-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['synthetic_private_rehearsal/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/sharp/no-user-media-reference'],
+    }),
+  }, 202)
+  const sharpResult = sharpRehearsal.data.trackBAgentToolExecution
+  assert.equal(sharpResult.status, 'completed')
+  assert.equal(sharpResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(sharpResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(sharpResult.workerResult.output.mockOnly, false)
+  assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.status, 'completed')
+  assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.match(sharpResult.workerResult.output.trackBAgentToolRecipeResult.syntheticOutput.sha256, /^[a-f0-9]{64}$/)
+
   const liveBlocked = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-live-blocked' },

@@ -19,9 +19,9 @@ const expectedWorkerHandlers: Record<string, string> = {
   pyav: 'cpu_analysis_worker_media_foundation',
   opentimelineio: 'cpu_analysis_worker_timeline_foundation',
   remotion: 'render_worker_final_render_export_execution',
-  sharp: 'trackb_agent_tool_recipe_dry_run',
-  duckdb: 'trackb_agent_tool_recipe_dry_run',
-  polars: 'trackb_agent_tool_recipe_dry_run',
+  sharp: 'render_worker_sharp_image_asset_prepare_dry_run',
+  duckdb: 'cpu_analysis_worker_duckdb_structured_artifact_query_dry_run',
+  polars: 'cpu_analysis_worker_polars_dataframe_transform_dry_run',
   pyscenedetect: 'cpu_analysis_worker_smart_cut_foundation',
   opencv: 'cpu_analysis_worker_media_foundation',
   opencolorio: 'cpu_analysis_worker_color_execution',
@@ -79,6 +79,21 @@ for (const contract of report.contracts) {
       `${contract.toolId} should route to the intended Track B worker recipe handler`,
     )
     assert.notEqual(result.workerResult?.output?.futureHandler, `${contract.workerType}_placeholder`)
+    assert.notEqual(result.workerResult?.output?.futureHandler, 'trackb_agent_tool_recipe_dry_run')
+    if (['sharp', 'duckdb', 'polars'].includes(contract.toolId)) {
+      const recipeResult = result.workerResult?.output?.trackBAgentToolRecipeResult as {
+        namedHandlerReady?: boolean
+        handlerKind?: string
+        productRuntimeExecution?: boolean
+        realToolBinaryExecution?: boolean
+        mediaProcessing?: boolean
+      } | undefined
+      assert.equal(recipeResult?.namedHandlerReady, true, `${contract.toolId} should resolve to a named Track B handler`)
+      assert.equal(recipeResult?.handlerKind, 'explicit_trackb_agent_worker_handler')
+      assert.equal(recipeResult?.productRuntimeExecution, false)
+      assert.equal(recipeResult?.realToolBinaryExecution, false)
+      assert.equal(recipeResult?.mediaProcessing, false)
+    }
     assert.equal(result.workerResult?.toolCostMetadata?.serviceFeeIncluded, false)
     assert.equal(result.workerResult?.toolCostMetadata?.mockOnly, true)
   }

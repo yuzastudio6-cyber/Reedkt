@@ -177,6 +177,22 @@ try {
   assert.equal(liveAdmitted.data.trackBAgentToolExecution.liveExecutionReady, true)
   assert.equal(liveAdmitted.data.trackBAgentToolExecution.workerPayload.executionMode, 'production_ready')
   assert.equal(liveAdmitted.data.trackBAgentToolExecution.workerResult.status, 'completed')
+  assert.equal(
+    liveAdmitted.data.trackBAgentToolExecution.workerResult.output.futureHandler,
+    'cpu_analysis_worker_duckdb_structured_artifact_query_dry_run',
+  )
+  assert.equal(
+    liveAdmitted.data.trackBAgentToolExecution.workerResult.output.trackBAgentToolRecipeResult.namedHandlerReady,
+    true,
+  )
+  assert.equal(
+    liveAdmitted.data.trackBAgentToolExecution.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution,
+    false,
+  )
+  assert.equal(
+    liveAdmitted.data.trackBAgentToolExecution.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing,
+    false,
+  )
 
   const liveHyperframeBlocked = await requestJson(endpoint, {
     method: 'POST',

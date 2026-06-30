@@ -1,0 +1,73 @@
+{
+  "packet": "RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1",
+  "decision": "completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation",
+  "execution": "completed_docs_and_guarded_local_preflight_helper_no_runtime_invocation",
+  "integrationBase": "daff6905af21d9623b14197a4c9a2d61eed47501",
+  "expectedContext": {
+    "account": "aiediting@reeditpro.com",
+    "project": "reeditpro",
+    "service": "reeditpro-staging-api",
+    "region": "us-central1"
+  },
+  "sourceEvidence": {
+    "qwenAuthPathReadback": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
+    "qwenTransportDependencyEnablementCurrentImport": "completed_current_base_qwen_transport_dependency_enablement_contract_preflight_required",
+    "qwenTransportDependencyPreflightCurrent": "completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked",
+    "singleTesterRealUsageQaPr": "#1686 open/draft/blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa",
+    "remotionRuntimeProofPr": "#577 open/draft/blocked_excluded"
+  },
+  "runner": {
+    "script": "scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1.mjs",
+    "confirmationVar": "REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT",
+    "packageScript": "rp-external-beta-operator-gcloud-auth-preflight-1",
+    "successDecision": "completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry",
+    "tokenValuesPrinted": false,
+    "tokenValuesPersistedInRepo": false,
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "requestSent": false
+  },
+  "readiness": {
+    "operatorGcloudAuthPreflightHelper": "ready",
+    "singleTesterRealUsageQa": "blocked_pending_gcloud_reauth_preflight_success",
+    "qwenRealDispatchRetry": "blocked_pending_gcloud_reauth_preflight_success",
+    "broadExternalBetaExpansion": "blocked_no_additional_named_tester_list",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "docsAndGuardedLocalPreflightHelperOnly": true,
+    "runnerExecutedInValidation": false,
+    "cloudRunInvocation": false,
+    "cloudRunDeployment": false,
+    "identityTokenFetch": false,
+    "requestSent": false,
+    "qwen25VlExecution": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "mediaProcessing": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "iamMutation": false,
+    "groupMembershipMutation": false
+  },
+  "nextMilestones": [
+    "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1R-AFTER-GCLOUD-REAUTH",
+    "QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_DRY_RUN_ATTEMPT_1R_AFTER_GCLOUD_REAUTH"
+  ],
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

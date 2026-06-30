@@ -46,15 +46,31 @@ export interface BetaTrackBAgentRouteDeployedEvidenceCollectorResult {
   sourceSha: string
   routePath: '/v1/agent-tools/trackb/execute'
   requiredToolCount: 16
+  boundedRuntimeProbeToolCount: number
   routeProofToolCount: number
   liveAgentExecutionReady: false
   productReadyLocalOssCount: number
   productReadyDeployedEvidenceRecordedByThisCollector: false
   paymentScope: 'excluded_from_this_route_proof'
   serviceFeeIncluded: false
+  boundedRuntimeProbeResults: BetaTrackBAgentBoundedRuntimeProbeResult[]
   toolResults: BetaTrackBAgentRouteProofResult[]
   remainingGateBlockers: string[]
   warnings: string[]
+}
+
+export interface BetaTrackBAgentBoundedRuntimeProbeResult {
+  toolId: ProductionToolId
+  agentInvocationId: string
+  status: number
+  idempotencyKey: string
+  mode: 'bounded_runtime_probe'
+  completed: boolean
+  readinessStatus?: string
+  mediaProcessing?: boolean
+  productRuntimeExecution?: boolean
+  backendEvidenceRecorded?: boolean
+  decision?: string
 }
 
 export interface BetaTrackBAgentRouteProofResult {
@@ -119,7 +135,29 @@ export async function runBetaTrackBAgentRouteDeployedEvidenceCollectorFromEnv(
 
   const endpointBaseUrl = normalized.apiBaseUrl.replace(/\/+$/, '')
   const endpoint = `${endpointBaseUrl}/v1/agent-tools/trackb/execute`
+  const boundedRuntimeProbeResults: BetaTrackBAgentBoundedRuntimeProbeResult[] = []
   const toolResults: BetaTrackBAgentRouteProofResult[] = []
+
+  for (const contract of report.contracts) {
+    const idempotencyKey = `${normalized.idempotencyPrefix}-bounded-probe-${contract.toolId}`
+    const body = buildBoundedProbeBody(contract, normalized)
+    const response = await fetchImpl(endpoint, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${normalized.bearerToken}`,
+        'content-type': 'application/json',
+        'idempotency-key': idempotencyKey,
+      },
+      body: JSON.stringify(body),
+    })
+    const payload = await response.json()
+    boundedRuntimeProbeResults.push(summarizeBoundedProbeResponse(contract, response.status, idempotencyKey, payload))
+  }
+
+  const failedProbes = boundedRuntimeProbeResults.filter((result) => !result.completed)
+  if (failedProbes.length > 0) {
+    throw new Error(`Track B deployed bounded runtime probe failed for ${failedProbes.map((result) => `${result.toolId}:${result.decision ?? result.status}`).join(', ')}.`)
+  }
 
   for (const contract of report.contracts) {
     const idempotencyKey = `${normalized.idempotencyPrefix}-${contract.toolId}`
@@ -150,12 +188,14 @@ export async function runBetaTrackBAgentRouteDeployedEvidenceCollectorFromEnv(
     sourceSha: normalized.sourceSha,
     routePath: '/v1/agent-tools/trackb/execute',
     requiredToolCount: REQUIRED_TRACKB_TOOL_COUNT,
+    boundedRuntimeProbeToolCount: boundedRuntimeProbeResults.length,
     routeProofToolCount: toolResults.length,
     liveAgentExecutionReady: false,
     productReadyLocalOssCount: report.productReadyLocalOssCount,
     productReadyDeployedEvidenceRecordedByThisCollector: false,
     paymentScope: 'excluded_from_this_route_proof',
     serviceFeeIncluded: false,
+    boundedRuntimeProbeResults,
     toolResults,
     remainingGateBlockers: [
       'product_ready_deployed_evidence_recording_pending',
@@ -164,7 +204,8 @@ export async function runBetaTrackBAgentRouteDeployedEvidenceCollectorFromEnv(
       'paid_production_execution_pending',
     ],
     warnings: [
-      'This collector calls only the deployed Track B agent execution route in mock_safe_worker_dispatch or frontend_preview_boundary mode.',
+      'This collector first calls the deployed Track B agent execution route in bounded_runtime_probe mode for all 16 tools, then calls mock_safe_worker_dispatch or frontend_preview_boundary route proof mode.',
+      'Bounded runtime probes run only approved command/import/package-metadata checks and must not process user media, dispatch product runtime workers, record backend evidence, or enable beta/production.',
       'It does not request deployed_live_execution, process user media, run providers, create public artifacts, create signed URLs, enable external beta, enable paid production, or include payment/service-fee approval.',
       'This collector does not record product-ready deployed evidence by itself; operator-status readback must still report all 16 tools before live agent execution is opened.',
     ],
@@ -233,6 +274,33 @@ function validateSourceTruth(report: ReturnType<typeof buildTrackBAgentRuntimeRe
   ].filter((item): item is string => Boolean(item))
 }
 
+function buildBoundedProbeBody(contract: TrackBAgentRuntimeToolContract, env: NormalizedEnv): Record<string, unknown> {
+  return {
+    workspaceId: env.workspaceId,
+    projectId: env.projectId,
+    jobId: `${env.jobPrefix}-bounded-probe-${contract.toolId}`,
+    agentInvocationId: contract.agentInvocationId,
+    toolId: contract.toolId,
+    action: contract.supportedActions[0],
+    approvedSnapshotId: env.approvedSnapshotId,
+    editPlanId: env.editPlanId,
+    toolExecutionPlanId: `${env.toolExecutionPlanPrefix}-bounded-probe-${contract.toolId}`,
+    mode: 'bounded_runtime_probe',
+    approvedPreviewStateReference: contract.toolId === 'hyperframe'
+      ? env.previewStateReference ?? `preview_state/workspaces/${env.workspaceId}/projects/${env.projectId}/trackb-agent-route-proof/hyperframe-approved-state`
+      : undefined,
+    metadata: {
+      evidenceSourceSha: env.sourceSha,
+      evidenceMode: 'trackb_agent_deployed_bounded_runtime_probe',
+      productReadyDeployedEvidenceRecordedByThisCollector: false,
+      serviceFeeIncluded: false,
+      mediaProcessing: false,
+      productRuntimeExecution: false,
+      backendEvidenceRecorded: false,
+    },
+  }
+}
+
 function buildRouteBody(contract: TrackBAgentRuntimeToolContract, env: NormalizedEnv): Record<string, unknown> {
   const isPreview = contract.toolId === 'hyperframe'
   return {
@@ -266,6 +334,35 @@ function storageReferenceFor(contract: TrackBAgentRuntimeToolContract, env: Norm
   const prefix = env.storageReferencePrefix ??
     `source_media/workspaces/${env.workspaceId}/projects/${env.projectId}/trackb-agent-route-proof`
   return `${prefix}/${contract.toolId}/private-source-reference`
+}
+
+function summarizeBoundedProbeResponse(
+  contract: TrackBAgentRuntimeToolContract,
+  status: number,
+  idempotencyKey: string,
+  payload: unknown,
+): BetaTrackBAgentBoundedRuntimeProbeResult {
+  const execution = recordValue(recordValue(recordValue(payload).data).trackBAgentToolExecution) as Partial<TrackBAgentToolExecutionResult>
+  const readinessProof = recordValue(execution.runtimeReadinessProof)
+  const completed = status === 202 &&
+    execution.status === 'completed' &&
+    execution.mode === 'bounded_runtime_probe' &&
+    readinessProof.mediaProcessing === false &&
+    readinessProof.productRuntimeExecution === false &&
+    readinessProof.backendEvidenceRecorded === false
+  return {
+    toolId: contract.toolId,
+    agentInvocationId: contract.agentInvocationId,
+    status,
+    idempotencyKey,
+    mode: 'bounded_runtime_probe',
+    completed,
+    readinessStatus: stringValue(readinessProof.status),
+    mediaProcessing: readinessProof.mediaProcessing as boolean | undefined,
+    productRuntimeExecution: readinessProof.productRuntimeExecution as boolean | undefined,
+    backendEvidenceRecorded: readinessProof.backendEvidenceRecorded as boolean | undefined,
+    decision: stringValue(execution.decision),
+  }
 }
 
 function summarizeRouteResponse(

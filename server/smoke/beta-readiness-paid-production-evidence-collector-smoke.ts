@@ -109,6 +109,7 @@ const calls: Array<{ url: string; method: string; idempotencyKey?: string; body?
 const result = await runBetaReadinessPaidProductionEvidenceCollectorFromEnv(baseEnv, fakeFetch(calls, true), fakeLibassRunner())
 assert.equal(result.ok, true, 'paid-production collector should pass after external, scope, and final paid-production readbacks pass')
 assert.equal(result.steps.externalBetaEvidence.readinessRequirements.finalExternalBetaReady, true, 'external beta collector should prove external beta readiness')
+assert.equal(result.steps.externalBetaEvidence.steps.agentRouteProof.boundedRuntimeProbeToolCount, 16, 'external beta collector should prove all 16 bounded runtime probes before paid-production scope evidence')
 assert.equal(result.steps.externalBetaEvidence.steps.agentRouteProof.routeProofToolCount, 16, 'external beta collector should prove all 16 Track B route contracts before paid-production scope evidence')
 assert.equal(result.steps.externalBetaEvidence.steps.toolEvidence.readbackRequirements.readbackProductReadyLocalOssCount, 16, 'external beta collector should prove product-ready deployed readback 16 before paid-production scope evidence')
 assert.equal(result.steps.externalBetaEvidence.steps.agentLiveAdmissionProof.backendLiveAdmissionToolCount, 15, 'external beta collector should prove backend live admission before paid-production scope evidence')
@@ -119,20 +120,22 @@ assert.equal(result.readinessRequirements.finalRealUserMediaBetaReady, true, 'fi
 assert.equal(result.readinessRequirements.finalPaidProductionReady, true, 'final status should preserve paid-production readiness')
 assert.equal(JSON.stringify(result).includes('paid-production-secret-token'), false, 'summary must not include bearer token')
 const routeProofCalls = calls.filter((call) => call.url.endsWith('/v1/agent-tools/trackb/execute'))
-const safeRouteProofCalls = routeProofCalls.slice(0, 16)
-const liveAdmissionRouteCalls = routeProofCalls.slice(16)
-assert.equal(calls.length, 45, 'collector should run external-beta route/product/live-admission evidence, scope sequence, then final status readback')
-assert.equal(routeProofCalls.length, 32, 'paid-production wrapper should inherit all 16 route proofs and 16 live-admission checks')
+const boundedRuntimeProbeCalls = routeProofCalls.slice(0, 16)
+const safeRouteProofCalls = routeProofCalls.slice(16, 32)
+const liveAdmissionRouteCalls = routeProofCalls.slice(32)
+assert.equal(calls.length, 61, 'collector should run external-beta bounded probes, route/product/live-admission evidence, scope sequence, then final status readback')
+assert.equal(routeProofCalls.length, 48, 'paid-production wrapper should inherit all 16 bounded probes, 16 route proofs, and 16 live-admission checks')
+assert.equal(boundedRuntimeProbeCalls.every((call) => call.body?.mode === 'bounded_runtime_probe'), true)
 assert.equal(safeRouteProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
 assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.mode === 'deployed_live_execution'), true)
 assert.equal(liveAdmissionRouteCalls.find((call) => call.body?.toolId === 'hyperframe')?.body?.mode, 'frontend_preview_boundary')
-assert.equal(calls[16]?.idempotencyKey, 'paid-production-tools-core-smoke')
-assert.equal(calls[17]?.idempotencyKey, 'paid-production-tools-libass-smoke')
-assert.equal(calls[36]?.idempotencyKey, 'paid-production-platform-smoke')
-assert.equal(calls[37]?.idempotencyKey, 'paid-production-launch-smoke')
-assert.equal(calls[40]?.idempotencyKey, 'paid-production-real-user-smoke')
-assert.equal(calls[42]?.idempotencyKey, 'paid-production-paid-production-smoke')
-assert.equal(calls[44]?.method, 'GET', 'last call should be the final operator-status readback')
+assert.equal(calls[32]?.idempotencyKey, 'paid-production-tools-core-smoke')
+assert.equal(calls[33]?.idempotencyKey, 'paid-production-tools-libass-smoke')
+assert.equal(calls[52]?.idempotencyKey, 'paid-production-platform-smoke')
+assert.equal(calls[53]?.idempotencyKey, 'paid-production-launch-smoke')
+assert.equal(calls[56]?.idempotencyKey, 'paid-production-real-user-smoke')
+assert.equal(calls[58]?.idempotencyKey, 'paid-production-paid-production-smoke')
+assert.equal(calls[60]?.method, 'GET', 'last call should be the final operator-status readback')
 
 await assert.rejects(
   () => runBetaReadinessPaidProductionEvidenceCollectorFromEnv(baseEnv, fakeFetch([], false), fakeLibassRunner()),
@@ -166,6 +169,37 @@ function fakeFetch(
     calls.push({ url, method: init.method, idempotencyKey: init.headers['idempotency-key'], body })
 
     if (init.method === 'POST' && url.endsWith('/v1/agent-tools/trackb/execute')) {
+      if (body?.mode === 'bounded_runtime_probe') {
+        return jsonResponse(202, {
+          ok: true,
+          data: {
+            trackBAgentToolExecution: {
+              status: 'completed',
+              decision: 'trackb_agent_tool_execution_bounded_runtime_probe_completed',
+              toolId: body.toolId,
+              agentInvocationId: body.agentInvocationId,
+              mode: body.mode,
+              liveExecutionReady: false,
+              paymentScope: 'excluded_from_this_runtime_boundary',
+              serviceFeeIncluded: false,
+              runtimeReadinessProof: {
+                toolId: body.toolId,
+                probeKind: 'command_import_package_metadata_only',
+                mediaProcessing: false,
+                productRuntimeExecution: false,
+                backendEvidenceRecorded: false,
+                status: 'passed',
+                checkedAt: new Date().toISOString(),
+                checkModes: ['node_package_metadata'],
+                commandChecks: [],
+                pythonImportChecks: [],
+                nodePackageChecks: [],
+                warnings: [],
+              },
+            },
+          },
+        })
+      }
       if (body?.mode === 'deployed_live_execution') {
         return jsonResponse(202, {
           ok: true,

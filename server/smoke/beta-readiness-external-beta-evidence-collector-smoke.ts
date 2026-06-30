@@ -100,6 +100,7 @@ const calls: Array<{ url: string; method: string; idempotencyKey?: string; body?
 const result = await runBetaReadinessExternalBetaEvidenceCollectorFromEnv(baseEnv, fakeFetch(calls, true), fakeLibassRunner())
 assert.equal(result.ok, true, 'external beta evidence collector should pass when every evidence step and final readback pass')
 assert.equal(result.endpointBaseUrl, 'https://api.staging.reeditpro.example', 'collector should normalize/fill base URL')
+assert.equal(result.steps.agentRouteProof.boundedRuntimeProbeToolCount, 16, 'collector should prove all 16 Track B bounded runtime probes first')
 assert.equal(result.steps.agentRouteProof.routeProofToolCount, 16, 'collector should prove all 16 Track B agent route contracts first')
 assert.equal(result.steps.agentRouteProof.liveAgentExecutionReady, false, 'route proof must not request live execution')
 assert.equal(result.steps.toolEvidence.readbackRequirements.readbackProductReadyLocalOssCount, 16, 'collector should require product-ready deployed readback 16')
@@ -117,11 +118,14 @@ assert.ok(result.remainingBlockedScopes.includes('paid_production_scope_approval
 assert.equal(JSON.stringify(result).includes('external-beta-secret-token'), false, 'summary must not include bearer token')
 
 const routeProofCalls = calls.filter((call) => call.url.endsWith('/v1/agent-tools/trackb/execute'))
-const safeRouteProofCalls = routeProofCalls.slice(0, 16)
-const liveAdmissionRouteCalls = routeProofCalls.slice(16)
-assert.equal(calls.length, 39, 'collector should run route proof, product-ready tool evidence, live admission proof, platform, launch, and final status')
-assert.equal(routeProofCalls.length, 32, 'collector should post all 16 route proofs and all 16 live-admission route checks')
-assert.equal(safeRouteProofCalls.length, 16, 'collector should first post all 16 mock-safe Track B route proofs')
+const boundedRuntimeProbeCalls = routeProofCalls.slice(0, 16)
+const safeRouteProofCalls = routeProofCalls.slice(16, 32)
+const liveAdmissionRouteCalls = routeProofCalls.slice(32)
+assert.equal(calls.length, 55, 'collector should run bounded probes, route proof, product-ready tool evidence, live admission proof, platform, launch, and final status')
+assert.equal(routeProofCalls.length, 48, 'collector should post all 16 bounded probes, all 16 route proofs, and all 16 live-admission route checks')
+assert.equal(boundedRuntimeProbeCalls.length, 16, 'collector should first post all 16 bounded runtime probes')
+assert.equal(boundedRuntimeProbeCalls.every((call) => call.body?.mode === 'bounded_runtime_probe'), true)
+assert.equal(safeRouteProofCalls.length, 16, 'collector should then post all 16 mock-safe Track B route proofs')
 assert.equal(safeRouteProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
 assert.equal(safeRouteProofCalls.some((call) => call.body?.mode === 'deployed_live_execution'), false)
 assert.equal(liveAdmissionRouteCalls.length, 16, 'collector should then post all 16 Track B live-admission checks')
@@ -129,24 +133,24 @@ assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyp
 assert.equal(liveAdmissionRouteCalls.find((call) => call.body?.toolId === 'hyperframe')?.body?.mode, 'frontend_preview_boundary')
 assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.creditEstimateId === 'credit-estimate-external-beta-live-smoke'), true)
 assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.creditReservationId === 'credit-reservation-external-beta-live-smoke'), true)
-assert.equal(calls[16]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence/core-real-check')
-assert.equal(calls[16]?.idempotencyKey, 'external-beta-tools-core-smoke')
-assert.equal(calls[16]?.body?.acceptProductionReadiness, true, 'bounded evidence should reduce production-readiness blockers')
-assert.equal(calls[16]?.body?.acceptProductReadyLocalOss, true, 'all-up external beta collector must record product-ready local OSS evidence')
-assert.equal(calls[17]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
-assert.equal(calls[17]?.idempotencyKey, 'external-beta-tools-libass-smoke')
+assert.equal(calls[32]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence/core-real-check')
+assert.equal(calls[32]?.idempotencyKey, 'external-beta-tools-core-smoke')
+assert.equal(calls[32]?.body?.acceptProductionReadiness, true, 'bounded evidence should reduce production-readiness blockers')
+assert.equal(calls[32]?.body?.acceptProductReadyLocalOss, true, 'all-up external beta collector must record product-ready local OSS evidence')
+assert.equal(calls[33]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
+assert.equal(calls[33]?.idempotencyKey, 'external-beta-tools-libass-smoke')
 assert.equal(
-  ((calls[17]?.body?.acceptedToolEvidence as Array<{ productReadyLocalOss?: boolean }> | undefined) ?? [])[0]?.productReadyLocalOss,
+  ((calls[33]?.body?.acceptedToolEvidence as Array<{ productReadyLocalOss?: boolean }> | undefined) ?? [])[0]?.productReadyLocalOss,
   true,
   'all-up external beta collector must record product-ready libass evidence',
 )
-assert.equal(calls[18]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
-assert.equal(calls[19]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
-assert.equal(calls[36]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/platform-deployed-evidence/probe')
-assert.equal(calls[36]?.idempotencyKey, 'external-beta-platform-smoke')
-assert.equal(calls[37]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
-assert.equal(calls[37]?.idempotencyKey, 'external-beta-launch-smoke')
-assert.equal(calls[38]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
+assert.equal(calls[34]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
+assert.equal(calls[35]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
+assert.equal(calls[52]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/platform-deployed-evidence/probe')
+assert.equal(calls[52]?.idempotencyKey, 'external-beta-platform-smoke')
+assert.equal(calls[53]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
+assert.equal(calls[53]?.idempotencyKey, 'external-beta-launch-smoke')
+assert.equal(calls[54]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
 
 await assert.rejects(
   () => runBetaReadinessExternalBetaEvidenceCollectorFromEnv(baseEnv, fakeFetch([], false), fakeLibassRunner()),
@@ -174,6 +178,37 @@ function fakeFetch(
     calls.push({ url, method: init.method, idempotencyKey: init.headers['idempotency-key'], body })
 
     if (init.method === 'POST' && url.endsWith('/v1/agent-tools/trackb/execute')) {
+      if (body?.mode === 'bounded_runtime_probe') {
+        return jsonResponse(202, {
+          ok: true,
+          data: {
+            trackBAgentToolExecution: {
+              status: 'completed',
+              decision: 'trackb_agent_tool_execution_bounded_runtime_probe_completed',
+              toolId: body.toolId,
+              agentInvocationId: body.agentInvocationId,
+              mode: body.mode,
+              liveExecutionReady: false,
+              paymentScope: 'excluded_from_this_runtime_boundary',
+              serviceFeeIncluded: false,
+              runtimeReadinessProof: {
+                toolId: body.toolId,
+                probeKind: 'command_import_package_metadata_only',
+                mediaProcessing: false,
+                productRuntimeExecution: false,
+                backendEvidenceRecorded: false,
+                status: 'passed',
+                checkedAt: new Date().toISOString(),
+                checkModes: ['node_package_metadata'],
+                commandChecks: [],
+                pythonImportChecks: [],
+                nodePackageChecks: [],
+                warnings: [],
+              },
+            },
+          },
+        })
+      }
       if (body?.mode === 'deployed_live_execution') {
         return jsonResponse(202, {
           ok: true,

@@ -38,6 +38,7 @@ const result = await runBetaTrackBAgentRouteDeployedEvidenceCollectorFromEnv(
 
 assert.equal(result.ok, true)
 assert.equal(result.decision, 'beta_trackb_agent_route_deployed_evidence_collector_passed_mock_safe_route_proof')
+assert.equal(result.boundedRuntimeProbeToolCount, 16)
 assert.equal(result.routeProofToolCount, 16)
 assert.equal(result.requiredToolCount, 16)
 assert.equal(result.productReadyLocalOssCount, 0)
@@ -45,20 +46,30 @@ assert.equal(result.liveAgentExecutionReady, false)
 assert.equal(result.productReadyDeployedEvidenceRecordedByThisCollector, false)
 assert.equal(result.paymentScope, 'excluded_from_this_route_proof')
 assert.equal(result.serviceFeeIncluded, false)
-assert.equal(calls.length, 16)
-assert.equal(new Set(calls.map((call) => call.idempotencyKey)).size, 16)
+assert.equal(calls.length, 32)
+assert.equal(new Set(calls.map((call) => call.idempotencyKey)).size, 32)
 assert.equal(calls.every((call) => call.url.endsWith('/v1/agent-tools/trackb/execute')), true)
 assert.equal(calls.every((call) => call.method === 'POST'), true)
 assert.equal(calls.every((call) => call.authorization === 'Bearer trackb-agent-route-bearer-secret-for-smoke'), true)
 assert.equal(calls.every((call) => call.body.mode !== 'deployed_live_execution'), true)
 assert.equal(calls.every((call) => recordValue(call.body.metadata).serviceFeeIncluded === false), true)
 
-const hyperframe = calls.find((call) => call.body.toolId === 'hyperframe')
+const boundedProbeCalls = calls.slice(0, 16)
+const routeProofCalls = calls.slice(16)
+assert.equal(boundedProbeCalls.every((call) => call.body.mode === 'bounded_runtime_probe'), true)
+assert.equal(routeProofCalls.every((call) => call.body.mode === 'mock_safe_worker_dispatch' || call.body.mode === 'frontend_preview_boundary'), true)
+assert.equal(result.boundedRuntimeProbeResults.every((probe) => probe.completed), true)
+assert.equal(result.boundedRuntimeProbeResults.every((probe) => probe.mode === 'bounded_runtime_probe'), true)
+assert.equal(result.boundedRuntimeProbeResults.every((probe) => probe.mediaProcessing === false), true)
+assert.equal(result.boundedRuntimeProbeResults.every((probe) => probe.productRuntimeExecution === false), true)
+assert.equal(result.boundedRuntimeProbeResults.every((probe) => probe.backendEvidenceRecorded === false), true)
+
+const hyperframe = routeProofCalls.find((call) => call.body.toolId === 'hyperframe')
 assert.equal(hyperframe?.body.mode, 'frontend_preview_boundary')
 assert.equal(hyperframe?.body.storageReferenceIds, undefined)
 assert.equal(typeof hyperframe?.body.approvedPreviewStateReference, 'string')
 
-const backendCalls = calls.filter((call) => call.body.toolId !== 'hyperframe')
+const backendCalls = routeProofCalls.filter((call) => call.body.toolId !== 'hyperframe')
 assert.equal(backendCalls.length, 15)
 assert.equal(backendCalls.every((call) => call.body.mode === 'mock_safe_worker_dispatch'), true)
 assert.equal(backendCalls.every((call) => Array.isArray(call.body.storageReferenceIds)), true)
@@ -77,6 +88,7 @@ await assert.rejects(
 console.log(JSON.stringify({
   ok: result.ok,
   decision: result.decision,
+  boundedRuntimeProbeToolCount: result.boundedRuntimeProbeToolCount,
   routeProofToolCount: result.routeProofToolCount,
   liveAgentExecutionReady: result.liveAgentExecutionReady,
   calls: calls.map((call) => ({
@@ -114,6 +126,40 @@ function fakeFetch(
             paymentScope: 'excluded_from_this_runtime_boundary',
             serviceFeeIncluded: false,
             blockedReason: 'fake smoke blocker',
+            warnings: [],
+          },
+        },
+        warnings: [],
+      })
+    }
+
+    if (body.mode === 'bounded_runtime_probe') {
+      return jsonResponse(202, {
+        ok: true,
+        data: {
+          trackBAgentToolExecution: {
+            status: 'completed',
+            decision: 'trackb_agent_tool_execution_bounded_runtime_probe_completed',
+            toolId: body.toolId,
+            agentInvocationId: body.agentInvocationId,
+            mode: body.mode,
+            liveExecutionReady: false,
+            paymentScope: 'excluded_from_this_runtime_boundary',
+            serviceFeeIncluded: false,
+            runtimeReadinessProof: {
+              toolId: body.toolId,
+              probeKind: 'command_import_package_metadata_only',
+              mediaProcessing: false,
+              productRuntimeExecution: false,
+              backendEvidenceRecorded: false,
+              status: 'passed',
+              checkedAt: new Date().toISOString(),
+              checkModes: ['node_package_metadata'],
+              commandChecks: [],
+              pythonImportChecks: [],
+              nodePackageChecks: [],
+              warnings: [],
+            },
             warnings: [],
           },
         },

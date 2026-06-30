@@ -10,16 +10,17 @@ Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed
 
 ## Input Counts
 
-- Required inputs: `62`
-- Pending in blank environment: `59`
+- Required inputs: `66`
+- Pending in blank environment: `63`
 - Secret/sensitive inputs: `2`
 - Operator-generated ids: `4`
 - Owner evidence notes: `11`
-- Prefilled non-secret constants: `10`
+- Prefilled non-secret constants: `13`
 
 ## Required Groups
 
 - shared: `8`
+- agent_route_proof: `4`
 - tool_evidence: `16`
 - platform_evidence: `22`
 - launch_approval: `16`
@@ -42,6 +43,12 @@ REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA="ee177046bfb07868c4eb0ebd04f4eaff42c
 REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="ee177046bfb07868c4eb0ebd04f4eaff42c811ce"
 REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE="<operator confirmation: set to true only after this gate is intentionally accepted>"
 REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY="<operator confirmation: set to true only after this gate is intentionally accepted>"
+
+# agent_route_proof
+REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF="<operator confirmation: set to true only after this gate is intentionally accepted>"
+REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX="trackb-agent-route-proof-ee177046bfb0"
+REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID="approved-snapshot-trackb-agent-route-proof-ee177046bfb0"
+REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX="tool-exec-trackb-agent-route-proof-ee177046bfb0"
 
 # tool_evidence
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY="reeditpro-beta-tools-local-bundle-core-idempotency-key-ee177046bfb0"
@@ -108,13 +115,16 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 # npm run beta:readiness:source-freshness-preflight
 # npm run beta:readiness:external-beta-operator-local-env-bootstrap
 # npm run beta:readiness:external-beta-operator-autofill-env
+# npm run beta:readiness:external-beta-operator-autofill-local-env
 # npm run beta:readiness:external-beta-operator-human-input-checklist
 # REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight
 # npm run beta:readiness:owner-approval-intake-status
 # REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight
 # npm run beta:readiness:deployed-evidence-input-manifest -- --status
 # npm run beta:readiness:deployed-evidence-input-manifest
+# npm run beta:tools:trackb-agent-route-deployed-evidence-collector
 # npm run beta:tools:trackb-product-ready-deployed-evidence-collector
+# npm run beta:readiness:external-beta-sequence-preflight
 
 # After collector execution:
 # npm run beta:readiness:external-beta-evidence-collector
@@ -130,14 +140,16 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 - `npm run beta:readiness:external-beta-operator-local-env-bootstrap`
 - `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown`
 - `npm run beta:readiness:external-beta-operator-autofill-env`
+- `npm run beta:readiness:external-beta-operator-autofill-local-env`
 - `npm run beta:readiness:external-beta-operator-human-input-checklist`
 - `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight`
 - `npm run beta:readiness:owner-approval-intake-status`
 - `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
+- `npm run beta:tools:trackb-agent-route-deployed-evidence-collector`
 - `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
-- `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
+- `npm run beta:readiness:external-beta-sequence-preflight`
 - `npm run beta:readiness:external-beta-evidence-collector`
 - `npm run beta:readiness:operator-status-api`
 

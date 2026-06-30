@@ -82,6 +82,10 @@ assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERN
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'))
 assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA'), false)
 assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA'), false)
+assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF'))
+assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX'))
+assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID'))
+assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID'))
 assert.ok(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE'))
@@ -99,6 +103,7 @@ assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:sou
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(emptyManifest.recommendedCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest -- --status'))
+assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:tools:trackb-agent-route-deployed-evidence-collector'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(emptyManifest.remainingBlockedScopes.includes('paid_production_until_separate_paid_production_evidence_collector_passes'))
@@ -129,6 +134,10 @@ const readyEnv = {
   REEDITPRO_BETA_EXTERNAL_SOURCE_SHA: expectedDeployedSourceSha,
   REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE: 'true',
   REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF: 'true',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX: 'trackb-agent-route-proof-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID: 'approved-snapshot-trackb-agent-route-proof-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX: 'tool-exec-trackb-agent-route-proof-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'tool-core-idempotency-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'tool-libass-idempotency-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'beta-tools-current-source-16-tool-local-accepted-evidence-bundle',
@@ -227,6 +236,16 @@ assert.equal(missingProductReadyManifest.readyToRunExternalBetaEvidenceCollector
 assert.ok(
   missingProductReadyManifest.valueGaps.some((gap) => gap.includes('ACCEPT_PRODUCT_READY_LOCAL_OSS')),
   'manifest must require product-ready tool acceptance after PR #987 source-truth reconciliation',
+)
+
+const missingRouteProofManifest = buildBetaReadinessDeployedEvidenceInputManifest({
+  ...readyEnv,
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF: 'false',
+})
+assert.equal(missingRouteProofManifest.readyToRunExternalBetaEvidenceCollector, false)
+assert.ok(
+  missingRouteProofManifest.valueGaps.some((gap) => gap.includes('TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF')),
+  'manifest must require explicit deployed agent-route proof confirmation',
 )
 
 const wrongProductReadyCountManifest = buildBetaReadinessDeployedEvidenceInputManifest({

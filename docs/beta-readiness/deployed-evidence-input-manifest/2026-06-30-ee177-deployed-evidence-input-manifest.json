@@ -37,12 +37,12 @@
   },
   "manifestResult": {
     "readyToRunExternalBetaEvidenceCollector": false,
-    "pendingRequiredInputCount": 57,
+    "pendingRequiredInputCount": 63,
     "valueGaps": [],
     "secretLikeInputPaths": []
   },
   "readyToRunExternalBetaEvidenceCollector": false,
-  "pendingRequiredOwnerInputCount": 45,
+  "pendingRequiredOwnerInputCount": 46,
   "trackBToolBoundary": {
     "ownedToolCount": 16,
     "boundedAcceptedProvenToolCount": 16,
@@ -65,6 +65,15 @@
       "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true"
     ]
   },
+  "trackBAgentRouteProofBoundary": {
+    "requiredCommand": "npm run beta:tools:trackb-agent-route-deployed-evidence-collector",
+    "requiredConfirmation": "REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF=true",
+    "idempotencyPrefix": "REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX=trackb-agent-route-proof-ee177046bfb0",
+    "approvedSnapshotId": "REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID=approved-snapshot-trackb-agent-route-proof-ee177046bfb0",
+    "toolExecutionPlanPrefix": "REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX=tool-exec-trackb-agent-route-proof-ee177046bfb0",
+    "liveExecutionApproval": false,
+    "productRuntimeApproval": false
+  },
   "blockedScopeConfirmations": {
     "externalBetaEnabled": false,
     "realUserMediaBetaEnabled": false,
@@ -84,7 +93,7 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Collect operator inputs outside source control, rerun deployed evidence input manifest, record Track B product-ready deployed evidence with readback count 16, then run external beta evidence collector only after the manifest is ready.",
+  "nextSafeAction": "Collect operator inputs outside source control, rerun deployed evidence input manifest, record Track B deployed agent-route proof, record Track B product-ready deployed evidence with readback count 16, then run external beta evidence collector only after the manifest is ready.",
   "previous184fApiDeployReadback": {
     "sourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
     "normalApiRevision": "reeditpro-api-staging-00014-xdj",

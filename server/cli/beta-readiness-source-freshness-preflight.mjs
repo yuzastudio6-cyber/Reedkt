@@ -41,6 +41,8 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:tools:core-real-check-evidence',
   'beta:tools:core-real-check-evidence-preflight',
   'beta:tools:core-real-check-preview',
+  'beta:tools:trackb-product-ready-deployed-evidence-collector',
+  'beta:tools:trackb-product-ready-source-reconciliation',
   'beta:tools:libass-container-proof-preflight',
   'beta:tools:libass-synthetic-burnin-qa-evidence',
   'beta:tools:libass-synthetic-burnin-qa-evidence-preflight',
@@ -58,6 +60,8 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'smoke:beta-readiness-external-beta-operator-input-template',
   'smoke:beta-readiness-external-beta-operator-local-env-preflight',
   'smoke:beta-readiness-external-beta-evidence-collector',
+  'smoke:beta-trackb-product-ready-deployed-evidence-collector',
+  'smoke:beta-trackb-product-ready-source-reconciliation',
   'smoke:beta-readiness-launch-approval-evidence-cli',
   'smoke:beta-readiness-launch-approval-evidence-preflight',
   'smoke:beta-readiness-operator-status-api',
@@ -184,6 +188,8 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
         'server/cli/beta-tools-core-real-check-preview.ts',
         'server/cli/beta-tools-core-real-check-hydrated-preview.ts',
+        'server/cli/beta-trackb-product-ready-deployed-evidence-collector.ts',
+        'server/cli/beta-trackb-product-ready-source-reconciliation.mjs',
         'server/cli/beta-tools-libass-synthetic-burnin-qa-preflight.ts',
         'server/cli/beta-tools-local-accepted-evidence-bundle.ts',
         'server/cli/beta-tools-local-accepted-evidence-collector.ts',
@@ -309,6 +315,8 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs' ||
     path === 'server/cli/beta-tools-core-real-check-preview.ts' ||
     path === 'server/cli/beta-tools-core-real-check-hydrated-preview.ts' ||
+    path === 'server/cli/beta-trackb-product-ready-deployed-evidence-collector.ts' ||
+    path === 'server/cli/beta-trackb-product-ready-source-reconciliation.mjs' ||
     path === 'server/cli/beta-tools-libass-synthetic-burnin-qa-preflight.ts' ||
     path === 'server/cli/beta-tools-local-accepted-evidence-bundle.ts' ||
     path === 'server/cli/beta-tools-local-accepted-evidence-collector.ts' ||

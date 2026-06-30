@@ -159,6 +159,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
     'server/cli/beta-readiness-operator-status.ts',
     'server/cli/beta-readiness-summary.ts',
+    'server/beta-readiness/beta-readiness-operator-status.ts',
     'server/beta-readiness/platform-evidence-manifest.ts',
     'server/workers/readiness-validation/readiness-command-plan-builder.ts',
     '.gitignore',
@@ -273,6 +274,7 @@ assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.i
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-summary.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/beta-readiness/beta-readiness-operator-status.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/beta-readiness/platform-evidence-manifest.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/workers/readiness-validation/readiness-command-plan-builder.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('.gitignore beta operator env ignore lines only'))

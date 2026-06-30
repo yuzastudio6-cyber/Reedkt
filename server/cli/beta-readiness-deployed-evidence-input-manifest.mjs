@@ -30,6 +30,8 @@ const SECRET_VALUE_PATTERNS = [
   /service_role_key/i,
 ]
 
+const PLACEHOLDER_VALUE_PATTERN = /^<[^>]+>$/
+
 export function buildBetaReadinessDeployedEvidenceInputManifest(
   env = process.env,
   options = {},
@@ -75,6 +77,9 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   const pendingRequiredInputs = requiredInputs
     .filter((input) => !input.present)
     .map((input) => input.name)
+  const placeholderInputPaths = requiredInputs
+    .filter((input) => isPlaceholderValue(effectiveEnv[input.name]))
+    .map((input) => `betaReadinessDeployedEvidenceInputManifest.${input.name}`)
   const valueGaps = buildValueGaps(effectiveEnv, {
     currentSourceSha,
     localAcceptedEvidenceSourceSha,
@@ -106,7 +111,8 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
     ...(snapshot.libassEvidence?.syntheticBurninQa?.noNetwork === true ? [] : ['Local libass evidence must confirm no network.']),
     ...(snapshot.libassEvidence?.syntheticBurninQa?.tempRootRemoved === true ? [] : ['Local libass evidence must confirm temp-root cleanup.']),
   ]
-  const allValueGaps = [...snapshotGaps, ...valueGaps]
+  const placeholderGaps = placeholderInputPaths.map((inputPath) => `${inputPath} still contains a template placeholder.`)
+  const allValueGaps = [...snapshotGaps, ...valueGaps, ...placeholderGaps]
   const readyToRunExternalBetaEvidenceCollector = pendingRequiredInputs.length === 0 &&
     allValueGaps.length === 0 &&
     secretLikeInputPaths.length === 0
@@ -147,12 +153,14 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
     },
     requiredInputs,
     pendingRequiredInputs,
+    placeholderInputPaths,
     valueGaps: allValueGaps,
     secretLikeInputPaths,
     recommendedCommands: [
       'npm run beta:readiness:owner-approval-packet',
       'npm run beta:readiness:owner-approval-env-template',
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -335,6 +343,11 @@ function input(env, name, group, secret, requiredFor, expectedValue) {
     present: Boolean(clean(env[name])),
     expectedValue: secret ? undefined : expectedValue,
   }
+}
+
+function isPlaceholderValue(value) {
+  const cleaned = clean(value)
+  return Boolean(cleaned && PLACEHOLDER_VALUE_PATTERN.test(cleaned))
 }
 
 function requireEqualIfPresent(env, gaps, name, expected) {

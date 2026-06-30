@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readiness-deployed-evidence-input-manifest.mjs'
 
 const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
@@ -6,10 +7,15 @@ const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_re
 const STATUS_DECISION = 'beta_readiness_external_beta_operator_input_status_passed_ready_for_operator_value_collection'
 const AUTOFILL_DECISION = 'beta_readiness_external_beta_operator_autofill_env_passed_ready_for_human_operator_value_collection'
 const HUMAN_INPUT_CHECKLIST_DECISION = 'beta_readiness_external_beta_operator_human_input_checklist_passed_ready_for_operator_owner_collection'
+const BOOTSTRAP_DECISION = 'beta_readiness_external_beta_operator_local_env_bootstrap_passed_ready_for_human_operator_value_collection'
 
 const SECRET_PLACEHOLDER = '<secret value supplied only in the operator shell>'
 const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
 const EVIDENCE_PLACEHOLDER = '<non-secret owner evidence summary>'
+const OPERATOR_CONFIRMATION_PLACEHOLDER = '<operator confirmation: set to true only after this gate is intentionally accepted>'
+const OWNER_APPROVAL_PLACEHOLDER = '<owner approval: set to true only after named owner approval is recorded>'
+const TECHNICAL_VERIFICATION_PLACEHOLDER = '<technical verification: set to true only after evidence readback passes>'
+export const RECOMMENDED_OPERATOR_ENV_FILE = '.env.reeditpro-beta-operator.local'
 
 export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
   const manifest = buildBetaReadinessDeployedEvidenceInputManifest(env)
@@ -55,6 +61,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
     envTemplate: renderEnvTemplate(requiredInputs),
     validationCommands: [
       'npm run beta:readiness:source-freshness-preflight',
+      'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -177,6 +184,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
     envTemplate: renderAutofillEnvTemplate(autoFillableInputs),
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -231,6 +239,7 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
     ],
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
+      'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -296,6 +305,90 @@ export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(rep
     `Next safe action: ${report.nextSafeAction}`,
   ]
   return lines.join('\n')
+}
+
+export function buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(
+  report = buildBetaReadinessExternalBetaOperatorInputTemplate(),
+  options = {},
+) {
+  const targetPath = clean(options.targetPath) ?? RECOMMENDED_OPERATOR_ENV_FILE
+  const bootstrapInputs = report.requiredInputs.map((input) => ({
+    name: input.name,
+    group: input.group,
+    requiredFor: input.requiredFor,
+    secret: input.secret === true,
+    valuePolicy: input.valuePolicy,
+    operatorAction: operatorAction(input),
+    assigned: !isHumanActionableInput(input),
+    value: input.templateValue,
+  }))
+  const assignedInputs = bootstrapInputs.filter((input) => input.assigned)
+  const commentedHumanInputs = bootstrapInputs.filter((input) => !input.assigned)
+  return {
+    ok: true,
+    decision: BOOTSTRAP_DECISION,
+    templateDecision: report.decision,
+    templateId: report.templateId,
+    targetPath,
+    recommendedPermissionMode: '0600',
+    overwriteExistingByDefault: false,
+    sourceTruth: report.sourceTruth,
+    inputCounts: {
+      totalInputs: bootstrapInputs.length,
+      assignedSafeInputs: assignedInputs.length,
+      commentedHumanInputs: commentedHumanInputs.length,
+      secretOrSensitiveValuesAssigned: assignedInputs.filter((input) => input.secret).length,
+      ownerApprovalValuesAssigned: assignedInputs.filter((input) => input.valuePolicy === 'owner_approval_confirmation').length,
+      ownerEvidenceValuesAssigned: assignedInputs.filter((input) => input.valuePolicy === 'owner_evidence_note').length,
+      technicalVerificationValuesAssigned: assignedInputs.filter((input) => input.valuePolicy === 'technical_verification_confirmation').length,
+    },
+    bootstrapInputs,
+    envFileContent: renderLocalEnvBootstrapTemplate(bootstrapInputs),
+    validationCommands: [
+      `REEDITPRO_BETA_OPERATOR_ENV_FILE=${targetPath} npm run beta:readiness:external-beta-operator-local-env-preflight`,
+      `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${targetPath} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest',
+    ],
+    blockedScopeConfirmations: report.blockedScopeConfirmations,
+    supabaseClassification: report.supabaseClassification,
+    warnings: [
+      'The bootstrap file assigns only safe non-secret constants and generated idempotency keys.',
+      'Human-owned values are commented out and must be filled by the operator/owner before preflight can pass.',
+      'Existing files are not overwritten by default so local secrets and owner evidence are not destroyed.',
+      'This bootstrap does not call deployed services, record evidence, write Supabase/GCS, run tools, process media, enable beta, or enable production.',
+    ],
+    nextSafeAction: `Create ${targetPath}, fill the commented human-owned values outside source control, chmod 600 the file, then run the local env and owner approval preflights.`,
+  }
+}
+
+export function writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap(options = {}) {
+  const report = options.report ?? buildBetaReadinessExternalBetaOperatorInputTemplate()
+  const targetPath = clean(options.targetPath) ?? RECOMMENDED_OPERATOR_ENV_FILE
+  const bootstrap = buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(report, { targetPath })
+  const cwd = path.resolve(options.cwd ?? process.cwd())
+  const resolvedPath = path.resolve(cwd, targetPath)
+  const displayPath = path.isAbsolute(targetPath) ? resolvedPath : targetPath
+  if (existsSync(resolvedPath) && options.overwrite !== true) {
+    return {
+      ...withoutEnvFileContent(bootstrap),
+      written: false,
+      displayPath,
+      permissionMode: undefined,
+      safetyGaps: ['operator_local_env_bootstrap_target_exists'],
+      nextSafeAction: `Review the existing ${displayPath} file or move it aside before bootstrapping; this command will not overwrite operator values by default.`,
+    }
+  }
+  mkdirSync(path.dirname(resolvedPath), { recursive: true })
+  writeFileSync(resolvedPath, bootstrap.envFileContent, { encoding: 'utf8', flag: options.overwrite === true ? 'w' : 'wx' })
+  chmodSync(resolvedPath, 0o600)
+  const permissionMode = `0${(statSync(resolvedPath).mode & 0o777).toString(8).padStart(3, '0')}`
+  return {
+    ...withoutEnvFileContent(bootstrap),
+    written: true,
+    displayPath,
+    permissionMode,
+    safetyGaps: [],
+  }
 }
 
 export function renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(report) {
@@ -448,6 +541,11 @@ function templateValue(input, context) {
   if (input.name === 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL') {
     return context.defaultApiBaseUrl ?? NON_SECRET_PLACEHOLDER
   }
+  if (input.secret) return SECRET_PLACEHOLDER
+  if (isOwnerApprovalConfirmationName(input.name)) return OWNER_APPROVAL_PLACEHOLDER
+  if (isTechnicalVerificationConfirmationName(input.name)) return TECHNICAL_VERIFICATION_PLACEHOLDER
+  if (isOperatorConfirmationName(input.name)) return OPERATOR_CONFIRMATION_PLACEHOLDER
+  if (input.name.endsWith('_EVIDENCE')) return EVIDENCE_PLACEHOLDER
   if (
     input.name === 'REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA' ||
     input.name === 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA'
@@ -479,11 +577,49 @@ function templateValue(input, context) {
     return context.fixedInputs.platformEnvironment
   }
   if (input.expectedValue) return String(input.expectedValue)
-  if (input.secret) return SECRET_PLACEHOLDER
-  if (input.name.endsWith('_EVIDENCE')) return EVIDENCE_PLACEHOLDER
   if (input.name.endsWith('_IDEMPOTENCY_KEY')) return `${input.name.toLowerCase().replaceAll('_', '-')}-${context.currentSourceSha.slice(0, 12)}`
   if (input.name.endsWith('_WORKSPACE_ID') || input.name.endsWith('_PROJECT_ID')) return NON_SECRET_PLACEHOLDER
   return NON_SECRET_PLACEHOLDER
+}
+
+function renderLocalEnvBootstrapTemplate(inputs) {
+  const lines = [
+    '# ReEditPro external beta local operator env bootstrap',
+    '# Generated skeleton only. Do not commit completed values.',
+    '# Safe assignments below are non-secret constants or generated idempotency keys.',
+    '# Human-owned values stay commented out until the correct operator/owner supplies them.',
+    '',
+  ]
+  let lastGroup
+  for (const input of inputs) {
+    if (input.group !== lastGroup) {
+      if (lastGroup) lines.push('')
+      lines.push(`# ${input.group}`)
+      lastGroup = input.group
+    }
+    if (input.assigned) {
+      lines.push(`${input.name}="${escapeTemplateValue(input.value)}"`)
+    } else {
+      lines.push(`# TODO ${input.operatorAction}`)
+      lines.push(`# ${input.name}="${escapeTemplateValue(input.value)}"`)
+    }
+  }
+  lines.push('')
+  lines.push('# After filling human-owned values:')
+  lines.push(`# chmod 600 ${RECOMMENDED_OPERATOR_ENV_FILE}`)
+  lines.push(`# REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`)
+  lines.push(`# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`)
+  lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
+  return lines.join('\n')
+}
+
+function withoutEnvFileContent(report) {
+  const { envFileContent, bootstrapInputs, ...safeReport } = report
+  return {
+    ...safeReport,
+    assignedInputNames: bootstrapInputs.filter((input) => input.assigned).map((input) => input.name),
+    commentedHumanInputNames: bootstrapInputs.filter((input) => !input.assigned).map((input) => input.name),
+  }
 }
 
 function valuePolicy(input) {
@@ -517,6 +653,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# Validate before collector execution:')
   lines.push('# If saving this template locally, use .env.reeditpro-beta-operator.local and run: chmod 600 .env.reeditpro-beta-operator.local')
   lines.push('# npm run beta:readiness:source-freshness-preflight')
+  lines.push('# npm run beta:readiness:external-beta-operator-local-env-bootstrap')
   lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
   lines.push('# npm run beta:readiness:external-beta-operator-human-input-checklist')
   lines.push('# REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight')
@@ -664,6 +801,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(JSON.stringify(buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report), null, 2))
   } else if (process.argv.includes('--human-input-markdown')) {
     console.log(renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdown(buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report)))
+  } else if (process.argv.includes('--bootstrap-local-env')) {
+    const bootstrapResult = writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap({
+      report,
+      targetPath: readArg('--bootstrap-path') ?? RECOMMENDED_OPERATOR_ENV_FILE,
+      overwrite: process.argv.includes('--overwrite-bootstrap'),
+    })
+    console.log(JSON.stringify(bootstrapResult, null, 2))
+    if (bootstrapResult.written !== true) process.exitCode = 1
   } else if (process.argv.includes('--env-template')) {
     console.log(report.envTemplate)
   } else if (process.argv.includes('--markdown')) {
@@ -671,4 +816,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else {
     console.log(JSON.stringify(report, null, 2))
   }
+}
+
+function readArg(name) {
+  const index = process.argv.indexOf(name)
+  if (index === -1) return undefined
+  return process.argv[index + 1]
 }

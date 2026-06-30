@@ -247,7 +247,7 @@
   ],
   "redactedTemplate": {
     "command": "npm run beta:readiness:owner-approval-env-template",
-    "lineCount": 46,
+    "lineCount": 47,
     "storesCompletedValuesInSourceControl": false,
     "rejectedScopeFlagsKeptFalse": [
       "REEDITPRO_BETA_LAUNCH_APPROVE_REAL_USER_MEDIA_BETA=false",
@@ -260,6 +260,7 @@
   "commands": [
     "npm run beta:readiness:owner-approval-env-template",
     "npm run beta:readiness:external-beta-operator-input-template -- --status",
+    "npm run beta:readiness:external-beta-operator-local-env-bootstrap",
     "npm run beta:readiness:external-beta-operator-autofill-env",
     "npm run beta:readiness:external-beta-operator-human-input-checklist",
     "npm run beta:readiness:external-beta-operator-local-env-preflight",
@@ -313,7 +314,7 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Owners fill the generated non-secret approval template outside source control, operators export the auto-fillable non-secret constants/idempotency keys, review the human input checklist, validate the completed local ignored env file with the local-env preflight, then run source freshness, owner approval intake status, owner approval intake preflight from the same owner-only local env file, and deployed evidence input manifest before any collector.",
+  "nextSafeAction": "Owners fill the generated non-secret approval template outside source control, operators export the auto-fillable non-secret constants/idempotency keys and review the human input checklist, then run source freshness, owner approval intake status, owner approval intake preflight, and deployed evidence input manifest before any collector.",
   "outputPaths": {
     "json": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.json",
     "markdown": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.md"

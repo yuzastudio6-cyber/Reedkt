@@ -4,8 +4,10 @@ import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
+  buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap,
   buildBetaReadinessExternalBetaOperatorHumanInputChecklist,
   buildBetaReadinessExternalBetaOperatorInputTemplate,
+  writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap,
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
 import {
   buildBetaReadinessExternalBetaOperatorLocalEnvPreflight,
@@ -19,6 +21,10 @@ const gitignore = readFileSync('.gitignore', 'utf8')
 assert.equal(
   packageJson.scripts['beta:readiness:external-beta-operator-local-env-preflight'],
   'node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
+)
+assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-local-env-bootstrap'],
+  'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --bootstrap-local-env',
 )
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-external-beta-operator-local-env-preflight'],
@@ -53,6 +59,15 @@ assert.equal(blank.safetyGaps.length, 0)
 const checklist = buildBetaReadinessExternalBetaOperatorHumanInputChecklist(
   buildBetaReadinessExternalBetaOperatorInputTemplate({}),
 )
+const copiedTemplate = buildBetaReadinessExternalBetaOperatorInputTemplate({})
+const copiedTemplatePreflight = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  env: {},
+  envFileContent: copiedTemplate.envTemplate,
+})
+assert.equal(copiedTemplatePreflight.readyForExternalBetaEvidenceCollector, false)
+assert.equal(copiedTemplatePreflight.safetyGaps.includes('operator_env_file_contains_placeholder_values'), true)
+assert.ok(copiedTemplatePreflight.envFile.placeholderInputPaths.length > 0)
+
 const completeEnvText = checklist.humanActionableInputs
   .map((input, index) => `${input.name}=${JSON.stringify(valueForInput(input, index))}`)
   .join('\n')
@@ -109,6 +124,43 @@ const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-operator-env-preflight-sm
 process.on('exit', () => {
   rmSync(tempRoot, { recursive: true, force: true })
 })
+const bootstrap = buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(copiedTemplate, {
+  targetPath: RECOMMENDED_OPERATOR_ENV_FILE,
+})
+assert.equal(bootstrap.decision, 'beta_readiness_external_beta_operator_local_env_bootstrap_passed_ready_for_human_operator_value_collection')
+assert.equal(bootstrap.inputCounts.assignedSafeInputs, 14)
+assert.equal(bootstrap.inputCounts.commentedHumanInputs, 46)
+assert.equal(bootstrap.inputCounts.secretOrSensitiveValuesAssigned, 0)
+assert.equal(bootstrap.inputCounts.ownerApprovalValuesAssigned, 0)
+assert.equal(bootstrap.inputCounts.ownerEvidenceValuesAssigned, 0)
+assert.equal(bootstrap.envFileContent.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA='), true)
+assert.equal(bootstrap.envFileContent.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN='), true)
+assert.equal(/^REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN=/m.test(bootstrap.envFileContent), false)
+assert.equal(/^# REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN=/m.test(bootstrap.envFileContent), true)
+
+const bootstrapPath = join(tempRoot, RECOMMENDED_OPERATOR_ENV_FILE)
+const writeBootstrap = writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap({
+  targetPath: bootstrapPath,
+})
+assert.equal(writeBootstrap.written, true)
+assert.equal(writeBootstrap.permissionMode, '0600')
+assert.equal(writeBootstrap.safetyGaps.length, 0)
+const bootstrappedPreflight = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  env: {},
+  envFilePath: bootstrapPath,
+})
+assert.equal(bootstrappedPreflight.readyForExternalBetaEvidenceCollector, false)
+assert.equal(bootstrappedPreflight.envFile.permissionMode, '0600')
+assert.equal(bootstrappedPreflight.envFile.betaInputKeysLoaded, 14)
+assert.equal(bootstrappedPreflight.operatorInputs.pending, 45)
+assert.equal(bootstrappedPreflight.envFile.placeholderInputPaths.length, 0)
+assert.equal(bootstrappedPreflight.safetyGaps.includes('operator_env_file_contains_placeholder_values'), false)
+const secondBootstrap = writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap({
+  targetPath: bootstrapPath,
+})
+assert.equal(secondBootstrap.written, false)
+assert.equal(secondBootstrap.safetyGaps.includes('operator_local_env_bootstrap_target_exists'), true)
+
 const secureEnvPath = join(tempRoot, 'secure.env')
 writeFileSync(secureEnvPath, completeEnvText)
 chmodSync(secureEnvPath, 0o600)

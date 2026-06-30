@@ -61,6 +61,7 @@ assert.equal(ready.decision, 'beta_readiness_source_freshness_preflight_passed_c
 assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
@@ -69,8 +70,13 @@ assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-appro
 assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template -- --status') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-bootstrap'),
+  'safe status review should precede the local env bootstrap command',
+)
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-bootstrap') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env'),
-  'safe status review should precede the auto-fill env command',
+  'local env bootstrap should precede the auto-fill env command',
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env') <
@@ -143,6 +149,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:readiness:blocker-ledger',
     'beta:readiness:external-beta-operator-autofill-env',
     'beta:readiness:external-beta-operator-human-input-checklist',
+    'beta:readiness:external-beta-operator-local-env-bootstrap',
     'beta:readiness:external-beta-operator-local-env-preflight',
     'beta:readiness:external-beta-operator-input-template',
     'beta:readiness:external-beta-evidence-collector',

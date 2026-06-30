@@ -123,6 +123,7 @@ assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readine
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:owner-approval-packet')), 'ready report should name the current owner approval packet CLI')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:owner-approval-env-template')), 'ready report should name the owner approval env template command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:external-beta-operator-autofill-env')), 'ready report should name the safe auto-fill env command')
+assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:external-beta-operator-local-env-bootstrap')), 'ready report should name the local env bootstrap command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:external-beta-operator-human-input-checklist')), 'ready report should name the human input checklist command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:external-beta-operator-local-env-preflight')), 'ready report should name the local env preflight command')
 assert.ok(readyReport.nextActions.some((action) => action.includes('beta:readiness:owner-approval-intake-status')), 'ready report should name the value-free owner approval intake status command')

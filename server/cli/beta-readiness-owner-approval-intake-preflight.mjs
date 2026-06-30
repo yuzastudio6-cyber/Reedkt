@@ -35,6 +35,7 @@ const SECRET_PATTERNS = [
   /aws_secret_access_key/i,
   /AIza[0-9A-Za-z_-]{20,}/,
 ]
+const PLACEHOLDER_VALUE_PATTERN = /^<[^>]+>$/
 
 export function buildBetaReadinessOwnerApprovalEnvTemplate() {
   const report = buildBetaReadinessOwnerApprovalIntakePreflight({})
@@ -95,6 +96,9 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
   ]
   const uniqueRequiredInputs = [...new Set(requiredInputs)]
   const pendingInputs = uniqueRequiredInputs.filter((name) => !present(effectiveEnv[name]))
+  const placeholderInputPaths = uniqueRequiredInputs
+    .filter((name) => isPlaceholderValue(effectiveEnv[name]))
+    .map((name) => `ownerApprovalInput.${name}`)
   const invalidBooleanInputs = uniqueRequiredInputs.filter((name) => (
     booleanInputNames.has(name) &&
     present(effectiveEnv[name]) &&
@@ -111,6 +115,7 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
   const safetyGaps = [
     ...envFile.safetyGaps,
     ...(envFile.invalidLines.length > 0 ? ['owner_approval_env_file_has_invalid_lines'] : []),
+    ...(placeholderInputPaths.length > 0 ? ['owner_approval_env_contains_placeholder_values'] : []),
     ...(secretLikeInputPaths.length > 0 ? ['owner_approval_evidence_contains_secret_like_material'] : []),
   ]
   const readyForDeployedEvidenceInputManifest = pendingInputs.length === 0 &&
@@ -140,6 +145,7 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
       betaInputKeysLoaded: envFile.betaInputKeysLoaded,
       invalidLineCount: envFile.invalidLines.length,
       invalidLines: envFile.invalidLines,
+      placeholderInputPaths,
       safetyGaps: envFile.safetyGaps,
     },
     sourceTruth: {
@@ -164,6 +170,7 @@ export function buildBetaReadinessOwnerApprovalIntakePreflight(env = process.env
     pendingInputs,
     invalidBooleanInputs,
     rejectedScopeInputs,
+    placeholderInputPaths,
     secretLikeInputPaths,
     safetyGaps,
     blockedScopes: packet.blockedScopes,
@@ -444,6 +451,11 @@ function redactHome(value) {
 
 function present(value) {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+function isPlaceholderValue(value) {
+  const cleaned = clean(value)
+  return Boolean(cleaned && PLACEHOLDER_VALUE_PATTERN.test(cleaned))
 }
 
 function truthy(value) {

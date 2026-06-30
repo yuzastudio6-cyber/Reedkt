@@ -177,6 +177,7 @@ function buildBatches(
       ],
       nextCommands: [
         'npm run beta:readiness:external-beta-operator-input-template -- --status',
+        'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
         'npm run beta:readiness:external-beta-operator-autofill-env',
         'npm run beta:readiness:external-beta-operator-human-input-checklist',
         'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -186,7 +187,7 @@ function buildBatches(
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],
       blockedUntil: [
-        `Operators review the value-free pending-input status, supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations) in the local ignored .env.reeditpro-beta-operator.local file, run chmod 600 on that file, validate that file with the operator local-env preflight, validate owner approvals from that same owner-only file, and export the auto-fillable constants/idempotency keys from an operator shell or secret manager session.`,
+        `Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.`,
       ],
     },
     {

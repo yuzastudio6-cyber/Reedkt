@@ -31,6 +31,9 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
   }
   const operatorTemplate = buildBetaReadinessExternalBetaOperatorInputTemplate(effectiveEnv)
   const operatorStatus = buildBetaReadinessExternalBetaOperatorInputStatus(operatorTemplate)
+  const placeholderInputPaths = operatorTemplate.requiredInputs
+    .filter((input) => present(effectiveEnv[input.name]) && isPlaceholderValue(effectiveEnv[input.name]))
+    .map((input) => `operatorEnv.${input.name}`)
   const sourceFreshness = buildBetaReadinessSourceFreshnessPreflight(effectiveEnv, {
     resolveGit: options.resolveGit,
   })
@@ -40,6 +43,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
   const safetyGaps = [
     ...envFile.safetyGaps,
     ...(envFile.invalidLines.length > 0 ? ['operator_env_file_has_invalid_lines'] : []),
+    ...(placeholderInputPaths.length > 0 ? ['operator_env_file_contains_placeholder_values'] : []),
     ...(ownerPreflight.secretLikeInputPaths.length > 0 ? ['owner_evidence_contains_secret_like_material'] : []),
     ...(deployedManifest.secretLikeInputPaths.length > 0 ? ['deployed_manifest_inputs_contain_secret_like_material'] : []),
   ]
@@ -67,6 +71,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       betaInputKeysLoaded: envFile.betaInputKeysLoaded,
       invalidLineCount: envFile.invalidLines.length,
       invalidLines: envFile.invalidLines,
+      placeholderInputPaths,
       safetyGaps: envFile.safetyGaps,
     },
     autoFill: {
@@ -122,6 +127,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     },
     safetyGaps,
     validationCommands: [
+      'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`,
@@ -164,6 +170,7 @@ export function renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown
     `- Git ignored: \`${report.envFile.gitIgnored ?? 'not_applicable'}\``,
     `- Parsed beta input keys: \`${report.envFile.betaInputKeysLoaded}\``,
     `- Invalid lines: \`${report.envFile.invalidLineCount}\``,
+    `- Placeholder values: \`${report.envFile.placeholderInputPaths.length}\``,
     '',
     '## Counts',
     '',
@@ -359,6 +366,11 @@ function clean(value) {
 
 function present(value) {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+function isPlaceholderValue(value) {
+  const cleaned = clean(value)
+  return Boolean(cleaned && /^<[^>]+>$/.test(cleaned))
 }
 
 function readArg(name) {

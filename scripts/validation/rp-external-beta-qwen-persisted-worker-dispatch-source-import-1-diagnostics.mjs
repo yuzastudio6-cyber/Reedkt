@@ -55,6 +55,19 @@ const requiredText = [
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+for (const file of [
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1/inference-plan.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1/approval-gates.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1/validation-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1/qwen-persisted-worker-dispatch-approved-fixture-inference-plan-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-approval-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const blockedChangedPatterns = [
   /^package-lock\.json$/,

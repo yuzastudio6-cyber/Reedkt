@@ -64,6 +64,7 @@ assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-be
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
 assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-local-env'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
@@ -86,8 +87,13 @@ assert.ok(
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-local-env'),
+  'auto-fill export command should precede the local env apply command',
+)
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-local-env') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-human-input-checklist'),
-  'auto-fill env command should precede the human input checklist command',
+  'auto-fill local env apply command should precede the human input checklist command',
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-human-input-checklist') <
@@ -164,6 +170,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:readiness:blocker-closeout-queue',
     'beta:readiness:blocker-ledger',
     'beta:readiness:external-beta-operator-autofill-env',
+    'beta:readiness:external-beta-operator-autofill-local-env',
     'beta:readiness:external-beta-operator-human-input-checklist',
     'beta:readiness:external-beta-operator-local-env-bootstrap',
     'beta:readiness:external-beta-operator-value-progress',

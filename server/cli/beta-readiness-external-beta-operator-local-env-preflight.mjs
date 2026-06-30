@@ -140,6 +140,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
       'npm run beta:readiness:external-beta-operator-autofill-env',
+      'npm run beta:readiness:external-beta-operator-autofill-local-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`,
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,

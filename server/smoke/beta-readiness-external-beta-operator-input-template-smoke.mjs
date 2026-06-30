@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import {
+  applyBetaReadinessExternalBetaOperatorAutofillLocalEnv,
   buildBetaReadinessExternalBetaOperatorAutofillEnv,
   buildBetaReadinessExternalBetaOperatorHumanInputChecklist,
   buildBetaReadinessExternalBetaOperatorInputStatus,
@@ -34,6 +37,10 @@ assert.equal(
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --autofill-env',
 )
 assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-autofill-local-env'],
+  'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --apply-autofill-local-env',
+)
+assert.equal(
   packageJson.scripts['beta:readiness:external-beta-operator-human-input-checklist'],
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --human-input-checklist',
 )
@@ -59,6 +66,30 @@ const status = buildBetaReadinessExternalBetaOperatorInputStatus(report)
 const autofill = buildBetaReadinessExternalBetaOperatorAutofillEnv(report)
 const checklist = buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report)
 const bootstrap = buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(report)
+const applyAutofillTempDir = mkdtempSync(path.join(tmpdir(), 'reeditpro-beta-autofill-local-env-smoke-'))
+const applyAutofillPath = path.join(applyAutofillTempDir, 'operator.env')
+writeFileSync(applyAutofillPath, [
+  'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="old-local-source"',
+  '# REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN="<secret value supplied only in the operator shell>"',
+].join('\n'))
+chmodSync(applyAutofillPath, 0o600)
+const applyAutofill = applyBetaReadinessExternalBetaOperatorAutofillLocalEnv({
+  report,
+  targetPath: applyAutofillPath,
+})
+const appliedAutofillContent = readFileSync(applyAutofillPath, 'utf8')
+const applyAutofillAgain = applyBetaReadinessExternalBetaOperatorAutofillLocalEnv({
+  report,
+  targetPath: applyAutofillPath,
+})
+const unsafeAutofillPath = path.join(applyAutofillTempDir, 'unsafe.env')
+writeFileSync(unsafeAutofillPath, '')
+chmodSync(unsafeAutofillPath, 0o644)
+const unsafeAutofill = applyBetaReadinessExternalBetaOperatorAutofillLocalEnv({
+  report,
+  targetPath: unsafeAutofillPath,
+})
+rmSync(applyAutofillTempDir, { recursive: true, force: true })
 const markdown = renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report)
 const statusMarkdown = renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(status)
 const autofillMarkdown = renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(autofill)
@@ -232,6 +263,31 @@ assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID
 assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_PROJECT_ID='), false)
 assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY='), false)
 assert.equal(autofill.envTemplate.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE='), false)
+assert.equal(applyAutofill.ok, true)
+assert.equal(
+  applyAutofill.decision,
+  'beta_readiness_external_beta_operator_autofill_local_env_passed_ready_for_human_operator_value_collection',
+)
+assert.equal(applyAutofill.applied, true)
+assert.equal(applyAutofill.inputCounts.autoFillableInputs, 12)
+assert.equal(applyAutofill.inputCounts.secretOrSensitiveInputsWritten, 0)
+assert.equal(applyAutofill.inputCounts.ownerApprovalInputsWritten, 0)
+assert.equal(applyAutofill.inputCounts.ownerEvidenceNotesWritten, 0)
+assert.equal(applyAutofill.inputCounts.technicalVerificationInputsWritten, 0)
+assert.equal(applyAutofill.updatedInputNames.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA'), true)
+assert.equal(applyAutofill.appendedInputNames.includes('REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS'), true)
+assert.equal(appliedAutofillContent.includes(`REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="${expectedLocalEvidenceSourceSha}"`), true)
+assert.equal(/^REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN=/m.test(appliedAutofillContent), false)
+assert.equal(/^REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY=/m.test(appliedAutofillContent), false)
+assert.equal(appliedAutofillContent.includes('REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE='), false)
+assert.equal(applyAutofillAgain.ok, true)
+assert.equal(applyAutofillAgain.inputCounts.updatedInputs, 0)
+assert.equal(applyAutofillAgain.inputCounts.appendedInputs, 0)
+assert.equal(applyAutofillAgain.inputCounts.unchangedInputs, 12)
+assert.equal(unsafeAutofill.ok, false)
+assert.equal(unsafeAutofill.applied, false)
+assert.equal(unsafeAutofill.safetyGaps.includes('operator_local_env_autofill_target_not_owner_only'), true)
+assert.equal(unsafeAutofill.inputCounts.secretOrSensitiveInputsWritten, 0)
 assert.equal(bootstrap.ok, true)
 assert.equal(
   bootstrap.decision,
@@ -252,11 +308,13 @@ assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-int
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
 assert.ok(report.validationCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-local-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.validationCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(checklist.validationCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(report.envTemplate.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
+assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-local-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:tools:trackb-product-ready-deployed-evidence-collector'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))

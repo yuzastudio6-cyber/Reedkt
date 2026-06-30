@@ -1583,6 +1583,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted go/no-go and 11 private/backend cutover refs, it reports 21 tools ready for controlled production tool calls through the route/worker path. Direct agent execution remains blocked; GPU runtime is approved only for accepted production worker jobs and should not start until a job calls a GPU/model tool.
 - Runtime/beta/production: controlled production tool-call readiness is available through the approved route/worker boundary. This packet does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, or create public artifacts. `agentCanExecuteToolsNow=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
+## AI Graphics Production Tool-Call Gateway Handoff
+
+- Decision: `ai_graphics_production_tool_call_gateway_handoff_ready_with_runtime_blocks`.
+- Scope: side-effect-free production gateway handoff after accepted traffic cutover, requiring a product-facing capability, selected AI graphics tool, approved snapshot, credit reservation, private artifact manifest, asset manifest, dependency graph, Tool Route approval, Worker approval, runtime admission, service-role boundary, cost guardrail, QA, fallback, checkback, and trace refs.
+- Result: with accepted private evidence, it builds a production Tool Route/Worker handoff candidate and canonical `ProductionWorkerJobPayload` shape with `executionMode=production_blocked` and stable idempotency. It reports all 21 tools ready for controlled on-demand production tool-call handoff.
+- Runtime/beta/production: production handoff readiness is available, but this packet does not submit a queue item, dispatch a worker, execute a route, execute tools, call providers/models, start browser/WebGL/canvas or GPU runtime, download/load model weights, process media, create signed URLs, or create public artifacts. GPU remains on-demand only for future accepted production worker jobs; `agentCanExecuteToolsNow=false`, `workerEnqueuePerformed=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.

@@ -261,6 +261,8 @@ const packageDiff = git(['diff', '--unified=0', '--', 'package.json'])
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:production-tool-call-gateway-handoff": "tsx server/cli/ai-graphics-production-tool-call-gateway-handoff.ts",',
+  '+    "ai-graphics:production-tool-call-gateway-handoff:diagnostics": "node scripts/validation/ai-graphics-production-tool-call-gateway-handoff-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (

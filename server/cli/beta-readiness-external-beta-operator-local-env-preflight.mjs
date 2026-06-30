@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, lstatSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import {
   buildBetaReadinessExternalBetaOperatorAutofillEnv,
@@ -53,6 +53,9 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       loaded: envFile.loaded,
       displayPath: envFile.displayPath,
       recommendedRepoLocalPath: RECOMMENDED_OPERATOR_ENV_FILE,
+      permissionMode: envFile.permissionMode,
+      ownerOnlyPermissions: envFile.ownerOnlyPermissions,
+      symlink: envFile.symlink,
       insideRepo: envFile.insideRepo,
       gitIgnored: envFile.gitIgnored,
       parsedLineCount: envFile.parsedLineCount,
@@ -117,6 +120,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       'This preflight loads a local operator env file in memory only and prints names/counts, never values.',
       'Auto-fillable non-secret constants and idempotency keys are applied in memory so operators can validate only the human-owned values they supplied.',
       `If the env file lives inside the repo, use the git-ignored ${RECOMMENDED_OPERATOR_ENV_FILE} path or another git-ignored local-only path; committed completed env files remain forbidden.`,
+      'If the env file is loaded from disk on POSIX systems it must not be a symlink and must be owner-only, for example chmod 600 .env.reeditpro-beta-operator.local.',
       'This command does not call deployed services, record evidence, write Supabase/GCS, run tools, process media, enable beta, or enable production.',
     ],
     nextSafeAction: readyForExternalBetaEvidenceCollector
@@ -138,6 +142,9 @@ export function renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown
     `- Loaded: \`${report.envFile.loaded}\``,
     `- Path: \`${report.envFile.displayPath ?? 'none'}\``,
     `- Recommended repo-local path: \`${report.envFile.recommendedRepoLocalPath}\``,
+    `- Permission mode: \`${report.envFile.permissionMode ?? 'not_applicable'}\``,
+    `- Owner-only permissions: \`${report.envFile.ownerOnlyPermissions ?? 'not_applicable'}\``,
+    `- Symlink: \`${report.envFile.symlink ?? 'not_applicable'}\``,
     `- Inside repo: \`${report.envFile.insideRepo}\``,
     `- Git ignored: \`${report.envFile.gitIgnored ?? 'not_applicable'}\``,
     `- Parsed beta input keys: \`${report.envFile.betaInputKeysLoaded}\``,
@@ -179,6 +186,9 @@ function readOperatorEnvFile({ envFilePath, envFileContent, repoRoot }) {
     return {
       loaded: false,
       displayPath: undefined,
+      permissionMode: undefined,
+      ownerOnlyPermissions: undefined,
+      symlink: undefined,
       insideRepo: false,
       gitIgnored: undefined,
       parsedLineCount: 0,
@@ -192,11 +202,15 @@ function readOperatorEnvFile({ envFilePath, envFileContent, repoRoot }) {
   const displayPath = resolvedPath ? redactHome(resolvedPath) : 'inline-env-content'
   const safetyGaps = []
   let text = envFileContent
+  let fileSecurity
   if (text === undefined) {
     if (!resolvedPath || !existsSync(resolvedPath)) {
       return {
         loaded: false,
         displayPath,
+        permissionMode: undefined,
+        ownerOnlyPermissions: undefined,
+        symlink: undefined,
         insideRepo: false,
         gitIgnored: undefined,
         parsedLineCount: 0,
@@ -206,7 +220,10 @@ function readOperatorEnvFile({ envFilePath, envFileContent, repoRoot }) {
         values: {},
       }
     }
+    const security = inspectOperatorEnvFileSecurity(resolvedPath)
+    safetyGaps.push(...security.safetyGaps)
     text = readFileSync(resolvedPath, 'utf8')
+    fileSecurity = security
   }
   const insideRepo = resolvedPath ? isInside(repoRoot, resolvedPath) : false
   const gitIgnored = insideRepo && resolvedPath ? isGitIgnored(repoRoot, resolvedPath) : undefined
@@ -217,6 +234,9 @@ function readOperatorEnvFile({ envFilePath, envFileContent, repoRoot }) {
   return {
     loaded: true,
     displayPath,
+    permissionMode: fileSecurity?.permissionMode,
+    ownerOnlyPermissions: fileSecurity?.ownerOnlyPermissions,
+    symlink: fileSecurity?.symlink,
     insideRepo,
     gitIgnored,
     parsedLineCount: parsed.parsedLineCount,
@@ -246,6 +266,27 @@ function parseEnvText(text) {
     parsedLineCount += 1
   })
   return { values, invalidLines, parsedLineCount }
+}
+
+function inspectOperatorEnvFileSecurity(filePath) {
+  try {
+    const stat = lstatSync(filePath)
+    const permissionMode = `0${(stat.mode & 0o777).toString(8).padStart(3, '0')}`
+    const symlink = stat.isSymbolicLink()
+    const ownerOnlyPermissions = !symlink && (stat.mode & 0o077) === 0
+    const safetyGaps = [
+      ...(symlink ? ['operator_env_file_is_symlink'] : []),
+      ...(!ownerOnlyPermissions ? ['operator_env_file_permissions_not_owner_only'] : []),
+    ]
+    return { permissionMode, ownerOnlyPermissions, symlink, safetyGaps }
+  } catch {
+    return {
+      permissionMode: undefined,
+      ownerOnlyPermissions: undefined,
+      symlink: undefined,
+      safetyGaps: ['operator_env_file_permission_check_failed'],
+    }
+  }
 }
 
 function parseEnvValue(rawValue) {

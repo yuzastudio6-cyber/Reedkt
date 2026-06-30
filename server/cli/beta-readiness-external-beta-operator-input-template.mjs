@@ -515,6 +515,7 @@ function renderEnvTemplate(requiredInputs) {
   }
   lines.push('')
   lines.push('# Validate before collector execution:')
+  lines.push('# If saving this template locally, use .env.reeditpro-beta-operator.local and run: chmod 600 .env.reeditpro-beta-operator.local')
   lines.push('# npm run beta:readiness:source-freshness-preflight')
   lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
   lines.push('# npm run beta:readiness:external-beta-operator-human-input-checklist')

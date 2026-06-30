@@ -102,6 +102,7 @@ REEDITPRO_BETA_LAUNCH_MONITORING_EVIDENCE="<non-secret owner evidence summary>"
 REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 
 # Validate before collector execution:
+# If saving this template locally, use .env.reeditpro-beta-operator.local and run: chmod 600 .env.reeditpro-beta-operator.local
 # npm run beta:readiness:source-freshness-preflight
 # npm run beta:readiness:external-beta-operator-autofill-env
 # npm run beta:readiness:external-beta-operator-human-input-checklist

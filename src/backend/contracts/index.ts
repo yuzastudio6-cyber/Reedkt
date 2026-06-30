@@ -26,3 +26,4 @@ export * from './gpac-mp4box-guarded-executable-handler-implementation-scaffold-
 export * from './gstreamer-mkvtoolnix-disabled-worker-scaffold-contracts'
 export * from './gstreamer-mkvtoolnix-guarded-worker-route-contracts'
 export * from './gstreamer-mkvtoolnix-guarded-worker-enqueue-contracts'
+export * from './gstreamer-mkvtoolnix-guarded-worker-skeleton-contracts'

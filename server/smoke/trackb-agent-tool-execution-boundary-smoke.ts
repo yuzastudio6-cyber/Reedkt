@@ -693,21 +693,56 @@ assert.equal(audiofluxRehearsalResult?.proof?.sample_count, 512)
 assert.deepEqual(audiofluxRehearsalResult?.proof?.feature_shape, [16, 5])
 assert.ok((audiofluxRehearsalResult?.proof?.magnitude_sum ?? 0) > 0)
 
-const libassRehearsalBlocked = await executeTrackBAgentTool({
+const libassRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
-  jobId: 'job-trackb-agent-libass-rehearsal-blocked',
+  jobId: 'job-trackb-agent-libass-rehearsal',
   agentInvocationId: 'trackb.media_oss.libass',
   toolId: 'libass',
   action: 'burn_subtitles',
   approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
-  toolExecutionPlanId: 'tool-exec-trackb-agent-libass-rehearsal-blocked',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-libass-rehearsal',
   mode: 'bounded_execution_rehearsal',
   storageReferenceIds: ['caption_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/libass/source-reference'],
 })
-assert.equal(libassRehearsalBlocked.status, 'blocked')
-assert.match(libassRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for libass/i)
-assert.equal(libassRehearsalBlocked.workerResult, undefined)
+assert.equal(libassRehearsal.status, 'completed')
+assert.equal(libassRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const libassRehearsalResult = libassRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticMediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: {
+    operation?: string
+    noNetwork?: boolean
+    noPrivateOrUserMedia?: boolean
+    tempRootRemoved?: boolean
+    burninCommandOk?: boolean
+    decodeProbeOk?: boolean
+    safeStylePresetAccepted?: boolean
+    outputVideoSizeBytes?: number
+    durationSeconds?: number
+  }
+} | undefined
+assert.equal(libassRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(libassRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(libassRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(libassRehearsalResult?.productRuntimeExecution, false)
+assert.equal(libassRehearsalResult?.mediaProcessing, false)
+assert.equal(libassRehearsalResult?.syntheticMediaProcessing, true)
+assert.equal(libassRehearsalResult?.syntheticInputOnly, true)
+assert.equal(libassRehearsalResult?.artifactFileWritten, false)
+assert.equal(libassRehearsalResult?.proof?.operation, 'libass_synthetic_caption_burnin_docker_network_none')
+assert.equal(libassRehearsalResult?.proof?.noNetwork, true)
+assert.equal(libassRehearsalResult?.proof?.noPrivateOrUserMedia, true)
+assert.equal(libassRehearsalResult?.proof?.tempRootRemoved, true)
+assert.equal(libassRehearsalResult?.proof?.burninCommandOk, true)
+assert.equal(libassRehearsalResult?.proof?.decodeProbeOk, true)
+assert.equal(libassRehearsalResult?.proof?.safeStylePresetAccepted, true)
+assert.ok((libassRehearsalResult?.proof?.outputVideoSizeBytes ?? 0) > 0)
+assert.equal(libassRehearsalResult?.proof?.durationSeconds, 1)
 
 const signalsmithRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -869,7 +904,7 @@ console.log(JSON.stringify({
     'openimageio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'audioflux_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'signalsmith_bounded_execution_rehearsal_runs_real_command_shape_no_audio_tool_proof',
-    'bounded_execution_rehearsal_blocks_libass_until_explicit_handler_exists',
+    'libass_bounded_execution_rehearsal_runs_synthetic_burnin_no_user_media_tool_proof',
     'hyperframe_stays_frontend_preview_boundary_for_default_and_live_paths',
     'live_execution_blocks_until_deployed_evidence',
     'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',

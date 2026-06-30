@@ -7,8 +7,8 @@ This harness is the future-runnable external-beta service-role queue/claim smoke
 ## Future Live Command Shape
 
 ```bash
-SUPABASE_URL=<non-production-url> \
-SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key> \
+# Required server-only env before this command:
+# SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for the non-production project.
 E2E_RUNTIME_MODE=local \
 WORKER_RUNTIME_MODE=mock \
 REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE=true \
@@ -21,19 +21,20 @@ npm run --silent ai-graphics:external-beta-service-role-queue-smoke -- \
   --credit-reservation-id <credit-reservation-id> \
   --idempotency-prefix ai-graphics-external-beta-service-role-queue-smoke \
   --external-beta-service-role-queue-smoke-authorization-packet <accepted-authorization-packet.json> \
+  --route-bound-service-role-queue-smoke-operator-preflight-packet <accepted-operator-preflight-packet.json> \
   --service-role-queue-smoke-readiness-ref <accepted-readiness-ref> \
   --runtime-queue-service-proof-bridge-ref <accepted-runtime-queue-service-proof-bridge-ref> \
   --source-runtime-queue-service-proof-bridge-accepted
 ```
 
 Do not use production credentials. Service-role credentials stay server-only. The live smoke is also blocked unless it names the accepted service-role queue smoke readiness source and the accepted runtime queue service proof bridge source.
-It also requires the accepted all-21 service-role queue smoke authorization packet before any Supabase client is created.
+It also requires the accepted all-21 service-role queue smoke authorization packet and the accepted route-bound service-role queue-smoke operator preflight packet before any Supabase client is created.
 
 ## What The Live Smoke Will Prove
 
 The later live smoke will submit all 21 canonical `ai_graphics_tool_runtime` jobs through `enqueue_ai_graphics_tool_runtime_jobs`, claim returned jobs through `claim_ai_graphics_tool_runtime_job`, record worker-event and audit-event smoke rows, and clean up smoke-created job events, worker claims, jobs, job batch, and audit rows. The server queue service uses the current Supabase JavaScript RPC shape `supabase.rpc(fn, args)`.
 
-Each future smoke job payload carries the accepted service-role queue smoke authorization ref, the accepted service-role queue smoke readiness ref, the accepted runtime queue service proof bridge ref, `sourceServiceRoleQueueSmokeAuthorizationAccepted=true`, and `sourceRuntimeQueueServiceProofBridgeAccepted=true`. That preserves the 21-tool/native-GPU proof chain without approving worker dispatch or tool execution.
+Each future smoke job payload carries the accepted service-role queue smoke authorization ref, the accepted service-role queue smoke readiness ref, the accepted runtime queue service proof bridge ref, `sourceServiceRoleQueueSmokeAuthorizationAccepted=true`, `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`, and `sourceRuntimeQueueServiceProofBridgeAccepted=true`. That preserves the 21-tool/native-GPU proof chain without approving worker dispatch or tool execution.
 
 ## Current Result
 

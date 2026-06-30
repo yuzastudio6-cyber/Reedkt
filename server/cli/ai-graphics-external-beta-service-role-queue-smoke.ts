@@ -9,6 +9,9 @@ import {
 import type {
   AiGraphicsExternalBetaServiceRoleQueueSmokeAuthorization,
 } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-authorization'
+import type {
+  AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeOperatorPreflight,
+} from '../routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight'
 import type { ServiceContext } from '../types'
 
 const RUN_DECISION =
@@ -121,6 +124,7 @@ function preparedContract() {
       '--credit-reservation-id',
       '--idempotency-prefix',
       '--external-beta-service-role-queue-smoke-authorization-packet',
+      '--route-bound-service-role-queue-smoke-operator-preflight-packet',
       '--service-role-queue-smoke-readiness-ref',
       '--runtime-queue-service-proof-bridge-ref',
       '--source-runtime-queue-service-proof-bridge-accepted',
@@ -146,6 +150,7 @@ function preparedContract() {
       nonProductionEnvironmentRequired: true,
       cleanupRequired: true,
       serviceRoleQueueSmokeAuthorizationPacketRequired: true,
+      routeBoundServiceRoleQueueSmokeOperatorPreflightPacketRequired: true,
       serviceRoleQueueSmokeReadinessRefRequired: true,
       sourceRuntimeQueueServiceProofBridgeRequired: true,
       agentCanSelectForPlanning: true,
@@ -261,6 +266,71 @@ function requireAcceptedServiceRoleQueueSmokeAuthorization(
   return authorizationRef
 }
 
+function countFromOperatorPreflight(
+  packet: AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeOperatorPreflight,
+  key: string,
+): number | undefined {
+  const record = packet as unknown as Record<string, unknown>
+  const direct = record[key]
+  const counts = (record.counts ?? {}) as Record<string, unknown>
+  const expectedCounts = (record.expectedCounts ?? {}) as Record<string, unknown>
+  const scope = (record.scope ?? {}) as Record<string, unknown>
+  if (Array.isArray(direct)) return direct.length
+  if (typeof direct === 'number') return direct
+  if (typeof counts[key] === 'number') return counts[key] as number
+  if (typeof expectedCounts[key] === 'number') return expectedCounts[key] as number
+  if (typeof scope[key] === 'number') return scope[key] as number
+  return undefined
+}
+
+function requireAcceptedRouteBoundServiceRoleQueueSmokeOperatorPreflight(
+  packet: AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeOperatorPreflight,
+): void {
+  const accepted =
+    packet.decision ===
+      'ai_graphics_external_beta_route_bound_service_role_queue_smoke_operator_preflight_prepared_with_runtime_blocks' &&
+    packet.status ===
+      'route_bound_service_role_queue_smoke_operator_preflight_ready_execution_still_blocked' &&
+    countFromOperatorPreflight(packet, 'totalAiGraphicsTools') === 21 &&
+    countFromOperatorPreflight(packet, 'totalProductFacingCapabilities') === 12 &&
+    countFromOperatorPreflight(packet, 'gpuRuntimeTargetedTools') === 8 &&
+    countFromOperatorPreflight(packet, 'routeBoundServiceRoleQueueSmokeOperatorPreflightReadyToolsWithProvidedEvidence') === 21 &&
+    countFromOperatorPreflight(packet, 'sourceRouteBoundServiceRoleQueueSmokeResultCaptureContractReadyToolsWithProvidedEvidence') === 21 &&
+    countFromOperatorPreflight(packet, 'operatorEnvironmentAcceptedToolsWithProvidedEvidence') === 21 &&
+    countFromOperatorPreflight(packet, 'operatorFlagsAcceptedToolsWithProvidedEvidence') === 21 &&
+    countFromOperatorPreflight(packet, 'expectedLiveQueueRowsBeforeCleanup') === 21 &&
+    countFromOperatorPreflight(packet, 'expectedWorkerClaimRowsBeforeCleanup') === 21 &&
+    countFromOperatorPreflight(packet, 'expectedPersistedRowsAfterCleanup') === 0 &&
+    countFromOperatorPreflight(packet, 'routeBoundServiceRoleQueueSmokeRunApprovedNowTools') === 0 &&
+    countFromOperatorPreflight(packet, 'liveQueueWritesPerformedNowTools') === 0 &&
+    countFromOperatorPreflight(packet, 'workerDispatchesApprovedNow') === 0 &&
+    countFromOperatorPreflight(packet, 'toolExecutionsApprovedNow') === 0 &&
+    countFromOperatorPreflight(packet, 'gpuRuntimeShouldStartNowTools') === 0 &&
+    countFromOperatorPreflight(packet, 'externalBetaReadyNowTools') === 0 &&
+    countFromOperatorPreflight(packet, 'productionReadyNowTools') === 0 &&
+    packet.booleans?.sourceRouteBoundServiceRoleQueueSmokeResultCaptureContractAccepted === true &&
+    packet.booleans?.routeBoundServiceRoleQueueSmokeOperatorPreflightReadyWithProvidedEvidence === true &&
+    packet.booleans?.operatorEnvironmentAccepted === true &&
+    packet.booleans?.operatorFlagsAccepted === true &&
+    packet.booleans?.gpuRuntimeOnDemandOnly === true &&
+    packet.booleans?.noIdleGpuRuntimeApproved === true &&
+    packet.booleans?.gpuStartsOnlyForApprovedWorkerOrToolCall === true &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.serviceRoleQueueSmokeApprovedNow === false &&
+    packet.booleans?.liveQueueWriteApprovedNow === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false
+
+  if (!accepted) {
+    throw new Error(
+      'External-beta service-role queue smoke requires an accepted route-bound service-role queue-smoke operator preflight packet for all 21 tools.',
+    )
+  }
+}
+
 async function deleteRows(
   admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   table: string,
@@ -296,6 +366,11 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
         '--external-beta-service-role-queue-smoke-authorization-packet',
       ),
     )
+  requireAcceptedRouteBoundServiceRoleQueueSmokeOperatorPreflight(
+    readRequiredJsonFlag<AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeOperatorPreflight>(
+      '--route-bound-service-role-queue-smoke-operator-preflight-packet',
+    ),
+  )
   const runtimeEnv = loadRuntimeEnv({
     ...process.env,
     E2E_RUNTIME_MODE: 'local',
@@ -377,6 +452,7 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
           serviceRoleQueueSmokeReadinessRef,
           runtimeQueueServiceProofBridgeRef,
           sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+          sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
           sourceRuntimeQueueServiceProofBridgeAccepted: true,
           toolExecutionApprovedNow: false,
           gpuRuntimeShouldStartNow: false,
@@ -394,6 +470,7 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
         serviceRoleQueueSmokeReadinessRef,
         runtimeQueueServiceProofBridgeRef,
         sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
         sourceRuntimeQueueServiceProofBridgeAccepted: true,
         jobBatchId: queueResult.jobBatchId,
         jobCount: jobIds.length,
@@ -421,6 +498,7 @@ async function executeExternalBetaServiceRoleQueueSmoke() {
     workerClaimsReturned: claims.length,
     serviceRoleQueueSmokeAuthorizationRef,
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: gpuToolCount(),
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,

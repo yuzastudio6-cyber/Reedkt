@@ -1,5 +1,7 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const toolRouteRuntimeProofScriptName =
   'ai-graphics:external-beta-tool-route-runtime-proof'
@@ -254,12 +256,88 @@ function runExpectedAuthorizationFailure(expectedText) {
   }
 }
 
+function runExpectedOperatorPreflightFailure(expectedText) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-service-role-smoke-auth-'))
+  const acceptedAuthorizationPath = path.join(tempDir, 'accepted-authorization.json')
+  fs.writeFileSync(acceptedAuthorizationPath, JSON.stringify({
+    decision: 'ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks',
+    status: 'external_beta_service_role_queue_smoke_authorization_recorded_execution_still_blocked',
+    serviceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence: 21,
+    serviceRoleQueueSmokeAuthorizationCandidateToolsWithProvidedEvidence: 21,
+    gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
+    serviceRoleQueueSmokeApprovedNowTools: 0,
+    liveQueueWritesApprovedNowTools: 0,
+    liveQueueWritesPerformedNowTools: 0,
+    workerDispatchApprovedNowTools: 0,
+    toolExecutionApprovedNowTools: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    serviceRoleQueueSmokeAuthorizationRecord: {
+      authorizationRef: 'external-beta-service-role://queue-smoke-authorization/accepted-fixture',
+    },
+    booleans: {
+      sourceExternalBetaLiveEnqueueAuthorizationAccepted: true,
+      sourceExternalBetaServiceRoleQueueSmokeReadinessAccepted: true,
+      sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: true,
+      serviceRoleQueueSmokeAuthorizationRecordAccepted: true,
+      all21ServiceRoleQueueSmokeAuthorizationScopesRecordedWithProvidedEvidence: true,
+      gpuRuntimeShouldStartNow: false,
+      serviceRoleQueueSmokeApprovedNow: false,
+      liveQueueWriteApprovedNow: false,
+      workerDispatchApprovedNow: false,
+      toolExecutionApprovedNow: false,
+    },
+  }, null, 2))
+
+  const result = spawnSync('npm', [
+    'run',
+    '--silent',
+    runScriptName,
+    '--',
+    '--execute-external-beta-service-role-queue-smoke',
+    '--workspace-id',
+    'workspace_external_beta_smoke',
+    '--project-id',
+    'project_external_beta_smoke',
+    '--approved-plan-snapshot-id',
+    'approved_plan_snapshot_external_beta_smoke',
+    '--credit-reservation-id',
+    'credit_reservation_external_beta_smoke',
+    '--idempotency-prefix',
+    'ai-graphics-external-beta-service-role-queue-smoke',
+    '--external-beta-service-role-queue-smoke-authorization-packet',
+    acceptedAuthorizationPath,
+    '--service-role-queue-smoke-readiness-ref',
+    'external-beta-service-role://queue-smoke-readiness',
+    '--runtime-queue-service-proof-bridge-ref',
+    'external-beta-service-role://runtime-queue-service-proof-bridge',
+    '--source-runtime-queue-service-proof-bridge-accepted',
+  ], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE: 'true',
+      REEDITPRO_AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_ENV:
+        'non_production',
+      E2E_RUNTIME_MODE: 'local',
+      WORKER_RUNTIME_MODE: 'mock',
+    },
+  })
+  if (result.status === 0) fail('execute_without_operator_preflight_unexpectedly_succeeded')
+  const text = `${result.stdout}\n${result.stderr}`
+  if (!text.includes(expectedText)) {
+    fail(`execute_without_operator_preflight_missing_error:${expectedText}`)
+  }
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-beta-service-role-queue-smoke.ts',
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke.md',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
 ]
@@ -287,11 +365,13 @@ for (const phrase of [
   'WORKER_RUNTIME_MODE=mock',
   '--execute-external-beta-service-role-queue-smoke',
   '--external-beta-service-role-queue-smoke-authorization-packet',
+  '--route-bound-service-role-queue-smoke-operator-preflight-packet',
   '--service-role-queue-smoke-readiness-ref',
   '--runtime-queue-service-proof-bridge-ref',
   '--source-runtime-queue-service-proof-bridge-accepted',
   'serviceRoleQueueSmokeAuthorizationRef',
   'sourceServiceRoleQueueSmokeAuthorizationAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
   'enqueue_ai_graphics_tool_runtime_jobs',
   'claim_ai_graphics_tool_runtime_job',
   'record_ai_graphics_worker_event',
@@ -338,11 +418,15 @@ if (docs.booleans?.serviceRoleQueueSmokeReadinessRefRequired !== true) {
 if (docs.booleans?.serviceRoleQueueSmokeAuthorizationPacketRequired !== true) {
   fail('docs_missing_service_role_queue_smoke_authorization_packet_required')
 }
+if (docs.booleans?.routeBoundServiceRoleQueueSmokeOperatorPreflightPacketRequired !== true) {
+  fail('docs_missing_route_bound_operator_preflight_packet_required')
+}
 if (docs.booleans?.sourceRuntimeQueueServiceProofBridgeRequired !== true) {
   fail('docs_missing_source_runtime_queue_service_proof_bridge_required')
 }
 for (const flag of [
   '--external-beta-service-role-queue-smoke-authorization-packet',
+  '--route-bound-service-role-queue-smoke-operator-preflight-packet',
   '--service-role-queue-smoke-readiness-ref',
   '--runtime-queue-service-proof-bridge-ref',
   '--source-runtime-queue-service-proof-bridge-accepted',
@@ -369,11 +453,15 @@ if (prepared.booleans?.serviceRoleQueueSmokeReadinessRefRequired !== true) {
 if (prepared.booleans?.serviceRoleQueueSmokeAuthorizationPacketRequired !== true) {
   fail('prepared_missing_service_role_queue_smoke_authorization_packet_required')
 }
+if (prepared.booleans?.routeBoundServiceRoleQueueSmokeOperatorPreflightPacketRequired !== true) {
+  fail('prepared_missing_route_bound_operator_preflight_packet_required')
+}
 if (prepared.booleans?.sourceRuntimeQueueServiceProofBridgeRequired !== true) {
   fail('prepared_missing_source_runtime_queue_service_proof_bridge_required')
 }
 for (const flag of [
   '--external-beta-service-role-queue-smoke-authorization-packet',
+  '--route-bound-service-role-queue-smoke-operator-preflight-packet',
   '--service-role-queue-smoke-readiness-ref',
   '--runtime-queue-service-proof-bridge-ref',
   '--source-runtime-queue-service-proof-bridge-accepted',
@@ -387,6 +475,9 @@ runExpectedAuthorizationFailure(
   'Missing required flag for live smoke: --external-beta-service-role-queue-smoke-authorization-packet',
 )
 runExpectedProofBridgeFailure('--source-runtime-queue-service-proof-bridge-accepted')
+runExpectedOperatorPreflightFailure(
+  'Missing required flag for live smoke: --route-bound-service-role-queue-smoke-operator-preflight-packet',
+)
 
 const combinedText = [JSON.stringify(docs), docsMd, JSON.stringify(prepared)].join('\n')
 for (const pattern of [

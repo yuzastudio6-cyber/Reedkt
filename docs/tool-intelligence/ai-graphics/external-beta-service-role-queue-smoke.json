@@ -69,6 +69,7 @@
       "--credit-reservation-id",
       "--idempotency-prefix",
       "--external-beta-service-role-queue-smoke-authorization-packet",
+      "--route-bound-service-role-queue-smoke-operator-preflight-packet",
       "--service-role-queue-smoke-readiness-ref",
       "--runtime-queue-service-proof-bridge-ref",
       "--source-runtime-queue-service-proof-bridge-accepted"
@@ -111,6 +112,7 @@
     "nonProductionEnvironmentRequired": true,
     "cleanupRequired": true,
     "serviceRoleQueueSmokeAuthorizationPacketRequired": true,
+    "routeBoundServiceRoleQueueSmokeOperatorPreflightPacketRequired": true,
     "serviceRoleQueueSmokeReadinessRefRequired": true,
     "sourceRuntimeQueueServiceProofBridgeRequired": true,
     "agentCanSelectForPlanning": true,

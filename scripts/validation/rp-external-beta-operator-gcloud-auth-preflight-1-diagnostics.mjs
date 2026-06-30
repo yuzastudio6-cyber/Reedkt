@@ -29,6 +29,21 @@ const requiredExistingFiles = [
 ]
 
 const allowedChangedFiles = new Set(packetFiles)
+const allowedQwenDryRun1rFiles = [
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/transport-readback.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/runtime-boundary.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-dependency-enablement-execution-attempt-1r.md',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-transport-dependency-preflight-current-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1-diagnostics.mjs',
+]
+for (const file of allowedQwenDryRun1rFiles) allowedChangedFiles.add(file)
 const allowedSingleTesterQaRepairFiles = [
   'docs/activation-phase-rp-external-beta-single-tester-real-usage-qa-1-results.md',
   'docs/external-beta/single-tester-real-usage-qa-1/readiness-gate.md',

@@ -786,6 +786,8 @@
     "rp-external-beta-qwen-real-dispatch-confirmed-preflight-1:diagnostics": "node scripts/validation/rp-external-beta-qwen-real-dispatch-confirmed-preflight-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-dry-run-attempt-1-smoke.ts",
     "rp-external-beta-qwen-real-dispatch-dry-run-attempt-1:diagnostics": "node scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1-diagnostics.mjs",
+    "rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth": "node scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth.mjs",
+    "rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth:diagnostics": "node scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-diagnostics.mjs",
     "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-dependency-enablement-current-import-1": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-dependency-enablement-current-import-1-smoke.ts",
     "rp-external-beta-qwen-transport-dependency-enablement-current-import-1:diagnostics": "node scripts/validation/rp-external-beta-qwen-transport-dependency-enablement-current-import-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-dependency-preflight-current-1": "tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-dependency-preflight-current-1-smoke.ts",

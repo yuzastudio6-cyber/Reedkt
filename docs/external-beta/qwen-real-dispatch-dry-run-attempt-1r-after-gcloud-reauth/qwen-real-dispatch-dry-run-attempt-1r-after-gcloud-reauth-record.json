@@ -1,0 +1,99 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-REAL-DISPATCH-DRY-RUN-ATTEMPT-1R-AFTER-GCLOUD-REAUTH",
+  "decision": "completed_qwen_real_dispatch_dry_run_attempt_1r_after_gcloud_reauth_transport_readback",
+  "execution": "completed_authenticated_transport_metadata_readback_no_runtime_invocation",
+  "integrationBase": "e1332004c757747fcfe3477c0c5163a2a2a7bc01",
+  "readbackDate": "2026-06-30",
+  "runEvidence": {
+    "runId": "2026-06-30T02-20-45-545Z-8324b215",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/2026-06-30T02-20-45-545Z-8324b215",
+    "reportFile": "qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-report.json",
+    "reportBytes": 4708,
+    "reportSha256": "36822f5f6a9561f0335ef0c0d2d45811f190b61869d6949953bed8a2315d56fd",
+    "manifestFile": "qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-manifest.json",
+    "manifestBytes": 768,
+    "manifestSha256": "bdbdd324bcb7370974fe6851e3e53f1b394a66056f7a74428defdeb190cba206",
+    "checksumsFile": "qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-checksums.json",
+    "checksumsBytes": 1190,
+    "checksumsSha256": "aebb80d3c1128be503cad1cf84673bd90f0f97b63be8498d5c55920ef51ebac5"
+  },
+  "observedContext": {
+    "account": "aiediting@reeditpro.com",
+    "project": "reeditpro",
+    "region": "us-central1"
+  },
+  "authReadback": {
+    "userAccessTokenProbe": "passed",
+    "applicationDefaultCredentialTokenProbe": "passed",
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "tokenTempFileDeleted": true
+  },
+  "serviceReadback": {
+    "staging": {
+      "service": "reeditpro-staging-api",
+      "readyStatus": "True",
+      "latestReadyRevisionName": "reeditpro-staging-api-00006-6gw",
+      "traffic": "100_percent_reeditpro-staging-api-00006-6gw",
+      "urlHost": "reeditpro-staging-api-4wkjiqvdqa-uc.a.run.app"
+    },
+    "qwenWorker": {
+      "service": "reeditpro-qwen2-5-vl-l4-worker",
+      "readyStatus": "True",
+      "latestReadyRevisionName": "reeditpro-qwen2-5-vl-l4-worker-00037-658",
+      "traffic": "100_percent_reeditpro-qwen2-5-vl-l4-worker-00037-658",
+      "urlHost": "reeditpro-qwen2-5-vl-l4-worker-4wkjiqvdqa-uc.a.run.app"
+    }
+  },
+  "readiness": {
+    "qwenAuthPath": "closed_gcloud_user_and_adc_reauth_preflight_passed",
+    "qwenRealDispatchDryRunAttempt1r": "transport_metadata_readback_passed_runtime_invocation_still_blocked",
+    "qwen25VlExecution": "blocked_pending_separate_confirmed_runtime_dispatch_execution_packet",
+    "workerDispatch": "blocked_pending_separate_confirmed_runtime_dispatch_execution_packet",
+    "broadExternalBetaExpansion": "blocked_no_additional_named_tester_list",
+    "externalProduction": "blocked_pending_broad_beta_tool_runtime_billing_support_legal_security_and_final_export_gates",
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_EXECUTION_ATTEMPT_1R"
+  },
+  "safety": {
+    "localGcloudConfigRead": true,
+    "userAccessTokenProbe": true,
+    "adcAccessTokenProbe": true,
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "tokenTempFileDeleted": true,
+    "cloudRunServiceMetadataReadback": true,
+    "cloudRunInvocation": false,
+    "cloudRunDeployment": false,
+    "cloudRunServiceUpdate": false,
+    "identityTokenFetch": false,
+    "requestSent": false,
+    "qwen25VlExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "generatedAssetCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "mediaProcessing": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "iamMutation": false,
+    "groupMembershipMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

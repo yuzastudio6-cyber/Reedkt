@@ -2,13 +2,14 @@
 
 Decision: `ai_graphics_external_beta_per_tool_traffic_enablement_gate_prepared_with_runtime_blocks`
 
-This packet prepares one per-tool external-beta traffic candidate after the per-tool callable-result gate and external-beta launch go/no-go are accepted. It requires private owner approval, feature flag, rollout cohort, kill switch, rate limit, cost ceiling, support, telemetry, and rollback refs.
+This packet prepares one per-tool external-beta traffic candidate after the per-tool callable-result gate and external-beta launch go/no-go are accepted. It requires the callable-result gate to preserve the route-bound service-role queue smoke operator preflight, plus private owner approval, feature flag, rollout cohort, kill switch, rate limit, cost ceiling, support, telemetry, and rollback refs.
 
 The gate does not enable traffic. It does not execute API routes, dispatch workers, execute tools, write private artifacts, call providers/models, start browser/WebGL/canvas runtime, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, mark external beta ready now, or unlock production.
 
 ## Accepted Prepared Evidence
 
 - Accepted per-tool callable-result gate.
+- Route-bound service-role queue smoke operator preflight preserved by the callable-result gate.
 - Accepted external-beta launch go/no-go.
 - Private owner approval ref.
 - Private feature flag and rollout cohort refs.
@@ -36,6 +37,7 @@ The gate does not enable traffic. It does not execute API routes, dispatch worke
 
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `perToolTrafficEnablementPreparedWithProvidedEvidence=true`
 - `externalBetaTrafficEnabledNow=false`
 - `externalBetaTrafficSwitchApprovedNow=false`

@@ -217,6 +217,7 @@ function artifactAdmissionFixture(toolId, overrides = {}) {
       : null,
     artifactToolRouteAdmissionPreparedWithProvidedEvidence: true,
     sourceHandoffAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     privateArtifactManifestAccepted: true,
     toolRouteRuntimeProofAccepted: true,
     privateArtifactManifestCoversRequestedTool: true,
@@ -247,11 +248,16 @@ function artifactAdmissionFixture(toolId, overrides = {}) {
     gpuRuntimeTargetedTools: 8,
     sourcePrivateArtifactRecordsReadyWithProvidedEvidence: 21,
     sourceToolRouteRecordsReadyWithProvidedEvidence: 21,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
     admissionCandidate,
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     booleans: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,
       workerDispatchApprovedNow: false,
@@ -424,6 +430,7 @@ for (const phrase of [
   'controlledWorkerRuntimeProofOnlyNoPrivateArtifactWrite',
   'noGpuRuntimeStartByControlledProof',
   'sourcePerToolRuntimeProofCoversRequestedTool',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
@@ -452,6 +459,12 @@ for (const block of [
   }
 }
 assertFalseBooleans('docs', docs.booleans)
+if (docs.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_operator_preflight_count_not_21')
+}
+if (docs.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true) {
+  fail('docs_operator_preflight_boolean_not_true')
+}
 if (!scorecard.includes('AI Graphics External-Beta API Route Controlled Worker Runtime Proof')) {
   fail('scorecard_missing_section')
 }
@@ -464,6 +477,15 @@ try {
     status: 'external_beta_api_route_worker_artifact_tool_route_admission_rejected',
     artifactToolRouteAdmissionPreparedWithProvidedEvidence: false,
   }))
+  const strippedOperatorPreflightAdmission = artifactAdmissionFixture('d3')
+  strippedOperatorPreflightAdmission.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+  strippedOperatorPreflightAdmission.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+  strippedOperatorPreflightAdmission.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  strippedOperatorPreflightAdmission.admissionCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  const strippedOperatorPreflightAdmissionPath = writeJson(
+    path.join(tmpRoot, 'stripped-operator-preflight-admission.json'),
+    strippedOperatorPreflightAdmission,
+  )
   const perToolPath = writeJson(path.join(tmpRoot, 'per-tool-runtime-proof.json'), perToolRuntimeProofFixture())
   const rejectedPerToolPath = writeJson(path.join(tmpRoot, 'rejected-per-tool-runtime-proof.json'), perToolRuntimeProofFixture({
     decision: 'external_beta_per_tool_runtime_proof_ready_with_gpu_blocks',
@@ -483,6 +505,23 @@ try {
   const rejectedAdmission = npmJson(runScriptName, proofArgs(rejectedAdmissionPath, perToolPath))
   if (rejectedAdmission.status !== 'external_beta_api_route_worker_artifact_tool_route_admission_rejected') {
     fail('rejected_admission_wrong_status')
+  }
+
+  const strippedOperatorPreflightAdmissionResult = npmJson(
+    runScriptName,
+    proofArgs(strippedOperatorPreflightAdmissionPath, perToolPath),
+  )
+  if (
+    strippedOperatorPreflightAdmissionResult.status !==
+      'external_beta_api_route_worker_artifact_tool_route_admission_rejected'
+  ) {
+    fail('stripped_operator_preflight_admission_wrong_status')
+  }
+  if (
+    strippedOperatorPreflightAdmissionResult.booleans
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== false
+  ) {
+    fail('stripped_operator_preflight_admission_boolean_not_false')
   }
 
   const missingPerTool = npmJson(runScriptName, proofArgs(d3AdmissionPath, null))
@@ -514,6 +553,22 @@ try {
   }
   if (acceptedD3.sourceRuntimeProofAcceptedWithProvidedEvidenceTools !== 21) {
     fail('accepted_d3_runtime_tools_not_21')
+  }
+  if (
+    acceptedD3.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_d3_operator_preflight_count_not_21')
+  }
+  if (
+    acceptedD3.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+  ) {
+    fail('accepted_d3_operator_preflight_boolean_not_true')
+  }
+  if (
+    acceptedD3.controlledWorkerRuntimeProofCandidate
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+  ) {
+    fail('accepted_d3_candidate_operator_preflight_boolean_not_true')
   }
   if (acceptedD3.controlledWorkerRuntimeProofCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
     fail('accepted_d3_gpu_start_allowed_should_be_false')
@@ -618,6 +673,7 @@ console.log(JSON.stringify({
   gpuRuntimeTargetedTools: gpuTools.length,
   controlledWorkerRuntimeProofPreparedRequestsWithProvidedEvidence: 1,
   sourceRuntimeProofAcceptedWithProvidedEvidenceTools: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
   gpuRuntimeShouldStartNow: false,

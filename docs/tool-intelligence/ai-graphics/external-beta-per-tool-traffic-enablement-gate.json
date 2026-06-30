@@ -14,7 +14,8 @@
     "perToolCallableResultGate": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json",
     "workerRuntimeSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.json",
     "externalBetaLaunchGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json",
-    "externalBetaLaunchControls": "docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json"
+    "externalBetaLaunchControls": "docs/tool-intelligence/ai-graphics/external-beta-launch-controls.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -55,6 +56,7 @@
     "gpuRuntimeTargetedTools": 8,
     "perToolTrafficEnablementPreparedRequestsWithProvidedEvidence": 1,
     "sourceCallableResultGateAcceptedRequestsWithProvidedEvidence": 1,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 1,
     "sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence": 21,
     "externalBetaTrafficCandidateToolsWithProvidedEvidence": 1,
     "externalBetaTrafficEnabledNowTools": 0,
@@ -74,6 +76,7 @@
   ],
   "acceptedPreparedActions": [
     "read accepted per-tool callable-result gate evidence",
+    "verify the route-bound service-role queue smoke operator preflight marker remains present on the callable-result gate",
     "read accepted external-beta launch go/no-go evidence",
     "record one per-tool external-beta traffic candidate with private rollout controls",
     "prove feature flag and kill switch metadata are present before future traffic",
@@ -98,6 +101,7 @@
   "booleans": {
     "externalBetaPerToolTrafficEnablementGatePrepared": true,
     "sourcePerToolCallableResultGateAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "sourceExternalBetaLaunchGoNoGoAccepted": true,
     "trafficEnablementControlsAccepted": true,
     "perToolTrafficEnablementPreparedWithProvidedEvidence": true,

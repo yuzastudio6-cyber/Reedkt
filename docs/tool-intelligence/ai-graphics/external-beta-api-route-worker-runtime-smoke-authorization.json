@@ -15,7 +15,8 @@
     "liveEnqueueAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-live-enqueue-authorization.json",
     "perToolRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json",
     "privateArtifactManifest": "docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json",
-    "toolRouteRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json"
+    "toolRouteRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -54,6 +55,7 @@
     "totalAiGraphicsTools": 21,
     "productFacingCapabilities": 12,
     "gpuRuntimeTargetedTools": 8,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
     "sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence": 21,
     "workerRuntimeSmokeAuthorizationPreparedRequestsWithProvidedEvidence": 1,
     "externalBetaReadyNowTools": 0,
@@ -61,6 +63,7 @@
   },
   "authorizationRequires": [
     "accepted saved API Route controlled worker runtime proof packet",
+    "accepted route-bound service-role queue smoke operator preflight preserved through the controlled worker runtime proof",
     "accepted all-21 live-enqueue authorization packet",
     "operator confirmation ref for private non-production external-beta only",
     "private non-production environment ref",
@@ -77,6 +80,7 @@
   ],
   "allowedAuthorizationActions": [
     "read accepted controlled worker runtime proof metadata",
+    "verify the route-bound service-role queue smoke operator preflight marker remains present on the controlled worker runtime proof",
     "read accepted live-enqueue authorization metadata",
     "prepare one future worker-runtime smoke authorization candidate",
     "bind the candidate to private artifacts, lease audit, cost, QA, telemetry, and rollback refs",
@@ -104,6 +108,7 @@
   "booleans": {
     "externalBetaApiRouteWorkerRuntimeSmokeAuthorizationPrepared": true,
     "sourceControlledWorkerRuntimeProofAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "sourceLiveEnqueueAuthorizationAccepted": true,
     "sourceControlledWorkerRuntimeProofCoversRequestedTool": true,
     "workerRuntimeSmokeAuthorizationControlsAccepted": true,

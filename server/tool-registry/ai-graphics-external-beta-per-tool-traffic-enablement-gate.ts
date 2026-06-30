@@ -48,6 +48,7 @@ export interface AiGraphicsExternalBetaPerToolTrafficEnablementCandidate {
   rollbackRef: string
   ownerApprovalRef: string
   sourceCallableResultGateAccepted: true
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true
   sourceExternalBetaLaunchGoNoGoAccepted: true
   externalBetaTrafficEnablementPreparedWithProvidedEvidence: true
   externalBetaTrafficEnabledNow: false
@@ -66,6 +67,7 @@ export interface AiGraphicsExternalBetaPerToolTrafficEnablementGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_GO_NO_GO_DECISION | null
   status: AiGraphicsExternalBetaPerToolTrafficEnablementGateStatus
   sourcePerToolCallableResultGateAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   sourceExternalBetaLaunchGoNoGoAccepted: boolean
   trafficEnablementControlsAccepted: boolean
   rejectionReasons: string[]
@@ -73,6 +75,7 @@ export interface AiGraphicsExternalBetaPerToolTrafficEnablementGate {
   capabilityId: string | null
   perToolTrafficEnablementPreparedRequestsWithProvidedEvidence: 0 | 1
   sourceCallableResultGateAcceptedRequestsWithProvidedEvidence: 0 | 1
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 0 | 1
   sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence: 0 | 21
   externalBetaTrafficCandidateToolsWithProvidedEvidence: 0 | 1
   externalBetaTrafficEnabledNowTools: 0
@@ -94,6 +97,7 @@ export interface AiGraphicsExternalBetaPerToolTrafficEnablementGate {
     supportRunbookRef: string | null
     telemetryRef: string | null
     rollbackRef: string | null
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'private_non_production_external_beta'
     requiredTrafficMode: 'prepared_per_tool_traffic_enablement_metadata_only'
     sourceCallableResultGateRequired: true
@@ -113,6 +117,7 @@ export interface AiGraphicsExternalBetaPerToolTrafficEnablementGate {
   booleans: {
     externalBetaPerToolTrafficEnablementGatePrepared: true
     sourcePerToolCallableResultGateAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     sourceExternalBetaLaunchGoNoGoAccepted: boolean
     trafficEnablementControlsAccepted: boolean
     perToolTrafficEnablementPreparedWithProvidedEvidence: boolean
@@ -210,6 +215,7 @@ function callableResultGateAccepted(
     packet.toolExecutionAcceptedWithProvidedEvidence === 0 &&
     packet.routeExecutionAcceptedWithProvidedEvidence === 0 &&
     packet.privateArtifactWriteAcceptedWithProvidedEvidence === 0 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
     packet.totalAiGraphicsTools === 21 &&
     packet.totalProductFacingCapabilities === 12 &&
     packet.gpuRuntimeTargetedTools === 8 &&
@@ -218,6 +224,11 @@ function callableResultGateAccepted(
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
     packet.booleans.sourceWorkerRuntimeSmokeProofAccepted === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    packet.savedPerToolCallableResult
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.booleans.savedPerToolCallableResultAcceptedWithProvidedEvidence === true &&
     packet.booleans.gpuRuntimeStartedForCallableResult === false &&
     packet.booleans.toolExecutionAcceptedWithProvidedEvidence === false &&
@@ -332,6 +343,7 @@ function buildCandidate(
     ownerApprovalRef:
       input.externalBetaTrafficEnablementOwnerApprovalRef ?? '',
     sourceCallableResultGateAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     sourceExternalBetaLaunchGoNoGoAccepted: true,
     externalBetaTrafficEnablementPreparedWithProvidedEvidence: true,
     externalBetaTrafficEnabledNow: false,
@@ -348,6 +360,16 @@ export function evaluateAiGraphicsExternalBetaPerToolTrafficEnablementGate(
   const callableAccepted = callableResultGateAccepted(
     input.sourcePerToolCallableResultGatePacket,
   )
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    callableAccepted &&
+    input.sourcePerToolCallableResultGatePacket
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
+    input.sourcePerToolCallableResultGatePacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    input.sourcePerToolCallableResultGatePacket?.booleans
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    input.sourcePerToolCallableResultGatePacket?.savedPerToolCallableResult
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const launchAccepted = launchGoNoGoAccepted(input.sourceExternalBetaLaunchGoNoGoPacket)
   const missing = callableAccepted && launchAccepted ? missingControls(input) : []
   const controlsAccepted = missing.length === 0
@@ -380,6 +402,8 @@ export function evaluateAiGraphicsExternalBetaPerToolTrafficEnablementGate(
       accepted ? 1 : 0,
     sourceCallableResultGateAcceptedRequestsWithProvidedEvidence:
       callableAccepted ? 1 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 1 : 0,
     sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence:
       launchAccepted ? 21 : 0,
     externalBetaTrafficCandidateToolsWithProvidedEvidence: accepted ? 1 : 0,
@@ -410,6 +434,8 @@ export function evaluateAiGraphicsExternalBetaPerToolTrafficEnablementGate(
         input.externalBetaTrafficEnablementTelemetryRef ?? null,
       rollbackRef:
         input.externalBetaTrafficEnablementRollbackRef ?? null,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       requiredExecutionEnvironment: 'private_non_production_external_beta',
       requiredTrafficMode: 'prepared_per_tool_traffic_enablement_metadata_only',
       sourceCallableResultGateRequired: true,
@@ -429,6 +455,8 @@ export function evaluateAiGraphicsExternalBetaPerToolTrafficEnablementGate(
     booleans: {
       externalBetaPerToolTrafficEnablementGatePrepared: true,
       sourcePerToolCallableResultGateAccepted: callableAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       sourceExternalBetaLaunchGoNoGoAccepted: launchAccepted,
       trafficEnablementControlsAccepted: controlsAccepted,
       perToolTrafficEnablementPreparedWithProvidedEvidence: accepted,

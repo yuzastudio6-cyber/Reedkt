@@ -14,7 +14,8 @@
     "artifactToolRouteAdmission": "docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-artifact-tool-route-admission.json",
     "perToolRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-runtime-proof.json",
     "toolRouteRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json",
-    "privateArtifactManifest": "docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json"
+    "privateArtifactManifest": "docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -55,11 +56,13 @@
     "gpuRuntimeTargetedTools": 8,
     "controlledWorkerRuntimeProofPreparedRequestsWithProvidedEvidence": 1,
     "sourceRuntimeProofAcceptedWithProvidedEvidenceTools": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "proofRequires": [
     "accepted saved artifact plus Tool Route admission packet",
+    "accepted route-bound service-role queue smoke operator preflight preserved through the admission packet",
     "accepted saved all-21 per-tool runtime proof packet",
     "requested admission tool covered by per-tool runtime proof",
     "private controlled worker runtime proof policy ref",
@@ -76,6 +79,7 @@
   ],
   "allowedProofActions": [
     "read accepted saved artifact plus Tool Route admission metadata",
+    "verify the route-bound service-role queue smoke operator preflight marker remains present on the admission packet",
     "read accepted all-21 per-tool runtime proof metadata",
     "verify the requested admission tool has accepted runtime proof evidence",
     "prepare one side-effect-free controlled worker-runtime proof candidate",
@@ -102,6 +106,7 @@
   "booleans": {
     "externalBetaApiRouteControlledWorkerRuntimeProofPrepared": true,
     "sourceArtifactToolRouteAdmissionAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "sourcePerToolRuntimeProofAccepted": true,
     "sourcePerToolRuntimeProofCoversRequestedTool": true,
     "controlledWorkerRuntimeProofControlsAccepted": true,

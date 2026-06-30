@@ -50,6 +50,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerDispatchHandoffCandidate {
   sourceApiRouteQueueSmokeProofAccepted: boolean
   sourceWorkerDispatchSmokeProofAccepted: boolean
   sourceWorkerDispatchSmokeProofCoversTool: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence: true
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
   gpuRuntimeShouldStartNow: false
@@ -80,6 +81,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof {
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
   sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: number
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: number
   sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence: number
   sourceRouteQueueRowsPersistedAfterCleanup: 0
   sourceWorkerDispatchSmokeInMemoryLeasesAcceptedWithProvidedEvidence: number
@@ -101,6 +103,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof {
     rollbackPlanRef: string | null
     sourceRouteQueueSmokeProofStatus: string | null
     sourceWorkerDispatchSmokeProofStatus: string | null
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'private_non_production_external_beta'
     requiredWorkerMode: 'mock_dispatch_proof_only'
     savedRouteQueueSmokeProofRequired: true
@@ -123,6 +126,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof {
     sourceExternalBetaApiRouteQueueSmokeProofAccepted: boolean
     sourceExternalBetaWorkerDispatchSmokeProofAccepted: boolean
     sourceWorkerDispatchSmokeProofCoversRequestedTool: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -256,6 +260,8 @@ function workerDispatchSmokeProofAccepted(
     packet.counts.sourceInMemoryLeaseRecordsReleased === 21 &&
     packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    packet.counts
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceLiveWorkerLeasesCreatedNow === 0 &&
     packet.counts.sourceLiveWorkerDispatchesNow === 0 &&
     packet.counts.sourceLiveToolExecutionsNow === 0 &&
@@ -268,6 +274,9 @@ function workerDispatchSmokeProofAccepted(
     packet.booleans.all8GpuToolsTargetGpuRuntime === true &&
     packet.booleans.allInMemoryLeasesCreatedWithProvidedEvidence === true &&
     packet.booleans.allInMemoryLeasesReleasedWithProvidedEvidence === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.booleans.allToolRunResultsEmpty === true &&
     packet.booleans.allArtifactRecordsEmpty === true &&
     packet.booleans.allQualityGateResultsEmpty === true &&
@@ -315,10 +324,17 @@ function buildHandoffCandidate(input: {
   routeAccepted: boolean
   workerAccepted: boolean
   workerCoversTool: boolean
+  workerOperatorPreflightAccepted: boolean
   sourceRoute?: AiGraphicsExternalBetaApiRouteQueueSmokeProof
 }): AiGraphicsExternalBetaApiRouteWorkerDispatchHandoffCandidate | null {
   const sourceCandidate = input.sourceRoute?.sourceAuthorizationCandidate
-  if (!input.routeAccepted || !input.workerAccepted || !input.workerCoversTool || !sourceCandidate) {
+  if (
+    !input.routeAccepted ||
+    !input.workerAccepted ||
+    !input.workerCoversTool ||
+    !input.workerOperatorPreflightAccepted ||
+    !sourceCandidate
+  ) {
     return null
   }
   return {
@@ -338,6 +354,8 @@ function buildHandoffCandidate(input: {
     sourceApiRouteQueueSmokeProofAccepted: input.routeAccepted,
     sourceWorkerDispatchSmokeProofAccepted: input.workerAccepted,
     sourceWorkerDispatchSmokeProofCoversTool: input.workerCoversTool,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+      input.workerOperatorPreflightAccepted,
     apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       sourceCandidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
@@ -360,6 +378,13 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof
     input.sourceExternalBetaWorkerDispatchSmokeProofPacket
   const routeAccepted = routeQueueSmokeProofAccepted(routePacket)
   const workerAccepted = workerDispatchSmokeProofAccepted(workerPacket)
+  const workerOperatorPreflightAccepted =
+    workerAccepted &&
+    workerPacket?.counts
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
+    workerPacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    workerPacket?.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const requestedToolId =
     routePacket?.sourceAuthorizationCandidate?.toolId ??
     routePacket?.requestedToolId ??
@@ -379,6 +404,7 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof
     routeAccepted,
     workerAccepted,
     workerCoversTool,
+    workerOperatorPreflightAccepted,
     sourceRoute: routePacket,
   })
   const status: AiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProofStatus =
@@ -417,6 +443,11 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof
       workerAccepted
         ? workerPacket?.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence ?? 0
         : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      workerOperatorPreflightAccepted
+        ? workerPacket?.counts
+          .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence ?? 0
+        : 0,
     sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence:
       routeAccepted ? 1 : 0,
     sourceRouteQueueRowsPersistedAfterCleanup: 0,
@@ -443,6 +474,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof
       rollbackPlanRef: input.externalBetaRollbackPlanRef ?? null,
       sourceRouteQueueSmokeProofStatus: routePacket?.status ?? null,
       sourceWorkerDispatchSmokeProofStatus: workerPacket?.decision ?? null,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        workerOperatorPreflightAccepted,
       requiredExecutionEnvironment: 'private_non_production_external_beta',
       requiredWorkerMode: 'mock_dispatch_proof_only',
       savedRouteQueueSmokeProofRequired: true,
@@ -465,6 +498,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerDispatchHandoffProof
       sourceExternalBetaApiRouteQueueSmokeProofAccepted: routeAccepted,
       sourceExternalBetaWorkerDispatchSmokeProofAccepted: workerAccepted,
       sourceWorkerDispatchSmokeProofCoversRequestedTool: workerCoversTool,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        workerOperatorPreflightAccepted,
       apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence: handoffReady,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,

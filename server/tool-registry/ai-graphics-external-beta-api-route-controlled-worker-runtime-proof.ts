@@ -61,6 +61,7 @@ export interface AiGraphicsExternalBetaApiRouteControlledWorkerRuntimeProofCandi
   runtimeProofStatus: string
   controlledWorkerRuntimeProofPreparedWithProvidedEvidence: true
   sourceArtifactToolRouteAdmissionAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   sourcePerToolRuntimeProofAccepted: boolean
   sourcePerToolRuntimeProofCoversRequestedTool: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
@@ -91,6 +92,7 @@ export interface AiGraphicsExternalBetaApiRouteControlledWorkerRuntimeProof {
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
   sourceRuntimeProofAcceptedWithProvidedEvidenceTools: number
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   gpuRuntimeShouldStartNow: false
@@ -109,6 +111,7 @@ export interface AiGraphicsExternalBetaApiRouteControlledWorkerRuntimeProof {
     telemetryRef: string | null
     rollbackPlanRef: string | null
     sourceArtifactToolRouteAdmissionStatus: string | null
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     sourcePerToolRuntimeProofDecision: string | null
     requiredExecutionEnvironment: 'private_non_production_external_beta'
     requiredWorkerRuntimeProofMode: 'controlled_worker_runtime_proof_only'
@@ -134,6 +137,7 @@ export interface AiGraphicsExternalBetaApiRouteControlledWorkerRuntimeProof {
   booleans: {
     externalBetaApiRouteControlledWorkerRuntimeProofPrepared: true
     sourceArtifactToolRouteAdmissionAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     sourcePerToolRuntimeProofAccepted: boolean
     sourcePerToolRuntimeProofCoversRequestedTool: boolean
     controlledWorkerRuntimeProofControlsAccepted: boolean
@@ -250,6 +254,7 @@ function sourceAdmissionAccepted(
     packet.toolRouteRuntimeProofCoversRequestedTool === true &&
     packet.sourcePrivateArtifactRecordsReadyWithProvidedEvidence === 21 &&
     packet.sourceToolRouteRecordsReadyWithProvidedEvidence === 21 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
     packet.gpuRuntimeShouldStartNow === false &&
     packet.externalBetaReadyNowTools === 0 &&
     packet.productionReadyNowTools === 0 &&
@@ -258,6 +263,11 @@ function sourceAdmissionAccepted(
     packet.booleans.workerDispatchApprovedNow === false &&
     packet.booleans.toolExecutionApprovedNow === false &&
     packet.booleans.privateArtifactWriteApprovedNow === false &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    packet.admissionCandidate
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.booleans.gpuRuntimeShouldStartNow === false &&
     packet.booleans.externalBetaReadyNow === false &&
     packet.booleans.productionReadyNow === false
@@ -418,6 +428,8 @@ function buildCandidate(input: {
     runtimeProofStatus: record.runtimeProofStatus,
     controlledWorkerRuntimeProofPreparedWithProvidedEvidence: true,
     sourceArtifactToolRouteAdmissionAccepted: input.admissionAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+      candidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     sourcePerToolRuntimeProofAccepted: input.perToolAccepted,
     sourcePerToolRuntimeProofCoversRequestedTool: input.runtimeProofCovers,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -460,6 +472,15 @@ export function evaluateAiGraphicsExternalBetaApiRouteControlledWorkerRuntimePro
   const admissionPacket = input.sourceArtifactToolRouteAdmissionPacket
   const perToolPacket = input.sourcePerToolRuntimeProofPacket
   const admissionAccepted = sourceAdmissionAccepted(admissionPacket)
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    admissionAccepted &&
+    admissionPacket
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
+    admissionPacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    admissionPacket?.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    admissionPacket?.admissionCandidate
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const perToolAccepted = sourcePerToolRuntimeProofAccepted(perToolPacket)
   const requestedToolId = admissionPacket?.requestedToolId ?? null
   const capabilityId = admissionPacket?.capabilityId ?? null
@@ -504,6 +525,11 @@ export function evaluateAiGraphicsExternalBetaApiRouteControlledWorkerRuntimePro
     gpuRuntimeTargetedTools: 8,
     sourceRuntimeProofAcceptedWithProvidedEvidenceTools:
       perToolAccepted ? perToolPacket?.runtimeProofAcceptedWithProvidedEvidenceTools ?? 0 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted
+        ? admissionPacket
+          ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence ?? 0
+        : 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
@@ -526,6 +552,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteControlledWorkerRuntimePro
       telemetryRef: input.externalBetaTelemetryRef ?? null,
       rollbackPlanRef: input.externalBetaRollbackPlanRef ?? null,
       sourceArtifactToolRouteAdmissionStatus: admissionPacket?.status ?? null,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       sourcePerToolRuntimeProofDecision: perToolPacket?.decision ?? null,
       requiredExecutionEnvironment: 'private_non_production_external_beta',
       requiredWorkerRuntimeProofMode: 'controlled_worker_runtime_proof_only',
@@ -551,6 +579,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteControlledWorkerRuntimePro
     booleans: {
       externalBetaApiRouteControlledWorkerRuntimeProofPrepared: true,
       sourceArtifactToolRouteAdmissionAccepted: admissionAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       sourcePerToolRuntimeProofAccepted: perToolAccepted,
       sourcePerToolRuntimeProofCoversRequestedTool: runtimeProofCovers,
       controlledWorkerRuntimeProofControlsAccepted: controlsAccepted,

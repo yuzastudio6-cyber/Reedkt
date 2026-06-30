@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_external_beta_per_tool_callable_result_gate_prepared_with_runtime_blocks`
 
-This packet validates a saved private non-production per-tool callable result envelope after the worker-runtime smoke proof. It accepts one callable-result record only when the saved evidence matches the accepted worker-runtime smoke proof, preserves the accepted source worker lease lifecycle and dispatch, and proves QA, telemetry, cost, rollback, and cleanup boundaries.
+This packet validates a saved private non-production per-tool callable result envelope after the worker-runtime smoke proof. It accepts one callable-result record only when the saved evidence matches the accepted worker-runtime smoke proof, preserves the route-bound service-role queue smoke operator preflight chain, preserves the accepted source worker lease lifecycle and dispatch, and proves QA, telemetry, cost, rollback, and cleanup boundaries.
 
 The gate itself does not execute API routes, dispatch workers, execute tools, write private artifacts, call providers/models, start browser/WebGL/canvas runtime, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, enable external beta traffic, or unlock production.
 
@@ -10,6 +10,7 @@ The gate itself does not execute API routes, dispatch workers, execute tools, wr
 
 - One private non-production per-tool callable result envelope.
 - Accepted source worker-runtime smoke proof.
+- Route-bound service-role queue smoke operator preflight preserved by the source proof and callable envelope.
 - One accepted source worker lease lifecycle.
 - One accepted source worker dispatch.
 - Zero route executions by this result gate.
@@ -43,6 +44,7 @@ The gate itself does not execute API routes, dispatch workers, execute tools, wr
 - `agentCanExecuteToolsNow=false`
 - `perToolCallableResultAcceptedWithProvidedEvidence=true`
 - `sourceWorkerRuntimeSmokeProofAccepted=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `gpuRuntimeStartedForCallableResult=false`
 - `gpuRuntimeReleasedAfterCallableResult=false`
 - `gpuRuntimeShouldStartNow=false`

@@ -233,16 +233,23 @@ function workerDispatchSmokeProofFixture(overrides = {}) {
       sourceInMemoryLeaseRecordsReleased: 21,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
       sourceLiveWorkerLeasesCreatedNow: 0,
       sourceLiveWorkerDispatchesNow: 0,
       sourceLiveToolExecutionsNow: 0,
       externalBetaReadyNowTools: 0,
       productionReadyNowTools: 0,
     },
+    evidence: {
+      sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     booleans: {
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       allInMemoryLeasesCreatedWithProvidedEvidence: true,
       allInMemoryLeasesReleasedWithProvidedEvidence: true,
       allToolRunResultsEmpty: true,
@@ -335,6 +342,7 @@ for (const phrase of [
   'noLiveWorkerDispatchByHandoffProof',
   'noGpuRuntimeStartByHandoffProof',
   'sourceWorkerDispatchSmokeProofCoversRequestedTool',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
@@ -361,6 +369,12 @@ for (const block of [
   }
 }
 assertFalseBooleans('docs', docs.booleans)
+if (docs.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_operator_preflight_count_not_21')
+}
+if (docs.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true) {
+  fail('docs_operator_preflight_boolean_not_true')
+}
 if (!scorecard.includes('AI Graphics External-Beta API Route Worker Dispatch Handoff Proof')) {
   fail('scorecard_missing_section')
 }
@@ -373,6 +387,10 @@ try {
   const workerPath = path.join(tmpRoot, 'worker-proof.json')
   const rejectedWorkerPath = path.join(tmpRoot, 'rejected-worker-proof.json')
   const missingToolWorkerPath = path.join(tmpRoot, 'missing-tool-worker-proof.json')
+  const strippedOperatorPreflightWorkerPath = path.join(
+    tmpRoot,
+    'stripped-operator-preflight-worker-proof.json',
+  )
 
   writeJson(d3RoutePath, routeQueueSmokeProofFixture('d3', 'chart_overlay'))
   writeJson(sam2RoutePath, routeQueueSmokeProofFixture('sam2', 'background_removal'))
@@ -387,6 +405,20 @@ try {
   }))
   writeJson(missingToolWorkerPath, workerDispatchSmokeProofFixture({
     acceptedTools: tools.filter((tool) => tool !== 'sam2'),
+  }))
+  writeJson(strippedOperatorPreflightWorkerPath, workerDispatchSmokeProofFixture({
+    counts: {
+      ...workerDispatchSmokeProofFixture().counts,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 0,
+    },
+    evidence: {
+      ...workerDispatchSmokeProofFixture().evidence,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    },
+    booleans: {
+      ...workerDispatchSmokeProofFixture().booleans,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: false,
+    },
   }))
 
   const missingRoute = runJson([])
@@ -424,6 +456,21 @@ try {
   if (acceptedD3.sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence !== 21) {
     fail('accepted_d3_worker_tools_not_21')
   }
+  if (
+    acceptedD3.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_d3_operator_preflight_count_not_21')
+  }
+  if (
+    acceptedD3.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+  ) {
+    fail('accepted_d3_operator_preflight_boolean_not_true')
+  }
+  if (
+    acceptedD3.handoffCandidate?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+  ) {
+    fail('accepted_d3_candidate_operator_preflight_boolean_not_true')
+  }
   if (acceptedD3.handoffCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== false) {
     fail('accepted_d3_gpu_start_allowed_should_be_false')
   }
@@ -449,6 +496,17 @@ try {
   }
   if (missingTool.booleans?.sourceWorkerDispatchSmokeProofCoversRequestedTool !== false) {
     fail('missing_tool_cover_boolean_not_false')
+  }
+
+  const strippedOperatorPreflight = runJson(proofArgs(d3RoutePath, strippedOperatorPreflightWorkerPath))
+  if (strippedOperatorPreflight.status !== 'external_beta_worker_dispatch_smoke_proof_rejected') {
+    fail('stripped_operator_preflight_wrong_status')
+  }
+  if (
+    strippedOperatorPreflight.booleans
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== false
+  ) {
+    fail('stripped_operator_preflight_boolean_not_false')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
@@ -568,6 +626,7 @@ console.log(JSON.stringify({
   gpuRuntimeTargetedTools: gpuTools.length,
   apiRouteWorkerDispatchHandoffPreparedRequestsWithProvidedEvidence: 1,
   sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
   sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence: 1,
   sourceRouteQueueRowsPersistedAfterCleanup: 0,
   sourceWorkerDispatchSmokeInMemoryLeasesAcceptedWithProvidedEvidence: 21,

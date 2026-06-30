@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_external_beta_api_route_worker_artifact_tool_route_admission_prepared_with_runtime_blocks`
 
-This packet bridges the saved API-route worker-dispatch handoff proof to the private artifact manifest and Tool Route runtime proof gates. It prepares one artifact plus Tool Route admission candidate for the requested tool only when all three saved proof packets are accepted and the private artifact and Tool Route records cover the same requested tool.
+This packet bridges the saved API-route worker-dispatch handoff proof to the private artifact manifest and Tool Route runtime proof gates. It prepares one artifact plus Tool Route admission candidate for the requested tool only when all three saved proof packets are accepted, the route-bound service-role queue smoke operator preflight is still preserved by the handoff proof, and the private artifact and Tool Route records cover the same requested tool.
 
 This is still admission proof metadata only. It does not write private artifacts, execute Tool Routes, create live worker leases, dispatch workers, execute tools, start browser/WebGL/canvas runtime, start GPU runtime, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production.
 
@@ -10,6 +10,7 @@ This is still admission proof metadata only. It does not write private artifacts
 
 - All 21 AI graphics tools remain covered by the accepted source proof packets.
 - All 12 product-facing capabilities remain covered by the accepted source proof packets.
+- The handoff proof preserves the 21-tool route-bound service-role queue smoke operator preflight.
 - The admission candidate covers one route-worker handoff request at a time.
 - The requested handoff tool must have matching private artifact and Tool Route runtime proof records.
 - GPU/model tools preserve native GPU targets and on-demand GPU policy.
@@ -18,6 +19,7 @@ This is still admission proof metadata only. It does not write private artifacts
 ## Required Inputs
 
 - Accepted `external-beta-api-route-worker-dispatch-handoff-proof` packet.
+- Preserved route-bound service-role queue smoke operator preflight marker on the handoff proof.
 - Accepted `external-beta-private-artifact-manifest` packet.
 - Accepted `external-beta-tool-route-runtime-proof` packet.
 - Private artifact Tool Route admission policy ref.
@@ -47,6 +49,7 @@ This is still admission proof metadata only. It does not write private artifacts
 ## Booleans
 
 - `agentCanSelectForPlanning=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `agentCanExecuteToolsNow=false`
 - `artifactToolRouteAdmissionApprovedNow=false`
 - `privateArtifactWriteApprovedNow=false`

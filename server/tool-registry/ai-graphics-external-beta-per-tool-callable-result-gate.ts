@@ -19,6 +19,7 @@ export interface AiGraphicsExternalBetaPerToolCallableResult {
   status: 'external_beta_per_tool_callable_result_recorded_private_non_production_runtime_still_blocked'
   sourceWorkerRuntimeSmokeProofRef: string
   sourceWorkerRuntimeSmokeProofAccepted: true
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true
   toolId: string
   capabilityId: string
   routePath: '/api/ai-graphics/external-beta/tool-call'
@@ -84,6 +85,7 @@ export interface AiGraphicsExternalBetaPerToolCallableResultGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_WORKER_RUNTIME_SMOKE_PROOF_DECISION | null
   status: AiGraphicsExternalBetaPerToolCallableResultGateStatus
   sourceWorkerRuntimeSmokeProofAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   callableResultGateAcceptedWithProvidedEvidence: boolean
   rejectionReasons: string[]
   requestedToolId: string | null
@@ -97,6 +99,7 @@ export interface AiGraphicsExternalBetaPerToolCallableResultGate {
   toolExecutionAcceptedWithProvidedEvidence: 0
   routeExecutionAcceptedWithProvidedEvidence: 0
   privateArtifactWriteAcceptedWithProvidedEvidence: 0
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 0 | 1
   sourceGpuRuntimeStartedWithProvidedEvidence: 0 | 1
   sourceGpuRuntimeReleasedWithProvidedEvidence: 0 | 1
   totalAiGraphicsTools: 21
@@ -115,6 +118,7 @@ export interface AiGraphicsExternalBetaPerToolCallableResultGate {
     perToolCallableResultCostRef: string | null
     perToolCallableResultRollbackRef: string | null
     sourceWorkerRuntimeSmokeProofRef: string | null
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     sanitizedSourceStatus: string | null
     sanitizedSourceDecision: string | null
     requiredExecutionEnvironment: 'private_non_production_external_beta'
@@ -135,6 +139,7 @@ export interface AiGraphicsExternalBetaPerToolCallableResultGate {
   booleans: {
     externalBetaPerToolCallableResultGatePrepared: true
     sourceWorkerRuntimeSmokeProofAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     perToolCallableResultAcceptedWithProvidedEvidence: boolean
     savedPerToolCallableResultAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -253,7 +258,13 @@ function sourceProofAccepted(
     packet.gpuRuntimeShouldStartNow === false &&
     packet.sourceAuthorizationCandidate !== null &&
     packet.savedWorkerRuntimeSmokeResult !== null &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
     packet.booleans.sourceWorkerRuntimeSmokeAuthorizationAccepted === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    packet.savedWorkerRuntimeSmokeResult
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.booleans.savedWorkerRuntimeSmokeResultAcceptedWithProvidedEvidence === true &&
     packet.booleans.workerLeaseLifecycleAcceptedWithProvidedEvidence === true &&
     packet.booleans.workerDispatchAcceptedWithProvidedEvidence === true &&
@@ -333,6 +344,9 @@ function validateCallableResult(
       : undefined,
     result.sourceWorkerRuntimeSmokeProofAccepted !== true
       ? 'per-tool callable result must preserve the worker-runtime smoke proof chain'
+      : undefined,
+    result.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+      ? 'per-tool callable result must preserve the route-bound operator preflight chain'
       : undefined,
     result.callableEnvelopeRecordedInPrivateNonProduction !== true
       ? 'callable envelope must be recorded in private non-production'
@@ -469,6 +483,16 @@ export function evaluateAiGraphicsExternalBetaPerToolCallableResultGate(
 ): AiGraphicsExternalBetaPerToolCallableResultGate {
   const sourceAccepted =
     sourceProofAccepted(input.sourceWorkerRuntimeSmokeProofPacket)
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    sourceAccepted &&
+    input.sourceWorkerRuntimeSmokeProofPacket
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
+    input.sourceWorkerRuntimeSmokeProofPacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    input.sourceWorkerRuntimeSmokeProofPacket?.booleans
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    input.sourceWorkerRuntimeSmokeProofPacket?.savedWorkerRuntimeSmokeResult
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const resultRejections = sourceAccepted
     ? validateCallableResult(
       input.perToolCallableResult,
@@ -518,6 +542,10 @@ export function evaluateAiGraphicsExternalBetaPerToolCallableResultGate(
     toolExecutionAcceptedWithProvidedEvidence: 0,
     routeExecutionAcceptedWithProvidedEvidence: 0,
     privateArtifactWriteAcceptedWithProvidedEvidence: 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      resultAccepted && result?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
+        ? 1
+        : 0,
     sourceGpuRuntimeStartedWithProvidedEvidence: sourceGpuStarted ? 1 : 0,
     sourceGpuRuntimeReleasedWithProvidedEvidence: sourceGpuReleased ? 1 : 0,
     totalAiGraphicsTools: 21,
@@ -539,6 +567,10 @@ export function evaluateAiGraphicsExternalBetaPerToolCallableResultGate(
         input.perToolCallableResultRollbackRef ?? null,
       sourceWorkerRuntimeSmokeProofRef:
         result?.sourceWorkerRuntimeSmokeProofRef ?? null,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted &&
+        resultAccepted &&
+        result?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true,
       sanitizedSourceStatus: result?.status ?? null,
       sanitizedSourceDecision: result?.decision ?? null,
       requiredExecutionEnvironment: 'private_non_production_external_beta',
@@ -559,6 +591,10 @@ export function evaluateAiGraphicsExternalBetaPerToolCallableResultGate(
     booleans: {
       externalBetaPerToolCallableResultGatePrepared: true,
       sourceWorkerRuntimeSmokeProofAccepted: sourceAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted &&
+        resultAccepted &&
+        result?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true,
       perToolCallableResultAcceptedWithProvidedEvidence: resultAccepted,
       savedPerToolCallableResultAcceptedWithProvidedEvidence: resultAccepted,
       all21ToolsCovered: true,

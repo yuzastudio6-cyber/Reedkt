@@ -262,6 +262,7 @@ function authorizationPacketFixture(toolId) {
       ? `private://ai-graphics/external-beta/artifacts/${toolId}/model-weight-or-cache-manifest.json`
       : null,
     sourceControlledWorkerRuntimeProofAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     sourceLiveEnqueueAuthorizationAccepted: true,
     workerRuntimeSmokeAuthorizationPreparedWithProvidedEvidence: true,
     operatorConfirmationRef:
@@ -315,12 +316,17 @@ function authorizationPacketFixture(toolId) {
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
     sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence: 21,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
     authorizationCandidate: candidate,
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     booleans: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       liveWorkerRuntimeSmokeAuthorizedNow: false,
       workerRuntimeSmokeExecutedNow: false,
       agentCanExecuteToolsNow: false,
@@ -344,6 +350,7 @@ function smokeResultFixture(authorizationPacket) {
     sourceWorkerRuntimeSmokeAuthorizationRef:
       `private://ai-graphics/external-beta/worker-runtime-smoke/${candidate.toolId}/authorization.json`,
     sourceWorkerRuntimeSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     toolId: candidate.toolId,
     capabilityId: candidate.capabilityId,
     routePath: candidate.routePath,
@@ -402,9 +409,10 @@ function privateRefs(toolId) {
   ]
 }
 
-function runProof(toolId, mutateResult, extraArgs = privateRefs(toolId)) {
+function runProof(toolId, mutateResult, extraArgs = privateRefs(toolId), mutateAuthorization) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-worker-smoke-proof-'))
   const authorization = authorizationPacketFixture(toolId)
+  if (mutateAuthorization) mutateAuthorization(authorization)
   const result = smokeResultFixture(authorization)
   if (mutateResult) mutateResult(result)
   const authorizationPath = writeJson(path.join(tempDir, 'authorization.json'), authorization)
@@ -510,6 +518,11 @@ function verifyDocs() {
   requireEqual(docJson.scope?.productFacingCapabilities, 12, 'doc_json_capability_count')
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
   requireEqual(docJson.scope?.workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence, 1, 'doc_json_proof_count')
+  requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'doc_json_operator_preflight_count',
+  )
   requireEqual(docJson.scope?.toolExecutionAcceptedWithProvidedEvidence, 0, 'doc_json_tool_execution_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 0, 'doc_json_external_beta_count')
   requireEqual(docJson.scope?.productionReadyNowTools, 0, 'doc_json_production_count')
@@ -522,6 +535,7 @@ function verifyDocs() {
   for (const key of [
     'externalBetaApiRouteWorkerRuntimeSmokeProofPrepared',
     'sourceWorkerRuntimeSmokeAuthorizationAccepted',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'workerRuntimeSmokeProofAcceptedWithProvidedEvidence',
     'savedWorkerRuntimeSmokeResultAcceptedWithProvidedEvidence',
     'all21ToolsCovered',
@@ -548,6 +562,8 @@ function verifyDocs() {
   for (const required of [
     decision,
     'saved private non-production worker-runtime smoke result',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true',
+    'route-bound service-role queue smoke operator preflight',
     'For CPU/static tools, no GPU startup.',
     'For GPU/model tools, GPU startup only for the accepted job',
     '`gpuRuntimeShouldStartNow=false`',
@@ -591,6 +607,7 @@ function verifySourceWiring() {
     'gpuMustBeReleasedAfterAcceptedSavedGpuSmokeResult: true',
     'cleanupMustLeaveGpuIdle: true',
     'workerRuntimeSmokeExecutedByValidator: false',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'gpuRuntimePerformedByValidator: false',
     'gpuRuntimeShouldStartNow: false',
     'toolExecutionAcceptedWithProvidedEvidence: false',
@@ -615,6 +632,15 @@ function verifyCliBehavior() {
   requireEqual(cpu.status, acceptedStatus, 'cpu_status')
   requireTruthy(cpu.proofAcceptedWithProvidedEvidence, 'cpu_proof_accepted')
   requireEqual(cpu.workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence, 1, 'cpu_proof_count')
+  requireEqual(
+    cpu.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'cpu_operator_preflight_count',
+  )
+  requireTruthy(
+    cpu.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'cpu_operator_preflight_boolean',
+  )
   requireEqual(cpu.workerLeaseLifecycleAcceptedWithProvidedEvidence, 1, 'cpu_lease_count')
   requireEqual(cpu.workerDispatchAcceptedWithProvidedEvidence, 1, 'cpu_dispatch_count')
   requireEqual(cpu.toolExecutionAcceptedWithProvidedEvidence, 0, 'cpu_tool_execution_count')
@@ -628,6 +654,15 @@ function verifyCliBehavior() {
   requireEqual(gpu.status, acceptedStatus, 'gpu_status')
   requireTruthy(gpu.proofAcceptedWithProvidedEvidence, 'gpu_proof_accepted')
   requireEqual(gpu.workerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence, 1, 'gpu_proof_count')
+  requireEqual(
+    gpu.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'gpu_operator_preflight_count',
+  )
+  requireTruthy(
+    gpu.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'gpu_operator_preflight_boolean',
+  )
   requireEqual(gpu.gpuRuntimeStartedWithProvidedEvidence, 1, 'gpu_started_count')
   requireEqual(gpu.gpuRuntimeReleasedWithProvidedEvidence, 1, 'gpu_released_count')
   requireTruthy(gpu.booleans?.gpuRuntimeStartedForAcceptedJob, 'gpu_started_bool')
@@ -645,6 +680,34 @@ function verifyCliBehavior() {
   )
   if (!badToolExecution.rejectionReasons?.some((reason) => reason.includes('must not execute tools'))) {
     fail('bad_tool_execution_missing_rejection_reason')
+  }
+
+  const strippedAuthorization = runProof('d3', undefined, privateRefs('d3'), (authorization) => {
+    authorization.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+    authorization.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+    authorization.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    authorization.authorizationCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  })
+  requireEqual(
+    strippedAuthorization.status,
+    'external_beta_api_route_worker_runtime_smoke_authorization_rejected',
+    'stripped_authorization_status',
+  )
+  requireFalse(
+    strippedAuthorization.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'stripped_authorization_operator_preflight_boolean',
+  )
+
+  const strippedResult = runProof('d3', (result) => {
+    result.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  })
+  requireEqual(
+    strippedResult.status,
+    'external_beta_api_route_worker_runtime_smoke_result_rejected',
+    'stripped_result_status',
+  )
+  if (!strippedResult.rejectionReasons?.some((reason) => reason.includes('operator preflight'))) {
+    fail('stripped_result_missing_operator_preflight_reason')
   }
 
   const badPublicEvidence = runProof('d3', undefined, [
@@ -700,6 +763,7 @@ console.log(JSON.stringify({
   gpuRuntimeFixtureAcceptedWithOnDemandRelease: true,
   workerRuntimeSmokeExecutedByValidator: false,
   agentCanExecuteToolsNow: false,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
   gpuRuntimeShouldStartNow: false,
   externalBetaReadyNow: false,
   productionReadyNow: false,

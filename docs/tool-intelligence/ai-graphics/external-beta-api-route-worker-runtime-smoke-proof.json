@@ -13,7 +13,8 @@
   "sourceEvidence": {
     "workerRuntimeSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-authorization.json",
     "controlledWorkerRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-controlled-worker-runtime-proof.json",
-    "liveEnqueueAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-live-enqueue-authorization.json"
+    "liveEnqueueAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-live-enqueue-authorization.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -56,11 +57,13 @@
     "workerLeaseLifecycleAcceptedWithProvidedEvidence": 1,
     "workerDispatchAcceptedWithProvidedEvidence": 1,
     "toolExecutionAcceptedWithProvidedEvidence": 0,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 1,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "acceptedSavedSmokeEvidence": [
     "one private non-production worker-runtime smoke result",
+    "route-bound service-role queue smoke operator preflight preserved by the authorization packet and saved result",
     "one worker lease created and released",
     "one worker dispatch",
     "zero tool executions",
@@ -93,6 +96,7 @@
   "booleans": {
     "externalBetaApiRouteWorkerRuntimeSmokeProofPrepared": true,
     "sourceWorkerRuntimeSmokeAuthorizationAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "workerRuntimeSmokeProofAcceptedWithProvidedEvidence": true,
     "savedWorkerRuntimeSmokeResultAcceptedWithProvidedEvidence": true,
     "all21ToolsCovered": true,

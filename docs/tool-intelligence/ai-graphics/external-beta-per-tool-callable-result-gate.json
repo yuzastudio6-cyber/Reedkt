@@ -13,7 +13,8 @@
   "sourceEvidence": {
     "workerRuntimeSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-proof.json",
     "workerRuntimeSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-runtime-smoke-authorization.json",
-    "controlledWorkerRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-controlled-worker-runtime-proof.json"
+    "controlledWorkerRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-controlled-worker-runtime-proof.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -61,6 +62,7 @@
     "toolExecutionAcceptedWithProvidedEvidence": 0,
     "routeExecutionAcceptedWithProvidedEvidence": 0,
     "privateArtifactWriteAcceptedWithProvidedEvidence": 0,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 1,
     "externalBetaCallableNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
@@ -68,6 +70,7 @@
   "acceptedSavedCallableEvidence": [
     "one private non-production per-tool callable result envelope",
     "accepted source worker-runtime smoke proof",
+    "route-bound service-role queue smoke operator preflight preserved by the source proof and callable envelope",
     "one accepted source worker lease lifecycle",
     "one accepted source worker dispatch",
     "zero route executions by this result gate",
@@ -97,6 +100,7 @@
   "booleans": {
     "externalBetaPerToolCallableResultGatePrepared": true,
     "sourceWorkerRuntimeSmokeProofAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "perToolCallableResultAcceptedWithProvidedEvidence": true,
     "savedPerToolCallableResultAcceptedWithProvidedEvidence": true,
     "all21ToolsCovered": true,

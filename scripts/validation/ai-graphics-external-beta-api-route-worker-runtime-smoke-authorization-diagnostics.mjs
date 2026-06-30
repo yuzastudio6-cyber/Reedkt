@@ -220,6 +220,7 @@ function controlledWorkerRuntimeProofFixture(toolId) {
     runtimeProofStatus: 'runtime_proof_accepted_with_provided_evidence',
     controlledWorkerRuntimeProofPreparedWithProvidedEvidence: true,
     sourceArtifactToolRouteAdmissionAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     sourcePerToolRuntimeProofAccepted: true,
     sourcePerToolRuntimeProofCoversRequestedTool: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob: runtime.gpuRequiredForRuntime,
@@ -249,11 +250,16 @@ function controlledWorkerRuntimeProofFixture(toolId) {
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     sourceRuntimeProofAcceptedWithProvidedEvidenceTools: 21,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
     controlledWorkerRuntimeProofCandidate: candidate,
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     booleans: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       agentCanExecuteToolsNow: false,
       workerLeaseCreationApprovedNow: false,
       workerDispatchApprovedNow: false,
@@ -360,6 +366,9 @@ if (docs.scope?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_count_not_8')
 if (docs.scope?.workerRuntimeSmokeAuthorizationPreparedRequestsWithProvidedEvidence !== 1) {
   fail('docs_authorization_requests_not_1')
 }
+if (docs.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_operator_preflight_count_not_21')
+}
 for (const tool of tools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
 }
@@ -369,6 +378,7 @@ for (const tool of gpuTools) {
 for (const key of [
   'externalBetaApiRouteWorkerRuntimeSmokeAuthorizationPrepared',
   'sourceControlledWorkerRuntimeProofAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
   'sourceLiveEnqueueAuthorizationAccepted',
   'sourceControlledWorkerRuntimeProofCoversRequestedTool',
   'workerRuntimeSmokeAuthorizationControlsAccepted',
@@ -394,6 +404,7 @@ for (const phrase of [
   'operator confirmation',
   'private non-production external-beta',
   'worker-runtime smoke',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
   'gpuRuntimeShouldStartNow',
   'liveWorkerRuntimeSmokeAuthorizedNow',
   'external_beta_api_route_worker_runtime_smoke_authorization_ready_runtime_still_blocked',
@@ -423,6 +434,30 @@ try {
     path.join(tmpRoot, 'live-enqueue-authorization.json'),
     liveEnqueueAuthorizationFixture(),
   )
+  const strippedControlled = controlledWorkerRuntimeProofFixture('d3')
+  strippedControlled.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+  strippedControlled.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+  strippedControlled.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  strippedControlled.controlledWorkerRuntimeProofCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  const strippedControlledPath = writeJson(
+    path.join(tmpRoot, 'stripped-operator-preflight-controlled-worker-runtime-proof.json'),
+    strippedControlled,
+  )
+
+  const strippedControlledResult = npmJson(runScriptName, acceptedArgs(strippedControlledPath, livePath))
+  if (
+    strippedControlledResult.status !==
+      'external_beta_api_route_controlled_worker_runtime_proof_rejected'
+  ) {
+    fail(`stripped_operator_preflight_controlled_status:${strippedControlledResult.status}`)
+  }
+  if (
+    strippedControlledResult.booleans
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== false
+  ) {
+    fail('stripped_operator_preflight_controlled_boolean_not_false')
+  }
+
   for (const toolId of ['d3', 'sam2']) {
     const controlledPath = writeJson(
       path.join(tmpRoot, `controlled-worker-runtime-proof-${toolId}.json`),
@@ -432,6 +467,22 @@ try {
     if (accepted.status !== acceptedStatus) fail(`accepted_status:${toolId}:${accepted.status}`)
     if (accepted.workerRuntimeSmokeAuthorizationPreparedRequestsWithProvidedEvidence !== 1) {
       fail(`accepted_requests_not_1:${toolId}`)
+    }
+    if (
+      accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+    ) {
+      fail(`accepted_operator_preflight_count_not_21:${toolId}`)
+    }
+    if (
+      accepted.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+    ) {
+      fail(`accepted_operator_preflight_boolean_not_true:${toolId}`)
+    }
+    if (
+      accepted.authorizationCandidate
+        ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+    ) {
+      fail(`accepted_candidate_operator_preflight_boolean_not_true:${toolId}`)
     }
     if (accepted.authorizationCandidate?.toolId !== toolId) {
       fail(`accepted_candidate_tool:${toolId}:${accepted.authorizationCandidate?.toolId}`)
@@ -600,6 +651,7 @@ console.log(JSON.stringify({
   capabilitiesCovered: 12,
   gpuRuntimeTargetedTools: 8,
   workerRuntimeSmokeAuthorizationPreparedRequestsWithProvidedEvidence: 1,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
   gpuRuntimeShouldStartNow: false,

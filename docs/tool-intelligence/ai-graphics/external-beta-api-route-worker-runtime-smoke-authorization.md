@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_external_beta_api_route_worker_runtime_smoke_authorization_prepared_with_runtime_blocks`
 
-This packet prepares a future private non-production external-beta worker-runtime smoke authorization candidate. It consumes the accepted API Route controlled worker runtime proof and the accepted all-21 live-enqueue authorization packet.
+This packet prepares a future private non-production external-beta worker-runtime smoke authorization candidate. It consumes the accepted API Route controlled worker runtime proof, verifies that proof still preserves the route-bound service-role queue smoke operator preflight, and consumes the accepted all-21 live-enqueue authorization packet.
 
 This is authorization metadata only. It does not authorize a live worker-runtime smoke now, create worker leases, dispatch workers, execute tools, write private artifacts, execute Tool Routes, start browser/WebGL/canvas runtime, start GPU runtime, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production.
 
@@ -10,6 +10,7 @@ This is authorization metadata only. It does not authorize a live worker-runtime
 
 - All 21 AI graphics tools remain covered by the source live-enqueue and runtime proof chain.
 - All 12 product-facing capabilities remain covered.
+- The controlled worker runtime proof preserves the 21-tool route-bound service-role queue smoke operator preflight.
 - The authorization candidate covers one controlled worker-runtime proof request at a time.
 - Private artifact refs, lease audit refs, cost guardrails, QA gates, telemetry, rollback, and operator confirmation are required.
 - GPU/model tools preserve native GPU targets and on-demand GPU policy.
@@ -18,6 +19,7 @@ This is authorization metadata only. It does not authorize a live worker-runtime
 ## Required Inputs
 
 - Accepted `external-beta-api-route-controlled-worker-runtime-proof` packet.
+- Preserved route-bound service-role queue smoke operator preflight marker on the controlled worker runtime proof.
 - Accepted `external-beta-live-enqueue-authorization` packet.
 - Private operator confirmation ref.
 - Private non-production external-beta environment ref.
@@ -46,6 +48,7 @@ This is authorization metadata only. It does not authorize a live worker-runtime
 ## Booleans
 
 - `agentCanSelectForPlanning=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `agentCanExecuteToolsNow=false`
 - `liveWorkerRuntimeSmokeAuthorizedNow=false`
 - `workerRuntimeSmokeExecutedNow=false`

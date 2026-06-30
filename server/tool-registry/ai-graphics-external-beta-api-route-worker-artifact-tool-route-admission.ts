@@ -68,6 +68,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdmissionC
   modelWeightOrCacheManifestRef: string | null
   artifactToolRouteAdmissionPreparedWithProvidedEvidence: true
   sourceHandoffAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   privateArtifactManifestAccepted: boolean
   toolRouteRuntimeProofAccepted: boolean
   privateArtifactManifestCoversRequestedTool: boolean
@@ -101,6 +102,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdmission 
   gpuRuntimeTargetedTools: 8
   sourcePrivateArtifactRecordsReadyWithProvidedEvidence: number
   sourceToolRouteRecordsReadyWithProvidedEvidence: number
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: number
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   gpuRuntimeShouldStartNow: false
@@ -118,6 +120,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdmission 
     telemetryRef: string | null
     rollbackPlanRef: string | null
     sourceHandoffStatus: string | null
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     sourcePrivateArtifactManifestDecision: string | null
     sourceToolRouteRuntimeProofDecision: string | null
     requiredExecutionEnvironment: 'private_non_production_external_beta'
@@ -146,6 +149,7 @@ export interface AiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdmission 
   booleans: {
     externalBetaApiRouteWorkerArtifactToolRouteAdmissionPrepared: true
     sourceApiRouteWorkerDispatchHandoffProofAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     sourcePrivateArtifactManifestAccepted: boolean
     sourceToolRouteRuntimeProofAccepted: boolean
     privateArtifactManifestCoversRequestedTool: boolean
@@ -280,6 +284,7 @@ function sourceHandoffAccepted(
     packet.sourceApiRouteQueueSmokeProofAccepted === true &&
     packet.sourceWorkerDispatchSmokeProofAccepted === true &&
     packet.sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence === 21 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
     packet.sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence === 1 &&
     packet.sourceRouteQueueRowsPersistedAfterCleanup === 0 &&
     packet.sourceWorkerDispatchSmokeInMemoryLeasesAcceptedWithProvidedEvidence === 21 &&
@@ -288,6 +293,11 @@ function sourceHandoffAccepted(
     packet.liveToolExecutionsNow === 0 &&
     packet.gpuRuntimeShouldStartNow === false &&
     packet.booleans.sourceWorkerDispatchSmokeProofCoversRequestedTool === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    packet.handoffCandidate
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.booleans.gpuRuntimeOnDemandOnly === true &&
     packet.booleans.noIdleGpuRuntimeApproved === true &&
     packet.booleans.gpuRuntimeShouldStartNow === false &&
@@ -536,6 +546,8 @@ function buildAdmissionCandidate(input: {
     modelWeightOrCacheManifestRef: manifestRecord.modelWeightOrCacheManifestRef,
     artifactToolRouteAdmissionPreparedWithProvidedEvidence: true,
     sourceHandoffAccepted: input.handoffAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+      handoffCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     privateArtifactManifestAccepted: input.manifestAccepted,
     toolRouteRuntimeProofAccepted: input.toolRouteAccepted,
     privateArtifactManifestCoversRequestedTool: input.manifestCovers,
@@ -583,6 +595,14 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdm
   const manifestPacket = input.sourcePrivateArtifactManifestPacket
   const toolRoutePacket = input.sourceToolRouteRuntimeProofPacket
   const handoffAccepted = sourceHandoffAccepted(handoffPacket)
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    handoffAccepted &&
+    handoffPacket?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
+    handoffPacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    handoffPacket?.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    handoffPacket?.handoffCandidate
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const manifestAccepted = sourcePrivateArtifactManifestAccepted(manifestPacket)
   const toolRouteAccepted = sourceToolRouteRuntimeProofAccepted(toolRoutePacket)
   const requestedToolId = canonicalToolId(
@@ -667,6 +687,11 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdm
     gpuRuntimeTargetedTools: 8,
     sourcePrivateArtifactRecordsReadyWithProvidedEvidence,
     sourceToolRouteRecordsReadyWithProvidedEvidence,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted
+        ? handoffPacket
+          ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence ?? 0
+        : 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
@@ -690,6 +715,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdm
       telemetryRef: input.externalBetaTelemetryRef ?? null,
       rollbackPlanRef: input.externalBetaRollbackPlanRef ?? null,
       sourceHandoffStatus: handoffPacket?.status ?? null,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       sourcePrivateArtifactManifestDecision: manifestPacket?.decision ?? null,
       sourceToolRouteRuntimeProofDecision: toolRoutePacket?.decision ?? null,
       requiredExecutionEnvironment: 'private_non_production_external_beta',
@@ -718,6 +745,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteWorkerArtifactToolRouteAdm
     booleans: {
       externalBetaApiRouteWorkerArtifactToolRouteAdmissionPrepared: true,
       sourceApiRouteWorkerDispatchHandoffProofAccepted: handoffAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       sourcePrivateArtifactManifestAccepted: manifestAccepted,
       sourceToolRouteRuntimeProofAccepted: toolRouteAccepted,
       privateArtifactManifestCoversRequestedTool: manifestCovers,

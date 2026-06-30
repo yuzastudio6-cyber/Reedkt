@@ -14,7 +14,8 @@
     "externalBetaApiRouteQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json",
     "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
     "externalBetaApiRouteQueueSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-authorization.json",
-    "externalBetaWorkerDispatchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-readiness.json"
+    "externalBetaWorkerDispatchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-readiness.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "scope": {
     "totalAiGraphicsTools": 21,
@@ -22,6 +23,7 @@
     "gpuRuntimeTargetedTools": 8,
     "apiRouteWorkerDispatchHandoffPreparedRequestsWithProvidedEvidence": 1,
     "sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
     "sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence": 1,
     "sourceRouteQueueRowsPersistedAfterCleanup": 0,
     "sourceWorkerDispatchSmokeInMemoryLeasesAcceptedWithProvidedEvidence": 21,
@@ -31,6 +33,7 @@
   "handoffRequires": [
     "accepted saved API route queue smoke proof packet",
     "accepted saved worker dispatch smoke proof packet",
+    "accepted 21-tool route-bound service-role queue smoke operator preflight preserved through the worker dispatch smoke proof",
     "requested tool covered by the all-21 worker dispatch smoke proof",
     "private route-worker dispatch handoff policy ref",
     "private worker lease policy ref",
@@ -44,6 +47,7 @@
   "allowedProofActions": [
     "read accepted saved route-to-queue smoke proof metadata",
     "read accepted all-21 saved worker dispatch smoke proof metadata",
+    "verify the route-bound service-role queue smoke operator preflight marker is still present on the worker dispatch smoke proof",
     "verify the requested route-smoke tool is covered by the worker dispatch smoke proof",
     "prepare one side-effect-free API-route worker-dispatch handoff candidate",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job"
@@ -70,6 +74,7 @@
     "sourceExternalBetaApiRouteQueueSmokeProofAccepted": true,
     "sourceExternalBetaWorkerDispatchSmokeProofAccepted": true,
     "sourceWorkerDispatchSmokeProofCoversRequestedTool": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

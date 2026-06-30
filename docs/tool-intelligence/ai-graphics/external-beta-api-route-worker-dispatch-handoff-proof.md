@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_external_beta_api_route_worker_dispatch_handoff_proof_prepared_with_runtime_blocks`
 
-This packet bridges the saved private API-route-to-queue smoke proof to the saved all-21 worker dispatch smoke proof. It prepares one worker-dispatch handoff candidate for the requested tool only when the route smoke proof is accepted, the all-21 worker dispatch smoke proof is accepted, and the requested tool is covered by the worker proof.
+This packet bridges the saved private API-route-to-queue smoke proof to the saved all-21 worker dispatch smoke proof. It prepares one worker-dispatch handoff candidate for the requested tool only when the route smoke proof is accepted, the all-21 worker dispatch smoke proof is accepted, the route-bound service-role queue smoke operator preflight is still preserved by that worker proof, and the requested tool is covered by the worker proof.
 
 This is still proof and handoff metadata only. It does not create live worker leases, dispatch workers, execute tools, start browser/WebGL/canvas runtime, start GPU runtime, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production.
 
@@ -10,6 +10,7 @@ This is still proof and handoff metadata only. It does not create live worker le
 
 - All 21 AI graphics tools remain covered by the worker dispatch proof.
 - All 12 product-facing capabilities remain covered by the worker dispatch proof.
+- The worker dispatch proof preserves 21-tool route-bound service-role queue smoke operator preflight evidence.
 - The handoff candidate covers one route-smoke request at a time.
 - GPU/model tools preserve native GPU targets and on-demand GPU policy.
 - `gpuRuntimeShouldStartNow=false` remains enforced for CPU and GPU tools.
@@ -18,6 +19,7 @@ This is still proof and handoff metadata only. It does not create live worker le
 
 - Accepted `external-beta-api-route-queue-smoke-proof` packet.
 - Accepted `external-beta-worker-dispatch-smoke-proof` packet.
+- Preserved route-bound service-role queue smoke operator preflight marker on the worker dispatch smoke proof.
 - Private route-worker dispatch handoff policy ref.
 - Private worker lease, dispatch, idempotency, GPU on-demand, private artifact, telemetry, and rollback refs.
 
@@ -42,6 +44,7 @@ This is still proof and handoff metadata only. It does not create live worker le
 ## Booleans
 
 - `agentCanSelectForPlanning=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `agentCanExecuteToolsNow=false`
 - `workerLeaseCreationApprovedNow=false`
 - `workerDispatchApprovedNow=false`

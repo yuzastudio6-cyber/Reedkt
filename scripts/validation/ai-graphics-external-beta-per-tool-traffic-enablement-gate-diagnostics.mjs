@@ -234,6 +234,7 @@ function callableGateFixture(toolId) {
     sourceWorkerRuntimeSmokeProofRef:
       `private://ai-graphics/external-beta/callable-result/${toolId}/worker-runtime-smoke-proof.json`,
     sourceWorkerRuntimeSmokeProofAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     toolId,
     capabilityId,
     routePath: '/api/ai-graphics/external-beta/tool-call',
@@ -272,6 +273,7 @@ function callableGateFixture(toolId) {
     capabilityId,
     perToolCallableResultGateAcceptedRequestsWithProvidedEvidence: 1,
     sourceWorkerRuntimeSmokeProofAcceptedRequestsWithProvidedEvidence: 1,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
     callableEnvelopeAcceptedWithProvidedEvidence: 1,
     workerRuntimeSmokeProofAcceptedWithProvidedEvidence: 1,
     workerLeaseLifecycleAcceptedWithProvidedEvidence: 1,
@@ -287,8 +289,12 @@ function callableGateFixture(toolId) {
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     savedPerToolCallableResult,
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     booleans: {
       sourceWorkerRuntimeSmokeProofAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       savedPerToolCallableResultAcceptedWithProvidedEvidence: true,
       gpuRuntimeStartedForCallableResult: false,
       toolExecutionAcceptedWithProvidedEvidence: false,
@@ -351,11 +357,12 @@ function privateTrafficRefs(toolId) {
   ]
 }
 
-function runGate(toolId, extraArgs = privateTrafficRefs(toolId), mutateLaunch) {
+function runGate(toolId, extraArgs = privateTrafficRefs(toolId), mutateLaunch, mutateCallable) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-traffic-gate-'))
   const callableGate = callableGateFixture(toolId)
   const launchGoNoGo = launchGoNoGoFixture()
   if (mutateLaunch) mutateLaunch(launchGoNoGo)
+  if (mutateCallable) mutateCallable(callableGate)
   const callablePath = writeJson(path.join(tempDir, 'callable-gate.json'), callableGate)
   const launchPath = writeJson(path.join(tempDir, 'launch-go-no-go.json'), launchGoNoGo)
   return npmJson(runScriptName, [
@@ -462,6 +469,11 @@ function verifyDocs() {
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
   requireEqual(docJson.scope?.perToolTrafficEnablementPreparedRequestsWithProvidedEvidence, 1, 'doc_json_gate_count')
   requireEqual(docJson.scope?.sourceCallableResultGateAcceptedRequestsWithProvidedEvidence, 1, 'doc_json_callable_gate_count')
+  requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'doc_json_operator_preflight_count',
+  )
   requireEqual(docJson.scope?.sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence, 21, 'doc_json_launch_count')
   requireEqual(docJson.scope?.externalBetaTrafficEnabledNowTools, 0, 'doc_json_traffic_now_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 0, 'doc_json_external_beta_count')
@@ -475,6 +487,7 @@ function verifyDocs() {
   for (const key of [
     'externalBetaPerToolTrafficEnablementGatePrepared',
     'sourcePerToolCallableResultGateAccepted',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'sourceExternalBetaLaunchGoNoGoAccepted',
     'trafficEnablementControlsAccepted',
     'perToolTrafficEnablementPreparedWithProvidedEvidence',
@@ -498,7 +511,9 @@ function verifyDocs() {
     'does not enable traffic',
     '`externalBetaTrafficEnabledNow=false`',
     '`externalBetaTrafficSwitchApprovedNow=false`',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`',
     '`gpuRuntimeShouldStartNow=false`',
+    'route-bound service-role queue smoke operator preflight',
     'This gate only proves the controls exist.',
   ]) {
     if (!md.includes(required)) fail(`traffic_md_missing:${required}`)
@@ -542,6 +557,7 @@ function verifySourceWiring() {
     'noGpuRuntimeStartByGate: true',
     'externalBetaTrafficEnabledNow: false',
     'gpuRuntimeShouldStartNow: false',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'toolExecutionApprovedNow: false',
   ]) {
     if (!evaluator.includes(required)) fail(`evaluator_missing:${required}`)
@@ -566,11 +582,24 @@ function verifyCliBehavior() {
   requireTruthy(accepted.trafficEnablementControlsAccepted, 'accepted_controls')
   requireEqual(accepted.perToolTrafficEnablementPreparedRequestsWithProvidedEvidence, 1, 'accepted_gate_count')
   requireEqual(accepted.sourceCallableResultGateAcceptedRequestsWithProvidedEvidence, 1, 'accepted_callable_count')
+  requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'accepted_operator_preflight_count',
+  )
   requireEqual(accepted.sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence, 21, 'accepted_launch_count')
   requireEqual(accepted.externalBetaTrafficCandidateToolsWithProvidedEvidence, 1, 'accepted_candidate_count')
   requireEqual(accepted.externalBetaTrafficEnabledNowTools, 0, 'accepted_traffic_now_count')
   requireTruthy(accepted.trafficEnablementCandidate?.sourceCallableResultGateAccepted, 'candidate_callable')
+  requireTruthy(
+    accepted.trafficEnablementCandidate?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'candidate_operator_preflight',
+  )
   requireTruthy(accepted.trafficEnablementCandidate?.sourceExternalBetaLaunchGoNoGoAccepted, 'candidate_launch')
+  requireTruthy(
+    accepted.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'accepted_operator_preflight_boolean',
+  )
   requireFalse(accepted.trafficEnablementCandidate?.externalBetaTrafficEnabledNow, 'candidate_traffic_false')
   verifyFalseGates(accepted, 'accepted')
 
@@ -581,6 +610,22 @@ function verifyCliBehavior() {
     badLaunch.status,
     'external_beta_launch_go_no_go_rejected',
     'bad_launch_status',
+  )
+
+  const strippedCallable = runGate('sam2', privateTrafficRefs('sam2'), undefined, (callable) => {
+    callable.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+    callable.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+    callable.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    callable.savedPerToolCallableResult.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  })
+  requireEqual(
+    strippedCallable.status,
+    'external_beta_per_tool_callable_result_gate_rejected',
+    'stripped_callable_status',
+  )
+  requireFalse(
+    strippedCallable.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'stripped_callable_operator_preflight_boolean',
   )
 
   const badPublicRef = runGate('sam2', [
@@ -639,6 +684,7 @@ console.log(JSON.stringify({
   totalAiGraphicsTools: tools.length,
   gpuRuntimeTargetedTools: gpuTools.length,
   trafficEnablementMetadataAccepted: true,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
   externalBetaTrafficEnabledNow: false,
   routeExecutionApprovedNow: false,
   workerDispatchApprovedNow: false,

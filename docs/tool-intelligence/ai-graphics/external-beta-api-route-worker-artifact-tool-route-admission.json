@@ -15,7 +15,8 @@
     "externalBetaPrivateArtifactManifest": "docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json",
     "externalBetaToolRouteRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json",
     "externalBetaApiRouteQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json",
-    "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json"
+    "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -57,11 +58,13 @@
     "artifactToolRouteAdmissionPreparedRequestsWithProvidedEvidence": 1,
     "sourcePrivateArtifactRecordsReadyWithProvidedEvidence": 21,
     "sourceToolRouteRecordsReadyWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "admissionRequires": [
     "accepted saved API route worker-dispatch handoff proof packet",
+    "accepted route-bound service-role queue smoke operator preflight preserved through the handoff proof",
     "accepted saved private artifact manifest packet",
     "accepted saved Tool Route runtime proof packet",
     "private artifact Tool Route admission policy ref",
@@ -77,6 +80,7 @@
   ],
   "allowedProofActions": [
     "read accepted saved route-worker handoff proof metadata",
+    "verify the route-bound service-role queue smoke operator preflight marker remains present on the handoff proof",
     "read accepted private artifact manifest metadata",
     "read accepted Tool Route runtime proof metadata",
     "verify the requested handoff tool has matching private artifact and Tool Route records",
@@ -104,6 +108,7 @@
   "booleans": {
     "externalBetaApiRouteWorkerArtifactToolRouteAdmissionPrepared": true,
     "sourceApiRouteWorkerDispatchHandoffProofAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "sourcePrivateArtifactManifestAccepted": true,
     "sourceToolRouteRuntimeProofAccepted": true,
     "privateArtifactManifestCoversRequestedTool": true,

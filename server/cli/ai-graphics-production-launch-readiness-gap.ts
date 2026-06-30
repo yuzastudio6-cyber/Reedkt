@@ -8,6 +8,9 @@ import type {
 import type {
   AiGraphicsExternalBetaActivatedLaunchReadiness,
 } from '../tool-registry/ai-graphics-external-beta-activated-launch-readiness'
+import type {
+  AiGraphicsProductionLaunchControls,
+} from '../tool-registry/ai-graphics-production-launch-controls'
 
 function valueAfterFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -29,6 +32,10 @@ const report = buildAiGraphicsProductionLaunchReadinessGap({
     readJsonFile<AiGraphicsBetaProductionReadinessRollup>(
       '--beta-production-readiness-rollup-packet',
     ),
+  sourceProductionLaunchControlsPacket:
+    readJsonFile<AiGraphicsProductionLaunchControls>(
+      '--production-launch-controls-packet',
+    ),
 })
 
 console.log(JSON.stringify({
@@ -39,6 +46,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-activated-launch-readiness-packet')),
     sourceBetaProductionReadinessRollupPacketRead:
       Boolean(valueAfterFlag('--beta-production-readiness-rollup-packet')),
+    sourceProductionLaunchControlsPacketRead:
+      Boolean(valueAfterFlag('--production-launch-controls-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

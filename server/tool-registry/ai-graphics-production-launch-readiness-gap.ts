@@ -6,6 +6,11 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION,
   type AiGraphicsExternalBetaActivatedLaunchReadiness,
 } from './ai-graphics-external-beta-activated-launch-readiness'
+import {
+  AI_GRAPHICS_PRODUCTION_LAUNCH_CONTROLS_DECISION,
+  acceptedAiGraphicsProductionLaunchControls,
+  type AiGraphicsProductionLaunchControls,
+} from './ai-graphics-production-launch-controls'
 
 export const AI_GRAPHICS_PRODUCTION_LAUNCH_READINESS_GAP_DECISION =
   'ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked'
@@ -15,10 +20,12 @@ export type AiGraphicsProductionLaunchReadinessGapStatus =
   | 'missing_beta_production_readiness_rollup'
   | 'beta_production_readiness_rollup_not_external_beta_ready'
   | 'production_launch_blocked_pending_production_controls'
+  | 'production_launch_controls_accepted_pending_final_go_no_go'
 
 export interface AiGraphicsProductionLaunchReadinessGapInput {
   sourceExternalBetaActivatedLaunchReadinessPacket?: AiGraphicsExternalBetaActivatedLaunchReadiness
   sourceBetaProductionReadinessRollupPacket?: AiGraphicsBetaProductionReadinessRollup
+  sourceProductionLaunchControlsPacket?: AiGraphicsProductionLaunchControls
 }
 
 export interface AiGraphicsProductionLaunchReadinessGap {
@@ -28,6 +35,8 @@ export interface AiGraphicsProductionLaunchReadinessGap {
     typeof AI_GRAPHICS_EXTERNAL_BETA_ACTIVATED_LAUNCH_READINESS_DECISION | null
   sourceBetaProductionReadinessRollupDecision:
     typeof AI_GRAPHICS_BETA_PRODUCTION_READINESS_ROLLUP_DECISION | null
+  sourceProductionLaunchControlsDecision:
+    typeof AI_GRAPHICS_PRODUCTION_LAUNCH_CONTROLS_DECISION | null
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
@@ -41,17 +50,18 @@ export interface AiGraphicsProductionLaunchReadinessGap {
     productionLaunchReadinessGapPrepared: true
     sourceExternalBetaActivatedLaunchReadinessAccepted: boolean
     sourceBetaProductionReadinessRollupAccepted: boolean
+    sourceProductionLaunchControlsAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     all8GpuToolsTargetGpuRuntime: true
     all21ExternalBetaReadyForControlledOnDemandToolCalls: boolean
-    productionLaunchControlsAccepted: false
-    productionSupportRunbookAccepted: false
-    productionIncidentRollbackAccepted: false
-    productionCostConcurrencyAccepted: false
-    productionMonitoringAccepted: false
-    productionCreditLedgerAccepted: false
-    productionRouteWorkerDeploymentAccepted: false
+    productionLaunchControlsAccepted: boolean
+    productionSupportRunbookAccepted: boolean
+    productionIncidentRollbackAccepted: boolean
+    productionCostConcurrencyAccepted: boolean
+    productionMonitoringAccepted: boolean
+    productionCreditLedgerAccepted: boolean
+    productionRouteWorkerDeploymentAccepted: boolean
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
     gpuStartsOnlyForApprovedWorkerOrToolCall: true
@@ -167,6 +177,7 @@ function statusFromSources(input: {
   activatedLaunchAccepted: boolean
   hasBetaProductionRollup: boolean
   betaProductionRollupAccepted: boolean
+  productionLaunchControlsAccepted: boolean
 }): AiGraphicsProductionLaunchReadinessGapStatus {
   if (!input.hasActivatedLaunch || !input.activatedLaunchAccepted) {
     return 'missing_external_beta_activated_launch_readiness'
@@ -174,6 +185,9 @@ function statusFromSources(input: {
   if (!input.hasBetaProductionRollup) return 'missing_beta_production_readiness_rollup'
   if (!input.betaProductionRollupAccepted) {
     return 'beta_production_readiness_rollup_not_external_beta_ready'
+  }
+  if (input.productionLaunchControlsAccepted) {
+    return 'production_launch_controls_accepted_pending_final_go_no_go'
   }
   return 'production_launch_blocked_pending_production_controls'
 }
@@ -187,14 +201,18 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
     )
   const sourceBetaProductionReadinessRollupAccepted =
     betaProductionReadinessRollupAccepted(input.sourceBetaProductionReadinessRollupPacket)
+  const sourceProductionLaunchControlsAccepted =
+    acceptedAiGraphicsProductionLaunchControls(input.sourceProductionLaunchControlsPacket)
   const status = statusFromSources({
     hasActivatedLaunch: Boolean(input.sourceExternalBetaActivatedLaunchReadinessPacket),
     activatedLaunchAccepted: sourceExternalBetaActivatedLaunchReadinessAccepted,
     hasBetaProductionRollup: Boolean(input.sourceBetaProductionReadinessRollupPacket),
     betaProductionRollupAccepted: sourceBetaProductionReadinessRollupAccepted,
+    productionLaunchControlsAccepted: sourceProductionLaunchControlsAccepted,
   })
   const externalBetaReady =
-    status === 'production_launch_blocked_pending_production_controls'
+    status === 'production_launch_blocked_pending_production_controls' ||
+    status === 'production_launch_controls_accepted_pending_final_go_no_go'
 
   return {
     decision: AI_GRAPHICS_PRODUCTION_LAUNCH_READINESS_GAP_DECISION,
@@ -203,6 +221,8 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
       input.sourceExternalBetaActivatedLaunchReadinessPacket?.decision ?? null,
     sourceBetaProductionReadinessRollupDecision:
       input.sourceBetaProductionReadinessRollupPacket?.decision ?? null,
+    sourceProductionLaunchControlsDecision:
+      input.sourceProductionLaunchControlsPacket?.decision ?? null,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
@@ -210,16 +230,22 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
     runtimeReadyForOnDemandExternalBetaToolCallTools: externalBetaReady ? 21 : 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
-    productionLaunchBlockers: [
-      'separate production launch owner approval',
-      'production support and incident-response runbook',
-      'production rollback and kill-switch plan',
-      'production cost and concurrency ceilings',
-      'production monitoring, alerting, and post-launch review',
-      'production credit ledger and approval snapshot enforcement',
-      'production Tool Route and Worker deployment acceptance',
-      'production privacy, retention, and private artifact controls',
-    ],
+    productionLaunchBlockers: sourceProductionLaunchControlsAccepted
+      ? [
+        'final production go/no-go packet',
+        'explicit production traffic cutover approval',
+        'post-approval production execution remains future backend/worker runtime',
+      ]
+      : [
+        'separate production launch owner approval',
+        'production support and incident-response runbook',
+        'production rollback and kill-switch plan',
+        'production cost and concurrency ceilings',
+        'production monitoring, alerting, and post-launch review',
+        'production credit ledger and approval snapshot enforcement',
+        'production Tool Route and Worker deployment acceptance',
+        'production privacy, retention, and private artifact controls',
+      ],
     nextMilestones: [
       'Create a production launch approval packet that accepts support, incident, rollback, monitoring, cost, privacy, credit-ledger, route, and worker deployment controls.',
       'Keep GPU runtime on-demand only; do not start GPU until a future accepted production worker job calls a GPU/model tool.',
@@ -229,17 +255,18 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
       productionLaunchReadinessGapPrepared: true,
       sourceExternalBetaActivatedLaunchReadinessAccepted,
       sourceBetaProductionReadinessRollupAccepted,
+      sourceProductionLaunchControlsAccepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
       all21ExternalBetaReadyForControlledOnDemandToolCalls: externalBetaReady,
-      productionLaunchControlsAccepted: false,
-      productionSupportRunbookAccepted: false,
-      productionIncidentRollbackAccepted: false,
-      productionCostConcurrencyAccepted: false,
-      productionMonitoringAccepted: false,
-      productionCreditLedgerAccepted: false,
-      productionRouteWorkerDeploymentAccepted: false,
+      productionLaunchControlsAccepted: sourceProductionLaunchControlsAccepted,
+      productionSupportRunbookAccepted: sourceProductionLaunchControlsAccepted,
+      productionIncidentRollbackAccepted: sourceProductionLaunchControlsAccepted,
+      productionCostConcurrencyAccepted: sourceProductionLaunchControlsAccepted,
+      productionMonitoringAccepted: sourceProductionLaunchControlsAccepted,
+      productionCreditLedgerAccepted: sourceProductionLaunchControlsAccepted,
+      productionRouteWorkerDeploymentAccepted: sourceProductionLaunchControlsAccepted,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyForApprovedWorkerOrToolCall: true,

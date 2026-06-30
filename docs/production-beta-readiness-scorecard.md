@@ -1562,12 +1562,19 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records all 21 AI graphics tools as ready for controlled on-demand external-beta tool calls and reports `externalBetaReadyNowTools=21`.
 - Runtime/beta/production: external-beta readiness remains limited to controlled on-demand tool-call readiness. This consumer does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false and `gpuRuntimeShouldStartNow` remains false.
 
+## AI Graphics Production Launch Controls
+
+- Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.
+- Scope: private/backend production evidence contract for owner approval, support, incident response, rollback, cost/concurrency, monitoring, post-launch review, credit ledger, approved snapshots, production Tool Route deployment, production Worker deployment, privacy, retention, private artifact controls, and canary cohort.
+- Result: with 13 private/backend production evidence refs, it accepts production launch controls for all 21 tools and 12 capabilities while keeping final go/no-go and traffic cutover separate.
+- Runtime/beta/production: no production unlock; this packet rejects public/signed URL evidence, does not enable traffic, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or mark production ready. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.
-- Scope: production-facing gap report after accepted external-beta activated launch readiness and the beta/production readiness rollup.
-- Result: it records 21 tools external-beta ready for controlled on-demand tool calls and 0 tools production-ready now.
-- Runtime/beta/production: no production unlock; this packet does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or mark production ready. Remaining production blockers are separate production launch owner approval, support/incident/rollback, cost/concurrency, monitoring, credit ledger, production Tool Route/Worker deployment, privacy, retention, and private artifact controls.
+- Scope: production-facing gap report after accepted external-beta activated launch readiness, the beta/production readiness rollup, and production launch controls.
+- Result: it records 21 tools external-beta ready for controlled on-demand tool calls, accepts private production controls evidence, and keeps 0 tools production-ready now.
+- Runtime/beta/production: no production unlock; this packet does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or mark production ready. Remaining blockers are final production go/no-go, explicit traffic cutover approval, and future backend/worker runtime execution after approval.
 
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization
 

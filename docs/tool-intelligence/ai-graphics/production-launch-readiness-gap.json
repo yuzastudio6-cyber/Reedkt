@@ -1,8 +1,8 @@
 {
   "schemaVersion": "2026-06-29.ai-graphics.production-launch-readiness-gap",
   "decision": "ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked",
-  "status": "production_launch_blocked_pending_production_controls",
-  "summary": "Production launch readiness gap packet for AI graphics. It consumes accepted external-beta activated launch readiness plus the beta/production readiness rollup, records all 21 tools as external-beta ready for controlled on-demand tool calls, and keeps production blocked pending separate production controls.",
+  "status": "production_launch_controls_accepted_pending_final_go_no_go",
+  "summary": "Production launch readiness gap packet for AI graphics. It consumes accepted external-beta activated launch readiness, the beta/production readiness rollup, and the production launch controls contract. It records all 21 tools as external-beta ready for controlled on-demand tool calls, accepts private production controls evidence, and keeps production blocked pending final go/no-go plus explicit traffic cutover approval.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-production-launch-readiness-gap.ts",
     "cli": "server/cli/ai-graphics-production-launch-readiness-gap.ts",
@@ -12,7 +12,9 @@
   },
   "sourceEvidence": {
     "externalBetaActivatedLaunchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json",
-    "betaProductionReadinessRollup": "docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json"
+    "betaProductionReadinessRollup": "docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json",
+    "productionLaunchControlsContract": "docs/tool-intelligence/ai-graphics/production-launch-controls.json",
+    "productionLaunchControlsAcceptedEvidence": "private/backend production evidence refs supplied at evaluator runtime; not committed"
   },
   "counts": {
     "totalAiGraphicsTools": 21,
@@ -23,35 +25,32 @@
     "productionReadyNowTools": 0
   },
   "productionLaunchBlockers": [
-    "separate production launch owner approval",
-    "production support and incident-response runbook",
-    "production rollback and kill-switch plan",
-    "production cost and concurrency ceilings",
-    "production monitoring, alerting, and post-launch review",
-    "production credit ledger and approval snapshot enforcement",
-    "production Tool Route and Worker deployment acceptance",
-    "production privacy, retention, and private artifact controls"
+    "final production go/no-go packet",
+    "explicit production traffic cutover approval",
+    "post-approval production execution remains future backend/worker runtime"
   ],
   "nextMilestones": [
-    "Create a production launch approval packet that accepts support, incident, rollback, monitoring, cost, privacy, credit-ledger, route, and worker deployment controls.",
+    "Create the final production go/no-go packet that consumes the accepted production launch controls.",
+    "Require explicit production traffic cutover approval before any production traffic is enabled.",
     "Keep GPU runtime on-demand only; do not start GPU until a future accepted production worker job calls a GPU/model tool.",
-    "Keep production-ready false until the production launch approval packet is accepted."
+    "Keep production-ready false until final go/no-go and traffic cutover are accepted."
   ],
   "booleans": {
     "productionLaunchReadinessGapPrepared": true,
     "sourceExternalBetaActivatedLaunchReadinessAccepted": true,
     "sourceBetaProductionReadinessRollupAccepted": true,
+    "sourceProductionLaunchControlsAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all8GpuToolsTargetGpuRuntime": true,
     "all21ExternalBetaReadyForControlledOnDemandToolCalls": true,
-    "productionLaunchControlsAccepted": false,
-    "productionSupportRunbookAccepted": false,
-    "productionIncidentRollbackAccepted": false,
-    "productionCostConcurrencyAccepted": false,
-    "productionMonitoringAccepted": false,
-    "productionCreditLedgerAccepted": false,
-    "productionRouteWorkerDeploymentAccepted": false,
+    "productionLaunchControlsAccepted": true,
+    "productionSupportRunbookAccepted": true,
+    "productionIncidentRollbackAccepted": true,
+    "productionCostConcurrencyAccepted": true,
+    "productionMonitoringAccepted": true,
+    "productionCreditLedgerAccepted": true,
+    "productionRouteWorkerDeploymentAccepted": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "gpuStartsOnlyForApprovedWorkerOrToolCall": true,

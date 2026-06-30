@@ -50,6 +50,7 @@ export * from './ai-graphics-external-beta-controlled-traffic-runtime-soak-resul
 export * from './ai-graphics-external-beta-activation-go-no-go'
 export * from './ai-graphics-external-beta-all-21-activation-rollup'
 export * from './ai-graphics-external-beta-activated-launch-readiness'
+export * from './ai-graphics-production-launch-controls'
 export * from './ai-graphics-production-launch-readiness-gap'
 export * from './ai-graphics-external-beta-service-role-queue-smoke-authorization'
 export * from './ai-graphics-external-beta-launch-gap-report'

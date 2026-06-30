@@ -4,8 +4,10 @@ Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_re
 
 This packet is the production-facing gap report after the accepted external-beta
 activated-launch readiness packet and the beta/production readiness rollup. It
-does not approve production launch. It records what is already true for external
-beta and what must still be accepted before production.
+also consumes the production launch controls contract. It does not approve
+production launch. It records what is already true for external beta, accepts
+private production controls evidence, and keeps final production go/no-go plus
+explicit traffic cutover approval as blockers.
 
 ## Current Result
 
@@ -15,6 +17,7 @@ beta and what must still be accepted before production.
 - External-beta ready now: 21 tools, controlled on-demand tool-call readiness only.
 - Runtime ready for on-demand external-beta tool calls: 21 tools.
 - Production ready now: 0 tools.
+- Production launch controls accepted: true, from private/backend evidence refs only.
 - Agent can select for planning: true.
 - Agent can execute tools now: false.
 - GPU runtime should start now: false.
@@ -23,21 +26,19 @@ beta and what must still be accepted before production.
 
 - `docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json`
 - `docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json`
+- `docs/tool-intelligence/ai-graphics/production-launch-controls.json`
 
-Both source packets must keep direct agent execution, Tool Route execution,
+The production controls contract is committed, while accepted production control
+refs are private/backend evidence supplied at evaluator runtime and are not
+committed. All source packets must keep direct agent execution, Tool Route execution,
 Worker execution, browser/WebGL/canvas runtime, GPU/model runtime, public
 artifacts, signed URLs, and production false.
 
 ## Production Blockers
 
-- separate production launch owner approval.
-- Production support and incident-response runbook.
-- Production rollback and kill-switch plan.
-- Production cost and concurrency ceilings.
-- Production monitoring, alerting, and post-launch review.
-- Production credit ledger and approval snapshot enforcement.
-- Production Tool Route and Worker deployment acceptance.
-- Production privacy, retention, and private artifact controls.
+- Final production go/no-go packet.
+- Explicit production traffic cutover approval.
+- Post-approval production execution remains future backend/worker runtime.
 
 ## GPU Runtime Policy
 

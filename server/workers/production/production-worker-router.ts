@@ -462,16 +462,20 @@ function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJobPaylo
   const request = payload.metadata?.trackBAgentToolRecipe as Record<string, unknown>
   const toolId = stringValue(request.toolId) ?? payload.requestedToolIds[0] ?? 'unknown_tool'
   const action = stringValue(request.action) ?? payload.requestedRecipeIds[0] ?? 'unknown_action'
+  const routeClass = stringValue(request.routeClass) ?? 'trackb_agent_tool_recipe'
+  const handler = resolveTrackBAgentToolRecipeHandler(toolId, action, routeClass)
   return {
-    summary: `Track B agent worker recipe selected for ${toolId}:${action} without running real tool binaries or media processing.`,
+    summary: `Track B agent worker recipe selected for ${toolId}:${action} through ${handler.futureHandler} without running real tool binaries or media processing.`,
     workerType: payload.workerType,
     executionMode: payload.executionMode,
     mockOnly: true,
-    futureHandler: 'trackb_agent_tool_recipe_dry_run',
+    futureHandler: handler.futureHandler,
     trackBAgentToolRecipeResult: {
       toolId,
       action,
-      routeClass: stringValue(request.routeClass) ?? 'trackb_agent_tool_recipe',
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
       dryRunOnly: true,
       productRuntimeExecution: false,
       realToolBinaryExecution: false,
@@ -480,6 +484,46 @@ function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJobPaylo
       plannedHandler: stringValue(request.plannedHandler),
       notes: Array.isArray(request.notes) ? request.notes.filter(isStringValue) : [],
     },
+  }
+}
+
+function resolveTrackBAgentToolRecipeHandler(
+  toolId: string,
+  action: string,
+  routeClass: string,
+): {
+  futureHandler: string
+  handlerKind: 'explicit_trackb_agent_worker_handler' | 'unmapped_trackb_agent_recipe_handler'
+  namedHandlerReady: boolean
+} {
+  if (toolId === 'sharp' && routeClass === 'image_asset_prepare_dry_run') {
+    return {
+      futureHandler: 'render_worker_sharp_image_asset_prepare_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_dry_run') {
+    return {
+      futureHandler: 'cpu_analysis_worker_duckdb_structured_artifact_query_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'polars' && routeClass === 'dataframe_transform_dry_run') {
+    return {
+      futureHandler: 'cpu_analysis_worker_polars_dataframe_transform_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  return {
+    futureHandler: `trackb_agent_${toolId}_${action}_recipe_dry_run`,
+    handlerKind: 'unmapped_trackb_agent_recipe_handler',
+    namedHandlerReady: false,
   }
 }
 

@@ -126,6 +126,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-operator-status.ts',
     'server/cli/beta-readiness-summary.ts',
     'server/beta-readiness/platform-evidence-manifest.ts',
+    'server/workers/readiness-validation/readiness-command-plan-builder.ts',
     '.gitignore',
     'package.json',
   ],
@@ -224,6 +225,7 @@ assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.i
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-summary.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/beta-readiness/platform-evidence-manifest.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/workers/readiness-validation/readiness-command-plan-builder.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('.gitignore beta operator env ignore lines only'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.some((policy) => policy.includes('package.json scripts only')))
 assert.deepEqual(metadataOnly.valueGaps, [])

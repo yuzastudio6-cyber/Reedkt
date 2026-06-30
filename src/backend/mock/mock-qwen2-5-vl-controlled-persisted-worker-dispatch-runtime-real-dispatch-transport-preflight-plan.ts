@@ -1,0 +1,230 @@
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_READINESS_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-readiness-approval'
+
+const DECISION =
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_plan_recorded_approval_required' as const
+const NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58CS-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-TRANSPORT-PREFLIGHT-APPROVAL: approve controlled Qwen real-dispatch transport preflight, no Cloud Run invocation/no inference/no generated assets/no beta' as const
+
+const approval =
+  QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_READINESS_APPROVAL
+
+export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT_PLAN = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'qwen2_5_vl_7b_instruct',
+  registryToolId: 'qwen_vl',
+  mode: 'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_preflight_plan',
+  decision: DECISION,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchTransportReadinessApprovalDecision:
+    approval.decision,
+  preflightPlan: {
+    decisionRecorded: true,
+    readinessApprovalAcceptedForPreflightPlanning:
+      approval.readinessApproval.acceptsTransportReadinessPlanForFuturePreflightPlanning,
+    controlledTransportPreflightPlanRecorded: true,
+    controlledTransportPreflightApprovalRequired: true,
+    mayExecutePreflightNow: false,
+    mayResolveServiceUrlNow: false,
+    mayResolveAudienceNow: false,
+    mayFetchIdentityTokenNow: false,
+    mayCreateAuthHeaderNow: false,
+    maySendPrivateRequestNow: false,
+    mayInvokeCloudRunNow: false,
+    mayRunQwenInferenceNow: false,
+    mayPersistOutputNow: false,
+    mayCreateGeneratedAssetsNow: false,
+  },
+  selectedRuntime: approval.approvedRuntimePosture,
+  preflightChecks: [
+    {
+      id: 'approved_snapshot_and_private_source_refs',
+      owner: 'AI_VIDEO_BROLL_GENERATION',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'approved snapshot id, job id, lease id, private source refs, and idempotency refs are present',
+        'raw chat, raw prompt, and raw worker prompt fields are rejected before any transport path',
+        'Qwen remains visual understanding and visual QA metadata only',
+      ],
+    },
+    {
+      id: 'service_url_resolver',
+      owner: 'PROVIDER_GATEWAY_MODELS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'backend-only resolver shape maps approved runtime target to private service metadata',
+        'service URL values are not exposed to browser payloads, docs, smoke output, or persisted rows',
+        'resolver execution remains blocked until later approval',
+      ],
+    },
+    {
+      id: 'audience_resolver',
+      owner: 'PROVIDER_GATEWAY_MODELS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'audience derivation is tied to the approved runtime target and resolved service metadata',
+        'audience values are not persisted in UI payloads or worker rows',
+        'audience resolution remains blocked until later approval',
+      ],
+    },
+    {
+      id: 'identity_token_dependency',
+      owner: 'PROVIDER_GATEWAY_MODELS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'identity token dependency is backend-only and audience-bound',
+        'token fetch output is redacted and never logged, persisted, or surfaced in frontend data',
+        'identity token fetch remains blocked until later approval',
+      ],
+    },
+    {
+      id: 'auth_header_redaction',
+      owner: 'PROVIDER_GATEWAY_MODELS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'auth header creation is scoped to a future private request call only',
+        'authorization values are redacted from logs, docs, smokes, UI payloads, and runtime records',
+        'auth header creation remains blocked until later approval',
+      ],
+    },
+    {
+      id: 'private_request_envelope',
+      owner: 'WORKER_RUNTIME_JOBS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'future request envelope includes approved snapshot, job, lease, idempotency, private source, and runtime target refs',
+        'frontend payloads cannot resolve credentials or call Cloud Run directly',
+        'private request send remains blocked until later approval',
+      ],
+    },
+    {
+      id: 'timeout_retry_idempotency',
+      owner: 'WORKER_RUNTIME_JOBS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'bounded timeout, retry classification, and duplicate-source idempotency behavior are defined before any request',
+        'lease cleanup behavior is deterministic for auth failure, timeout, unavailable service, and invalid runtime response states',
+        'retry behavior cannot create duplicate Cloud Run requests without explicit later approval',
+      ],
+    },
+    {
+      id: 'response_classification',
+      owner: 'AI_VIDEO_BROLL_GENERATION',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'response classifier covers auth failure, timeout, unavailable service, invalid runtime response, disabled inference, and metadata-only output states',
+        'generated asset, signed URL, public artifact, and credit-spend side effects stay blocked for every response class',
+        'response persistence remains blocked until later approval',
+      ],
+    },
+    {
+      id: 'persistence_qa_audit_cost_credit',
+      owner: 'OBSERVABILITY_AUDIT_COST',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'future QA and audit metadata is sanitized and tied to job, lease, idempotency, approved snapshot, and private source refs',
+        'cost evidence distinguishes no-call, failed transport, disabled inference, and accepted metadata-only response states',
+        'credit reservation, spend, release, refund, and Stripe operations remain blocked',
+      ],
+    },
+    {
+      id: 'cleanup_rollback_beta_production_lock',
+      owner: 'WORKER_RUNTIME_JOBS',
+      plannedForFuturePreflight: true,
+      currentExecutionAllowed: false,
+      requiredEvidence: [
+        'cleanup preserves approved snapshot and private source-of-truth references',
+        'rollback cannot publish public artifacts, create signed URLs, or advance generated asset readiness',
+        'beta, production, arbitrary user media, and generated_local_fixture_passed remain blocked',
+      ],
+    },
+  ],
+  futureTransportDependencyShape: approval.futureTransportDependencyShape,
+  sourceOfTruthRules: approval.sourceOfTruthRules,
+  futurePreflightExecutionRules: {
+    workersExecuteApprovedSnapshots: true,
+    rawChatWorkerExecutionAllowed: false,
+    rawWorkerPromptAllowed: false,
+    signedUrlSourceOfTruthAllowed: false,
+    publicUrlSourceOfTruthAllowed: false,
+    frontendMayResolvePrivateInvokeCredentials: false,
+    frontendMayCallCloudRun: false,
+    noCallPreflightApprovalRequiredBeforeExecution: true,
+    transportAttemptApprovalRequiredAfterPreflight: true,
+  },
+  runtimeFlags: {
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportReadinessApprovalRecorded:
+      true,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightPlanRequired:
+      false,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightPlanRecorded:
+      true,
+    controlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightApprovalRequired:
+      true,
+    approvedSnapshotTransportPreflightPlanned: true,
+    serviceUrlResolutionPreflightPlanned: true,
+    audienceResolutionPreflightPlanned: true,
+    identityTokenDependencyPreflightPlanned: true,
+    authHeaderRedactionPreflightPlanned: true,
+    privateRequestEnvelopePreflightPlanned: true,
+    timeoutRetryIdempotencyPreflightPlanned: true,
+    responseClassificationPreflightPlanned: true,
+    persistenceQaAuditCostCreditPreflightPlanned: true,
+    cleanupRollbackBetaProductionLockPreflightPlanned: true,
+    selectedGpuL4Accepted: true,
+    scaleToZeroCostPostureAccepted: true,
+    minInstancesZeroAccepted: true,
+    initialMaxInstancesOneAccepted: true,
+    cpuFallbackDisabledAccepted: true,
+    readyForRealWorkerDispatch: false,
+    transportDependenciesEnabledNow: false,
+    realJobCreated: false,
+    realLeaseClaimed: false,
+    idempotencyRowCreated: false,
+    jobEventCreated: false,
+    backendRuntimeMessageCreated: false,
+    workerClaimCreated: false,
+    storageObjectRecordCreated: false,
+    signedUrlEventCreated: false,
+    qaReportCreated: false,
+    auditEventCreated: false,
+    creditMutationCreated: false,
+    cloudRunInvocationAttempted: false,
+    serviceRuntimeRequestSent: false,
+    serviceUrlResolvedNow: false,
+    audienceResolvedNow: false,
+    identityTokenFetched: false,
+    authHeaderCreated: false,
+    privateRequestSendAllowedNow: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    vllmEngineInitialized: false,
+    promptProcessed: false,
+    forwardPassRun: false,
+    inferenceRun: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    generatedAssetsCreated: false,
+    publicArtifactsCreated: false,
+    signedUrlsCreated: false,
+    mediaProcessingRun: false,
+    renderExportRun: false,
+    betaReady: false,
+    productionReady: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt: NEXT_PROMPT,
+} as const
+
+export type Qwen25VlControlledPersistedWorkerDispatchRuntimeRealDispatchTransportPreflightPlan =
+  typeof QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_PREFLIGHT_PLAN

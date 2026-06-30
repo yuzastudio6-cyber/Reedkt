@@ -32,7 +32,17 @@ const requiredExistingFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/source-audit.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/attempt-result-review.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/runtime-boundary.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/validation-results.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/qwen-transport-dependency-attempt-result-review-current-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-transport-readiness-plan-current-1.md',
+  'scripts/validation/rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-enablement-current-import-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-transport-dependency-preflight-current-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-diagnostics.mjs',
   'package.json',
 ])
 

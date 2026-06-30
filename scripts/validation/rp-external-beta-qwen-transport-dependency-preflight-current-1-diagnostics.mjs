@@ -30,6 +30,14 @@ const requiredExistingFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/source-audit.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/attempt-result-review.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/runtime-boundary.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/validation-results.md',
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/qwen-transport-dependency-attempt-result-review-current-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-transport-readiness-plan-current-1.md',
+  'scripts/validation/rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-diagnostics.mjs',
   'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/source-audit.md',
   'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/transport-readback.md',
   'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/runtime-boundary.md',
@@ -50,6 +58,7 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-rp-external-beta-operator-gcloud-auth-preflight-1.md',
   'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1.mjs',
   'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-transport-dependency-enablement-current-import-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-preflight-current-1-diagnostics.mjs',
   'package.json',
 ])

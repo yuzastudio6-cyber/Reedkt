@@ -1060,6 +1060,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-tool-call-handler-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-handler-bridge-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-to-queue-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts",',
   '+    "ai-graphics:external-beta-route-to-queue-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-to-queue-authorization-bridge-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-to-live-enqueue-authorization-bridge.ts",',
+  '+    "ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-to-live-enqueue-authorization-bridge-diagnostics.mjs",',
   '+    "ai-graphics:production-launch-controls": "tsx server/cli/ai-graphics-production-launch-controls.ts",',
   '+    "ai-graphics:production-launch-controls:diagnostics": "node scripts/validation/ai-graphics-production-launch-controls-diagnostics.mjs",',
   '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',

@@ -478,6 +478,7 @@ const unexpectedPackageAdditions = packageDiff
   .filter((line) => !line.includes(diagnosticScriptName))
   .filter((line) => !line.includes('ai-graphics:external-beta-tool-call-handler-bridge'))
   .filter((line) => !line.includes('ai-graphics:external-beta-route-to-queue-authorization-bridge'))
+  .filter((line) => !line.includes('ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge'))
 if (unexpectedPackageAdditions.length > 0) {
   fail(`unexpected_package_json_additions:${unexpectedPackageAdditions.join('|')}`)
 }

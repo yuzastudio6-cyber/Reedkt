@@ -23,7 +23,7 @@ const env = loadRuntimeEnv({
 const rehearsalPython = findBoundedRehearsalPython()
 assert.ok(
   rehearsalPython,
-  'Bounded DuckDB/Polars route rehearsal requires REEDITPRO_READINESS_PYTHON_BIN or .reeditpro-tool-readiness-python/bin/python.',
+  'Python-backed bounded route rehearsals require REEDITPRO_READINESS_PYTHON_BIN or .reeditpro-tool-readiness-python/bin/python.',
 )
 process.env.REEDITPRO_READINESS_PYTHON_BIN = rehearsalPython
 
@@ -192,6 +192,36 @@ try {
   assert.deepEqual(polarsResult.workerResult.output.trackBAgentToolRecipeResult.proof.shape, [3, 2])
   assert.equal(polarsResult.workerResult.output.trackBAgentToolRecipeResult.proof.weighted_sum, 120)
 
+  const pyavRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-pyav-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-pyav-rehearsal',
+      agentInvocationId: 'trackb.media_oss.pyav',
+      toolId: 'pyav',
+      action: 'sample_frames',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-pyav-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['frame_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/pyav/source-reference'],
+    }),
+  }, 202)
+  const pyavResult = pyavRehearsal.data.trackBAgentToolExecution
+  assert.equal(pyavResult.status, 'completed')
+  assert.equal(pyavResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(pyavResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(pyavResult.workerResult.output.mockOnly, false)
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.proof.operation, 'synthetic_video_frame_roundtrip')
+  assert.equal(pyavResult.workerResult.output.trackBAgentToolRecipeResult.proof.format, 'rgb24')
+  assert.deepEqual(pyavResult.workerResult.output.trackBAgentToolRecipeResult.proof.mean_rgb, [10, 20, 30])
+
   const otioRehearsal = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-otio-rehearsal' },
@@ -223,6 +253,66 @@ try {
   assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.clip_count, 1)
   assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.duration_frames, 48)
   assert.equal(otioResult.workerResult.output.trackBAgentToolRecipeResult.proof.media_reference_kind, 'MissingReference')
+
+  const pysceneRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-pyscene-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-pyscene-rehearsal',
+      agentInvocationId: 'trackb.media_oss.pyscenedetect',
+      toolId: 'pyscenedetect',
+      action: 'detect_scenes',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-pyscene-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['scene_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/pyscenedetect/source-reference'],
+    }),
+  }, 202)
+  const pysceneResult = pysceneRehearsal.data.trackBAgentToolExecution
+  assert.equal(pysceneResult.status, 'completed')
+  assert.equal(pysceneResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(pysceneResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(pysceneResult.workerResult.output.mockOnly, false)
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.proof.detector, 'ContentDetector')
+  assert.deepEqual(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.proof.cut_frames, [1])
+  assert.equal(pysceneResult.workerResult.output.trackBAgentToolRecipeResult.proof.cut_count, 1)
+
+  const opencvRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-opencv-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-opencv-rehearsal',
+      agentInvocationId: 'trackb.media_oss.opencv',
+      toolId: 'opencv',
+      action: 'sample_frames',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-opencv-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['frame_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/opencv/source-reference'],
+    }),
+  }, 202)
+  const opencvResult = opencvRehearsal.data.trackBAgentToolExecution
+  assert.equal(opencvResult.status, 'completed')
+  assert.equal(opencvResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(opencvResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(opencvResult.workerResult.output.mockOnly, false)
+  assert.equal(opencvResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(opencvResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(opencvResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(opencvResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(opencvResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.deepEqual(opencvResult.workerResult.output.trackBAgentToolRecipeResult.proof.shape, [16, 16, 3])
+  assert.deepEqual(opencvResult.workerResult.output.trackBAgentToolRecipeResult.proof.gray_shape, [16, 16])
+  assert.equal(opencvResult.workerResult.output.trackBAgentToolRecipeResult.proof.edge_pixels, 28)
 
   const ocioRehearsal = await requestJson(endpoint, {
     method: 'POST',
@@ -287,6 +377,36 @@ try {
   assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.format, 'uint8')
   assert.equal(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.initialized, true)
   assert.deepEqual(oiioResult.workerResult.output.trackBAgentToolRecipeResult.proof.pixel, [1, 1, 0])
+
+  const audiofluxRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-audioflux-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-audioflux-rehearsal',
+      agentInvocationId: 'trackb.media_oss.audioflux',
+      toolId: 'audioflux',
+      action: 'extract_audio_features',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-audioflux-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['audio_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/audioflux/source-reference'],
+    }),
+  }, 202)
+  const audiofluxResult = audiofluxRehearsal.data.trackBAgentToolExecution
+  assert.equal(audiofluxResult.status, 'completed')
+  assert.equal(audiofluxResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(audiofluxResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(audiofluxResult.workerResult.output.mockOnly, false)
+  assert.equal(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.proof.operation, 'synthetic_audio_bft_feature_extract')
+  assert.deepEqual(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.proof.feature_shape, [16, 5])
+  assert.ok(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.proof.magnitude_sum > 0)
 
   const liveBlocked = await requestJson(endpoint, {
     method: 'POST',
@@ -441,7 +561,7 @@ try {
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
-      'http_route_runs_sharp_duckdb_polars_timeline_color_imageio_bounded_execution_rehearsals',
+      'http_route_runs_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_bounded_execution_rehearsals',
       'http_route_keeps_hyperframe_preview_boundary',
       'http_route_blocks_live_execution_until_deployed_evidence',
       'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',

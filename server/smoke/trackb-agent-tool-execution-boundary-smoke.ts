@@ -12,7 +12,7 @@ const report = buildTrackBAgentRuntimeReadinessReport()
 const rehearsalPython = findBoundedRehearsalPython()
 assert.ok(
   rehearsalPython,
-  'Bounded DuckDB/Polars rehearsal requires REEDITPRO_READINESS_PYTHON_BIN or .reeditpro-tool-readiness-python/bin/python.',
+  'Python-backed bounded rehearsals require REEDITPRO_READINESS_PYTHON_BIN or .reeditpro-tool-readiness-python/bin/python.',
 )
 process.env.REEDITPRO_READINESS_PYTHON_BIN = rehearsalPython
 
@@ -265,6 +265,43 @@ assert.equal(polarsRehearsalResult?.proof?.operation, 'synthetic_dataframe_trans
 assert.equal(polarsRehearsalResult?.proof?.frames_sum, 60)
 assert.equal(polarsRehearsalResult?.proof?.weighted_sum, 120)
 
+const pyavRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-pyav-rehearsal',
+  agentInvocationId: 'trackb.media_oss.pyav',
+  toolId: 'pyav',
+  action: 'sample_frames',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-pyav-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['frame_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/pyav/source-reference'],
+})
+assert.equal(pyavRehearsal.status, 'completed')
+assert.equal(pyavRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const pyavRehearsalResult = pyavRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; width?: number; height?: number; format?: string; planes?: number; mean_rgb?: number[] }
+} | undefined
+assert.equal(pyavRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(pyavRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(pyavRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(pyavRehearsalResult?.productRuntimeExecution, false)
+assert.equal(pyavRehearsalResult?.mediaProcessing, false)
+assert.equal(pyavRehearsalResult?.syntheticInputOnly, true)
+assert.equal(pyavRehearsalResult?.artifactFileWritten, false)
+assert.ok(pyavRehearsalResult?.proof?.version)
+assert.equal(pyavRehearsalResult?.proof?.operation, 'synthetic_video_frame_roundtrip')
+assert.equal(pyavRehearsalResult?.proof?.width, 2)
+assert.equal(pyavRehearsalResult?.proof?.height, 2)
+assert.equal(pyavRehearsalResult?.proof?.format, 'rgb24')
+assert.equal(pyavRehearsalResult?.proof?.planes, 1)
+assert.deepEqual(pyavRehearsalResult?.proof?.mean_rgb, [10, 20, 30])
+
 const otioRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -300,6 +337,78 @@ assert.equal(otioRehearsalResult?.proof?.track_count, 1)
 assert.equal(otioRehearsalResult?.proof?.clip_count, 1)
 assert.equal(otioRehearsalResult?.proof?.duration_frames, 48)
 assert.equal(otioRehearsalResult?.proof?.media_reference_kind, 'MissingReference')
+
+const pysceneRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-pyscene-rehearsal',
+  agentInvocationId: 'trackb.media_oss.pyscenedetect',
+  toolId: 'pyscenedetect',
+  action: 'detect_scenes',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-pyscene-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['scene_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/pyscenedetect/source-reference'],
+})
+assert.equal(pysceneRehearsal.status, 'completed')
+assert.equal(pysceneRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const pysceneRehearsalResult = pysceneRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; detector?: string; operation?: string; frame_count?: number; cut_frames?: number[]; cut_count?: number }
+} | undefined
+assert.equal(pysceneRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(pysceneRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(pysceneRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(pysceneRehearsalResult?.productRuntimeExecution, false)
+assert.equal(pysceneRehearsalResult?.mediaProcessing, false)
+assert.equal(pysceneRehearsalResult?.syntheticInputOnly, true)
+assert.equal(pysceneRehearsalResult?.artifactFileWritten, false)
+assert.ok(pysceneRehearsalResult?.proof?.version)
+assert.equal(pysceneRehearsalResult?.proof?.detector, 'ContentDetector')
+assert.equal(pysceneRehearsalResult?.proof?.operation, 'synthetic_scene_boundary_detection')
+assert.equal(pysceneRehearsalResult?.proof?.frame_count, 3)
+assert.deepEqual(pysceneRehearsalResult?.proof?.cut_frames, [1])
+assert.equal(pysceneRehearsalResult?.proof?.cut_count, 1)
+
+const opencvRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-opencv-rehearsal',
+  agentInvocationId: 'trackb.media_oss.opencv',
+  toolId: 'opencv',
+  action: 'sample_frames',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-opencv-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['frame_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/opencv/source-reference'],
+})
+assert.equal(opencvRehearsal.status, 'completed')
+assert.equal(opencvRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const opencvRehearsalResult = opencvRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; shape?: number[]; gray_shape?: number[]; edge_pixels?: number; mean_gray?: number; center_pixel?: number }
+} | undefined
+assert.equal(opencvRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(opencvRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(opencvRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(opencvRehearsalResult?.productRuntimeExecution, false)
+assert.equal(opencvRehearsalResult?.mediaProcessing, false)
+assert.equal(opencvRehearsalResult?.syntheticInputOnly, true)
+assert.equal(opencvRehearsalResult?.artifactFileWritten, false)
+assert.ok(opencvRehearsalResult?.proof?.version)
+assert.equal(opencvRehearsalResult?.proof?.operation, 'synthetic_frame_edge_analysis')
+assert.deepEqual(opencvRehearsalResult?.proof?.shape, [16, 16, 3])
+assert.deepEqual(opencvRehearsalResult?.proof?.gray_shape, [16, 16])
+assert.equal(opencvRehearsalResult?.proof?.edge_pixels, 28)
+assert.equal(opencvRehearsalResult?.proof?.center_pixel, 255)
 
 const ocioRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -372,6 +481,42 @@ assert.equal(oiioRehearsalResult?.proof?.nchannels, 3)
 assert.equal(oiioRehearsalResult?.proof?.format, 'uint8')
 assert.equal(oiioRehearsalResult?.proof?.initialized, true)
 assert.deepEqual(oiioRehearsalResult?.proof?.pixel, [1, 1, 0])
+
+const audiofluxRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-audioflux-rehearsal',
+  agentInvocationId: 'trackb.media_oss.audioflux',
+  toolId: 'audioflux',
+  action: 'extract_audio_features',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-audioflux-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['audio_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/audioflux/source-reference'],
+})
+assert.equal(audiofluxRehearsal.status, 'completed')
+assert.equal(audiofluxRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const audiofluxRehearsalResult = audiofluxRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; sample_rate?: number; sample_count?: number; feature_shape?: number[]; magnitude_sum?: number }
+} | undefined
+assert.equal(audiofluxRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(audiofluxRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(audiofluxRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(audiofluxRehearsalResult?.productRuntimeExecution, false)
+assert.equal(audiofluxRehearsalResult?.mediaProcessing, false)
+assert.equal(audiofluxRehearsalResult?.syntheticInputOnly, true)
+assert.equal(audiofluxRehearsalResult?.artifactFileWritten, false)
+assert.ok(audiofluxRehearsalResult?.proof?.version)
+assert.equal(audiofluxRehearsalResult?.proof?.operation, 'synthetic_audio_bft_feature_extract')
+assert.equal(audiofluxRehearsalResult?.proof?.sample_rate, 8000)
+assert.equal(audiofluxRehearsalResult?.proof?.sample_count, 512)
+assert.deepEqual(audiofluxRehearsalResult?.proof?.feature_shape, [16, 5])
+assert.ok((audiofluxRehearsalResult?.proof?.magnitude_sum ?? 0) > 0)
 
 const ffprobeRehearsalBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -502,9 +647,13 @@ console.log(JSON.stringify({
     'sharp_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'duckdb_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'polars_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'pyav_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'opentimelineio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'pyscenedetect_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'opencv_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'opencolorio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'openimageio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'audioflux_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'bounded_execution_rehearsal_blocks_tools_without_explicit_handlers',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',

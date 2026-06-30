@@ -282,9 +282,13 @@ function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
   return toolId === 'sharp' ||
     toolId === 'duckdb' ||
     toolId === 'polars' ||
+    toolId === 'pyav' ||
     toolId === 'opentimelineio' ||
+    toolId === 'pyscenedetect' ||
+    toolId === 'opencv' ||
     toolId === 'opencolorio' ||
-    toolId === 'openimageio'
+    toolId === 'openimageio' ||
+    toolId === 'audioflux'
 }
 
 function normalizeEvidenceCount(value: number | undefined): number | undefined {

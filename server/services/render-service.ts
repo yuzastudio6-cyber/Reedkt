@@ -1,6 +1,8 @@
 import { ApiError } from '../errors/api-error'
+import type { ReEditProCanonicalEditLevel } from '../../src/types/edit-level'
 import { estimateToolCost } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
+import { evaluatePaidToolRuntimeGuard } from './runtime-credit-guard-service'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
 export function createRenderService(context: ServiceContext) {
@@ -13,6 +15,12 @@ export function createRenderService(context: ServiceContext) {
       creditReservationId: string
       renderType: string
       renderQualityLevel?: string
+      runtimeGuardRequired?: boolean
+      productEditLevel?: ReEditProCanonicalEditLevel
+      estimatedFinalVideoDurationSeconds?: number
+      approvedPlanStatus?: string
+      estimateStatus?: string
+      committedPendingHighCredits?: number
     }) {
       if (!input.approvedPlanSnapshotId || !input.creditReservationId) {
         throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Render jobs require approved snapshot and credit reservation IDs.', 409)
@@ -33,6 +41,47 @@ export function createRenderService(context: ServiceContext) {
         frameRate: 30,
         assumptions: ['Render job estimate is generated before deterministic renderer dispatch.'],
       })
+      const runtimeGuard = input.runtimeGuardRequired
+        ? evaluatePaidToolRuntimeGuard({
+            workspaceId: input.workspaceId,
+            projectId: input.projectId,
+            approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            toolId: 'remotion',
+            productEditLevel: input.productEditLevel ?? 'normal',
+            estimatedFinalVideoDurationSeconds: input.estimatedFinalVideoDurationSeconds ?? 30,
+            creditEstimateId: input.creditEstimateId,
+            creditReservationId: input.creditReservationId,
+            idempotencyKey: context.requestId,
+            approvedPlanStatus: input.approvedPlanStatus,
+            estimateStatus: input.estimateStatus,
+            committedPendingHighCredits: input.committedPendingHighCredits,
+          })
+        : undefined
+
+      if (runtimeGuard && !runtimeGuard.canStart) {
+        return {
+          renderJob: {
+            id: createMockId('render_job'),
+            workspaceId: input.workspaceId,
+            projectId: input.projectId,
+            approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            creditReservationId: input.creditReservationId,
+            renderType: input.renderType,
+            renderQualityLevel: input.renderQualityLevel ?? 'draft',
+            toolId: 'remotion',
+            status: 'blocked',
+            runtimeCreditGuard: runtimeGuard,
+            createdAt: nowIso(),
+            mockOnly: true,
+          },
+          toolCostEstimate,
+          runtimeCreditGuard: runtimeGuard,
+          warnings: [
+            ...runtimeGuard.warnings,
+            'Render job creation stopped before render/export because runtime credit guard did not pass.',
+          ],
+        }
+      }
 
       if (!context.clients.admin || context.env.mockOnly) {
         return {

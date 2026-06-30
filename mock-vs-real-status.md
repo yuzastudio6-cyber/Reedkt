@@ -54,3 +54,9 @@
 - Real: local in-memory mock credit reservation and reservation line-item records can be created idempotently.
 - Mock-only: reservation holds `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, and is validated by `smoke:credit-reservation`.
 - Not implemented: live billing, Stripe/payment, Supabase writes, production wallet mutation, production ledger writes, provider calls, settlement, reservation spend/release/refund, render/export, export unlock, and checkout/top-up.
+
+## RP-RUNTIME-GUARD-01 Mock Runtime Guard Status
+
+- Real: mock paid worker/provider/render starts can be blocked by approved-plan, approved-estimate, active `reserved` reservation, idempotency, tool-readiness, and projected-overage checks.
+- Real: projected overage creates one idempotent local/mock `CreditRevisionActionRecord` with `projected_overage`.
+- Mock-only: no provider, render/export, settlement, spend/release/refund, ledger, production persistence, Stripe/payment, checkout/top-up, or live billing side effect is wired.

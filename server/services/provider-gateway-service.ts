@@ -1,6 +1,8 @@
 import { ApiError } from '../errors/api-error'
+import type { ReEditProCanonicalEditLevel } from '../../src/types/edit-level'
 import { estimateToolCost } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
+import { evaluatePaidToolRuntimeGuard } from './runtime-credit-guard-service'
 import { createMockId, mockWarning, nowIso, sanitizeJson, throwOnSupabaseError } from './service-helpers'
 
 export function assertRealProviderCallsDisabled(): void {
@@ -20,6 +22,12 @@ export function createProviderGatewayService(context: ServiceContext) {
       approvedPlanSnapshotId?: string
       creditEstimateId?: string
       creditReservationId?: string
+      runtimeGuardRequired?: boolean
+      productEditLevel?: ReEditProCanonicalEditLevel
+      estimatedFinalVideoDurationSeconds?: number
+      approvedPlanStatus?: string
+      estimateStatus?: string
+      committedPendingHighCredits?: number
       requestPayloadHash: string
       mockOnly?: boolean
     }) {
@@ -39,6 +47,54 @@ export function createProviderGatewayService(context: ServiceContext) {
           'Real provider calls remain disabled in this runtime skeleton.',
         ],
       })
+      const runtimeGuard = input.runtimeGuardRequired && input.toolId
+        ? evaluatePaidToolRuntimeGuard({
+            workspaceId: input.workspaceId,
+            projectId: input.projectId ?? input.workspaceId,
+            approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            jobId: input.jobId,
+            toolId: input.toolId,
+            productEditLevel: input.productEditLevel ?? 'normal',
+            estimatedFinalVideoDurationSeconds: input.estimatedFinalVideoDurationSeconds ?? 30,
+            creditEstimateId: input.creditEstimateId,
+            creditReservationId: input.creditReservationId,
+            idempotencyKey: context.requestId,
+            approvedPlanStatus: input.approvedPlanStatus,
+            estimateStatus: input.estimateStatus,
+            committedPendingHighCredits: input.committedPendingHighCredits,
+          })
+        : undefined
+
+      if (runtimeGuard && !runtimeGuard.canStart) {
+        return {
+          providerRequestAttempt: {
+            id: createMockId('provider_attempt'),
+            workspaceId: input.workspaceId,
+            projectId: input.projectId,
+            providerRoute: input.providerRoute,
+            providerModel: input.providerModel,
+            generationRequestId: input.generationRequestId,
+            jobId: input.jobId,
+            approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            creditReservationId: input.creditReservationId,
+            attemptStatus: 'blocked',
+            idempotencyKey: context.requestId,
+            requestPayloadHash: input.requestPayloadHash,
+            normalizedErrorCode: runtimeGuard.status,
+            normalizedErrorMessage: runtimeGuard.warnings.join(' '),
+            runtimeCreditGuard: runtimeGuard,
+            createdAt: nowIso(),
+            updatedAt: nowIso(),
+            mockOnly: true,
+          },
+          toolCostEstimate,
+          runtimeCreditGuard: runtimeGuard,
+          warnings: [
+            ...runtimeGuard.warnings,
+            'Provider gateway stopped before provider transport because runtime credit guard did not pass.',
+          ],
+        }
+      }
 
       if (!input.mockOnly) {
         if (context.clients.admin && !context.env.mockOnly) {

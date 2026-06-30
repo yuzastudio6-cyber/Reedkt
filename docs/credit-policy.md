@@ -10,6 +10,8 @@ RP-TOOLCOST-01 derives cost-owner coverage for all 49 production registry tools 
 
 RP-ESTIMATE-01 uses those production tool estimates to build mock-safe user-facing credit estimate previews. It adds ReEditPro service/edit fee as a separate line, reports the high estimate as the future required hold, and remains output-only: no approval, reservation, wallet mutation, ledger write, provider call, worker, render/export, checkout, or export unlock occurs. See `docs/edit-credit-estimate-preview.md` and `smoke:credit-estimate`.
 
+RP-RUNTIME-GUARD-01 applies the policy at paid runtime boundaries. Worker/provider/render starts now require approved plan evidence, approved estimate, an active max-hold reservation where `reserved` is the only active reservation status, idempotency, and projected high-cost fit. Projected overage pauses with "Action required: revised credit estimate needed"; the guard creates only a mock revision action and keeps tool-cost events `serviceFeeIncluded = false`. See `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard`; no live billing, no provider call, no render/export execution, no settlement, and no reservation spend/release/refund are wired.
+
 ## Credit Value
 
 - 1 credit = $0.10 retail value.
@@ -82,3 +84,7 @@ Use export lock only when the user approved the additional cost, the edit is rea
 ## RP-RESERVATION-01 Mock Hold
 
 RP-RESERVATION-01 implements the mock-safe reservation step for the estimate maximum. The hold uses `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`; insufficient credits blocks without mutating mock wallet or reservation state. The implementation remains local and in-memory only: no live billing, no Stripe, no Supabase write, no provider call, no production ledger write, no render/export, and no checkout/top-up. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.
+
+## RP-RUNTIME-GUARD-01 Runtime Pause
+
+RP-RUNTIME-GUARD-01 checks paid work after the max hold and before worker leases, provider paths, or render starts. If the projected final high charge exceeds the reserved max, ReEditPro pauses with `projected_overage`, uses the revised-estimate copy above, and writes one idempotent mock `CreditRevisionActionRecord`; it does not spend, release, refund, settle, unlock export, call providers, or run render/export.

@@ -20,7 +20,7 @@ const staleLocalEvidenceSourceShas = [
   'e8821759a10a43a60795accb596b3b83c15f9dfb',
 ]
 const committedMarkdown = readFileSync(
-  'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.md',
+  'docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.md',
   'utf8',
 )
 
@@ -72,7 +72,7 @@ assert.equal(
   report.decision,
   'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection',
 )
-assert.equal(report.sourceTruth.deployedSourceSha, '184f8b225d01d5bb38c7d3a09d8461bcf8e325dc')
+assert.equal(report.sourceTruth.deployedSourceSha, 'ee177046bfb07868c4eb0ebd04f4eaff42c811ce')
 assert.deepEqual(report.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
@@ -201,7 +201,7 @@ assert.equal(report.requiredInputs.some((input) => input.name === 'REEDITPRO_BET
 
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL="https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN="<secret value supplied only in the operator shell>"'))
-assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="184f8b225d01d5bb38c7d3a09d8461bcf8e325dc"'))
+assert.ok(report.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_SOURCE_SHA="ee177046bfb07868c4eb0ebd04f4eaff42c811ce"'))
 assert.equal(report.envTemplate.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY="true"'), false)
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY="<owner approval: set to true only after named owner approval is recorded>"'))
 assert.ok(report.envTemplate.includes('REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED="<technical verification: set to true only after evidence readback passes>"'))
@@ -243,11 +243,11 @@ assert.equal(/^# REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY=/m.test(bootstrap.envF
 assert.ok(checklist.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
-assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-value-progress'))
+assert.ok(report.validationCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
-assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
-assert.ok(checklist.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(report.validationCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(checklist.validationCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(report.envTemplate.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))

@@ -2,7 +2,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync
 import path from 'node:path'
 import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readiness-deployed-evidence-input-manifest.mjs'
 
-const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json'
+const DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json'
 const DECISION = 'beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection'
 const STATUS_DECISION = 'beta_readiness_external_beta_operator_input_status_passed_ready_for_operator_value_collection'
 const AUTOFILL_DECISION = 'beta_readiness_external_beta_operator_autofill_env_passed_ready_for_human_operator_value_collection'
@@ -38,13 +38,13 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
   return {
     ok: true,
     decision: DECISION,
-    templateId: 'beta-readiness-external-beta-operator-input-template-184f-2026-06-29',
+    templateId: 'beta-readiness-external-beta-operator-input-template-ee177-2026-06-30',
     sourceTruth: {
       deployedEvidenceManifestPath: DEPLOYED_EVIDENCE_MANIFEST_PATH,
       deployedEvidenceManifestDecision: deployedEvidence.decision,
       deployedApiRevision: deployReadback.normalApiRevision,
       deployedSourceSha: currentSourceSha,
-      defaultApiBaseUrlSource: 'committed_184f_deploy_readback',
+      defaultApiBaseUrlSource: 'committed_ee177_deploy_readback',
       trackBToolTotals: manifest.sourceTruth.trackBToolTotals,
       productReadyLocalOssCount: manifest.sourceTruth.trackBToolTotals.productReady,
     },
@@ -62,10 +62,10 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
     validationCommands: [
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
-      'npm run beta:readiness:external-beta-operator-value-progress',
+      'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
-      'npm run beta:readiness:external-beta-operator-local-env-preflight',
+      'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
@@ -187,10 +187,10 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
-      'npm run beta:readiness:external-beta-operator-value-progress',
+      'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
-      'npm run beta:readiness:external-beta-operator-local-env-preflight',
+      'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
@@ -244,10 +244,10 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
-      'npm run beta:readiness:external-beta-operator-value-progress',
+      'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
-      'npm run beta:readiness:external-beta-operator-local-env-preflight',
+      'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
@@ -267,7 +267,7 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
 
 export function renderBetaReadinessExternalBetaOperatorInputTemplateMarkdown(report) {
   const lines = [
-    '# Beta Readiness External Beta Operator Input Template - 184f',
+    '# Beta Readiness External Beta Operator Input Template - ee177',
     '',
     `Decision: \`${report.decision}\``,
     '',
@@ -400,7 +400,7 @@ export function writeBetaReadinessExternalBetaOperatorLocalEnvBootstrap(options 
 
 export function renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(report) {
   const lines = [
-    '# Beta Readiness External Beta Operator Auto-Fill Env - 184f',
+    '# Beta Readiness External Beta Operator Auto-Fill Env - ee177',
     '',
     `Decision: \`${report.decision}\``,
     `Template decision: \`${report.templateDecision}\``,
@@ -441,7 +441,7 @@ export function renderBetaReadinessExternalBetaOperatorAutofillEnvMarkdown(repor
 
 export function renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdown(report) {
   const lines = [
-    '# Beta Readiness External Beta Human Input Checklist - 184f',
+    '# Beta Readiness External Beta Human Input Checklist - ee177',
     '',
     `Decision: \`${report.decision}\``,
     `Template decision: \`${report.templateDecision}\``,
@@ -494,7 +494,7 @@ export function renderBetaReadinessExternalBetaOperatorHumanInputChecklistMarkdo
 
 export function renderBetaReadinessExternalBetaOperatorInputStatusMarkdown(status) {
   const lines = [
-    '# Beta Readiness External Beta Operator Input Status - 184f',
+    '# Beta Readiness External Beta Operator Input Status - ee177',
     '',
     `Decision: \`${status.decision}\``,
     `Template decision: \`${status.templateDecision}\``,
@@ -643,7 +643,7 @@ function valuePolicy(input) {
 
 function renderEnvTemplate(requiredInputs) {
   const lines = [
-    '# ReEditPro external beta evidence input template - 184f',
+    '# ReEditPro external beta evidence input template - ee177',
     '# Fill in an operator shell or secret manager session only. Do not commit completed values.',
     '# Bearer tokens must remain in authorization headers/env only. Evidence notes must be non-secret summaries.',
     '',
@@ -681,7 +681,7 @@ function renderEnvTemplate(requiredInputs) {
 
 function renderAutofillEnvTemplate(autoFillableInputs) {
   const lines = [
-    '# ReEditPro external beta auto-fillable operator exports - 184f',
+    '# ReEditPro external beta auto-fillable operator exports - ee177',
     '# Safe to generate locally; still export only in an operator shell or secret manager session.',
     '# This file intentionally omits tokens, workspace/project IDs, API URLs, approvals, verification booleans, and evidence notes.',
     '',

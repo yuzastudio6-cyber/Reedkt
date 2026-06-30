@@ -27,8 +27,8 @@ Current no-input pending count: `29`
 ## Current Source Truth
 
 - Source branch: `codex/sound-music-audio-1abc-checkpoint`
-- Source SHA at refresh: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
-- Deployed evidence source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
+- Source SHA at refresh: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
+- Deployed evidence source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
 - Source freshness decision: `beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence`
 - Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
 - Product-ready local OSS count: `0`
@@ -36,9 +36,9 @@ Current no-input pending count: `29`
 The source lists are:
 
 - `docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json`
-- `docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.json`
-- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json`
-- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json`
+- `docs/beta-readiness/owner-approval-collection-handoff/2026-06-30-ee177-owner-approval-collection-handoff.json`
+- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json`
+- `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json`
 
 ## Boundary
 
@@ -46,4 +46,4 @@ This preflight does not grant approval, call the deployed backend, record eviden
 
 Supabase classification: no write / environment none / SQL none / migration no.
 
-Next safe action: generate the owner input template with `npm run beta:readiness:owner-approval-env-template`, have owners fill non-secret approval booleans and evidence notes in the same ignored local file used for operator evidence, run `chmod 600 .env.reeditpro-beta-operator.local`, run `npm run beta:readiness:source-freshness-preflight`, run `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.
+Next safe action: Generate the owner input template with npm run beta:readiness:owner-approval-env-template, have owners fill non-secret approval booleans and evidence notes in the same ignored local file used for operator evidence, run chmod 600 .env.reeditpro-beta-operator.local, run npm run beta:readiness:source-freshness-preflight, run REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest.

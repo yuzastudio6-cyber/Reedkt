@@ -23,7 +23,7 @@ assert.equal(report.sourceTruth.locallyAcceptedToolIds.includes('libass'), true)
 assert.equal(report.sourceTruth.readyToRecordDeployedEvidence, true)
 assert.equal(
   report.sourceTruth.operatorTemplatePath,
-  'docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json',
+  'docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json',
 )
 assert.equal(report.sourceTruth.requiredOperatorInputs, 60)
 assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)

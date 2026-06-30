@@ -1,0 +1,94 @@
+{
+  "reportId": "beta-readiness-deployed-evidence-input-manifest-ee177-current-deploy-2026-06-30",
+  "createdAt": "2026-06-30T04:13:50Z",
+  "decision": "beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs",
+  "sourceShaPolicy": "operator_supplied_current_deployed_source_sha_required",
+  "sourceShaRolePolicy": "External beta evidence collection uses the deployed evidence source SHA recorded here. Later metadata-only central source changes must pass source-freshness review before collector execution, but they do not replace this deployed evidence SHA.",
+  "deployedEvidenceSourceSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+  "currentApiDeployReadback": {
+    "sourceSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+    "normalApiService": "reeditpro-api-staging",
+    "normalApiRegion": "us-east1",
+    "normalApiRevision": "reeditpro-api-staging-00015-skq",
+    "normalApiServiceUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+    "normalApiCanonicalServiceUrl": "https://reeditpro-api-staging-390722338345.us-east1.run.app",
+    "normalApiImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-ee177046bfb0-20260630T0412Z",
+    "normalApiImageDigest": "sha256:d41dbcdc2f1f2467ae9c351e5c8c8b96944c7f446c3f0734ade8c98ea5511d32",
+    "deployWorkflowRunId": "28419763433",
+    "deployWorkflowRunUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28419763433",
+    "deployEvidenceReport": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-30-ee177-api-staging-deploy.json",
+    "apiDeploymentPreflightReport": "docs/beta-readiness/api-deployment-preflight/2026-06-30-ee177-api-deployment-preflight-passed.json",
+    "apiDeploymentPreflightDecision": "beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest",
+    "sourceFreshnessPreflightReport": "docs/beta-readiness/source-freshness-preflight/2026-06-30-ee177-source-freshness-passed.json",
+    "sourceFreshnessPreflightDecision": "beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence",
+    "authenticatedHealthReadback": "not_run_operator_bearer_token_required",
+    "externalBetaEvidenceCollector": "not_run_operator_inputs_required",
+    "remainingPlatformTechnicalOrApprovalGap": "source deploy, API deployment preflight, and source freshness pass for ee177; deployed evidence input manifest still requires operator-provided values before collector execution"
+  },
+  "previousAa49ApiDeployReadback": {
+    "sourceSha": "aa49cef9ed6dad971f0163ea80ebb34de0e65d67",
+    "deployWorkflowRunId": "28373860720",
+    "normalApiRevision": "reeditpro-api-staging-00013-jv9"
+  },
+  "previous769ApiDeployReadback": {
+    "sourceSha": "769fc2d922b37a9eebb8b0ca29fa2447a6f8f127",
+    "deployWorkflowRunId": "28343028750",
+    "normalApiRevision": "reeditpro-api-staging-00012-ncd"
+  },
+  "manifestResult": {
+    "readyToRunExternalBetaEvidenceCollector": false,
+    "pendingRequiredInputCount": 57,
+    "valueGaps": [],
+    "secretLikeInputPaths": []
+  },
+  "readyToRunExternalBetaEvidenceCollector": false,
+  "pendingRequiredOwnerInputCount": 45,
+  "trackBToolBoundary": {
+    "ownedToolCount": 16,
+    "boundedAcceptedProvenToolCount": 16,
+    "blockedNotInstalledProvenToolCount": 0,
+    "productReadyLocalOssCount": 0,
+    "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json",
+    "localAcceptedEvidenceBundleSourceSha": "d47015e88943dd4760dd9eb6ee45ad0f8ead15ca",
+    "deployedEvidenceRequiredBoundedAcceptedToolCount": 16,
+    "deployedEvidenceRequiredProductReadyLocalOssCount": 0,
+    "boundedAcceptedEvidenceEnv": [
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT=16",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0"
+    ],
+    "forbiddenToolEvidenceClaims": [
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true"
+    ]
+  },
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeAction": "Collect operator inputs outside source control, rerun deployed evidence input manifest, then run external beta evidence collector only after the manifest is ready.",
+  "previous184fApiDeployReadback": {
+    "sourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+    "normalApiRevision": "reeditpro-api-staging-00014-xdj",
+    "normalApiImageDigest": "sha256:57ad5f03353ea9944b026c71ea35fbd9e478e98b7dd757df68e994a746c683ca",
+    "deployWorkflowRunId": "28388776429"
+  }
+}

@@ -126,7 +126,15 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-operator-status.ts',
     'server/cli/beta-readiness-summary.ts',
     'server/beta-readiness/platform-evidence-manifest.ts',
+    '.gitignore',
     'package.json',
+  ],
+  gitignoreChangedLines: [
+    '# Local operator beta env files can contain bearer tokens, workspace IDs, and owner evidence.',
+    '.env.reeditpro-beta-operator.local',
+    '.env.reeditpro-beta-operator.*.local',
+    'reeditpro-beta-operator.env.local',
+    'reeditpro-beta-operator.*.env.local',
   ],
   packageJsonChangedScriptNames: [
     'beta:readiness:deployed-evidence-input-manifest',
@@ -216,8 +224,27 @@ assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.i
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-summary.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/beta-readiness/platform-evidence-manifest.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('.gitignore beta operator env ignore lines only'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.some((policy) => policy.includes('package.json scripts only')))
 assert.deepEqual(metadataOnly.valueGaps, [])
+
+const gitignoreRuntimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {
+  currentSourceSha: metadataOnlySourceSha,
+  deployedSourceSha: currentSourceSha,
+  apiDeployPacketPath: deployPacketPath,
+  apiDeploymentPreflightPacketPath: apiPreflightPacketPath,
+  deployedEvidenceManifestPath: manifestPath,
+  changedFiles: [
+    '.gitignore',
+  ],
+  gitignoreChangedLines: [
+    'generated-secrets.env',
+  ],
+  resolveGit: false,
+})
+
+assert.equal(gitignoreRuntimeDrift.readyForDeployedEvidenceInputManifest, false)
+assert.deepEqual(gitignoreRuntimeDrift.sourceDriftClassification.blockingChangedFiles, ['.gitignore'])
 
 const runtimeDrift = buildBetaReadinessSourceFreshnessPreflight({}, {
   currentSourceSha: metadataOnlySourceSha,

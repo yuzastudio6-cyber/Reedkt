@@ -7,6 +7,13 @@ const DEFAULT_DEPLOYED_EVIDENCE_MANIFEST_PATH = 'docs/beta-readiness/deployed-ev
 
 const PASS_DECISION = 'beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence'
 const BLOCKED_DECISION = 'beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale'
+const ALLOWED_GITIGNORE_OPERATOR_ENV_LINES = [
+  '# Local operator beta env files can contain bearer tokens, workspace IDs, and owner evidence.',
+  '.env.reeditpro-beta-operator.local',
+  '.env.reeditpro-beta-operator.*.local',
+  'reeditpro-beta-operator.env.local',
+  'reeditpro-beta-operator.*.env.local',
+]
 const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:deployed-evidence-input-manifest',
   'beta:readiness:api-deployment-preflight',
@@ -186,6 +193,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts',
         'server/beta-readiness/index.ts',
         'server/beta-readiness/platform-evidence-manifest.ts',
+        '.gitignore beta operator env ignore lines only',
         `package.json scripts only: ${ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.join(', ')}`,
       ],
       blockingChangedFiles: changedFiles.filter((path) => !isAllowedMetadataOnlyDriftPath(path, {
@@ -303,7 +311,32 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts' ||
     path === 'server/beta-readiness/index.ts' ||
     path === 'server/beta-readiness/platform-evidence-manifest.ts' ||
+    (path === '.gitignore' && isAllowedGitignoreOperatorEnvDrift(context)) ||
     (path === 'package.json' && isAllowedPackageJsonScriptOnlyDrift(context))
+}
+
+function isAllowedGitignoreOperatorEnvDrift({ deployedSourceSha, currentSourceSha, options = {} }) {
+  if (Array.isArray(options.gitignoreChangedLines)) {
+    return options.gitignoreChangedLines.length > 0 &&
+      options.gitignoreChangedLines.every((line) => ALLOWED_GITIGNORE_OPERATOR_ENV_LINES.includes(line))
+  }
+  if (options.resolveGit === false) return false
+  if (!validSha(deployedSourceSha) || !validSha(currentSourceSha)) return false
+  try {
+    const output = execFileSync('git', ['diff', '--unified=0', '--no-ext-diff', deployedSourceSha, currentSourceSha, '--', '.gitignore'], {
+      encoding: 'utf8',
+      env: gitExecEnv(),
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    const changedLines = output
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => (line.startsWith('+') || line.startsWith('-')) && !line.startsWith('+++') && !line.startsWith('---'))
+    return changedLines.length > 0 &&
+      changedLines.every((line) => line.startsWith('+') && ALLOWED_GITIGNORE_OPERATOR_ENV_LINES.includes(line.slice(1).trim()))
+  } catch {
+    return false
+  }
 }
 
 function isAllowedPackageJsonScriptOnlyDrift({ deployedSourceSha, currentSourceSha, options = {} }) {

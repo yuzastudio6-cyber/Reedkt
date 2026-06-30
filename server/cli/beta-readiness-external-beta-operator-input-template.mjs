@@ -518,7 +518,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# npm run beta:readiness:source-freshness-preflight')
   lines.push('# npm run beta:readiness:external-beta-operator-autofill-env')
   lines.push('# npm run beta:readiness:external-beta-operator-human-input-checklist')
-  lines.push('# REEDITPRO_BETA_OPERATOR_ENV_FILE=/path/to/local-only.env npm run beta:readiness:external-beta-operator-local-env-preflight')
+  lines.push('# REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')

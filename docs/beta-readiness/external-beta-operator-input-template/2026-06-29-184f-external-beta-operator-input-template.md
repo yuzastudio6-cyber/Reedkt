@@ -105,7 +105,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 # npm run beta:readiness:source-freshness-preflight
 # npm run beta:readiness:external-beta-operator-autofill-env
 # npm run beta:readiness:external-beta-operator-human-input-checklist
-# REEDITPRO_BETA_OPERATOR_ENV_FILE=/path/to/local-only.env npm run beta:readiness:external-beta-operator-local-env-preflight
+# REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight
 # npm run beta:readiness:owner-approval-intake-status
 # npm run beta:readiness:owner-approval-intake-preflight
 # npm run beta:readiness:deployed-evidence-input-manifest

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import {
   buildBetaReadinessExternalBetaOperatorHumanInputChecklist,
@@ -6,10 +7,12 @@ import {
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
 import {
   buildBetaReadinessExternalBetaOperatorLocalEnvPreflight,
+  RECOMMENDED_OPERATOR_ENV_FILE,
   renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown,
 } from '../cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+const gitignore = readFileSync('.gitignore', 'utf8')
 
 assert.equal(
   packageJson.scripts['beta:readiness:external-beta-operator-local-env-preflight'],
@@ -19,6 +22,11 @@ assert.equal(
   packageJson.scripts['smoke:beta-readiness-external-beta-operator-local-env-preflight'],
   'node server/smoke/beta-readiness-external-beta-operator-local-env-preflight-smoke.mjs',
 )
+assert.equal(RECOMMENDED_OPERATOR_ENV_FILE, '.env.reeditpro-beta-operator.local')
+assert.ok(gitignore.includes(RECOMMENDED_OPERATOR_ENV_FILE))
+execFileSync('git', ['check-ignore', '-q', RECOMMENDED_OPERATOR_ENV_FILE], {
+  env: { ...process.env, DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools' },
+})
 
 const blank = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
   env: {},
@@ -74,6 +82,8 @@ assert.equal(serializedComplete.includes('workspace-beta-local'), false)
 assert.equal(serializedComplete.includes('non-secret evidence summary'), false)
 assert.equal(markdown.includes('Ready for external beta evidence collector: `true`'), true)
 assert.equal(markdown.includes('Operator inputs pending: `0`'), true)
+assert.equal(markdown.includes(`Recommended repo-local path: \`${RECOMMENDED_OPERATOR_ENV_FILE}\``), true)
+assert.equal(complete.validationCommands.includes(`REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`), true)
 assert.equal(markdown.includes('operator-local-bearer-token'), false)
 assert.equal(markdown.includes('workspace-beta-local'), false)
 assert.equal(markdown.includes('non-secret evidence summary'), false)

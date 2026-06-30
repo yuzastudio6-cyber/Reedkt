@@ -14,6 +14,11 @@ dist
 dist-ssr
 dist-server
 dist-remotion-worker
+# Local operator beta env files can contain bearer tokens, workspace IDs, and owner evidence.
+.env.reeditpro-beta-operator.local
+.env.reeditpro-beta-operator.*.local
+reeditpro-beta-operator.env.local
+reeditpro-beta-operator.*.env.local
 *.local
 
 # Editor directories and files

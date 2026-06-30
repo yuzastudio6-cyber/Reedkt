@@ -111,6 +111,70 @@ try {
   assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.backendEvidenceRecorded, false)
   assert.equal(boundedProbe.data.trackBAgentToolExecution.workerResult, undefined)
 
+  const ffmpegRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-ffmpeg-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-ffmpeg-rehearsal',
+      agentInvocationId: 'trackb.media_oss.ffmpeg',
+      toolId: 'ffmpeg',
+      action: 'probe_support',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-ffmpeg-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['synthetic_media/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/ffmpeg/source-reference'],
+    }),
+  }, 202)
+  const ffmpegResult = ffmpegRehearsal.data.trackBAgentToolExecution
+  assert.equal(ffmpegResult.status, 'completed')
+  assert.equal(ffmpegResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(ffmpegResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(ffmpegResult.workerResult.output.mockOnly, false)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.syntheticMediaProcessing, true)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.proof.operation, 'synthetic_lavfi_video_to_null_muxer')
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.proof.frames, 1)
+  assert.equal(ffmpegResult.workerResult.output.trackBAgentToolRecipeResult.proof.progress, 'end')
+
+  const ffprobeRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-ffprobe-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-ffprobe-rehearsal',
+      agentInvocationId: 'trackb.media_oss.ffprobe',
+      toolId: 'ffprobe',
+      action: 'stream_probe',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-ffprobe-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['synthetic_media/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/ffprobe/source-reference'],
+    }),
+  }, 202)
+  const ffprobeResult = ffprobeRehearsal.data.trackBAgentToolExecution
+  assert.equal(ffprobeResult.status, 'completed')
+  assert.equal(ffprobeResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(ffprobeResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(ffprobeResult.workerResult.output.mockOnly, false)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.syntheticMediaProcessing, true)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.operation, 'synthetic_lavfi_stream_probe')
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.streamCount, 1)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.codecType, 'video')
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.width, 16)
+  assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.height, 16)
+
   const sharpRehearsal = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-sharp-rehearsal' },
@@ -561,7 +625,7 @@ try {
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
-      'http_route_runs_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_bounded_execution_rehearsals',
+      'http_route_runs_ffmpeg_ffprobe_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_bounded_execution_rehearsals',
       'http_route_keeps_hyperframe_preview_boundary',
       'http_route_blocks_live_execution_until_deployed_evidence',
       'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',

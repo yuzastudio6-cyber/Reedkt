@@ -141,6 +141,92 @@ assert.deepEqual(
   'scoped Hyperframe readiness must not execute unrelated command/import checks',
 )
 
+const ffmpegRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-ffmpeg-rehearsal',
+  agentInvocationId: 'trackb.media_oss.ffmpeg',
+  toolId: 'ffmpeg',
+  action: 'probe_support',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-ffmpeg-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['synthetic_media/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/ffmpeg/source-reference'],
+})
+assert.equal(ffmpegRehearsal.status, 'completed')
+assert.equal(ffmpegRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const ffmpegRehearsalResult = ffmpegRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticMediaProcessing?: boolean
+  userMediaProcessed?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; input?: string; output?: string; width?: number; height?: number; frames?: number; progress?: string }
+} | undefined
+assert.equal(ffmpegRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(ffmpegRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(ffmpegRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(ffmpegRehearsalResult?.productRuntimeExecution, false)
+assert.equal(ffmpegRehearsalResult?.mediaProcessing, false)
+assert.equal(ffmpegRehearsalResult?.syntheticMediaProcessing, true)
+assert.equal(ffmpegRehearsalResult?.userMediaProcessed, false)
+assert.equal(ffmpegRehearsalResult?.syntheticInputOnly, true)
+assert.equal(ffmpegRehearsalResult?.artifactFileWritten, false)
+assert.match(ffmpegRehearsalResult?.proof?.version ?? '', /^ffmpeg version /)
+assert.equal(ffmpegRehearsalResult?.proof?.operation, 'synthetic_lavfi_video_to_null_muxer')
+assert.equal(ffmpegRehearsalResult?.proof?.input, 'lavfi:testsrc2=size=16x16:rate=1:duration=1')
+assert.equal(ffmpegRehearsalResult?.proof?.output, 'null_muxer')
+assert.equal(ffmpegRehearsalResult?.proof?.width, 16)
+assert.equal(ffmpegRehearsalResult?.proof?.height, 16)
+assert.equal(ffmpegRehearsalResult?.proof?.frames, 1)
+assert.equal(ffmpegRehearsalResult?.proof?.progress, 'end')
+
+const ffprobeRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-ffprobe-rehearsal',
+  agentInvocationId: 'trackb.media_oss.ffprobe',
+  toolId: 'ffprobe',
+  action: 'stream_probe',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-ffprobe-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['synthetic_media/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/ffprobe/source-reference'],
+})
+assert.equal(ffprobeRehearsal.status, 'completed')
+assert.equal(ffprobeRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const ffprobeRehearsalResult = ffprobeRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticMediaProcessing?: boolean
+  userMediaProcessed?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; input?: string; streamCount?: number; codecName?: string; codecType?: string; width?: number; height?: number; pixelFormat?: string; frameRate?: string }
+} | undefined
+assert.equal(ffprobeRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(ffprobeRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(ffprobeRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(ffprobeRehearsalResult?.productRuntimeExecution, false)
+assert.equal(ffprobeRehearsalResult?.mediaProcessing, false)
+assert.equal(ffprobeRehearsalResult?.syntheticMediaProcessing, true)
+assert.equal(ffprobeRehearsalResult?.userMediaProcessed, false)
+assert.equal(ffprobeRehearsalResult?.syntheticInputOnly, true)
+assert.equal(ffprobeRehearsalResult?.artifactFileWritten, false)
+assert.match(ffprobeRehearsalResult?.proof?.version ?? '', /^ffprobe version /)
+assert.equal(ffprobeRehearsalResult?.proof?.operation, 'synthetic_lavfi_stream_probe')
+assert.equal(ffprobeRehearsalResult?.proof?.input, 'lavfi:testsrc2=size=16x16:rate=1:duration=1')
+assert.equal(ffprobeRehearsalResult?.proof?.streamCount, 1)
+assert.equal(ffprobeRehearsalResult?.proof?.codecName, 'wrapped_avframe')
+assert.equal(ffprobeRehearsalResult?.proof?.codecType, 'video')
+assert.equal(ffprobeRehearsalResult?.proof?.width, 16)
+assert.equal(ffprobeRehearsalResult?.proof?.height, 16)
+assert.equal(ffprobeRehearsalResult?.proof?.pixelFormat, 'yuv420p')
+assert.equal(ffprobeRehearsalResult?.proof?.frameRate, '1/1')
+
 const sharpRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -518,21 +604,21 @@ assert.equal(audiofluxRehearsalResult?.proof?.sample_count, 512)
 assert.deepEqual(audiofluxRehearsalResult?.proof?.feature_shape, [16, 5])
 assert.ok((audiofluxRehearsalResult?.proof?.magnitude_sum ?? 0) > 0)
 
-const ffprobeRehearsalBlocked = await executeTrackBAgentTool({
+const libassRehearsalBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
-  jobId: 'job-trackb-agent-ffprobe-rehearsal-blocked',
-  agentInvocationId: 'trackb.media_oss.ffprobe',
-  toolId: 'ffprobe',
-  action: 'stream_probe',
+  jobId: 'job-trackb-agent-libass-rehearsal-blocked',
+  agentInvocationId: 'trackb.media_oss.libass',
+  toolId: 'libass',
+  action: 'burn_subtitles',
   approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
-  toolExecutionPlanId: 'tool-exec-trackb-agent-ffprobe-rehearsal-blocked',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-libass-rehearsal-blocked',
   mode: 'bounded_execution_rehearsal',
-  storageReferenceIds: ['source_media/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/ffprobe/source-reference'],
+  storageReferenceIds: ['caption_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/libass/source-reference'],
 })
-assert.equal(ffprobeRehearsalBlocked.status, 'blocked')
-assert.match(ffprobeRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for ffprobe/i)
-assert.equal(ffprobeRehearsalBlocked.workerResult, undefined)
+assert.equal(libassRehearsalBlocked.status, 'blocked')
+assert.match(libassRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for libass/i)
+assert.equal(libassRehearsalBlocked.workerResult, undefined)
 
 const liveBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -644,6 +730,8 @@ console.log(JSON.stringify({
     'backend_tools_dispatch_mock_safe_worker_payloads',
     'backend_tools_select_trackb_worker_recipe_handlers',
     'bounded_runtime_probe_runs_scoped_command_import_package_metadata_checks',
+    'ffmpeg_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'ffprobe_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'sharp_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'duckdb_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'polars_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',

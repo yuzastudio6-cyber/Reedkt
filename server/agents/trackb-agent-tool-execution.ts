@@ -356,6 +356,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
   const common = trackBAgentToolRecipe(contract.toolId, input.action)
   switch (contract.toolId) {
     case 'ffmpeg':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'synthetic_video_null_bounded_rehearsal')
+      }
       return {
         finalRenderExecution: {
           mode: 'dry_run',
@@ -370,6 +373,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'ffprobe':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'synthetic_stream_probe_bounded_rehearsal')
+      }
       return {
         mediaFoundation: mediaFoundationRecipe(input, ['probe', 'build_analysis_report']),
         ...common,

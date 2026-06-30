@@ -467,6 +467,12 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
   const action = stringValue(request.action) ?? payload.requestedRecipeIds[0] ?? 'unknown_action'
   const routeClass = stringValue(request.routeClass) ?? 'trackb_agent_tool_recipe'
   const handler = resolveTrackBAgentToolRecipeHandler(toolId, action, routeClass)
+  if (toolId === 'ffmpeg' && routeClass === 'synthetic_video_null_bounded_rehearsal') {
+    return runFfmpegSyntheticVideoNullBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+  if (toolId === 'ffprobe' && routeClass === 'synthetic_stream_probe_bounded_rehearsal') {
+    return runFfprobeSyntheticStreamProbeBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
   if (toolId === 'sharp' && routeClass === 'image_asset_prepare_bounded_rehearsal') {
     return runSharpImageAssetPrepareBoundedRehearsal(payload, request, action, routeClass, handler)
   }
@@ -602,6 +608,22 @@ function resolveTrackBAgentToolRecipeHandler(
   handlerKind: 'explicit_trackb_agent_worker_handler' | 'unmapped_trackb_agent_recipe_handler'
   namedHandlerReady: boolean
 } {
+  if (toolId === 'ffmpeg' && routeClass === 'synthetic_video_null_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_ffmpeg_synthetic_video_null_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'ffprobe' && routeClass === 'synthetic_stream_probe_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_ffprobe_synthetic_stream_probe_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
   if (toolId === 'sharp' && routeClass === 'image_asset_prepare_dry_run') {
     return {
       futureHandler: 'render_worker_sharp_image_asset_prepare_dry_run',
@@ -710,6 +732,240 @@ function resolveTrackBAgentToolRecipeHandler(
     futureHandler: `trackb_agent_${toolId}_${action}_recipe_dry_run`,
     handlerKind: 'unmapped_trackb_agent_recipe_handler',
     namedHandlerReady: false,
+  }
+}
+
+function runFfmpegSyntheticVideoNullBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  try {
+    const versionLine = firstOutputLine(execFileSync('ffmpeg', ['-version'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+      maxBuffer: 1024 * 128,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    const progressOutput = execFileSync('ffmpeg', [
+      '-hide_banner',
+      '-v',
+      'error',
+      '-nostats',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc2=size=16x16:rate=1:duration=1',
+      '-frames:v',
+      '1',
+      '-f',
+      'null',
+      '-',
+      '-progress',
+      'pipe:1',
+    ], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      maxBuffer: 1024 * 128,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    const progress = parseKeyValueOutput(progressOutput)
+
+    return {
+      summary: 'Track B agent FFmpeg bounded execution rehearsal completed with synthetic lavfi input and null muxer output only; no user media or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'ffmpeg',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: true,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version: versionLine,
+          operation: 'synthetic_lavfi_video_to_null_muxer',
+          input: 'lavfi:testsrc2=size=16x16:rate=1:duration=1',
+          output: 'null_muxer',
+          width: 16,
+          height: 16,
+          frameRate: '1/1',
+          frames: Number(progress.frame ?? 0),
+          outTime: progress.out_time,
+          progress: progress.progress,
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          outputFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses FFmpeg lavfi-generated synthetic input and null output only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedCommandLineToolRehearsal(
+      payload,
+      'ffmpeg',
+      action,
+      routeClass,
+      handler,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || 'Unknown FFmpeg bounded execution rehearsal error.',
+    )
+  }
+}
+
+function runFfprobeSyntheticStreamProbeBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  try {
+    const versionLine = firstOutputLine(execFileSync('ffprobe', ['-version'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+      maxBuffer: 1024 * 128,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    const output = execFileSync('ffprobe', [
+      '-hide_banner',
+      '-v',
+      'error',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc2=size=16x16:rate=1:duration=1',
+      '-show_streams',
+      '-of',
+      'json',
+    ], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      maxBuffer: 1024 * 256,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    const parsed = JSON.parse(output) as { streams?: Array<Record<string, unknown>> }
+    const stream = parsed.streams?.[0] ?? {}
+
+    return {
+      summary: 'Track B agent ffprobe bounded execution rehearsal completed with synthetic lavfi input only; no user media or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'ffprobe',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: true,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version: versionLine,
+          operation: 'synthetic_lavfi_stream_probe',
+          input: 'lavfi:testsrc2=size=16x16:rate=1:duration=1',
+          streamCount: parsed.streams?.length ?? 0,
+          codecName: stringValue(stream.codec_name),
+          codecType: stringValue(stream.codec_type),
+          width: numberValue(stream.width),
+          height: numberValue(stream.height),
+          pixelFormat: stringValue(stream.pix_fmt),
+          frameRate: stringValue(stream.r_frame_rate),
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          outputFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses ffprobe against FFmpeg lavfi-generated synthetic input only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedCommandLineToolRehearsal(
+      payload,
+      'ffprobe',
+      action,
+      routeClass,
+      handler,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || 'Unknown ffprobe bounded execution rehearsal error.',
+    )
+  }
+}
+
+function buildBlockedCommandLineToolRehearsal(
+  payload: ProductionWorkerJobPayload,
+  toolId: 'ffmpeg' | 'ffprobe',
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: `Track B agent ${toolId} bounded execution rehearsal was blocked before proof completion.`,
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId,
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      syntheticMediaProcessing: true,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        `${toolId} bounded execution rehearsal failed closed.`,
+        'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
   }
 }
 
@@ -2198,4 +2454,19 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function firstOutputLine(output: string): string {
+  return output.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim() ?? 'version_unavailable'
+}
+
+function parseKeyValueOutput(output: string): Record<string, string> {
+  return Object.fromEntries(output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.includes('='))
+    .map((line) => {
+      const index = line.indexOf('=')
+      return [line.slice(0, index), line.slice(index + 1)]
+    }))
 }

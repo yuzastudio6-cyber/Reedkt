@@ -252,7 +252,24 @@ assert(sourceReview.reviewedDesign.runtimeIntegrationSourcePlanningMayProceed ==
 assertFalse(sourceReview.reviewedDesign.sourceCodeChangedToday, 'Phase 37X source widened source changes')
 
 assert(!fs.existsSync(path.join(repoRoot, tempProofFile)), 'Temporary execution proof file must be absent')
-assert(!fs.existsSync(path.join(repoRoot, futureRuntimeSourcePath)), 'Future runtime source must not exist yet')
+const futureRuntimeSourceExists = fs.existsSync(path.join(repoRoot, futureRuntimeSourcePath))
+if (futureRuntimeSourceExists) {
+  const phase38Result = parseJsonBlock(
+    'docs/worker-runtime-jobs-sound-cpu-phase38-caption-render-runtime-hook-blocked-state-actual-source-creation-result.md',
+    'worker-runtime-jobs-sound-cpu-phase38-caption-render-runtime-hook-blocked-state-actual-source-creation-result',
+  )
+  assert(
+    phase38Result.decision ===
+      'worker_runtime_jobs_sound_cpu_phase38_caption_render_runtime_hook_blocked_state_actual_source_created_with_warnings_ready_for_source_owner_review_no_media_no_artifacts',
+    'Future runtime source requires Phase 38 source-creation result',
+  )
+  assert(
+    phase38Result.sourceCreationResult.runtimeIntegrationSourceCreated === true,
+    'Phase 38 source-creation result must mark source created',
+  )
+} else {
+  assert(!futureRuntimeSourceExists, 'Future runtime source must not exist yet')
+}
 const blockedSource = readText(blockedSourcePath)
 assert(blockedSource.includes("blockedStatus: 'blocked_by_owner_gate'"), 'Blocked status source missing')
 assert(blockedSource.includes('runtimeExecutionApproved: false'), 'Runtime execution false missing')

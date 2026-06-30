@@ -262,7 +262,24 @@ assert(sourcePlan.sourceCreationPlanResult.sourceCreationPlanItemCount === 8, 'P
 assert(sourcePlan.sourceCreationPlanResult.futureRuntimeIntegrationSourcePathPlanned === true, 'Phase 37Z path plan missing')
 assertFalse(sourcePlan.sourceCreationPlanResult.runtimeSourceCreatedToday, 'Phase 37Z source-plan widened source creation')
 
-assert(!fs.existsSync(path.join(repoRoot, futureRuntimeSourcePath)), 'Future runtime source must not exist in owner review')
+const futureRuntimeSourceExists = fs.existsSync(path.join(repoRoot, futureRuntimeSourcePath))
+if (futureRuntimeSourceExists) {
+  const phase38Result = parseJsonBlock(
+    'docs/worker-runtime-jobs-sound-cpu-phase38-caption-render-runtime-hook-blocked-state-actual-source-creation-result.md',
+    'worker-runtime-jobs-sound-cpu-phase38-caption-render-runtime-hook-blocked-state-actual-source-creation-result',
+  )
+  assert(
+    phase38Result.decision ===
+      'worker_runtime_jobs_sound_cpu_phase38_caption_render_runtime_hook_blocked_state_actual_source_created_with_warnings_ready_for_source_owner_review_no_media_no_artifacts',
+    'Future runtime source requires Phase 38 source-creation result',
+  )
+  assert(
+    phase38Result.sourceCreationResult.runtimeIntegrationSourceCreated === true,
+    'Phase 38 source-creation result must mark source created',
+  )
+} else {
+  assert(!futureRuntimeSourceExists, 'Future runtime source must not exist in owner review')
+}
 const packageJson = JSON.parse(readText('package.json'))
 assert(packageJson.scripts?.[packageScript], 'Package script missing')
 assert(

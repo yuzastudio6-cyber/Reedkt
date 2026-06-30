@@ -1,0 +1,132 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-CONTROLLED-WORKER-DISPATCH-DRY-RUN-1",
+  "integrationBase": "cc18a07622a3107c589d2d2957432026da27b8cd",
+  "runId": "2026-06-30T20-56-18-927Z-8e5d25d9",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/2026-06-30T20-56-18-927Z-8e5d25d9",
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_AGENT_CONTROLLED_WORKER_DISPATCH_DRY_RUN=true",
+    "observed": "present_true"
+  },
+  "sourceChain": {
+    "agentControlledWorkerQueuePr": 1902,
+    "agentControlledWorkerQueueMergeSha": "cc18a07622a3107c589d2d2957432026da27b8cd",
+    "agentControlledWorkerQueueRunId": "2026-06-30T19-45-59-915Z-af80c9f8",
+    "agentControlledWorkerQueueDecision": "completed_gstreamer_mkvtoolnix_agent_controlled_worker_queue_integration_metadata_only",
+    "agentControlledDispatchPr": 1896,
+    "agentControlledDispatchMergeSha": "30b06246fe4a3b2834217279816777dc1d721b53",
+    "agentControlledDispatchRunId": "2026-06-30T18-50-40-467Z-7ae8262d",
+    "agentControlledDispatchDecision": "completed_gstreamer_mkvtoolnix_agent_execution_bridge_controlled_dispatch_boundary",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "decision": "completed_gstreamer_mkvtoolnix_agent_controlled_worker_dispatch_dry_run_metadata_only",
+  "execution": "completed_confirmation_gated_agent_controlled_worker_dispatch_dry_run_metadata_only_no_worker_execution_or_tool_execution",
+  "workerDispatchDryRun": {
+    "status": "dispatched_controlled_worker_dispatch_dry_run_metadata_only",
+    "controlledWorkerQueueStatus": "ready_for_agent_controlled_worker_dispatch_dry_run",
+    "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_AGENT_CONTROLLED_WORKER_DISPATCH_DRY_RUN=true",
+    "dispatchDryRunId": "dispatch-dry-run-gstreamer-mkvtoolnix-agent-controlled-worker-1",
+    "dispatchDryRunMode": "metadata_only_worker_dispatch_dry_run",
+    "dispatchDryRunIdempotencyKey": "gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run:workspace-agent-controlled-dispatch-1:project-agent-controlled-dispatch-1:approved-snapshot-agent-controlled-dispatch-1:job-agent-controlled-dispatch-1:dispatch-gstreamer-mkvtoolnix-agent-controlled-dispatch-1:queue-gstreamer-mkvtoolnix-agent-controlled-worker-queue-1:dispatch-dry-run-gstreamer-mkvtoolnix-agent-controlled-worker-1",
+    "dispatchContractId": "dispatch-contract-gstreamer-mkvtoolnix-agent-controlled-worker-dry-run-1",
+    "dispatchAuditEventId": "audit-event-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1",
+    "workerRuntimeMode": "dry_run_no_worker_claim",
+    "workerRuntimePacketId": "worker-runtime-packet-gstreamer-mkvtoolnix-agent-controlled-worker-1",
+    "queueStatusAtDryRun": "queued",
+    "queueItemId": "mock-job-runtime-queue-item-0001",
+    "queueId": "queue-gstreamer-mkvtoolnix-agent-controlled-worker-queue-1",
+    "queueIdempotencyKey": "gstreamer-mkvtoolnix-agent-controlled-worker-queue:workspace-agent-controlled-dispatch-1:project-agent-controlled-dispatch-1:approved-snapshot-agent-controlled-dispatch-1:job-agent-controlled-dispatch-1:dispatch-gstreamer-mkvtoolnix-agent-controlled-dispatch-1:queue-gstreamer-mkvtoolnix-agent-controlled-worker-queue-1",
+    "approvedSnapshotId": "approved-snapshot-agent-controlled-dispatch-1",
+    "approvalRecordId": "approval-record-agent-controlled-dispatch-1",
+    "creditPolicyRef": "no-spend-fixture-policy-agent-controlled-dispatch-1",
+    "creditPolicyMode": "no_spend_fixture_policy",
+    "jobId": "job-agent-controlled-dispatch-1",
+    "workerLeaseId": "worker-lease-agent-controlled-dispatch-1",
+    "routeIdempotencyKey": "gstreamer-mkvtoolnix:agent-controlled-dispatch-1:approved-snapshot:job:template",
+    "commandTemplateId": "gst_controlled_generated_fixture_pipeline_v1",
+    "privateInputManifestId": "private-input-manifest-agent-controlled-dispatch-1",
+    "outputManifestSchemaId": "output-manifest-schema-agent-controlled-dispatch-1",
+    "qaReportSchemaId": "qa-report-schema-agent-controlled-dispatch-1",
+    "dryRunDispatchEnvelopeCreated": true,
+    "dryRunDispatchAccepted": true,
+    "routeExecution": "not_run_controlled_worker_dispatch_dry_run_metadata_only",
+    "workerDispatch": "not_run_controlled_worker_dispatch_dry_run_metadata_only",
+    "workerExecution": "not_run_controlled_worker_dispatch_dry_run_metadata_only",
+    "workerLeaseClaim": "not_run_controlled_worker_dispatch_dry_run_metadata_only",
+    "toolExecution": "not_run_controlled_worker_dispatch_dry_run_metadata_only",
+    "persistentJobQueueWrite": "not_run_controlled_worker_dispatch_dry_run_metadata_only",
+    "nextSourceStatus": "ready_for_agent_controlled_worker_runtime_execution_packet"
+  },
+  "queueItem": {
+    "id": "mock-job-runtime-queue-item-0001",
+    "jobId": "job-agent-controlled-dispatch-1",
+    "workerKind": "render_export",
+    "queueStatus": "queued",
+    "gateStatus": "passed",
+    "mockOnly": true,
+    "payloadMockOnly": true
+  },
+  "safety": {
+    "controlledWorkerDispatchDryRunMetadataOnly": true,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "gstreamerExecutionInThisDispatchDryRun": false,
+    "mkvtoolnixExecutionInThisDispatchDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "mediaProcessing": false,
+    "persistentJobQueueWrite": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "dockerPushDeploy": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "providerCall": false,
+    "modelCall": false,
+    "finalRenderExport": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false,
+    "dependencyMutation": false
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-report.json",
+      "bytes": 6871,
+      "sha256": "397fade5ab697b10a087a367a95b1859076749a51d022c1e1bab54a15701b3d8"
+    },
+    {
+      "fileName": "dispatch-dry-run-envelope.json",
+      "bytes": 5490,
+      "sha256": "61c6fa98505f6d4dd5d1b7a085d58ddacce27c9450f0bd9561235843b9990a35"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 379,
+      "sha256": "adae082d0d1b9abede7a9059b8800b07e879cb9c26a85dd2214836a10f07975b"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 999,
+      "sha256": "a09b951f071a0d382be2a1910e205da02b076b09f63482b71daaa8eadb96c321"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-manifest.json",
+      "bytes": 1252,
+      "sha256": "6b8103c980c33be43b9a9ef69d141a7db3f95c8a3326f4eec99dbe5448b87165"
+    }
+  ],
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-CONTROLLED-WORKER-RUNTIME-EXECUTION-PACKET-1"
+}

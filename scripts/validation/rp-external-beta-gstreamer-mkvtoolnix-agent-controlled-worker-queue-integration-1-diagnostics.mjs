@@ -35,6 +35,22 @@ const implementationFiles = [
   'package.json',
 ]
 
+const followOnControlledWorkerDispatchDryRunFiles = [
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/worker-dispatch-dry-run-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/dispatch-dry-run-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1/gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-record.json',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-diagnostics.mjs',
+]
+
 const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1/gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1/gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1-record.json',
@@ -42,7 +58,7 @@ const sourceFiles = [
   'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-controlled-dispatch-1.ts',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...followOnControlledWorkerDispatchDryRunFiles])
 
 const requiredText = [
   packet,
@@ -90,7 +106,7 @@ const requiredText = [
 const forbiddenChangedPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1-smoke\.ts$)/,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1-smoke\.ts$|services\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

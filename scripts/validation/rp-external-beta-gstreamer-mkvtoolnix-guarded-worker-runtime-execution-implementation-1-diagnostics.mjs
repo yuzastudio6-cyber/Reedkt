@@ -2,57 +2,45 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-RUNTIME-DRY-RUN-1'
-const dir = 'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1'
-const recordPath = `${dir}/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-record.json`
-const decision = 'completed_gstreamer_mkvtoolnix_guarded_worker_runtime_dry_run_envelope_validation'
-const execution = 'completed_confirmation_gated_guarded_worker_runtime_dry_run_no_worker_dispatch_or_tool_execution'
-const runId = '2026-06-30T16-06-39-689Z-7f400705'
-const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-RUNTIME-EXECUTION-IMPLEMENTATION-1'
-const confirmationGate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_RUNTIME_DRY_RUN=true'
+const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-RUNTIME-EXECUTION-IMPLEMENTATION-1'
+const dir = 'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1'
+const recordPath = `${dir}/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-record.json`
+const decision = 'completed_gstreamer_mkvtoolnix_guarded_worker_runtime_execution_controlled_generated_fixture'
+const execution = 'completed_confirmation_gated_local_render_worker_runtime_execution_generated_fixture_only'
+const runId = '2026-06-30T16-19-10-513Z-a91246d2'
+const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-BRIDGE-1'
+const confirmationGate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_RUNTIME_EXECUTION=true'
+const imageTag = 'reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${dir}/source-audit.md`,
-  `${dir}/dry-run-result.md`,
-  `${dir}/worker-runtime-dry-run-envelope.md`,
+  `${dir}/runtime-execution-result.md`,
+  `${dir}/command-template-results.md`,
   `${dir}/artifact-manifest-summary.md`,
-  `${dir}/blocked-scope-register.md`,
+  `${dir}/safety-boundary.md`,
   `${dir}/validation-results.md`,
   recordPath,
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1.md',
-]
-
-const futureRuntimeExecutionFiles = [
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/source-audit.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/runtime-execution-result.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/command-template-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/artifact-manifest-summary.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/safety-boundary.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/validation-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-record.json',
   'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1.md',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1.mjs',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-diagnostics.mjs',
 ]
 
 const implementationFiles = [
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1-diagnostics.mjs',
   'package.json',
 ]
 
 const sourceFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-skeleton-implementation-1/gstreamer-mkvtoolnix-guarded-worker-skeleton-implementation-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-enqueue-implementation-1/gstreamer-mkvtoolnix-guarded-worker-enqueue-implementation-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-implementation-1/gstreamer-mkvtoolnix-guarded-worker-route-implementation-record.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...futureRuntimeExecutionFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
 
 const allowedCommandTemplates = [
   'gst_fakesrc_fakesink_no_media_healthcheck_v1',
@@ -67,44 +55,42 @@ const requiredCorpusText = [
   execution,
   runId,
   confirmationGate,
-  'Confirmation gate observed: `present_true`',
-  'completed_guarded_worker_runtime_dry_run_envelope_validation',
-  'approved-snapshot-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'approval-record-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'no-spend-fixture-policy-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'worker-lease-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'route-idempotency-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'private-input-manifest-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'output-manifest-schema-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'qa-report-schema-gstreamer-mkvtoolnix-guarded-runtime-dry-run-1',
-  'Worker dispatch: `not_run_dry_run_envelope_validation_only`',
-  'Worker execution: `not_run_dry_run_envelope_validation_only`',
-  'Tool execution: `not_run_dry_run_envelope_validation_only`',
-  'ready_for_guarded_worker_runtime_execution_implementation',
-  '6d9ba02c069ad1a7da1b861186e55125d9a8ac7f0ecc52ec73c9887adb1ff34e',
-  'b4b6dbfcb184209204fe82e364073c4da8e5a44823ad6625607bfa2b9e65361f',
-  '2bafd556886073b76f378771e4255b47adb2f52794e3a3ac5b31975d851d9900',
-  'a22b1f2c535ea709297ae461990fa7515d0b004550c1d0681ade53f07f9a55ab',
-  'b94b4b18b8c22baee07a574f6d428b0418c190dbb8efc369921e37343ba6fab4',
+  imageTag,
+  'Docker network: `none`',
+  'GStreamer execution: `completed_controlled_generated_fixture_only`',
+  'MKVToolNix execution: `completed_controlled_generated_fixture_only`',
+  'Media processing: `controlled_generated_fixture_only`',
+  'Route execution: `not_run_runtime_runner_only`',
+  'Worker dispatch: `not_run_runtime_runner_only`',
+  'Worker execution: `not_run_runtime_runner_only`',
+  'ready_for_external_agent_guarded_tool_execution_bridge',
+  'gst_fakesrc_fakesink_no_media_healthcheck_v1',
+  'gst_controlled_generated_fixture_pipeline_v1',
+  'mkvmerge_generated_subtitle_only_package_v1',
+  'mkvmerge_identify_generated_subtitle_only_v1',
+  'mkvmerge v74.0.0',
+  'Track ID 0: subtitles (SubRip/SRT)',
+  '922f680d93c4e7372d18ea307221e81ee7ff3da84bac15350b87941048d9973a',
+  '74791deaa1e64a82e380edd561544c7412bc485f2e64b57163ca4cc26fa735ab',
+  '78c6c374cd50cdd05d20e3e515dcf7b8b4b3df38cbc2ff6380c167af7f414a57',
+  '2a9c4f544fc7e4c0d6594ab9125a4ff0f1bc1e0afcb87432b39cb95511df9d67',
+  '4d25de887e43dec0f54b27f71d8c670d430088d8883fa4cc0b103d15dfdef357',
+  '0092fbd28c276dc0102b194e82b0195fc950246e7a6e7f94085107683af4b07a',
+  '3639d4d422a4eb5b960e8eec3139149eae1dbdd7f22c1f240ec96e14d6d75c92',
   nextMilestone,
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  'Supabase classification: `not_applicable_docs_only`',
+  'Supabase classification: `not_applicable_runtime_generated_fixture_only`',
   'PR #577 remains open/draft/blocked/excluded',
 ]
 
 const falseSafetyKeys = [
-  'runtimeExecution',
   'routeExecution',
   'workerDispatch',
   'workerExecution',
-  'gstreamerExecution',
-  'mkvtoolnixExecution',
   'ffmpegFfprobeExecution',
-  'dockerExecution',
   'remotionExecution',
-  'mediaProcessing',
   'privateMediaProcessing',
   'userMediaProcessing',
   'supabaseMutation',
@@ -118,6 +104,8 @@ const falseSafetyKeys = [
   'creditMutation',
   'stripePaymentProcessing',
   'deployment',
+  'dockerPush',
+  'dockerDeployment',
   'externalBetaExpansion',
   'paidProductionUnlock',
   'productionUnlock',
@@ -152,23 +140,23 @@ const forbiddenClaimPatterns = [
   /\bready_for_paid_production\b/i,
   /\bready_for_production\b/i,
   /\bready_for_final_delivery\b/i,
-  /\b(?:Runtime execution|Route execution|Worker dispatch|Worker execution|Tool execution|GStreamer execution|MKVToolNix execution|FFmpeg\/FFprobe execution|Docker execution|Remotion execution|Media processing|Supabase mutation|SQL execution|Signed URL creation|Public artifact creation|Final render\/export):\s*`?(true|enabled|completed|passed|run|executed)\b/i,
-  /"runtimeExecution"\s*:\s*true/i,
+  /\b(?:Route execution|Worker dispatch|Worker execution|FFmpeg\/FFprobe execution|Remotion execution|Private media processing|User media processing|Supabase mutation|SQL execution|Signed URL creation|Public artifact creation|Final render\/export):\s*`?(true|enabled|completed|passed|run|executed)\b/i,
+  /\b(?:Docker push|Docker deployment):\s*`?(true|enabled|completed|passed|run|executed)\b/i,
   /"routeExecution"\s*:\s*true/i,
   /"workerDispatch"\s*:\s*true/i,
   /"workerExecution"\s*:\s*true/i,
-  /"gstreamerExecution"\s*:\s*true/i,
-  /"mkvtoolnixExecution"\s*:\s*true/i,
   /"ffmpegFfprobeExecution"\s*:\s*true/i,
-  /"dockerExecution"\s*:\s*true/i,
   /"remotionExecution"\s*:\s*true/i,
-  /"mediaProcessing"\s*:\s*true/i,
+  /"privateMediaProcessing"\s*:\s*true/i,
+  /"userMediaProcessing"\s*:\s*true/i,
   /"supabaseMutation"\s*:\s*true/i,
   /"sqlExecution"\s*:\s*true/i,
   /"signedUrlCreation"\s*:\s*true/i,
   /"publicArtifactCreation"\s*:\s*true/i,
   /"finalRenderExport"\s*:\s*true/i,
   /"packageLockMutation"\s*:\s*true/i,
+  /"dockerPush"\s*:\s*true/i,
+  /"dockerDeployment"\s*:\s*true/i,
 ]
 
 function fail(message) {
@@ -206,16 +194,16 @@ for (const file of [...packetFiles, ...implementationFiles, ...sourceFiles]) rea
 
 const packageJson = json('package.json')
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1'] !==
-  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1.mjs'
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1'] !==
+  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1.mjs'
 ) {
-  fail('missing package dry-run script')
+  fail('missing runtime execution runner script')
 }
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1-diagnostics.mjs'
 ) {
-  fail('missing package diagnostics script')
+  fail('missing runtime execution diagnostics script')
 }
 
 const corpus = packetFiles.map((file) => read(file)).join('\n')
@@ -233,31 +221,40 @@ const record = json(recordPath)
 if (record.packet !== packet) fail('packet mismatch')
 if (record.decision !== decision) fail('decision mismatch')
 if (record.execution !== execution) fail('execution mismatch')
-if (record.integrationBase !== '3e85e9296de45d4ac0283b3981a03db8178ff625') fail('integration base mismatch')
+if (record.integrationBase !== '620c003b92ae6d219652206260c441bbdd264bb9') fail('integration base mismatch')
 if (record.runId !== runId) fail('run ID mismatch')
+if (record.imageTag !== imageTag) fail('image tag mismatch')
 if (record.confirmationGate?.observed !== 'present_true') fail('confirmation gate mismatch')
-if (record.sourceChain?.guardedRuntimeExecutionPlanMerge !== '3e85e9296de45d4ac0283b3981a03db8178ff625') {
-  fail('runtime plan merge mismatch')
-}
+if (record.sourceChain?.guardedRuntimeDryRunMerge !== '620c003b92ae6d219652206260c441bbdd264bb9') fail('dry-run merge mismatch')
 if (record.sourceChain?.excludedRemotionPr !== '#577 open_draft_blocked_excluded') fail('#577 exclusion mismatch')
-if (record.dryRun?.status !== 'completed_guarded_worker_runtime_dry_run_envelope_validation') {
-  fail('dry-run status mismatch')
-}
-if (record.dryRun?.requiredReferencesNamed !== true) fail('required refs mismatch')
-if (record.dryRun?.workerDispatch !== 'not_run_dry_run_envelope_validation_only') fail('worker dispatch mismatch')
-if (record.dryRun?.workerExecution !== 'not_run_dry_run_envelope_validation_only') fail('worker execution mismatch')
-if (record.dryRun?.toolExecution !== 'not_run_dry_run_envelope_validation_only') fail('tool execution mismatch')
-if (record.readiness?.gstreamer !== 'ready_for_guarded_worker_runtime_execution_implementation') fail('GStreamer readiness mismatch')
-if (record.readiness?.mkvtoolnix !== 'ready_for_guarded_worker_runtime_execution_implementation') fail('MKVToolNix readiness mismatch')
+if (record.runtimeExecution?.status !== 'completed_controlled_generated_fixture_runtime_execution') fail('runtime status mismatch')
+if (record.runtimeExecution?.dockerNetwork !== 'none') fail('docker network mismatch')
+if (record.runtimeExecution?.routeExecution !== 'not_run_runtime_runner_only') fail('route execution mismatch')
+if (record.runtimeExecution?.workerDispatch !== 'not_run_runtime_runner_only') fail('worker dispatch mismatch')
+if (record.runtimeExecution?.workerExecution !== 'not_run_runtime_runner_only') fail('worker execution mismatch')
+if (record.runtimeExecution?.gstreamerExecution !== 'completed_controlled_generated_fixture_only') fail('GStreamer execution mismatch')
+if (record.runtimeExecution?.mkvtoolnixExecution !== 'completed_controlled_generated_fixture_only') fail('MKVToolNix execution mismatch')
+if (record.runtimeExecution?.mediaProcessing !== 'controlled_generated_fixture_only') fail('media boundary mismatch')
+if (record.readiness?.gstreamer !== 'ready_for_external_agent_guarded_tool_execution_bridge') fail('GStreamer readiness mismatch')
+if (record.readiness?.mkvtoolnix !== 'ready_for_external_agent_guarded_tool_execution_bridge') fail('MKVToolNix readiness mismatch')
 if (record.nextMilestone !== nextMilestone) fail('next milestone mismatch')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
 if (record.validation !== 'passed') fail('validation status mismatch')
-if (!Array.isArray(record.artifacts) || record.artifacts.length !== 5) fail('artifact summary mismatch')
+if (!Array.isArray(record.commandResults) || record.commandResults.length !== 4) fail('command result count mismatch')
+for (const command of record.commandResults) {
+  if (!allowedCommandTemplates.includes(command.templateId)) fail(`unapproved template in record: ${command.templateId}`)
+  if (command.ok !== true || command.exitStatus !== 0) fail(`command did not pass: ${command.templateId}`)
+}
+if (!Array.isArray(record.artifacts) || record.artifacts.length !== 7) fail('artifact summary mismatch')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety ${key} was enabled or missing`)
 }
+if (record.safety?.dockerExecution !== 'completed_local_image_only_network_disabled_no_push_no_deploy') fail('docker execution scope mismatch')
+if (record.safety?.gstreamerExecution !== 'completed_controlled_generated_fixture_only') fail('GStreamer safety scope mismatch')
+if (record.safety?.mkvtoolnixExecution !== 'completed_controlled_generated_fixture_only') fail('MKVToolNix safety scope mismatch')
+if (record.safety?.mediaProcessing !== 'controlled_generated_fixture_only') fail('media safety scope mismatch')
 
 const changedFiles = [...new Set([
   ...gitLines(['diff', '--name-only', 'HEAD']),

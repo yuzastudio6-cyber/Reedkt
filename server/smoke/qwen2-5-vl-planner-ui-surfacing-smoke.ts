@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_required',
-  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt blocker.',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference auth blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -202,8 +202,11 @@ check(
     docText.includes(
       'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_required',
     ) ||
+    docText.includes(
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+    ) ||
     data.privateInvokeClient.currentStatus ===
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_required',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -355,16 +358,19 @@ check(
   'Doc must record the RLS helper parameter fix, storage buckets comment fix, retry-13 evidence, and storage.objects blocker.',
 )
 check(
-  docText.includes('Retry 14 verified that fix') &&
+  (docText.includes('Retry 14 verified that fix') ||
+    docText.includes('Backend runtime persistence local harness validation retry 14 verifies')) &&
     docText.includes('202605200001_storage_upload_pipeline_readiness.sql') &&
     docText.includes('comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects') &&
-    docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
-    docText.includes('Retry 15 verified the active local baseline') &&
-    docText.includes('58DP private inference attempt approval are recorded') &&
+    (docText.includes('backend runtime persistence storage upload pipeline policy comment baseline fix: ready') ||
+      docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded')) &&
+    (docText.includes('Retry 15 verified that the active ReEditPro baseline completes') ||
+      docText.includes('Retry 15 verified the active local baseline')) &&
+    docText.includes('58DQ approved-fixture private inference attempt result') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DQ-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INFERENCE-ATTEMPT',
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval evidence, and the 58DQ next prompt.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt result evidence, and the 58DQ auth-refresh next prompt.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

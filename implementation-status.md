@@ -193,3 +193,11 @@ Status: mock-safe runtime guard implemented.
 Paid worker/provider/render starts now share a mock credit guard that requires approved plan evidence, approved estimate, a `reserved` max-hold reservation, idempotency, and projected high-cost fit. Projected overage pauses before work, creates one idempotent local/mock revised-credit action with `projected_overage`, and keeps tool-cost events `serviceFeeIncluded = false`.
 
 It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export execution, export unlock, or checkout/top-up. See `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard`.
+
+## RP-CREDITREVISION-01
+
+Status: mock-safe revised-credit action resolution implemented.
+
+Projected-overage pauses can now be resolved through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work. Approve & Continue reserves only the additional mock max hold as `revised_credit_additional_hold` and does not start paid work; lower-cost and cancel resolutions leave the original paid runtime path blocked until a future plan/estimate path or cancellation flow handles it.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export execution, export unlock, checkout/top-up, or UI. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.

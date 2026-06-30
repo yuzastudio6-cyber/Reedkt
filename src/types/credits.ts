@@ -150,6 +150,23 @@ export interface CreditRevisionUserOption {
   action: CreditRevisionUserAction
 }
 
+export const CREDIT_REVISION_ACTION_RESOLUTION_STATUSES = [
+  'approved',
+  'lower_cost_selected',
+  'cancelled',
+  'already_resolved',
+  'action_not_found',
+  'invalid_action_state',
+  'invalid_request',
+  'reservation_not_found',
+  'inactive_reservation',
+  'wallet_not_found',
+  'insufficient_credits',
+] as const
+
+export type CreditRevisionActionResolutionStatus =
+  typeof CREDIT_REVISION_ACTION_RESOLUTION_STATUSES[number]
+
 export interface CreditSettlementRecord {
   id: ID
   workspaceId: ID
@@ -536,6 +553,74 @@ export interface ReserveMaxEstimateCreditsResponse {
   idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
   userFacingMessage: string
   safetyFlags: ReserveMaxEstimateCreditsSafetyFlags
+  warnings: string[]
+}
+
+export interface ApproveCreditRevisionActionRequest {
+  workspaceId: ID
+  projectId: ID
+  creditRevisionActionId: ID
+  creditReservationId: ID
+  approvedByUserId: ID
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface ChooseLowerCostCreditRevisionOptionRequest {
+  workspaceId: ID
+  projectId: ID
+  creditRevisionActionId: ID
+  selectedOptionId: string
+  selectedByUserId: ID
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CancelCreditRevisionActionRequest {
+  workspaceId: ID
+  projectId: ID
+  creditRevisionActionId: ID
+  cancelledByUserId: ID
+  cancellationReason?: string
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CreditRevisionActionResolutionSafetyFlags {
+  mockOnly: true
+  paidWorkStarted: false
+  walletMutated: boolean
+  reservationMutated: boolean
+  creditsReserved: boolean
+  creditsSpent: false
+  creditsReleased: false
+  creditsRefunded: false
+  ledgerWritten: false
+  settlementExecuted: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface CreditRevisionActionResolutionResponse {
+  status: CreditRevisionActionResolutionStatus
+  action: CreditRevisionActionRecord | null
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  walletBalance: CreditReservationWalletBalance | null
+  additionalHoldCredits: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  requiresRuntimeGuardRecheck: boolean
+  requiresNewEstimateOrPlan: boolean
+  extraWorkCancelled: boolean
+  paidWorkStarted: false
+  userFacingMessage: string
+  safetyFlags: CreditRevisionActionResolutionSafetyFlags
   warnings: string[]
 }
 

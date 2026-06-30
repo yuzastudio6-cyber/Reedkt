@@ -13,6 +13,7 @@ import {
 } from '../tool-cost-metering'
 import {
   createCreditRevisionActionRecord,
+  getCreditRevisionActionByIdempotencyKey,
   type MockCreditDataStore,
   upsertCreditRevisionActionByIdempotencyKey,
 } from './mock-credit-data-store'
@@ -38,6 +39,7 @@ export const RUNTIME_CREDIT_GUARD_STATUSES = [
   'blocked_missing_idempotency_key',
   'blocked_invalid_context',
   'blocked_tool_prerequisite',
+  'blocked_credit_revision_resolved',
   'paused_projected_overage',
 ] as const
 
@@ -149,6 +151,9 @@ export function evaluatePaidToolRuntimeGuard(
   const reservationFailure = validateActiveReservation(input, reservation)
   if (reservationFailure) return reservationFailure
 
+  const resolvedRevisionFailure = validateResolvedRevisionAction(input, creditDataStore)
+  if (resolvedRevisionFailure) return resolvedRevisionFailure
+
   const estimated = estimateProductionToolCost({
     toolId: input.toolId,
     workspaceId: input.workspaceId,
@@ -209,7 +214,7 @@ export function evaluatePaidToolRuntimeGuard(
         additionalHighCredits: projection.additionalHighCredits,
         newMaximumEstimatedCredits: projection.projectedHighFinalCredits,
         reasonSummary: 'Projected paid tool cost may exceed the approved max reservation.',
-        idempotencyKey: `${input.idempotencyKey}:runtime-credit-guard:projected-overage`,
+        idempotencyKey: runtimeRevisionActionIdempotencyKey(input),
         metadata: asJsonObject({
           mockOnly: true,
           milestone: 'RP-RUNTIME-GUARD-01',
@@ -254,6 +259,38 @@ export function evaluatePaidToolRuntimeGuard(
       'Tool-cost estimate excludes ReEditPro service fee; service fee is projected separately.',
     ],
   }
+}
+
+function validateResolvedRevisionAction(
+  input: EvaluatePaidToolRuntimeGuardInput,
+  creditDataStore: MockCreditDataStore,
+): RuntimeCreditGuardResult | null {
+  if (!input.idempotencyKey) return null
+  const action = getCreditRevisionActionByIdempotencyKey(
+    creditDataStore,
+    input.workspaceId,
+    runtimeRevisionActionIdempotencyKey(input),
+  )
+  if (!action || action.status === 'action_required' || action.status === 'approved') return null
+  if (action.status === 'lower_cost_selected' || action.status === 'cancelled') {
+    return {
+      canStart: false,
+      status: 'blocked_credit_revision_resolved',
+      prerequisiteFailures: [action.status],
+      creditPrerequisiteStatus: 'requires_revised_estimate',
+      reservation: null,
+      revisionAction: action,
+      safetyFlags: safetyFlags(false),
+      warnings: [
+        action.status === 'lower_cost_selected'
+          ? 'Lower-cost option was selected; build a new lower-cost estimate or plan before paid work continues.'
+          : 'Extra over-budget work was cancelled; the original paid tool will not automatically resume.',
+        'Paid runtime guard blocked before paid worker/provider/render start.',
+        'No worker, provider, render/export, settlement, spend/release/refund, ledger, checkout, top-up, or production persistence occurred.',
+      ],
+    }
+  }
+  return null
 }
 
 function validateBasicPrerequisites(
@@ -400,6 +437,10 @@ function blocked(
       'No revision action was created for missing prerequisites.',
     ],
   }
+}
+
+function runtimeRevisionActionIdempotencyKey(input: EvaluatePaidToolRuntimeGuardInput): string {
+  return `${input.idempotencyKey}:runtime-credit-guard:projected-overage`
 }
 
 function safetyFlags(revisionActionCreated: boolean): RuntimeCreditGuardSafetyFlags {

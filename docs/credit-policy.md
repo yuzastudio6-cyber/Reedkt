@@ -12,6 +12,8 @@ RP-ESTIMATE-01 uses those production tool estimates to build mock-safe user-faci
 
 RP-RUNTIME-GUARD-01 applies the policy at paid runtime boundaries. Worker/provider/render starts now require approved plan evidence, approved estimate, an active max-hold reservation where `reserved` is the only active reservation status, idempotency, and projected high-cost fit. Projected overage pauses with "Action required: revised credit estimate needed"; the guard creates only a mock revision action and keeps tool-cost events `serviceFeeIncluded = false`. See `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard`; no live billing, no provider call, no render/export execution, no settlement, and no reservation spend/release/refund are wired.
 
+RP-CREDITREVISION-01 resolves projected-overage pauses through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work. Approve & Continue can add a mock `revised_credit_additional_hold` to the existing reservation, but paid work starts only after a later runtime guard recheck; lower-cost and cancel resolutions do not reserve credits or resume the original paid tool. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
+
 ## Credit Value
 
 - 1 credit = $0.10 retail value.
@@ -88,3 +90,7 @@ RP-RESERVATION-01 implements the mock-safe reservation step for the estimate max
 ## RP-RUNTIME-GUARD-01 Runtime Pause
 
 RP-RUNTIME-GUARD-01 checks paid work after the max hold and before worker leases, provider paths, or render starts. If the projected final high charge exceeds the reserved max, ReEditPro pauses with `projected_overage`, uses the revised-estimate copy above, and writes one idempotent mock `CreditRevisionActionRecord`; it does not spend, release, refund, settle, unlock export, call providers, or run render/export.
+
+## RP-CREDITREVISION-01 Action Resolution
+
+RP-CREDITREVISION-01 resolves the mock pause. Approve & Continue reserves only the additional max hold in local mock state, Choose Lower-Cost Option requires a new lower-cost plan/estimate, and Cancel Extra Work leaves the reservation unchanged. No live billing, provider call, render/export, settlement, spend/release/refund, checkout/top-up, or export unlock is wired.

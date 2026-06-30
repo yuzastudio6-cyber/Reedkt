@@ -181,3 +181,7 @@ RP-RESERVATION-01 updates the mock reservation foundation so the pre-work hold r
 ## RP-RUNTIME-GUARD-01 Runtime Guard
 
 RP-RUNTIME-GUARD-01 adds a mock-safe paid-tool start guard before worker lease, provider, or render execution. It treats `reserved` as the only active reservation status, includes current billable mock tool-cost events and pending high-credit work in the projection, keeps tool-cost events `serviceFeeIncluded = false`, and uses the credit policy service-fee math separately. Projected overage creates one idempotent mock `CreditRevisionActionRecord` with "Action required: revised credit estimate needed" and `projected_overage`; it does not create ledger entries, spend, release, refund, settle, call providers, run render/export, unlock export, or wire live billing.
+
+## RP-CREDITREVISION-01 Revised Credit Resolution
+
+RP-CREDITREVISION-01 resolves those mock revised-credit actions. Approve & Continue may reserve a local mock `revised_credit_additional_hold` on the existing reservation; Choose Lower-Cost Option and Cancel Extra Work record the user decision without reservation changes. This layer still creates no ledger entries and performs no spend, release, refund, settlement, provider call, render/export, checkout/top-up, export unlock, Supabase write, or live billing behavior.

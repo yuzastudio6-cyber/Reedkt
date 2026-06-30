@@ -1,4 +1,9 @@
 import type {
+  ApproveCreditRevisionActionRequest,
+  CancelCreditRevisionActionRequest,
+  ChooseLowerCostCreditRevisionOptionRequest,
+  CreditRevisionActionResolutionResponse,
+  CreditRevisionActionResolutionStatus,
   CreditRevisionActionRecord,
   CreditRevisionPauseReason,
   CreditRevisionUserOption,
@@ -20,6 +25,11 @@ import { creditRevisionActionRecordSchema, creditSettlementRecordSchema } from '
 import { createMockId, nowIso } from './service-helpers'
 import { TOOL_COST_RATE_CARD_VERSION } from '../tool-cost-metering/rate-card'
 import { summarizeMockToolCostEvents } from '../tool-cost-metering/cost-math'
+import {
+  reserveAdditionalCreditsForRevisionAction,
+  type MockCreditReservationStore,
+  type ReserveAdditionalCreditsForRevisionActionResult,
+} from './mock-credit-reservation-store'
 import {
   createMockToolCostStore,
   listMockToolCostEventsByIds,
@@ -133,6 +143,16 @@ export function getCreditRevisionAction(
   return store.creditRevisionActions.find((action) => action.id === id)
 }
 
+export function getCreditRevisionActionByIdempotencyKey(
+  store: MockCreditDataStore,
+  workspaceId: string,
+  idempotencyKey: string,
+): CreditRevisionActionRecord | undefined {
+  return store.creditRevisionActions.find((action) =>
+    action.workspaceId === workspaceId &&
+    action.idempotencyKey === idempotencyKey)
+}
+
 export function listCreditRevisionActionsForProject(
   store: MockCreditDataStore,
   projectId: string,
@@ -192,6 +212,142 @@ export function createCreditRevisionActionRecord(
     updatedAt: nowIso(),
     expiresAt: input.expiresAt ?? null,
   }
+}
+
+export function approveCreditRevisionAction(
+  store: MockCreditDataStore,
+  reservationStore: MockCreditReservationStore,
+  input: ApproveCreditRevisionActionRequest,
+): CreditRevisionActionResolutionResponse {
+  const action = getCreditRevisionAction(store, input.creditRevisionActionId)
+  const validation = validateResolvableAction(action, input.workspaceId, input.projectId, 'approve-and-continue')
+  if (!validation.ok) return actionResolutionResponse(validation.status, action ?? null, null, [], null, 0, 0, 'not_created', validation.message, validation.warnings)
+
+  const duplicate = duplicateResolution(action as CreditRevisionActionRecord, input.idempotencyKey)
+  if (duplicate) {
+    return actionResolutionResponse('already_resolved', duplicate, null, [], null, 0, 0, 'duplicate_returned', 'This revised-credit action was already resolved with this idempotency key.', [
+      'Duplicate resolution request returned the existing action; no additional mock hold occurred.',
+    ], { requiresRuntimeGuardRecheck: duplicate.status === 'approved' })
+  }
+  const state = validateActionRequired(action as CreditRevisionActionRecord)
+  if (!state.ok) return actionResolutionResponse(state.status, action as CreditRevisionActionRecord, null, [], null, 0, 0, 'not_created', state.message, state.warnings)
+
+  if ((action as CreditRevisionActionRecord).creditReservationId !== input.creditReservationId) {
+    return actionResolutionResponse('invalid_request', action as CreditRevisionActionRecord, null, [], null, 0, 0, 'not_created', 'Credit reservation does not match the revised-credit action.', [
+      'No mock wallet, reservation, or revision action mutation occurred.',
+    ])
+  }
+
+  const hold = reserveAdditionalCreditsForRevisionAction(reservationStore, {
+    action: action as CreditRevisionActionRecord,
+    creditReservationId: input.creditReservationId,
+    requestedByUserId: input.approvedByUserId,
+    idempotencyKey: input.idempotencyKey,
+    metadata: input.metadata,
+  })
+  if (hold.status === 'insufficient_credits' || hold.status === 'reservation_not_found' || hold.status === 'inactive_reservation' || hold.status === 'wallet_not_found' || hold.status === 'invalid_request') {
+    return actionResolutionFromHold(hold, hold.status, action as CreditRevisionActionRecord, hold.userFacingMessage, [
+      ...hold.warnings,
+      'The revised-credit action remains action_required until the user can approve a funded additional hold or choose another option.',
+    ])
+  }
+
+  const resolved = resolveAction(action as CreditRevisionActionRecord, {
+    status: 'approved',
+    selectedOptionId: 'approve-and-continue',
+    resolvedByUserId: input.approvedByUserId,
+    resolutionIdempotencyKey: input.idempotencyKey,
+    resolutionMetadata: {
+      ...(input.metadata ?? {}),
+      additionalHoldCredits: hold.additionalHoldCredits,
+      requiredTopUpCredits: hold.requiredTopUpCredits,
+      reservationId: hold.reservation?.id ?? input.creditReservationId,
+      reservationReservedCredits: hold.reservation?.reservedCredits ?? 0,
+    },
+  })
+
+  return actionResolutionFromHold(hold, 'approved', resolved, 'Revised credit action approved. Paid work has not started; rerun the runtime guard to continue.', [
+    ...hold.warnings,
+    'Approve & Continue only resolves the mock action and increases the mock hold when needed.',
+    'Paid work may continue only after a later explicit runtime guard evaluation passes.',
+  ], {
+    requiresRuntimeGuardRecheck: true,
+    idempotencyStatus: hold.idempotencyStatus === 'created' || hold.idempotencyStatus === 'duplicate_returned'
+      ? hold.idempotencyStatus
+      : 'created',
+  })
+}
+
+export function chooseLowerCostCreditRevisionOption(
+  store: MockCreditDataStore,
+  input: ChooseLowerCostCreditRevisionOptionRequest,
+): CreditRevisionActionResolutionResponse {
+  const action = getCreditRevisionAction(store, input.creditRevisionActionId)
+  const validation = validateResolvableAction(action, input.workspaceId, input.projectId, input.selectedOptionId)
+  if (!validation.ok) return actionResolutionResponse(validation.status, action ?? null, null, [], null, 0, 0, 'not_created', validation.message, validation.warnings)
+
+  const selectedOption = (action as CreditRevisionActionRecord).userOptions.find((option) => option.id === input.selectedOptionId)
+  if (selectedOption?.action !== 'choose_lower_cost_option') {
+    return actionResolutionResponse('invalid_request', action as CreditRevisionActionRecord, null, [], null, 0, 0, 'not_created', 'Selected option is not a lower-cost option for this revised-credit action.', [
+      'No mock wallet, reservation, worker, provider, or render mutation occurred.',
+    ])
+  }
+
+  const duplicate = duplicateResolution(action as CreditRevisionActionRecord, input.idempotencyKey)
+  if (duplicate) {
+    return actionResolutionResponse('already_resolved', duplicate, null, [], null, 0, 0, 'duplicate_returned', 'This revised-credit action was already resolved with this idempotency key.', [
+      'Duplicate lower-cost resolution request returned the existing action.',
+    ], { requiresNewEstimateOrPlan: true })
+  }
+  const state = validateActionRequired(action as CreditRevisionActionRecord)
+  if (!state.ok) return actionResolutionResponse(state.status, action as CreditRevisionActionRecord, null, [], null, 0, 0, 'not_created', state.message, state.warnings)
+
+  const resolved = resolveAction(action as CreditRevisionActionRecord, {
+    status: 'lower_cost_selected',
+    selectedOptionId: input.selectedOptionId,
+    resolvedByUserId: input.selectedByUserId,
+    resolutionIdempotencyKey: input.idempotencyKey,
+    resolutionMetadata: input.metadata ?? {},
+  })
+
+  return actionResolutionResponse('lower_cost_selected', resolved, null, [], null, 0, 0, 'created', 'Lower-cost option selected. Build a new lower-cost plan or estimate before paid work continues.', [
+    'No additional credits were reserved.',
+    'The original paid tool does not automatically resume after choosing a lower-cost option.',
+  ], { requiresNewEstimateOrPlan: true })
+}
+
+export function cancelCreditRevisionAction(
+  store: MockCreditDataStore,
+  input: CancelCreditRevisionActionRequest,
+): CreditRevisionActionResolutionResponse {
+  const action = getCreditRevisionAction(store, input.creditRevisionActionId)
+  const validation = validateResolvableAction(action, input.workspaceId, input.projectId, 'cancel-extra-work')
+  if (!validation.ok) return actionResolutionResponse(validation.status, action ?? null, null, [], null, 0, 0, 'not_created', validation.message, validation.warnings)
+
+  const duplicate = duplicateResolution(action as CreditRevisionActionRecord, input.idempotencyKey)
+  if (duplicate) {
+    return actionResolutionResponse('already_resolved', duplicate, null, [], null, 0, 0, 'duplicate_returned', 'This revised-credit action was already resolved with this idempotency key.', [
+      'Duplicate cancellation request returned the existing action.',
+    ], { extraWorkCancelled: true })
+  }
+  const state = validateActionRequired(action as CreditRevisionActionRecord)
+  if (!state.ok) return actionResolutionResponse(state.status, action as CreditRevisionActionRecord, null, [], null, 0, 0, 'not_created', state.message, state.warnings)
+
+  const resolved = resolveAction(action as CreditRevisionActionRecord, {
+    status: 'cancelled',
+    selectedOptionId: 'cancel-extra-work',
+    resolvedByUserId: input.cancelledByUserId,
+    resolutionIdempotencyKey: input.idempotencyKey,
+    resolutionMetadata: {
+      ...(input.metadata ?? {}),
+      cancellationReason: input.cancellationReason ?? null,
+    },
+  })
+
+  return actionResolutionResponse('cancelled', resolved, null, [], null, 0, 0, 'created', 'Extra over-budget work was cancelled in mock state.', [
+    'Existing mock reservation remains unchanged.',
+    'No spend, refund, release, settlement, worker, provider, render/export, checkout/top-up, or export unlock occurred.',
+  ], { extraWorkCancelled: true })
 }
 
 export function previewCreditSettlement(
@@ -362,6 +518,206 @@ export function buildEditCreditCostSummary(
     warnings: [
       'Mock receipt summary only; no live billing, wallet mutation, reservation spend/release/refund, ledger write, or export unlock occurred.',
       ...(settlement.outstandingCredits > 0 ? ['Outstanding credits are informational only in this milestone.'] : []),
+    ],
+  }
+}
+
+function validateResolvableAction(
+  action: CreditRevisionActionRecord | undefined,
+  workspaceId: string,
+  projectId: string,
+  optionId: string,
+): {
+  ok: true
+} | {
+  ok: false
+  status: CreditRevisionActionResolutionStatus
+  message: string
+  warnings: string[]
+} {
+  if (!action) {
+    return {
+      ok: false,
+      status: 'action_not_found',
+      message: 'Credit revision action was not found.',
+      warnings: ['No mock wallet, reservation, action, worker, provider, or render mutation occurred.'],
+    }
+  }
+  if (action.workspaceId !== workspaceId || action.projectId !== projectId) {
+    return {
+      ok: false,
+      status: 'invalid_request',
+      message: 'Credit revision action scope does not match workspace or project.',
+      warnings: ['No mock wallet, reservation, action, worker, provider, or render mutation occurred.'],
+    }
+  }
+  if (!action.userOptions.some((option) => option.id === optionId)) {
+    return {
+      ok: false,
+      status: 'invalid_request',
+      message: 'Selected option is not available for this revised-credit action.',
+      warnings: ['No mock wallet, reservation, action, worker, provider, or render mutation occurred.'],
+    }
+  }
+  return { ok: true }
+}
+
+function validateActionRequired(action: CreditRevisionActionRecord): {
+  ok: true
+} | {
+  ok: false
+  status: CreditRevisionActionResolutionStatus
+  message: string
+  warnings: string[]
+} {
+  if (action.status === 'action_required') return { ok: true }
+  const resolved = action.status === 'approved' ||
+    action.status === 'lower_cost_selected' ||
+    action.status === 'cancelled' ||
+    action.status === 'resolved'
+  return {
+    ok: false,
+    status: resolved ? 'already_resolved' : 'invalid_action_state',
+    message: resolved
+      ? `Credit revision action is already resolved with status ${action.status}.`
+      : `Credit revision action status ${action.status} cannot be resolved by this route.`,
+    warnings: ['No additional mock wallet, reservation, worker, provider, or render mutation occurred.'],
+  }
+}
+
+function duplicateResolution(
+  action: CreditRevisionActionRecord,
+  idempotencyKey: string,
+): CreditRevisionActionRecord | null {
+  const metadata = action.metadata
+  return metadata?.resolutionIdempotencyKey === idempotencyKey &&
+    action.resolvedAt &&
+    (action.status === 'approved' || action.status === 'lower_cost_selected' || action.status === 'cancelled')
+    ? action
+    : null
+}
+
+function resolveAction(
+  action: CreditRevisionActionRecord,
+  input: {
+    status: Extract<CreditRevisionActionRecord['status'], 'approved' | 'lower_cost_selected' | 'cancelled'>
+    selectedOptionId: string
+    resolvedByUserId: string
+    resolutionIdempotencyKey: string
+    resolutionMetadata: JSONObject
+  },
+): CreditRevisionActionRecord {
+  const resolvedAt = nowIso()
+  action.status = input.status
+  action.selectedOptionId = input.selectedOptionId
+  action.resolvedByUserId = input.resolvedByUserId
+  action.resolvedAt = resolvedAt
+  action.updatedAt = resolvedAt
+  action.metadata = {
+    ...(action.metadata ?? {}),
+    ...input.resolutionMetadata,
+    milestone: 'RP-CREDITREVISION-01',
+    resolutionIdempotencyKey: input.resolutionIdempotencyKey,
+    resolvedStatus: input.status,
+    paidWorkStarted: false,
+    requiresRuntimeGuardRecheck: input.status === 'approved',
+    requiresNewEstimateOrPlan: input.status === 'lower_cost_selected',
+    extraWorkCancelled: input.status === 'cancelled',
+    noSpend: true,
+    noSettlement: true,
+    noProviderCall: true,
+    noRenderOrExport: true,
+  }
+  return creditRevisionActionRecordSchema.parse(action) as CreditRevisionActionRecord
+}
+
+function actionResolutionFromHold(
+  hold: ReserveAdditionalCreditsForRevisionActionResult,
+  status: CreditRevisionActionResolutionStatus,
+  action: CreditRevisionActionRecord,
+  userFacingMessage: string,
+  warnings: string[],
+  options: {
+    requiresRuntimeGuardRecheck?: boolean
+    idempotencyStatus?: CreditRevisionActionResolutionResponse['idempotencyStatus']
+  } = {},
+): CreditRevisionActionResolutionResponse {
+  return actionResolutionResponse(
+    status,
+    action,
+    hold.reservation,
+    hold.reservationLineItems,
+    hold.walletBalance,
+    hold.additionalHoldCredits,
+    hold.requiredTopUpCredits,
+    options.idempotencyStatus ?? hold.idempotencyStatus,
+    userFacingMessage,
+    warnings,
+    {
+      requiresRuntimeGuardRecheck: options.requiresRuntimeGuardRecheck ?? false,
+      walletMutated: hold.walletMutated,
+      reservationMutated: hold.reservationMutated,
+      creditsReserved: hold.walletMutated && hold.reservationMutated,
+    },
+  )
+}
+
+function actionResolutionResponse(
+  status: CreditRevisionActionResolutionStatus,
+  action: CreditRevisionActionRecord | null,
+  reservation: CreditRevisionActionResolutionResponse['reservation'],
+  reservationLineItems: CreditRevisionActionResolutionResponse['reservationLineItems'],
+  walletBalance: CreditRevisionActionResolutionResponse['walletBalance'],
+  additionalHoldCredits: number,
+  requiredTopUpCredits: number,
+  idempotencyStatus: CreditRevisionActionResolutionResponse['idempotencyStatus'],
+  userFacingMessage: string,
+  warnings: string[],
+  options: {
+    requiresRuntimeGuardRecheck?: boolean
+    requiresNewEstimateOrPlan?: boolean
+    extraWorkCancelled?: boolean
+    walletMutated?: boolean
+    reservationMutated?: boolean
+    creditsReserved?: boolean
+  } = {},
+): CreditRevisionActionResolutionResponse {
+  return {
+    status,
+    action,
+    reservation,
+    reservationLineItems,
+    walletBalance,
+    additionalHoldCredits,
+    requiredTopUpCredits,
+    idempotencyStatus,
+    requiresRuntimeGuardRecheck: options.requiresRuntimeGuardRecheck ?? false,
+    requiresNewEstimateOrPlan: options.requiresNewEstimateOrPlan ?? false,
+    extraWorkCancelled: options.extraWorkCancelled ?? false,
+    paidWorkStarted: false,
+    userFacingMessage,
+    safetyFlags: {
+      mockOnly: true,
+      paidWorkStarted: false,
+      walletMutated: options.walletMutated ?? false,
+      reservationMutated: options.reservationMutated ?? false,
+      creditsReserved: options.creditsReserved ?? false,
+      creditsSpent: false,
+      creditsReleased: false,
+      creditsRefunded: false,
+      ledgerWritten: false,
+      settlementExecuted: false,
+      providerCalled: false,
+      workerRun: false,
+      renderOrExportStarted: false,
+      exportUnlocked: false,
+      checkoutOrTopUpStarted: false,
+      supabaseWritten: false,
+      serviceFeeIncludedInToolCosts: false,
+    },
+    warnings: [
+      ...warnings,
+      'RP-CREDITREVISION-01 is mock-only; no live billing, Stripe/payment, Supabase write, production wallet mutation, ledger write, settlement, spend/release/refund, provider call, worker, render/export, checkout/top-up, or export unlock occurred.',
     ],
   }
 }

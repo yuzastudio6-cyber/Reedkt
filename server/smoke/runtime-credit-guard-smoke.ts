@@ -23,6 +23,9 @@ import {
   type MockCreditReservationStore,
 } from '../services/mock-credit-reservation-store'
 import {
+  approveCreditRevisionAction,
+  cancelCreditRevisionAction,
+  chooseLowerCostCreditRevisionOption,
   createMockCreditDataStore,
   type MockCreditDataStore,
 } from '../services/mock-credit-data-store'
@@ -164,6 +167,73 @@ const overageReplay = evaluatePaidToolRuntimeGuard(guardInput(overageScenario, {
 assert.equal(overageReplay.revisionAction?.id, overage.revisionAction?.id)
 assert.equal(overageScenario.creditDataStore.creditRevisionActions.length, 1)
 
+const approvedRevisionScenario = createScenario('approved-revision', 'opentimelineio', 1_000)
+insertExistingBillableEvent(approvedRevisionScenario, approvedRevisionScenario.reservation.reservedCredits)
+const approvedRevisionOverage = evaluatePaidToolRuntimeGuard(guardInput(approvedRevisionScenario, {
+  idempotencyKey: 'runtime-guard-approved-revision',
+}))
+assert.equal(approvedRevisionOverage.status, 'paused_projected_overage')
+const approvedRevision = approveCreditRevisionAction(
+  approvedRevisionScenario.creditDataStore,
+  approvedRevisionScenario.reservationStore,
+  {
+    workspaceId: approvedRevisionScenario.workspaceId,
+    projectId: approvedRevisionScenario.projectId,
+    creditRevisionActionId: approvedRevisionOverage.revisionAction?.id ?? '',
+    creditReservationId: approvedRevisionScenario.reservation.id,
+    approvedByUserId: 'runtime-guard-user',
+    idempotencyKey: 'runtime-guard-approved-revision-resolution',
+  },
+)
+assert.equal(approvedRevision.status, 'approved')
+const approvedRevisionReady = evaluatePaidToolRuntimeGuard(guardInput(approvedRevisionScenario, {
+  idempotencyKey: 'runtime-guard-approved-revision',
+}))
+assert.equal(approvedRevisionReady.canStart, true)
+assert.equal(approvedRevisionReady.status, 'ready')
+
+const lowerCostScenario = createScenario('lower-cost-resolution', 'opentimelineio', 1_000)
+insertExistingBillableEvent(lowerCostScenario, lowerCostScenario.reservation.reservedCredits)
+const lowerCostOverage = evaluatePaidToolRuntimeGuard(guardInput(lowerCostScenario, {
+  idempotencyKey: 'runtime-guard-lower-cost-resolution',
+}))
+assert.equal(lowerCostOverage.status, 'paused_projected_overage')
+const lowerCostResolution = chooseLowerCostCreditRevisionOption(lowerCostScenario.creditDataStore, {
+  workspaceId: lowerCostScenario.workspaceId,
+  projectId: lowerCostScenario.projectId,
+  creditRevisionActionId: lowerCostOverage.revisionAction?.id ?? '',
+  selectedOptionId: 'choose-lower-cost-option',
+  selectedByUserId: 'runtime-guard-user',
+  idempotencyKey: 'runtime-guard-lower-cost-resolution-action',
+})
+assert.equal(lowerCostResolution.status, 'lower_cost_selected')
+const lowerCostBlocked = evaluatePaidToolRuntimeGuard(guardInput(lowerCostScenario, {
+  idempotencyKey: 'runtime-guard-lower-cost-resolution',
+}))
+assert.equal(lowerCostBlocked.canStart, false)
+assert.equal(lowerCostBlocked.status, 'blocked_credit_revision_resolved')
+
+const cancelResolutionScenario = createScenario('cancel-resolution', 'opentimelineio', 1_000)
+insertExistingBillableEvent(cancelResolutionScenario, cancelResolutionScenario.reservation.reservedCredits)
+const cancelOverage = evaluatePaidToolRuntimeGuard(guardInput(cancelResolutionScenario, {
+  idempotencyKey: 'runtime-guard-cancel-resolution',
+}))
+assert.equal(cancelOverage.status, 'paused_projected_overage')
+const cancelResolution = cancelCreditRevisionAction(cancelResolutionScenario.creditDataStore, {
+  workspaceId: cancelResolutionScenario.workspaceId,
+  projectId: cancelResolutionScenario.projectId,
+  creditRevisionActionId: cancelOverage.revisionAction?.id ?? '',
+  cancelledByUserId: 'runtime-guard-user',
+  cancellationReason: 'Runtime guard smoke cancellation.',
+  idempotencyKey: 'runtime-guard-cancel-resolution-action',
+})
+assert.equal(cancelResolution.status, 'cancelled')
+const cancelBlocked = evaluatePaidToolRuntimeGuard(guardInput(cancelResolutionScenario, {
+  idempotencyKey: 'runtime-guard-cancel-resolution',
+}))
+assert.equal(cancelBlocked.canStart, false)
+assert.equal(cancelBlocked.status, 'blocked_credit_revision_resolved')
+
 resetSharedStores()
 const workerScenario = createSharedScenario('worker-overage', 'opentimelineio')
 insertExistingBillableEvent(workerScenario, workerScenario.reservation.reservedCredits)
@@ -248,6 +318,7 @@ assert.ok(renderBlocked.warnings.some((warning) => warning.includes('stopped bef
 
 const docsText = [
   'docs/runtime-credit-guard.md',
+  'docs/credit-revision-action-resolution.md',
   'docs/credit-policy.md',
   'docs/credit-reservation-max-estimate.md',
   'credit-ledger-architecture.md',
@@ -264,6 +335,7 @@ for (const phrase of [
   'no provider',
   'no render/export',
   'smoke:runtime-credit-guard',
+  'RP-CREDITREVISION-01',
 ]) {
   assert.ok(docsText.includes(phrase), `Missing runtime guard docs/package phrase: ${phrase}`)
 }
@@ -283,11 +355,11 @@ interface RuntimeGuardScenario {
   creditDataStore: MockCreditDataStore
 }
 
-function createScenario(label: string, toolId: ProductionToolId): RuntimeGuardScenario {
+function createScenario(label: string, toolId: ProductionToolId, extraAvailableCredits = 100): RuntimeGuardScenario {
   const estimateStore = createMockCreditEstimateStore()
   const reservationStore = createMockCreditReservationStore()
   const creditDataStore = createMockCreditDataStore()
-  return populateScenario(label, toolId, estimateStore, reservationStore, creditDataStore)
+  return populateScenario(label, toolId, estimateStore, reservationStore, creditDataStore, extraAvailableCredits)
 }
 
 function createSharedScenario(label: string, toolId: ProductionToolId): RuntimeGuardScenario {
@@ -300,6 +372,7 @@ function populateScenario(
   estimateStore: MockCreditEstimateStore,
   reservationStore: MockCreditReservationStore,
   creditDataStore: MockCreditDataStore,
+  extraAvailableCredits = 100,
 ): RuntimeGuardScenario {
   const workspaceId = `workspace-runtime-guard-${label}`
   const projectId = `project-runtime-guard-${label}`
@@ -325,7 +398,7 @@ function populateScenario(
   assert.ok(wallet)
   grantMockCredits(reservationStore, {
     creditWalletId: wallet.id,
-    amount: preview.summary.requiredHoldCredits + 100,
+    amount: preview.summary.requiredHoldCredits + extraAvailableCredits,
     sourceType: 'admin',
   })
   const reserved = reserveMaxEstimateCredits(reservationStore, estimateStore, {

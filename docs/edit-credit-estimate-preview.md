@@ -45,3 +45,7 @@ RP-RESERVATION-01 consumes ready estimate previews and creates a mock max-hold r
 ## RP-RUNTIME-GUARD-01 Handoff
 
 RP-RUNTIME-GUARD-01 uses the approved estimate maximum plus reserved hold as the paid-work start boundary. The guard blocks missing or unapproved estimates and pauses `projected_overage` before worker/provider/render work with "Action required: revised credit estimate needed"; it creates only an idempotent mock revision action and keeps service fee separate from tool-cost events.
+
+## RP-CREDITREVISION-01 Handoff
+
+RP-CREDITREVISION-01 resolves projected-overage actions. Approve & Continue can reserve only the additional max hold against the existing mock reservation, while Choose Lower-Cost Option and Cancel Extra Work require a future plan/estimate path or cancellation and do not resume paid work. It remains mock-only with no live billing, provider call, render/export, settlement, spend/release/refund, checkout/top-up, or export unlock.

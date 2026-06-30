@@ -193,6 +193,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts',
         'server/beta-readiness/index.ts',
         'server/beta-readiness/platform-evidence-manifest.ts',
+        'server/workers/readiness-validation/readiness-command-plan-builder.ts',
         '.gitignore beta operator env ignore lines only',
         `package.json scripts only: ${ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT.join(', ')}`,
       ],
@@ -311,6 +312,7 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/beta-readiness/beta-readiness-blocker-closeout-queue.ts' ||
     path === 'server/beta-readiness/index.ts' ||
     path === 'server/beta-readiness/platform-evidence-manifest.ts' ||
+    path === 'server/workers/readiness-validation/readiness-command-plan-builder.ts' ||
     (path === '.gitignore' && isAllowedGitignoreOperatorEnvDrift(context)) ||
     (path === 'package.json' && isAllowedPackageJsonScriptOnlyDrift(context))
 }

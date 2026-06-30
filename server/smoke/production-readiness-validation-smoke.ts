@@ -183,6 +183,8 @@ check(plans.every((plan) => plan.doesNotRun.includes('no media processing')), 'C
 check(plans.every((plan) => plan.doesNotRun.includes('no model downloads')), 'Command plans must say they do not download models.')
 check(plans.every((plan) => plan.doesNotRun.includes('no providers')), 'Command plans must say they do not call providers.')
 check(plans.every((plan) => plan.doesNotRun.includes('no deployment')), 'Command plans must say they do not deploy.')
+check(plans.every((plan) => !plan.command.includes('npm.cmd')), 'Command plans must use portable npm invocations.')
+check(plans.some((plan) => plan.id === 'static_readiness' && plan.command === 'npm run prod:readiness:summary'), 'Static readiness command must be portable.')
 
 const scripts = [
   'scripts/docker/prod/08-run-static-readiness.example.sh',

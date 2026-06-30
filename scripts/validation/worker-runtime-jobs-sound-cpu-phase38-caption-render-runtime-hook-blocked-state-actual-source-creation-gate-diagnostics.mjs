@@ -14,6 +14,12 @@ const nextPrompt =
   'WORKER_RUNTIME_JOBS-SOUND-CPU-PHASE38-CAPTION-RENDER-RUNTIME-HOOK-BLOCKED-STATE-SOURCE-OWNER-REVIEW'
 const packageScript =
   'worker-runtime-jobs:sound-cpu-phase38-caption-render-runtime-hook-blocked-state-actual-source-creation-gate:diagnostics'
+const phase40ResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-phase40-caption-render-runtime-hook-blocked-state-index-export-source-gate.md'
+const phase40ResultLabel =
+  'worker-runtime-jobs-sound-cpu-phase40-caption-render-runtime-hook-blocked-state-index-export-source-gate-result'
+const phase40Decision =
+  'worker_runtime_jobs_sound_cpu_phase40_caption_render_runtime_hook_blocked_state_index_export_source_gate_completed_with_warnings_ready_for_static_import_proof_no_media_no_artifacts'
 
 const docs = [
   [
@@ -244,7 +250,16 @@ for (const forbidden of [
 }
 
 const indexText = readText(indexPath)
-assert(!indexText.includes('soundCpuOcrCaptionRenderSafeZoneRuntimeIntegration'), 'Index must not export runtime integration source yet')
+if (fs.existsSync(path.join(repoRoot, phase40ResultPath))) {
+  const phase40Result = parseJsonBlock(phase40ResultPath, phase40ResultLabel)
+  assert(phase40Result.decision === phase40Decision, 'Phase 40 result decision mismatch')
+  assert(
+    indexText.includes('soundCpuOcrCaptionRenderSafeZoneRuntimeIntegration'),
+    'Index must export runtime integration source after Phase 40',
+  )
+} else {
+  assert(!indexText.includes('soundCpuOcrCaptionRenderSafeZoneRuntimeIntegration'), 'Index must not export runtime integration source yet')
+}
 
 const packageJson = JSON.parse(readText('package.json'))
 assert(packageJson.scripts?.[packageScript], 'Package script missing')

@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required',
-  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke execution plan blocker.',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required',
+  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke execution approval blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -199,8 +199,11 @@ check(
     docText.includes(
       'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required',
     ) ||
+    docText.includes(
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required',
+    ) ||
     data.privateInvokeClient.currentStatus ===
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -358,9 +361,9 @@ check(
     docText.includes('The storage upload pipeline storage.objects policy-comment baseline fix is now recorded') &&
     docText.includes('Retry 15 verified the active local baseline') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DG-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-EXECUTION-PLAN',
+      'QWEN2_5_VL_STACK_TOOL_58DH-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-EXECUTION-APPROVAL',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke execution plan blocker.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, and controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke execution approval blocker.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

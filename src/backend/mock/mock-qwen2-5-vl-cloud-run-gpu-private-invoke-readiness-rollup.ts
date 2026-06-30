@@ -113,6 +113,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_P
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_IMPLEMENTATION } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-implementation'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_READINESS_REVIEW } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-readiness-review'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_EXECUTION_PLAN } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-invoke-execution-plan'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -231,6 +232,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -247,7 +249,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -480,6 +482,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInvokeReadinessReviewDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_READINESS_REVIEW.decision,
+  upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInvokeExecutionPlanDecision:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INVOKE_EXECUTION_PLAN.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -1905,14 +1909,27 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan',
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke execution plan',
-      status:
-        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required',
+      status: 'ready',
       evidence: [
         'The 58DF readiness review is accepted for one future bounded execution plan only.',
+        'The 58DG execution plan records one bounded approved-fixture private invoke through the persisted job and lease bridge.',
+        'The plan defines approved fixture selection, approved snapshot binding, persisted job refs, idempotency, lease claim, sanitized event, worker claim, private invoke transport, Cloud Run L4 request, Qwen runtime boundary, response schema handling, QA/audit/cost/credit, and cleanup/rollback/retry evidence.',
+        'No private invoke request, model import, model load, vLLM initialization, forward pass, inference, generated asset, Supabase mutation, signed URL, public artifact, credit mutation, beta, or production unlock occurs now.',
+      ],
+      missingEvidence: [],
+    },
+    {
+      id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval',
+      label:
+        'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke execution approval',
+      status:
+        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required',
+      evidence: [
+        'The 58DG execution plan is recorded and keeps every runtime side-effect gate false.',
         'No private invoke request, model import, model load, vLLM initialization, forward pass, inference, generated asset, Supabase mutation, signed URL, public artifact, credit mutation, beta, or production unlock occurs now.',
       ],
       missingEvidence: [
-        'Record one bounded approved-fixture private invoke execution plan through the persisted job and lease bridge before any later private invoke attempt.',
+        'Record an explicit execution approval before any later private invoke preflight or attempt.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2505,10 +2522,14 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     approvedFixturePrivateInvokeReadinessReviewRequired: false,
     approvedFixturePrivateInvokeReadinessReviewRecorded: true,
     approvedFixturePrivateInvokeReadinessReviewAccepted: true,
-    approvedFixturePrivateInvokeExecutionPlanRequired: true,
-    approvedFixturePrivateInvokeExecutionPlanRecorded: false,
-    approvedFixturePrivateInvokeExecutionPlanAccepted: false,
+    approvedFixturePrivateInvokeExecutionPlanRequired: false,
+    approvedFixturePrivateInvokeExecutionPlanRecorded: true,
+    approvedFixturePrivateInvokeExecutionPlanAccepted: true,
+    approvedFixturePrivateInvokeExecutionApprovalRequired: true,
+    approvedFixturePrivateInvokeExecutionApprovalRecorded: false,
+    approvedFixturePrivateInvokeExecutionApprovalAccepted: false,
     readyForApprovedFixturePrivateInvokeExecutionPlanning: true,
+    readyForApprovedFixturePrivateInvokeExecutionApproval: true,
     approvedSnapshotAndFixtureScopeReadinessAccepted: true,
     persistedWorkerDispatchRefsReadinessAccepted: true,
     privateSourceOfTruthRefsReadinessAccepted: true,
@@ -2665,11 +2686,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_plan_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_execution_approval_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DG-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-EXECUTION-PLAN: plan one bounded approved-fixture private invoke through the persisted job and lease bridge, no inference/no generated assets/no beta',
+    'QWEN2_5_VL_STACK_TOOL_58DH-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-EXECUTION-APPROVAL: approve one bounded approved-fixture private invoke execution plan through the persisted job and lease bridge, no Cloud Run invocation/no inference/no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

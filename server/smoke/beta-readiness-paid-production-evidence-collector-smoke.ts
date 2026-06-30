@@ -18,6 +18,10 @@ const baseEnv: BetaReadinessPaidProductionEvidenceCollectorEnv = {
   REEDITPRO_BETA_PAID_PRODUCTION_CONFIRM_EVIDENCE_SEQUENCE: 'true',
   REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE: 'true',
   REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY: 'true',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF: 'true',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX: 'paid-production-agent-route-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID: 'approved-snapshot-paid-production-agent-route-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX: 'tool-exec-paid-production-agent-route-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'paid-production-tools-core-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'paid-production-tools-libass-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'paid-production-tools-smoke',
@@ -30,7 +34,7 @@ const baseEnv: BetaReadinessPaidProductionEvidenceCollectorEnv = {
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '2',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '16',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE: 'host',
   REEDITPRO_READINESS_PYTHON_BIN: findPythonPath(),
   REEDITPRO_BETA_PLATFORM_SOURCE_ID: 'paid-production-platform-smoke',
@@ -101,19 +105,24 @@ const calls: Array<{ url: string; method: string; idempotencyKey?: string; body?
 const result = await runBetaReadinessPaidProductionEvidenceCollectorFromEnv(baseEnv, fakeFetch(calls, true), fakeLibassRunner())
 assert.equal(result.ok, true, 'paid-production collector should pass after external, scope, and final paid-production readbacks pass')
 assert.equal(result.steps.externalBetaEvidence.readinessRequirements.finalExternalBetaReady, true, 'external beta collector should prove external beta readiness')
+assert.equal(result.steps.externalBetaEvidence.steps.agentRouteProof.routeProofToolCount, 16, 'external beta collector should prove all 16 Track B route contracts before paid-production scope evidence')
+assert.equal(result.steps.externalBetaEvidence.steps.toolEvidence.readbackRequirements.readbackProductReadyLocalOssCount, 16, 'external beta collector should prove product-ready deployed readback 16 before paid-production scope evidence')
 assert.equal(result.steps.scopeApprovals.readinessRequirements.finalPaidProductionReady, true, 'scope sequence should prove paid-production readiness')
 assert.equal(result.readinessRequirements.finalExternalBetaReady, true, 'final status should preserve external beta readiness')
 assert.equal(result.readinessRequirements.finalRealUserMediaBetaReady, true, 'final status should preserve real-user-media beta readiness')
 assert.equal(result.readinessRequirements.finalPaidProductionReady, true, 'final status should preserve paid-production readiness')
 assert.equal(JSON.stringify(result).includes('paid-production-secret-token'), false, 'summary must not include bearer token')
-assert.equal(calls.length, 12, 'collector should run external-beta collector, scope sequence, then final status readback')
-assert.equal(calls[0]?.idempotencyKey, 'paid-production-tools-core-smoke')
-assert.equal(calls[1]?.idempotencyKey, 'paid-production-tools-libass-smoke')
-assert.equal(calls[3]?.idempotencyKey, 'paid-production-platform-smoke')
-assert.equal(calls[4]?.idempotencyKey, 'paid-production-launch-smoke')
-assert.equal(calls[7]?.idempotencyKey, 'paid-production-real-user-smoke')
-assert.equal(calls[9]?.idempotencyKey, 'paid-production-paid-production-smoke')
-assert.equal(calls[11]?.method, 'GET', 'last call should be the final operator-status readback')
+const routeProofCalls = calls.filter((call) => call.url.endsWith('/v1/agent-tools/trackb/execute'))
+assert.equal(calls.length, 28, 'collector should run external-beta route/product evidence, scope sequence, then final status readback')
+assert.equal(routeProofCalls.length, 16, 'paid-production wrapper should inherit all 16 Track B route proof calls')
+assert.equal(routeProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
+assert.equal(calls[16]?.idempotencyKey, 'paid-production-tools-core-smoke')
+assert.equal(calls[17]?.idempotencyKey, 'paid-production-tools-libass-smoke')
+assert.equal(calls[19]?.idempotencyKey, 'paid-production-platform-smoke')
+assert.equal(calls[20]?.idempotencyKey, 'paid-production-launch-smoke')
+assert.equal(calls[23]?.idempotencyKey, 'paid-production-real-user-smoke')
+assert.equal(calls[25]?.idempotencyKey, 'paid-production-paid-production-smoke')
+assert.equal(calls[27]?.method, 'GET', 'last call should be the final operator-status readback')
 
 await assert.rejects(
   () => runBetaReadinessPaidProductionEvidenceCollectorFromEnv(baseEnv, fakeFetch([], false), fakeLibassRunner()),
@@ -146,16 +155,35 @@ function fakeFetch(
     const body = init.body ? JSON.parse(init.body) as Record<string, unknown> : undefined
     calls.push({ url, method: init.method, idempotencyKey: init.headers['idempotency-key'], body })
 
+    if (init.method === 'POST' && url.endsWith('/v1/agent-tools/trackb/execute')) {
+      return jsonResponse(202, {
+        ok: true,
+        data: {
+          trackBAgentToolExecution: {
+            status: 'completed',
+            decision: 'trackb_agent_tool_execution_completed_mock_safe',
+            liveExecutionReady: false,
+            workerPayload: body?.mode === 'mock_safe_worker_dispatch'
+              ? { executionMode: 'mock_safe_worker_dispatch' }
+              : undefined,
+            previewBoundary: body?.mode === 'frontend_preview_boundary'
+              ? { workerDispatchSkipped: true }
+              : undefined,
+          },
+        },
+      })
+    }
+
     if (init.method === 'POST' && url.endsWith('/v1/beta-readiness/evidence/core-real-check')) {
       return jsonResponse(201, {
         ok: true,
         data: {
-          acceptedToolEvidence: [{ toolId: 'hyperframe' }],
+          acceptedToolEvidence: [{ toolId: 'hyperframe', productReadyLocalOss: true }],
           skippedToolResults: [],
           readinessSummary: { totalSpecs: 1, statuses: { passed: 1 } },
           report: {
             toolExecutionReadiness: {
-              productReadyLocalOssCount: 1,
+              productReadyLocalOssCount: 16,
               externalBetaToolExecutionAllowed: false,
               productionToolExecutionAllowed: false,
               blockers: [],
@@ -259,7 +287,7 @@ function operatorStatusResponse(status: {
             workspaceId: 'workspace-paid-production-collector-smoke',
             evidencePacketCount: 6,
             currentGate: {
-              productReadyLocalOssCount: 2,
+              productReadyLocalOssCount: 16,
               externalBetaToolExecutionAllowed: status.readyForExternalBeta,
               productionToolExecutionAllowed: status.readyForPaidProduction,
               blockedActionScope: status.readyForPaidProduction ? [] : ['paid_production_launch'],
@@ -296,7 +324,7 @@ function genericEvidenceResponse(goNoGo: {
           report: {
             goNoGo,
             toolExecutionReadiness: {
-              productReadyLocalOssCount: 2,
+              productReadyLocalOssCount: 16,
               externalBetaToolExecutionAllowed: goNoGo.externalBetaAllowed,
               productionToolExecutionAllowed: goNoGo.paidProductionAllowed,
             },

@@ -402,12 +402,25 @@ function checkRunbookPacket(packet, label) {
   checkBooleans(packet, label)
 }
 
+function checkLiveCommandTemplate(command, label) {
+  for (const flag of [
+    '--external-beta-service-role-queue-smoke-authorization-packet',
+    '--route-bound-service-role-queue-smoke-operator-preflight-packet',
+    '--service-role-queue-smoke-readiness-ref',
+    '--runtime-queue-service-proof-bridge-ref',
+    '--source-runtime-queue-service-proof-bridge-accepted',
+  ]) {
+    if (!command?.includes(flag)) fail(`${label}:command_missing_flag:${flag}`)
+  }
+}
+
 function checkEvaluatorReport(report) {
   if (report.decision !== decision) fail('evaluator:bad_decision')
   if (report.status !== acceptedStatus) fail('evaluator:bad_status')
   if (report.rejectionReasons?.length) {
     fail(`evaluator:unexpected_rejections:${report.rejectionReasons.join('|')}`)
   }
+  checkLiveCommandTemplate(report.executeCommandTemplate, 'evaluator')
   const items = report.routeBoundServiceRoleQueueSmokeRunbookToolItems ?? []
   if (items.length !== 21) fail('evaluator:expected_21_runbook_items')
   const itemTools = items.map((item) => item.toolId)

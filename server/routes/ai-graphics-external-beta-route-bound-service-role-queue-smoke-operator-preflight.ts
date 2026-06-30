@@ -435,7 +435,7 @@ export function evaluateAiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeOpe
     },
     operatorPreflightPolicy,
     futureExecutionCommandTemplate:
-      'future-only: npm run --silent ai-graphics:external-beta-service-role-queue-smoke -- --execute-external-beta-service-role-queue-smoke --workspace-id <workspace-id> --project-id <project-id> --approved-plan-snapshot-id <approved-plan-snapshot-id> --credit-reservation-id <credit-reservation-id> --idempotency-prefix <unique-route-bound-smoke-prefix> --external-beta-service-role-queue-smoke-authorization-packet <accepted-authorization-packet.json> --service-role-queue-smoke-readiness-ref <accepted-readiness-ref> --runtime-queue-service-proof-bridge-ref <accepted-runtime-queue-service-proof-bridge-ref> --source-runtime-queue-service-proof-bridge-accepted',
+      'future-only: npm run --silent ai-graphics:external-beta-service-role-queue-smoke -- --execute-external-beta-service-role-queue-smoke --workspace-id <workspace-id> --project-id <project-id> --approved-plan-snapshot-id <approved-plan-snapshot-id> --credit-reservation-id <credit-reservation-id> --idempotency-prefix <unique-route-bound-smoke-prefix> --external-beta-service-role-queue-smoke-authorization-packet <accepted-authorization-packet.json> --route-bound-service-role-queue-smoke-operator-preflight-packet <accepted-operator-preflight-packet.json> --service-role-queue-smoke-readiness-ref <accepted-readiness-ref> --runtime-queue-service-proof-bridge-ref <accepted-runtime-queue-service-proof-bridge-ref> --source-runtime-queue-service-proof-bridge-accepted',
     allowedPreflightActions,
     blockedRuntimeActions,
     nextMilestones,

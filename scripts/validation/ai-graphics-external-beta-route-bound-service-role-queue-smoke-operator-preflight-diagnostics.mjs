@@ -347,6 +347,18 @@ function checkPacket(packet, label) {
   checkBooleans(packet, label)
 }
 
+function checkLiveCommandTemplate(command, label) {
+  for (const flag of [
+    '--external-beta-service-role-queue-smoke-authorization-packet',
+    '--route-bound-service-role-queue-smoke-operator-preflight-packet',
+    '--service-role-queue-smoke-readiness-ref',
+    '--runtime-queue-service-proof-bridge-ref',
+    '--source-runtime-queue-service-proof-bridge-accepted',
+  ]) {
+    if (!command?.includes(flag)) fail(`${label}:command_missing_flag:${flag}`)
+  }
+}
+
 function checkEvaluatorReport(report) {
   if (report.decision !== decision) fail('evaluator:bad_decision')
   if (report.status !== acceptedStatus) fail('evaluator:bad_status')
@@ -364,6 +376,7 @@ function checkEvaluatorReport(report) {
   if (report.missingOperatorFlags?.length) {
     fail(`evaluator:missing_flags:${report.missingOperatorFlags.join('|')}`)
   }
+  checkLiveCommandTemplate(report.futureExecutionCommandTemplate, 'evaluator')
   checkCounts(report, 'evaluator')
   checkBooleans(report, 'evaluator')
 }

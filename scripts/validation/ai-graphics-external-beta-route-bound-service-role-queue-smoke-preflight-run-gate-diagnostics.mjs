@@ -379,6 +379,17 @@ function checkCandidates(packet, label) {
     if (candidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== gpuAllowed) {
       fail(`${label}:bad_gpu_allowed:${toolId}`)
     }
+    for (const flag of [
+      '--external-beta-service-role-queue-smoke-authorization-packet',
+      '--route-bound-service-role-queue-smoke-operator-preflight-packet',
+      '--service-role-queue-smoke-readiness-ref',
+      '--runtime-queue-service-proof-bridge-ref',
+      '--source-runtime-queue-service-proof-bridge-accepted',
+    ]) {
+      if (!candidate.executeCommandTemplate?.includes(flag)) {
+        fail(`${label}:candidate_command_missing_flag:${toolId}:${flag}`)
+      }
+    }
     for (const key of [
       'gpuRuntimeShouldStartNow',
       'apiRouteMountedNow',

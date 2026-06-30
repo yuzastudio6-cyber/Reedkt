@@ -224,8 +224,8 @@ function buildBatches(
       ],
       nextCommands: [
         'npm run beta:tools:core-real-check-preview -- --env-template',
-        'npm run beta:tools:core-real-check-preview',
-        'npm run beta:tools:core-real-check-preview:hydrated',
+        'npm run beta:tools:core-real-check-preview -- --local-defaults',
+        'npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults',
         'npm run beta:tools:local-accepted-evidence-bundle',
       ],
       blockedUntil: [

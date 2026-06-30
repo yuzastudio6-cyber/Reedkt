@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { PRODUCTION_TOOL_IDS, type ProductionToolId } from '../tool-registry'
 import {
   buildCoreRealCheckEvidencePacket,
@@ -8,6 +9,7 @@ import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
 const TEMPLATE_DECISION = 'beta_tools_core_real_check_preview_template_passed_ready_for_local_operator_preview'
 const NON_SECRET_PLACEHOLDER = '<operator supplied non-secret value>'
+const LOCAL_DEFAULT_SOURCE_ID = 'beta-tools-core-real-check-local-defaults'
 
 export interface BetaToolsCoreRealCheckPreviewEnv {
   REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID?: string
@@ -24,6 +26,11 @@ export interface BetaToolsCoreRealCheckPreviewEnv {
   REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE?: string
   REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE?: string
+}
+
+export interface BetaToolsCoreRealCheckPreviewOptions {
+  localDefaults?: boolean
+  sourceSha?: string
 }
 
 export interface BetaToolsCoreRealCheckPreviewTemplateReport {
@@ -68,6 +75,8 @@ export interface BetaToolsCoreRealCheckPreviewReport {
   readinessSummary: CoreRealCheckEvidenceResult['readinessResult']['summary']
   coreToolReadinessReport: NonNullable<CoreRealCheckEvidenceResult['readinessResult']['coreToolReadiness']>['report'] | undefined
   requestedToolIds: ProductionToolId[]
+  localDefaultsApplied: boolean
+  localDefaultedInputNames: string[]
   missingConfiguration: string[]
   confirmationGaps: string[]
   invalidToolIds: string[]
@@ -98,9 +107,13 @@ export function buildBetaToolsCoreRealCheckPreviewTemplate(): BetaToolsCoreRealC
     '# Run after filling values:',
     '# npm run beta:tools:core-real-check-preview',
     '',
+    '# No-secret local bounded preview shortcut; fills only non-secret local IDs, current git SHA,',
+    '# bounded-accepted confirmations, and product-ready=false:',
+    '# npm run beta:tools:core-real-check-preview -- --local-defaults',
+    '',
     '# For Python-backed core tools, hydrate the gitignored readiness venv first:',
     '# npm run tools:readiness:install-core-python',
-    '# npm run beta:tools:core-real-check-preview:hydrated',
+    '# npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults',
   ].join('\n')
 
   return {
@@ -119,8 +132,10 @@ export function buildBetaToolsCoreRealCheckPreviewTemplate(): BetaToolsCoreRealC
     },
     envTemplate,
     recommendedCommands: [
+      'npm run beta:tools:core-real-check-preview -- --local-defaults',
       'npm run beta:tools:core-real-check-preview',
       'npm run tools:readiness:install-core-python',
+      'npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults',
       'npm run beta:tools:core-real-check-preview:hydrated',
       'npm run beta:tools:local-accepted-evidence-bundle',
     ],
@@ -173,30 +188,33 @@ export function renderBetaToolsCoreRealCheckPreviewTemplateMarkdown(report: Beta
 
 export function runBetaToolsCoreRealCheckPreview(
   env: BetaToolsCoreRealCheckPreviewEnv,
+  options: BetaToolsCoreRealCheckPreviewOptions = {},
 ): BetaToolsCoreRealCheckPreviewReport {
-  const missingConfiguration = missingRequiredConfiguration(env)
-  const invalidToolIds = findInvalidToolIds(env.REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS)
-  const acceptBoundedAcceptedEvidence = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE)
-  const acceptProductionReadiness = effectiveProductionReadinessAcceptance(env)
-  const acceptProductReadyLocalOss = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS)
-  const requireAcceptedEvidence = parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE)
+  const localDefaults = applyLocalDefaults(env, options)
+  const previewEnv = localDefaults.env
+  const missingConfiguration = missingRequiredConfiguration(previewEnv)
+  const invalidToolIds = findInvalidToolIds(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS)
+  const acceptBoundedAcceptedEvidence = parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE)
+  const acceptProductionReadiness = effectiveProductionReadinessAcceptance(previewEnv)
+  const acceptProductReadyLocalOss = parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS)
+  const requireAcceptedEvidence = parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE)
   const confirmationGaps = [
-    ...(parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS) && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE)
+    ...(parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCTION_READINESS) && !parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE)
       ? ['REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true is required when previewing production-readiness acceptance.']
       : []),
-    ...(acceptBoundedAcceptedEvidence && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE)
+    ...(acceptBoundedAcceptedEvidence && !parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE)
       ? ['REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true is required when previewing bounded accepted evidence.']
       : []),
-    ...(acceptProductReadyLocalOss && !parseBoolean(env.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)
+    ...(acceptProductReadyLocalOss && !parseBoolean(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)
       ? ['REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true is required when previewing product-ready local OSS acceptance.']
       : []),
   ]
   const secretLikeInputPaths = collectSecretLikePaths({
-    workspaceId: env.REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID,
-    projectId: env.REEDITPRO_BETA_TOOLS_PREVIEW_PROJECT_ID,
-    sourceId: env.REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_ID,
-    sourceSha: env.REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_SHA,
-    notes: env.REEDITPRO_BETA_TOOLS_PREVIEW_NOTES,
+    workspaceId: previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID,
+    projectId: previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_PROJECT_ID,
+    sourceId: previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_ID,
+    sourceSha: previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_SHA,
+    notes: previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_NOTES,
   }, 'betaToolsCoreRealCheckPreview')
 
   if (
@@ -210,11 +228,13 @@ export function runBetaToolsCoreRealCheckPreview(
       confirmationGaps,
       invalidToolIds,
       secretLikeInputPaths,
-      requestedToolIds: parseKnownToolIds(env.REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS),
+      requestedToolIds: parseKnownToolIds(previewEnv.REEDITPRO_BETA_TOOLS_PREVIEW_TOOL_IDS),
+      localDefaultsApplied: localDefaults.applied,
+      localDefaultedInputNames: localDefaults.inputNames,
     })
   }
 
-  const input = buildPreviewInput(env)
+  const input = buildPreviewInput(previewEnv)
   const result = buildCoreRealCheckEvidencePacket(input)
   const acceptedToolIds = result.acceptedToolEvidence.map((record) => record.toolId as ProductionToolId)
   const readyToRecordAcceptedEvidence = result.acceptedToolEvidence.length > 0 &&
@@ -231,6 +251,8 @@ export function runBetaToolsCoreRealCheckPreview(
         confirmationGaps,
         invalidToolIds,
         secretLikeInputPaths,
+        localDefaultsApplied: localDefaults.applied,
+        localDefaultedInputNames: localDefaults.inputNames,
       }),
       warnings: [
         ...previewWarnings(),
@@ -245,6 +267,8 @@ export function runBetaToolsCoreRealCheckPreview(
     confirmationGaps,
     invalidToolIds,
     secretLikeInputPaths,
+    localDefaultsApplied: localDefaults.applied,
+    localDefaultedInputNames: localDefaults.inputNames,
   })
 }
 
@@ -271,6 +295,8 @@ function buildPreviewReport(
   requestedToolIds: ProductionToolId[],
   options: {
     readyToRecordAcceptedEvidence: boolean
+    localDefaultsApplied: boolean
+    localDefaultedInputNames: string[]
     missingConfiguration: string[]
     confirmationGaps: string[]
     invalidToolIds: string[]
@@ -294,6 +320,8 @@ function buildPreviewReport(
     readinessSummary: result.readinessResult.summary,
     coreToolReadinessReport: result.readinessResult.coreToolReadiness?.report,
     requestedToolIds,
+    localDefaultsApplied: options.localDefaultsApplied,
+    localDefaultedInputNames: options.localDefaultedInputNames,
     missingConfiguration: options.missingConfiguration,
     confirmationGaps: options.confirmationGaps,
     invalidToolIds: options.invalidToolIds,
@@ -308,6 +336,8 @@ function emptyBlockedPreviewReport(options: {
   invalidToolIds: string[]
   secretLikeInputPaths: string[]
   requestedToolIds: ProductionToolId[]
+  localDefaultsApplied: boolean
+  localDefaultedInputNames: string[]
 }): BetaToolsCoreRealCheckPreviewReport {
   return {
     ok: false,
@@ -341,11 +371,76 @@ function emptyBlockedPreviewReport(options: {
     },
     coreToolReadinessReport: undefined,
     requestedToolIds: options.requestedToolIds,
+    localDefaultsApplied: options.localDefaultsApplied,
+    localDefaultedInputNames: options.localDefaultedInputNames,
     missingConfiguration: options.missingConfiguration,
     confirmationGaps: options.confirmationGaps,
     invalidToolIds: options.invalidToolIds,
     secretLikeInputPaths: options.secretLikeInputPaths,
     warnings: previewWarnings(),
+  }
+}
+
+function applyLocalDefaults(
+  env: BetaToolsCoreRealCheckPreviewEnv,
+  options: BetaToolsCoreRealCheckPreviewOptions,
+): {
+  env: BetaToolsCoreRealCheckPreviewEnv
+  applied: boolean
+  inputNames: string[]
+} {
+  if (options.localDefaults !== true) {
+    return {
+      env,
+      applied: false,
+      inputNames: [],
+    }
+  }
+
+  const next: BetaToolsCoreRealCheckPreviewEnv = { ...env }
+  const inputNames: string[] = []
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID', 'local-bounded-preview-workspace')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_PROJECT_ID', 'local-bounded-preview-project')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_ID', LOCAL_DEFAULT_SOURCE_ID)
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_SHA', clean(options.sourceSha) ?? resolveCurrentGitSha())
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_NOTES', 'Local no-secret bounded accepted evidence preview; no backend evidence recorded.')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_INCLUDE_WARNINGS', 'false')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE', 'true')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE', 'true')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_ACCEPT_PRODUCT_READY_LOCAL_OSS', 'false')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE', 'true')
+
+  return {
+    env: next,
+    applied: true,
+    inputNames,
+  }
+}
+
+function setDefault(
+  env: BetaToolsCoreRealCheckPreviewEnv,
+  inputNames: string[],
+  name: keyof BetaToolsCoreRealCheckPreviewEnv,
+  value: string | undefined,
+): void {
+  if (clean(env[name])) return
+  if (!clean(value)) return
+  env[name] = value
+  inputNames.push(name)
+}
+
+function resolveCurrentGitSha(): string | undefined {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+      },
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return undefined
   }
 }
 
@@ -426,7 +521,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else if (process.argv.includes('--template-markdown')) {
     console.log(renderBetaToolsCoreRealCheckPreviewTemplateMarkdown(buildBetaToolsCoreRealCheckPreviewTemplate()))
   } else {
-    const report = runBetaToolsCoreRealCheckPreview(process.env)
+    const report = runBetaToolsCoreRealCheckPreview(process.env, {
+      localDefaults: process.argv.includes('--local-defaults'),
+    })
     console.log(JSON.stringify(report, null, 2))
     if (!report.readyToRecordAcceptedEvidence) {
       process.exitCode = 1

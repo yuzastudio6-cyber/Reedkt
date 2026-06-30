@@ -3,6 +3,7 @@ import { delimiter, resolve } from 'node:path'
 import {
   runBetaToolsCoreRealCheckPreview,
   type BetaToolsCoreRealCheckPreviewEnv,
+  type BetaToolsCoreRealCheckPreviewOptions,
   type BetaToolsCoreRealCheckPreviewReport,
 } from './beta-tools-core-real-check-preview'
 
@@ -25,8 +26,11 @@ export interface BetaToolsCoreRealCheckHydratedPreviewReport {
   warnings: string[]
 }
 
+export interface BetaToolsCoreRealCheckHydratedPreviewOptions extends BetaToolsCoreRealCheckPreviewOptions {}
+
 export function runBetaToolsCoreRealCheckHydratedPreview(
   env: BetaToolsCoreRealCheckHydratedPreviewEnv,
+  options: BetaToolsCoreRealCheckHydratedPreviewOptions = {},
 ): BetaToolsCoreRealCheckHydratedPreviewReport {
   const hydratedPython = resolveHydratedPython(env)
   const readinessBin = resolveReadinessBin(env)
@@ -58,7 +62,7 @@ export function runBetaToolsCoreRealCheckHydratedPreview(
       : readinessBin.path
   }
   try {
-    const previewReport = runBetaToolsCoreRealCheckPreview(env)
+    const previewReport = runBetaToolsCoreRealCheckPreview(env, options)
     return {
       ok: previewReport.ok,
       previewOnly: true,
@@ -132,7 +136,9 @@ function clean(value: string | undefined): string | undefined {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const report = runBetaToolsCoreRealCheckHydratedPreview(process.env)
+  const report = runBetaToolsCoreRealCheckHydratedPreview(process.env, {
+    localDefaults: process.argv.includes('--local-defaults'),
+  })
   console.log(JSON.stringify(report, null, 2))
   if (!report.ok) {
     process.exitCode = 1

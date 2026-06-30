@@ -24,6 +24,9 @@ assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_AC
 assert.ok(template.envTemplate.includes('REEDITPRO_BETA_TOOLS_PREVIEW_INCLUDE_WARNINGS="false"'))
 assert.ok(template.envTemplate.includes('Warning-status tools such as libass are handled by their separate QA/bundle lane'))
 assert.ok(template.envTemplate.includes('npm run beta:tools:core-real-check-preview'))
+assert.ok(template.envTemplate.includes('npm run beta:tools:core-real-check-preview -- --local-defaults'))
+assert.ok(template.envTemplate.includes('npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults'))
+assert.ok(template.recommendedCommands.includes('npm run beta:tools:core-real-check-preview -- --local-defaults'))
 assert.equal(template.envTemplate.includes('REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN'), false)
 assert.equal(template.envTemplate.includes('service_role'), false)
 assert.equal(template.envTemplate.includes('x-goog-signature='), false)
@@ -59,6 +62,8 @@ assert.equal(readyReport.missingConfiguration.length, 0, 'complete preview shoul
 assert.equal(readyReport.confirmationGaps.length, 0, 'complete preview should have no confirmation gaps')
 assert.equal(readyReport.invalidToolIds.length, 0, 'complete preview should have no invalid tools')
 assert.equal(readyReport.secretLikeInputPaths.length, 0, 'complete preview should have no secret-like inputs')
+assert.equal(readyReport.localDefaultsApplied, false, 'complete manual preview should not report local defaults')
+assert.deepEqual(readyReport.localDefaultedInputNames, [], 'complete manual preview should not default any inputs')
 assert.equal(readyReport.readinessSummary.totalSpecs, 1, 'scoped preview summary should cover one readiness spec')
 assert.ok(readyReport.coreToolReadinessReport, 'preview should include core readiness details for operator review')
 assert.ok(
@@ -77,6 +82,32 @@ assert.ok(
 assert.ok(
   noEnvReport.missingConfiguration.some((item) => item.includes('REEDITPRO_BETA_TOOLS_PREVIEW_REQUIRE_ACCEPTED_EVIDENCE')),
   'missing require-accepted flag should be named',
+)
+assert.equal(noEnvReport.localDefaultsApplied, false, 'missing env should not apply defaults unless requested')
+
+const localDefaultsReport = runBetaToolsCoreRealCheckPreview({}, {
+  localDefaults: true,
+  sourceSha: 'cccccccccccccccccccccccccccccccccccccccc',
+})
+assert.equal(localDefaultsReport.ok, true, 'local defaults preview should pass without manual env')
+assert.equal(localDefaultsReport.previewOnly, true, 'local defaults preview must remain preview-only')
+assert.equal(localDefaultsReport.readyToRecordAcceptedEvidence, true, 'local defaults preview should collect accepted evidence')
+assert.equal(localDefaultsReport.localDefaultsApplied, true, 'local defaults preview should report default application')
+assert.ok(
+  localDefaultsReport.localDefaultedInputNames.includes('REEDITPRO_BETA_TOOLS_PREVIEW_WORKSPACE_ID'),
+  'local defaults should include workspace ID',
+)
+assert.ok(
+  localDefaultsReport.localDefaultedInputNames.includes('REEDITPRO_BETA_TOOLS_PREVIEW_SOURCE_SHA'),
+  'local defaults should include source SHA',
+)
+assert.equal(localDefaultsReport.missingConfiguration.length, 0, 'local defaults preview should close required config gaps')
+assert.equal(localDefaultsReport.confirmationGaps.length, 0, 'local defaults preview should close bounded confirmation gaps')
+assert.equal(localDefaultsReport.invalidToolIds.length, 0, 'local defaults preview should not introduce invalid tools')
+assert.equal(localDefaultsReport.secretLikeInputPaths.length, 0, 'local defaults preview should not introduce secret-like values')
+assert.ok(
+  localDefaultsReport.acceptedToolCount > 0,
+  'local defaults preview should accept at least one bounded tool on the local registry',
 )
 
 const invalidToolReport = runBetaToolsCoreRealCheckPreview({
@@ -112,6 +143,7 @@ console.log(JSON.stringify({
   previewOnly: readyReport.previewOnly,
   acceptedToolIds: readyReport.acceptedToolIds,
   missingConfigurationCount: noEnvReport.missingConfiguration.length,
+  localDefaultsAcceptedToolCount: localDefaultsReport.acceptedToolCount,
   invalidToolIds: invalidToolReport.invalidToolIds,
   confirmationGapCount: confirmationGapReport.confirmationGaps.length,
   secretNotesRejected: secretNotesReport.secretLikeInputPaths.length > 0,

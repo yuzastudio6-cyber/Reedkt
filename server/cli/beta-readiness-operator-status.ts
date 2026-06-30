@@ -63,6 +63,8 @@ export interface BetaReadinessOperatorStatusReport {
     allowedForwardProgressScopes: string[]
   }
   toolEvidence: {
+    localDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview -- --local-defaults'
+    hydratedLocalDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults'
     previewCommand: 'npm run beta:tools:core-real-check-preview'
     hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated'
     hydrationSetupCommand: 'npm run tools:readiness:install-core-python'
@@ -171,6 +173,8 @@ function toolEvidenceSummary(
   report: BetaToolsCoreRealCheckEvidencePreflightReport,
 ): BetaReadinessOperatorStatusReport['toolEvidence'] {
   return {
+    localDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview -- --local-defaults',
+    hydratedLocalDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults',
     previewCommand: 'npm run beta:tools:core-real-check-preview',
     hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated',
     hydrationSetupCommand: 'npm run tools:readiness:install-core-python',
@@ -230,9 +234,9 @@ function buildNextActions(
     if (localAcceptedEvidence.readyToRecordDeployedEvidence) {
       actions.push(`Current source truth already has ${localAcceptedEvidence.locallyAcceptedToolCount} bounded accepted-proven Track B tools in ${localAcceptedEvidence.bundlePath}; do not rerun old core/libass proof lanes unless refreshing evidence for a new source SHA.`)
       actions.push('Set the REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_* deployed-staging values, including API base URL, bearer token, workspace ID, source SHA, core/libass idempotency keys, bounded accepted evidence confirmations, and REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0; then run npm run beta:tools:local-accepted-evidence-collector to record the 16-tool bundle and verify operator-status readback.')
-      actions.push('If the source SHA changes or the local bundle is intentionally refreshed, rerun npm run beta:tools:local-accepted-evidence-bundle with bounded accepted evidence confirmations before any deployed recording; product-ready local OSS must remain 0 unless a later explicit QA gate accepts product-ready scope.')
+      actions.push('If the source SHA changes or the local bundle is intentionally refreshed, run npm run beta:tools:core-real-check-preview -- --local-defaults, then npm run beta:tools:local-accepted-evidence-bundle with bounded accepted evidence confirmations before any deployed recording; product-ready local OSS must remain 0 unless a later explicit QA gate accepts product-ready scope.')
     } else {
-      actions.push('Run npm run beta:tools:core-real-check-preview with REEDITPRO_BETA_TOOLS_PREVIEW_* values to collect a local no-write blocker-reduction preview; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
+      actions.push('Run npm run beta:tools:core-real-check-preview -- --local-defaults to collect a local no-write blocker-reduction preview without operator secrets; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults. Use the manual REEDITPRO_BETA_TOOLS_PREVIEW_* values only when intentionally overriding local defaults. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* deployed evidence values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
       actions.push('For the remaining libass subtitle-filter warning, run npm run beta:tools:libass-container-proof-preflight against an approved render/tool-readiness image; this can reduce libass execution evidence without claiming product-ready caption burn-in.')
       actions.push('After libass filter proof passes, run npm run beta:tools:libass-synthetic-burnin-qa-preflight to collect synthetic-only caption burn-in/font QA evidence before product-ready local OSS acceptance is recorded.')
       actions.push('After core hydrated preview and libass synthetic QA pass, run npm run beta:tools:local-accepted-evidence-bundle to confirm the combined local accepted tool set and remaining staging gates before recording deployed evidence.')

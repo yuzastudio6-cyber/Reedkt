@@ -129,6 +129,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-owner-approval-packet.mjs',
     'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
     'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
+    'server/cli/beta-readiness-api-deployment-preflight.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
     'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
@@ -234,6 +235,7 @@ assert.equal(metadataOnly.readyForDeployedEvidenceInputManifest, true)
 assert.equal(metadataOnly.decision, 'beta_readiness_source_freshness_preflight_passed_metadata_only_source_drift')
 assert.equal(metadataOnly.sourceDriftClassification.metadataOnlySourceDriftAllowed, true)
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-owner-approval-packet.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-api-deployment-preflight.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))

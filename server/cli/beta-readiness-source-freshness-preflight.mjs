@@ -176,6 +176,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-owner-approval-packet.mjs',
         'server/cli/beta-readiness-owner-approval-intake-preflight.mjs',
         'server/cli/beta-readiness-owner-approval-collection-handoff.mjs',
+        'server/cli/beta-readiness-api-deployment-preflight.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
         'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
@@ -300,6 +301,7 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-owner-approval-packet.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-intake-preflight.mjs' ||
     path === 'server/cli/beta-readiness-owner-approval-collection-handoff.mjs' ||
+    path === 'server/cli/beta-readiness-api-deployment-preflight.ts' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
     path === 'server/cli/beta-readiness-blocker-closeout-queue.ts' ||

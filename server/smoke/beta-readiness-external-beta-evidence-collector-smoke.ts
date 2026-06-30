@@ -21,6 +21,10 @@ const baseEnv: BetaReadinessExternalBetaEvidenceCollectorEnv = {
   REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX: 'external-beta-agent-route-smoke',
   REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID: 'approved-snapshot-external-beta-agent-route-smoke',
   REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX: 'tool-exec-external-beta-agent-route-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_CREDIT_ESTIMATE_ID: 'credit-estimate-external-beta-live-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_CREDIT_RESERVATION_ID: 'credit-reservation-external-beta-live-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_APPROVED_RESERVATION_REMAINING_CREDITS: '250',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_ESTIMATED_FINAL_VIDEO_DURATION_SECONDS: '30',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'external-beta-tools-core-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'external-beta-tools-libass-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'external-beta-tools-smoke',
@@ -100,6 +104,9 @@ assert.equal(result.steps.agentRouteProof.routeProofToolCount, 16, 'collector sh
 assert.equal(result.steps.agentRouteProof.liveAgentExecutionReady, false, 'route proof must not request live execution')
 assert.equal(result.steps.toolEvidence.readbackRequirements.readbackProductReadyLocalOssCount, 16, 'collector should require product-ready deployed readback 16')
 assert.equal(result.steps.toolEvidence.toolEvidence.localBundle.locallyAcceptedToolIds.includes('libass'), true, 'collector should still run accepted tool evidence through the product-ready wrapper')
+assert.equal(result.steps.agentLiveAdmissionProof.backendLiveAdmissionToolCount, 15, 'collector should prove deployed live admission for the 15 backend Track B tools')
+assert.equal(result.steps.agentLiveAdmissionProof.frontendPreviewBoundaryToolCount, 1, 'collector should keep Hyperframe in frontend preview boundary')
+assert.equal(result.steps.agentLiveAdmissionProof.operatorReadback.productReadyLocalOssCount, 16, 'live admission proof must read back product-ready local OSS count 16 before route POSTs')
 assert.equal(result.steps.platformEvidence.evidencePacketReady, true, 'collector should require platform evidence readiness')
 assert.equal(result.steps.launchApprovalEvidence.externalBetaAllowed, true, 'collector should require launch approval readback')
 assert.equal(result.steps.finalOperatorStatus.readyForExternalBeta, true, 'collector should require final external beta readback')
@@ -110,10 +117,18 @@ assert.ok(result.remainingBlockedScopes.includes('paid_production_scope_approval
 assert.equal(JSON.stringify(result).includes('external-beta-secret-token'), false, 'summary must not include bearer token')
 
 const routeProofCalls = calls.filter((call) => call.url.endsWith('/v1/agent-tools/trackb/execute'))
-assert.equal(calls.length, 22, 'collector should run 16 route proofs, product-ready tool evidence, platform, launch, and final status')
-assert.equal(routeProofCalls.length, 16, 'collector should post all 16 Track B agent route proofs')
-assert.equal(routeProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
-assert.equal(routeProofCalls.some((call) => call.body?.mode === 'deployed_live_execution'), false)
+const safeRouteProofCalls = routeProofCalls.slice(0, 16)
+const liveAdmissionRouteCalls = routeProofCalls.slice(16)
+assert.equal(calls.length, 39, 'collector should run route proof, product-ready tool evidence, live admission proof, platform, launch, and final status')
+assert.equal(routeProofCalls.length, 32, 'collector should post all 16 route proofs and all 16 live-admission route checks')
+assert.equal(safeRouteProofCalls.length, 16, 'collector should first post all 16 mock-safe Track B route proofs')
+assert.equal(safeRouteProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
+assert.equal(safeRouteProofCalls.some((call) => call.body?.mode === 'deployed_live_execution'), false)
+assert.equal(liveAdmissionRouteCalls.length, 16, 'collector should then post all 16 Track B live-admission checks')
+assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.mode === 'deployed_live_execution'), true)
+assert.equal(liveAdmissionRouteCalls.find((call) => call.body?.toolId === 'hyperframe')?.body?.mode, 'frontend_preview_boundary')
+assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.creditEstimateId === 'credit-estimate-external-beta-live-smoke'), true)
+assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.creditReservationId === 'credit-reservation-external-beta-live-smoke'), true)
 assert.equal(calls[16]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence/core-real-check')
 assert.equal(calls[16]?.idempotencyKey, 'external-beta-tools-core-smoke')
 assert.equal(calls[16]?.body?.acceptProductionReadiness, true, 'bounded evidence should reduce production-readiness blockers')
@@ -126,11 +141,12 @@ assert.equal(
   'all-up external beta collector must record product-ready libass evidence',
 )
 assert.equal(calls[18]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
-assert.equal(calls[19]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/platform-deployed-evidence/probe')
-assert.equal(calls[19]?.idempotencyKey, 'external-beta-platform-smoke')
-assert.equal(calls[20]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
-assert.equal(calls[20]?.idempotencyKey, 'external-beta-launch-smoke')
-assert.equal(calls[21]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
+assert.equal(calls[19]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
+assert.equal(calls[36]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/platform-deployed-evidence/probe')
+assert.equal(calls[36]?.idempotencyKey, 'external-beta-platform-smoke')
+assert.equal(calls[37]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/evidence')
+assert.equal(calls[37]?.idempotencyKey, 'external-beta-launch-smoke')
+assert.equal(calls[38]?.url, 'https://api.staging.reeditpro.example/v1/beta-readiness/operator-status?workspaceId=workspace-external-beta-collector-smoke')
 
 await assert.rejects(
   () => runBetaReadinessExternalBetaEvidenceCollectorFromEnv(baseEnv, fakeFetch([], false), fakeLibassRunner()),
@@ -158,6 +174,29 @@ function fakeFetch(
     calls.push({ url, method: init.method, idempotencyKey: init.headers['idempotency-key'], body })
 
     if (init.method === 'POST' && url.endsWith('/v1/agent-tools/trackb/execute')) {
+      if (body?.mode === 'deployed_live_execution') {
+        return jsonResponse(202, {
+          ok: true,
+          data: {
+            trackBAgentToolExecution: {
+              status: 'completed',
+              decision: 'trackb_agent_tool_execution_deployed_live_execution_completed',
+              liveExecutionReady: true,
+              workerPayload: {
+                executionMode: 'production_ready',
+                creditReservationId: body.creditReservationId,
+              },
+              workerResult: {
+                status: 'completed',
+                toolCostMetadata: {
+                  serviceFeeIncluded: false,
+                  emittedEvents: [{ billableToUser: true }],
+                },
+              },
+            },
+          },
+        })
+      }
       return jsonResponse(202, {
         ok: true,
         data: {

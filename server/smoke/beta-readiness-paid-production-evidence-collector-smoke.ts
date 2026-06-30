@@ -22,6 +22,10 @@ const baseEnv: BetaReadinessPaidProductionEvidenceCollectorEnv = {
   REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX: 'paid-production-agent-route-smoke',
   REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID: 'approved-snapshot-paid-production-agent-route-smoke',
   REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX: 'tool-exec-paid-production-agent-route-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_CREDIT_ESTIMATE_ID: 'credit-estimate-paid-production-live-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_CREDIT_RESERVATION_ID: 'credit-reservation-paid-production-live-smoke',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_APPROVED_RESERVATION_REMAINING_CREDITS: '250',
+  REEDITPRO_BETA_TRACKB_AGENT_LIVE_ESTIMATED_FINAL_VIDEO_DURATION_SECONDS: '30',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY: 'paid-production-tools-core-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY: 'paid-production-tools-libass-smoke',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID: 'paid-production-tools-smoke',
@@ -107,22 +111,28 @@ assert.equal(result.ok, true, 'paid-production collector should pass after exter
 assert.equal(result.steps.externalBetaEvidence.readinessRequirements.finalExternalBetaReady, true, 'external beta collector should prove external beta readiness')
 assert.equal(result.steps.externalBetaEvidence.steps.agentRouteProof.routeProofToolCount, 16, 'external beta collector should prove all 16 Track B route contracts before paid-production scope evidence')
 assert.equal(result.steps.externalBetaEvidence.steps.toolEvidence.readbackRequirements.readbackProductReadyLocalOssCount, 16, 'external beta collector should prove product-ready deployed readback 16 before paid-production scope evidence')
+assert.equal(result.steps.externalBetaEvidence.steps.agentLiveAdmissionProof.backendLiveAdmissionToolCount, 15, 'external beta collector should prove backend live admission before paid-production scope evidence')
+assert.equal(result.steps.externalBetaEvidence.steps.agentLiveAdmissionProof.frontendPreviewBoundaryToolCount, 1, 'external beta collector should keep Hyperframe in preview boundary before paid-production scope evidence')
 assert.equal(result.steps.scopeApprovals.readinessRequirements.finalPaidProductionReady, true, 'scope sequence should prove paid-production readiness')
 assert.equal(result.readinessRequirements.finalExternalBetaReady, true, 'final status should preserve external beta readiness')
 assert.equal(result.readinessRequirements.finalRealUserMediaBetaReady, true, 'final status should preserve real-user-media beta readiness')
 assert.equal(result.readinessRequirements.finalPaidProductionReady, true, 'final status should preserve paid-production readiness')
 assert.equal(JSON.stringify(result).includes('paid-production-secret-token'), false, 'summary must not include bearer token')
 const routeProofCalls = calls.filter((call) => call.url.endsWith('/v1/agent-tools/trackb/execute'))
-assert.equal(calls.length, 28, 'collector should run external-beta route/product evidence, scope sequence, then final status readback')
-assert.equal(routeProofCalls.length, 16, 'paid-production wrapper should inherit all 16 Track B route proof calls')
-assert.equal(routeProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
+const safeRouteProofCalls = routeProofCalls.slice(0, 16)
+const liveAdmissionRouteCalls = routeProofCalls.slice(16)
+assert.equal(calls.length, 45, 'collector should run external-beta route/product/live-admission evidence, scope sequence, then final status readback')
+assert.equal(routeProofCalls.length, 32, 'paid-production wrapper should inherit all 16 route proofs and 16 live-admission checks')
+assert.equal(safeRouteProofCalls.every((call) => call.body?.mode === 'mock_safe_worker_dispatch' || call.body?.mode === 'frontend_preview_boundary'), true)
+assert.equal(liveAdmissionRouteCalls.filter((call) => call.body?.toolId !== 'hyperframe').every((call) => call.body?.mode === 'deployed_live_execution'), true)
+assert.equal(liveAdmissionRouteCalls.find((call) => call.body?.toolId === 'hyperframe')?.body?.mode, 'frontend_preview_boundary')
 assert.equal(calls[16]?.idempotencyKey, 'paid-production-tools-core-smoke')
 assert.equal(calls[17]?.idempotencyKey, 'paid-production-tools-libass-smoke')
-assert.equal(calls[19]?.idempotencyKey, 'paid-production-platform-smoke')
-assert.equal(calls[20]?.idempotencyKey, 'paid-production-launch-smoke')
-assert.equal(calls[23]?.idempotencyKey, 'paid-production-real-user-smoke')
-assert.equal(calls[25]?.idempotencyKey, 'paid-production-paid-production-smoke')
-assert.equal(calls[27]?.method, 'GET', 'last call should be the final operator-status readback')
+assert.equal(calls[36]?.idempotencyKey, 'paid-production-platform-smoke')
+assert.equal(calls[37]?.idempotencyKey, 'paid-production-launch-smoke')
+assert.equal(calls[40]?.idempotencyKey, 'paid-production-real-user-smoke')
+assert.equal(calls[42]?.idempotencyKey, 'paid-production-paid-production-smoke')
+assert.equal(calls[44]?.method, 'GET', 'last call should be the final operator-status readback')
 
 await assert.rejects(
   () => runBetaReadinessPaidProductionEvidenceCollectorFromEnv(baseEnv, fakeFetch([], false), fakeLibassRunner()),
@@ -156,6 +166,29 @@ function fakeFetch(
     calls.push({ url, method: init.method, idempotencyKey: init.headers['idempotency-key'], body })
 
     if (init.method === 'POST' && url.endsWith('/v1/agent-tools/trackb/execute')) {
+      if (body?.mode === 'deployed_live_execution') {
+        return jsonResponse(202, {
+          ok: true,
+          data: {
+            trackBAgentToolExecution: {
+              status: 'completed',
+              decision: 'trackb_agent_tool_execution_deployed_live_execution_completed',
+              liveExecutionReady: true,
+              workerPayload: {
+                executionMode: 'production_ready',
+                creditReservationId: body.creditReservationId,
+              },
+              workerResult: {
+                status: 'completed',
+                toolCostMetadata: {
+                  serviceFeeIncluded: false,
+                  emittedEvents: [{ billableToUser: true }],
+                },
+              },
+            },
+          },
+        })
+      }
       return jsonResponse(202, {
         ok: true,
         data: {

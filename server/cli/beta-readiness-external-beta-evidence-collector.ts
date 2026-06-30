@@ -28,12 +28,19 @@ import {
   type BetaTrackBProductReadyDeployedEvidenceCollectorEnv,
   type BetaTrackBProductReadyDeployedEvidenceCollectorResult,
 } from './beta-trackb-product-ready-deployed-evidence-collector'
+import {
+  runBetaTrackBAgentLiveAdmissionDeployedProofFromEnv,
+  type BetaTrackBAgentLiveAdmissionDeployedProofEnv,
+  type BetaTrackBAgentLiveAdmissionDeployedProofFetch,
+  type BetaTrackBAgentLiveAdmissionDeployedProofResult,
+} from './beta-trackb-agent-live-admission-deployed-proof'
 import type { BetaToolsLocalAcceptedEvidenceCollectorFetch } from './beta-tools-local-accepted-evidence-collector'
 import type { LibassSyntheticBurninCommandRunner } from './beta-tools-libass-synthetic-burnin-qa-preflight'
 
 export interface BetaReadinessExternalBetaEvidenceCollectorEnv extends
   BetaTrackBAgentRouteDeployedEvidenceCollectorEnv,
   BetaTrackBProductReadyDeployedEvidenceCollectorEnv,
+  BetaTrackBAgentLiveAdmissionDeployedProofEnv,
   BetaPlatformStagingEvidenceProbeEnv,
   BetaReadinessLaunchApprovalEvidenceEnv,
   BetaReadinessOperatorStatusApiEnv {
@@ -52,6 +59,7 @@ export interface BetaReadinessExternalBetaEvidenceCollectorRunResult {
   steps: {
     agentRouteProof: BetaTrackBAgentRouteDeployedEvidenceCollectorResult
     toolEvidence: BetaTrackBProductReadyDeployedEvidenceCollectorResult
+    agentLiveAdmissionProof: BetaTrackBAgentLiveAdmissionDeployedProofResult
     platformEvidence: BetaPlatformStagingEvidenceProbeRunResult
     launchApprovalEvidence: BetaReadinessLaunchApprovalEvidenceRunResult
     finalOperatorStatus: BetaReadinessOperatorStatusApiRunResult
@@ -100,6 +108,10 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
     ...normalized,
     REEDITPRO_BETA_TRACKB_PRODUCT_READY_CONFIRM_DEPLOYED_EVIDENCE_SEQUENCE: 'true',
   }, fetchImpl as BetaToolsLocalAcceptedEvidenceCollectorFetch, libassRunner)
+  const agentLiveAdmissionProof = await runBetaTrackBAgentLiveAdmissionDeployedProofFromEnv({
+    ...normalized,
+    REEDITPRO_BETA_TRACKB_AGENT_LIVE_CONFIRM_DEPLOYED_PROOF: 'true',
+  }, fetchImpl as BetaTrackBAgentLiveAdmissionDeployedProofFetch)
   const platformEvidence = await runBetaPlatformStagingEvidenceProbeFromEnv({
     ...normalized,
     REEDITPRO_BETA_PLATFORM_REQUIRE_READY: 'true',
@@ -120,6 +132,7 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
   const finalPaidProductionReady = finalOperatorStatus.readyForPaidProduction === true
   const ok = toolEvidence.ok &&
     agentRouteProof.ok &&
+    agentLiveAdmissionProof.ok &&
     platformEvidence.ok &&
     platformEvidence.evidencePacketReady &&
     launchApprovalEvidence.ok &&
@@ -133,6 +146,7 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
     steps: {
       agentRouteProof,
       toolEvidence,
+      agentLiveAdmissionProof,
       platformEvidence,
       launchApprovalEvidence,
       finalOperatorStatus,
@@ -149,7 +163,7 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
       'public_launch_or_production_claims',
     ],
     warnings: [
-      'This collector sequences deployed Track B route proof, product-ready tool evidence, platform evidence, launch approval evidence, and final readback only; it does not enable real-user-media beta, paid production, public launch, provider calls, live worker dispatch, or product runtime execution.',
+      'This collector sequences deployed Track B route proof, product-ready tool evidence, Track B live-admission proof, platform evidence, launch approval evidence, and final readback only; it does not enable real-user-media beta, paid production, public launch, provider calls, real tool binary execution, media processing, or product runtime execution.',
       'The final operator-status readback must report external beta ready before this collector passes.',
       'Bearer tokens remain in authorization headers only and are not included in request bodies or summaries.',
     ],
@@ -195,6 +209,11 @@ function normalizeExternalBetaCollectorEnv(
     REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_WORKSPACE_ID: clean(env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_WORKSPACE_ID) ?? workspaceId,
     REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_PROJECT_ID: clean(env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_PROJECT_ID) ?? projectId,
     REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA: clean(env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA) ?? sourceSha,
+    REEDITPRO_BETA_TRACKB_AGENT_LIVE_API_BASE_URL: clean(env.REEDITPRO_BETA_TRACKB_AGENT_LIVE_API_BASE_URL) ?? apiBaseUrl,
+    REEDITPRO_BETA_TRACKB_AGENT_LIVE_BEARER_TOKEN: clean(env.REEDITPRO_BETA_TRACKB_AGENT_LIVE_BEARER_TOKEN) ?? bearerToken,
+    REEDITPRO_BETA_TRACKB_AGENT_LIVE_WORKSPACE_ID: clean(env.REEDITPRO_BETA_TRACKB_AGENT_LIVE_WORKSPACE_ID) ?? workspaceId,
+    REEDITPRO_BETA_TRACKB_AGENT_LIVE_PROJECT_ID: clean(env.REEDITPRO_BETA_TRACKB_AGENT_LIVE_PROJECT_ID) ?? projectId,
+    REEDITPRO_BETA_TRACKB_AGENT_LIVE_SOURCE_SHA: clean(env.REEDITPRO_BETA_TRACKB_AGENT_LIVE_SOURCE_SHA) ?? sourceSha,
     REEDITPRO_BETA_PLATFORM_API_BASE_URL: clean(env.REEDITPRO_BETA_PLATFORM_API_BASE_URL) ?? apiBaseUrl,
     REEDITPRO_BETA_PLATFORM_BEARER_TOKEN: clean(env.REEDITPRO_BETA_PLATFORM_BEARER_TOKEN) ?? bearerToken,
     REEDITPRO_BETA_PLATFORM_WORKSPACE_ID: clean(env.REEDITPRO_BETA_PLATFORM_WORKSPACE_ID) ?? workspaceId,

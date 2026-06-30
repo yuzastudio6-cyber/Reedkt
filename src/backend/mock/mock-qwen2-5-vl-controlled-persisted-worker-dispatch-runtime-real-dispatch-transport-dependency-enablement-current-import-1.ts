@@ -1,0 +1,18 @@
+import {
+  QWEN2_5_VL_CONTROLLED_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT,
+  buildDefaultQwen25VlTransportDependencyFixture,
+  evaluateQwen25VlTransportDependencyFixture,
+  runQwen25VlTransportDependencyCurrentImport1,
+} from '../workers/qwen2-5-vl-controlled-real-dispatch-transport-dependency-enablement'
+
+export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_CURRENT_IMPORT_1 =
+  QWEN2_5_VL_CONTROLLED_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT
+
+export {
+  buildDefaultQwen25VlTransportDependencyFixture,
+  evaluateQwen25VlTransportDependencyFixture,
+  runQwen25VlTransportDependencyCurrentImport1,
+}
+
+export type Qwen25VlControlledPersistedWorkerDispatchRuntimeRealDispatchTransportDependencyEnablementCurrentImport1 =
+  typeof QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_DEPENDENCY_ENABLEMENT_CURRENT_IMPORT_1

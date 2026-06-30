@@ -1,0 +1,56 @@
+{
+  "packet": "RP-EXTERNAL-BETA-RELEASE-GO-NO-GO-1R-AFTER-QWEN-DRY-RUN-BLOCKER",
+  "decision": "completed_release_go_no_go_compatibility_after_qwen_dry_run_blocker",
+  "execution": "completed_docs_diagnostics_only_release_go_no_go_compatibility_no_runtime_execution",
+  "integrationHead": "7a8183313cf358f337db76ac0e34eadfb173e274",
+  "sourceEvidence": {
+    "qwenDryRunAttemptPr": 1724,
+    "qwenDryRunAttemptMergeSha": "7a8183313cf358f337db76ac0e34eadfb173e274",
+    "qwenDryRunAttemptDecision": "blocked_gcloud_reauthentication_required_before_qwen_real_dispatch_dry_run_attempt",
+    "currentReadinessRollupAfterQwenOrchestration": "completed_external_beta_current_readiness_rollup_after_qwen_orchestration",
+    "controlledSingleTesterGoNoGo": "go_controlled_single_tester_external_beta_lane_remains_open",
+    "singleTesterSafeGateBurndown": "completed_single_tester_safe_gate_burndown_active_lane_ready_for_feedback_driven_iteration",
+    "excludedRemotionPr": "#577 open/draft/blocked/excluded"
+  },
+  "readiness": {
+    "controlledSingleTesterLane": "open",
+    "broadExternalBetaExpansion": "blocked_no_additional_named_tester_list",
+    "qwenRealDispatchDryRunAttempt": "blocked_gcloud_reauthentication_required_before_qwen_real_dispatch_dry_run_attempt",
+    "externalProduction": "blocked",
+    "paidProduction": "blocked",
+    "publicArtifacts": "blocked",
+    "finalDeliveryExport": "blocked",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "nextMilestones": [
+    "QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_DRY_RUN_ATTEMPT_1R_AFTER_GCLOUD_REAUTH",
+    "RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-DRIVEN-FIX-LOOP-1"
+  ],
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "docsDiagnosticsOnly": true,
+    "externalBetaAudienceExpansion": false,
+    "productionUnlock": false,
+    "paidProductionUnlock": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "providerCall": false,
+    "modelCall": false,
+    "qwen25VlExecution": false,
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretManagerPayloadAccess": false,
+    "signedUrlCreation": false,
+    "creditMutation": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "mediaProcessing": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  }
+}

@@ -31,7 +31,35 @@ const followOnQwenRollupFiles = [
   'scripts/validation/rp-qwen2-5-vl-external-beta-stack-integration-rollup-1-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnQwenRollupFiles])
+const followOnQwenPersistedWorkerDispatchDraftStackTriageFiles = [
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/draft-stack-triage.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/stack-readiness-matrix.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/validation-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/qwen-persisted-worker-dispatch-draft-stack-triage-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-draft-stack-triage-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-source-import-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-draft-stack-triage-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',
+]
+
+const followOnQwenRealDispatchSourceImportScopeFiles = [
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/import-scope-review.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/stack-risk-matrix.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/qwen-real-dispatch-source-import-scope-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-source-import-scope-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-mock-only-source-import-1.md',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-source-import-scope-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([
+  ...requiredFiles,
+  ...followOnQwenRollupFiles,
+  ...followOnQwenPersistedWorkerDispatchDraftStackTriageFiles,
+  ...followOnQwenRealDispatchSourceImportScopeFiles,
+])
 
 const requiredText = [
   packet,

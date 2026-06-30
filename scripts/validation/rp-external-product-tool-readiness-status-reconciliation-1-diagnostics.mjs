@@ -44,7 +44,35 @@ const followOnAfterGpacDispatchFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
 ]
 
-const allowedFiles = new Set([...requiredFiles, ...followOnTriageFiles, ...followOnAfterGpacDispatchFiles])
+const followOnQwenPersistedWorkerDispatchDraftStackTriageFiles = [
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/draft-stack-triage.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/stack-readiness-matrix.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/validation-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-draft-stack-triage-1/qwen-persisted-worker-dispatch-draft-stack-triage-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-draft-stack-triage-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-source-import-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-draft-stack-triage-1-diagnostics.mjs',
+]
+
+const followOnQwenRealDispatchSourceImportScopeFiles = [
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/source-audit.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/import-scope-review.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/stack-risk-matrix.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/validation-results.md',
+  'docs/external-beta/qwen-real-dispatch-source-import-scope-1/qwen-real-dispatch-source-import-scope-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-real-dispatch-source-import-scope-1-results.md',
+  'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-mock-only-source-import-1.md',
+  'scripts/validation/rp-external-beta-qwen-real-dispatch-source-import-scope-1-diagnostics.mjs',
+]
+
+const allowedFiles = new Set([
+  ...requiredFiles,
+  ...followOnTriageFiles,
+  ...followOnAfterGpacDispatchFiles,
+  ...followOnQwenPersistedWorkerDispatchDraftStackTriageFiles,
+  ...followOnQwenRealDispatchSourceImportScopeFiles,
+])
 
 const requiredText = [
   packet,

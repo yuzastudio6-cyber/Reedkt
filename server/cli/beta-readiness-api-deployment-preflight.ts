@@ -107,6 +107,7 @@ export function buildBetaReadinessApiDeploymentPreflight(
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:readiness:external-beta-sequence-preflight',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
     ],

@@ -115,7 +115,8 @@ function buildNextActions(report: BetaReadinessReport, workspaceId?: string): st
   }
   if (!report.goNoGo.externalBetaAllowed) {
     actions.push('Complete the named checklist and owner approval blockers before external beta launch.')
-    actions.push('After accepted tool evidence, deployed platform evidence, and launch approvals are ready, run npm run beta:readiness:external-beta-evidence-collector against staging to sequence evidence recording and require final external-beta operator-status readback.')
+    actions.push('After accepted tool evidence, deployed platform evidence, and launch approvals are ready, run npm run beta:readiness:external-beta-sequence-preflight to prove the no-network repo/operator/owner/manifest sequence before any deployed evidence write.')
+    actions.push('After the sequence preflight passes, run npm run beta:readiness:external-beta-evidence-collector against staging to sequence evidence recording and require final external-beta operator-status readback.')
   }
   if (!report.goNoGo.realUserMediaBetaAllowed) {
     actions.push('After external beta is ready, run beta:readiness:scope-approval-evidence-preflight in real_user_media_beta mode, then record real-user-media beta approval evidence.')

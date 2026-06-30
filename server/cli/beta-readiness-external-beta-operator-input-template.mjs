@@ -76,6 +76,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
       'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
+      'npm run beta:readiness:external-beta-sequence-preflight',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
     ],
@@ -203,6 +204,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
+      'npm run beta:readiness:external-beta-sequence-preflight',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
     supabaseClassification: report.supabaseClassification,
@@ -365,6 +367,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
+      'npm run beta:readiness:external-beta-sequence-preflight',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
     supabaseClassification: report.supabaseClassification,
@@ -487,6 +490,7 @@ export function applyBetaReadinessExternalBetaOperatorAutofillLocalEnv(options =
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${displayPath} npm run beta:readiness:owner-approval-intake-preflight`,
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:readiness:external-beta-sequence-preflight',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
     supabaseClassification: report.supabaseClassification,
@@ -768,6 +772,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   lines.push('# npm run beta:tools:trackb-product-ready-deployed-evidence-collector')
+  lines.push('# npm run beta:readiness:external-beta-sequence-preflight')
   lines.push('')
   lines.push('# After collector execution:')
   lines.push('# npm run beta:readiness:external-beta-evidence-collector')
@@ -802,6 +807,7 @@ function renderAutofillEnvTemplate(autoFillableInputs) {
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   lines.push('# npm run beta:tools:trackb-product-ready-deployed-evidence-collector')
+  lines.push('# npm run beta:readiness:external-beta-sequence-preflight')
   return lines.join('\n')
 }
 

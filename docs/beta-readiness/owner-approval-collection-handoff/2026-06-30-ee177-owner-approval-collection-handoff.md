@@ -44,6 +44,7 @@ Source freshness decision: `beta_readiness_source_freshness_preflight_passed_cur
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 - `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
+- `npm run beta:readiness:external-beta-sequence-preflight`
 
 The generated template is redacted by design. Owners must fill it outside source control with non-secret approval summaries only. Completed values must not be committed.
 

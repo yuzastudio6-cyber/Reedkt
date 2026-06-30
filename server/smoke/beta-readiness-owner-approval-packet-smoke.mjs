@@ -65,6 +65,7 @@ assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-
 assert.ok(report.postApprovalCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:tools:trackb-product-ready-deployed-evidence-collector'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(report.completionCriteria.some((criterion) => criterion.includes('readyForExternalBeta=true')))
 assert.ok(report.forbiddenOwnerEvidence.includes('service-role keys'))

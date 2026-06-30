@@ -317,6 +317,7 @@ assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-
 assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-local-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:tools:trackb-product-ready-deployed-evidence-collector'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 for (const staleSourceSha of staleLocalEvidenceSourceShas) {
   assert.equal(report.envTemplate.includes(staleSourceSha), false)

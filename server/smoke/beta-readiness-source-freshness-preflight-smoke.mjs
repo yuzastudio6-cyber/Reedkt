@@ -112,10 +112,16 @@ assert.ok(
 )
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest -- --status'))
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'))
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:deployed-evidence-input-manifest -- --status') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:deployed-evidence-input-manifest'),
   'deployed evidence manifest status review should precede the strict collector gate',
+)
+assert.ok(
+  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-sequence-preflight') <
+    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-evidence-collector'),
+  'all-up external beta sequence preflight should precede the evidence collector',
 )
 assert.equal(ready.recommendedCommands.some((command) => command.includes('gcloud ')), false)
 assert.equal(ready.blockedScopes.includes('deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence'), false)
@@ -138,6 +144,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-api-deployment-preflight.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
     'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+    'server/cli/beta-readiness-external-beta-sequence-preflight.mjs',
     'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
     'server/cli/beta-tools-core-real-check-preview.ts',
     'server/cli/beta-trackb-product-ready-deployed-evidence-collector.ts',
@@ -177,6 +184,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:readiness:external-beta-operator-local-env-preflight',
     'beta:readiness:external-beta-operator-input-template',
     'beta:readiness:external-beta-evidence-collector',
+    'beta:readiness:external-beta-sequence-preflight',
     'beta:readiness:launch-approval-evidence',
     'beta:readiness:launch-approval-evidence-preflight',
     'beta:readiness:operator-status-api',
@@ -210,6 +218,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'smoke:beta-readiness-external-beta-operator-input-template',
     'smoke:beta-readiness-external-beta-operator-local-env-preflight',
     'smoke:beta-readiness-external-beta-evidence-collector',
+    'smoke:beta-readiness-external-beta-sequence-preflight',
     'smoke:beta-trackb-product-ready-deployed-evidence-collector',
     'smoke:beta-trackb-product-ready-source-reconciliation',
     'smoke:beta-readiness-launch-approval-evidence-cli',
@@ -254,6 +263,7 @@ assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.i
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-sequence-preflight.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-input-template.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-trackb-product-ready-deployed-evidence-collector.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-trackb-product-ready-source-reconciliation.mjs'))

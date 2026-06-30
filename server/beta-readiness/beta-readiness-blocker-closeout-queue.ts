@@ -221,6 +221,7 @@ function buildBatches(
       ],
       nextCommands: [
         'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
+        'npm run beta:readiness:external-beta-sequence-preflight',
         'npm run beta:readiness:external-beta-evidence-collector',
         'npm run beta:readiness:operator-status-api',
       ],

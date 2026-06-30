@@ -146,6 +146,7 @@ assert.equal(markdown.includes(`Source freshness ready: \`${completeSourceFreshn
 assert.equal(markdown.includes(`Recommended repo-local path: \`${RECOMMENDED_OPERATOR_ENV_FILE}\``), true)
 assert.equal(complete.validationCommands.includes(`REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`), true)
 assert.equal(complete.validationCommands.includes('npm run beta:tools:trackb-product-ready-deployed-evidence-collector'), true)
+assert.equal(complete.validationCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'), true)
 assert.equal(markdown.includes('operator-local-bearer-token'), false)
 assert.equal(markdown.includes('workspace-beta-local'), false)
 assert.equal(markdown.includes('non-secret evidence summary'), false)

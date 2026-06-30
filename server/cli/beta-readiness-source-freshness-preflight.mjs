@@ -27,6 +27,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'beta:readiness:external-beta-operator-local-env-preflight',
   'beta:readiness:external-beta-operator-input-template',
   'beta:readiness:external-beta-evidence-collector',
+  'beta:readiness:external-beta-sequence-preflight',
   'beta:readiness:launch-approval-evidence',
   'beta:readiness:launch-approval-evidence-preflight',
   'beta:readiness:operator-status-api',
@@ -61,6 +62,7 @@ const ALLOWED_PACKAGE_JSON_SCRIPT_DRIFT = [
   'smoke:beta-readiness-external-beta-operator-input-template',
   'smoke:beta-readiness-external-beta-operator-local-env-preflight',
   'smoke:beta-readiness-external-beta-evidence-collector',
+  'smoke:beta-readiness-external-beta-sequence-preflight',
   'smoke:beta-trackb-product-ready-deployed-evidence-collector',
   'smoke:beta-trackb-product-ready-source-reconciliation',
   'smoke:beta-readiness-launch-approval-evidence-cli',
@@ -184,6 +186,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
         'server/cli/beta-readiness-api-deployment-preflight.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.ts',
         'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
+        'server/cli/beta-readiness-external-beta-sequence-preflight.mjs',
         'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
         'server/cli/beta-readiness-blocker-closeout-queue.ts',
         'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
@@ -238,6 +241,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:readiness:external-beta-sequence-preflight',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
     ] : [
@@ -314,6 +318,7 @@ function isAllowedMetadataOnlyDriftPath(path, context = {}) {
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.ts' ||
     path === 'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs' ||
     path === 'server/cli/beta-readiness-blocker-closeout-queue.ts' ||
+    path === 'server/cli/beta-readiness-external-beta-sequence-preflight.mjs' ||
     path === 'server/cli/beta-readiness-external-beta-operator-input-template.mjs' ||
     path === 'server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs' ||
     path === 'server/cli/beta-tools-core-real-check-preview.ts' ||

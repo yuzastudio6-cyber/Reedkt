@@ -47,6 +47,7 @@ assert.equal(ready.plannedService.image, 'us-central1-docker.pkg.dev/reeditpro/r
 assert.ok(ready.recommendedCommands.some((command) => command.includes('gh workflow run beta-readiness-api-staging-deploy.yml')), 'ready report should name guarded GitHub Actions staging API deploy workflow')
 assert.ok(ready.recommendedCommands.some((command) => command.includes('gh workflow run beta-readiness-api-staging-input-discovery.yml')), 'ready report should name read-only staging input discovery before deploy')
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:source-freshness-preflight'), 'ready report should require source freshness before deployed evidence handoff')
+assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'), 'ready report should require the all-up sequence preflight before the evidence collector')
 assert.ok(ready.recommendedCommands.some((command) => command.includes('--ref codex/reeditpro-web-ui-shell')), 'workflow command should run from the default branch')
 assert.ok(ready.recommendedCommands.some((command) => command.includes('source_ref=codex/sound-music-audio-1abc-checkpoint')), 'workflow command should deploy the tools source branch')
 assert.equal(ready.recommendedCommands.some((command) => command.includes('scripts/gcp/prod/08-deploy-api-service.example.sh')), false, 'ready report should not point at the older local gcloud template as the primary deploy path')

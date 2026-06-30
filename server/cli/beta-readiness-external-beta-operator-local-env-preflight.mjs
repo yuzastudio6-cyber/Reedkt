@@ -147,6 +147,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
+      'npm run beta:readiness:external-beta-sequence-preflight',
       'npm run beta:readiness:external-beta-evidence-collector',
     ],
     blockedScopeConfirmations: operatorTemplate.blockedScopeConfirmations,

@@ -95,6 +95,10 @@ try {
     'default operator status should name libass evidence recording preflight after synthetic QA',
   )
   assert.ok(
+    defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('external-beta-sequence-preflight')),
+    'default operator status should name the all-up external beta sequence preflight',
+  )
+  assert.ok(
     defaultOperatorStatusResponse.data.status.nextActions.some((action: string) => action.includes('external-beta-evidence-collector')),
     'default operator status should name the all-up external beta evidence collector',
   )

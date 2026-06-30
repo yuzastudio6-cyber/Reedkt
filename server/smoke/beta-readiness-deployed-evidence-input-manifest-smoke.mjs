@@ -99,6 +99,7 @@ assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:sou
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(emptyManifest.recommendedCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:deployed-evidence-input-manifest -- --status'))
+assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-sequence-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(emptyManifest.remainingBlockedScopes.includes('paid_production_until_separate_paid_production_evidence_collector_passes'))
 

@@ -1569,6 +1569,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records all 21 AI graphics tools as externally beta ready for controlled on-demand tool calls, reports `externalBetaCallableNowTools=21`, `externalBetaReadyNowTools=21`, and keeps `productionReadyNowTools=0`.
 - Runtime/beta/production: this is a reconciliation/status packet only. It does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false, `gpuRuntimeShouldStartNow=false`, and GPU remains cold until an accepted worker/tool-call job needs it.
 
+## AI Graphics External-Beta API Route Handler Contract
+
+- Decision: `ai_graphics_external_beta_api_route_handler_contract_prepared_with_runtime_blocks`.
+- Scope: source-controlled handler contract after accepted controlled on-demand status bridge and accepted API-route-to-worker-dispatch handoff proof.
+- Result: it validates canonical 21-tool request shape, approved snapshot refs, credit reservation refs, private artifact refs, idempotency, audit, rate-limit, cost guardrail, and kill-switch controls for the future `POST /api/ai-graphics/external-beta/tool-call` route. It reports `apiRouteHandlerContractReadyToolsWithProvidedEvidence=21`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `workerDispatchesApprovedNow=0`, `toolExecutionsApprovedNow=0`, and `productionReadyNowTools=0`.
+- Runtime/beta/production: this is a route-handler contract only. It does not mount the Express route, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. GPU remains cold until an accepted worker/tool-call job needs it.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

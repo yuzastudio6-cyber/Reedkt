@@ -1597,6 +1597,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted private evidence, it validates the AI graphics production worker payload against approved snapshot, idempotency, raw-prompt block, signed-URL block, canonical AI graphics registry, license/model-weight, credit reservation, artifact policy, and QA gates. It prepares a queue batch/job/audit candidate with `prepared_not_submitted` status.
 - Runtime/beta/production: queue admission shape is ready, but live queue writes, service-role transactions, worker enqueue, worker dispatch, Tool Route execution, tool execution, provider/model calls, browser/WebGL/canvas runtime, GPU/model runtime startup, model downloads, media processing, signed URLs, and public artifacts remain blocked. Dispatch is intentionally blocked by `executionMode=production_blocked`; `workerQueueApprovedNow=false`, `liveQueueWriteApprovedNow=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
+## AI Graphics Production Service-Role Queue Transaction Dry Proof
+
+- Decision: `ai_graphics_production_service_role_queue_transaction_dry_proof_prepared_dispatch_blocked`.
+- Scope: side-effect-free service-role queue transaction and controlled dispatch dry proof after accepted production queue admission, with private/backend refs for RPC schema, queue tables, worker claim/event/audit tables, rollback, worker lease policy, worker dispatch policy, and dispatch dry-proof evidence.
+- Result: with accepted private evidence, it shapes the production RPC/table transaction candidate for `enqueue_ai_graphics_tool_runtime_jobs`, `claim_ai_graphics_tool_runtime_job`, `record_ai_graphics_worker_event`, and `record_ai_graphics_audit_event`. It also prepares a controlled dispatch dry-proof candidate from the source worker gate checks.
+- Runtime/beta/production: service-role transaction shape and dispatch dry-proof are ready, but live service-role transactions, live queue writes, job inserts, worker claims, worker events, worker leases, worker dispatch, Tool Route execution, tool execution, provider/model calls, browser/WebGL/canvas runtime, GPU/model runtime startup, model downloads, media processing, signed URLs, and public artifacts remain blocked. `worker_mode` remains `blocked` because the payload uses `executionMode=production_blocked`; `serviceRoleTransactionPerformed=false`, `workerLeaseCreated=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, `gpuRuntimeShouldStartNow=false`, `runtimeReadyNow=false`, and `productionReadyNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.

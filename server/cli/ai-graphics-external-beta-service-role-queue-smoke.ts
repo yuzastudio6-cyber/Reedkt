@@ -101,6 +101,7 @@ function buildExternalBetaSmokeJobs(
         runtimeQueueServiceProofBridgeRef:
           sourceRefs.runtimeQueueServiceProofBridgeRef,
         sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
         sourceRuntimeQueueServiceProofBridgeAccepted: true,
         toolExecutionApprovedNow: false,
         workerExecutionApprovedNow: false,

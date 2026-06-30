@@ -386,6 +386,20 @@ if (!queueService.includes("context.clients.admin.rpc('enqueue_ai_graphics_tool_
 if (!queueService.includes("context.clients.admin.rpc('claim_ai_graphics_tool_runtime_job'")) {
   fail('queue_service_missing_claim_rpc')
 }
+const inputPayloadStart = source.indexOf('inputPayload: {')
+const inputPayloadEnd = source.indexOf('toolExecutionApprovedNow: false', inputPayloadStart)
+const inputPayloadBlock = inputPayloadStart >= 0 && inputPayloadEnd > inputPayloadStart
+  ? source.slice(inputPayloadStart, inputPayloadEnd)
+  : ''
+if (!inputPayloadBlock.includes('sourceServiceRoleQueueSmokeAuthorizationAccepted: true')) {
+  fail('job_payload_missing_source_service_role_authorization_acceptance')
+}
+if (!inputPayloadBlock.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true')) {
+  fail('job_payload_missing_source_route_bound_operator_preflight_acceptance')
+}
+if (!inputPayloadBlock.includes('sourceRuntimeQueueServiceProofBridgeAccepted: true')) {
+  fail('job_payload_missing_source_runtime_queue_service_proof_bridge_acceptance')
+}
 
 for (const [key, expected] of Object.entries({
   totalAiGraphicsTools: 21,

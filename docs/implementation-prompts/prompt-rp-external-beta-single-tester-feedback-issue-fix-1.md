@@ -1,6 +1,6 @@
 # RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1
 
-Read `RP-EXTERNAL-BETA-ACTIVE-LANE-CURRENT-STATE-AFTER-QWEN-GATE-1` before using this prompt. The active single-tester lane remains open for `aiediting@reeditpro.com`; the QWEN staging route gate is already reconciled by existing evidence, and the open QWEN persistence side stack must not be blindly merged without a fresh source import or a concrete actionable tester issue.
+Read `RP-EXTERNAL-BETA-ACTIVE-LANE-CURRENT-STATE-AFTER-QWEN-AUTH-BRIDGE-1` and `RP-EXTERNAL-BETA-ACTIVE-LANE-CURRENT-STATE-AFTER-QWEN-GATE-1` before using this prompt. The active single-tester lane remains open for `aiediting@reeditpro.com`; the QWEN staging route/auth handoff is closed by the native auth bridge preflight, and the open QWEN persistence side stack must not be blindly merged without a fresh source import or a concrete actionable tester issue.
 
 Use when the current single tester `aiediting@reeditpro.com` reports a concrete defect, reproduction path, screenshot summary, log summary, or expected/actual behavior.
 

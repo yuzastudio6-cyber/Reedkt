@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-capability-card.schema.v1.json",
+  "title": "Reeditpro Tool Capability Card",
+  "type": "object",
+  "required": [
+    "toolId",
+    "displayName",
+    "operations",
+    "bestFor",
+    "notFor",
+    "inputArtifacts",
+    "outputArtifacts",
+    "validators",
+    "fallbackToolIds",
+    "resourceProfile",
+    "qualityProfile",
+    "readinessNotes",
+    "benchmarkPlaceholders",
+    "telemetryPlaceholders"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "toolId": {"type": "string"},
+    "displayName": {"type": "string"},
+    "operations": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "bestFor": {"type": "array", "items": {"type": "string"}},
+    "notFor": {"type": "array", "items": {"type": "string"}},
+    "inputArtifacts": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "outputArtifacts": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "validators": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "fallbackToolIds": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "resourceProfile": {
+      "type": "object",
+      "required": ["workerType", "gpuRequired", "cpuAllowed", "executionMode"],
+      "additionalProperties": false,
+      "properties": {
+        "workerType": {"type": "string"},
+        "gpuRequired": {"type": "boolean"},
+        "cpuAllowed": {"type": "boolean"},
+        "executionMode": {"type": "string"}
+      }
+    },
+    "qualityProfile": {
+      "type": "object",
+      "required": ["productionStatus", "adoptionStage", "launchCore", "modelWeightsRequired", "licenseRisk", "commercialUseStatus"],
+      "additionalProperties": false,
+      "properties": {
+        "productionStatus": {"type": "string"},
+        "adoptionStage": {"type": "string"},
+        "launchCore": {"type": "boolean"},
+        "modelWeightsRequired": {"type": "boolean"},
+        "licenseRisk": {"type": "string"},
+        "commercialUseStatus": {"type": "string"}
+      }
+    },
+    "readinessNotes": {"type": "array", "items": {"type": "string"}},
+    "benchmarkPlaceholders": {"type": "array", "items": {"type": "string"}},
+    "telemetryPlaceholders": {"type": "array", "items": {"type": "string"}}
+  }
+}

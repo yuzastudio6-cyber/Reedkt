@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "executionMode": "planning_only",
+  "scoreDimensions": [
+    {"id": "capabilityMatch", "defaultWeight": 30},
+    {"id": "inputOutputCompatibility", "defaultWeight": 15},
+    {"id": "qualityScore", "defaultWeight": 15},
+    {"id": "reliabilityScore", "defaultWeight": 10},
+    {"id": "speedScore", "defaultWeight": 10},
+    {"id": "resourceFit", "defaultWeight": 10},
+    {"id": "validationStrength", "defaultWeight": 5},
+    {"id": "fallbackStrength", "defaultWeight": 3},
+    {"id": "userPreferenceFit", "defaultWeight": 2}
+  ],
+  "qualityTargetAdjustments": {
+    "fast": {"qualityScore": 10, "reliabilityScore": 8, "speedScore": 16, "resourceFit": 14},
+    "balanced": {},
+    "high_quality": {"qualityScore": 20, "reliabilityScore": 13, "speedScore": 6, "resourceFit": 7, "validationStrength": 7}
+  },
+  "tieBreakers": [
+    "launchCoreFirst",
+    "saferProductionStatusFirst",
+    "preferredWorkerTypeFirst",
+    "alphabeticalToolId"
+  ],
+  "prohibitedRuntimeRoutingDimensions": [
+    "implementationCoordinationLabels",
+    "ownershipLabels",
+    "rawPromptText"
+  ]
+}

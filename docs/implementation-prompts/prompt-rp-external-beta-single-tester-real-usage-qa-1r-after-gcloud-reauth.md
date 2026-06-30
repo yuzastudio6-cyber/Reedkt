@@ -2,6 +2,8 @@
 
 Use after `RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1` records `blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa`.
 
+Also require the current-base QWEN transport blocker from `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1` to be closed or intentionally rechecked: `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r`.
+
 ## Goal
 
 Retry the bounded real-usage QA pass for the approved single tester `aiediting@reeditpro.com` after interactive gcloud reauthentication refreshes the active account.

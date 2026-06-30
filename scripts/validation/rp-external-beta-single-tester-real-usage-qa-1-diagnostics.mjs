@@ -38,6 +38,10 @@ const requiredText = [
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
+  'RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1',
+  'daff6905af21d9623b14197a4c9a2d61eed47501',
+  'completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked',
+  'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r',
 ]
 
 const allowedFiles = new Set(requiredFiles)
@@ -135,6 +139,15 @@ if (record.tester?.group !== 'external-beta-testers@reeditpro.com') fail('tester
 if (record.tester?.activeAccount !== 'aiediting@reeditpro.com') fail('active account mismatch')
 if (record.tester?.activeAccountMatches !== true) fail('active account match missing')
 if (record.readback?.blocker !== 'blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa') fail('readback blocker mismatch')
+if (record.post1738SourceClosure?.mergeSha !== 'daff6905af21d9623b14197a4c9a2d61eed47501') fail('post-#1738 merge SHA mismatch')
+if (record.post1738SourceClosure?.decision !== 'completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked') fail('post-#1738 decision mismatch')
+if (record.post1738SourceClosure?.blocker !== 'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r') fail('post-#1738 blocker mismatch')
+if (record.post1738SourceClosure?.cloudRunInvocation !== false) fail('post-#1738 Cloud Run invocation must remain false')
+if (record.post1738SourceClosure?.identityTokenFetch !== false) fail('post-#1738 identity token fetch must remain false')
+if (record.post1738SourceClosure?.requestSent !== false) fail('post-#1738 request sent must remain false')
+if (record.post1738SourceClosure?.qwen25VlExecution !== false) fail('post-#1738 QWEN execution must remain false')
+if (record.post1738SourceClosure?.workerDispatch !== false) fail('post-#1738 worker dispatch must remain false')
+if (record.readback?.qwenTransportCurrentBaseBlocker !== 'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r') fail('QWEN transport blocker mismatch')
 if (record.readback?.unauthenticatedRootStatus !== null) fail('unauthenticated root should not have run')
 if (!Array.isArray(record.readback?.authenticatedHtmlRoutes) || record.readback.authenticatedHtmlRoutes.length !== 0) fail('authenticated HTML routes should not have run')
 if (!Array.isArray(record.readback?.authenticatedJsonRoutes) || record.readback.authenticatedJsonRoutes.length !== 0) fail('authenticated JSON routes should not have run')

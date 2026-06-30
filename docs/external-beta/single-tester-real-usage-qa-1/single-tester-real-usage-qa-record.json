@@ -9,6 +9,18 @@
     "gpacMp4box": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa",
     "qwen25Vl": "qa_passed_single_tester_qwen_product_flow_runtime_evidence_backend_only_gated_not_broad_provider_unlock"
   },
+  "post1738SourceClosure": {
+    "qwenTransportDependencyEnablementCurrentImport": "RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-ENABLEMENT-CURRENT-IMPORT-1",
+    "qwenTransportDependencyPreflightCurrent": "RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1",
+    "mergeSha": "daff6905af21d9623b14197a4c9a2d61eed47501",
+    "decision": "completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked",
+    "blocker": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "requestSent": false,
+    "qwen25VlExecution": false,
+    "workerDispatch": false
+  },
   "target": {
     "projectName": "Reeditpro",
     "projectRef": "wmyyttnynmteqgcdishd",
@@ -36,6 +48,7 @@
   },
   "readback": {
     "blocker": "blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa",
+    "qwenTransportCurrentBaseBlocker": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
     "unauthenticatedRootStatus": null,
     "authenticatedHtmlRoutes": [],
     "authenticatedJsonRoutes": [],

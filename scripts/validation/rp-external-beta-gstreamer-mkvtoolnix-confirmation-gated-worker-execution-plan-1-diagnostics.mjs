@@ -52,7 +52,21 @@ const dryRunFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...dryRunFiles])
+const dryRun1rFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/dry-run-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/worker-dry-run-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/blocked-scope-register.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-implementation-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...dryRunFiles, ...dryRun1rFiles])
 
 const requiredText = [
   packet,

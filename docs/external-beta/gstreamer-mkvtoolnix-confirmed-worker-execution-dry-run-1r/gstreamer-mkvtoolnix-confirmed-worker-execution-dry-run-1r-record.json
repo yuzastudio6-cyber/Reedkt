@@ -1,0 +1,110 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-CONFIRMED-WORKER-EXECUTION-DRY-RUN-1R",
+  "decision": "completed_gstreamer_mkvtoolnix_confirmed_worker_execution_dry_run_contract_validation",
+  "execution": "completed_confirmation_gated_worker_dry_run_envelope_validation_no_runtime_execution",
+  "integrationBase": "4862913316df39324b3245500b21e1dd81f6ca88",
+  "runId": "2026-06-30T14-04-16-505Z-987c5507",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/2026-06-30T14-04-16-505Z-987c5507",
+  "sourceChain": {
+    "confirmedWorkerDryRun1Merge": "4862913316df39324b3245500b21e1dd81f6ca88",
+    "confirmedWorkerDryRun1": "blocked_missing_confirmation_gate",
+    "confirmationGatedWorkerExecutionPlan": "completed_gstreamer_mkvtoolnix_confirmation_gated_worker_execution_plan_ready_for_confirmed_dry_run",
+    "guardedWorkerEnablementReview": "approved_gstreamer_mkvtoolnix_guarded_worker_enablement_review_ready_for_confirmation_gated_worker_execution_plan",
+    "disabledWorkerScaffold": "completed_gstreamer_mkvtoolnix_disabled_worker_scaffold_negative_tests_ready_for_guarded_worker_enablement_review",
+    "agentExecutionContract": "completed_gstreamer_mkvtoolnix_guarded_agent_execution_contract_ready_for_disabled_worker_scaffold",
+    "toolExecutionReadinessMatrix": "completed_external_beta_tool_execution_readiness_matrix_for_guarded_agent_execution",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_EXECUTION=true",
+    "observed": "present_true"
+  },
+  "dryRun": {
+    "status": "completed_confirmed_worker_dry_run_contract_validation",
+    "confirmationGateObserved": "present_true",
+    "requiredReferencesNamed": true,
+    "allowedCommandTemplatesNamed": [
+      "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+      "gst_controlled_generated_fixture_pipeline_v1",
+      "mkvmerge_generated_subtitle_only_package_v1",
+      "mkvmerge_identify_generated_subtitle_only_v1"
+    ],
+    "privateInputManifestChecksum": "f838f821305a2c1576202c9be0ace3479c0eb0bbe6a71e7fe84cc8a531338081",
+    "workerDispatch": "not_run_dry_run_contract_validation_only",
+    "workerExecution": "not_run_dry_run_contract_validation_only",
+    "toolExecution": "not_run_dry_run_contract_validation_only",
+    "gstreamerExecution": "not_run_dry_run_contract_validation_only",
+    "mkvtoolnixExecution": "not_run_dry_run_contract_validation_only",
+    "mediaProcessing": "not_run_dry_run_contract_validation_only",
+    "outputManifest": "schema_named_no_artifact_output",
+    "qaReport": "schema_named_no_runtime_qa_report",
+    "cleanupResult": "no_runtime_outputs_to_clean"
+  },
+  "readiness": {
+    "gstreamer": "ready_for_guarded_worker_route_implementation",
+    "mkvtoolnix": "ready_for_guarded_worker_route_implementation",
+    "externalAgentExecution": "ready_for_guarded_worker_route_implementation_not_broad_media"
+  },
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-ROUTE-IMPLEMENTATION-1",
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-report.json",
+      "bytes": 10100,
+      "sha256": "61868fade2aa1f305a59d1158752d6ff6da82c0cfe27e57fab211509a59ad6cf"
+    },
+    {
+      "fileName": "private-input-manifest.json",
+      "bytes": 1828,
+      "sha256": "0dd6dde05ae5e893531a9c7029a7a4329a34ee60a73693d093714e0aa3ffa9d7"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-manifest.json",
+      "bytes": 888,
+      "sha256": "73773e58d4eeb5966da29a3ef32fd494a3fe0ef31d79de0307a2e3e1a357cff6"
+    }
+  ],
+  "safety": {
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "routeExecution": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "gpacMp4boxExecution": false,
+    "vapoursynthExecution": false,
+    "revideoExecution": false,
+    "filmExecution": false,
+    "qwenExecution": false,
+    "aiGraphicsExecution": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "deployment": false,
+    "iamMutation": false,
+    "googleGroupMembershipMutation": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "dockerfileInstallSourceChange": false,
+    "requirementsInstallSourceChange": false,
+    "cloudRunReadback": false,
+    "cloudRunServiceUpdate": false,
+    "broadServiceRoleHandler": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

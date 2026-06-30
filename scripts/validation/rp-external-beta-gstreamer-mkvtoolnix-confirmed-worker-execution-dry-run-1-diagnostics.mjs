@@ -23,12 +23,26 @@ const packetFiles = [
 
 const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs',
   'package.json',
+]
+
+const dryRun1rFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/dry-run-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/worker-dry-run-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/blocked-scope-register.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r/gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-implementation-1.md',
 ]
 
 const sourceFiles = [
@@ -39,7 +53,7 @@ const sourceFiles = [
   'docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix-record.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...dryRun1rFiles])
 
 const requiredText = [
   packet,

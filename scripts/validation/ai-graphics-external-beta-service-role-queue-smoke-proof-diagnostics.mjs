@@ -207,8 +207,11 @@ for (const phrase of [
   'sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence',
   'sourceRuntimeQueueServiceProofBridgeAccepted',
   'sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'noWorkerDispatchByProofValidator',
   'noGpuRuntimeStartByProofValidator',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightRequired',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase) && !smokeCli.includes(phrase)) {
     fail(`missing_phrase:${phrase}`)
@@ -238,6 +241,15 @@ if (
     ?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
 ) {
   fail('docs_source_service_role_queue_smoke_authorization_count_not_21')
+}
+if (docs.acceptanceCriteria?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true) {
+  fail('docs_source_route_bound_operator_preflight_not_accepted')
+}
+if (
+  docs.acceptanceCriteria
+    ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+) {
+  fail('docs_source_route_bound_operator_preflight_count_not_21')
 }
 if (docs.acceptanceCriteria?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
   fail('docs_source_modes_not_21')
@@ -285,6 +297,7 @@ try {
     serviceRoleQueueSmokeAuthorizationRef:
       'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,
@@ -330,6 +343,12 @@ try {
   ) {
     fail('accepted_source_service_role_queue_smoke_authorization_not_21')
   }
+  if (
+    accepted.counts
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_source_route_bound_operator_preflight_not_21')
+  }
   if (accepted.counts?.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence !== 21) {
     fail('accepted_source_modes_not_21')
   }
@@ -354,6 +373,12 @@ try {
   if (accepted.evidence?.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== true) {
     fail('accepted_source_service_role_queue_smoke_authorization_evidence_missing')
   }
+  if (
+    accepted.evidence
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+  ) {
+    fail('accepted_source_route_bound_operator_preflight_evidence_missing')
+  }
   if (!accepted.evidence?.serviceRoleQueueSmokeAuthorizationRef) {
     fail('accepted_service_role_queue_smoke_authorization_ref_missing')
   }
@@ -362,6 +387,11 @@ try {
   }
   if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
     fail('accepted_source_service_role_queue_smoke_authorization_boolean_missing')
+  }
+  if (
+    accepted.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+  ) {
+    fail('accepted_source_route_bound_operator_preflight_boolean_missing')
   }
   if (accepted.counts?.sourceWorkerDispatchesAcceptedWithProvidedEvidence !== 0) {
     fail('accepted_dispatches_not_0')
@@ -422,6 +452,33 @@ try {
   }
   if (!JSON.stringify(strippedProofBridge.rejectionReasons ?? []).includes('proof bridge')) {
     fail('stripped_proof_bridge_missing_rejection_reason')
+  }
+  const strippedOperatorPreflightResultPath = writeTempJson(
+    tmpRoot,
+    'stripped-operator-preflight-smoke-result.json',
+    {
+      ...smokeResult,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: false,
+    },
+  )
+  const strippedOperatorPreflight = parseOutput(runNpm(proofScriptName, [
+    '--',
+    '--external-beta-service-role-queue-smoke-readiness-packet',
+    readinessPath,
+    '--external-beta-service-role-queue-smoke-result',
+    strippedOperatorPreflightResultPath,
+    '--external-beta-service-role-queue-smoke-evidence-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke/evidence.json',
+    '--external-beta-service-role-queue-smoke-telemetry-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke/telemetry.json',
+    '--external-beta-service-role-queue-smoke-cleanup-proof-ref',
+    'private://ai-graphics/external-beta/service-role-queue-smoke/cleanup.json',
+  ]), 'stripped_operator_preflight')
+  if (strippedOperatorPreflight.decision !== 'external_beta_service_role_queue_smoke_proof_rejected') {
+    fail(`stripped_operator_preflight_decision:${strippedOperatorPreflight.decision}`)
+  }
+  if (!JSON.stringify(strippedOperatorPreflight.rejectionReasons ?? []).includes('operator preflight')) {
+    fail('stripped_operator_preflight_missing_rejection_reason')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
@@ -558,6 +615,7 @@ console.log(JSON.stringify({
   sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
   cleanupPersistedRowsAfterSmoke: 0,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
   liveSupabaseWriteByValidator: false,
   workerDispatchByValidator: false,
   toolExecutionByValidator: false,

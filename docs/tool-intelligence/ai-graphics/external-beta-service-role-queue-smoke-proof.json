@@ -76,6 +76,8 @@
     "serviceRoleQueueSmokeAuthorizationRefRequired": true,
     "sourceServiceRoleQueueSmokeAuthorizationAccepted": true,
     "sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
     "sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence": 21,
     "sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence": 21,
@@ -96,6 +98,7 @@
   "booleans": {
     "externalBetaServiceRoleQueueSmokeProofPrepared": true,
     "sourceRuntimeQueueServiceProofBridgeAccepted": false,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": false,
     "serviceRoleQueueSmokeProofAcceptedWithProvidedEvidence": false,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

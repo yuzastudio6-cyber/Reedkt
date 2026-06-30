@@ -26,6 +26,8 @@ The saved result must come from `ai-graphics:external-beta-service-role-queue-sm
 - Service-role queue smoke authorization ref is present
 - Source service-role queue smoke authorization accepted: true
 - Source service-role queue smoke authorization accepted with provided evidence: 21
+- Source route-bound service-role queue smoke operator preflight accepted: true
+- Source route-bound service-role queue smoke operator preflight accepted with provided evidence: 21
 - GPU/model tools preserved: 8
 - Runtime queue service proof bridge accepted with provided evidence: 21
 - Source gateway runtime-admission modes accepted with provided evidence: 21

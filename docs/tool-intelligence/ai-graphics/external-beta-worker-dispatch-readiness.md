@@ -11,6 +11,7 @@ This gate is the next external-beta step after the service-role queue smoke proo
 - GPU runtime targeted tools: `8`
 - Source queue-smoke proof accepted in committed docs: `false`
 - Source service-role queue-smoke authorization accepted in committed docs: `false`
+- Source route-bound operator preflight accepted in committed docs: `false`
 - Worker dispatch readiness records prepared with provided evidence in committed docs: `0`
 - Live worker leases created now: `0`
 - Live worker dispatches now: `0`
@@ -31,7 +32,7 @@ The gate can report `external_beta_worker_dispatch_readiness_prepared_with_runti
 6. `--external-beta-gpu-on-demand-policy-ref`
 7. `--external-beta-private-artifact-policy-ref`
 
-The accepted source proof must show 21 queue writes, 21 worker-claim rows, the service-role queue smoke authorization chain accepted with provided evidence for all 21 tools, a private service-role queue smoke authorization ref, the runtime queue service proof bridge accepted with provided evidence for all 21 tools, zero worker dispatches, zero tool executions, zero persisted fixture rows after cleanup, and zero external-beta/production-ready tools.
+The accepted source proof must show 21 queue writes, 21 worker-claim rows, the service-role queue smoke authorization chain accepted with provided evidence for all 21 tools, the route-bound operator preflight accepted with provided evidence for all 21 tools, a private service-role queue smoke authorization ref, the runtime queue service proof bridge accepted with provided evidence for all 21 tools, zero worker dispatches, zero tool executions, zero persisted fixture rows after cleanup, and zero external-beta/production-ready tools.
 
 The source proof must also carry the source gateway runtime-admission map. The current accepted map marks `d3` as `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` and keeps the remaining accepted tools on `all_tools_external_beta`, so dispatch readiness can separate CPU/static first-cohort jobs from GPU/model worker lanes. A smoke proof packet with the runtime queue service proof bridge stripped is rejected before worker dispatch readiness records are accepted with provided evidence.
 

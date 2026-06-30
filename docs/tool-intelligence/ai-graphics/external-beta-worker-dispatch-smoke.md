@@ -12,6 +12,7 @@ This is a controlled external-beta worker dispatch smoke for AI graphics. It exe
 - Source dispatch readiness accepted in committed docs: `false`
 - Source runtime queue service proof bridge accepted in committed docs: `false`
 - Source service-role queue smoke authorization accepted in committed docs: `false`
+- Source route-bound operator preflight accepted in committed docs: `false`
 - Mock dispatcher smoke completed in committed docs: `false`
 - Live worker leases created now: `0`
 - Live worker dispatches now: `0`
@@ -30,7 +31,7 @@ The CLI can report `external_beta_worker_dispatch_smoke_completed_without_tool_e
 4. `--external-beta-worker-dispatch-smoke-lease-audit-ref`
 5. `--external-beta-worker-dispatch-smoke-cleanup-ref`
 
-The accepted source readiness packet must already show 21 worker dispatch-readiness records, 12 capability scenarios, 8 GPU-targeted tools, a preserved 21-tool runtime queue service proof bridge, the service-role queue smoke authorization ref, zero live worker leases, zero live worker dispatches, zero tool executions, and no GPU startup.
+The accepted source readiness packet must already show 21 worker dispatch-readiness records, 12 capability scenarios, 8 GPU-targeted tools, a preserved 21-tool runtime queue service proof bridge, the service-role queue smoke authorization ref, the route-bound operator preflight accepted for all 21 tools, zero live worker leases, zero live worker dispatches, zero tool executions, and no GPU startup.
 
 ## What The Smoke Proves
 
@@ -39,6 +40,7 @@ The accepted source readiness packet must already show 21 worker dispatch-readin
 - Each route stays `mockOnly=true` and uses the AI graphics tool-call handoff path.
 - The source runtime queue service proof bridge remains present on all 21 smoke records.
 - The source service-role queue smoke authorization remains present on all 21 smoke records.
+- The source route-bound operator preflight remains present on all 21 smoke records.
 - `toolRunResults`, artifact records, and quality-gate results remain empty.
 - The eight GPU/model tools remain GPU-targeted, but `gpuRuntimeShouldStartNow=false`.
 

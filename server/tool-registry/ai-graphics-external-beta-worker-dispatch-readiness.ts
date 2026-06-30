@@ -42,6 +42,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadinessRecord {
   sourceServiceRoleQueueSmokeProofAcceptedWithProvidedEvidence: boolean
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   workerLeaseReadinessPreparedWithProvidedEvidence: boolean
   workerDispatchReadinessPreparedWithProvidedEvidence: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
@@ -69,6 +70,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
   sourceServiceRoleQueueSmokeProofAccepted: boolean
   sourceServiceRoleQueueSmokeProofBridgeAccepted: boolean
   sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   missingDispatchControls: string[]
   workerDispatchReadinessPreparedWithProvidedEvidence: boolean
   totalAiGraphicsTools: 21
@@ -90,6 +92,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     sourceWorkerClaimRowsAcceptedWithProvidedEvidence: number
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
     sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: number
     sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0
     sourceToolExecutionsAcceptedWithProvidedEvidence: 0
     cleanupPersistedRowsAfterSmoke: 0
@@ -98,6 +101,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     validatesDispatchReadinessOnly: true
     serviceRoleQueueSmokeProofRequired: true
     serviceRoleQueueSmokeProofBridgeRequired: true
+    serviceRoleQueueSmokeOperatorPreflightRequired: true
     workerLeasePolicyRequired: true
     workerDispatchPolicyRequired: true
     workerIdempotencyRequired: true
@@ -118,6 +122,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchReadiness {
     sourceServiceRoleQueueSmokeProofAccepted: boolean
     sourceServiceRoleQueueSmokeProofBridgeAccepted: boolean
     sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     externalBetaWorkerLeasePolicyAccepted: boolean
     externalBetaWorkerDispatchPolicyAccepted: boolean
     externalBetaWorkerIdempotencyNamespaceAccepted: boolean
@@ -204,6 +209,8 @@ function sourceProofAccepted(
     packet.counts.sourceWorkerClaimRowsAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === 21 &&
+    packet.counts
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence === 21 &&
     packet.counts.sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence === 1 &&
     packet.acceptedCpuStaticFirstCohortTools?.length === 1 &&
@@ -212,6 +219,8 @@ function sourceProofAccepted(
       'cpu_static_first_cohort' &&
     packet.evidence.sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence === true &&
     packet.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     Boolean(packet.evidence.serviceRoleQueueSmokeAuthorizationRef) &&
     packet.counts.sourceWorkerDispatchesAcceptedWithProvidedEvidence === 0 &&
     packet.counts.sourceToolExecutionsAcceptedWithProvidedEvidence === 0 &&
@@ -219,6 +228,7 @@ function sourceProofAccepted(
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.sourceRuntimeQueueServiceProofBridgeAccepted === true &&
     packet.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.booleans.workerDispatchPerformed === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false
 }
@@ -231,6 +241,17 @@ function sourceServiceRoleQueueSmokeAuthorizationAccepted(
     packet?.evidence.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence === true &&
     hasValue(packet?.evidence.serviceRoleQueueSmokeAuthorizationRef ?? undefined) &&
     packet?.booleans.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+}
+
+function sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted(
+  packet?: AiGraphicsExternalBetaServiceRoleQueueSmokeProof,
+): boolean {
+  return Boolean(packet) &&
+    packet?.counts
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
+    packet?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    packet?.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
 }
 
 function missingDispatchControls(
@@ -277,6 +298,7 @@ function statusFromInput(input: {
 function buildRecords(input: {
   proofAccepted: boolean
   sourceAuthorizationAccepted: boolean
+  sourceOperatorPreflightAccepted: boolean
   controlsSatisfied: boolean
   sourceGatewayRuntimeAdmissionModesByTool?:
     Record<string, AiGraphicsExternalBetaSourceGatewayRuntimeAdmissionMode>
@@ -298,6 +320,8 @@ function buildRecords(input: {
       sourceRuntimeQueueServiceProofBridgeAccepted: input.proofAccepted,
       sourceServiceRoleQueueSmokeAuthorizationAccepted:
         input.sourceAuthorizationAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        input.sourceOperatorPreflightAccepted,
       workerLeaseReadinessPreparedWithProvidedEvidence: readyWithEvidence,
       workerDispatchReadinessPreparedWithProvidedEvidence: readyWithEvidence,
       gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -349,11 +373,16 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     sourceServiceRoleQueueSmokeAuthorizationAccepted(
       input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
     )
+  const sourceOperatorPreflightAccepted =
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted(
+      input.sourceExternalBetaServiceRoleQueueSmokeProofPacket,
+    )
   const missingControls = proofAccepted ? missingDispatchControls(input) : []
   const controlsSatisfied = proofAccepted && missingControls.length === 0
   const records = buildRecords({
     proofAccepted,
     sourceAuthorizationAccepted,
+    sourceOperatorPreflightAccepted,
     controlsSatisfied,
     sourceGatewayRuntimeAdmissionModesByTool:
       input.sourceExternalBetaServiceRoleQueueSmokeProofPacket
@@ -377,6 +406,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
     sourceServiceRoleQueueSmokeProofAccepted: proofAccepted,
     sourceServiceRoleQueueSmokeProofBridgeAccepted: proofAccepted,
     sourceServiceRoleQueueSmokeAuthorizationAccepted: sourceAuthorizationAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+      sourceOperatorPreflightAccepted,
     missingDispatchControls: missingControls,
     workerDispatchReadinessPreparedWithProvidedEvidence: controlsSatisfied,
     totalAiGraphicsTools: 21,
@@ -406,6 +437,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
         proofAccepted ? 21 : 0,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
         proofAccepted ? 21 : 0,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        proofAccepted ? 21 : 0,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
       sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
       cleanupPersistedRowsAfterSmoke: 0,
@@ -414,6 +447,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
       validatesDispatchReadinessOnly: true,
       serviceRoleQueueSmokeProofRequired: true,
       serviceRoleQueueSmokeProofBridgeRequired: true,
+      serviceRoleQueueSmokeOperatorPreflightRequired: true,
       workerLeasePolicyRequired: true,
       workerDispatchPolicyRequired: true,
       workerIdempotencyRequired: true,
@@ -435,6 +469,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchReadiness(
       sourceServiceRoleQueueSmokeProofBridgeAccepted: proofAccepted,
       sourceServiceRoleQueueSmokeAuthorizationAccepted:
         sourceAuthorizationAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceOperatorPreflightAccepted,
       externalBetaWorkerLeasePolicyAccepted: controlsSatisfied,
       externalBetaWorkerDispatchPolicyAccepted: controlsSatisfied,
       externalBetaWorkerIdempotencyNamespaceAccepted: controlsSatisfied,

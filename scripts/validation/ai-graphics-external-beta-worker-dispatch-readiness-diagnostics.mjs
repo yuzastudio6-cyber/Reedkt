@@ -234,6 +234,7 @@ for (const [key, expected] of Object.entries({
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
   serviceRoleQueueSmokeAuthorizationRefRequired: true,
   sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
   sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
   sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
   sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -267,6 +268,9 @@ for (const key of [
 if (docs.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== false) {
   fail('docs_source_service_role_queue_smoke_authorization_should_default_false')
 }
+if (docs.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== false) {
+  fail('docs_source_route_bound_operator_preflight_should_default_false')
+}
 for (const key of falseGateKeys) {
   if (docs.booleans?.[key] !== false) fail(`docs_required_false_not_false:${key}`)
 }
@@ -286,6 +290,9 @@ for (const phrase of [
   'serviceRoleQueueSmokeAuthorizationRef',
   'sourceServiceRoleQueueSmokeAuthorizationAccepted',
   'sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+  'serviceRoleQueueSmokeOperatorPreflightRequired',
   'noLiveWorkerLeaseByReadinessGate',
   'noLiveWorkerDispatchByReadinessGate',
   'noGpuRuntimeStartByReadinessGate',
@@ -321,6 +328,7 @@ try {
       sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
       sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
       sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
       sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -333,11 +341,13 @@ try {
       serviceRoleQueueSmokeAuthorizationRef:
         'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
     },
     booleans: {
       agentCanExecuteToolsNow: false,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
     },
@@ -388,6 +398,12 @@ try {
   ) {
     fail('accepted_source_service_role_queue_smoke_authorization_evidence_not_21')
   }
+  if (
+    accepted.acceptedSourceEvidence
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+  ) {
+    fail('accepted_source_route_bound_operator_preflight_evidence_not_21')
+  }
   if (!accepted.acceptedSourceEvidence?.serviceRoleQueueSmokeAuthorizationRef) {
     fail('accepted_service_role_queue_smoke_authorization_ref_missing')
   }
@@ -413,8 +429,17 @@ try {
   if (sourceAuthorizationReady.length !== 21) {
     fail(`accepted_source_authorization_record_count:${sourceAuthorizationReady.length}`)
   }
+  const sourceOperatorPreflightReady = (accepted.records ?? []).filter(
+    (record) => record.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true,
+  )
+  if (sourceOperatorPreflightReady.length !== 21) {
+    fail(`accepted_source_operator_preflight_record_count:${sourceOperatorPreflightReady.length}`)
+  }
   if (accepted.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true) {
     fail('accepted_boolean_source_service_role_queue_smoke_authorization_not_true')
+  }
+  if (accepted.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true) {
+    fail('accepted_boolean_source_route_bound_operator_preflight_not_true')
   }
   if (accepted.liveWorkerLeasesCreatedNow !== 0) fail('accepted_live_leases_not_0')
   if (accepted.liveWorkerDispatchesNow !== 0) fail('accepted_live_dispatches_not_0')
@@ -442,6 +467,7 @@ try {
         sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 0,
         sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
         sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
         sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
         sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -454,11 +480,13 @@ try {
         serviceRoleQueueSmokeAuthorizationRef:
           'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
         sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
       },
       booleans: {
         agentCanExecuteToolsNow: false,
         sourceRuntimeQueueServiceProofBridgeAccepted: false,
         sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
         workerDispatchPerformed: false,
         gpuRuntimeShouldStartNow: false,
       },
@@ -499,6 +527,7 @@ try {
         sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
         sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 0,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
         sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
         sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
         sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
@@ -510,11 +539,13 @@ try {
         sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
         serviceRoleQueueSmokeAuthorizationRef: null,
         sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: false,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
       },
       booleans: {
         agentCanExecuteToolsNow: false,
         sourceRuntimeQueueServiceProofBridgeAccepted: true,
         sourceServiceRoleQueueSmokeAuthorizationAccepted: false,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
         workerDispatchPerformed: false,
         gpuRuntimeShouldStartNow: false,
       },
@@ -538,6 +569,66 @@ try {
   ]), 'stripped_authorization')
   if (strippedAuthorization.decision !== 'external_beta_service_role_queue_smoke_proof_rejected') {
     fail(`stripped_authorization_decision:${strippedAuthorization.decision}`)
+  }
+
+  const strippedOperatorPreflightPacketPath = writeJson(
+    path.join(tmpRoot, 'service-role-queue-smoke-proof-stripped-operator-preflight.json'),
+    {
+      decision: 'external_beta_service_role_queue_smoke_proof_accepted_with_runtime_blocks',
+      proofAcceptedWithProvidedEvidence: true,
+      acceptedCpuStaticFirstCohortTools: ['d3'],
+      counts: {
+        serviceRoleQueueSmokeProofAcceptedToolsWithProvidedEvidence: 21,
+        sourceLiveQueueWritesAcceptedWithProvidedEvidence: 21,
+        sourceWorkerClaimRowsAcceptedWithProvidedEvidence: 21,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 0,
+        sourceGatewayRuntimeAdmissionModesAcceptedWithProvidedEvidence: 21,
+        sourceCpuStaticFirstCohortToolsAcceptedWithProvidedEvidence: 1,
+        sourceWorkerDispatchesAcceptedWithProvidedEvidence: 0,
+        sourceToolExecutionsAcceptedWithProvidedEvidence: 0,
+        cleanupPersistedRowsAfterSmoke: 0,
+      },
+      evidence: {
+        sourceGatewayRuntimeAdmissionModesByTool,
+        sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+        serviceRoleQueueSmokeAuthorizationRef:
+          'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
+        sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+      },
+      booleans: {
+        agentCanExecuteToolsNow: false,
+        sourceRuntimeQueueServiceProofBridgeAccepted: true,
+        sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: false,
+        workerDispatchPerformed: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    },
+  )
+  const strippedOperatorPreflight = parseJsonOutput(runNpm(runScriptName, [
+    '--external-beta-service-role-queue-smoke-proof-packet',
+    strippedOperatorPreflightPacketPath,
+    '--external-beta-worker-lease-policy-ref',
+    'private://ai-graphics/external-beta/worker-lease-policy.json',
+    '--external-beta-worker-dispatch-policy-ref',
+    'private://ai-graphics/external-beta/worker-dispatch-policy.json',
+    '--external-beta-worker-idempotency-namespace-ref',
+    'ai_graphics_external_beta_worker_dispatch',
+    '--external-beta-worker-telemetry-ref',
+    'private://ai-graphics/external-beta/worker-telemetry.json',
+    '--external-beta-gpu-on-demand-policy-ref',
+    'private://ai-graphics/external-beta/gpu-on-demand-policy.json',
+    '--external-beta-private-artifact-policy-ref',
+    'private://ai-graphics/external-beta/private-artifact-policy.json',
+  ]), 'stripped_operator_preflight')
+  if (strippedOperatorPreflight.decision !== 'external_beta_service_role_queue_smoke_proof_rejected') {
+    fail(`stripped_operator_preflight_decision:${strippedOperatorPreflight.decision}`)
+  }
+  if (strippedOperatorPreflight.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== false) {
+    fail('stripped_operator_preflight_unexpectedly_accepted')
   }
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
@@ -680,6 +771,7 @@ console.log(JSON.stringify({
   workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
   workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
   sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
   liveWorkerLeasesCreatedNow: 0,
   liveWorkerDispatchesNow: 0,
   liveToolExecutionsNow: 0,

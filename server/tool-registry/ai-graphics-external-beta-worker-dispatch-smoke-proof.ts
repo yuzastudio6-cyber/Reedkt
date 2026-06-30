@@ -44,6 +44,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceInMemoryLeaseRecordsReleased: number
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: number
     sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: number
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: number
     sourceLiveWorkerLeasesCreatedNow: 0
     sourceLiveWorkerDispatchesNow: 0
     sourceLiveToolExecutionsNow: 0
@@ -64,6 +65,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceAllInMemoryLeasesReleased: boolean
     sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: boolean
     sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     requiredExecutionEnvironment: 'non_production_external_beta'
     requiredWorkerMode: 'mock'
     requiredE2eRuntimeMode: 'local'
@@ -85,6 +87,7 @@ export interface AiGraphicsExternalBetaWorkerDispatchSmokeProof {
     sourceWorkerDispatchSmokeAcceptedWithProvidedEvidence: boolean
     sourceRuntimeQueueServiceProofBridgeAccepted: boolean
     sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -263,6 +266,9 @@ function validateRecord(
     record.sourceServiceRoleQueueSmokeAuthorizationAccepted !== true
       ? `source service-role queue smoke authorization missing for ${record.toolId}`
       : undefined,
+    record.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
+      ? `source route-bound operator preflight missing for ${record.toolId}`
+      : undefined,
     record.gpuRuntimeShouldStartNow !== false
       ? `GPU runtime should not start for ${record.toolId}`
       : undefined,
@@ -356,6 +362,9 @@ function validateSmokeResult(
     result.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence !== 21
       ? 'smoke result must preserve the 21-tool service-role queue smoke authorization'
       : undefined,
+    result.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21
+      ? 'smoke result must preserve the 21-tool route-bound operator preflight'
+      : undefined,
     !hasValue(result.serviceRoleQueueSmokeAuthorizationRef ?? undefined)
       ? 'smoke result service-role queue smoke authorization ref is missing'
       : undefined,
@@ -391,6 +400,11 @@ function validateSmokeResult(
     )).length !== 21
       ? 'smoke result must preserve service-role queue smoke authorization on all 21 records'
       : undefined,
+    records.filter((record) => (
+      record.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
+    )).length !== 21
+      ? 'smoke result must preserve route-bound operator preflight on all 21 records'
+      : undefined,
     capabilityScenarios.length !== 12
       ? 'smoke result must include 12 capability scenarios'
       : undefined,
@@ -408,6 +422,7 @@ function buildBooleans(input: {
   sourceAccepted: boolean
   sourceRuntimeQueueServiceProofBridgeAccepted: boolean
   sourceServiceRoleQueueSmokeAuthorizationAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
   allJobsAccepted: boolean
   allCapabilityScenariosAccepted: boolean
   allLeasesCreated: boolean
@@ -425,6 +440,8 @@ function buildBooleans(input: {
       input.sourceRuntimeQueueServiceProofBridgeAccepted,
     sourceServiceRoleQueueSmokeAuthorizationAccepted:
       input.sourceServiceRoleQueueSmokeAuthorizationAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+      input.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     workerDispatchSmokeProofAcceptedWithProvidedEvidence: input.accepted,
     all21ToolsCovered: true,
     all12CapabilitiesCovered: true,
@@ -531,6 +548,13 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
       record.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
     )) &&
     result?.booleans?.sourceServiceRoleQueueSmokeAuthorizationAccepted === true
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    result?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 21 &&
+    records.length === 21 &&
+    records.every((record) => (
+      record.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
+    )) &&
+    result?.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const allRoutesMockOnly =
     records.length === 21 && records.every((record) => record.mockOnlyRoute)
   const allRoutesHandoff =
@@ -582,6 +606,10 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
         accepted && result
           ? result.sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence
           : 0,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        accepted && result
+          ? result.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence
+          : 0,
       sourceLiveWorkerLeasesCreatedNow: 0,
       sourceLiveWorkerDispatchesNow: 0,
       sourceLiveToolExecutionsNow: 0,
@@ -610,6 +638,8 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
         sourceRuntimeQueueServiceProofBridgeAccepted,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence:
         sourceServiceRoleQueueSmokeAuthorizationAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       requiredExecutionEnvironment: 'non_production_external_beta',
       requiredWorkerMode: 'mock',
       requiredE2eRuntimeMode: 'local',
@@ -631,6 +661,7 @@ export function evaluateAiGraphicsExternalBetaWorkerDispatchSmokeProof(
       sourceAccepted,
       sourceRuntimeQueueServiceProofBridgeAccepted,
       sourceServiceRoleQueueSmokeAuthorizationAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       allJobsAccepted,
       allCapabilityScenariosAccepted,
       allLeasesCreated,

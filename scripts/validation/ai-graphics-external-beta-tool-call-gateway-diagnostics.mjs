@@ -444,6 +444,7 @@ function serviceRoleQueueSmokeResultFixture() {
     serviceRoleQueueSmokeAuthorizationRef:
       'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,

@@ -2,42 +2,39 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-ATTEMPT-RESULT-REVIEW-CURRENT-1'
-const packetDir = 'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1'
-const decision = 'completed_current_base_qwen_transport_dependency_attempt_result_review_fail_closed_transport_readiness_planning_required'
-const execution = 'completed_docs_only_current_base_qwen_transport_attempt_review_no_runtime_invocation'
-const nextMilestone = 'RP-EXTERNAL-BETA-QWEN-TRANSPORT-READINESS-PLAN-CURRENT-1'
+const packet = 'RP-EXTERNAL-BETA-QWEN-TRANSPORT-READINESS-PLAN-CURRENT-1'
+const packetDir = 'docs/external-beta/qwen-transport-readiness-plan-current-1'
+const decision = 'completed_current_base_qwen_transport_readiness_plan_ready_for_confirmed_transport_runtime_preflight'
+const execution = 'completed_docs_only_current_base_qwen_transport_readiness_plan_no_runtime_invocation'
+const nextMilestone = 'RP-EXTERNAL-BETA-QWEN-CONFIRMED-TRANSPORT-RUNTIME-PREFLIGHT-CURRENT-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${packetDir}/source-audit.md`,
-  `${packetDir}/attempt-result-review.md`,
+  `${packetDir}/transport-readiness-plan.md`,
   `${packetDir}/runtime-boundary.md`,
   `${packetDir}/validation-results.md`,
-  `${packetDir}/qwen-transport-dependency-attempt-result-review-current-record.json`,
-  'docs/activation-phase-rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-qwen-transport-readiness-plan-current-1.md',
-  'scripts/validation/rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-diagnostics.mjs',
+  `${packetDir}/qwen-transport-readiness-plan-current-record.json`,
+  'docs/activation-phase-rp-external-beta-qwen-transport-readiness-plan-current-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1.md',
+  'scripts/validation/rp-external-beta-qwen-transport-readiness-plan-current-1-diagnostics.mjs',
   'package.json',
 ]
 
 const requiredExistingFiles = [
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/qwen-transport-dependency-attempt-result-review-current-record.json',
   'docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-record.json',
-  'docs/external-beta/qwen-transport-dependency-enablement-current-import-1/qwen-transport-dependency-enablement-current-import-record.json',
-  'docs/external-beta/qwen-transport-dependency-preflight-current-1/qwen-transport-dependency-preflight-current-record.json',
   'src/backend/workers/qwen2-5-vl-controlled-real-dispatch-transport-dependency-enablement.ts',
+  'server/config/qwen2-5-vl-external-beta-runtime-gate-contract.ts',
+  'server/routes/provider-gateway-routes.ts',
+  'server/services/qwen2-5-vl-external-beta-product-route-handler-source.ts',
+  'server/services/qwen2-5-vl-external-beta-backend-runtime-adapter.ts',
+  'src/backend/api/routes/provider-api-routes.ts',
 ]
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
-  'docs/external-beta/qwen-transport-readiness-plan-current-1/source-audit.md',
-  'docs/external-beta/qwen-transport-readiness-plan-current-1/transport-readiness-plan.md',
-  'docs/external-beta/qwen-transport-readiness-plan-current-1/runtime-boundary.md',
-  'docs/external-beta/qwen-transport-readiness-plan-current-1/validation-results.md',
-  'docs/external-beta/qwen-transport-readiness-plan-current-1/qwen-transport-readiness-plan-current-record.json',
-  'docs/activation-phase-rp-external-beta-qwen-transport-readiness-plan-current-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1.md',
-  'scripts/validation/rp-external-beta-qwen-transport-readiness-plan-current-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-enablement-current-import-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-preflight-current-1-diagnostics.mjs',
@@ -47,36 +44,48 @@ const requiredText = [
   packet,
   decision,
   execution,
-  '947095be378733e1ea9efc50bf951f1de16c0bac',
+  '805bad1f3d5ad738ecb0204ebf696552a4364eca',
+  'completed_current_base_qwen_transport_dependency_attempt_result_review_fail_closed_transport_readiness_planning_required',
   'completed_qwen_real_dispatch_dry_run_attempt_1r_after_gcloud_reauth_transport_readback',
-  'completed_current_base_qwen_transport_dependency_enablement_contract_preflight_required',
-  'completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked',
-  '#1755 open/draft/MERGEABLE/CLEAN accepted_as_fail_closed_evidence_only',
-  '#1760 open/draft/MERGEABLE/CLEAN accepted_as_fail_closed_evidence_only',
-  'b04b40824766e3732cd153d70098b290acde6d25',
-  'cb5da38fd019fcd95ebbd7309bc279ea60d864b8',
-  'closed_gcloud_user_and_adc_reauth_preflight_passed',
-  'transport_metadata_readback_passed_runtime_invocation_still_blocked',
-  'fail_closed_transport_dependency_attempt_reviewed_current_base_reconciliation',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_readiness_planning_required',
-  'Cloud Run invocation: `false`',
-  'identity token fetch: `false`',
-  'request sent: `false`',
-  'QWEN2.5-VL execution: `false`',
-  'worker dispatch: `false`',
+  'ready_for_confirmed_qwen_transport_runtime_preflight_current_1',
+  'reeditpro-staging-api',
+  'reeditpro-qwen2-5-vl-l4-worker',
+  'reeditpro-staging-api-00006-6gw',
+  'reeditpro-qwen2-5-vl-l4-worker-00037-658',
+  'wmyyttnynmteqgcdishd',
+  'providers.qwen25Vl.structuredVisualMetadataPlan',
+  'POST /api/providers/qwen2-5-vl/structured-visual-metadata',
+  'Idempotency-Key',
+  'qwen-transport-runtime-preflight-current-1-single-tester-fixture-v1',
+  'REEDITPRO_CONFIRM_QWEN_TRANSPORT_RUNTIME_PREFLIGHT_CURRENT_1=true',
+  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE=true',
+  'REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd',
+  'REEDITPRO_QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_SCOPE=approved_snapshot_structured_metadata_only',
+  'approved-snapshot://qwen-transport-runtime-preflight-current-1/structured-metadata-only',
+  'credit-reservation://qwen-transport-runtime-preflight-current-1/no-spend',
+  'queue-lease://qwen-transport-runtime-preflight-current-1/non-mutating-readiness',
+  'manifest://qwen-transport-runtime-preflight-current-1/private-input',
+  'manifest://qwen-transport-runtime-preflight-current-1/private-artifacts',
+  'sha256:qwen-transport-runtime-preflight-current-1-private-artifacts',
+  'credit_reservation_no_spend',
+  nextMilestone,
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  nextMilestone,
 ]
 
 const forbiddenPatterns = [
-  /\bQWEN2\.5-VL execution:\s*`?(true|enabled|completed|passed)\b/i,
   /\bCloud Run invocation:\s*`?(true|enabled|completed|passed)\b/i,
   /\bCloud Run deployment:\s*`?(true|enabled|completed|passed)\b/i,
   /\bCloud Run service update:\s*`?(true|enabled|completed|passed)\b/i,
+  /\bservice URL resolution for invocation:\s*`?(true|enabled|completed|passed)\b/i,
+  /\baudience resolution for invocation:\s*`?(true|enabled|completed|passed)\b/i,
   /\bidentity token fetch:\s*`?(true|enabled|completed|passed)\b/i,
+  /\bauth header creation:\s*`?(true|enabled|completed|passed)\b/i,
   /\brequest sent:\s*`?(true|enabled|completed|passed)\b/i,
+  /\broute execution:\s*`?(true|enabled|completed|passed)\b/i,
+  /\bQWEN2\.5-VL execution:\s*`?(true|enabled|completed|passed)\b/i,
   /\bprovider call:\s*`?(true|enabled|completed|passed)\b/i,
   /\bmodel call:\s*`?(true|enabled|completed|passed)\b/i,
   /\bworker execution:\s*`?(true|enabled|completed|passed)\b/i,
@@ -93,22 +102,26 @@ const forbiddenPatterns = [
   /\bProduct-ready end-to-end local OSS tools:\s*`?[1-9]/i,
   /"cloudRunInvocation"\s*:\s*true/i,
   /"identityTokenFetch"\s*:\s*true/i,
+  /"authHeaderCreated"\s*:\s*true/i,
   /"requestSent"\s*:\s*true/i,
+  /"routeExecution"\s*:\s*true/i,
   /"qwen25VlExecution"\s*:\s*true/i,
+  /"providerCall"\s*:\s*true/i,
+  /"modelCall"\s*:\s*true/i,
   /"workerDispatch"\s*:\s*true/i,
   /"supabaseMutation"\s*:\s*true/i,
   /"sqlExecution"\s*:\s*true/i,
-  /"secretPayloadAccess"\s*:\s*true/i,
   /"packageLockMutation"\s*:\s*true/i,
 ]
 
 const blockedPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!smoke\/)/,
+  /^server\/(?!config\/qwen2-5-vl-external-beta-runtime-gate-contract\.ts$)(?!routes\/provider-gateway-routes\.ts$)(?!services\/qwen2-5-vl-external-beta-product-route-handler-source\.ts$)(?!services\/qwen2-5-vl-external-beta-backend-runtime-adapter\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^docker\//,
+  /^cloudbuild\//,
   /^\.github\//,
   /^\.dockerignore$/,
   /^Dockerfile$/,
@@ -157,15 +170,30 @@ for (const pattern of forbiddenPatterns) {
   if (pattern.test(corpus)) fail(`forbidden claim matched: ${pattern}`)
 }
 
-const record = parseJson(`${packetDir}/qwen-transport-dependency-attempt-result-review-current-record.json`)
+const record = parseJson(`${packetDir}/qwen-transport-readiness-plan-current-record.json`)
 if (record.packet !== packet) fail('packet mismatch')
 if (record.decision !== decision) fail('decision mismatch')
 if (record.execution !== execution) fail('execution mismatch')
-if (record.integrationBase !== '947095be378733e1ea9efc50bf951f1de16c0bac') fail('integration base mismatch')
-if (record.draftStackEvidence?.blindMergeApproved !== false) fail('blind merge must be false')
-if (record.draftStackEvidence?.fullDraftStackImportApproved !== false) fail('full draft import must be false')
-if (record.readiness?.qwenAuthPath !== 'closed_gcloud_user_and_adc_reauth_preflight_passed') fail('auth path mismatch')
-if (record.readiness?.remainingBlocker !== 'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_readiness_planning_required') fail('remaining blocker mismatch')
+if (record.integrationBase !== '805bad1f3d5ad738ecb0204ebf696552a4364eca') fail('integration base mismatch')
+if (record.route?.routeId !== 'providers.qwen25Vl.structuredVisualMetadataPlan') fail('route id mismatch')
+if (record.route?.method !== 'POST') fail('route method mismatch')
+if (record.route?.path !== '/api/providers/qwen2-5-vl/structured-visual-metadata') fail('route path mismatch')
+if (record.targetServices?.googleCloudProject !== 'reeditpro') fail('project mismatch')
+if (record.targetServices?.region !== 'us-central1') fail('region mismatch')
+if (record.targetServices?.stagingApiService !== 'reeditpro-staging-api') fail('staging service mismatch')
+if (record.targetServices?.qwenWorkerService !== 'reeditpro-qwen2-5-vl-l4-worker') fail('worker service mismatch')
+if (record.futureConfirmationGate?.confirmationEnv !== 'REEDITPRO_CONFIRM_QWEN_TRANSPORT_RUNTIME_PREFLIGHT_CURRENT_1') {
+  fail('confirmation env mismatch')
+}
+if (record.futureConfirmationGate?.targetRefEnv !== 'REEDITPRO_EXTERNAL_BETA_TARGET_REF=wmyyttnynmteqgcdishd') {
+  fail('target env mismatch')
+}
+if (record.guards?.timeoutSeconds !== 30) fail('timeout mismatch')
+if (record.guards?.creditPolicy !== 'credit_reservation_no_spend') fail('credit policy mismatch')
+if (record.readiness?.closedBlocker !== 'controlled_persisted_worker_dispatch_runtime_real_dispatch_transport_readiness_planning_required') {
+  fail('closed blocker mismatch')
+}
+if (record.readiness?.status !== 'ready_for_confirmed_qwen_transport_runtime_preflight_current_1') fail('readiness mismatch')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count mismatch')
 if (record.nextMilestone !== nextMilestone) fail('next milestone mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
@@ -179,20 +207,20 @@ for (const [key, value] of Object.entries(record.safety ?? {})) {
   }
 }
 
-const qwenReauth = parseJson('docs/external-beta/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth/qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-record.json')
-if (qwenReauth.decision !== 'completed_qwen_real_dispatch_dry_run_attempt_1r_after_gcloud_reauth_transport_readback') fail('reauth readback source drift')
-if (qwenReauth.readiness?.qwenAuthPath !== 'closed_gcloud_user_and_adc_reauth_preflight_passed') fail('reauth source did not close auth path')
-
-const transport = parseJson('docs/external-beta/qwen-transport-dependency-enablement-current-import-1/qwen-transport-dependency-enablement-current-import-record.json')
-if (transport.decision !== 'completed_current_base_qwen_transport_dependency_enablement_contract_preflight_required') fail('transport dependency source drift')
-
-const preflight = parseJson('docs/external-beta/qwen-transport-dependency-preflight-current-1/qwen-transport-dependency-preflight-current-record.json')
-if (preflight.decision !== 'completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked') fail('preflight source drift')
+const attemptReview = parseJson(
+  'docs/external-beta/qwen-transport-dependency-attempt-result-review-current-1/qwen-transport-dependency-attempt-result-review-current-record.json',
+)
+if (
+  attemptReview.decision !==
+  'completed_current_base_qwen_transport_dependency_attempt_result_review_fail_closed_transport_readiness_planning_required'
+) {
+  fail('attempt result review source drift')
+}
 
 const packageJson = parseJson('package.json')
 if (
-  packageJson.scripts?.['rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-qwen-transport-dependency-attempt-result-review-current-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-qwen-transport-readiness-plan-current-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-qwen-transport-readiness-plan-current-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }

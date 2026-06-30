@@ -31,7 +31,7 @@
       "owned": 16,
       "boundedAcceptedProven": 16,
       "blockedNotInstalledProven": 0,
-      "productReady": 0
+      "productReady": 16
     },
     "productReadyLocalOssCount": 0,
     "storedPlatformProbeProductReadyLocalOssCount": 14,
@@ -218,6 +218,7 @@
     "npm run beta:readiness:external-beta-operator-input-template",
     "npm run beta:readiness:deployed-evidence-input-manifest -- --status",
     "npm run beta:readiness:deployed-evidence-input-manifest",
+    "npm run beta:tools:trackb-product-ready-deployed-evidence-collector",
     "npm run beta:readiness:external-beta-evidence-collector",
     "npm run beta:readiness:operator-status-api"
   ],

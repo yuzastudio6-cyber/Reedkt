@@ -8,16 +8,16 @@ Operator input template: `docs/beta-readiness/external-beta-operator-input-templ
 
 Product-ready local OSS count: `0`
 
-Track B local tool evidence: `16 locally accepted / 0 product-ready`
+Track B local tool evidence: `16 locally accepted / 16 source product-ready / 0 active deployed product-ready`
 
 ## Queue Summary
 
 - Blocker ledger rows: `197`
 - Duplicate ledger rows: `0`
 - Ready to record deployed evidence: `true`
-- Required operator inputs: `60`
-- Pending in blank env: `57`
-- Human-actionable pending inputs: `45`
+- Required operator inputs: `62`
+- Pending in blank env: `59`
+- Human-actionable pending inputs: `47`
 - Auto-fillable pending inputs: `12`
 - External beta allowed: `false`
 - Real-user-media beta allowed: `false`
@@ -27,13 +27,13 @@ Track B local tool evidence: `16 locally accepted / 0 product-ready`
 
 - Batch: `operator_value_collection`
 - Title: Collect exact operator values outside source control
-- Blocker row count: `57`
+- Blocker row count: `59`
 - Can run without operator secrets: `false`
 - Can enable beta or production: `false`
 
 ### Source Evidence
 
-- docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json (60 required inputs, 57 pending in blank env: 45 human-actionable, 12 auto-fillable constants/keys)
+- docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json (62 required inputs, 59 pending in blank env: 47 human-actionable, 12 auto-fillable constants/keys)
 
 ### Commands
 
@@ -51,11 +51,11 @@ Track B local tool evidence: `16 locally accepted / 0 product-ready`
 
 ### Blocked Until
 
-- Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.
+- Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the 47 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, product-ready local OSS confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.
 
 ## Batches
 
-- `operator_value_collection`: Collect exact operator values outside source control (rows: `57`, no-secret runnable: `false`)
+- `operator_value_collection`: Collect exact operator values outside source control (rows: `59`, no-secret runnable: `false`)
 - `trackb_deployed_tool_evidence_recording`: Record the 16-tool Track B accepted evidence bundle against deployed staging (rows: `16`, no-secret runnable: `false`)
 - `registry_bounded_runtime_evidence`: Close bounded command/import/container proof gaps for the full production registry (rows: `98`, no-secret runnable: `true`)
 - `product_ready_qa_acceptance`: Run QA acceptance after real bounded evidence exists (rows: `49`, no-secret runnable: `true`)
@@ -65,6 +65,6 @@ Track B local tool evidence: `16 locally accepted / 0 product-ready`
 
 ## Boundary
 
-This queue does not enable external beta, real-user-media beta, paid production, provider calls, worker dispatch, media processing, Supabase/GCS writes, public artifacts, signed URLs, or product-ready local OSS claims.
+This queue does not enable external beta, real-user-media beta, paid production, provider calls, worker dispatch, media processing, Supabase/GCS writes, public artifacts, signed URLs, or active deployed product-ready/local-OSS launch claims.
 
 Supabase classification: no write / environment none / SQL none / migration no.

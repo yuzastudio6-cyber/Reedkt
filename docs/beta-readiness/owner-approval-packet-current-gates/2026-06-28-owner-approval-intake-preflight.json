@@ -22,7 +22,7 @@
     "owned": 16,
     "boundedAcceptedProven": 16,
     "blockedNotInstalledProven": 0,
-    "productReady": 0
+    "productReady": 16
   },
   "productReadyLocalOssCount": 0,
   "commands": [

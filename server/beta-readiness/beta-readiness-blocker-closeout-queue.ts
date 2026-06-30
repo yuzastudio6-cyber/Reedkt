@@ -203,7 +203,7 @@ function buildBatches(
         'npm run beta:readiness:deployed-evidence-input-manifest',
       ],
       blockedUntil: [
-        `Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.`,
+        `Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the ${humanActionablePendingOperatorInputs} human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, product-ready local OSS confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.`,
       ],
     },
     {
@@ -216,14 +216,15 @@ function buildBatches(
       canEnableBetaOrProduction: false,
       sourceEvidence: [
         `${LOCAL_ACCEPTED_BUNDLE_PATH} (${acceptedToolIds.length} locally accepted tools, readyToRecordDeployedEvidence=true)`,
+        `${TRACKB_PRODUCT_READY_SOURCE_RECONCILIATION_PATH} (Track B product-ready source count 16, active beta deployed readback count 0 until collector passes)`,
       ],
       nextCommands: [
-        'npm run beta:tools:local-accepted-evidence-collector',
+        'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
         'npm run beta:readiness:external-beta-evidence-collector',
         'npm run beta:readiness:operator-status-api',
       ],
       blockedUntil: [
-        'The deployed collector records core tool evidence and libass evidence idempotently, then operator status readback confirms the accepted evidence from staging.',
+        'The deployed collector records core tool evidence and libass evidence idempotently with product-ready local OSS acceptance, then operator status readback confirms product-ready local OSS count 16 from staging.',
       ],
     },
     {

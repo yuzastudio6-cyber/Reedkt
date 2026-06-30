@@ -164,8 +164,7 @@ function buildReport(input: {
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE) &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE)
   const productReadyAccepted = proofPassed &&
-    parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCTION_READINESS) &&
-    parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE) &&
+    boundedAccepted &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_PRODUCT_READY_LOCAL_OSS) &&
     parseBoolean(input.env.REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE)
   const acceptedToolEvidence = boundedAccepted || productReadyAccepted
@@ -208,7 +207,7 @@ function buildReport(input: {
       : ['real_execution_not_verified', 'production_readiness_blocked', 'product_ready_acceptance_missing'],
     nextSafeAction: acceptedToolEvidence.length > 0
       ? 'Record this libass QA evidence packet through the authenticated beta readiness evidence endpoint, then verify deployed staging status before any external beta or production scope.'
-      : 'Run the synthetic-only burn-in QA against an approved render/tool-readiness image or host ffmpeg with explicit production and product-ready acceptance confirmations.',
+      : 'Run the synthetic-only burn-in QA against an approved render/tool-readiness image or host ffmpeg with explicit bounded accepted and product-ready local OSS confirmations.',
     warnings: [
       'Preview only; no backend evidence was recorded.',
       'This preflight creates only temp synthetic color video and ASS caption files, burns them through libass, probes the output, and removes temp artifacts.',

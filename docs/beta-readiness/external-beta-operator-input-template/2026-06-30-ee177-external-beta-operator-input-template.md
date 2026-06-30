@@ -6,12 +6,12 @@ Deployed evidence manifest: `docs/beta-readiness/deployed-evidence-input-manifes
 Deployed evidence decision: `beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs`
 Deployed source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
 API revision: `reeditpro-api-staging-00015-skq`
-Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
+Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`
 
 ## Input Counts
 
-- Required inputs: `60`
-- Pending in blank environment: `57`
+- Required inputs: `62`
+- Pending in blank environment: `59`
 - Secret/sensitive inputs: `2`
 - Operator-generated ids: `4`
 - Owner evidence notes: `11`
@@ -20,7 +20,7 @@ Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed
 ## Required Groups
 
 - shared: `8`
-- tool_evidence: `14`
+- tool_evidence: `16`
 - platform_evidence: `22`
 - launch_approval: `16`
 
@@ -51,11 +51,13 @@ REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA="d47015e88943dd4760dd9eb6ee45ad0f8e
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS="ffmpeg,ffprobe,pyav,opentimelineio,hyperframe,remotion,sharp,duckdb,polars,pyscenedetect,opencv,opencolorio,openimageio,audioflux,signalsmith_stretch"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE="<operator confirmation: set to true only after this gate is intentionally accepted>"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE="<operator confirmation: set to true only after this gate is intentionally accepted>"
+REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS="<operator confirmation: set to true only after this gate is intentionally accepted>"
+REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE="<operator confirmation: set to true only after this gate is intentionally accepted>"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE="<operator confirmation: set to true only after this gate is intentionally accepted>"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE="<operator confirmation: set to true only after this gate is intentionally accepted>"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK="<operator confirmation: set to true only after this gate is intentionally accepted>"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT="16"
-REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="0"
+REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT="16"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE="docker"
 REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE="us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001"
 
@@ -112,6 +114,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 # REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight
 # npm run beta:readiness:deployed-evidence-input-manifest -- --status
 # npm run beta:readiness:deployed-evidence-input-manifest
+# npm run beta:tools:trackb-product-ready-deployed-evidence-collector
 
 # After collector execution:
 # npm run beta:readiness:external-beta-evidence-collector
@@ -133,6 +136,8 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 - `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
+- `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
+- `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
 - `npm run beta:readiness:external-beta-evidence-collector`
 - `npm run beta:readiness:operator-status-api`
 

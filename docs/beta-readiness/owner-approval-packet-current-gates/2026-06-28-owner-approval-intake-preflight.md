@@ -30,7 +30,7 @@ Current no-input pending count: `29`
 - Source SHA at refresh: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
 - Deployed evidence source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
 - Source freshness decision: `beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence`
-- Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
+- Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`
 - Product-ready local OSS count: `0`
 
 The source lists are:

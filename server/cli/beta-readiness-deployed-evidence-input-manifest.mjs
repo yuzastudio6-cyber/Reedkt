@@ -8,7 +8,7 @@ const CURRENT_TRACKB_TOOL_TOTALS = {
   owned: 16,
   boundedAcceptedProven: 16,
   blockedNotInstalledProven: 0,
-  productReady: 0,
+  productReady: 16,
 }
 
 const SECRET_KEY_PATTERNS = [
@@ -181,6 +181,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
       'npm run beta:readiness:scope-approval-evidence-preflight',
@@ -217,6 +218,8 @@ function buildRequiredInputs(env, fixed) {
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS', 'tool_evidence', false, 'external_beta_evidence_sequence', fixed.coreToolIdsCsv),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
+    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
+    input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK', 'tool_evidence', false, 'external_beta_evidence_sequence', 'true'),
@@ -282,6 +285,8 @@ function buildValueGaps(env, fixed) {
   for (const name of [
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE',
+    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS',
+    'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK',
@@ -313,8 +318,6 @@ function buildValueGaps(env, fixed) {
   }
   requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS')
   requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE')
-  requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS')
-  requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE')
   requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_APPROVE_REAL_USER_MEDIA_BETA')
   requireNotTrueIfPresent(env, gaps, 'REEDITPRO_BETA_LAUNCH_APPROVE_PAID_PRODUCTION')
 

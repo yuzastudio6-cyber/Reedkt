@@ -25,9 +25,9 @@ assert.equal(
   report.sourceTruth.operatorTemplatePath,
   'docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json',
 )
-assert.equal(report.sourceTruth.requiredOperatorInputs, 60)
-assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)
-assert.equal(report.sourceTruth.humanActionablePendingOperatorInputs, 45)
+assert.equal(report.sourceTruth.requiredOperatorInputs, 62)
+assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 59)
+assert.equal(report.sourceTruth.humanActionablePendingOperatorInputs, 47)
 assert.equal(report.sourceTruth.autoFillablePendingOperatorInputs, 12)
 assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
 assert.equal(
@@ -64,7 +64,7 @@ assert.equal(
   true,
 )
 assert.equal(
-  report.batches[0]?.blockedUntil[0]?.includes('45 human-actionable values'),
+  report.batches[0]?.blockedUntil[0]?.includes('47 human-actionable values'),
   true,
 )
 assert.equal(
@@ -84,11 +84,14 @@ assert.equal(
   true,
 )
 assert.equal(
-  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('45 human-actionable, 12 auto-fillable')),
+  report.batches[0]?.sourceEvidence.some((evidence) => evidence.includes('47 human-actionable, 12 auto-fillable')),
   true,
 )
 assert.equal(report.batches[1]?.batchId, 'trackb_deployed_tool_evidence_recording')
 assert.equal(report.batches[1]?.rowCount, 16)
+assert.equal(report.batches[1]?.nextCommands[0], 'npm run beta:tools:trackb-product-ready-deployed-evidence-collector')
+assert.equal(report.batches[1]?.sourceEvidence.some((item) => item.includes('trackb-product-ready-source-reconciliation')), true)
+assert.equal(report.batches[1]?.blockedUntil[0]?.includes('product-ready local OSS count 16'), true)
 assert.equal(report.batches[2]?.batchId, 'registry_bounded_runtime_evidence')
 assert.equal(report.batches[2]?.nextCommands[0], 'npm run beta:tools:core-real-check-preview -- --env-template')
 assert.equal(report.batches[2]?.nextCommands[1], 'npm run beta:tools:core-real-check-preview -- --local-defaults')

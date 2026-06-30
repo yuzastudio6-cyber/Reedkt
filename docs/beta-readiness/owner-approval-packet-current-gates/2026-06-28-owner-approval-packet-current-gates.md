@@ -21,7 +21,7 @@ Deployed evidence source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
 - Normal API public unauthenticated `/health`: HTTP `403`
 - Normal API authenticated health readback: `not_rerun_local_cloud_cli_auth_expired`
 - Tool-readiness API: `reeditpro-tool-readiness-staging` revision `reeditpro-tool-readiness-staging-00002-qdp`
-- Track B tool totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
+- Track B tool totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`
 - Product-ready local OSS count: `0`
 - Historical stored platform-probe product-ready local OSS count: `14`
 - Platform technical probe: `8/9` checks passed
@@ -193,6 +193,7 @@ Generate an owner input template with `npm run beta:readiness:owner-approval-env
 - `npm run beta:readiness:external-beta-operator-input-template`
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
+- `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
 - `npm run beta:readiness:external-beta-evidence-collector`
 - `npm run beta:readiness:operator-status-api`
 

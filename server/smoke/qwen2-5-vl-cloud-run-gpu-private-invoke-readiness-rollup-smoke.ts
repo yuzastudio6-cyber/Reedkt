@@ -119,6 +119,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_T
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_ATTEMPT_RESULT_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-transport-attempt-result-review'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_APPROVAL } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_PREFLIGHT } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
@@ -128,9 +129,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_inference_preflight_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_approval_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58CZ-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-INFERENCE-PREFLIGHT: verify one controlled Qwen approved-fixture inference preflight through persisted worker dispatch, no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58DA-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-INFERENCE-ATTEMPT-APPROVAL: approve one controlled Qwen approved-fixture inference attempt through persisted worker dispatch, no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -548,6 +549,9 @@ for (const file of [
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval.ts',
   'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval-smoke.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight-smoke.ts',
   'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
   'package.json',
 ]) {
@@ -994,6 +998,13 @@ assert.equal(
   ],
   'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-approval-smoke.ts',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference approval package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.[
+    'smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight'
+  ],
+  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-preflight-smoke.ts',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference preflight package script mismatch',
 )
 
 const doc = read('docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md')
@@ -1658,7 +1669,19 @@ for (const phrase of [
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
-  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRequired=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRequired=false`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRecorded=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightPassed=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptApprovalRequired=true`',
+  '`approvedSnapshotAndFixtureScopePreflightVerified=true`',
+  '`persistedWorkerDispatchRefsPreflightVerified=true`',
+  '`privateSourceOfTruthRefsPreflightVerified=true`',
+  '`qwenRequestEnvelopePreflightVerified=true`',
+  '`privateInvokeTransportDependenciesPreflightVerified=true`',
+  '`qwenRuntimeInferenceBoundaryPreflightVerified=true`',
+  '`responseSchemaAndResultHandlingPreflightVerified=true`',
+  '`qaAuditCostAndCreditNoSpendPreflightVerified=true`',
+  '`cleanupRetryAndBetaLockPreflightVerified=true`',
   '`approvedSnapshotAndFixtureScopePlanned=true`',
   '`persistedWorkerDispatchRefsPlanned=true`',
   '`privateSourceOfTruthRefsPlanned=true`',
@@ -1717,7 +1740,8 @@ for (const phrase of [
   'controlled persisted worker dispatch runtime real-dispatch transport attempt result review: ready, result review accepted',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference plan: ready, plan recorded',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference approval: ready, approval recorded',
-  'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference preflight: blocked, preflight required',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference preflight: ready, preflight passed',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt approval: blocked, approval required',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement implementation | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement execution plan | ready',
@@ -1735,11 +1759,24 @@ for (const phrase of [
   'Controlled persisted worker dispatch runtime real-dispatch transport attempt result review | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference plan | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference approval | ready',
-  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference preflight | blocked controlled persisted worker dispatch runtime real-dispatch approved-fixture inference preflight required',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference preflight | ready',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt approval | blocked controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt approval required',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
-  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRequired=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRequired=false`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRecorded=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightPassed=true`',
+  '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptApprovalRequired=true`',
+  '`approvedSnapshotAndFixtureScopePreflightVerified=true`',
+  '`persistedWorkerDispatchRefsPreflightVerified=true`',
+  '`privateSourceOfTruthRefsPreflightVerified=true`',
+  '`qwenRequestEnvelopePreflightVerified=true`',
+  '`privateInvokeTransportDependenciesPreflightVerified=true`',
+  '`qwenRuntimeInferenceBoundaryPreflightVerified=true`',
+  '`responseSchemaAndResultHandlingPreflightVerified=true`',
+  '`qaAuditCostAndCreditNoSpendPreflightVerified=true`',
+  '`cleanupRetryAndBetaLockPreflightVerified=true`',
   '`approvedSnapshotAndFixtureScopeAccepted=true`',
   '`persistedWorkerDispatchRefsAccepted=true`',
   '`privateSourceOfTruthRefsAccepted=true`',
@@ -2299,7 +2336,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_preflight_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_approval_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -2431,8 +2468,9 @@ assert.deepEqual(gateIds, [
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_plan',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_approval',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_preflight',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_approval',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 110)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 111)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -2948,6 +2986,13 @@ assert.equal(
   rollup.readinessGates.filter(
     (gate) => String(gate.status) ===
       'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_preflight_required',
+  ).length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter(
+    (gate) => String(gate.status) ===
+      'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_inference_attempt_approval_required',
   ).length,
   1,
 )
@@ -3682,8 +3727,32 @@ assert.equal(
 )
 assert.equal(
   rollup.runtimeFlags.controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRequired,
+  false,
+)
+assert.equal(
+  rollup.runtimeFlags
+    .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRecorded,
   true,
 )
+assert.equal(
+  rollup.runtimeFlags
+    .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightPassed,
+  true,
+)
+assert.equal(
+  rollup.runtimeFlags
+    .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptApprovalRequired,
+  true,
+)
+assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopePreflightVerified, true)
+assert.equal(rollup.runtimeFlags.persistedWorkerDispatchRefsPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.privateSourceOfTruthRefsPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.qwenRequestEnvelopePreflightVerified, true)
+assert.equal(rollup.runtimeFlags.privateInvokeTransportDependenciesPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.qwenRuntimeInferenceBoundaryPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.responseSchemaAndResultHandlingPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.qaAuditCostAndCreditNoSpendPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.cleanupRetryAndBetaLockPreflightVerified, true)
 assert.equal(
   rollup.runtimeFlags.approvedSnapshotAndFixtureScopePlanned,
   true,
@@ -3829,8 +3898,32 @@ assert.equal(
 assert.equal(
   rollup.runtimeFlags
     .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRequired,
+  false,
+)
+assert.equal(
+  rollup.runtimeFlags
+    .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightRecorded,
   true,
 )
+assert.equal(
+  rollup.runtimeFlags
+    .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflightPassed,
+  true,
+)
+assert.equal(
+  rollup.runtimeFlags
+    .controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptApprovalRequired,
+  true,
+)
+assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopePreflightVerified, true)
+assert.equal(rollup.runtimeFlags.persistedWorkerDispatchRefsPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.privateSourceOfTruthRefsPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.qwenRequestEnvelopePreflightVerified, true)
+assert.equal(rollup.runtimeFlags.privateInvokeTransportDependenciesPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.qwenRuntimeInferenceBoundaryPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.responseSchemaAndResultHandlingPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.qaAuditCostAndCreditNoSpendPreflightVerified, true)
+assert.equal(rollup.runtimeFlags.cleanupRetryAndBetaLockPreflightVerified, true)
 assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopeAccepted, true)
 assert.equal(rollup.runtimeFlags.persistedWorkerDispatchRefsAccepted, true)
 assert.equal(rollup.runtimeFlags.privateSourceOfTruthRefsAccepted, true)
@@ -4150,6 +4243,8 @@ const forbiddenDataFindings = scanValues({
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_ATTEMPT_APPROVAL,
   controlledPersistedWorkerDispatchRuntimeRealDispatchTransportAttemptResult:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_TRANSPORT_ATTEMPT_RESULT,
+  controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferencePreflight:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_PREFLIGHT,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

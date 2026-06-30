@@ -193,6 +193,7 @@ function buildWorkerPayload(
   mode: TrackBAgentToolExecutionMode,
   report: TrackBAgentRuntimeReadinessReport,
 ): ProductionWorkerJobPayload {
+  const agentRecipeMetadata = buildDefaultTrackBWorkerRecipeMetadata(input, contract)
   const candidate: ProductionWorkerJobPayload = {
     jobId: input.jobId,
     workspaceId: input.workspaceId,
@@ -219,6 +220,7 @@ function buildWorkerPayload(
     createdAt: new Date().toISOString(),
     metadata: {
       ...(input.metadata ?? {}),
+      ...agentRecipeMetadata,
       creditEstimateId: input.creditEstimateId ?? stringMetadata(input.metadata, 'creditEstimateId'),
       agentInvocationId: contract.agentInvocationId,
       agentAction: input.action,
@@ -233,6 +235,192 @@ function buildWorkerPayload(
     },
   }
   return { ...candidate, idempotencyKey: buildWorkerIdempotencyKey(candidate) }
+}
+
+const EXPLICIT_WORKER_RECIPE_KEYS = [
+  'mediaFoundation',
+  'speechFoundation',
+  'captionFoundation',
+  'speechCaptionExecution',
+  'smartCutFoundation',
+  'smartCutTimelineExecution',
+  'timelineFoundation',
+  'audioFoundation',
+  'audioExecution',
+  'colorExecution',
+  'maskComposition',
+  'enhancementSlowMotion',
+  'finalRenderExecution',
+  'finalRenderQA',
+  'trackBAgentToolRecipe',
+]
+
+function buildDefaultTrackBWorkerRecipeMetadata(
+  input: TrackBAgentToolExecutionInput,
+  contract: TrackBAgentRuntimeToolContract,
+): Record<string, unknown> {
+  if (hasExplicitWorkerRecipe(input.metadata)) return {}
+
+  const common = trackBAgentToolRecipe(contract.toolId, input.action)
+  switch (contract.toolId) {
+    case 'ffmpeg':
+      return {
+        finalRenderExecution: {
+          mode: 'dry_run',
+          renderEngine: 'ffmpeg',
+          renderMode: 'command_plan_only',
+          sourceVideoArtifactIds: input.storageReferenceIds,
+          durationSeconds: 8,
+          enableRemotionLocalRender: false,
+          enableCaptionBurnIn: false,
+          allowRevideo: false,
+        },
+        ...common,
+      }
+    case 'ffprobe':
+      return {
+        mediaFoundation: mediaFoundationRecipe(input, ['probe', 'build_analysis_report']),
+        ...common,
+      }
+    case 'pyav':
+      return {
+        mediaFoundation: mediaFoundationRecipe(input, ['extract_keyframes', 'extract_representative_frames', 'build_analysis_report']),
+        ...common,
+      }
+    case 'opentimelineio':
+      return {
+        timelineFoundation: {
+          mode: 'dry_run',
+          mediaDurationSeconds: 8,
+          sourceStorageObjectPath: input.storageReferenceIds?.[0],
+        },
+        ...common,
+      }
+    case 'remotion':
+      return {
+        finalRenderExecution: {
+          mode: 'dry_run',
+          renderEngine: 'remotion',
+          renderMode: 'command_plan_only',
+          sourceVideoArtifactIds: input.storageReferenceIds,
+          durationSeconds: 8,
+          enableRemotionLocalRender: false,
+          enableCaptionBurnIn: false,
+          allowRevideo: false,
+        },
+        ...common,
+      }
+    case 'libass':
+      return {
+        speechCaptionExecution: {
+          mode: 'dry_run',
+          buildSpeech: false,
+          buildCaptions: true,
+          enableCaptionPreview: false,
+          captionFormats: ['ass'],
+          sourceAudioArtifactId: input.storageReferenceIds?.[0],
+        },
+        ...common,
+      }
+    case 'pyscenedetect':
+      return {
+        smartCutFoundation: {
+          mode: 'dry_run',
+          mediaDurationSeconds: 8,
+          intent: ['tighten_pacing', 'preserve_story'],
+          aggressiveness: 'balanced',
+          pacingProfileId: 'natural_clean',
+        },
+        ...common,
+      }
+    case 'opencv':
+      return {
+        mediaFoundation: mediaFoundationRecipe(input, ['extract_representative_frames', 'build_analysis_report']),
+        ...common,
+      }
+    case 'opencolorio':
+    case 'openimageio':
+      return {
+        colorExecution: {
+          mode: 'dry_run',
+          sourceVideoArtifactId: input.storageReferenceIds?.[0],
+          sourceStorageObjectPath: input.storageReferenceIds?.[0],
+          colorGradeStyle: 'documentary_neutral',
+          enableFfmpegColorPreview: false,
+          enableOpenColorIOExecution: false,
+          enableOpenImageIOExecution: false,
+          allowFinalExport: false,
+        },
+        ...common,
+      }
+    case 'audioflux':
+      return {
+        audioFoundation: {
+          mode: 'dry_run',
+          sourceAudioArtifactId: input.storageReferenceIds?.[0],
+          sourceAudioStorageObjectPath: input.storageReferenceIds?.[0],
+          approvedDirectiveSummary: 'Track B agent audio analysis dry-run recipe selection.',
+          userIntentSummary: 'Verify audio analysis worker admission without real media processing.',
+        },
+        ...common,
+      }
+    case 'signalsmith_stretch':
+      return {
+        audioExecution: {
+          mode: 'dry_run',
+          sourceAudioArtifactId: input.storageReferenceIds?.[0],
+          sourceAudioStorageObjectPath: input.storageReferenceIds?.[0],
+          enableFfmpegAudioExecution: false,
+          enableModelAudioExecution: false,
+          allowModelDownload: false,
+          allowFinalMux: false,
+        },
+        ...common,
+      }
+    case 'sharp':
+      return trackBAgentToolRecipe(contract.toolId, input.action, 'image_asset_prepare_dry_run')
+    case 'duckdb':
+      return trackBAgentToolRecipe(contract.toolId, input.action, 'structured_artifact_query_dry_run')
+    case 'polars':
+      return trackBAgentToolRecipe(contract.toolId, input.action, 'dataframe_transform_dry_run')
+    case 'hyperframe':
+      return {}
+  }
+}
+
+function hasExplicitWorkerRecipe(metadata: Record<string, unknown> | undefined): boolean {
+  return EXPLICIT_WORKER_RECIPE_KEYS.some((key) => metadata?.[key] !== undefined)
+}
+
+function mediaFoundationRecipe(
+  input: TrackBAgentToolExecutionInput,
+  tasks: string[],
+): Record<string, unknown> {
+  return {
+    mode: 'dry_run',
+    sourceStorageObjectId: input.storageReferenceIds?.[0],
+    sourceStorageObjectPath: input.storageReferenceIds?.[0],
+    tasks,
+  }
+}
+
+function trackBAgentToolRecipe(
+  toolId: ProductionToolId,
+  action: string,
+  routeClass = 'mapped_worker_dry_run',
+): Record<string, unknown> {
+  return {
+    trackBAgentToolRecipe: {
+      toolId,
+      action,
+      routeClass,
+      plannedHandler: `trackb_agent_${toolId}_${action}`,
+      notes: [
+        'Default Track B agent recipe selection only.',
+        'No real tool binary execution, user media processing, public artifact, or production delivery is performed by this metadata.',
+      ],
+    },
+  }
 }
 
 function workerDecision(mode: TrackBAgentToolExecutionMode, completed: boolean): string {

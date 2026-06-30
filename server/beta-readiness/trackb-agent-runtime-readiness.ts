@@ -291,6 +291,7 @@ function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
     toolId === 'opencolorio' ||
     toolId === 'openimageio' ||
     toolId === 'audioflux' ||
+    toolId === 'signalsmith_stretch' ||
     toolId === 'remotion' ||
     toolId === 'hyperframe'
 }

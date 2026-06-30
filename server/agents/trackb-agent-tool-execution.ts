@@ -576,6 +576,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'signalsmith_stretch':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'command_shape_bounded_rehearsal')
+      }
       return {
         audioExecution: {
           mode: 'dry_run',

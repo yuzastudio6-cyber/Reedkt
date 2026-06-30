@@ -544,6 +544,36 @@ try {
   assert.deepEqual(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.proof.feature_shape, [16, 5])
   assert.ok(audiofluxResult.workerResult.output.trackBAgentToolRecipeResult.proof.magnitude_sum > 0)
 
+  const signalsmithRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-signalsmith-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-signalsmith-rehearsal',
+      agentInvocationId: 'trackb.media_oss.signalsmith_stretch',
+      toolId: 'signalsmith_stretch',
+      action: 'stretch_audio',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-signalsmith-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['audio_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/signalsmith/source-reference'],
+    }),
+  }, 202)
+  const signalsmithResult = signalsmithRehearsal.data.trackBAgentToolExecution
+  assert.equal(signalsmithResult.status, 'completed')
+  assert.equal(signalsmithResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(signalsmithResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(signalsmithResult.workerResult.output.mockOnly, false)
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.match(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.proof.version, /^\d+\.\d+\.\d+/)
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.proof.operation, 'signalsmith_stretch_command_shape_version_and_help')
+  assert.equal(signalsmithResult.workerResult.output.trackBAgentToolRecipeResult.proof.audioProcessed, false)
+
   const liveBlocked = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-live-blocked' },
@@ -697,7 +727,7 @@ try {
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
-      'http_route_runs_ffmpeg_ffprobe_remotion_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_bounded_execution_rehearsals',
+      'http_route_runs_ffmpeg_ffprobe_remotion_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_signalsmith_bounded_execution_rehearsals',
       'http_route_runs_hyperframe_preview_bridge_bounded_execution_rehearsal_without_worker_dispatch',
       'http_route_keeps_hyperframe_preview_boundary_for_default_and_live_paths',
       'http_route_blocks_live_execution_until_deployed_evidence',

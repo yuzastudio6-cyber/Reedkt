@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import type { ProductionWorkerJobPayload, ProductionWorkerRouteOutput } from './production-worker-types'
@@ -580,6 +580,9 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
       script: AUDIOFLUX_BOUNDED_REHEARSAL_SCRIPT,
     })
   }
+  if (toolId === 'signalsmith_stretch' && routeClass === 'command_shape_bounded_rehearsal') {
+    return runSignalsmithStretchCommandShapeBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
   if (toolId === 'remotion' && routeClass === 'composition_manifest_bounded_rehearsal') {
     return runRemotionCompositionManifestBoundedRehearsal(payload, request, action, routeClass, handler)
   }
@@ -731,6 +734,14 @@ function resolveTrackBAgentToolRecipeHandler(
   if (toolId === 'audioflux' && routeClass === 'audio_feature_bounded_rehearsal') {
     return {
       futureHandler: 'cpu_analysis_worker_audioflux_audio_feature_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'signalsmith_stretch' && routeClass === 'command_shape_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_signalsmith_stretch_command_shape_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -980,6 +991,133 @@ function buildBlockedCommandLineToolRehearsal(
       notes: [
         `${toolId} bounded execution rehearsal failed closed.`,
         'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+function runSignalsmithStretchCommandShapeBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  const resolved = resolveSignalsmithStretchCommand()
+  if ('blockedReason' in resolved) {
+    return buildBlockedSignalsmithStretchRehearsal(payload, action, routeClass, handler, resolved.blockedReason)
+  }
+
+  try {
+    const version = firstOutputLine(runSignalsmithStretchCommand(resolved.command, ['-v']))
+    if (!/^\d+\.\d+\.\d+/i.test(version)) {
+      throw new Error(`Signalsmith Stretch version output did not match expected shape: ${cleanToolProcessDetail(version)}`)
+    }
+
+    const help = runSignalsmithStretchCommand(resolved.command, ['--help'])
+    if (!/Usage\s+signalsmith-stretch\s+<input\.wav>\s+<output\.wav>/i.test(help)) {
+      throw new Error(`Signalsmith Stretch help output did not match expected command shape: ${cleanToolProcessDetail(help)}`)
+    }
+
+    return {
+      summary: 'Track B agent Signalsmith Stretch bounded execution rehearsal completed with command version/help shape only; no audio, user media, or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'signalsmith_stretch',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version,
+          operation: 'signalsmith_stretch_command_shape_version_and_help',
+          commandSource: resolved.source,
+          versionCommand: '-v',
+          helpCommand: '--help',
+          helpShape: {
+            usageMentionsInputWav: /<input\.wav>/i.test(help),
+            usageMentionsOutputWav: /<output\.wav>/i.test(help),
+            optionCount: help
+              .split(/\r?\n/)
+              .filter((line) => line.trim().startsWith('--') || line.trim() === '-v  -  prints the version').length,
+          },
+          inputFilesOpened: 0,
+          outputFilesCreated: 0,
+          audioProcessed: false,
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          outputFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof runs Signalsmith Stretch version/help shape only; it does not read or write audio, process user media, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedSignalsmithStretchRehearsal(
+      payload,
+      action,
+      routeClass,
+      handler,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || 'Unknown Signalsmith Stretch bounded execution rehearsal error.',
+    )
+  }
+}
+
+function buildBlockedSignalsmithStretchRehearsal(
+  payload: ProductionWorkerJobPayload,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: 'Track B agent Signalsmith Stretch bounded execution rehearsal was blocked before proof completion.',
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId: 'signalsmith_stretch',
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      syntheticMediaProcessing: false,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        'Signalsmith Stretch bounded execution rehearsal failed closed.',
+        'No audio input, user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
       ],
     },
   }
@@ -1550,6 +1688,37 @@ function buildBlockedPythonStructuredToolRehearsal(
       ],
     },
   }
+}
+
+function resolveSignalsmithStretchCommand(): { command: string; source: string } | { blockedReason: string } {
+  const explicitBinary = process.env.REEDITPRO_SIGNALSMITH_STRETCH_BIN
+  if (explicitBinary) {
+    return existsSync(explicitBinary)
+      ? { command: explicitBinary, source: 'env_REEDITPRO_SIGNALSMITH_STRETCH_BIN' }
+      : { blockedReason: `REEDITPRO_SIGNALSMITH_STRETCH_BIN does not exist: ${explicitBinary}` }
+  }
+
+  const readinessBinary = '.reeditpro-tool-readiness-bin/signalsmith-stretch'
+  if (existsSync(readinessBinary)) {
+    return { command: readinessBinary, source: 'local_readiness_bin' }
+  }
+
+  return { command: 'signalsmith-stretch', source: 'PATH' }
+}
+
+function runSignalsmithStretchCommand(command: string, args: string[]): string {
+  const result = spawnSync(command, args, {
+    encoding: 'utf8',
+    timeout: 5_000,
+    maxBuffer: 1024 * 64,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
+  if (result.error) throw result.error
+  if (result.status !== 0) {
+    throw new Error(`Signalsmith Stretch ${args.join(' ')} failed with exit code ${result.status ?? 'unknown'}: ${cleanToolProcessDetail(output)}`)
+  }
+  return output
 }
 
 function resolveBoundedRehearsalPython(): string | undefined {

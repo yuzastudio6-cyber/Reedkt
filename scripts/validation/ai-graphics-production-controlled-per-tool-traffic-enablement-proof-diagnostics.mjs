@@ -3,22 +3,22 @@ import fs from 'node:fs'
 import os from 'node:os'
 
 const decision =
-  'ai_graphics_production_controlled_per_tool_callable_result_proof_prepared_with_runtime_blocks'
+  'ai_graphics_production_controlled_per_tool_traffic_enablement_proof_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'production_controlled_per_tool_callable_result_proof_ready_no_execution'
+  'production_controlled_per_tool_traffic_enablement_proof_ready_no_execution'
 const runScriptName =
-  'ai-graphics:production-controlled-per-tool-callable-result-proof'
+  'ai-graphics:production-controlled-per-tool-traffic-enablement-proof'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-production-controlled-per-tool-callable-result-proof.ts'
+  'tsx server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts'
 const diagnosticScriptName =
-  'ai-graphics:production-controlled-per-tool-callable-result-proof:diagnostics'
+  'ai-graphics:production-controlled-per-tool-traffic-enablement-proof:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-production-controlled-per-tool-callable-result-proof-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-production-controlled-per-tool-traffic-enablement-proof-diagnostics.mjs'
 
-const sourceHandoffDecision =
-  'ai_graphics_production_controlled_private_artifact_tool_route_handoff_proof_prepared_with_runtime_blocks'
-const sourceHandoffStatus =
-  'production_controlled_private_artifact_tool_route_handoff_ready_no_execution'
+const sourceCallableDecision =
+  'ai_graphics_production_controlled_per_tool_callable_result_proof_prepared_with_runtime_blocks'
+const sourceCallableStatus =
+  'production_controlled_per_tool_callable_result_proof_ready_no_execution'
 
 const all21Tools = [
   'torch_torchvision',
@@ -71,11 +71,13 @@ const gpuTools = [
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-production-controlled-per-tool-callable-result-proof.ts',
-  'server/cli/ai-graphics-production-controlled-per-tool-callable-result-proof.ts',
-  'scripts/validation/ai-graphics-production-controlled-per-tool-callable-result-proof-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts',
+  'server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts',
+  'scripts/validation/ai-graphics-production-controlled-per-tool-traffic-enablement-proof-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/production-controlled-per-tool-traffic-enablement-proof.json',
+  'docs/tool-intelligence/ai-graphics/production-controlled-per-tool-traffic-enablement-proof.md',
   'docs/tool-intelligence/ai-graphics/production-controlled-per-tool-callable-result-proof.json',
-  'docs/tool-intelligence/ai-graphics/production-controlled-per-tool-callable-result-proof.md',
+  'server/tool-registry/ai-graphics-production-controlled-per-tool-callable-result-proof.ts',
   'docs/tool-intelligence/ai-graphics/production-controlled-private-artifact-tool-route-handoff-proof.json',
   'server/tool-registry/ai-graphics-production-controlled-private-artifact-tool-route-handoff-proof.ts',
   'docs/production-beta-readiness-scorecard.md',
@@ -84,17 +86,14 @@ const requiredFiles = [
 ]
 
 const trueAcceptedKeys = [
-  'productionControlledPerToolCallableResultProofPrepared',
-  'sourcePrivateArtifactToolRouteHandoffProofAccepted',
-  'sourceAiGraphicsToolCallHandoffResultAccepted',
-  'sourceInMemoryLeaseLifecycleAccepted',
-  'sourcePrivateArtifactManifestPrepared',
-  'sourceToolRouteHandoffPrepared',
-  'perToolCallableResultAcceptedWithProvidedEvidence',
-  'savedPerToolCallableResultAcceptedWithProvidedEvidence',
-  'callableEnvelopeAcceptedWithProvidedEvidence',
-  'privateArtifactManifestAcceptedWithProvidedEvidence',
-  'toolRouteHandoffAcceptedWithProvidedEvidence',
+  'productionControlledPerToolTrafficEnablementProofPrepared',
+  'sourcePerToolCallableResultProofAccepted',
+  'sourceCallableEnvelopeAcceptedWithProvidedEvidence',
+  'sourcePrivateArtifactManifestAcceptedWithProvidedEvidence',
+  'sourceToolRouteHandoffAcceptedWithProvidedEvidence',
+  'perToolTrafficEnablementPreparedWithProvidedEvidence',
+  'savedTrafficEnablementEnvelopeAcceptedWithProvidedEvidence',
+  'trafficEnablementAcceptedWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -105,6 +104,7 @@ const trueAcceptedKeys = [
   'gpuRuntimeIdleAfterCleanup',
   'qaGateAcceptedWithProvidedEvidence',
   'telemetryAcceptedWithProvidedEvidence',
+  'rollbackAcceptedWithProvidedEvidence',
   'agentCanSelectForPlanning',
 ]
 
@@ -127,8 +127,7 @@ const falseKeysAlways = [
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
   'gpuRuntimeApprovedNow',
-  'gpuRuntimeStartedForCallableResult',
-  'gpuRuntimeReleasedAfterCallableResult',
+  'gpuRuntimeStartedForTrafficEnablement',
   'gpuRuntimeShouldStartNow',
   'runtimeReadyNow',
   'internalBetaReadyNow',
@@ -145,11 +144,11 @@ const falseKeysAlways = [
   'privateArtifactWritePerformed',
   'serviceRoleTransactionPerformed',
   'supabaseMutationPerformed',
-  'workerLeaseCreatedByResultProof',
-  'workerDispatchPerformedByResultProof',
+  'workerLeaseCreatedByTrafficEnablementProof',
+  'workerDispatchPerformedByTrafficEnablementProof',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
-  'gpuRuntimePerformedByResultProof',
+  'gpuRuntimePerformedByTrafficEnablementProof',
   'gpuRuntimeShouldStartNowPerformed',
   'modelWeightsDownloaded',
   'modelWeightsLoaded',
@@ -160,21 +159,19 @@ const falseKeysAlways = [
 ]
 
 const proofArgs = [
-  '--per-tool-callable-result-evidence-ref',
-  'private://ai-graphics/production/per-tool-callable-result/evidence',
-  '--per-tool-callable-result-qa-ref',
-  'backend://ai-graphics/production/per-tool-callable-result/qa',
-  '--per-tool-callable-result-cost-ref',
-  'production-evidence://ai-graphics/production/per-tool-callable-result/cost',
-  '--per-tool-callable-result-rollback-ref',
-  'private://ai-graphics/production/per-tool-callable-result/rollback',
-  '--per-tool-callable-result-operator-review-ref',
-  'backend://ai-graphics/production/per-tool-callable-result/operator-review',
+  '--per-tool-traffic-enablement-evidence-ref',
+  'private://ai-graphics/production/per-tool-traffic-enablement/evidence',
+  '--per-tool-traffic-enablement-qa-ref',
+  'backend://ai-graphics/production/per-tool-traffic-enablement/qa',
+  '--per-tool-traffic-enablement-cost-ref',
+  'production-evidence://ai-graphics/production/per-tool-traffic-enablement/cost',
+  '--per-tool-traffic-enablement-rollback-ref',
+  'private://ai-graphics/production/per-tool-traffic-enablement/rollback',
+  '--per-tool-traffic-enablement-operator-review-ref',
+  'backend://ai-graphics/production/per-tool-traffic-enablement/operator-review',
 ]
 
 const allowedPackageDiffLines = [
-  '+    "ai-graphics:production-controlled-per-tool-callable-result-proof": "tsx server/cli/ai-graphics-production-controlled-per-tool-callable-result-proof.ts",',
-  '+    "ai-graphics:production-controlled-per-tool-callable-result-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-callable-result-proof-diagnostics.mjs",',
   '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof": "tsx server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts",',
   '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-traffic-enablement-proof-diagnostics.mjs",',
 ]
@@ -290,10 +287,11 @@ function sourceHandoffFixture(toolId, capabilityId, options) {
     signedUrlCreatedNow: false,
   }
   return {
-    decision: sourceHandoffDecision,
+    decision:
+      'ai_graphics_production_controlled_private_artifact_tool_route_handoff_proof_prepared_with_runtime_blocks',
     sourceProductionControlledWorkerRuntimeSmokeProofDecision:
       'ai_graphics_production_controlled_worker_runtime_smoke_proof_dry_run_completed_with_runtime_blocks',
-    status: sourceHandoffStatus,
+    status: 'production_controlled_private_artifact_tool_route_handoff_ready_no_execution',
     capabilityId,
     requestedToolId: toolId,
     sourceProductionControlledWorkerRuntimeSmokeProofAccepted: true,
@@ -336,7 +334,7 @@ function sourceHandoffFixture(toolId, capabilityId, options) {
   }
 }
 
-function callableResultFromSource(source) {
+function callableResultFromHandoff(source) {
   const candidate = source.handoffCandidate
   return {
     ok: true,
@@ -395,6 +393,165 @@ function callableResultFromSource(source) {
   }
 }
 
+function sourceCallableProofFromHandoff(source) {
+  const savedPerToolCallableResult = callableResultFromHandoff(source)
+  return {
+    decision: sourceCallableDecision,
+    sourcePrivateArtifactToolRouteHandoffProofDecision: source.decision,
+    status: sourceCallableStatus,
+    requestedToolId: savedPerToolCallableResult.toolId,
+    capabilityId: savedPerToolCallableResult.capabilityId,
+    sourcePrivateArtifactToolRouteHandoffProofAccepted: true,
+    sourceAiGraphicsToolCallHandoffResultAccepted: true,
+    sourceInMemoryLeaseLifecycleAccepted: true,
+    sourcePrivateArtifactManifestPrepared: true,
+    sourceToolRouteHandoffPrepared: true,
+    callableResultProofAcceptedWithProvidedEvidence: true,
+    perToolCallableResultAcceptedWithProvidedEvidence: true,
+    savedPerToolCallableResultAcceptedWithProvidedEvidence: true,
+    rejectionReasons: [],
+    perToolCallableResultProofAcceptedRequestsWithProvidedEvidence: 1,
+    sourcePrivateArtifactToolRouteHandoffAcceptedRequestsWithProvidedEvidence: 1,
+    callableEnvelopeAcceptedWithProvidedEvidence: 1,
+    privateArtifactManifestAcceptedWithProvidedEvidence: 1,
+    toolRouteHandoffAcceptedWithProvidedEvidence: 1,
+    toolExecutionAcceptedWithProvidedEvidence: 0,
+    routeExecutionAcceptedWithProvidedEvidence: 0,
+    workerDispatchAcceptedWithProvidedEvidence: 0,
+    privateArtifactWriteAcceptedWithProvidedEvidence: 0,
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    gpuRuntimeTargetedTools: 8,
+    gpuRuntimeShouldStartNow: false,
+    externalBetaCallableNowTools: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    sourcePrivateArtifactToolRouteHandoffProof: source,
+    savedPerToolCallableResult,
+    evidence: {
+      perToolCallableResultEvidenceRef:
+        `private://ai-graphics/production/per-tool-callable-result/${savedPerToolCallableResult.toolId}/evidence`,
+      perToolCallableResultQaRef:
+        `backend://ai-graphics/production/per-tool-callable-result/${savedPerToolCallableResult.toolId}/qa`,
+      perToolCallableResultCostRef:
+        `production-evidence://ai-graphics/production/per-tool-callable-result/${savedPerToolCallableResult.toolId}/cost`,
+      perToolCallableResultRollbackRef:
+        `private://ai-graphics/production/per-tool-callable-result/${savedPerToolCallableResult.toolId}/rollback`,
+      perToolCallableResultOperatorReviewRef:
+        `backend://ai-graphics/production/per-tool-callable-result/${savedPerToolCallableResult.toolId}/operator`,
+      sourcePrivateArtifactToolRouteHandoffProofRef:
+        savedPerToolCallableResult.sourcePrivateArtifactToolRouteHandoffProofRef,
+      sanitizedSourceStatus: savedPerToolCallableResult.status,
+      sanitizedSourceDecision: savedPerToolCallableResult.decision,
+      requiredExecutionEnvironment: 'private_non_production_runtime_smoke',
+      requiredResultMode: 'saved_per_tool_callable_result_only',
+      savedResultOnly: true,
+    },
+    policy: {
+      validatesSavedCallableResultOnly: true,
+      sourcePrivateArtifactToolRouteHandoffRequired: true,
+      noLiveApiRouteExecutionByResultProof: true,
+      noLiveWorkerDispatchByResultProof: true,
+      noToolExecutionByResultProof: true,
+      noPrivateArtifactWriteByResultProof: true,
+      noProviderRuntimeByResultProof: true,
+      noBrowserWebglCanvasRuntimeByResultProof: true,
+      noGpuRuntimeStartByResultProof: true,
+      publicArtifactsRejected: true,
+      signedUrlsRejected: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      nextGateRequiresControlledPerToolTrafficEnablement: true,
+    },
+    booleans: {
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      privateArtifactWriteApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      sourcePrivateArtifactToolRouteHandoffProofAccepted: true,
+      savedPerToolCallableResultAcceptedWithProvidedEvidence: true,
+      gpuRuntimeStartedForCallableResult: false,
+    },
+  }
+}
+
+function trafficEnablementFromSource(sourceProof) {
+  const savedResult = sourceProof.savedPerToolCallableResult
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_production_controlled_per_tool_traffic_enablement_recorded_with_runtime_blocks',
+    status:
+      'production_controlled_per_tool_traffic_enablement_recorded_private_non_production_runtime_still_blocked',
+    sourcePerToolCallableResultProofRef:
+      `private://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/source-callable-proof`,
+    sourcePerToolCallableResultProofAccepted: true,
+    toolId: savedResult.toolId,
+    productionToolId: savedResult.productionToolId,
+    capabilityId: savedResult.capabilityId,
+    routePath: savedResult.routePath,
+    routeId: savedResult.routeId,
+    futureHandler: savedResult.futureHandler,
+    workerType: savedResult.workerType,
+    runtimeTarget: savedResult.runtimeTarget,
+    privateInputManifestRef: savedResult.privateInputManifestRef,
+    privateOutputManifestRef: savedResult.privateOutputManifestRef,
+    privateTelemetryRef: savedResult.privateTelemetryRef,
+    privateLeaseAuditRef: savedResult.privateLeaseAuditRef,
+    privateRouteHandoffRef: savedResult.privateRouteHandoffRef,
+    modelWeightOrCacheManifestRef: savedResult.modelWeightOrCacheManifestRef,
+    trafficPolicyRef:
+      `private://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/policy`,
+    trafficFlagRef:
+      `backend://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/feature-flag`,
+    rolloutCohortRef:
+      `production-evidence://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/cohort`,
+    monitoringRef:
+      `private://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/monitoring`,
+    rollbackRef:
+      `backend://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/rollback`,
+    costGuardrailRef:
+      `production-evidence://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/cost`,
+    operatorReviewRef:
+      `private://ai-graphics/production/per-tool-traffic-enablement/${savedResult.toolId}/operator-review`,
+    trafficEnablementRecordedInPrivateNonProduction: true,
+    trafficEnvelopeValidated: true,
+    sourceCallableResultProofAcceptedCount: 1,
+    callableEnvelopeAcceptedCount: 1,
+    privateArtifactManifestAcceptedCount: 1,
+    toolRouteHandoffAcceptedCount: 1,
+    trafficEnablementRequestedCount: 1,
+    trafficEnabledCount: 0,
+    toolExecutionCount: 0,
+    routeExecutionCount: 0,
+    workerDispatchCount: 0,
+    privateArtifactWriteCount: 0,
+    providerRuntimeCount: 0,
+    browserWebglCanvasRuntimeCount: 0,
+    gpuRuntimeStartedForTrafficEnablement: false,
+    gpuRuntimeShouldStartNow: false,
+    gpuRuntimeIdleAfterCleanup: true,
+    modelWeightsDownloaded: false,
+    modelWeightsLoaded: false,
+    qaGatePassedWithProvidedEvidence: true,
+    telemetryCaptured: true,
+    costWithinCeiling: true,
+    rollbackReady: true,
+    secretsRedactedFromOutput: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    externalBetaTrafficEnabledNowTools: 0,
+    externalBetaCallableNowTools: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+  }
+}
+
 function assertFalseKeys(record, label) {
   const booleans = record.booleans ?? {}
   const input = record.input ?? {}
@@ -408,10 +565,10 @@ function assertFalseKeys(record, label) {
 function assertAccepted(record, label, expected) {
   if (record.decision !== decision) fail(`${label}_decision:${record.decision}`)
   if (record.status !== acceptedStatus) fail(`${label}_status:${record.status}`)
-  if (record.sourcePrivateArtifactToolRouteHandoffProofAccepted !== true) {
-    fail(`${label}_source_handoff_not_true`)
+  if (record.sourcePerToolCallableResultProofAccepted !== true) {
+    fail(`${label}_source_callable_result_proof_not_true`)
   }
-  if (record.callableResultProofAcceptedWithProvidedEvidence !== true) {
+  if (record.trafficEnablementProofAcceptedWithProvidedEvidence !== true) {
     fail(`${label}_proof_not_accepted`)
   }
   if (record.rejectionReasons?.length !== 0) fail(`${label}_rejections_not_empty`)
@@ -419,6 +576,9 @@ function assertAccepted(record, label, expected) {
   if (record.totalProductFacingCapabilities !== 12) fail(`${label}_caps_not_12`)
   if (record.gpuRuntimeTargetedTools !== 8) fail(`${label}_gpu_tools_not_8`)
   if (record.externalBetaCallableNowTools !== 0) fail(`${label}_external_beta_callable_not_0`)
+  if (record.externalBetaTrafficEnabledNowTools !== 0) {
+    fail(`${label}_external_beta_traffic_not_0`)
+  }
   if (record.externalBetaReadyNowTools !== 0) fail(`${label}_external_beta_not_0`)
   if (record.productionReadyNowTools !== 0) fail(`${label}_production_not_0`)
   if (record.toolExecutionAcceptedWithProvidedEvidence !== 0) {
@@ -433,7 +593,7 @@ function assertAccepted(record, label, expected) {
   if (record.privateArtifactWriteAcceptedWithProvidedEvidence !== 0) {
     fail(`${label}_private_artifact_write_not_0`)
   }
-  const result = record.savedPerToolCallableResult
+  const result = record.savedPerToolTrafficEnablement
   if (!result) fail(`${label}_result_missing`)
   if (result?.toolId !== expected.toolId) fail(`${label}_tool_mismatch`)
   if (result?.productionToolId !== expected.productionToolId) {
@@ -458,7 +618,10 @@ function assertAccepted(record, label, expected) {
   if (result?.routeExecutionCount !== 0) fail(`${label}_result_route_exec_not_0`)
   if (result?.workerDispatchCount !== 0) fail(`${label}_result_worker_dispatch_not_0`)
   if (result?.privateArtifactWriteCount !== 0) fail(`${label}_result_artifact_write_not_0`)
-  if (result?.gpuRuntimeStartedForCallableResult !== false) {
+  if (result?.trafficEnabledCount !== 0) {
+    fail(`${label}_result_traffic_enabled_not_0`)
+  }
+  if (result?.gpuRuntimeStartedForTrafficEnablement !== false) {
     fail(`${label}_result_gpu_started_not_false`)
   }
   if (result?.gpuRuntimeShouldStartNow !== false) {
@@ -488,14 +651,14 @@ if (git(['diff', '--name-only', '--', 'package-lock.json']).trim().length > 0) {
 }
 
 const indexTs = read('server/tool-registry/index.ts')
-if (!indexTs.includes("export * from './ai-graphics-production-controlled-per-tool-callable-result-proof'")) {
+if (!indexTs.includes("export * from './ai-graphics-production-controlled-per-tool-traffic-enablement-proof'")) {
   fail('missing_registry_export')
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/production-controlled-per-tool-callable-result-proof.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/production-controlled-per-tool-callable-result-proof.md')
-const source = read('server/tool-registry/ai-graphics-production-controlled-per-tool-callable-result-proof.ts')
-const cli = read('server/cli/ai-graphics-production-controlled-per-tool-callable-result-proof.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/production-controlled-per-tool-traffic-enablement-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/production-controlled-per-tool-traffic-enablement-proof.md')
+const source = read('server/tool-registry/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts')
+const cli = read('server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
@@ -504,7 +667,7 @@ if (docs.coverage?.totalAiGraphicsTools !== 21) fail('docs_tools_not_21')
 if (docs.coverage?.totalProductFacingCapabilities !== 12) fail('docs_caps_not_12')
 if (docs.coverage?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_not_8')
 if (docs.coverage?.externalBetaCallableNowTools !== 0) fail('docs_callable_tools_not_0')
-if (docs.callableResultProof?.toolExecutionAcceptedWithProvidedEvidence !== 0) {
+if (docs.trafficEnablementProof?.toolExecutionAcceptedWithProvidedEvidence !== 0) {
   fail('docs_tool_execution_not_0')
 }
 for (const tool of all21Tools) {
@@ -519,6 +682,8 @@ for (const capability of all12Capabilities) {
   }
 }
 for (const citation of [
+  'production-controlled-per-tool-callable-result-proof.json',
+  'ai-graphics-production-controlled-per-tool-callable-result-proof.ts',
   'production-controlled-private-artifact-tool-route-handoff-proof.json',
   'production-controlled-worker-runtime-smoke-proof.json',
   'ai-graphics-production-controlled-private-artifact-tool-route-handoff-proof.ts',
@@ -541,7 +706,7 @@ for (const phrase of [
   '"workerDispatchPerformed": true',
   '"toolExecutionPerformed": true',
   '"privateArtifactWritePerformed": true',
-  '"gpuRuntimePerformedByResultProof": true',
+  '"gpuRuntimePerformedByTrafficEnablementProof": true',
   '"runtimeReadyNow": true',
   '"externalBetaReadyNow": true',
   '"productionReadyNow": true',
@@ -550,12 +715,12 @@ for (const phrase of [
     fail(`forbidden_claim:${phrase}`)
   }
 }
-if (!scorecard.includes('AI Graphics Production Controlled Per-Tool Callable Result Proof')) {
+if (!scorecard.includes('AI Graphics Production Controlled Per-Tool Traffic Enablement Proof')) {
   fail('scorecard_missing_section')
 }
 if (!scorecard.includes(decision)) fail('scorecard_missing_decision')
 
-const tmpRoot = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-per-tool-callable-result-proof-`)
+const tmpRoot = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-per-tool-traffic-enablement-proof-`)
 const sam2Source = sourceHandoffFixture('sam2', 'subject_segmentation', {
   productionToolId: 'sam2',
   workerType: 'gpu_ai_worker',
@@ -570,19 +735,21 @@ const vegaLiteSource = sourceHandoffFixture('vega_lite', 'chart_overlay', {
   futureHandler: 'ai_graphics_cpu_static_tool_call_handoff',
   gpu: false,
 })
-const sam2SourcePath = `${tmpRoot}/sam2-private-handoff-proof.json`
-const vegaLiteSourcePath = `${tmpRoot}/vega-lite-private-handoff-proof.json`
-const sam2ResultPath = `${tmpRoot}/sam2-callable-result.json`
-const vegaLiteResultPath = `${tmpRoot}/vega-lite-callable-result.json`
-writeJson(sam2SourcePath, sam2Source)
-writeJson(vegaLiteSourcePath, vegaLiteSource)
-writeJson(sam2ResultPath, callableResultFromSource(sam2Source))
-writeJson(vegaLiteResultPath, callableResultFromSource(vegaLiteSource))
+const sam2SourcePath = `${tmpRoot}/sam2-callable-result-proof.json`
+const vegaLiteSourcePath = `${tmpRoot}/vega-lite-callable-result-proof.json`
+const sam2ResultPath = `${tmpRoot}/sam2-traffic-enablement.json`
+const vegaLiteResultPath = `${tmpRoot}/vega-lite-traffic-enablement.json`
+const sam2CallableProof = sourceCallableProofFromHandoff(sam2Source)
+const vegaLiteCallableProof = sourceCallableProofFromHandoff(vegaLiteSource)
+writeJson(sam2SourcePath, sam2CallableProof)
+writeJson(vegaLiteSourcePath, vegaLiteCallableProof)
+writeJson(sam2ResultPath, trafficEnablementFromSource(sam2CallableProof))
+writeJson(vegaLiteResultPath, trafficEnablementFromSource(vegaLiteCallableProof))
 
 const sam2Accepted = runNpm(runScriptName, [
-  '--source-private-artifact-tool-route-handoff-proof-packet',
+  '--source-per-tool-callable-result-proof-packet',
   sam2SourcePath,
-  '--per-tool-callable-result',
+  '--per-tool-traffic-enablement',
   sam2ResultPath,
   ...proofArgs,
 ])
@@ -597,9 +764,9 @@ assertAccepted(sam2Accepted, 'sam2', {
 })
 
 const vegaLiteAccepted = runNpm(runScriptName, [
-  '--source-private-artifact-tool-route-handoff-proof-packet',
+  '--source-per-tool-callable-result-proof-packet',
   vegaLiteSourcePath,
-  '--per-tool-callable-result',
+  '--per-tool-traffic-enablement',
   vegaLiteResultPath,
   ...proofArgs,
 ])
@@ -614,26 +781,26 @@ assertAccepted(vegaLiteAccepted, 'vega_lite', {
 })
 
 const noSource = runNpm(runScriptName, [
-  '--per-tool-callable-result',
+  '--per-tool-traffic-enablement',
   sam2ResultPath,
   ...proofArgs,
 ])
-if (noSource.status !== 'missing_production_controlled_private_artifact_tool_route_handoff_proof') {
+if (noSource.status !== 'missing_production_controlled_per_tool_callable_result_proof') {
   fail(`no_source_status:${noSource.status}`)
 }
 assertFalseKeys(noSource, 'no_source')
 
 const publicEvidenceArgs = [...proofArgs]
-const publicRefIndex = publicEvidenceArgs.indexOf('--per-tool-callable-result-evidence-ref') + 1
+const publicRefIndex = publicEvidenceArgs.indexOf('--per-tool-traffic-enablement-evidence-ref') + 1
 publicEvidenceArgs[publicRefIndex] = 'https://example.com/signed-url/public-artifact'
 const publicEvidence = runNpm(runScriptName, [
-  '--source-private-artifact-tool-route-handoff-proof-packet',
+  '--source-per-tool-callable-result-proof-packet',
   sam2SourcePath,
-  '--per-tool-callable-result',
+  '--per-tool-traffic-enablement',
   sam2ResultPath,
   ...publicEvidenceArgs,
 ])
-if (publicEvidence.status !== 'production_controlled_per_tool_callable_result_rejected') {
+if (publicEvidence.status !== 'production_controlled_per_tool_traffic_enablement_rejected') {
   fail(`public_evidence_status:${publicEvidence.status}`)
 }
 if (!publicEvidence.rejectionReasons?.some((reason) => reason.includes('private'))) {
@@ -645,7 +812,7 @@ const changedFiles = git(['diff', '--name-only']).split('\n').filter(Boolean)
 for (const file of changedFiles) {
   if (file.startsWith('.local-artifacts/')) fail(`local_artifact_changed:${file}`)
   if (/generated|render|browser|canvas|webgl|public-artifact|signed-url/i.test(file)) {
-    if (!file.includes('production-controlled-per-tool-callable-result-proof')) {
+    if (!file.includes('production-controlled-per-tool-traffic-enablement-proof')) {
       fail(`unexpected_generated_output_path:${file}`)
     }
   }
@@ -666,7 +833,9 @@ console.log(JSON.stringify({
   capabilitiesCovered: 12,
   gpuToolsCovered: 8,
   acceptedPaths: ['sam2', 'vega_lite'],
-  sourcePrivateArtifactToolRouteHandoffProofAccepted: true,
+  sourcePerToolCallableResultProofAccepted: true,
+  trafficEnablementAcceptedWithProvidedEvidence: true,
+  externalBetaTrafficEnabledNowTools: 0,
   callableEnvelopeAcceptedWithProvidedEvidence: true,
   privateArtifactManifestAcceptedWithProvidedEvidence: true,
   toolRouteHandoffAcceptedWithProvidedEvidence: true,

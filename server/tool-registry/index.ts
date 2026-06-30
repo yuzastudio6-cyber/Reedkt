@@ -62,6 +62,7 @@ export * from './ai-graphics-production-controlled-worker-runtime-smoke-authoriz
 export * from './ai-graphics-production-controlled-worker-runtime-smoke-proof'
 export * from './ai-graphics-production-controlled-private-artifact-tool-route-handoff-proof'
 export * from './ai-graphics-production-controlled-per-tool-callable-result-proof'
+export * from './ai-graphics-production-controlled-per-tool-traffic-enablement-proof'
 export * from './ai-graphics-production-launch-readiness-gap'
 export * from './ai-graphics-external-beta-service-role-queue-smoke-authorization'
 export * from './ai-graphics-external-beta-launch-gap-report'

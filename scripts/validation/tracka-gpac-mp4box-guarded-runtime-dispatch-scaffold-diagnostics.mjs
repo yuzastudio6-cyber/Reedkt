@@ -49,7 +49,26 @@ const followOnExternalReadinessFiles = [
   'scripts/validation/rp-external-product-tool-readiness-status-reconciliation-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnExternalReadinessFiles])
+const followOnToolExecutionReadinessMatrixFiles = [
+  'docs/external-beta/tool-execution-readiness-matrix-1/source-audit.md',
+  'docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix.md',
+  'docs/external-beta/tool-execution-readiness-matrix-1/agent-execution-contract.md',
+  'docs/external-beta/tool-execution-readiness-matrix-1/blocked-scope-register.md',
+  'docs/external-beta/tool-execution-readiness-matrix-1/validation-results.md',
+  'docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix-record.json',
+  'docs/activation-phase-rp-external-beta-tool-execution-readiness-matrix-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1.md',
+  'scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-diagnostics.mjs',
+  'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs',
+  'package.json',
+]
+
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  ...followOnExternalReadinessFiles,
+  ...followOnToolExecutionReadinessMatrixFiles,
+])
 
 function fail(message) {
   console.error(`${lane} diagnostics failed: ${message}`)

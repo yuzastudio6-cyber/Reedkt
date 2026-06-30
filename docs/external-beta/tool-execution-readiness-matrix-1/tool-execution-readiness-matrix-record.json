@@ -1,0 +1,122 @@
+{
+  "packet": "RP-EXTERNAL-BETA-TOOL-EXECUTION-READINESS-MATRIX-1",
+  "decision": "completed_external_beta_tool_execution_readiness_matrix_for_guarded_agent_execution",
+  "execution": "completed_docs_only_tool_execution_readiness_matrix_no_runtime_execution",
+  "integrationBase": "d816ebc9060c5daa875fa06fa45ce2b4284ee2f8",
+  "coveredOpenSourceLocalToolAreas": 8,
+  "productReadyEndToEndLocalOssTools": 0,
+  "sourceChain": {
+    "qwenConfirmedRuntime1rMerge": "d816ebc9060c5daa875fa06fa45ce2b4284ee2f8",
+    "qwenConfirmedRuntimeRunId": "2026-06-30T12-18-28-184Z-535a64dd",
+    "externalToolReadinessAfterGpacDispatch": "completed_external_product_tool_readiness_reconciliation_after_gpac_dispatch_scaffold",
+    "gstreamerMkvtoolnixRollup": "completed_native_container_rollup_after_gstreamer_mkvtoolnix_qa",
+    "gpacOfficialAptInstallSourceExecution": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_install_source_qa",
+    "gpacControlledSyntheticCommandQa": "tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review",
+    "gpacGuardedRuntimeDispatchScaffold": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation",
+    "excludedRemotionPr": "#577 open/draft/blocked/excluded"
+  },
+  "toolReadiness": {
+    "qwen2_5_vl_gpu_model_runtime": {
+      "coveredStatus": "completed_qwen_persisted_worker_dispatch_approved_fixture_inference_runtime",
+      "agentExecutionReadiness": "ready_for_single_tester_product_flow_qa_only_backend_gated_not_native_oss_tool",
+      "nextGate": "RP-EXTERNAL-BETA-QWEN-SINGLE-TESTER-PRODUCT-FLOW-QA-1"
+    },
+    "gstreamer_render_pipeline_support": {
+      "coveredStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "agentExecutionReadiness": "ready_for_guarded_agent_execution_contract_planning",
+      "nextGate": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-CONTRACT-1"
+    },
+    "mkvtoolnix_container_validation": {
+      "coveredStatus": "qa_passed_controlled_generated_private_fixture_execution_evidence",
+      "agentExecutionReadiness": "ready_for_guarded_agent_execution_contract_planning",
+      "nextGate": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-CONTRACT-1"
+    },
+    "gpac_mp4box_packaging_validation": {
+      "coveredStatus": "official_apt_install_runtime_and_controlled_synthetic_command_qa_passed",
+      "agentExecutionReadiness": "blocked_pending_confirmed_guarded_runtime_dispatch",
+      "nextGate": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1"
+    },
+    "vapoursynth_frame_pipeline": {
+      "coveredStatus": "blocked_no_safe_package_source_for_core_vapoursynth_current_base",
+      "agentExecutionReadiness": "blocked_not_agent_executable"
+    },
+    "revideo_render_preview_alternative": {
+      "coveredStatus": "evaluation_only_non_core_source_evidence_insufficient_for_install_source",
+      "agentExecutionReadiness": "blocked_not_agent_executable"
+    },
+    "film_frame_interpolation": {
+      "coveredStatus": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+      "agentExecutionReadiness": "blocked_not_agent_executable"
+    },
+    "hyperframe_render_handoff": {
+      "coveredStatus": "handoff_only_no_install_source_change",
+      "agentExecutionReadiness": "handoff_only_no_executable_tool_target"
+    },
+    "ffmpeg_ffprobe_shared_dependency": {
+      "coveredStatus": "track_b_owned_shared_dependency_boundary",
+      "agentExecutionReadiness": "blocked_in_this_lane_unless_track_b_coordinates"
+    }
+  },
+  "requiredAgentExecutionContract": [
+    "approved_plan_snapshot_reference",
+    "approval_record_reference",
+    "credit_reservation_or_no_spend_fixture_policy",
+    "job_id",
+    "worker_lease_id",
+    "idempotency_key",
+    "private_input_manifest_with_checksums",
+    "allowed_command_template_id",
+    "private_output_artifact_manifest",
+    "qa_report",
+    "retention_and_cleanup_policy",
+    "fail_closed_missing_or_ambiguous_inputs"
+  ],
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "docsOnly": true,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCallInThisPhase": false,
+    "modelCallInThisPhase": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "routeExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "deployment": false,
+    "iamMutation": false,
+    "googleGroupMembershipMutation": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "gstreamerExecutionInThisPhase": false,
+    "mkvtoolnixExecutionInThisPhase": false,
+    "gpacMp4boxExecutionInThisPhase": false,
+    "vapoursynthExecutionInThisPhase": false,
+    "revideoExecutionInThisPhase": false,
+    "filmExecutionInThisPhase": false,
+    "qwenExecutionInThisPhase": false,
+    "aiGraphicsExecution": false,
+    "ffmpegFfprobeExecutionInThisPhase": false,
+    "dockerExecutionInThisPhase": false,
+    "remotionExecutionInThisPhase": false,
+    "packageInstallationBeyondDependencyValidation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "dockerfileInstallSourceChange": false,
+    "requirementsInstallSourceChange": false,
+    "cloudRunReadback": false,
+    "cloudRunServiceUpdate": false,
+    "broadServiceRoleHandler": false
+  }
+}

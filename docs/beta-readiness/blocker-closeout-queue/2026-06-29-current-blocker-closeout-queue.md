@@ -49,7 +49,7 @@ Auto-fillable pending inputs: `12`
    - Next command: `npm run beta:tools:core-real-check-preview -- --env-template`
    - Next command: `npm run beta:tools:core-real-check-preview -- --local-defaults`
    - Next command: `npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults`
-   - Next command: `npm run beta:tools:local-accepted-evidence-bundle`
+   - Next command: `npm run beta:tools:local-accepted-evidence-bundle -- --local-defaults`
    - Blocked until: Every registry tool has accepted bounded runtime evidence or an explicit source-truth exclusion; no user media or product runtime proof is implied.
 
 4. Run QA acceptance after real bounded evidence exists

@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import type { ProductionToolId } from '../tool-registry'
 import {
@@ -35,6 +36,11 @@ export interface BetaToolsLocalAcceptedEvidenceBundleEnv {
   REEDITPRO_BETA_TOOLS_PREVIEW_VENV_DIR?: string
 }
 
+export interface BetaToolsLocalAcceptedEvidenceBundleOptions {
+  localDefaults?: boolean
+  sourceSha?: string
+}
+
 export interface BetaToolsLocalAcceptedEvidenceBundleReport {
   ok: boolean
   previewOnly: true
@@ -53,31 +59,57 @@ export interface BetaToolsLocalAcceptedEvidenceBundleReport {
   }
   corePreview: BetaToolsCoreRealCheckHydratedPreviewReport
   libassPreview: BetaToolsLibassSyntheticBurninQaPreflightReport
+  localDefaultsApplied: boolean
+  localDefaultedInputNames: string[]
   missingConfiguration: string[]
   confirmationGaps: string[]
   secretLikeInputPaths: string[]
   warnings: string[]
 }
 
+const LOCAL_DEFAULT_SOURCE_ID = 'beta-tools-local-accepted-evidence-bundle-local-defaults'
+const LOCAL_DEFAULT_LIBASS_CONTAINER_IMAGE =
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
+const LOCAL_DEFAULT_CORE_TOOL_IDS = [
+  'ffmpeg',
+  'ffprobe',
+  'pyav',
+  'opentimelineio',
+  'hyperframe',
+  'remotion',
+  'sharp',
+  'duckdb',
+  'polars',
+  'pyscenedetect',
+  'opencv',
+  'opencolorio',
+  'openimageio',
+  'audioflux',
+  'signalsmith_stretch',
+].join(',')
+
 export function runBetaToolsLocalAcceptedEvidenceBundle(
   env: BetaToolsLocalAcceptedEvidenceBundleEnv,
   libassRunner?: LibassSyntheticBurninCommandRunner,
+  options: BetaToolsLocalAcceptedEvidenceBundleOptions = {},
 ): BetaToolsLocalAcceptedEvidenceBundleReport {
-  const corePreview = runBetaToolsCoreRealCheckHydratedPreview(buildCoreEnv(env))
-  const libassPreview = runBetaToolsLibassSyntheticBurninQaPreflight(buildLibassEnv(env), libassRunner)
+  const localDefaults = applyLocalDefaults(env, options)
+  const bundleEnv = localDefaults.env
+  const corePreview = runBetaToolsCoreRealCheckHydratedPreview(buildCoreEnv(bundleEnv))
+  const libassPreview = runBetaToolsLibassSyntheticBurninQaPreflight(buildLibassEnv(bundleEnv), libassRunner)
   const coreAcceptedToolIds = corePreview.previewReport?.acceptedToolIds ?? []
   const libassAcceptedToolIds = libassPreview.acceptedToolEvidence.map((record) => record.toolId as ProductionToolId)
   const locallyAcceptedToolIds = uniqueToolIds([...coreAcceptedToolIds, ...libassAcceptedToolIds])
   const secretLikeInputPaths = collectSecretLikePaths({
-    workspaceId: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_WORKSPACE_ID,
-    projectId: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_PROJECT_ID,
-    sourceId: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID,
-    sourceSha: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA,
-    notes: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES,
-    containerImage: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE,
+    workspaceId: bundleEnv.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_WORKSPACE_ID,
+    projectId: bundleEnv.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_PROJECT_ID,
+    sourceId: bundleEnv.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID,
+    sourceSha: bundleEnv.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA,
+    notes: bundleEnv.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES,
+    containerImage: bundleEnv.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE,
   }, 'betaToolsLocalAcceptedEvidenceBundle')
   const missingConfiguration = [
-    ...bundleMissingConfiguration(env),
+    ...bundleMissingConfiguration(bundleEnv),
     ...(corePreview.previewReport?.missingConfiguration ?? []),
     ...libassPreview.missingConfiguration,
   ]
@@ -126,6 +158,8 @@ export function runBetaToolsLocalAcceptedEvidenceBundle(
     },
     corePreview,
     libassPreview,
+    localDefaultsApplied: localDefaults.applied,
+    localDefaultedInputNames: localDefaults.inputNames,
     missingConfiguration,
     confirmationGaps,
     secretLikeInputPaths,
@@ -137,6 +171,59 @@ export function runBetaToolsLocalAcceptedEvidenceBundle(
       'Product-ready local OSS evidence remains local until deployed staging evidence recording and operator status readback pass.',
     ],
   }
+}
+
+function applyLocalDefaults(
+  env: BetaToolsLocalAcceptedEvidenceBundleEnv,
+  options: BetaToolsLocalAcceptedEvidenceBundleOptions,
+): {
+  env: BetaToolsLocalAcceptedEvidenceBundleEnv
+  applied: boolean
+  inputNames: string[]
+} {
+  if (options.localDefaults !== true) {
+    return {
+      env,
+      applied: false,
+      inputNames: [],
+    }
+  }
+
+  const next: BetaToolsLocalAcceptedEvidenceBundleEnv = { ...env }
+  const inputNames: string[] = []
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_WORKSPACE_ID', 'local-accepted-evidence-bundle-workspace')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_PROJECT_ID', 'local-accepted-evidence-bundle-project')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID', LOCAL_DEFAULT_SOURCE_ID)
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA', clean(options.sourceSha) ?? resolveCurrentGitSha())
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES', 'Local no-secret bounded accepted evidence bundle; no backend evidence recorded.')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS', LOCAL_DEFAULT_CORE_TOOL_IDS)
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE', 'true')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE', 'true')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS', 'false')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE', 'true')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE', 'true')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE', 'docker')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE', LOCAL_DEFAULT_LIBASS_CONTAINER_IMAGE)
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_TIMEOUT_MS', '60000')
+  setDefault(next, inputNames, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_RETAIN_TEMP_OUTPUTS', 'false')
+
+  return {
+    env: next,
+    applied: true,
+    inputNames,
+  }
+}
+
+function setDefault(
+  env: BetaToolsLocalAcceptedEvidenceBundleEnv,
+  inputNames: string[],
+  name: keyof BetaToolsLocalAcceptedEvidenceBundleEnv,
+  value: string | undefined,
+): void {
+  if (clean(env[name])) return
+  if (!clean(value)) return
+  env[name] = value
+  inputNames.push(name)
 }
 
 function buildCoreEnv(env: BetaToolsLocalAcceptedEvidenceBundleEnv): BetaToolsCoreRealCheckHydratedPreviewEnv {
@@ -216,13 +303,30 @@ function isTrue(value: string | undefined): boolean {
   return value === 'true' || value === '1'
 }
 
+function resolveCurrentGitSha(): string | undefined {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+      },
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return undefined
+  }
+}
+
 function clean(value: string | undefined): string | undefined {
   const trimmed = value?.trim()
   return trimmed || undefined
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const report = runBetaToolsLocalAcceptedEvidenceBundle(process.env)
+  const report = runBetaToolsLocalAcceptedEvidenceBundle(process.env, undefined, {
+    localDefaults: process.argv.includes('--local-defaults'),
+  })
   console.log(JSON.stringify(report, null, 2))
   if (!report.ok) process.exitCode = 1
 }

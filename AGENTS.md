@@ -552,3 +552,11 @@ Do not implement these without explicit user request:
 - Projected overage pauses before work with "Action required: revised credit estimate needed" and creates only a mock `projected_overage` revision action.
 - Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, reservation spend/release/refund, render/export execution, checkout/top-up, or export unlock.
 - Keep tool-cost events `serviceFeeIncluded = false`; use `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard` when changing the runtime credit guard surface.
+
+## RP-CREDITREVISION-01 Revised Credit Resolution Boundary
+
+- Resolve projected-overage actions only through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work.
+- Approve & Continue may add only a local mock `revised_credit_additional_hold` to the existing reserved reservation; paid work still requires a later runtime guard recheck.
+- Lower-cost and cancel resolutions must not reserve credits or silently resume the original paid tool.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, spend/release/refund, render/export execution, checkout/top-up, or export unlock.
+- Use `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action` when changing this surface.

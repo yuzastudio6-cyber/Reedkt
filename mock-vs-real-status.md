@@ -60,3 +60,9 @@
 - Real: mock paid worker/provider/render starts can be blocked by approved-plan, approved-estimate, active `reserved` reservation, idempotency, tool-readiness, and projected-overage checks.
 - Real: projected overage creates one idempotent local/mock `CreditRevisionActionRecord` with `projected_overage`.
 - Mock-only: no provider, render/export, settlement, spend/release/refund, ledger, production persistence, Stripe/payment, checkout/top-up, or live billing side effect is wired.
+
+## RP-CREDITREVISION-01 Mock Revision Action Status
+
+- Real: local/mock projected-overage actions can be resolved as approved, lower-cost selected, or cancelled.
+- Real: Approve & Continue can add a local mock `revised_credit_additional_hold` to the existing reservation, and a later runtime guard call can pass when the revised hold covers the projection.
+- Mock-only: no live billing, Stripe/payment, provider call, render/export, settlement, spend/release/refund, checkout/top-up, export unlock, Supabase write, production wallet mutation, or ledger write is wired.

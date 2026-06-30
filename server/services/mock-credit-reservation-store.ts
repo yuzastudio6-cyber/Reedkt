@@ -2,6 +2,7 @@ import type {
   CreditEstimateLineItemRecord,
   CreditEstimateRecord,
   CreditGrantRecord,
+  CreditRevisionActionRecord,
   CreditReservationLineItemRecord,
   CreditReservationRecord,
   CreditReservationWalletBalance,
@@ -46,6 +47,42 @@ export interface GrantMockCreditsInput {
   sourceType?: CreditSourceType
   userId?: string
   grantReason?: string
+}
+
+export type ReserveAdditionalCreditsForRevisionActionStatus =
+  | 'reserved'
+  | 'already_reserved'
+  | 'no_additional_hold_required'
+  | 'insufficient_credits'
+  | 'reservation_not_found'
+  | 'inactive_reservation'
+  | 'wallet_not_found'
+  | 'invalid_request'
+
+export interface ReserveAdditionalCreditsForRevisionActionInput {
+  action: CreditRevisionActionRecord
+  creditReservationId: string
+  requestedByUserId: string
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface ReserveAdditionalCreditsForRevisionActionResult {
+  status: ReserveAdditionalCreditsForRevisionActionStatus
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  wallet: CreditWalletRecord | null
+  walletBalance: CreditReservationWalletBalance | null
+  additionalHoldCredits: number
+  availableCreditsBeforeReservation: number
+  availableCreditsAfterReservation: number
+  reservedCreditsAfterReservation: number
+  requiredTopUpCredits: number
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  walletMutated: boolean
+  reservationMutated: boolean
+  userFacingMessage: string
+  warnings: string[]
 }
 
 export function createMockCreditReservationStore(): MockCreditReservationStore {
@@ -372,6 +409,151 @@ export function reserveMaxEstimateCredits(
   ])
 }
 
+export function reserveAdditionalCreditsForRevisionAction(
+  store: MockCreditReservationStore,
+  input: ReserveAdditionalCreditsForRevisionActionInput,
+): ReserveAdditionalCreditsForRevisionActionResult {
+  const action = input.action
+  const reservation = getCreditReservation(store, input.creditReservationId)
+  const requestedHold = Math.max(0, action.newMaximumEstimatedCredits - (reservation?.reservedCredits ?? action.approvedMaxCredits))
+  if (!reservation) {
+    return additionalHoldResponse('reservation_not_found', null, null, [], requestedHold, 0, 'Credit reservation was not found.', [
+      'No mock wallet or reservation mutation occurred.',
+    ])
+  }
+
+  const lineItems = listCreditReservationLineItems(store, reservation.id)
+  const wallet = store.creditWallets.find((candidate) => candidate.id === reservation.creditWalletId) ?? null
+  const availableBefore = wallet?.cachedAvailableCredits ?? 0
+  const additionalHoldCredits = Math.max(0, action.newMaximumEstimatedCredits - reservation.reservedCredits)
+
+  if (
+    reservation.workspaceId !== action.workspaceId ||
+    reservation.projectId !== action.projectId ||
+    reservation.creditEstimateId !== action.creditEstimateId ||
+    reservation.id !== action.creditReservationId
+  ) {
+    return additionalHoldResponse('invalid_request', reservation, wallet, lineItems, additionalHoldCredits, availableBefore, 'Credit revision action scope does not match the reservation.', [
+      'Additional hold requires matching workspace, project, estimate, and reservation.',
+    ])
+  }
+
+  if (reservation.status !== 'reserved') {
+    return additionalHoldResponse('inactive_reservation', reservation, wallet, lineItems, additionalHoldCredits, availableBefore, 'Only active reserved mock reservations can receive additional hold credits.', [
+      `Reservation status ${reservation.status} is not active for new paid work.`,
+    ])
+  }
+
+  if (!wallet) {
+    return additionalHoldResponse('wallet_not_found', reservation, null, lineItems, additionalHoldCredits, 0, 'Credit wallet was not found.', [
+      'No mock wallet or reservation mutation occurred.',
+    ])
+  }
+
+  const duplicateLine = lineItems.find((lineItem) => {
+    const payload = asRecord(lineItem.linePayload)
+    return payload?.creditRevisionActionId === action.id &&
+      payload?.resolutionIdempotencyKey === input.idempotencyKey
+  })
+  if (duplicateLine) {
+    return additionalHoldResponse('already_reserved', reservation, wallet, lineItems, duplicateLine.reservedCredits, availableBefore, 'Additional mock credits were already reserved for this revised-credit approval.', [
+      'Duplicate idempotency key returned the existing mock additional-hold line; no second hold occurred.',
+    ], 'duplicate_returned')
+  }
+
+  if (additionalHoldCredits === 0) {
+    return additionalHoldResponse('no_additional_hold_required', reservation, wallet, lineItems, 0, availableBefore, 'No additional credits are required because the reservation already covers the revised maximum.', [
+      'Revision action can be approved without changing the mock wallet or reservation.',
+    ])
+  }
+
+  if (availableBefore < additionalHoldCredits) {
+    return additionalHoldResponse('insufficient_credits', reservation, wallet, lineItems, additionalHoldCredits, availableBefore, 'Available credits are lower than the additional revised-credit hold.', [
+      'No checkout, top-up, wallet purchase, settlement, or export unlock occurred.',
+      'No mock wallet or reservation mutation occurred.',
+    ])
+  }
+
+  const createdAt = nowIso()
+  wallet.cachedAvailableCredits -= additionalHoldCredits
+  wallet.cachedReservedCredits += additionalHoldCredits
+  wallet.lastCalculatedAt = createdAt
+  wallet.updatedAt = createdAt
+
+  reservation.reservedCredits += additionalHoldCredits
+  reservation.updatedAt = createdAt
+  reservation.metadata = {
+    ...(reservation.metadata ?? {}),
+    milestone: 'RP-CREDITREVISION-01',
+    revisedCreditAdditionalHoldApplied: true,
+    latestCreditRevisionActionId: action.id,
+    latestAdditionalHoldCredits: additionalHoldCredits,
+    revisedMaximumEstimatedCredits: action.newMaximumEstimatedCredits,
+    noSpend: true,
+    noSettlement: true,
+    noProviderCall: true,
+    noRenderOrExport: true,
+  }
+
+  const lineItem: CreditReservationLineItemRecord = {
+    id: createMockId('credit_reservation_line_item'),
+    creditReservationId: reservation.id,
+    workspaceId: reservation.workspaceId,
+    projectId: reservation.projectId,
+    usageCategory: 'revision',
+    reservedCredits: additionalHoldCredits,
+    spentCredits: 0,
+    releasedCredits: 0,
+    refundedCredits: 0,
+    linePayload: {
+      milestone: 'RP-CREDITREVISION-01',
+      lineItemRole: 'revised_credit_additional_hold',
+      creditRevisionActionId: action.id,
+      resolutionIdempotencyKey: input.idempotencyKey,
+      previousReservedCredits: reservation.reservedCredits - additionalHoldCredits,
+      additionalHoldCredits,
+      newMaximumEstimatedCredits: action.newMaximumEstimatedCredits,
+      approvedMaxCredits: action.approvedMaxCredits,
+      additionalHighCredits: action.additionalHighCredits,
+      requestedByUserId: input.requestedByUserId,
+      requestMetadata: input.metadata ?? {},
+      serviceFeeIncludedInToolCosts: false,
+      noLedgerWrite: true,
+      noSpend: true,
+      noSettlement: true,
+    },
+    createdAt,
+    updatedAt: createdAt,
+    metadata: {
+      mockOnly: true,
+      noSpend: true,
+      noSettlement: true,
+    },
+  }
+  store.creditReservationLineItems.push(lineItem)
+  store.walletMutationRecords.push({
+    mutation: 'mock_revised_credit_additional_hold_reserved',
+    walletId: wallet.id,
+    creditReservationId: reservation.id,
+    creditRevisionActionId: action.id,
+    additionalHoldCredits,
+    createdAt,
+  })
+  store.reservationMutationRecords.push({
+    mutation: 'mock_credit_reservation_increased_for_revision',
+    creditReservationId: reservation.id,
+    creditRevisionActionId: action.id,
+    additionalHoldCredits,
+    revisedMaximumEstimatedCredits: action.newMaximumEstimatedCredits,
+    createdAt,
+  })
+
+  return additionalHoldResponse('reserved', reservation, wallet, [...lineItems, lineItem], additionalHoldCredits, availableBefore, 'Additional revised-credit hold was reserved in mock state.', [
+    'RP-CREDITREVISION-01 increased only local mock wallet/reservation state.',
+    'No live billing, Stripe/payment, Supabase write, production wallet mutation, ledger write, settlement, spend/release/refund, provider call, worker, render/export, checkout/top-up, or export unlock occurred.',
+  ], 'created')
+}
+
 export function buildReservationLineItemsFromEstimate(input: {
   estimate: CreditEstimateRecord
   reservation: CreditReservationRecord
@@ -564,6 +746,43 @@ function reservedResponse(
     warnings: [
       ...warnings,
       `Idempotency key: ${input.idempotencyKey}.`,
+    ],
+  }
+}
+
+function additionalHoldResponse(
+  status: ReserveAdditionalCreditsForRevisionActionStatus,
+  reservation: CreditReservationRecord | null,
+  wallet: CreditWalletRecord | null,
+  reservationLineItems: CreditReservationLineItemRecord[],
+  additionalHoldCredits: number,
+  availableCreditsBeforeReservation: number,
+  userFacingMessage: string,
+  warnings: string[],
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created' = 'not_created',
+): ReserveAdditionalCreditsForRevisionActionResult {
+  const balance = wallet ? toWalletBalance(wallet) : null
+  const mutated = status === 'reserved' && idempotencyStatus === 'created'
+  return {
+    status,
+    reservation,
+    reservationLineItems,
+    wallet,
+    walletBalance: balance,
+    additionalHoldCredits,
+    availableCreditsBeforeReservation,
+    availableCreditsAfterReservation: balance?.availableCredits ?? availableCreditsBeforeReservation,
+    reservedCreditsAfterReservation: balance?.reservedCredits ?? 0,
+    requiredTopUpCredits: status === 'insufficient_credits'
+      ? Math.max(0, additionalHoldCredits - availableCreditsBeforeReservation)
+      : 0,
+    idempotencyStatus,
+    walletMutated: mutated,
+    reservationMutated: mutated,
+    userFacingMessage,
+    warnings: [
+      ...warnings,
+      'Additional hold path is mock-only and does not spend, release, refund, settle, unlock export, call providers, run workers, render/export, checkout/top-up, or write Supabase.',
     ],
   }
 }

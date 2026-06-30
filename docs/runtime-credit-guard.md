@@ -6,6 +6,8 @@ The guard reuses the credit foundation: max-estimate reservations, production to
 
 If the next paid tool would exceed the approved max, the guard pauses before work starts and creates one idempotent revision action with `pauseReason = projected_overage` and the title `Action required: revised credit estimate needed`. The action includes approved max credits, used/committed credits, additional low/expected/high credits, new maximum estimate, and the options Approve & Continue, Choose Lower-Cost Option, and Cancel Extra Work.
 
+RP-CREDITREVISION-01 resolves those actions without starting paid work. Approve & Continue can add a mock `revised_credit_additional_hold` to the existing reservation, then a later guard recheck may pass if the projection fits. Choose Lower-Cost Option and Cancel Extra Work resolve the action but keep the original paid runtime path blocked so it cannot silently resume. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
+
 Tool-cost events remain owner/internal-cost only with `serviceFeeIncluded = false`. Current billable tool credits come from billable mock tool-cost events for the same workspace/project/estimate/reservation; non-billable events remain visible but excluded. ReEditPro service fee is projected separately with credit-policy helpers.
 
 Boundaries: no live billing, no Stripe/payment, no Supabase migrations or writes, no provider call, no worker run after a failed guard, no render/export execution, no production wallet mutation, no reservation spend/release/refund, no production ledger write, no settlement execution, no export unlock, and no checkout/top-up. `smoke:runtime-credit-guard` covers the guard contract and boundary integrations.

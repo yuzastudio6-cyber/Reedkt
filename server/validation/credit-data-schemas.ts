@@ -125,6 +125,36 @@ export const createCreditRevisionActionSchema = z.object({
   expiresAt: z.string().min(1).nullish(),
 })
 
+export const approveCreditRevisionActionSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  creditRevisionActionId: idSchema,
+  creditReservationId: idSchema,
+  approvedByUserId: idSchema,
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema.default({}),
+})
+
+export const chooseLowerCostCreditRevisionOptionSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  creditRevisionActionId: idSchema,
+  selectedOptionId: z.string().min(1),
+  selectedByUserId: idSchema,
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema.default({}),
+})
+
+export const cancelCreditRevisionActionSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  creditRevisionActionId: idSchema,
+  cancelledByUserId: idSchema,
+  cancellationReason: z.string().min(1).max(500).optional(),
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema.default({}),
+})
+
 export const creditRevisionActionRecordSchema = createCreditRevisionActionSchema.extend({
   id: idSchema,
   actionRequiredTitle: z.string().min(1),

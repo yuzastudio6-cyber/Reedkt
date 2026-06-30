@@ -12,6 +12,14 @@ REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-e
 
 Proceed only if it returns `completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry`.
 
+Latest attempt `2026-06-30T01-45-56-932Z-1ef24f39` returned `blocked_gcloud_user_reauthentication_required`. Refresh the user credential path interactively before retrying:
+
+```bash
+gcloud auth login aiediting@reeditpro.com --project=reeditpro --update-adc
+gcloud config set account aiediting@reeditpro.com
+gcloud config set project reeditpro
+```
+
 ## Goal
 
 Retry the bounded real-usage QA pass for the approved single tester `aiediting@reeditpro.com` after interactive gcloud reauthentication refreshes the active account.

@@ -47,6 +47,9 @@ const requiredText = [
   '387678f5b884364f078a424ca47210b5eca27c19',
   'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation',
   'REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1',
+  'blocked_gcloud_user_reauthentication_required',
+  '2026-06-30T01-45-56-932Z-1ef24f39',
+  '15a3a68656bf70fa56e20372e8c0c7ee15cda6d539a1c69507661755f83f5814',
 ]
 
 const allowedFiles = new Set(requiredFiles)
@@ -157,6 +160,15 @@ if (record.post1744SourceClosure?.mergeSha !== '387678f5b884364f078a424ca47210b5
 if (record.post1744SourceClosure?.decision !== 'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation') fail('post-#1744 decision mismatch')
 if (record.post1744SourceClosure?.runnerExecutedInThisRepair !== false) fail('operator helper must not run in this repair')
 if (record.readback?.operatorGcloudAuthPreflightHelper !== 'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation') fail('operator helper status mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.decision !== 'blocked_gcloud_user_reauthentication_required') fail('operator preflight decision mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.execution !== 'blocked_user_access_token_preflight_no_runtime_invocation') fail('operator preflight execution mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.observedAccount !== 'aiediting@reeditpro.com') fail('operator preflight account mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.observedProject !== 'reeditpro') fail('operator preflight project mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.tokenValuePrinted !== false) fail('operator preflight token print flag must be false')
+if (record.operatorGcloudAuthPreflightAttempt?.tokenValuePersistedInRepo !== false) fail('operator preflight token repo flag must be false')
+if (record.operatorGcloudAuthPreflightAttempt?.tokenTempFileDeleted !== true) fail('operator preflight temp token deletion mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.reportSha256 !== '15a3a68656bf70fa56e20372e8c0c7ee15cda6d539a1c69507661755f83f5814') fail('operator preflight report checksum mismatch')
+if (record.readback?.operatorGcloudAuthPreflightAttempt !== 'blocked_gcloud_user_reauthentication_required') fail('operator preflight readback mismatch')
 if (record.readback?.unauthenticatedRootStatus !== null) fail('unauthenticated root should not have run')
 if (!Array.isArray(record.readback?.authenticatedHtmlRoutes) || record.readback.authenticatedHtmlRoutes.length !== 0) fail('authenticated HTML routes should not have run')
 if (!Array.isArray(record.readback?.authenticatedJsonRoutes) || record.readback.authenticatedJsonRoutes.length !== 0) fail('authenticated JSON routes should not have run')

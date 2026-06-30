@@ -22,6 +22,8 @@ Post-#1738 current-base closure: branch updated after `RP-EXTERNAL-BETA-QWEN-TRA
 
 Post-#1744 operator helper closure: branch updated after `RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1` merged at `387678f5b884364f078a424ca47210b5eca27c19`; next operator step is the guarded local auth preflight before any single-tester QA or QWEN runtime retry.
 
+Operator auth preflight attempt `2026-06-30T01-45-56-932Z-1ef24f39`: `blocked_gcloud_user_reauthentication_required`. The active account/project readback was `aiediting@reeditpro.com` / `reeditpro`, but `gcloud auth print-access-token --quiet` failed before token issuance with `Reauthentication failed. cannot prompt during non-interactive execution.` No token value was printed or persisted, the temporary token file was deleted, ADC was not probed, and Cloud Run/QWEN/runtime paths were not invoked.
+
 Product-ready end-to-end local OSS tools: `0`
 
 Package-lock: `unchanged`

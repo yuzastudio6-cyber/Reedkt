@@ -22,6 +22,8 @@ This branch has also been updated after `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDE
 
 This branch has also been updated after `RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1` merged at `387678f5b884364f078a424ca47210b5eca27c19`. The next safe operator command is `REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1`; only after it passes should this PR move to the guarded 1R route-readback retry.
 
+Latest operator preflight attempt `2026-06-30T01-45-56-932Z-1ef24f39` returned `blocked_gcloud_user_reauthentication_required`. The local gcloud context is correct (`aiediting@reeditpro.com` / `reeditpro`), but user credential token refresh still requires interactive reauthentication. The next fix is to run interactive `gcloud auth login aiediting@reeditpro.com --project=reeditpro --update-adc`, then rerun the operator preflight command above.
+
 Product-ready end-to-end local OSS tools: `0`
 
 Package-lock: `unchanged`

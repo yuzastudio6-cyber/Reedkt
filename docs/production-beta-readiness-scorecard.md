@@ -1611,6 +1611,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: it records `routeMountImplementationQaAcceptedToolsWithProvidedEvidence=21`, `apiRouteMountImplementationReadyToolsWithProvidedEvidence=21`, `apiRouteMountReadyToolsWithProvidedEvidence=21`, `runtimeAdmissionAcceptedToolsWithProvidedEvidence=21`, `gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this QA packet does not mount or execute the API route, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
 
+## AI Graphics External-Beta API Route Backend Adapter Contract
+
+- Decision: `ai_graphics_external_beta_api_route_backend_adapter_contract_prepared_with_runtime_blocks`.
+- Scope: contract-only backend adapter bridge after route-mount implementation QA. It records required refs for approved snapshot lookup, credit reservation lookup, private artifact policy, asset manifest binding, dependency readiness, async checkback, queue authorization, worker enqueue authorization, service-role boundary, idempotency, rate limit, cost guardrails, audit/telemetry, kill switch, and rollback.
+- Result: it records `backendAdapterContractReadyToolsWithProvidedEvidence=21`, `routeMountImplementationQaAcceptedToolsWithProvidedEvidence=21`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Runtime/beta/production: no unlock; this contract does not mount or execute the API route, mutate approved snapshots, mutate credit reservations, write a queue row, enqueue or dispatch a worker, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains cold until a later accepted worker/tool-call job claims a GPU/model tool.
+
 ## AI Graphics Production Launch Controls
 
 - Decision: `ai_graphics_production_launch_controls_prepared_with_runtime_blocks`.

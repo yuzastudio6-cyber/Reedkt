@@ -211,6 +211,8 @@ const allowedPackageDiffLines = [
   '+    "ai-graphics:external-beta-api-route-mount-implementation-review:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-implementation-review-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-mount-implementation-qa": "tsx server/cli/ai-graphics-external-beta-api-route-mount-implementation-qa.ts",',
   '+    "ai-graphics:external-beta-api-route-mount-implementation-qa:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-implementation-qa-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-backend-adapter-contract": "tsx server/cli/ai-graphics-external-beta-api-route-backend-adapter-contract.ts",',
+  '+    "ai-graphics:external-beta-api-route-backend-adapter-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-contract-diagnostics.mjs",',
 ]
 
 const failures = []

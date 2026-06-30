@@ -6,6 +6,8 @@ import { createApiRouteMapSummary, REEDITPRO_API_ROUTES } from '../backend/api/a
 import { createMockApiRuntimeContext, handleMockApiRequest } from '../backend/api/mock-api-router'
 import { loadRuntimeEnv } from '../../server/config/env'
 import {
+  QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV,
+  QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE,
   createQwen25VlExternalBetaProductRouteHandlerSource,
   type Qwen25VlExternalBetaProductRouteHandlerSourceInput,
 } from '../../server/services/qwen2-5-vl-external-beta-product-route-handler-source'
@@ -95,7 +97,7 @@ export async function handleServerRequest(
 
     if (method === 'POST' && url.pathname === QWEN_STRUCTURED_VISUAL_METADATA_PATH) {
       const body = await readJsonBody(request)
-      sendJsonResponse(response, createQwenStructuredVisualMetadataFailClosedResponse(request, body))
+      sendJsonResponse(response, createQwenStructuredVisualMetadataRouteResponse(request, body))
       return
     }
 
@@ -112,7 +114,7 @@ export async function handleServerRequest(
   }
 }
 
-function createQwenStructuredVisualMetadataFailClosedResponse(
+function createQwenStructuredVisualMetadataRouteResponse(
   request: IncomingMessage,
   body: unknown,
 ) {
@@ -139,9 +141,19 @@ function createQwenStructuredVisualMetadataFailClosedResponse(
     ...coerceRecord(body),
     routeIdempotencyKey,
   } as Qwen25VlExternalBetaProductRouteHandlerSourceInput
-  const result = createQwen25VlExternalBetaProductRouteHandlerSource(context).buildBlockedResult(routeInput)
+  const handlerSource = createQwen25VlExternalBetaProductRouteHandlerSource(context)
+  const result = isQwenBackendJobHandoffConfirmed()
+    ? handlerSource.buildBackendJobHandoff(routeInput)
+    : handlerSource.buildBlockedResult(routeInput)
 
   return createJsonResponse(result, result.httpStatus)
+}
+
+function isQwenBackendJobHandoffConfirmed(): boolean {
+  return (
+    process.env[QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV] ===
+    QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE
+  )
 }
 
 function getHeaderValue(request: IncomingMessage, header: string): string | null {

@@ -37,6 +37,17 @@ const allowedChangedFiles = new Set([
   ...packetFiles,
   'scripts/validation/rp-external-beta-qwen-transport-readiness-plan-current-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1-diagnostics.mjs',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/source-audit.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/route-handoff-bridge.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/runtime-boundary.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/validation-results.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/qwen-provider-runtime-fixture-current-1-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-provider-runtime-fixture-current-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-provider-runtime-fixture-current-1-confirmed-run.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-native-api-auth-context-bridge-1.md',
+  'server/smoke/rp-external-beta-qwen-provider-runtime-fixture-current-1-smoke.ts',
+  'scripts/validation/rp-external-beta-qwen-provider-runtime-fixture-current-1-diagnostics.mjs',
+  'scripts/validation/rp-qwen2-5-vl-external-beta-product-route-backend-job-handoff-1-diagnostics.mjs',
 ])
 
 const requiredText = [
@@ -208,6 +219,7 @@ if (!routeBridge.includes('createQwen25VlExternalBetaProductRouteHandlerSource')
   fail('missing fail-closed route-handler source bridge')
 }
 if (!routeBridge.includes('buildBlockedResult(routeInput)')) fail('missing fail-closed result return')
+if (!routeBridge.includes('buildBackendJobHandoff(routeInput)')) fail('missing gated backend handoff result return')
 
 const packageJson = parseJson('package.json')
 if (

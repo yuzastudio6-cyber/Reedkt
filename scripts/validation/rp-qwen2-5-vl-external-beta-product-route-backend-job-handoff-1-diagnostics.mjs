@@ -31,6 +31,21 @@ const requiredFiles = [
   'package.json',
 ]
 
+const currentBridgeFiles = [
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/source-audit.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/route-handoff-bridge.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/runtime-boundary.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/validation-results.md',
+  'docs/external-beta/qwen-provider-runtime-fixture-current-1/qwen-provider-runtime-fixture-current-1-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-provider-runtime-fixture-current-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-provider-runtime-fixture-current-1-confirmed-run.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-native-api-auth-context-bridge-1.md',
+  'src/server/server-router.ts',
+  'server/smoke/rp-external-beta-qwen-provider-runtime-fixture-current-1-smoke.ts',
+  'scripts/validation/rp-external-beta-qwen-provider-runtime-fixture-current-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-staging-api-route-deployment-alignment-1-diagnostics.mjs',
+]
+
 const requiredText = [
   packet,
   'completed_qwen2_5_vl_product_route_backend_job_handoff_source_contract',
@@ -237,7 +252,7 @@ if (
 
 execFileSync('git', ['diff', '--quiet', '--', 'package-lock.json'], { env: gitEnv, stdio: 'pipe' })
 
-const allowedFiles = new Set(requiredFiles)
+const allowedFiles = new Set([...requiredFiles, ...currentBridgeFiles])
 for (const file of changedFiles()) {
   if (!allowedFiles.has(file)) fail(`unexpected changed file: ${file}`)
   if (forbiddenFilePatterns.some((pattern) => pattern.test(file))) fail(`forbidden file changed: ${file}`)

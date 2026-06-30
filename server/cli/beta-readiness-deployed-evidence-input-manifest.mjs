@@ -94,6 +94,9 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
   })
   const secretLikeInputPaths = collectSecretLikePaths({
     sourceId: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID,
+    trackBAgentRouteIdempotencyPrefix: env.REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX,
+    trackBAgentRouteApprovedSnapshotId: env.REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID,
+    trackBAgentRouteToolExecutionPlanPrefix: env.REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX,
     toolNotes: env.REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_NOTES,
     platformRlsEvidence: env.REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE,
     platformStripeEvidence: env.REEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_EVIDENCE,
@@ -182,6 +185,7 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-agent-route-deployed-evidence-collector',
       'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
       'npm run beta:readiness:external-beta-sequence-preflight',
       'npm run beta:readiness:external-beta-evidence-collector',
@@ -204,6 +208,9 @@ export function buildBetaReadinessDeployedEvidenceInputManifest(
 }
 
 function buildRequiredInputs(env, fixed) {
+  const routeProofSourcePrefix = fixed.currentSourceSha
+    ? fixed.currentSourceSha.slice(0, 12)
+    : 'source-sha-required'
   return [
     input(env, 'REEDITPRO_BETA_EXTERNAL_API_BASE_URL', 'shared', true, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN', 'shared', true, 'external_beta_evidence_sequence'),
@@ -213,6 +220,10 @@ function buildRequiredInputs(env, fixed) {
     input(env, 'REEDITPRO_BETA_EXTERNAL_SOURCE_SHA', 'shared', false, 'external_beta_evidence_sequence', fixed.currentSourceSha),
     input(env, 'REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE', 'shared', false, 'external_beta_evidence_sequence', 'true'),
     input(env, 'REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY', 'shared', false, 'external_beta_evidence_sequence', 'true'),
+    input(env, 'REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF', 'agent_route_proof', false, 'trackb_agent_route_deployed_proof', 'true'),
+    input(env, 'REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX', 'agent_route_proof', false, 'trackb_agent_route_deployed_proof', `trackb-agent-route-proof-${routeProofSourcePrefix}`),
+    input(env, 'REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID', 'agent_route_proof', false, 'trackb_agent_route_deployed_proof', `approved-snapshot-trackb-agent-route-proof-${routeProofSourcePrefix}`),
+    input(env, 'REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX', 'agent_route_proof', false, 'trackb_agent_route_deployed_proof', `tool-exec-trackb-agent-route-proof-${routeProofSourcePrefix}`),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY', 'tool_evidence', false, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY', 'tool_evidence', false, 'external_beta_evidence_sequence'),
     input(env, 'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID', 'tool_evidence', false, 'external_beta_evidence_sequence', DEFAULT_SOURCE_ID),
@@ -284,6 +295,7 @@ function buildValueGaps(env, fixed) {
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_PLATFORM_ENVIRONMENT', 'staging')
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE', 'true')
   requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY', 'true')
+  requireEqualIfPresent(env, gaps, 'REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF', 'true')
   for (const name of [
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE',
     'REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE',

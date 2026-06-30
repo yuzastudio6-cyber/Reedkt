@@ -14,7 +14,7 @@ The manifest records the current deploy readback needed by the source freshness 
 
 ## Remaining Gate
 
-Pending human-actionable operator inputs: `45`
+Pending human-actionable operator inputs: `46`
 
 Ready to run external beta evidence collector: `false`
 
@@ -32,6 +32,7 @@ The missing inputs include bearer/token-bearing values, workspace/project IDs, i
 - `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
+- `npm run beta:tools:trackb-agent-route-deployed-evidence-collector`
 - `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
 
 ## Tool Evidence Boundary
@@ -53,6 +54,18 @@ The following claims remain forbidden in this lane:
 
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS=true`
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true`
+
+## Agent Route Proof Boundary
+
+The deployed agent-route proof is now an explicit prerequisite before the broader external beta collector can run. The operator must run `npm run beta:tools:trackb-agent-route-deployed-evidence-collector` with the deployed API/auth/workspace/project inputs and an explicit `REEDITPRO_BETA_TRACKB_AGENT_ROUTE_CONFIRM_DEPLOYED_ROUTE_PROOF=true` confirmation.
+
+The safe prefilled route identifiers are:
+
+- `REEDITPRO_BETA_TRACKB_AGENT_ROUTE_IDEMPOTENCY_PREFIX=trackb-agent-route-proof-ee177046bfb0`
+- `REEDITPRO_BETA_TRACKB_AGENT_ROUTE_APPROVED_SNAPSHOT_ID=approved-snapshot-trackb-agent-route-proof-ee177046bfb0`
+- `REEDITPRO_BETA_TRACKB_AGENT_ROUTE_TOOL_EXECUTION_PLAN_PREFIX=tool-exec-trackb-agent-route-proof-ee177046bfb0`
+
+This route proof still does not authorize deployed live tool execution, user media processing, product runtime readiness, external beta launch, or paid production.
 
 ## Boundary
 

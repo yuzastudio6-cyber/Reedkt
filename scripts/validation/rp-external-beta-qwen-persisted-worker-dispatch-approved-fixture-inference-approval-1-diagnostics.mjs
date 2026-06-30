@@ -58,6 +58,21 @@ const requiredText = [
 
 const allowedChangedFiles = new Set(requiredFiles)
 
+for (const file of [
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/runtime-result.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/runtime-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/validation-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1.mjs',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
+
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^supabase\//,

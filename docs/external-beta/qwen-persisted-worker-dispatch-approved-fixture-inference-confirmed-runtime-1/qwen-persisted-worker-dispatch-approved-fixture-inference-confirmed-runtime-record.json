@@ -1,0 +1,154 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-PERSISTED-WORKER-DISPATCH-APPROVED-FIXTURE-INFERENCE-CONFIRMED-RUNTIME-1",
+  "decision": "blocked_missing_persisted_job_or_queue_lease_reference",
+  "execution": "blocked_current_source_has_backend_handoff_only_no_qwen_persisted_dispatch_execution",
+  "integrationBase": "e03f863ca9673c0c53b1dbf5c07f00ad6364f45e",
+  "sourceClosure": {
+    "approvedSnapshotJobOrchestrationContractPr": 1410,
+    "approvedSnapshotJobOrchestrationRuntimeFixturePr": 1414,
+    "approvedSnapshotJobOrchestrationQaRollupPr": 1417,
+    "qwenNativeApiAuthContextBridgePr": 1791,
+    "qwenNativeAuthBridgeStagingHandoffPreflightPr": 1795,
+    "activeLaneAuthBridgeReconciliationPr": 1798,
+    "qwenPersistedDispatchSourceImportPr": 1803,
+    "qwenPersistedDispatchApprovedFixtureInferencePlanPr": 1805,
+    "qwenPersistedDispatchApprovedFixtureInferenceApprovalPr": 1810,
+    "approvedFixtureInferenceApprovalDraftPr": "#1808 open_draft_branch_to_branch_evidence_only_excluded_as_current_base_source",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "googleCloudProject": "reeditpro",
+    "region": "us-central1",
+    "stagingService": "reeditpro-staging-api",
+    "qwenWorkerService": "reeditpro-qwen2-5-vl-l4-worker",
+    "tester": "aiediting@reeditpro.com"
+  },
+  "approvedFixture": {
+    "approvedSnapshotFixtureReference": "qwen25-approved-snapshot-job-orchestration-runtime-fixture-1-2026-06-28T07-37-02-997Z-a0b72404",
+    "confirmationGate": "REEDITPRO_CONFIRM_QWEN_PERSISTED_WORKER_DISPATCH_APPROVED_FIXTURE_INFERENCE=true",
+    "runtimeScope": "approved_snapshot_structured_metadata_only",
+    "creditPolicy": "credit_no_spend_no_persistent_credit_mutation",
+    "privateInputManifestPolicy": "private_fixture_manifest_reference_only_no_public_artifact",
+    "privateOutputManifestChecksumPolicy": "local_or_private_manifest_with_file_names_byte_counts_sha256_only",
+    "timeoutCostCeilingPolicy": "single_request_timeout_and_cost_ceiling_required",
+    "failClosedRestoreRequired": true
+  },
+  "runtimeResult": {
+    "confirmedRuntimeRunner": "scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1.mjs",
+    "runId": "2026-06-30T11-35-39-930Z-53050e1e",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1/2026-06-30T11-35-39-930Z-53050e1e",
+    "expectedDecision": "blocked_missing_persisted_job_or_queue_lease_reference",
+    "observedContext": {
+      "account": "aiediting@reeditpro.com",
+      "project": "reeditpro"
+    },
+    "serviceReadback": {
+      "stagingLatestReadyRevision": "reeditpro-staging-api-00011-79q",
+      "qwenWorkerLatestReadyRevision": "reeditpro-qwen2-5-vl-l4-worker-00037-658",
+      "stagingReady": true,
+      "qwenWorkerReady": true
+    },
+    "sourceDispatch": {
+      "hasBackendHandoffOnly": true,
+      "hasDirectDispatch": false,
+      "noConfigMutationPersistedDispatchReady": false
+    },
+    "qwenInference": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "cloudRunJobExecution": false,
+    "cloudRunServiceUpdate": false,
+    "routeInvocation": false
+  },
+  "artifacts": [
+    {
+      "fileName": "qwen-persisted-dispatch-approved-fixture-inference-confirmed-runtime-report.json",
+      "bytes": 4557,
+      "sha256": "acfe099213660ea14942b6d487ddb05766ee838345ae677e3ed72c117db13e4d"
+    },
+    {
+      "fileName": "qwen-persisted-dispatch-approved-fixture-inference-confirmed-runtime-manifest.json",
+      "bytes": 608,
+      "sha256": "5f35e8f24e0519e1768b06070588f7e32c60ddfed216434fb23edad3979c89fe"
+    },
+    {
+      "fileName": "qwen-persisted-dispatch-approved-fixture-inference-confirmed-runtime-checksums.json",
+      "bytes": 828,
+      "sha256": "33e4223bb9ed7d5f868b117ba2ce4fc202955ad6475a4ee4a24937a86f3a7b98"
+    }
+  ],
+  "readiness": {
+    "qwenPersistedWorkerDispatchApprovedFixtureInferenceConfirmedRuntime": "blocked_missing_persisted_job_or_queue_lease_reference",
+    "currentSource": "backend_handoff_prepared_but_worker_dispatch_and_provider_runtime_still_false",
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-PERSISTED-WORKER-DISPATCH-RUNTIME-SOURCE-BRIDGE-1",
+    "singleTesterLane": "go_single_tester_only",
+    "additionalTesterExpansion": "blocked_no_additional_named_tester_list",
+    "broadExternalBetaAudience": "blocked",
+    "publicArtifacts": "blocked",
+    "signedUrlSourceOfTruth": "blocked",
+    "creditSpend": "blocked",
+    "paidProduction": "blocked",
+    "finalDeliveryExport": "blocked",
+    "productionUnlock": "blocked",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "validation": {
+    "status": "full_validation_passed_with_confirmed_runtime_gate_blocked_before_provider_execution",
+    "commandsPassed": [
+      "npm ci --no-audit --no-fund --progress=false",
+      "DEVELOPER_DIR=/Library/Developer/CommandLineTools git diff --check",
+      "npm run lint",
+      "npm run typecheck:server",
+      "npm run build",
+      "npm run build:server",
+      "npm run --silent rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1:diagnostics",
+      "npm run --silent rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-approval-1:diagnostics",
+      "npm run --silent rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1:diagnostics",
+      "DEVELOPER_DIR=/Library/Developer/CommandLineTools git diff --cached --check",
+      "non-executing changed-file/staged safety scans"
+    ]
+  },
+  "safety": {
+    "localGcloudConfigRead": true,
+    "userAccessTokenProbe": true,
+    "adcAccessTokenProbe": true,
+    "cloudRunServiceMetadataReadback": true,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "routeInvocation": false,
+    "providerCall": false,
+    "modelCall": false,
+    "qwenInference": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "cloudRunJobExecution": false,
+    "cloudRunServiceUpdate": false,
+    "cloudRunDeployment": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditMutation": false,
+    "deployment": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "generatedArtifactCommitted": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

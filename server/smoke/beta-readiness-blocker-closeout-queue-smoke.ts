@@ -43,10 +43,10 @@ assert.deepEqual(report.batches.map((batch) => batch.order), [1, 2, 3, 4, 5, 6, 
 assert.equal(report.batches[0]?.batchId, 'operator_value_collection')
 assert.equal(report.batches[0]?.nextCommands[0], 'npm run beta:readiness:external-beta-operator-input-template -- --status')
 assert.equal(report.batches[0]?.nextCommands[1], 'npm run beta:readiness:external-beta-operator-local-env-bootstrap')
-assert.equal(report.batches[0]?.nextCommands[2], 'npm run beta:readiness:external-beta-operator-value-progress')
+assert.equal(report.batches[0]?.nextCommands[2], 'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown')
 assert.equal(report.batches[0]?.nextCommands[3], 'npm run beta:readiness:external-beta-operator-autofill-env')
 assert.equal(report.batches[0]?.nextCommands[4], 'npm run beta:readiness:external-beta-operator-human-input-checklist')
-assert.equal(report.batches[0]?.nextCommands[5], 'npm run beta:readiness:external-beta-operator-local-env-preflight')
+assert.equal(report.batches[0]?.nextCommands[5], 'REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight')
 assert.equal(report.batches[0]?.nextCommands[6], 'npm run beta:readiness:external-beta-operator-input-template')
 assert.equal(report.batches[0]?.nextCommands[7], 'npm run beta:readiness:owner-approval-intake-status')
 assert.equal(report.batches[0]?.nextCommands[8], 'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight')
@@ -62,6 +62,14 @@ assert.equal(
 )
 assert.equal(
   report.batches[0]?.blockedUntil[0]?.includes('bootstrap skeleton'),
+  true,
+)
+assert.equal(
+  report.batches[0]?.blockedUntil[0]?.includes('redacted markdown progress'),
+  true,
+)
+assert.equal(
+  report.batches[0]?.blockedUntil[0]?.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local'),
   true,
 )
 assert.equal(

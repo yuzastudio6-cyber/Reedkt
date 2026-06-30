@@ -124,6 +124,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-inference-attempt-result'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_PLAN } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-plan'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_IMPLEMENTATION } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-implementation'
+import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from '../../src/backend/mock/mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_FRONTEND_CLIENT } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-frontend-client'
 import { QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_DRY_RUN_ROUTE } from '../../src/backend/mock/mock-qwen2-5-vl-cloud-run-gpu-private-invoke-dry-run-route'
@@ -133,9 +134,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DE-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-PERSISTED-JOB-LEASE-BRIDGE-RESULT-REVIEW: review the fail-closed persisted job and lease bridge result, no inference/no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58DF-CONTROLLED-PERSISTED-WORKER-DISPATCH-RUNTIME-REAL-DISPATCH-APPROVED-FIXTURE-PRIVATE-INVOKE-READINESS-REVIEW: review readiness for one approved-fixture private invoke through the persisted job and lease bridge, no inference/no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -569,6 +570,9 @@ for (const file of [
   'src/backend/workers/qwen2-5-vl-controlled-persisted-job-lease-bridge.ts',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-implementation.ts',
   'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-implementation-smoke.ts',
+  'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review.md',
+  'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review.ts',
+  'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review-smoke.ts',
   'supabase/migrations/20260628000100_qwen2_5_vl_backend_runtime_persistence.sql',
   'package.json',
 ]) {
@@ -635,6 +639,13 @@ assert.equal(
   ],
   'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-implementation-smoke.ts',
   'persisted job lease bridge implementation package script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.[
+    'smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review'
+  ],
+  'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-persisted-job-lease-bridge-result-review-smoke.ts',
+  'persisted job lease bridge result review package script mismatch',
 )
 assert.equal(
   packageJson.scripts?.['smoke:qwen2-5-vl-backend-runtime-persistence-local-harness-plan'],
@@ -1802,7 +1813,8 @@ for (const phrase of [
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt: ready, blocked result recorded',
   'controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge: ready, plan recorded',
   'controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge implementation: ready, implementation recorded',
-  'controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge result review: blocked, result review required',
+  'controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge result review: ready, result review accepted',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke readiness review: blocked, readiness review required',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement implementation | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement execution plan | ready',
@@ -1825,7 +1837,8 @@ for (const phrase of [
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture inference attempt | ready',
   'Controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge | ready',
   'Controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge implementation | ready',
-  'Controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge result review | blocked controlled persisted worker dispatch runtime real-dispatch persisted job lease bridge result review required',
+  'Controlled persisted worker dispatch runtime real-dispatch persisted job and lease bridge result review | ready',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private invoke readiness review | blocked controlled persisted worker dispatch runtime real-dispatch approved fixture private invoke readiness review required',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
@@ -2372,6 +2385,11 @@ assert.equal(
     .upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchPersistedJobLeaseBridgeImplementationDecision,
   QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_IMPLEMENTATION.decision,
 )
+assert.equal(
+  rollup
+    .upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchPersistedJobLeaseBridgeResultReviewDecision,
+  QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW.decision,
+)
 assert.equal(rollup.registryToolId, 'qwen_vl')
 assert.equal(rollup.selectedRuntime.gpu, 'nvidia_l4')
 assert.equal(rollup.selectedRuntime.costPosture, 'scale_to_zero_required')
@@ -2437,7 +2455,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -2574,8 +2592,9 @@ assert.deepEqual(gateIds, [
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_implementation',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 115)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 116)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -3126,6 +3145,13 @@ assert.equal(
   rollup.readinessGates.filter(
     (gate) => String(gate.status) ===
       'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_persisted_job_lease_bridge_result_review_required',
+  ).length,
+  0,
+)
+assert.equal(
+  rollup.readinessGates.filter(
+    (gate) => String(gate.status) ===
+      'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_invoke_readiness_review_required',
   ).length,
   1,
 )
@@ -4112,8 +4138,11 @@ assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeRequired, false)
 assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgePlanRecorded, true)
 assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeImplementationRequired, false)
 assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeImplemented, true)
-assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeResultReviewRequired, true)
-assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeResultReviewRecorded, false)
+assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeResultReviewRequired, false)
+assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeResultReviewRecorded, true)
+assert.equal(rollup.runtimeFlags.persistedJobLeaseBridgeResultReviewAccepted, true)
+assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeReadinessReviewRequired, true)
+assert.equal(rollup.runtimeFlags.approvedFixturePrivateInvokeReadinessReviewRecorded, false)
 assert.equal(rollup.runtimeFlags.cpuCallerInferencePathReusedForPersistedDispatchAttempt, false)
 assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopeAccepted, true)
 assert.equal(rollup.runtimeFlags.persistedWorkerDispatchRefsAccepted, true)
@@ -4438,6 +4467,8 @@ const forbiddenDataFindings = scanValues({
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_PREFLIGHT,
   controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAttemptApproval:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_INFERENCE_ATTEMPT_APPROVAL,
+  controlledPersistedWorkerDispatchRuntimeRealDispatchPersistedJobLeaseBridgeResultReview:
+    QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_PERSISTED_JOB_LEASE_BRIDGE_RESULT_REVIEW,
   contractSmokeResult: QWEN2_5_VL_PRIVATE_INVOKE_CPU_CALLER_CONTRACT_SMOKE_RESULT,
 })
 assert.deepEqual(

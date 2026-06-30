@@ -15,6 +15,9 @@ import { handleServerRequest } from '../../src/server/server-router'
 
 const routePath = '/api/providers/qwen2-5-vl/structured-visual-metadata'
 const readbackConfirmEnv = 'REEDITPRO_CONFIRM_QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_READBACK_VALIDATION'
+const localValidationConfirmEnv = 'REEDITPRO_CONFIRM_QWEN_NATIVE_API_AUTH_CONTEXT_LOCAL_VALIDATION'
+const validationUserIdEnv = 'REEDITPRO_ROUTE_VALIDATION_AUTH_USER_ID'
+const validationEmailEnv = 'REEDITPRO_ROUTE_VALIDATION_AUTH_EMAIL'
 
 const routeBody = {
   workspaceId: 'workspace_qwen_provider_runtime_fixture_current_smoke',
@@ -43,12 +46,21 @@ const envKeys = [
   QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.enabled,
   QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.targetRef,
   QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.scope,
+  localValidationConfirmEnv,
+  validationUserIdEnv,
+  validationEmailEnv,
 ]
 const previousEnv = new Map(envKeys.map((key) => [key, process.env[key]]))
 
 interface RouteResponseBody {
+  ok?: boolean
   decision: string
   status?: string
+  blocker?: string
+  error?: {
+    code: string
+    message: string
+  }
   routeReadbackValidation?: {
     status: string
     routeIntegration: {
@@ -93,6 +105,12 @@ function setConfirmedBackendHandoffEnv(): void {
     QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_REQUIRED_VALUES.targetRef
   process.env[QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_ENV.scope] =
     QWEN2_5_VL_EXTERNAL_BETA_RUNTIME_GATE_REQUIRED_VALUES.scope
+}
+
+function setLocalValidationAuthEnv(): void {
+  process.env[localValidationConfirmEnv] = 'true'
+  process.env[validationUserIdEnv] = '11111111-1111-4111-8111-111111111111'
+  process.env[validationEmailEnv] = 'route-validation@reeditpro.local'
 }
 
 async function postJson(port: number): Promise<{ statusCode: number; body: RouteResponseBody }> {
@@ -151,6 +169,18 @@ try {
   restoreEnv()
   process.env[QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV] =
     QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE
+  const missingBearerBeforeReadbackGate = await postJson(port)
+  assert.equal(missingBearerBeforeReadbackGate.statusCode, 401)
+  assert.equal(missingBearerBeforeReadbackGate.body.ok, false)
+  assert.equal(missingBearerBeforeReadbackGate.body.error?.code, 'AUTH_REQUIRED')
+  assert.equal(missingBearerBeforeReadbackGate.body.blocker, 'blocked_missing_authorization_bearer_token')
+  assert.equal(missingBearerBeforeReadbackGate.body.safety.providerCall, false)
+  assert.equal(missingBearerBeforeReadbackGate.body.safety.modelCall, false)
+
+  restoreEnv()
+  process.env[QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_ENV] =
+    QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_CONFIRM_VALUE
+  setLocalValidationAuthEnv()
   const missingReadbackGate = await postJson(port)
   assert.equal(missingReadbackGate.statusCode, 424)
   assert.equal(missingReadbackGate.body.decision, 'completed_qwen2_5_vl_product_route_backend_job_handoff_source_contract')
@@ -161,30 +191,33 @@ try {
 
   restoreEnv()
   setConfirmedBackendHandoffEnv()
-  const missingVerifiedAuthContext = await postJson(port)
-  assert.equal(missingVerifiedAuthContext.statusCode, 424)
-  assert.equal(
-    missingVerifiedAuthContext.body.decision,
-    'completed_qwen2_5_vl_product_route_backend_job_handoff_source_contract',
-  )
-  assert.equal(missingVerifiedAuthContext.body.status, 'blocked_pending_route_readback_validation_gate')
-  const missingAuthReadback = missingVerifiedAuthContext.body.routeReadbackValidation
-  assert.ok(missingAuthReadback)
-  assert.equal(missingAuthReadback.status, 'blocked_pending_route_integration_readiness')
-  assert.equal(
-    missingAuthReadback.routeIntegration.status,
-    'blocked_missing_authenticated_backend_route_reference',
-  )
-  assert.equal(missingVerifiedAuthContext.body.backendHandoff.handoffPrepared, false)
-  assert.equal(missingVerifiedAuthContext.body.backendHandoff.executeNow, false)
-  assert.equal(missingVerifiedAuthContext.body.backendHandoff.providerRuntimeExecutedNow, false)
-  assert.equal(missingVerifiedAuthContext.body.allowedExecution.providerModelCallAllowedNow, false)
-  assert.equal(missingVerifiedAuthContext.body.allowedExecution.workerDispatchAllowedNow, false)
-  assert.equal(missingVerifiedAuthContext.body.allowedExecution.cloudRunJobExecutionAllowedNow, false)
-  assert.equal(missingVerifiedAuthContext.body.safety.providerCall, false)
-  assert.equal(missingVerifiedAuthContext.body.safety.modelCall, false)
-  assert.equal(missingVerifiedAuthContext.body.safety.workerDispatch, false)
-  assert.equal(missingVerifiedAuthContext.body.safety.cloudRunJobExecution, false)
+  const missingBearerToken = await postJson(port)
+  assert.equal(missingBearerToken.statusCode, 401)
+  assert.equal(missingBearerToken.body.ok, false)
+  assert.equal(missingBearerToken.body.error?.code, 'AUTH_REQUIRED')
+  assert.equal(missingBearerToken.body.blocker, 'blocked_missing_authorization_bearer_token')
+  assert.equal(missingBearerToken.body.safety.providerCall, false)
+  assert.equal(missingBearerToken.body.safety.modelCall, false)
+  assert.equal(missingBearerToken.body.safety.workerDispatch, false)
+  assert.equal(missingBearerToken.body.safety.cloudRunJobExecution, false)
+
+  restoreEnv()
+  setConfirmedBackendHandoffEnv()
+  setLocalValidationAuthEnv()
+  const readyWithValidationAuth = await postJson(port)
+  assert.equal(readyWithValidationAuth.statusCode, 202)
+  assert.equal(readyWithValidationAuth.body.decision, 'completed_qwen2_5_vl_product_route_backend_job_handoff_source_contract')
+  assert.equal(readyWithValidationAuth.body.status, 'ready_for_guarded_qwen2_5_vl_product_route_provider_runtime_fixture')
+  assert.equal(readyWithValidationAuth.body.backendHandoff.handoffPrepared, true)
+  assert.equal(readyWithValidationAuth.body.backendHandoff.executeNow, false)
+  assert.equal(readyWithValidationAuth.body.backendHandoff.providerRuntimeExecutedNow, false)
+  assert.equal(readyWithValidationAuth.body.allowedExecution.providerModelCallAllowedNow, false)
+  assert.equal(readyWithValidationAuth.body.allowedExecution.workerDispatchAllowedNow, false)
+  assert.equal(readyWithValidationAuth.body.allowedExecution.cloudRunJobExecutionAllowedNow, false)
+  assert.equal(readyWithValidationAuth.body.safety.providerCall, false)
+  assert.equal(readyWithValidationAuth.body.safety.modelCall, false)
+  assert.equal(readyWithValidationAuth.body.safety.workerDispatch, false)
+  assert.equal(readyWithValidationAuth.body.safety.cloudRunJobExecution, false)
 } finally {
   restoreEnv()
   await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())))

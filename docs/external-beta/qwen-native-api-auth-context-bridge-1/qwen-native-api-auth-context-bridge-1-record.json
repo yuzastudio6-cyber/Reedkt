@@ -1,0 +1,79 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-NATIVE-API-AUTH-CONTEXT-BRIDGE-1",
+  "decision": "completed_qwen_native_api_auth_context_bridge_ready_for_confirmed_route_handoff_runtime_fixture",
+  "execution": "completed_verified_native_api_auth_context_source_bridge_no_provider_execution",
+  "sourceBase": "c334097c061b05b9413b131883871f5c4f5fd649",
+  "sourceEvidence": {
+    "nativeRouteHandoffBridgePr": 1787,
+    "nativeRouteHandoffBridgeMergeSha": "c334097c061b05b9413b131883871f5c4f5fd649",
+    "backendJobHandoffPacket": "QWEN2_5_VL_EXTERNAL_BETA_PRODUCT_ROUTE_BACKEND_JOB_HANDOFF_1",
+    "excludedPr": 577
+  },
+  "route": {
+    "method": "POST",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "nativeServerRouterBridge": "src/server/server-router.ts",
+    "failClosedByDefault": true,
+    "verifiedAuthContext": "implemented_source_verified_bearer_token_path",
+    "localValidationAuthContext": "explicit_test_only_env_gate"
+  },
+  "auth": {
+    "runtimeBearerTokenRequired": true,
+    "runtimeVerification": "supabase_public_auth_get_user",
+    "serviceRoleSecretAccess": false,
+    "arbitraryUserHeaderAccepted": false,
+    "cloudRunIamOuterGateOnly": true,
+    "requiredPublicAuthEnv": ["SUPABASE_URL", "SUPABASE_ANON_KEY"]
+  },
+  "runtime": {
+    "qwenProviderModelExecution": false,
+    "workerDispatch": false,
+    "cloudRunJobExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false
+  },
+  "validation": {
+    "npmCi": "passed",
+    "gitDiffCheck": "passed",
+    "smoke": "passed",
+    "currentProviderRuntimeFixtureDiagnostics": "passed",
+    "authContextBridgeDiagnostics": "passed",
+    "lint": "passed",
+    "typecheckServer": "passed",
+    "build": "passed",
+    "buildServer": "passed",
+    "changedFileSafetyScan": "passed",
+    "stagedSafetyScan": "passed"
+  },
+  "safety": {
+    "nativeApiAuthContextBridge": true,
+    "providerCall": false,
+    "modelCall": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "cloudRunServiceUpdate": false,
+    "cloudRunJobExecution": false,
+    "identityTokenFetch": false,
+    "secretPayloadAccess": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "privateUserMediaProcessing": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "externalBetaUnlockAppliedToEnvironment": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "creditMutation": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "qwenNativeApiAuthContextBridge": "ready_for_confirmed_provider_runtime_fixture_after_staging_deploy",
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-PROVIDER-RUNTIME-FIXTURE-CURRENT-1-CONFIRMED-RUN",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

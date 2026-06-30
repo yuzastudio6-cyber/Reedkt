@@ -279,7 +279,7 @@ export function buildTrackBAgentRuntimeReadinessReport(
 }
 
 function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
-  return toolId === 'sharp'
+  return toolId === 'sharp' || toolId === 'duckdb' || toolId === 'polars'
 }
 
 function normalizeEvidenceCount(value: number | undefined): number | undefined {

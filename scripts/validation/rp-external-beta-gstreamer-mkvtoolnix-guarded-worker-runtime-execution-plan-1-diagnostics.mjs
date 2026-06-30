@@ -23,6 +23,20 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1.md',
 ]
 
+const futureDryRunFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/dry-run-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/worker-runtime-dry-run-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/blocked-scope-register.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-implementation-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-diagnostics.mjs',
+]
+
 const diagnosticsFile = 'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1-diagnostics.mjs'
 const relatedDiagnosticsFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-skeleton-implementation-1-diagnostics.mjs',
@@ -30,6 +44,7 @@ const relatedDiagnosticsFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...futureDryRunFiles,
   diagnosticsFile,
   ...relatedDiagnosticsFiles,
   'package.json',

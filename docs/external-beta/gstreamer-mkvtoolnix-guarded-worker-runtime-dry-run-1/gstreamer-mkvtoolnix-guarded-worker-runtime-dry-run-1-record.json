@@ -1,0 +1,103 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-RUNTIME-DRY-RUN-1",
+  "decision": "completed_gstreamer_mkvtoolnix_guarded_worker_runtime_dry_run_envelope_validation",
+  "execution": "completed_confirmation_gated_guarded_worker_runtime_dry_run_no_worker_dispatch_or_tool_execution",
+  "integrationBase": "3e85e9296de45d4ac0283b3981a03db8178ff625",
+  "runId": "2026-06-30T16-06-39-689Z-7f400705",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/2026-06-30T16-06-39-689Z-7f400705",
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_RUNTIME_DRY_RUN=true",
+    "observed": "present_true"
+  },
+  "sourceChain": {
+    "guardedRuntimeExecutionPlanMerge": "3e85e9296de45d4ac0283b3981a03db8178ff625",
+    "guardedRuntimeExecutionPlanDecision": "completed_gstreamer_mkvtoolnix_guarded_worker_runtime_execution_plan_ready_for_confirmed_worker_runtime_dry_run",
+    "guardedWorkerSkeletonMerge": "3bc87ce85f44867662fc9fab1b936843480c255c",
+    "guardedWorkerEnqueueMerge": "5bf9f05c3719503f20d66638d9650f87f96fa0bd",
+    "guardedWorkerRouteMerge": "d5903b517f56ad117774c48488b932bd368f0941",
+    "olderConfirmedWorkerDryRun1r": "completed_gstreamer_mkvtoolnix_confirmed_worker_execution_dry_run_contract_validation",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "dryRun": {
+    "status": "completed_guarded_worker_runtime_dry_run_envelope_validation",
+    "requiredReferencesNamed": true,
+    "privateInputManifestChecksum": "188462cd8b66816cbbb96cab070cb10de0e829801a5932d776d9f92da2f14b13",
+    "outputManifestChecksum": "962d9b1ac2fba5ea1eca80e4d469af75d5f9f8f40655840d4af936b96cf26983",
+    "qaReportChecksum": "8c30fe61c8a2f54373fb6d30ad28e46fbf1a9c730b5a9bf1f36ddf72a8a501dc",
+    "routeExecution": "not_run_dry_run_envelope_validation_only",
+    "workerDispatch": "not_run_dry_run_envelope_validation_only",
+    "workerExecution": "not_run_dry_run_envelope_validation_only",
+    "toolExecution": "not_run_dry_run_envelope_validation_only",
+    "cleanup": "completed_no_runtime_outputs_to_delete"
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-report.json",
+      "bytes": 13858,
+      "sha256": "6d9ba02c069ad1a7da1b861186e55125d9a8ac7f0ecc52ec73c9887adb1ff34e"
+    },
+    {
+      "fileName": "private-input-manifest.json",
+      "bytes": 1828,
+      "sha256": "b4b6dbfcb184209204fe82e364073c4da8e5a44823ad6625607bfa2b9e65361f"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 362,
+      "sha256": "2bafd556886073b76f378771e4255b47adb2f52794e3a3ac5b31975d851d9900"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 566,
+      "sha256": "a22b1f2c535ea709297ae461990fa7515d0b004550c1d0681ade53f07f9a55ab"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-manifest.json",
+      "bytes": 1191,
+      "sha256": "b94b4b18b8c22baee07a574f6d428b0418c190dbb8efc369921e37343ba6fab4"
+    }
+  ],
+  "readiness": {
+    "gstreamer": "ready_for_guarded_worker_runtime_execution_implementation",
+    "mkvtoolnix": "ready_for_guarded_worker_runtime_execution_implementation"
+  },
+  "safety": {
+    "runtimeExecution": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "deployment": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "dockerfileInstallSourceChange": false,
+    "requirementsInstallSourceChange": false,
+    "broadServiceRoleHandler": false
+  },
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-RUNTIME-EXECUTION-IMPLEMENTATION-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed"
+}

@@ -4,6 +4,7 @@ import { buildBetaReadinessBlockerLedger } from './beta-readiness-blocker-ledger
 
 const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json'
 const EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH = 'docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json'
+const TRACKB_PRODUCT_READY_SOURCE_RECONCILIATION_PATH = 'docs/beta-readiness/trackb-product-ready-source-reconciliation/2026-06-30-trackb-product-ready-source-reconciliation.json'
 
 export interface BetaReadinessBlockerCloseoutQueueBatch {
   batchId: string
@@ -31,6 +32,10 @@ export interface BetaReadinessBlockerCloseoutQueueReport {
     checklistRows: number
     goNoGoRows: number
     productReadyLocalOssCount: number
+    trackBProductReadySourceReconciliationPath: string
+    trackBProductReadySourceCount: number
+    activeBetaProductReadyDeployedEvidenceCount: number
+    productReadySourceReconciledNotDeployed: boolean
     externalBetaAllowed: false
     realUserMediaBetaAllowed: false
     paidProductionAllowed: false
@@ -78,6 +83,9 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
   const ledger = buildBetaReadinessBlockerLedger()
   const localBundle = recordValue(readJson(LOCAL_ACCEPTED_BUNDLE_PATH))
   const operatorTemplate = recordValue(readJson(EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH))
+  const productReadyReconciliation = recordValue(readJson(TRACKB_PRODUCT_READY_SOURCE_RECONCILIATION_PATH))
+  const trackBProductReadyTotals = recordValue(productReadyReconciliation.trackBProductReadyTotals)
+  const activeBetaDeployedEvidenceTotals = recordValue(productReadyReconciliation.activeBetaDeployedEvidenceTotals)
   const operatorInputCounts = recordValue(operatorTemplate.inputCounts)
   const byClearanceType = countBy(ledger.rows.map((row) => row.clearanceType))
   const byBlockerId = countBy(ledger.rows.map((row) => row.blockerId))
@@ -101,6 +109,10 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
       checklistRows: ledger.checklistRows,
       goNoGoRows: ledger.goNoGoRows,
       productReadyLocalOssCount: ledger.productReadyLocalOssCount,
+      trackBProductReadySourceReconciliationPath: TRACKB_PRODUCT_READY_SOURCE_RECONCILIATION_PATH,
+      trackBProductReadySourceCount: numberValue(trackBProductReadyTotals.productReadyForRankedToolCallLane),
+      activeBetaProductReadyDeployedEvidenceCount: numberValue(activeBetaDeployedEvidenceTotals.productReadyLocalOssRecordedInActiveBetaEvidence),
+      productReadySourceReconciledNotDeployed: productReadyReconciliation.reconciliationStatus === 'product_ready_source_truth_recorded_not_yet_deployed_beta_evidence_recorded',
       externalBetaAllowed: false,
       realUserMediaBetaAllowed: false,
       paidProductionAllowed: false,
@@ -148,7 +160,8 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
     },
     warnings: [
       'This closeout queue is metadata only; it does not record evidence, call deployed services, run tools, process media, or enable beta/production.',
-      'Track B local accepted evidence is ready to be recorded against deployed staging, but it is not itself a product-ready or launch approval.',
+      'Track B local accepted evidence is ready to be recorded against deployed staging, but it is not itself a deployed product-ready or launch approval.',
+      'Track B product-ready source truth is reconciled from PR #987 with 16 product-ready tools for the ranked tool-call lane; active beta deployed evidence still reads product-ready count 0 until a deployed collector/readback gate proves count 16.',
       'Operator secrets, owner attestations, deployed evidence recording, final readback, real-user-media approval, and paid-production approval remain separate gates.',
       'Blockers remain scoped to named unsafe beta/production actions; safe blocker-reduction work remains allowed.',
     ],

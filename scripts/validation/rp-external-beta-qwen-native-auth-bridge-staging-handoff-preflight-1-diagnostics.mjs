@@ -21,12 +21,28 @@ const requiredFiles = [
   'package.json',
 ]
 
+const authBridgeReconciliationFiles = [
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/source-audit.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/current-state.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/qwen-auth-bridge-closure.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/side-stack-policy.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/safety-boundary.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/validation-results.md',
+  'docs/external-beta/active-lane-current-state-after-qwen-auth-bridge-1/active-lane-current-state-after-qwen-auth-bridge-record.json',
+  'docs/activation-phase-rp-external-beta-active-lane-current-state-after-qwen-auth-bridge-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-source-import-1.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-feedback-issue-fix-1.md',
+  'scripts/validation/rp-external-beta-active-lane-current-state-after-qwen-auth-bridge-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-active-lane-current-state-after-qwen-gate-1-diagnostics.mjs',
+]
+
 const requiredExistingFiles = [
   'docs/external-beta/qwen-native-api-auth-context-bridge-1/qwen-native-api-auth-context-bridge-1-record.json',
   'docs/external-beta/qwen-provider-runtime-fixture-current-1/qwen-provider-runtime-fixture-current-1-record.json',
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+for (const file of authBridgeReconciliationFiles) allowedChangedFiles.add(file)
 
 const requiredText = [
   packet,

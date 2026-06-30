@@ -36,6 +36,10 @@ assert.equal(
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --human-input-checklist',
 )
 assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-local-env-preflight'],
+  'node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
+)
+assert.equal(
   packageJson.scripts['smoke:beta-readiness-external-beta-operator-input-template'],
   'node server/smoke/beta-readiness-external-beta-operator-input-template-smoke.mjs',
 )
@@ -207,6 +211,9 @@ assert.ok(checklist.validationCommands.includes('npm run beta:readiness:external
 assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(checklist.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(report.envTemplate.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(autofill.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))

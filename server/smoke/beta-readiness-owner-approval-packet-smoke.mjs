@@ -59,6 +59,7 @@ assert.ok(report.postApprovalCommands.includes('npm run beta:platform:staging-ev
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(report.completionCriteria.some((criterion) => criterion.includes('readyForExternalBeta=true')))

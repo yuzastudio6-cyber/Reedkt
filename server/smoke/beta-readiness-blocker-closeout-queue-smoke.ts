@@ -30,6 +30,13 @@ assert.equal(report.sourceTruth.pendingOperatorInputsInBlankEnv, 57)
 assert.equal(report.sourceTruth.humanActionablePendingOperatorInputs, 45)
 assert.equal(report.sourceTruth.autoFillablePendingOperatorInputs, 12)
 assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
+assert.equal(
+  report.sourceTruth.trackBProductReadySourceReconciliationPath,
+  'docs/beta-readiness/trackb-product-ready-source-reconciliation/2026-06-30-trackb-product-ready-source-reconciliation.json',
+)
+assert.equal(report.sourceTruth.trackBProductReadySourceCount, 16)
+assert.equal(report.sourceTruth.activeBetaProductReadyDeployedEvidenceCount, 0)
+assert.equal(report.sourceTruth.productReadySourceReconciledNotDeployed, true)
 assert.equal(report.sourceTruth.externalBetaAllowed, false)
 assert.equal(report.sourceTruth.realUserMediaBetaAllowed, false)
 assert.equal(report.sourceTruth.paidProductionAllowed, false)
@@ -89,6 +96,7 @@ assert.equal(report.batches[2]?.nextCommands[2], 'npm run beta:tools:core-real-c
 assert.equal(report.batches[2]?.nextCommands[3], 'npm run beta:tools:local-accepted-evidence-bundle -- --local-defaults')
 assert.equal(report.batches.every((batch) => batch.canEnableBetaOrProduction === false), true)
 assert.equal(report.batches.some((batch) => batch.nextCommands.some((command) => command.includes('external-beta-evidence-collector'))), true)
+assert.equal(report.warnings.some((warning) => warning.includes('PR #987')), true)
 assert.equal(report.blockedScopeConfirmations.deployedBackendCalled, false)
 assert.equal(report.blockedScopeConfirmations.toolExecutionRan, false)
 assert.equal(report.blockedScopeConfirmations.supabaseWritesRan, false)
@@ -111,4 +119,6 @@ console.log(JSON.stringify({
   humanActionablePendingOperatorInputs: report.sourceTruth.humanActionablePendingOperatorInputs,
   autoFillablePendingOperatorInputs: report.sourceTruth.autoFillablePendingOperatorInputs,
   productReadyLocalOssCount: report.sourceTruth.productReadyLocalOssCount,
+  trackBProductReadySourceCount: report.sourceTruth.trackBProductReadySourceCount,
+  activeBetaProductReadyDeployedEvidenceCount: report.sourceTruth.activeBetaProductReadyDeployedEvidenceCount,
 }, null, 2))

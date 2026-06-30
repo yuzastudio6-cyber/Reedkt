@@ -32,6 +32,20 @@ const implementationFiles = [
   'package.json',
 ]
 
+const followOnBridgeFiles = [
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/bridge-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/request-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-bridge-1/gstreamer-mkvtoolnix-agent-execution-bridge-record.json',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-dry-run-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-diagnostics.mjs',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-smoke.ts',
+]
+
 const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1/gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-record.json',
@@ -40,7 +54,7 @@ const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-implementation-1/gstreamer-mkvtoolnix-guarded-worker-route-implementation-record.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...followOnBridgeFiles])
 
 const allowedCommandTemplates = [
   'gst_fakesrc_fakesink_no_media_healthcheck_v1',
@@ -120,7 +134,7 @@ const falseSafetyKeys = [
 const forbiddenChangedPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\//,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-bridge-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^docker\//,

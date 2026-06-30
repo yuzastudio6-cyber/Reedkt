@@ -18,15 +18,22 @@ import {
   type BetaReadinessOperatorStatusApiRunResult,
 } from './beta-readiness-operator-status-api'
 import {
-  runBetaToolsLocalAcceptedEvidenceCollectorFromEnv,
-  type BetaToolsLocalAcceptedEvidenceCollectorEnv,
-  type BetaToolsLocalAcceptedEvidenceCollectorFetch,
-  type BetaToolsLocalAcceptedEvidenceCollectorRunResult,
-} from './beta-tools-local-accepted-evidence-collector'
+  runBetaTrackBAgentRouteDeployedEvidenceCollectorFromEnv,
+  type BetaTrackBAgentRouteDeployedEvidenceCollectorEnv,
+  type BetaTrackBAgentRouteDeployedEvidenceCollectorFetch,
+  type BetaTrackBAgentRouteDeployedEvidenceCollectorResult,
+} from './beta-trackb-agent-route-deployed-evidence-collector'
+import {
+  runBetaTrackBProductReadyDeployedEvidenceCollectorFromEnv,
+  type BetaTrackBProductReadyDeployedEvidenceCollectorEnv,
+  type BetaTrackBProductReadyDeployedEvidenceCollectorResult,
+} from './beta-trackb-product-ready-deployed-evidence-collector'
+import type { BetaToolsLocalAcceptedEvidenceCollectorFetch } from './beta-tools-local-accepted-evidence-collector'
 import type { LibassSyntheticBurninCommandRunner } from './beta-tools-libass-synthetic-burnin-qa-preflight'
 
 export interface BetaReadinessExternalBetaEvidenceCollectorEnv extends
-  BetaToolsLocalAcceptedEvidenceCollectorEnv,
+  BetaTrackBAgentRouteDeployedEvidenceCollectorEnv,
+  BetaTrackBProductReadyDeployedEvidenceCollectorEnv,
   BetaPlatformStagingEvidenceProbeEnv,
   BetaReadinessLaunchApprovalEvidenceEnv,
   BetaReadinessOperatorStatusApiEnv {
@@ -43,7 +50,8 @@ export interface BetaReadinessExternalBetaEvidenceCollectorRunResult {
   ok: boolean
   endpointBaseUrl: string
   steps: {
-    toolEvidence: BetaToolsLocalAcceptedEvidenceCollectorRunResult
+    agentRouteProof: BetaTrackBAgentRouteDeployedEvidenceCollectorResult
+    toolEvidence: BetaTrackBProductReadyDeployedEvidenceCollectorResult
     platformEvidence: BetaPlatformStagingEvidenceProbeRunResult
     launchApprovalEvidence: BetaReadinessLaunchApprovalEvidenceRunResult
     finalOperatorStatus: BetaReadinessOperatorStatusApiRunResult
@@ -84,11 +92,14 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
     throw new Error(`External beta evidence collector inputs are incomplete: ${[...missing, ...secretLikePaths].join('; ')}`)
   }
 
-  const toolEvidence = await runBetaToolsLocalAcceptedEvidenceCollectorFromEnv(
+  const agentRouteProof = await runBetaTrackBAgentRouteDeployedEvidenceCollectorFromEnv(
     normalized,
-    fetchImpl as BetaToolsLocalAcceptedEvidenceCollectorFetch,
-    libassRunner,
+    fetchImpl as BetaTrackBAgentRouteDeployedEvidenceCollectorFetch,
   )
+  const toolEvidence = await runBetaTrackBProductReadyDeployedEvidenceCollectorFromEnv({
+    ...normalized,
+    REEDITPRO_BETA_TRACKB_PRODUCT_READY_CONFIRM_DEPLOYED_EVIDENCE_SEQUENCE: 'true',
+  }, fetchImpl as BetaToolsLocalAcceptedEvidenceCollectorFetch, libassRunner)
   const platformEvidence = await runBetaPlatformStagingEvidenceProbeFromEnv({
     ...normalized,
     REEDITPRO_BETA_PLATFORM_REQUIRE_READY: 'true',
@@ -108,6 +119,7 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
   const finalRealUserMediaBetaReady = finalOperatorStatus.readyForRealUserMediaBeta === true
   const finalPaidProductionReady = finalOperatorStatus.readyForPaidProduction === true
   const ok = toolEvidence.ok &&
+    agentRouteProof.ok &&
     platformEvidence.ok &&
     platformEvidence.evidencePacketReady &&
     launchApprovalEvidence.ok &&
@@ -119,6 +131,7 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
     ok,
     endpointBaseUrl: requiredResolvedBaseUrl(normalized),
     steps: {
+      agentRouteProof,
       toolEvidence,
       platformEvidence,
       launchApprovalEvidence,
@@ -136,7 +149,7 @@ export async function runBetaReadinessExternalBetaEvidenceCollectorFromEnv(
       'public_launch_or_production_claims',
     ],
     warnings: [
-      'This collector sequences existing evidence commands and final readback only; it does not enable real-user-media beta, paid production, public launch, provider calls, worker dispatch, or product runtime execution.',
+      'This collector sequences deployed Track B route proof, product-ready tool evidence, platform evidence, launch approval evidence, and final readback only; it does not enable real-user-media beta, paid production, public launch, provider calls, live worker dispatch, or product runtime execution.',
       'The final operator-status readback must report external beta ready before this collector passes.',
       'Bearer tokens remain in authorization headers only and are not included in request bodies or summaries.',
     ],

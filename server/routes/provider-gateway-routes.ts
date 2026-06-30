@@ -20,6 +20,12 @@ const providerRequestSchema = z.object({
   creditReservationId: idSchema.optional(),
   toolId: productionToolIdSchema.optional(),
   approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
+  runtimeGuardRequired: z.boolean().optional(),
+  productEditLevel: z.enum(['normal', 'premium', 'ultra_premium']).optional(),
+  estimatedFinalVideoDurationSeconds: z.number().positive().optional(),
+  approvedPlanStatus: z.string().optional(),
+  estimateStatus: z.string().optional(),
+  committedPendingHighCredits: z.number().int().nonnegative().optional(),
   requestPayload: z.record(z.string(), z.unknown()).optional(),
   mockOnly: z.boolean().optional(),
 })

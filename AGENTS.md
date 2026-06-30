@@ -544,3 +544,11 @@ Do not implement these without explicit user request:
 - Only local in-memory mock wallet available/reserved balances and mock reservation records may change.
 - Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, render/export, checkout/top-up, or export unlock for this milestone.
 - Use `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation` when changing the credit reservation surface.
+
+## RP-RUNTIME-GUARD-01 Runtime Credit Guard Boundary
+
+- Paid worker/provider/render starts require approved plan evidence, approved estimate, a `reserved` max-hold reservation, idempotency, and projected high-cost fit.
+- `reserved` is the only active reservation status for new paid work in this milestone.
+- Projected overage pauses before work with "Action required: revised credit estimate needed" and creates only a mock `projected_overage` revision action.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, reservation spend/release/refund, render/export execution, checkout/top-up, or export unlock.
+- Keep tool-cost events `serviceFeeIncluded = false`; use `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard` when changing the runtime credit guard surface.

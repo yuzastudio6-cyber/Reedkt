@@ -185,3 +185,11 @@ Status: mock-safe foundation implemented.
 The credit foundation now includes a max estimate reservation step. `POST /v1/credit-estimates/:creditEstimateId/reservations/max` reserves `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, against local in-memory mock wallet/reservation state. It blocks missing, unapproved, expired, custom/blocked, insufficient, or duplicate reservation requests without live side effects.
 
 It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export, export unlock, or checkout/top-up. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.
+
+## RP-RUNTIME-GUARD-01
+
+Status: mock-safe runtime guard implemented.
+
+Paid worker/provider/render starts now share a mock credit guard that requires approved plan evidence, approved estimate, a `reserved` max-hold reservation, idempotency, and projected high-cost fit. Projected overage pauses before work, creates one idempotent local/mock revised-credit action with `projected_overage`, and keeps tool-cost events `serviceFeeIncluded = false`.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export execution, export unlock, or checkout/top-up. See `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard`.

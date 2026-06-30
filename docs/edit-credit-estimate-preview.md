@@ -41,3 +41,7 @@ RP-ESTIMATE-01 does not approve estimates, reserve credits, spend credits, settl
 ## RP-RESERVATION-01 Handoff
 
 RP-RESERVATION-01 consumes ready estimate previews and creates a mock max-hold reservation through `POST /v1/credit-estimates/:creditEstimateId/reservations/max`. The reservation holds `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, and reuses high-credit estimate line payloads for reservation line items. It remains mock-only: no live billing, no Stripe, no Supabase, no provider, no production ledger write, no render/export, no checkout/top-up, and no settlement.
+
+## RP-RUNTIME-GUARD-01 Handoff
+
+RP-RUNTIME-GUARD-01 uses the approved estimate maximum plus reserved hold as the paid-work start boundary. The guard blocks missing or unapproved estimates and pauses `projected_overage` before worker/provider/render work with "Action required: revised credit estimate needed"; it creates only an idempotent mock revision action and keeps service fee separate from tool-cost events.

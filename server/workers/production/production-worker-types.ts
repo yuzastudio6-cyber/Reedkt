@@ -4,6 +4,7 @@ import type { QualityGateResult } from '../../../src/backend/contracts/quality-g
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 import type { MockToolCostEvent, ToolCreditPrerequisiteStatus } from '../../tool-cost-metering'
 import type { ProductionToolId } from '../../tool-registry'
+import type { RuntimeCreditGuardResult } from '../../services/runtime-credit-guard-service'
 
 export type ProductionWorkerRuntimeType =
   | 'cpu_analysis_worker'
@@ -175,6 +176,7 @@ export interface ProductionWorkerToolCostMetadata {
   estimateStatuses: Record<string, ToolCreditPrerequisiteStatus>
   emittedEvents: MockToolCostEvent[]
   blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus>
+  runtimeCreditGuard?: RuntimeCreditGuardResult
   warnings: string[]
 }
 

@@ -86,6 +86,7 @@ export function buildBetaReadinessOwnerApprovalCollectionHandoff() {
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
     ],
     scopedBlockerForwardProgressPolicy: currentManifest.currentApiDeployReadback?.scopedBlockerForwardProgressPolicy ??
       detailedOwnerGap.scopedBlockerForwardProgressPolicy ??

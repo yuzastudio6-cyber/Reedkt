@@ -32,26 +32,27 @@ The missing inputs include bearer/token-bearing values, workspace/project IDs, i
 - `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
+- `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
 
 ## Tool Evidence Boundary
 
-Track B current totals are `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+Track B current totals are `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready` for the ranked tool-call lane, based on the merged PR #987 source truth reconciled into the active beta branch by PR #1790.
 
-The current local accepted evidence snapshot remains prerequisite evidence from source `d47015e88943dd4760dd9eb6ee45ad0f8ead15ca`. It is not a product-ready authorization and it is not a deployed backend collector result.
+The current local accepted evidence snapshot remains prerequisite evidence from source `d47015e88943dd4760dd9eb6ee45ad0f8ead15ca`. It is not a deployed backend collector result until the deployed product-ready evidence collector records and reads back product-ready local OSS count `16`.
 
-The deployed evidence input manifest must require bounded evidence, not production readiness:
+The deployed evidence input manifest must require bounded evidence plus explicit product-ready local OSS acceptance and readback count `16`, not broad paid-production approval:
 
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=true`
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true`
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT=16`
-- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true`
+- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=16`
 
 The following claims remain forbidden in this lane:
 
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS=true`
 - `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true`
-- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true`
-- `REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true`
 
 ## Boundary
 

@@ -1,9 +1,9 @@
 {
   "reportId": "beta-readiness-blocker-closeout-queue-2026-06-29",
-  "createdAt": "2026-06-30T06:10:02.107Z",
+  "createdAt": "2026-06-30T09:06:08.627Z",
   "decision": "beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection",
   "sourceTruth": {
-    "currentCentralSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+    "currentCentralSha": "00433c268df6b70d39156dc68ddf50f9e8ade7f2",
     "blockerLedgerRows": 197,
     "duplicateBlockerRows": 0,
     "toolRows": 184,
@@ -11,6 +11,10 @@
     "checklistRows": 2,
     "goNoGoRows": 10,
     "productReadyLocalOssCount": 0,
+    "trackBProductReadySourceReconciliationPath": "docs/beta-readiness/trackb-product-ready-source-reconciliation/2026-06-30-trackb-product-ready-source-reconciliation.json",
+    "trackBProductReadySourceCount": 16,
+    "activeBetaProductReadyDeployedEvidenceCount": 0,
+    "productReadySourceReconciledNotDeployed": true,
     "externalBetaAllowed": false,
     "realUserMediaBetaAllowed": false,
     "paidProductionAllowed": false,
@@ -36,9 +40,9 @@
     ],
     "readyToRecordDeployedEvidence": true,
     "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json",
-    "requiredOperatorInputs": 60,
-    "pendingOperatorInputsInBlankEnv": 57,
-    "humanActionablePendingOperatorInputs": 45,
+    "requiredOperatorInputs": 62,
+    "pendingOperatorInputsInBlankEnv": 59,
+    "humanActionablePendingOperatorInputs": 47,
     "autoFillablePendingOperatorInputs": 12
   },
   "blockerCounts": {
@@ -65,11 +69,11 @@
       "title": "Collect exact operator values outside source control",
       "order": 1,
       "clearanceType": "operator_input_collection",
-      "rowCount": 57,
+      "rowCount": 59,
       "canRunWithoutOperatorSecrets": false,
       "canEnableBetaOrProduction": false,
       "sourceEvidence": [
-        "docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json (60 required inputs, 57 pending in blank env: 45 human-actionable, 12 auto-fillable constants/keys)"
+        "docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json (62 required inputs, 59 pending in blank env: 47 human-actionable, 12 auto-fillable constants/keys)"
       ],
       "nextCommands": [
         "npm run beta:readiness:external-beta-operator-input-template -- --status",
@@ -85,7 +89,7 @@
         "npm run beta:readiness:deployed-evidence-input-manifest"
       ],
       "blockedUntil": [
-        "Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session."
+        "Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the 47 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, product-ready local OSS confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session."
       ]
     },
     {
@@ -97,15 +101,16 @@
       "canRunWithoutOperatorSecrets": false,
       "canEnableBetaOrProduction": false,
       "sourceEvidence": [
-        "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json (16 locally accepted tools, readyToRecordDeployedEvidence=true)"
+        "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json (16 locally accepted tools, readyToRecordDeployedEvidence=true)",
+        "docs/beta-readiness/trackb-product-ready-source-reconciliation/2026-06-30-trackb-product-ready-source-reconciliation.json (Track B product-ready source count 16, active beta deployed readback count 0 until collector passes)"
       ],
       "nextCommands": [
-        "npm run beta:tools:local-accepted-evidence-collector",
+        "npm run beta:tools:trackb-product-ready-deployed-evidence-collector",
         "npm run beta:readiness:external-beta-evidence-collector",
         "npm run beta:readiness:operator-status-api"
       ],
       "blockedUntil": [
-        "The deployed collector records core tool evidence and libass evidence idempotently, then operator status readback confirms the accepted evidence from staging."
+        "The deployed collector records core tool evidence and libass evidence idempotently with product-ready local OSS acceptance, then operator status readback confirms product-ready local OSS count 16 from staging."
       ]
     },
     {
@@ -231,7 +236,8 @@
   },
   "warnings": [
     "This closeout queue is metadata only; it does not record evidence, call deployed services, run tools, process media, or enable beta/production.",
-    "Track B local accepted evidence is ready to be recorded against deployed staging, but it is not itself a product-ready or launch approval.",
+    "Track B local accepted evidence is ready to be recorded against deployed staging, but it is not itself a deployed product-ready or launch approval.",
+    "Track B product-ready source truth is reconciled from PR #987 with 16 product-ready tools for the ranked tool-call lane; active beta deployed evidence still reads product-ready count 0 until a deployed collector/readback gate proves count 16.",
     "Operator secrets, owner attestations, deployed evidence recording, final readback, real-user-media approval, and paid-production approval remain separate gates.",
     "Blockers remain scoped to named unsafe beta/production actions; safe blocker-reduction work remains allowed."
   ]

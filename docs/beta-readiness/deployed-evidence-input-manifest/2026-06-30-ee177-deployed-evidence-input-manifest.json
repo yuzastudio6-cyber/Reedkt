@@ -47,22 +47,22 @@
     "ownedToolCount": 16,
     "boundedAcceptedProvenToolCount": 16,
     "blockedNotInstalledProvenToolCount": 0,
-    "productReadyLocalOssCount": 0,
+    "productReadyLocalOssCount": 16,
     "localAcceptedEvidenceBundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json",
     "localAcceptedEvidenceBundleSourceSha": "d47015e88943dd4760dd9eb6ee45ad0f8ead15ca",
     "deployedEvidenceRequiredBoundedAcceptedToolCount": 16,
-    "deployedEvidenceRequiredProductReadyLocalOssCount": 0,
+    "deployedEvidenceRequiredProductReadyLocalOssCount": 16,
     "boundedAcceptedEvidenceEnv": [
       "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=true",
       "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=true",
       "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT=16",
-      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=0"
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true",
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=16"
     ],
     "forbiddenToolEvidenceClaims": [
       "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCTION_READINESS=true",
-      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true",
-      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS=true",
-      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE=true"
+      "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCTION_READINESS_ACCEPTANCE=true"
     ]
   },
   "blockedScopeConfirmations": {
@@ -84,7 +84,7 @@
     "sql": "none",
     "migration": "no"
   },
-  "nextSafeAction": "Collect operator inputs outside source control, rerun deployed evidence input manifest, then run external beta evidence collector only after the manifest is ready.",
+  "nextSafeAction": "Collect operator inputs outside source control, rerun deployed evidence input manifest, record Track B product-ready deployed evidence with readback count 16, then run external beta evidence collector only after the manifest is ready.",
   "previous184fApiDeployReadback": {
     "sourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
     "normalApiRevision": "reeditpro-api-staging-00014-xdj",

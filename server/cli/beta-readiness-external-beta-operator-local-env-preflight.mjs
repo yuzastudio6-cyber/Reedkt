@@ -145,6 +145,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
       'npm run beta:readiness:external-beta-evidence-collector',
     ],
     blockedScopeConfirmations: operatorTemplate.blockedScopeConfirmations,
@@ -280,6 +281,7 @@ export function buildBetaReadinessExternalBetaOperatorValueProgress(options = {}
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
     ],
     warnings: [
       'This progress report is redacted: it prints names, counts, decisions, and blocker ids only.',

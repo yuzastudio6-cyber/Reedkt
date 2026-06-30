@@ -35,7 +35,7 @@ assert.deepEqual(handoff.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
   blockedNotInstalledProven: 0,
-  productReady: 0,
+  productReady: 16,
 })
 assert.equal(handoff.ownerApprovalState.approvalsGrantedByThisHandoff, false)
 assert.equal(handoff.ownerApprovalState.readyForDeployedEvidenceInputManifest, false)
@@ -61,6 +61,7 @@ assert.ok(handoff.commands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reedi
 assert.ok(handoff.commands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(handoff.commands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(handoff.commands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
+assert.ok(handoff.commands.includes('npm run beta:tools:trackb-product-ready-deployed-evidence-collector'))
 assert.equal(handoff.scopedBlockerForwardProgressPolicy.intentionalBlanketBlocksAllowed, false)
 assert.equal(handoff.scopedBlockerForwardProgressPolicy.safeBlockerReductionAllowed, true)
 assert.ok(handoff.scopedBlockerForwardProgressPolicy.blockedActionScope.includes('external_beta_launch'))

@@ -70,6 +70,8 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
     ],
@@ -195,6 +197,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
     supabaseClassification: report.supabaseClassification,
@@ -355,6 +358,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${targetPath} npm run beta:readiness:owner-approval-intake-preflight`,
       'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
+      'npm run beta:tools:trackb-product-ready-deployed-evidence-collector',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
     supabaseClassification: report.supabaseClassification,
@@ -669,6 +673,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
+  lines.push('# npm run beta:tools:trackb-product-ready-deployed-evidence-collector')
   lines.push('')
   lines.push('# After collector execution:')
   lines.push('# npm run beta:readiness:external-beta-evidence-collector')
@@ -702,6 +707,7 @@ function renderAutofillEnvTemplate(autoFillableInputs) {
   lines.push('# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
+  lines.push('# npm run beta:tools:trackb-product-ready-deployed-evidence-collector')
   return lines.join('\n')
 }
 

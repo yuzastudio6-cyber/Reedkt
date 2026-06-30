@@ -48,10 +48,10 @@
     "classification": "do_not_duplicate_product_ready_proof_or_closeout; reconcile merged PR #987 into active beta readiness source"
   },
   "nextSafeActions": [
-    "Keep the local ignored operator env from the active beta branch and finish the 45 remaining human/operator/owner values.",
+    "Keep the local ignored operator env from the active beta branch and finish the 47 remaining human/operator/owner values, including explicit product-ready local OSS confirmations.",
     "Run owner approval intake preflight against the local ignored env file.",
     "Run deployed evidence input manifest and external beta evidence collector only after owner/operator values pass.",
-    "Add a later deployed product-ready evidence collector/readback gate if the active beta lane should require product-ready local OSS count 16 instead of bounded accepted count 16 / product-ready count 0.",
+    "Run the Track B product-ready deployed evidence collector/readback gate after operator and owner inputs pass so the active beta lane can require product-ready local OSS count 16 instead of bounded accepted count 16 / product-ready count 0.",
     "Do not rerun or duplicate the Track B product-ready proof chain unless source-truth evidence drifts from PR #987."
   ],
   "remainingBlockedScopes": [

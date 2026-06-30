@@ -18,7 +18,7 @@ Source freshness decision: `beta_readiness_source_freshness_preflight_passed_cur
 - Pending owner inputs: `29`
 - Technical input value gaps: `0`
 - Technical secret-like input paths: `0`
-- Track B tool totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`
+- Track B tool totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`
 
 ## Required Input Groups
 
@@ -42,6 +42,7 @@ Source freshness decision: `beta_readiness_source_freshness_preflight_passed_cur
 - `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
+- `npm run beta:tools:trackb-product-ready-deployed-evidence-collector`
 
 The generated template is redacted by design. Owners must fill it outside source control with non-secret approval summaries only. Completed values must not be committed.
 

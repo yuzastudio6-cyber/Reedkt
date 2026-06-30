@@ -68,14 +68,14 @@ assert.deepEqual(emptyManifest.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
   blockedNotInstalledProven: 0,
-  productReady: 0,
+  productReady: 16,
 })
 assert.deepEqual([...emptyManifest.sourceTruth.coreToolIds].sort(), [...expectedCoreToolIds].sort())
 assert.deepEqual(emptyManifest.sourceTruth.libassToolIds, ['libass'])
 assert.equal(emptyManifest.fixedInputs.libassMode, 'docker')
 assert.equal(emptyManifest.fixedInputs.libassContainerImage, expectedLibassImage)
 assert.equal(emptyManifest.fixedInputs.requiredBoundedAcceptedToolCount, 16)
-assert.equal(emptyManifest.fixedInputs.requiredProductReadyLocalOssCount, 0)
+assert.equal(emptyManifest.fixedInputs.requiredProductReadyLocalOssCount, 16)
 assert.equal(emptyManifest.fixedInputs.platformEnvironment, 'staging')
 assert.equal(emptyManifest.fixedInputs.externalBetaReadyRequired, true)
 assert.equal(emptyManifest.pendingRequiredInputs.includes('REEDITPRO_BETA_EXTERNAL_API_BASE_URL'), false)
@@ -134,11 +134,13 @@ const readyEnv = {
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS: expectedCoreToolIds.join(','),
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_PRODUCT_READY_LOCAL_OSS_ACCEPTANCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK: 'true',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT: '16',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '0',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '16',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE: 'docker',
   REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE: expectedLibassImage,
   REEDITPRO_BETA_PLATFORM_SOURCE_SHA: expectedDeployedSourceSha,
@@ -215,19 +217,24 @@ assert.ok(
   'manifest must require exact accepted core tool set',
 )
 
-const wrongProductReadyManifest = buildBetaReadinessDeployedEvidenceInputManifest({
+const missingProductReadyManifest = buildBetaReadinessDeployedEvidenceInputManifest({
   ...readyEnv,
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'true',
-  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '16',
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_PRODUCT_READY_LOCAL_OSS: 'false',
 })
-assert.equal(wrongProductReadyManifest.readyToRunExternalBetaEvidenceCollector, false)
+assert.equal(missingProductReadyManifest.readyToRunExternalBetaEvidenceCollector, false)
 assert.ok(
-  wrongProductReadyManifest.valueGaps.some((gap) => gap.includes('ACCEPT_PRODUCT_READY_LOCAL_OSS')),
-  'manifest must reject product-ready tool acceptance in the bounded external-beta evidence lane',
+  missingProductReadyManifest.valueGaps.some((gap) => gap.includes('ACCEPT_PRODUCT_READY_LOCAL_OSS')),
+  'manifest must require product-ready tool acceptance after PR #987 source-truth reconciliation',
 )
+
+const wrongProductReadyCountManifest = buildBetaReadinessDeployedEvidenceInputManifest({
+  ...readyEnv,
+  REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT: '0',
+})
+assert.equal(wrongProductReadyCountManifest.readyToRunExternalBetaEvidenceCollector, false)
 assert.ok(
-  wrongProductReadyManifest.valueGaps.some((gap) => gap.includes('REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT')),
-  'manifest must keep product-ready local OSS count at 0',
+  wrongProductReadyCountManifest.valueGaps.some((gap) => gap.includes('REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT')),
+  'manifest must require product-ready local OSS readback count 16',
 )
 
 console.log(JSON.stringify({

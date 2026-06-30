@@ -42,7 +42,7 @@ assert.deepEqual(report.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
   blockedNotInstalledProven: 0,
-  productReady: 0,
+  productReady: 16,
 })
 assert.equal(report.sourceTruth.productReadyLocalOssCount, 0)
 assert.equal(report.sourceTruth.storedPlatformProbeProductReadyLocalOssCount, 14)
@@ -63,6 +63,7 @@ assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.postApprovalCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:tools:trackb-product-ready-deployed-evidence-collector'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-evidence-collector'))
 assert.ok(report.completionCriteria.some((criterion) => criterion.includes('readyForExternalBeta=true')))
 assert.ok(report.forbiddenOwnerEvidence.includes('service-role keys'))
@@ -90,7 +91,7 @@ assert.deepEqual(packetDoc.supabaseClassification, report.supabaseClassification
 assert.ok(markdownDoc.includes('This packet does not approve anything.'))
 assert.ok(markdownDoc.includes('reeditpro-api-staging-00015-skq'))
 assert.ok(markdownDoc.includes('api-staging-ee177046bfb0-20260630T0412Z'))
-assert.ok(markdownDoc.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready'))
+assert.ok(markdownDoc.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready'))
 assert.ok(markdownDoc.includes('platform_billing_stripe_boundary'))
 assert.ok(markdownDoc.includes('launch_model_license_owner'))
 assert.ok(markdownDoc.includes('External beta, real-user-media beta, paid production'))

@@ -50,7 +50,7 @@ assert.deepEqual(empty.sourceTruth.trackBToolTotals, {
   owned: 16,
   boundedAcceptedProven: 16,
   blockedNotInstalledProven: 0,
-  productReady: 0,
+  productReady: 16,
 })
 assert.equal(empty.requiredInputCount, 29)
 assert.ok(empty.pendingInputs.includes('REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY'))
@@ -111,7 +111,7 @@ assert.deepEqual(staticIntakePacket.trackBToolTotals, empty.sourceTruth.trackBTo
 assert.equal(staticIntakePacket.productReadyLocalOssCount, 0)
 assert.ok(staticIntakeMarkdown.includes('Current no-input preflight decision'))
 assert.ok(staticIntakeMarkdown.includes('ee177046bfb07868c4eb0ebd04f4eaff42c811ce'))
-assert.ok(staticIntakeMarkdown.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready'))
+assert.ok(staticIntakeMarkdown.includes('16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready'))
 assert.ok(staticIntakeMarkdown.includes('Product-ready local OSS count: `0`'))
 
 const completeEnv = {

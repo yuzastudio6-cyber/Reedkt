@@ -141,6 +141,35 @@ assert.deepEqual(
   'scoped Hyperframe readiness must not execute unrelated command/import checks',
 )
 
+const hyperframeRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-hyperframe-rehearsal',
+  agentInvocationId: 'trackb.media_oss.hyperframe',
+  toolId: 'hyperframe',
+  action: 'preview_timeline',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  editPlanId: 'edit-plan-trackb-agent-smoke',
+  mediaAssetId: 'synthetic-media-asset-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-hyperframe-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  approvedPreviewStateReference: 'preview_state/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/hyperframe-approved-state',
+})
+assert.equal(hyperframeRehearsal.status, 'completed')
+assert.equal(hyperframeRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+assert.equal(hyperframeRehearsal.previewBoundary?.workerDispatchSkipped, true)
+assert.equal(hyperframeRehearsal.workerResult, undefined)
+assert.equal(hyperframeRehearsal.previewRehearsal?.status, 'completed')
+assert.equal(hyperframeRehearsal.previewRehearsal?.routeClass, 'timeline_bridge_bounded_rehearsal')
+assert.equal(hyperframeRehearsal.previewRehearsal?.productRuntimeExecution, false)
+assert.equal(hyperframeRehearsal.previewRehearsal?.mediaProcessing, false)
+assert.equal(hyperframeRehearsal.previewRehearsal?.userMediaProcessed, false)
+assert.equal(hyperframeRehearsal.previewRehearsal?.artifactFileWritten, false)
+assert.equal(hyperframeRehearsal.previewRehearsal?.publicArtifactCreated, false)
+assert.equal(hyperframeRehearsal.previewRehearsal?.proof.bridgeType, 'hyperframe_timeline_bridge')
+assert.equal(hyperframeRehearsal.previewRehearsal?.proof.clipCount, 1)
+assert.equal(hyperframeRehearsal.previewRehearsal?.proof.editDecisionCount, 1)
+
 const ffmpegRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -226,6 +255,66 @@ assert.equal(ffprobeRehearsalResult?.proof?.width, 16)
 assert.equal(ffprobeRehearsalResult?.proof?.height, 16)
 assert.equal(ffprobeRehearsalResult?.proof?.pixelFormat, 'yuv420p')
 assert.equal(ffprobeRehearsalResult?.proof?.frameRate, '1/1')
+
+const remotionRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-remotion-rehearsal',
+  agentInvocationId: 'trackb.media_oss.remotion',
+  toolId: 'remotion',
+  action: 'compose_layers',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  editPlanId: 'edit-plan-trackb-agent-smoke',
+  mediaAssetId: 'synthetic-media-asset-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-remotion-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['render_manifests/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/remotion/synthetic-reference'],
+})
+assert.equal(remotionRehearsal.status, 'completed')
+assert.equal(remotionRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const remotionRehearsalResult = remotionRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  status?: string
+  realToolBinaryExecution?: boolean
+  realPackageApiExecution?: boolean
+  renderExecuted?: boolean
+  browserLaunched?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  userMediaProcessed?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: {
+    version?: string
+    operation?: string
+    apiShape?: { Composition?: string; Sequence?: string; AbsoluteFill?: string }
+    durationInFrames?: number
+    fps?: number
+    clipCount?: number
+    captionArtifactCount?: number
+  }
+} | undefined
+assert.equal(remotionRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(remotionRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(remotionRehearsal.workerResult?.output?.futureHandler, 'render_worker_remotion_composition_manifest_bounded_rehearsal')
+assert.equal(remotionRehearsalResult?.status, 'completed')
+assert.equal(remotionRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(remotionRehearsalResult?.realPackageApiExecution, true)
+assert.equal(remotionRehearsalResult?.renderExecuted, false)
+assert.equal(remotionRehearsalResult?.browserLaunched, false)
+assert.equal(remotionRehearsalResult?.productRuntimeExecution, false)
+assert.equal(remotionRehearsalResult?.mediaProcessing, false)
+assert.equal(remotionRehearsalResult?.userMediaProcessed, false)
+assert.equal(remotionRehearsalResult?.syntheticInputOnly, true)
+assert.equal(remotionRehearsalResult?.artifactFileWritten, false)
+assert.ok(remotionRehearsalResult?.proof?.version)
+assert.equal(remotionRehearsalResult?.proof?.operation, 'synthetic_remotion_composition_manifest_api_shape')
+assert.equal(remotionRehearsalResult?.proof?.apiShape?.AbsoluteFill, 'object')
+assert.equal(remotionRehearsalResult?.proof?.apiShape?.Composition, 'function')
+assert.equal(remotionRehearsalResult?.proof?.apiShape?.Sequence, 'object')
+assert.equal(remotionRehearsalResult?.proof?.durationInFrames, 60)
+assert.equal(remotionRehearsalResult?.proof?.fps, 30)
+assert.equal(remotionRehearsalResult?.proof?.clipCount, 1)
+assert.equal(remotionRehearsalResult?.proof?.captionArtifactCount, 1)
 
 const sharpRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -620,6 +709,22 @@ assert.equal(libassRehearsalBlocked.status, 'blocked')
 assert.match(libassRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for libass/i)
 assert.equal(libassRehearsalBlocked.workerResult, undefined)
 
+const signalsmithRehearsalBlocked = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-signalsmith-rehearsal-blocked',
+  agentInvocationId: 'trackb.media_oss.signalsmith_stretch',
+  toolId: 'signalsmith_stretch',
+  action: 'stretch_audio',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-signalsmith-rehearsal-blocked',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['audio_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/signalsmith/source-reference'],
+})
+assert.equal(signalsmithRehearsalBlocked.status, 'blocked')
+assert.match(signalsmithRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for signalsmith_stretch/i)
+assert.equal(signalsmithRehearsalBlocked.workerResult, undefined)
+
 const liveBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -732,6 +837,8 @@ console.log(JSON.stringify({
     'bounded_runtime_probe_runs_scoped_command_import_package_metadata_checks',
     'ffmpeg_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'ffprobe_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'hyperframe_bounded_execution_rehearsal_builds_preview_bridge_without_worker_dispatch',
+    'remotion_bounded_execution_rehearsal_runs_package_api_manifest_proof_without_render',
     'sharp_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'duckdb_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'polars_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
@@ -742,8 +849,8 @@ console.log(JSON.stringify({
     'opencolorio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'openimageio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'audioflux_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
-    'bounded_execution_rehearsal_blocks_tools_without_explicit_handlers',
-    'hyperframe_stays_frontend_preview_boundary',
+    'bounded_execution_rehearsal_blocks_signalsmith_and_libass_until_explicit_handlers_exist',
+    'hyperframe_stays_frontend_preview_boundary_for_default_and_live_paths',
     'live_execution_blocks_until_deployed_evidence',
     'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',
     'hyperframe_never_switches_to_backend_live_execution',

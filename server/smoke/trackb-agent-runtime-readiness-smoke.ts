@@ -56,7 +56,7 @@ for (const contract of report.contracts) {
 
 const hyperframe = report.contracts.find((contract) => contract.toolId === 'hyperframe')
 assert.ok(hyperframe, 'hyperframe contract must exist')
-assert.deepEqual(hyperframe.admittedModes, ['frontend_preview_boundary', 'bounded_runtime_probe'])
+assert.deepEqual(hyperframe.admittedModes, ['frontend_preview_boundary', 'bounded_runtime_probe', 'bounded_execution_rehearsal'])
 assert.equal(hyperframe.workerType, 'frontend_preview_only')
 assert.ok(hyperframe.requiredPayloadReferences.includes('approvedPreviewStateReference'))
 
@@ -65,7 +65,7 @@ for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !==
   assert.ok(contract, `${toolId} contract must exist`)
   assert.ok(contract?.admittedModes.includes('mock_safe_worker_dispatch'), `${toolId} should be mock-safe worker admitted`)
   assert.ok(contract?.admittedModes.includes('bounded_runtime_probe'), `${toolId} should be bounded runtime probe admitted`)
-  if (['ffmpeg', 'ffprobe', 'sharp', 'duckdb', 'polars', 'pyav', 'opentimelineio', 'pyscenedetect', 'opencv', 'opencolorio', 'openimageio', 'audioflux'].includes(toolId)) {
+  if (['ffmpeg', 'ffprobe', 'sharp', 'duckdb', 'polars', 'pyav', 'opentimelineio', 'pyscenedetect', 'opencv', 'opencolorio', 'openimageio', 'audioflux', 'remotion'].includes(toolId)) {
     assert.ok(
       contract?.admittedModes.includes('bounded_execution_rehearsal'),
       `${toolId} should admit bounded execution rehearsal`,
@@ -97,7 +97,7 @@ assert.deepEqual(deployedReport.blockers, [])
 
 const deployedHyperframe = deployedReport.contracts.find((contract) => contract.toolId === 'hyperframe')
 assert.ok(deployedHyperframe)
-assert.deepEqual(deployedHyperframe.admittedModes, ['frontend_preview_boundary', 'bounded_runtime_probe'])
+assert.deepEqual(deployedHyperframe.admittedModes, ['frontend_preview_boundary', 'bounded_runtime_probe', 'bounded_execution_rehearsal'])
 assert.equal(deployedHyperframe.liveExecutionReady, true)
 
 for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !== 'hyperframe')) {
@@ -105,7 +105,7 @@ for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !==
   assert.ok(contract, `${toolId} deployed contract must exist`)
   assert.ok(contract.admittedModes.includes('mock_safe_worker_dispatch'))
   assert.ok(contract.admittedModes.includes('bounded_runtime_probe'))
-  if (['ffmpeg', 'ffprobe', 'sharp', 'duckdb', 'polars', 'pyav', 'opentimelineio', 'pyscenedetect', 'opencv', 'opencolorio', 'openimageio', 'audioflux'].includes(toolId)) {
+  if (['ffmpeg', 'ffprobe', 'sharp', 'duckdb', 'polars', 'pyav', 'opentimelineio', 'pyscenedetect', 'opencv', 'opencolorio', 'openimageio', 'audioflux', 'remotion'].includes(toolId)) {
     assert.ok(contract.admittedModes.includes('bounded_execution_rehearsal'))
   } else {
     assert.equal(contract.admittedModes.includes('bounded_execution_rehearsal'), false)

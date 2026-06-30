@@ -7,6 +7,8 @@ import { findForbiddenWorkerPayloadEntries } from '../workers/production/product
 import { dispatchProductionWorkerJob } from '../workers/production/production-worker-dispatcher'
 import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
 import { runProductionToolReadiness } from '../workers/production-readiness'
+import { buildHyperframeTimelineBridge } from '../workers/timeline/hyperframe-timeline-bridge'
+import { buildTrackBSyntheticTimelineManifest } from '../workers/timeline/trackb-synthetic-timeline-manifest'
 import type { ProductionToolReadinessResult } from '../workers/production-readiness'
 import type {
   ProductionWorkerExecutionResult,
@@ -74,6 +76,25 @@ export interface TrackBAgentToolExecutionResult {
     approvedPreviewStateReference: string
     workerDispatchSkipped: true
     reason: string
+  }
+  previewRehearsal?: {
+    toolId: 'hyperframe'
+    status: 'completed'
+    routeClass: 'timeline_bridge_bounded_rehearsal'
+    workerDispatchSkipped: true
+    productRuntimeExecution: false
+    mediaProcessing: false
+    userMediaProcessed: false
+    artifactFileWritten: false
+    publicArtifactCreated: false
+    proof: {
+      bridgeType: string
+      timelineId: string
+      clipCount: number
+      editDecisionCount: number
+      sourceReferenceCount: number
+      approvedPreviewStateReference: string
+    }
   }
   blockedReason?: string
   warnings: string[]
@@ -173,6 +194,61 @@ export async function executeTrackBAgentTool(
         ...commonWarnings,
         ...proof.warnings,
         'Bounded runtime probe uses command/import/package-metadata checks only; it does not process media, dispatch product runtime work, write backend evidence, or enable beta/production.',
+      ],
+    }
+  }
+
+  if (mode === 'bounded_execution_rehearsal' && contract.toolId === 'hyperframe') {
+    if (!input.approvedPreviewStateReference) {
+      return blocked(input, mode, 'Hyperframe bounded rehearsal requires approvedPreviewStateReference.', commonWarnings, contract)
+    }
+
+    const timelineManifest = buildTrackBSyntheticTimelineManifest({
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      editPlanId: input.editPlanId,
+      approvedSnapshotId: input.approvedSnapshotId,
+      mediaAssetId: input.mediaAssetId,
+      timelineId: `timeline-trackb-hyperframe-rehearsal-${input.jobId}`,
+    })
+    const bridge = buildHyperframeTimelineBridge(timelineManifest)
+    return {
+      status: 'completed',
+      decision: 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed',
+      toolId: contract.toolId,
+      agentInvocationId: contract.agentInvocationId,
+      mode,
+      liveExecutionReady: report.liveAgentExecutionReady,
+      paymentScope: 'excluded_from_this_runtime_boundary',
+      serviceFeeIncluded: false,
+      previewBoundary: {
+        approvedPreviewStateReference: input.approvedPreviewStateReference,
+        workerDispatchSkipped: true,
+        reason: 'Hyperframe bounded rehearsal validates the approved preview/timeline bridge without backend worker dispatch.',
+      },
+      previewRehearsal: {
+        toolId: 'hyperframe',
+        status: 'completed',
+        routeClass: 'timeline_bridge_bounded_rehearsal',
+        workerDispatchSkipped: true,
+        productRuntimeExecution: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        proof: {
+          bridgeType: bridge.bridgeType,
+          timelineId: bridge.timelineId,
+          clipCount: bridge.clips.length,
+          editDecisionCount: bridge.editDecisions.length,
+          sourceReferenceCount: timelineManifest.sourceReferences.length,
+          approvedPreviewStateReference: input.approvedPreviewStateReference,
+        },
+      },
+      warnings: [
+        ...commonWarnings,
+        'Hyperframe bounded rehearsal is payment-independent and preview-boundary-only.',
+        'No user media, backend worker dispatch, artifact write, Supabase/GCS write, beta, or production scope was attempted.',
       ],
     }
   }
@@ -401,6 +477,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'remotion':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'composition_manifest_bounded_rehearsal')
+      }
       return {
         finalRenderExecution: {
           mode: 'dry_run',
@@ -528,6 +607,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         mode === 'bounded_execution_rehearsal' ? 'dataframe_transform_bounded_rehearsal' : 'dataframe_transform_dry_run',
       )
     case 'hyperframe':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'timeline_bridge_bounded_rehearsal')
+      }
       return {}
   }
 }

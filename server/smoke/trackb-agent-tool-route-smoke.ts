@@ -111,6 +111,38 @@ try {
   assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.backendEvidenceRecorded, false)
   assert.equal(boundedProbe.data.trackBAgentToolExecution.workerResult, undefined)
 
+  const hyperframeRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-hyperframe-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-hyperframe-rehearsal',
+      agentInvocationId: 'trackb.media_oss.hyperframe',
+      toolId: 'hyperframe',
+      action: 'preview_timeline',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      editPlanId: 'edit-plan-trackb-agent-route-smoke',
+      mediaAssetId: 'synthetic-media-asset-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-hyperframe-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      approvedPreviewStateReference: 'preview_state/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/hyperframe-approved-state',
+    }),
+  }, 202)
+  const hyperframeResult = hyperframeRehearsal.data.trackBAgentToolExecution
+  assert.equal(hyperframeResult.status, 'completed')
+  assert.equal(hyperframeResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(hyperframeResult.previewBoundary.workerDispatchSkipped, true)
+  assert.equal(hyperframeResult.workerResult, undefined)
+  assert.equal(hyperframeResult.previewRehearsal.status, 'completed')
+  assert.equal(hyperframeResult.previewRehearsal.routeClass, 'timeline_bridge_bounded_rehearsal')
+  assert.equal(hyperframeResult.previewRehearsal.productRuntimeExecution, false)
+  assert.equal(hyperframeResult.previewRehearsal.mediaProcessing, false)
+  assert.equal(hyperframeResult.previewRehearsal.artifactFileWritten, false)
+  assert.equal(hyperframeResult.previewRehearsal.proof.bridgeType, 'hyperframe_timeline_bridge')
+  assert.equal(hyperframeResult.previewRehearsal.proof.clipCount, 1)
+  assert.equal(hyperframeResult.previewRehearsal.proof.editDecisionCount, 1)
+
   const ffmpegRehearsal = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-ffmpeg-rehearsal' },
@@ -174,6 +206,46 @@ try {
   assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.codecType, 'video')
   assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.width, 16)
   assert.equal(ffprobeResult.workerResult.output.trackBAgentToolRecipeResult.proof.height, 16)
+
+  const remotionRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-remotion-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-remotion-rehearsal',
+      agentInvocationId: 'trackb.media_oss.remotion',
+      toolId: 'remotion',
+      action: 'compose_layers',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      editPlanId: 'edit-plan-trackb-agent-route-smoke',
+      mediaAssetId: 'synthetic-media-asset-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-remotion-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['render_manifests/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/remotion/synthetic-reference'],
+    }),
+  }, 202)
+  const remotionResult = remotionRehearsal.data.trackBAgentToolExecution
+  assert.equal(remotionResult.status, 'completed')
+  assert.equal(remotionResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(remotionResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(remotionResult.workerResult.output.mockOnly, false)
+  assert.equal(remotionResult.workerResult.output.futureHandler, 'render_worker_remotion_composition_manifest_bounded_rehearsal')
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.status, 'completed')
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.realPackageApiExecution, true)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.renderExecuted, false)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.browserLaunched, false)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.productRuntimeExecution, false)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.proof.operation, 'synthetic_remotion_composition_manifest_api_shape')
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.proof.apiShape.AbsoluteFill, 'object')
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.proof.apiShape.Composition, 'function')
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.proof.apiShape.Sequence, 'object')
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.proof.durationInFrames, 60)
+  assert.equal(remotionResult.workerResult.output.trackBAgentToolRecipeResult.proof.clipCount, 1)
 
   const sharpRehearsal = await requestJson(endpoint, {
     method: 'POST',
@@ -625,8 +697,9 @@ try {
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
-      'http_route_runs_ffmpeg_ffprobe_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_bounded_execution_rehearsals',
-      'http_route_keeps_hyperframe_preview_boundary',
+      'http_route_runs_ffmpeg_ffprobe_remotion_sharp_duckdb_polars_pyav_timeline_scene_opencv_color_imageio_audioflux_bounded_execution_rehearsals',
+      'http_route_runs_hyperframe_preview_bridge_bounded_execution_rehearsal_without_worker_dispatch',
+      'http_route_keeps_hyperframe_preview_boundary_for_default_and_live_paths',
       'http_route_blocks_live_execution_until_deployed_evidence',
       'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',
       'http_route_keeps_hyperframe_out_of_backend_live_execution',

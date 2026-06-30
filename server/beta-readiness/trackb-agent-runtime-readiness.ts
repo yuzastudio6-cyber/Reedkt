@@ -162,7 +162,7 @@ export function buildTrackBAgentRuntimeReadinessReport(
       ? ['bounded_execution_rehearsal']
       : []
     const baseAdmittedModes: TrackBAgentRuntimeAdmissionMode[] = isFrontendPreviewBoundary
-      ? ['frontend_preview_boundary', 'bounded_runtime_probe']
+      ? ['frontend_preview_boundary', 'bounded_runtime_probe', ...rehearsalModes]
       : ['mock_safe_worker_dispatch', 'bounded_runtime_probe', ...rehearsalModes]
     const admittedModes: TrackBAgentRuntimeAdmissionMode[] = !isFrontendPreviewBoundary && liveExecutionReady
       ? [...baseAdmittedModes, 'deployed_live_execution']
@@ -290,7 +290,9 @@ function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
     toolId === 'opencv' ||
     toolId === 'opencolorio' ||
     toolId === 'openimageio' ||
-    toolId === 'audioflux'
+    toolId === 'audioflux' ||
+    toolId === 'remotion' ||
+    toolId === 'hyperframe'
 }
 
 function normalizeEvidenceCount(value: number | undefined): number | undefined {

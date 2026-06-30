@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import type { ProductionWorkerJobPayload, ProductionWorkerRouteOutput } from './production-worker-types'
 import { buildStorageArtifactReference, runMediaAnalysisFoundation } from '../media'
 import type { MediaFoundationRunMode, MediaFoundationTask } from '../media'
@@ -16,6 +17,8 @@ import { buildSmartCutPlan, runSmartCutFoundation } from '../smart-cut'
 import type { SmartCutAggressiveness, SmartCutFoundationRunMode, SmartCutIntent, PacingProfileName } from '../smart-cut'
 import { runTimelineFoundation } from '../timeline'
 import type { TimelineFoundationRunMode } from '../timeline'
+import { buildRemotionCompositionManifest } from '../timeline/remotion-composition-manifest-bridge'
+import { buildTrackBSyntheticTimelineManifest } from '../timeline/trackb-synthetic-timeline-manifest'
 import { runAudioFoundation } from '../audio'
 import type { AudioFoundationRunMode } from '../audio'
 import { runAudioExecutionPipeline } from '../audio-execution'
@@ -30,6 +33,8 @@ import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
+
+const requireFromProductionWorkerRouter = createRequire(import.meta.url)
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   switch (payload.workerType) {
@@ -575,6 +580,9 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
       script: AUDIOFLUX_BOUNDED_REHEARSAL_SCRIPT,
     })
   }
+  if (toolId === 'remotion' && routeClass === 'composition_manifest_bounded_rehearsal') {
+    return runRemotionCompositionManifestBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
 
   return {
     summary: `Track B agent worker recipe selected for ${toolId}:${action} through ${handler.futureHandler} without running real tool binaries or media processing.`,
@@ -723,6 +731,14 @@ function resolveTrackBAgentToolRecipeHandler(
   if (toolId === 'audioflux' && routeClass === 'audio_feature_bounded_rehearsal') {
     return {
       futureHandler: 'cpu_analysis_worker_audioflux_audio_feature_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'remotion' && routeClass === 'composition_manifest_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_remotion_composition_manifest_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -966,6 +982,129 @@ function buildBlockedCommandLineToolRehearsal(
         'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
       ],
     },
+  }
+}
+
+async function runRemotionCompositionManifestBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): Promise<ProductionWorkerRouteOutput> {
+  try {
+    const remotion = await import('remotion')
+    const packagePath = requireFromProductionWorkerRouter.resolve('remotion/package.json')
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8')) as { version?: string }
+    const timelineManifest = buildTrackBSyntheticTimelineManifest({
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      approvedSnapshotId: payload.approvedSnapshotId,
+      editPlanId: payload.editPlanId,
+      mediaAssetId: payload.mediaAssetId,
+      timelineId: `timeline-trackb-remotion-rehearsal-${payload.jobId}`,
+      fps: 30,
+    })
+    const remotionManifest = buildRemotionCompositionManifest({
+      timelineManifest,
+      fps: 30,
+      canvas: { width: 320, height: 180 },
+      captionArtifactIds: ['synthetic-caption-artifact-trackb-remotion-rehearsal'],
+    })
+    const interpolatedOpacity = remotion.interpolate(15, [0, 30], [0, 1])
+
+    return {
+      summary: 'Track B agent Remotion bounded execution rehearsal completed with package API inspection and synthetic composition manifest only; no render, browser, user media, or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'remotion',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        realPackageApiExecution: true,
+        renderExecuted: false,
+        browserLaunched: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version: packageJson.version,
+          operation: 'synthetic_remotion_composition_manifest_api_shape',
+          apiShape: {
+            AbsoluteFill: typeof remotion.AbsoluteFill,
+            Composition: typeof remotion.Composition,
+            Sequence: typeof remotion.Sequence,
+            interpolate: typeof remotion.interpolate,
+            spring: typeof remotion.spring,
+            useCurrentFrame: typeof remotion.useCurrentFrame,
+            useVideoConfig: typeof remotion.useVideoConfig,
+          },
+          interpolateSample: interpolatedOpacity,
+          compositionId: remotionManifest.compositionId,
+          durationInFrames: remotionManifest.durationInFrames,
+          fps: remotionManifest.fps,
+          canvas: remotionManifest.canvas,
+          clipCount: remotionManifest.clips.length,
+          captionArtifactCount: remotionManifest.captionArtifactIds.length,
+          timelineSourceReferenceCount: timelineManifest.sourceReferences.length,
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          renderOutputsCreated: 0,
+          inMemoryObjectsOnly: true,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof imports Remotion package APIs and builds a synthetic manifest only; it does not render video, launch a browser, read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    return {
+      summary: 'Track B agent Remotion bounded execution rehearsal was blocked before proof completion.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: true,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'blocked',
+        toolId: 'remotion',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: false,
+        renderExecuted: false,
+        browserLaunched: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        blockedReason: error instanceof Error ? error.message : 'Unknown Remotion bounded execution rehearsal error.',
+        notes: [
+          'Remotion bounded execution rehearsal failed closed.',
+          'No render, browser, user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+        ],
+      },
+    }
   }
 }
 

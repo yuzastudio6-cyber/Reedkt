@@ -30,6 +30,15 @@ const requiredExistingFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  'docs/activation-phase-rp-external-beta-operator-gcloud-auth-preflight-1-results.md',
+  'docs/external-beta/operator-gcloud-auth-preflight-1/source-audit.md',
+  'docs/external-beta/operator-gcloud-auth-preflight-1/preflight-contract.md',
+  'docs/external-beta/operator-gcloud-auth-preflight-1/safety-boundary.md',
+  'docs/external-beta/operator-gcloud-auth-preflight-1/validation-results.md',
+  'docs/external-beta/operator-gcloud-auth-preflight-1/operator-gcloud-auth-preflight-record.json',
+  'docs/implementation-prompts/prompt-rp-external-beta-operator-gcloud-auth-preflight-1.md',
+  'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1.mjs',
+  'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-preflight-current-1-diagnostics.mjs',
   'package.json',
 ])

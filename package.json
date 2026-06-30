@@ -51,6 +51,7 @@
     "smoke:tool-beta-execution-readiness": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/tool-beta-execution-readiness-smoke.ts",
     "smoke:trackb-agent-runtime-readiness": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/trackb-agent-runtime-readiness-smoke.ts",
     "smoke:trackb-agent-tool-execution-boundary": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/trackb-agent-tool-execution-boundary-smoke.ts",
+    "smoke:trackb-agent-tool-route": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/trackb-agent-tool-route-smoke.ts",
     "smoke:beta-readiness-api": "tsx server/smoke/beta-readiness-api-smoke.ts",
     "smoke:beta-readiness": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/beta-readiness-smoke.ts",
     "smoke:beta-readiness-blocker-ledger": "node --experimental-strip-types --import ./server/cli/beta-readiness-node-ts-register.mjs server/smoke/beta-readiness-blocker-ledger-smoke.ts",

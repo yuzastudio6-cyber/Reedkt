@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 import { executeTrackBAgentTool } from '../agents/trackb-agent-tool-execution'
 import { buildTrackBAgentRuntimeReadinessReport } from '../beta-readiness/trackb-agent-runtime-readiness'
 import { runProductionToolReadiness } from '../workers/production-readiness'
@@ -8,6 +9,13 @@ import {
 } from '../services/mock-credit-foundation-stores'
 
 const report = buildTrackBAgentRuntimeReadinessReport()
+const rehearsalPython = findBoundedRehearsalPython()
+assert.ok(
+  rehearsalPython,
+  'Bounded DuckDB/Polars rehearsal requires REEDITPRO_READINESS_PYTHON_BIN or .reeditpro-tool-readiness-python/bin/python.',
+)
+process.env.REEDITPRO_READINESS_PYTHON_BIN = rehearsalPython
+
 assert.equal(report.toolCount, 16)
 assert.equal(report.agentContractsReady, true)
 assert.equal(report.paymentIndependentRuntimeReady, true)
@@ -184,21 +192,94 @@ assert.equal(sharpRehearsalResult?.syntheticOutput?.width, 1)
 assert.equal(sharpRehearsalResult?.syntheticOutput?.height, 1)
 assert.match(sharpRehearsalResult?.syntheticOutput?.sha256 ?? '', /^[a-f0-9]{64}$/)
 
-const duckdbRehearsalBlocked = await executeTrackBAgentTool({
+const duckdbRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
-  jobId: 'job-trackb-agent-duckdb-rehearsal-blocked',
+  jobId: 'job-trackb-agent-duckdb-rehearsal',
   agentInvocationId: 'trackb.media_oss.duckdb',
   toolId: 'duckdb',
   action: 'query_artifacts',
   approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
-  toolExecutionPlanId: 'tool-exec-trackb-agent-duckdb-rehearsal-blocked',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-duckdb-rehearsal',
   mode: 'bounded_execution_rehearsal',
   storageReferenceIds: ['analysis_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/duckdb/source-reference'],
 })
-assert.equal(duckdbRehearsalBlocked.status, 'blocked')
-assert.match(duckdbRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for duckdb/i)
-assert.equal(duckdbRehearsalBlocked.workerResult, undefined)
+assert.equal(duckdbRehearsal.status, 'completed')
+assert.equal(duckdbRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+assert.equal(duckdbRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(duckdbRehearsal.workerResult?.output?.mockOnly, false)
+const duckdbRehearsalResult = duckdbRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  status?: string
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; database?: string; row_count?: number; total_value?: number }
+} | undefined
+assert.equal(duckdbRehearsalResult?.status, 'completed')
+assert.equal(duckdbRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(duckdbRehearsalResult?.productRuntimeExecution, false)
+assert.equal(duckdbRehearsalResult?.mediaProcessing, false)
+assert.equal(duckdbRehearsalResult?.syntheticInputOnly, true)
+assert.equal(duckdbRehearsalResult?.artifactFileWritten, false)
+assert.ok(duckdbRehearsalResult?.proof?.version)
+assert.equal(duckdbRehearsalResult?.proof?.database, ':memory:')
+assert.equal(duckdbRehearsalResult?.proof?.row_count, 1)
+assert.equal(duckdbRehearsalResult?.proof?.total_value, 42)
+
+const polarsRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-polars-rehearsal',
+  agentInvocationId: 'trackb.media_oss.polars',
+  toolId: 'polars',
+  action: 'transform_tables',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-polars-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['analysis_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/polars/source-reference'],
+})
+assert.equal(polarsRehearsal.status, 'completed')
+assert.equal(polarsRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+assert.equal(polarsRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(polarsRehearsal.workerResult?.output?.mockOnly, false)
+const polarsRehearsalResult = polarsRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  status?: string
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; shape?: number[]; frames_sum?: number; weighted_sum?: number }
+} | undefined
+assert.equal(polarsRehearsalResult?.status, 'completed')
+assert.equal(polarsRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(polarsRehearsalResult?.productRuntimeExecution, false)
+assert.equal(polarsRehearsalResult?.mediaProcessing, false)
+assert.equal(polarsRehearsalResult?.syntheticInputOnly, true)
+assert.equal(polarsRehearsalResult?.artifactFileWritten, false)
+assert.ok(polarsRehearsalResult?.proof?.version)
+assert.deepEqual(polarsRehearsalResult?.proof?.shape, [3, 2])
+assert.equal(polarsRehearsalResult?.proof?.operation, 'synthetic_dataframe_transform')
+assert.equal(polarsRehearsalResult?.proof?.frames_sum, 60)
+assert.equal(polarsRehearsalResult?.proof?.weighted_sum, 120)
+
+const ffprobeRehearsalBlocked = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-ffprobe-rehearsal-blocked',
+  agentInvocationId: 'trackb.media_oss.ffprobe',
+  toolId: 'ffprobe',
+  action: 'stream_probe',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-ffprobe-rehearsal-blocked',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['source_media/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/ffprobe/source-reference'],
+})
+assert.equal(ffprobeRehearsalBlocked.status, 'blocked')
+assert.match(ffprobeRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for ffprobe/i)
+assert.equal(ffprobeRehearsalBlocked.workerResult, undefined)
 
 const liveBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -311,6 +392,8 @@ console.log(JSON.stringify({
     'backend_tools_select_trackb_worker_recipe_handlers',
     'bounded_runtime_probe_runs_scoped_command_import_package_metadata_checks',
     'sharp_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'duckdb_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'polars_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'bounded_execution_rehearsal_blocks_tools_without_explicit_handlers',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',
@@ -321,6 +404,15 @@ console.log(JSON.stringify({
     'service_fee_excluded',
   ],
 }, null, 2))
+
+function findBoundedRehearsalPython(): string | undefined {
+  const candidates = [
+    process.env.REEDITPRO_READINESS_PYTHON_BIN,
+    '.reeditpro-tool-readiness-python/bin/python',
+  ].filter((candidate): candidate is string => Boolean(candidate))
+
+  return candidates.find((candidate) => existsSync(candidate))
+}
 
 function createApprovedCreditScenario(label: string) {
   const workspaceId = `workspace-trackb-${label}`

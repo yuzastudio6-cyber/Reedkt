@@ -476,9 +476,17 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         mode === 'bounded_execution_rehearsal' ? 'image_asset_prepare_bounded_rehearsal' : 'image_asset_prepare_dry_run',
       )
     case 'duckdb':
-      return trackBAgentToolRecipe(contract.toolId, input.action, 'structured_artifact_query_dry_run')
+      return trackBAgentToolRecipe(
+        contract.toolId,
+        input.action,
+        mode === 'bounded_execution_rehearsal' ? 'structured_artifact_query_bounded_rehearsal' : 'structured_artifact_query_dry_run',
+      )
     case 'polars':
-      return trackBAgentToolRecipe(contract.toolId, input.action, 'dataframe_transform_dry_run')
+      return trackBAgentToolRecipe(
+        contract.toolId,
+        input.action,
+        mode === 'bounded_execution_rehearsal' ? 'dataframe_transform_bounded_rehearsal' : 'dataframe_transform_dry_run',
+      )
     case 'hyperframe':
       return {}
   }

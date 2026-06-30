@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 import { type AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
@@ -19,6 +20,12 @@ const env = loadRuntimeEnv({
   SUPABASE_URL: '',
   SUPABASE_SERVICE_ROLE_KEY: '',
 })
+const rehearsalPython = findBoundedRehearsalPython()
+assert.ok(
+  rehearsalPython,
+  'Bounded DuckDB/Polars route rehearsal requires REEDITPRO_READINESS_PYTHON_BIN or .reeditpro-tool-readiness-python/bin/python.',
+)
+process.env.REEDITPRO_READINESS_PYTHON_BIN = rehearsalPython
 
 const app = createReeditProApiApp(env)
 const server = app.listen(0)
@@ -132,6 +139,58 @@ try {
   assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.syntheticInputOnly, true)
   assert.equal(sharpResult.workerResult.output.trackBAgentToolRecipeResult.artifactFileWritten, false)
   assert.match(sharpResult.workerResult.output.trackBAgentToolRecipeResult.syntheticOutput.sha256, /^[a-f0-9]{64}$/)
+
+  const duckdbRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-duckdb-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-duckdb-rehearsal',
+      agentInvocationId: 'trackb.media_oss.duckdb',
+      toolId: 'duckdb',
+      action: 'query_artifacts',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-duckdb-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['analysis_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/duckdb/source-reference'],
+    }),
+  }, 202)
+  const duckdbResult = duckdbRehearsal.data.trackBAgentToolExecution
+  assert.equal(duckdbResult.status, 'completed')
+  assert.equal(duckdbResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(duckdbResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(duckdbResult.workerResult.output.mockOnly, false)
+  assert.equal(duckdbResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(duckdbResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.equal(duckdbResult.workerResult.output.trackBAgentToolRecipeResult.proof.database, ':memory:')
+  assert.equal(duckdbResult.workerResult.output.trackBAgentToolRecipeResult.proof.total_value, 42)
+
+  const polarsRehearsal = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-polars-rehearsal' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-polars-rehearsal',
+      agentInvocationId: 'trackb.media_oss.polars',
+      toolId: 'polars',
+      action: 'transform_tables',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-polars-rehearsal',
+      mode: 'bounded_execution_rehearsal',
+      storageReferenceIds: ['analysis_artifacts/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/polars/source-reference'],
+    }),
+  }, 202)
+  const polarsResult = polarsRehearsal.data.trackBAgentToolExecution
+  assert.equal(polarsResult.status, 'completed')
+  assert.equal(polarsResult.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+  assert.equal(polarsResult.workerPayload.executionMode, 'bounded_rehearsal')
+  assert.equal(polarsResult.workerResult.output.mockOnly, false)
+  assert.equal(polarsResult.workerResult.output.trackBAgentToolRecipeResult.realToolBinaryExecution, true)
+  assert.equal(polarsResult.workerResult.output.trackBAgentToolRecipeResult.mediaProcessing, false)
+  assert.deepEqual(polarsResult.workerResult.output.trackBAgentToolRecipeResult.proof.shape, [3, 2])
+  assert.equal(polarsResult.workerResult.output.trackBAgentToolRecipeResult.proof.weighted_sum, 120)
 
   const liveBlocked = await requestJson(endpoint, {
     method: 'POST',
@@ -286,6 +345,7 @@ try {
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
+      'http_route_runs_sharp_duckdb_polars_bounded_execution_rehearsals',
       'http_route_keeps_hyperframe_preview_boundary',
       'http_route_blocks_live_execution_until_deployed_evidence',
       'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',
@@ -296,6 +356,15 @@ try {
   }, null, 2))
 } finally {
   server.close()
+}
+
+function findBoundedRehearsalPython(): string | undefined {
+  const candidates = [
+    process.env.REEDITPRO_READINESS_PYTHON_BIN,
+    '.reeditpro-tool-readiness-python/bin/python',
+  ].filter((candidate): candidate is string => Boolean(candidate))
+
+  return candidates.find((candidate) => existsSync(candidate))
 }
 
 function createApprovedCreditScenario(label: string) {

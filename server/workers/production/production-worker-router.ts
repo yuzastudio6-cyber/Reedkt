@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import type { ProductionWorkerJobPayload, ProductionWorkerRouteOutput } from './production-worker-types'
 import { buildStorageArtifactReference, runMediaAnalysisFoundation } from '../media'
 import type { MediaFoundationRunMode, MediaFoundationTask } from '../media'
@@ -468,6 +470,28 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
   if (toolId === 'sharp' && routeClass === 'image_asset_prepare_bounded_rehearsal') {
     return runSharpImageAssetPrepareBoundedRehearsal(payload, request, action, routeClass, handler)
   }
+  if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'duckdb',
+      action,
+      routeClass,
+      handler,
+      script: DUCKDB_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'polars' && routeClass === 'dataframe_transform_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'polars',
+      action,
+      routeClass,
+      handler,
+      script: POLARS_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
 
   return {
     summary: `Track B agent worker recipe selected for ${toolId}:${action} through ${handler.futureHandler} without running real tool binaries or media processing.`,
@@ -525,9 +549,25 @@ function resolveTrackBAgentToolRecipeHandler(
     }
   }
 
+  if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_duckdb_structured_artifact_query_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
   if (toolId === 'polars' && routeClass === 'dataframe_transform_dry_run') {
     return {
       futureHandler: 'cpu_analysis_worker_polars_dataframe_transform_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'polars' && routeClass === 'dataframe_transform_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_polars_dataframe_transform_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -655,6 +695,193 @@ async function runSharpImageAssetPrepareBoundedRehearsal(
 
 function sha256Hex(buffer: Buffer): string {
   return createHash('sha256').update(buffer).digest('hex')
+}
+
+const DUCKDB_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import duckdb
+import json
+
+conn = duckdb.connect(database=':memory:')
+conn.execute('create table synthetic_events(tool varchar, value integer)')
+conn.execute("insert into synthetic_events values ('duckdb', 7), ('duckdb', 35)")
+rows = conn.execute('select tool, sum(value) as total_value, count(*) as row_count from synthetic_events group by tool').fetchall()
+print(json.dumps({
+  'version': duckdb.__version__,
+  'database': ':memory:',
+  'query': 'synthetic_grouped_sum',
+  'columns': ['tool', 'total_value', 'row_count'],
+  'rows': rows,
+  'row_count': len(rows),
+  'total_value': rows[0][1],
+}))
+`
+
+const POLARS_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import polars as pl
+import json
+
+frame = pl.DataFrame({
+  'tool': ['polars', 'polars', 'polars'],
+  'frames': [12, 18, 30],
+})
+result = frame.with_columns((pl.col('frames') * 2).alias('weighted_frames')).select([
+  pl.col('frames').sum().alias('frames_sum'),
+  pl.col('weighted_frames').sum().alias('weighted_sum'),
+])
+print(json.dumps({
+  'version': pl.__version__,
+  'shape': list(frame.shape),
+  'columns': frame.columns,
+  'operation': 'synthetic_dataframe_transform',
+  'frames_sum': int(result.item(0, 'frames_sum')),
+  'weighted_sum': int(result.item(0, 'weighted_sum')),
+}))
+`
+
+function runPythonStructuredToolBoundedRehearsal(input: {
+  payload: ProductionWorkerJobPayload
+  request: Record<string, unknown>
+  toolId: 'duckdb' | 'polars'
+  action: string
+  routeClass: string
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>
+  script: string
+}): ProductionWorkerRouteOutput {
+  const python = resolveBoundedRehearsalPython()
+  if (!python) {
+    return buildBlockedPythonStructuredToolRehearsal(input, 'Hydrated readiness Python is not available. Set REEDITPRO_READINESS_PYTHON_BIN or create .reeditpro-tool-readiness-python/bin/python.')
+  }
+
+  try {
+    const output = execFileSync(python, ['-c', input.script], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      maxBuffer: 1024 * 512,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        PATH: process.env.PATH,
+        PYTHONNOUSERSITE: '1',
+      },
+    })
+    const proof = parsePythonProof(output)
+    return {
+      summary: `Track B agent ${input.toolId} bounded execution rehearsal completed with synthetic in-memory structured data only; no user media or artifact file was processed.`,
+      workerType: input.payload.workerType,
+      executionMode: input.payload.executionMode,
+      mockOnly: false,
+      futureHandler: input.handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: input.toolId,
+        action: input.action,
+        routeClass: input.routeClass,
+        handlerKind: input.handler.handlerKind,
+        namedHandlerReady: input.handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: input.payload.storageReferenceIds.length,
+        plannedHandler: stringValue(input.request.plannedHandler),
+        pythonRuntime: {
+          source: process.env.REEDITPRO_READINESS_PYTHON_BIN ? 'env_REEDITPRO_READINESS_PYTHON_BIN' : 'local_readiness_venv',
+          basename: python.split('/').pop(),
+        },
+        proof,
+        cleanup: {
+          temporaryFilesCreated: 0,
+          inMemoryObjectsOnly: true,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses synthetic in-memory structured data only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedPythonStructuredToolRehearsal(
+      input,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || `Unknown ${input.toolId} bounded execution rehearsal error.`,
+    )
+  }
+}
+
+function buildBlockedPythonStructuredToolRehearsal(
+  input: {
+    payload: ProductionWorkerJobPayload
+    toolId: 'duckdb' | 'polars'
+    action: string
+    routeClass: string
+    handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>
+  },
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: `Track B agent ${input.toolId} bounded execution rehearsal was blocked before proof completion.`,
+    workerType: input.payload.workerType,
+    executionMode: input.payload.executionMode,
+    mockOnly: true,
+    futureHandler: input.handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId: input.toolId,
+      action: input.action,
+      routeClass: input.routeClass,
+      handlerKind: input.handler.handlerKind,
+      namedHandlerReady: input.handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        `${input.toolId} bounded execution rehearsal failed closed.`,
+        'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+function resolveBoundedRehearsalPython(): string | undefined {
+  const candidates = [
+    process.env.REEDITPRO_READINESS_PYTHON_BIN,
+    '.reeditpro-tool-readiness-python/bin/python',
+  ].filter((candidate): candidate is string => Boolean(candidate))
+  return candidates.find((candidate) => existsSync(candidate))
+}
+
+function parsePythonProof(output: string): unknown {
+  const line = output
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .at(-1)
+  if (!line) {
+    throw new Error('Python rehearsal produced no JSON proof output.')
+  }
+  return JSON.parse(line)
+}
+
+function cleanToolProcessDetail(value: string | Buffer | undefined): string {
+  return String(value ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' | ')
+    .slice(0, 500)
 }
 
 function hasFinalRenderExecutionRequest(payload: ProductionWorkerJobPayload): boolean {

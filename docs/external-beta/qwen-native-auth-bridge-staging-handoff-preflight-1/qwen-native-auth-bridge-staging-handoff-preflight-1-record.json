@@ -1,0 +1,83 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-NATIVE-AUTH-BRIDGE-STAGING-HANDOFF-PREFLIGHT-1",
+  "decision": "completed_qwen_native_auth_bridge_staging_backend_handoff_preflight",
+  "execution": "completed_staging_api_deploy_and_verified_auth_handoff_preflight_no_provider_execution",
+  "sourceEvidence": {
+    "authBridgePr": 1791,
+    "authBridgeMergeSha": "3618372ee2c16955d9d3b0d90df260488b2fd6e6",
+    "excludedPr": 577
+  },
+  "cloudBuild": {
+    "id": "816bde52-c35f-481d-b31f-3ec0545d4938",
+    "status": "SUCCESS",
+    "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-api:external-beta-qwen-auth-bridge-1-3618372",
+    "digest": "sha256:0085e10c6cfadaebeb390bc1738ffba0d35477aa38f8da130158ec9e964e1eb7"
+  },
+  "cloudRun": {
+    "service": "reeditpro-staging-api",
+    "region": "us-central1",
+    "latestReadyRevision": "reeditpro-staging-api-00011-79q",
+    "traffic": "100_percent_reeditpro-staging-api-00011-79q",
+    "supabasePublicAuthEnvConfigured": true,
+    "qwenRouteGatesConfigured": true
+  },
+  "secretIam": {
+    "narrowGrantAdded": true,
+    "secret": "SUPABASE_ANON_KEY",
+    "member": "serviceAccount:reeditpro-stg-api-sa@reeditpro.iam.gserviceaccount.com",
+    "role": "roles/secretmanager.secretAccessor"
+  },
+  "preflight": {
+    "runId": "2026-06-30T08-14-05-042Z-ced056a2",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-qwen-native-auth-bridge-staging-handoff-preflight-1/2026-06-30T08-14-05-042Z-ced056a2",
+    "report": {
+      "fileName": "qwen-native-auth-bridge-staging-handoff-preflight-report.json",
+      "bytes": 1986,
+      "sha256": "17ef496b7f5e67de6fed059e4b59675fc4741687795c8103bcca1139f2981c1e"
+    },
+    "manifest": {
+      "fileName": "qwen-native-auth-bridge-staging-handoff-preflight-manifest.json",
+      "bytes": 689,
+      "sha256": "dbcb2055874587093d11499bd22191f6ec64d315ce0fa41536c864b6888e094e"
+    },
+    "supabaseAuthHttpStatus": 200,
+    "routeHttpStatus": 202,
+    "routeStatus": "ready_for_guarded_qwen2_5_vl_product_route_provider_runtime_fixture",
+    "backendHandoffPrepared": true,
+    "providerRuntimeExecutedNow": false,
+    "providerModelCallAllowedNow": false,
+    "workerDispatchAllowedNow": false
+  },
+  "safety": {
+    "cloudBuild": true,
+    "cloudRunServiceUpdate": true,
+    "secretIamMutation": true,
+    "secretPayloadAccess": true,
+    "supabaseAuthTokenRequest": true,
+    "cloudRunIdentityTokenFetch": true,
+    "cloudRunRouteInvocation": true,
+    "qwenProviderCall": false,
+    "modelCall": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "cloudRunJobExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "mediaProcessing": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "productionUnlock": false,
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "packageLockMutation": false
+  },
+  "readiness": {
+    "qwenNativeAuthBridgeStagingHandoff": "ready_for_guarded_qwen_provider_runtime_fixture_or_single_tester_qwen_dispatch_retry",
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-PROVIDER-RUNTIME-FIXTURE-CURRENT-1-CONFIRMED-RUN",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

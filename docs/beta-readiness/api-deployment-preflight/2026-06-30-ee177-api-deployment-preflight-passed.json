@@ -1,0 +1,78 @@
+{
+  "reportId": "beta-readiness-api-deployment-preflight-ee177-passed-2026-06-30",
+  "createdAt": "2026-06-30T04:13:50Z",
+  "decision": "beta_readiness_api_deployment_preflight_passed_ready_for_deployed_evidence_input_manifest",
+  "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "sourceSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+  "basedOnDeployEvidence": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-30-ee177-api-staging-deploy.json",
+  "preflightCommand": "npm run beta:readiness:api-deployment-preflight",
+  "preflightMode": "no-runtime-no-network-metadata_check",
+  "result": {
+    "ok": true,
+    "readyToVerifyDeployedApi": true,
+    "readyForDeployedEvidenceCollectors": true,
+    "environment": "staging",
+    "missingConfiguration": [],
+    "missingConfirmations": [],
+    "missingSecretBindings": [],
+    "valueGaps": [],
+    "secretLikeInputPaths": []
+  },
+  "plannedService": {
+    "serviceName": "reeditpro-api-staging",
+    "region": "us-east1",
+    "projectId": "reeditpro",
+    "serviceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-ee177046bfb0-20260630T0412Z",
+    "expectedBaseUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app"
+  },
+  "nonSecretInputsConfirmed": {
+    "GCP_PROJECT_ID": "reeditpro",
+    "GCP_REGION": "us-east1",
+    "GCP_ARTIFACT_REGION": "us-central1",
+    "REEDITPRO_ENV": "staging",
+    "REEDITPRO_ARTIFACT_REPOSITORY": "reeditpro-staging-workers",
+    "REEDITPRO_IMAGE_TAG": "api-staging-ee177046bfb0-20260630T0412Z",
+    "REEDITPRO_API_SERVICE_ACCOUNT": "reeditpro-api-staging",
+    "REEDITPRO_BETA_API_DEPLOYMENT_SERVICE_NAME": "reeditpro-api-staging",
+    "REEDITPRO_BETA_API_DEPLOYMENT_SOURCE_SHA": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+    "REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+    "REEDITPRO_BETA_EXTERNAL_API_BASE_URL": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app"
+  },
+  "presenceOnlyBindingConfirmations": [
+    "REEDITPRO_BETA_API_DEPLOYMENT_SUPABASE_URL_BOUND",
+    "REEDITPRO_BETA_API_DEPLOYMENT_SUPABASE_SERVICE_ROLE_KEY_BOUND",
+    "REEDITPRO_BETA_API_DEPLOYMENT_PROVIDER_GATEWAY_SHARED_SECRET_BOUND",
+    "REEDITPRO_BETA_API_DEPLOYMENT_WORKER_WEBHOOK_SECRET_BOUND"
+  ],
+  "remainingGates": {
+    "sourceFreshnessPreflight": "passed_with_ee177_deploy_evidence",
+    "deployedEvidenceInputManifest": "blocked_pending_operator_inputs",
+    "pendingOperatorInputCount": 57,
+    "ownerApprovals": "still_required",
+    "externalBetaReady": false,
+    "realUserMediaBetaReady": false,
+    "paidProductionReady": false
+  },
+  "blockedScopeConfirmations": {
+    "gcloudRanLocally": false,
+    "deployedBackendCalled": false,
+    "backendEvidenceRecorded": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "userMediaProcessed": false,
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeAction": "Collect operator inputs outside source control, rerun deployed evidence input manifest, then run external beta evidence collector only after the manifest is ready."
+}

@@ -62,10 +62,10 @@ assert.deepEqual(ready.valueGaps, [])
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
-assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-value-progress'))
+assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
-assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(ready.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(ready.recommendedCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight'))
@@ -76,11 +76,11 @@ assert.ok(
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-bootstrap') <
-    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-value-progress'),
+    ready.recommendedCommands.indexOf('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'),
   'local env bootstrap should precede the redacted value progress command',
 )
 assert.ok(
-  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-value-progress') <
+  ready.recommendedCommands.indexOf('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-autofill-env'),
   'redacted value progress should precede the auto-fill env command',
 )
@@ -91,11 +91,11 @@ assert.ok(
 )
 assert.ok(
   ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-human-input-checklist') <
-    ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-preflight'),
+    ready.recommendedCommands.indexOf('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'),
   'human input checklist command should precede the local env preflight command',
 )
 assert.ok(
-  ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-local-env-preflight') <
+  ready.recommendedCommands.indexOf('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight') <
     ready.recommendedCommands.indexOf('npm run beta:readiness:external-beta-operator-input-template'),
   'local env preflight command should precede the full operator template command',
 )
@@ -159,6 +159,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
   packageJsonChangedScriptNames: [
     'beta:readiness:deployed-evidence-input-manifest',
     'beta:readiness:api-deployment-preflight',
+    'beta:readiness:blocker-closeout-queue',
     'beta:readiness:blocker-ledger',
     'beta:readiness:external-beta-operator-autofill-env',
     'beta:readiness:external-beta-operator-human-input-checklist',
@@ -190,6 +191,7 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'prod:readiness:summary',
     'smoke:beta-readiness-deployed-evidence-input-manifest',
     'smoke:beta-readiness',
+    'smoke:beta-readiness-blocker-closeout-queue',
     'smoke:beta-readiness-api-deployment-preflight',
     'smoke:beta-readiness-api-staging-deploy-workflow',
     'smoke:beta-readiness-api-staging-input-discovery-blocker',

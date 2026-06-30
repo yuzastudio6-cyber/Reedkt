@@ -1,0 +1,657 @@
+{
+  "ok": true,
+  "decision": "beta_readiness_external_beta_operator_input_template_passed_ready_for_operator_value_collection",
+  "templateId": "beta-readiness-external-beta-operator-input-template-ee177-2026-06-30",
+  "sourceTruth": {
+    "deployedEvidenceManifestPath": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json",
+    "deployedEvidenceManifestDecision": "beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs",
+    "deployedApiRevision": "reeditpro-api-staging-00015-skq",
+    "deployedSourceSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+    "defaultApiBaseUrlSource": "committed_ee177_deploy_readback",
+    "trackBToolTotals": {
+      "owned": 16,
+      "boundedAcceptedProven": 16,
+      "blockedNotInstalledProven": 0,
+      "productReady": 0
+    },
+    "productReadyLocalOssCount": 0
+  },
+  "inputCounts": {
+    "required": 60,
+    "currentlyPendingInBlankEnvironment": 57,
+    "secretOrSensitiveInputs": 2,
+    "operatorGeneratedIds": 4,
+    "operatorEvidenceNotes": 11,
+    "prefilledNonSecretConstants": 10
+  },
+  "requiredInputGroups": {
+    "shared": 8,
+    "tool_evidence": 14,
+    "platform_evidence": 22,
+    "launch_approval": 16
+  },
+  "requiredInputs": [
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_API_BASE_URL",
+      "group": "shared",
+      "secret": true,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": true,
+      "templateValue": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+      "valuePolicy": "operator_secret_or_sensitive"
+    },
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN",
+      "group": "shared",
+      "secret": true,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "templateValue": "<secret value supplied only in the operator shell>",
+      "valuePolicy": "operator_secret_or_sensitive"
+    },
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID",
+      "group": "shared",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "templateValue": "<operator supplied non-secret value>",
+      "valuePolicy": "operator_non_secret_value"
+    },
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_PROJECT_ID",
+      "group": "shared",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "templateValue": "<operator supplied non-secret value>",
+      "valuePolicy": "operator_non_secret_value"
+    },
+    {
+      "name": "REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA",
+      "group": "shared",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": true,
+      "templateValue": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_SOURCE_SHA",
+      "group": "shared",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": true,
+      "expectedValue": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+      "templateValue": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE",
+      "group": "shared",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY",
+      "group": "shared",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "templateValue": "reeditpro-beta-tools-local-bundle-core-idempotency-key-ee177046bfb0",
+      "valuePolicy": "operator_unique_id"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "templateValue": "reeditpro-beta-tools-local-bundle-libass-idempotency-key-ee177046bfb0",
+      "valuePolicy": "operator_unique_id"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "beta-tools-current-source-16-tool-local-accepted-evidence-bundle",
+      "templateValue": "beta-tools-current-source-16-tool-local-accepted-evidence-bundle",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "d47015e88943dd4760dd9eb6ee45ad0f8ead15ca",
+      "templateValue": "d47015e88943dd4760dd9eb6ee45ad0f8ead15ca",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "ffmpeg,ffprobe,pyav,opentimelineio,hyperframe,remotion,sharp,duckdb,polars,pyscenedetect,opencv,opencolorio,openimageio,audioflux,signalsmith_stretch",
+      "templateValue": "ffmpeg,ffprobe,pyav,opentimelineio,hyperframe,remotion,sharp,duckdb,polars,pyscenedetect,opencv,opencolorio,openimageio,audioflux,signalsmith_stretch",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "16",
+      "templateValue": "16",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "0",
+      "templateValue": "0",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "docker",
+      "templateValue": "docker",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE",
+      "group": "tool_evidence",
+      "secret": false,
+      "requiredFor": "external_beta_evidence_sequence",
+      "present": false,
+      "expectedValue": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001",
+      "templateValue": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_IDEMPOTENCY_KEY",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "templateValue": "reeditpro-beta-platform-idempotency-key-ee177046bfb0",
+      "valuePolicy": "operator_unique_id"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_ENVIRONMENT",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "staging",
+      "templateValue": "staging",
+      "valuePolicy": "prefilled_non_secret_constant"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_ALLOW_PERSISTENT_PROBE_WRITES",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "templateValue": "<operator supplied non-secret value>",
+      "valuePolicy": "operator_non_secret_value"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_RECORD_EVIDENCE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_CONFIRM_RECORD_EVIDENCE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_REQUIRE_READY",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<operator confirmation: set to true only after this gate is intentionally accepted>",
+      "valuePolicy": "operator_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_DEPLOYMENT",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_STORAGE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_LEGAL",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_MONITORING",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_APPROVE_SUPPORT",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<technical verification: set to true only after evidence readback passes>",
+      "valuePolicy": "technical_verification_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_VERIFIED",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<technical verification: set to true only after evidence readback passes>",
+      "valuePolicy": "technical_verification_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_EVIDENCE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_MONITORING_VERIFIED",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<technical verification: set to true only after evidence readback passes>",
+      "valuePolicy": "technical_verification_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_MONITORING_EVIDENCE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_BILLING_QA_VERIFIED",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<technical verification: set to true only after evidence readback passes>",
+      "valuePolicy": "technical_verification_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_PLATFORM_BILLING_QA_EVIDENCE",
+      "group": "platform_evidence",
+      "secret": false,
+      "requiredFor": "platform_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_IDEMPOTENCY_KEY",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "reeditpro-beta-launch-idempotency-key-ee177046bfb0",
+      "valuePolicy": "operator_unique_id"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_CONFIRM_EXTERNAL_BETA_APPROVAL",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_DEPLOYMENT",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_SECURITY",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_STORAGE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_MODEL_LICENSES",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_LEGAL",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_MONITORING",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_APPROVE_SUPPORT",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "expectedValue": "true",
+      "templateValue": "<owner approval: set to true only after named owner approval is recorded>",
+      "valuePolicy": "owner_approval_confirmation"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_DEPLOYMENT_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_SECURITY_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_STORAGE_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_LEGAL_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_MONITORING_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    },
+    {
+      "name": "REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE",
+      "group": "launch_approval",
+      "secret": false,
+      "requiredFor": "launch_packet",
+      "present": false,
+      "templateValue": "<non-secret owner evidence summary>",
+      "valuePolicy": "owner_evidence_note"
+    }
+  ],
+  "envTemplate": "# ReEditPro external beta evidence input template - ee177\n# Fill in an operator shell or secret manager session only. Do not commit completed values.\n# Bearer tokens must remain in authorization headers/env only. Evidence notes must be non-secret summaries.\n\n# shared\nREEDITPRO_BETA_EXTERNAL_API_BASE_URL=\"https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app\"\nREEDITPRO_BETA_EXTERNAL_BEARER_TOKEN=\"<secret value supplied only in the operator shell>\"\nREEDITPRO_BETA_EXTERNAL_WORKSPACE_ID=\"<operator supplied non-secret value>\"\nREEDITPRO_BETA_EXTERNAL_PROJECT_ID=\"<operator supplied non-secret value>\"\nREEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA=\"ee177046bfb07868c4eb0ebd04f4eaff42c811ce\"\nREEDITPRO_BETA_EXTERNAL_SOURCE_SHA=\"ee177046bfb07868c4eb0ebd04f4eaff42c811ce\"\nREEDITPRO_BETA_EXTERNAL_CONFIRM_EVIDENCE_SEQUENCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_EXTERNAL_REQUIRE_EXTERNAL_BETA_READY=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\n\n# tool_evidence\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_IDEMPOTENCY_KEY=\"reeditpro-beta-tools-local-bundle-core-idempotency-key-ee177046bfb0\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_IDEMPOTENCY_KEY=\"reeditpro-beta-tools-local-bundle-libass-idempotency-key-ee177046bfb0\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID=\"beta-tools-current-source-16-tool-local-accepted-evidence-bundle\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA=\"d47015e88943dd4760dd9eb6ee45ad0f8ead15ca\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS=\"ffmpeg,ffprobe,pyav,opentimelineio,hyperframe,remotion,sharp,duckdb,polars,pyscenedetect,opencv,opencolorio,openimageio,audioflux,signalsmith_stretch\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_CORE_ACCEPTED_EVIDENCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_LIBASS_ACCEPTED_EVIDENCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRE_OPERATOR_READBACK=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT=\"16\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=\"0\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE=\"docker\"\nREEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE=\"us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001\"\n\n# platform_evidence\nREEDITPRO_BETA_PLATFORM_IDEMPOTENCY_KEY=\"reeditpro-beta-platform-idempotency-key-ee177046bfb0\"\nREEDITPRO_BETA_PLATFORM_ENVIRONMENT=\"staging\"\nREEDITPRO_BETA_PLATFORM_ALLOW_PERSISTENT_PROBE_WRITES=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_PLATFORM_WALLET_SETTLEMENT_EVENT_ID=\"<operator supplied non-secret value>\"\nREEDITPRO_BETA_PLATFORM_RECORD_EVIDENCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_PLATFORM_CONFIRM_RECORD_EVIDENCE=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_PLATFORM_REQUIRE_READY=\"<operator confirmation: set to true only after this gate is intentionally accepted>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_BILLING_STRIPE_BOUNDARY=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_DEPLOYMENT=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_SECURITY=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_STORAGE=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_LEGAL=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_MONITORING=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_APPROVE_SUPPORT=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_PLATFORM_RLS_READBACK_VERIFIED=\"<technical verification: set to true only after evidence readback passes>\"\nREEDITPRO_BETA_PLATFORM_RLS_READBACK_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_VERIFIED=\"<technical verification: set to true only after evidence readback passes>\"\nREEDITPRO_BETA_PLATFORM_STRIPE_BOUNDARY_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_PLATFORM_MONITORING_VERIFIED=\"<technical verification: set to true only after evidence readback passes>\"\nREEDITPRO_BETA_PLATFORM_MONITORING_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_PLATFORM_BILLING_QA_VERIFIED=\"<technical verification: set to true only after evidence readback passes>\"\nREEDITPRO_BETA_PLATFORM_BILLING_QA_EVIDENCE=\"<non-secret owner evidence summary>\"\n\n# launch_approval\nREEDITPRO_BETA_LAUNCH_IDEMPOTENCY_KEY=\"reeditpro-beta-launch-idempotency-key-ee177046bfb0\"\nREEDITPRO_BETA_LAUNCH_CONFIRM_EXTERNAL_BETA_APPROVAL=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_DEPLOYMENT=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_SECURITY=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_STORAGE=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_MODEL_LICENSES=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_LEGAL=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_MONITORING=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_APPROVE_SUPPORT=\"<owner approval: set to true only after named owner approval is recorded>\"\nREEDITPRO_BETA_LAUNCH_MODEL_LICENSE_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_LAUNCH_DEPLOYMENT_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_LAUNCH_SECURITY_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_LAUNCH_STORAGE_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_LAUNCH_LEGAL_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_LAUNCH_MONITORING_EVIDENCE=\"<non-secret owner evidence summary>\"\nREEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE=\"<non-secret owner evidence summary>\"\n\n# Validate before collector execution:\n# If saving this template locally, use .env.reeditpro-beta-operator.local and run: chmod 600 .env.reeditpro-beta-operator.local\n# npm run beta:readiness:source-freshness-preflight\n# npm run beta:readiness:external-beta-operator-local-env-bootstrap\n# npm run beta:readiness:external-beta-operator-autofill-env\n# npm run beta:readiness:external-beta-operator-human-input-checklist\n# REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight\n# npm run beta:readiness:owner-approval-intake-status\n# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight\n# npm run beta:readiness:deployed-evidence-input-manifest -- --status\n# npm run beta:readiness:deployed-evidence-input-manifest\n\n# After collector execution:\n# npm run beta:readiness:external-beta-evidence-collector\n# npm run beta:readiness:operator-status-api\n# operator-status-api can reuse REEDITPRO_BETA_EXTERNAL_API_BASE_URL,\n# REEDITPRO_BETA_EXTERNAL_BEARER_TOKEN, and REEDITPRO_BETA_EXTERNAL_WORKSPACE_ID\n# when the matching REEDITPRO_BETA_STATUS_* aliases are unset.",
+  "validationCommands": [
+    "npm run beta:readiness:source-freshness-preflight",
+    "npm run beta:readiness:external-beta-operator-local-env-bootstrap",
+    "REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown",
+    "npm run beta:readiness:external-beta-operator-autofill-env",
+    "npm run beta:readiness:external-beta-operator-human-input-checklist",
+    "REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight",
+    "npm run beta:readiness:owner-approval-intake-status",
+    "REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight",
+    "npm run beta:readiness:deployed-evidence-input-manifest -- --status",
+    "npm run beta:readiness:deployed-evidence-input-manifest",
+    "npm run beta:readiness:external-beta-evidence-collector",
+    "npm run beta:readiness:operator-status-api"
+  ],
+  "blockedScopeConfirmations": {
+    "approvalsForgedOrGranted": false,
+    "deployedBackendCalled": false,
+    "backendEvidenceRecorded": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "userMediaProcessed": false,
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeAction": "Operators fill this template outside source control, then run source freshness, owner approval intake status, owner approval intake preflight, deployed evidence input manifest, and only then the external beta evidence collector.",
+  "warnings": [
+    "This template is a local operator input aid only; it does not call the deployed backend or record evidence.",
+    "Do not commit completed templates, bearer tokens, workspace/project identifiers if private, evidence notes, signed URLs, raw prompts, or private media references.",
+    "External beta, real-user-media beta, paid production, provider calls, worker dispatch, Supabase/GCS writes, public artifacts, and signed URLs remain blocked until their named gates pass."
+  ]
+}

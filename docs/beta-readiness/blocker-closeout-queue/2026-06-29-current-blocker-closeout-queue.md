@@ -1,101 +1,70 @@
-# Beta Readiness Blocker Closeout Queue - Current
+# Beta Readiness Blocker Closeout Queue
 
 Decision: `beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection`
 
-Current central SHA: `fa5d04a19f116723e17ab1832ded7cde7ef78481`
-Blocker ledger rows: `197`
+Current source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
+
+Operator input template: `docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json`
+
 Product-ready local OSS count: `0`
-External beta allowed: `false`
-Real-user-media beta allowed: `false`
-Paid production allowed: `false`
-Operator input template: `docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json`
-Operator inputs: `57/60` pending in blank environment
-Human-actionable pending inputs: `45`
-Auto-fillable pending inputs: `12`
 
-## Closeout Batches
+Track B local tool evidence: `16 locally accepted / 0 product-ready`
 
-1. Collect exact operator values outside source control
-   - Batch id: `operator_value_collection`
-   - Clearance type: `operator_input_collection`
-   - Rows: `57`
-   - Can enable beta/production: `false`
-   - Next command: `npm run beta:readiness:external-beta-operator-input-template -- --status`
-   - Next command: `npm run beta:readiness:external-beta-operator-local-env-bootstrap`
-   - Next command: `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown`
-   - Next command: `npm run beta:readiness:external-beta-operator-autofill-env`
-   - Next command: `npm run beta:readiness:external-beta-operator-human-input-checklist`
-   - Next command: `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight`
-   - Next command: `npm run beta:readiness:external-beta-operator-input-template`
-   - Next command: `npm run beta:readiness:owner-approval-intake-status`
-   - Next command: `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
-   - Next command: `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
-   - Strict gate: `npm run beta:readiness:deployed-evidence-input-manifest`
-   - Blocked until: Operators review the value-free pending-input status, create the local ignored `.env.reeditpro-beta-operator.local` bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations), keep `chmod 600` on that file, validate that file with the operator local-env preflight using `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local`, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.
+## Queue Summary
 
-2. Record the 16-tool Track B accepted evidence bundle against deployed staging
-   - Batch id: `trackb_deployed_tool_evidence_recording`
-   - Clearance type: `deployed_tool_evidence`
-   - Rows: `16`
-   - Can enable beta/production: `false`
-   - Next command: `npm run beta:tools:local-accepted-evidence-collector`
-   - Next command: `npm run beta:readiness:external-beta-evidence-collector`
-   - Next command: `npm run beta:readiness:operator-status-api`
-   - Blocked until: The deployed collector records core tool evidence and libass evidence idempotently, then operator status readback confirms the accepted evidence from staging.
+- Blocker ledger rows: `197`
+- Duplicate ledger rows: `0`
+- Ready to record deployed evidence: `true`
+- Required operator inputs: `60`
+- Pending in blank env: `57`
+- Human-actionable pending inputs: `45`
+- Auto-fillable pending inputs: `12`
+- External beta allowed: `false`
+- Real-user-media beta allowed: `false`
+- Paid production allowed: `false`
 
-3. Close bounded command/import/container proof gaps for the full production registry
-   - Batch id: `registry_bounded_runtime_evidence`
-   - Clearance type: `bounded_local_proof`
-   - Rows: `98`
-   - Can enable beta/production: `false`
-   - Next command: `npm run beta:tools:core-real-check-preview -- --env-template`
-   - Next command: `npm run beta:tools:core-real-check-preview -- --local-defaults`
-   - Next command: `npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults`
-   - Next command: `npm run beta:tools:local-accepted-evidence-bundle -- --local-defaults`
-   - Blocked until: Every registry tool has accepted bounded runtime evidence or an explicit source-truth exclusion; no user media or product runtime proof is implied.
+## Next Batch
 
-4. Run QA acceptance after real bounded evidence exists
-   - Batch id: `product_ready_qa_acceptance`
-   - Clearance type: `diagnostics_or_qa`
-   - Rows: `49`
-   - Can enable beta/production: `false`
-   - Next command: `npm run smoke:tool-beta-execution-readiness`
-   - Next command: `npm run smoke:beta-readiness`
-   - Next command: `npm run smoke:beta-readiness-api`
-   - Blocked until: QA accepts exact bounded evidence per tool and product-ready local OSS remains explicitly scoped, reviewed, and counted from evidence.
+- Batch: `operator_value_collection`
+- Title: Collect exact operator values outside source control
+- Blocker row count: `57`
+- Can run without operator secrets: `false`
+- Can enable beta or production: `false`
 
-5. Record deployed platform evidence for billing persistence and staging readiness
-   - Batch id: `deployed_platform_evidence`
-   - Clearance type: `deployed_platform_evidence`
-   - Rows: `5`
-   - Can enable beta/production: `false`
-   - Next command: `npm run beta:platform:staging-evidence-preflight`
-   - Next command: `npm run beta:platform:staging-evidence-probe`
-   - Next command: `npm run beta:readiness:operator-status-api`
-   - Blocked until: Migration deployment, service-role write path, RLS member readback, idempotent replay, wallet settlement, Stripe boundary, monitoring, billing QA, and owner approvals are recorded from deployed staging.
+### Source Evidence
 
-6. Collect model/license, deployment, security, storage, legal, monitoring, and support approvals
-   - Batch id: `owner_launch_approvals`
-   - Clearance type: `owner_approval`
-   - Rows: `44`
-   - Can enable beta/production: `false`
-   - Next command: `npm run beta:readiness:owner-approval-env-template`
-   - Next command: `npm run beta:readiness:launch-approval-evidence-preflight`
-   - Next command: `npm run beta:readiness:launch-approval-evidence`
-   - Blocked until: Named owners provide non-secret evidence notes and explicit approvals; model/checkpoint licensing remains approved only for the named external-beta scope.
+- docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json (60 required inputs, 57 pending in blank env: 45 human-actionable, 12 auto-fillable constants/keys)
 
-7. Escalate separately to real-user-media beta and paid production after external beta passes
-   - Batch id: `post_external_beta_scope_escalation`
-   - Clearance type: `scope_approval`
-   - Rows: `2`
-   - Can enable beta/production: `false`
-   - Next command: `REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta npm run beta:readiness:scope-approval-evidence-preflight`
-   - Next command: `REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production npm run beta:readiness:scope-approval-evidence-preflight`
-   - Next command: `npm run beta:readiness:paid-production-evidence-collector`
-   - Blocked until: External beta has passed, then separate real-user-media and paid-production approval/evidence packets pass with final readback.
+### Commands
+
+- `npm run beta:readiness:external-beta-operator-input-template -- --status`
+- `npm run beta:readiness:external-beta-operator-local-env-bootstrap`
+- `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown`
+- `npm run beta:readiness:external-beta-operator-autofill-env`
+- `npm run beta:readiness:external-beta-operator-human-input-checklist`
+- `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight`
+- `npm run beta:readiness:external-beta-operator-input-template`
+- `npm run beta:readiness:owner-approval-intake-status`
+- `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
+- `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
+- `npm run beta:readiness:deployed-evidence-input-manifest`
+
+### Blocked Until
+
+- Operators review the value-free pending-input status, create the local ignored .env.reeditpro-beta-operator.local bootstrap skeleton, review redacted markdown progress from that owner-only file, supply the 45 human-actionable values (bearer token, workspace/project IDs, wallet settlement event ID, non-secret owner evidence notes, explicit approval confirmations, and technical verification confirmations), keep chmod 600 on that file, validate that file with the operator local-env preflight using REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local, validate owner approvals from that same owner-only file, and export or keep the auto-fillable constants/idempotency keys from the generated skeleton in an operator shell or secret manager session.
+
+## Batches
+
+- `operator_value_collection`: Collect exact operator values outside source control (rows: `57`, no-secret runnable: `false`)
+- `trackb_deployed_tool_evidence_recording`: Record the 16-tool Track B accepted evidence bundle against deployed staging (rows: `16`, no-secret runnable: `false`)
+- `registry_bounded_runtime_evidence`: Close bounded command/import/container proof gaps for the full production registry (rows: `98`, no-secret runnable: `true`)
+- `product_ready_qa_acceptance`: Run QA acceptance after real bounded evidence exists (rows: `49`, no-secret runnable: `true`)
+- `deployed_platform_evidence`: Record deployed platform evidence for billing persistence and staging readiness (rows: `5`, no-secret runnable: `false`)
+- `owner_launch_approvals`: Collect model/license, deployment, security, storage, legal, monitoring, and support approvals (rows: `44`, no-secret runnable: `false`)
+- `post_external_beta_scope_escalation`: Escalate separately to real-user-media beta and paid production after external beta passes (rows: `2`, no-secret runnable: `false`)
 
 ## Boundary
 
-This closeout queue did not call deployed services, record evidence, run tools, process media, write Supabase/GCS, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.
+This queue does not enable external beta, real-user-media beta, paid production, provider calls, worker dispatch, media processing, Supabase/GCS writes, public artifacts, signed URLs, or product-ready local OSS claims.
 
 Supabase classification: no write / environment none / SQL none / migration no.

@@ -1,9 +1,9 @@
 {
   "reportId": "beta-readiness-blocker-closeout-queue-2026-06-29",
-  "createdAt": "2026-06-29T22:37:34.000Z",
+  "createdAt": "2026-06-30T06:10:02.107Z",
   "decision": "beta_readiness_blocker_closeout_queue_passed_ready_for_operator_evidence_collection",
   "sourceTruth": {
-    "currentCentralSha": "fa5d04a19f116723e17ab1832ded7cde7ef78481",
+    "currentCentralSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
     "blockerLedgerRows": 197,
     "duplicateBlockerRows": 0,
     "toolRows": 184,
@@ -35,7 +35,7 @@
       "libass"
     ],
     "readyToRecordDeployedEvidence": true,
-    "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json",
+    "operatorTemplatePath": "docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json",
     "requiredOperatorInputs": 60,
     "pendingOperatorInputsInBlankEnv": 57,
     "humanActionablePendingOperatorInputs": 45,
@@ -69,7 +69,7 @@
       "canRunWithoutOperatorSecrets": false,
       "canEnableBetaOrProduction": false,
       "sourceEvidence": [
-        "docs/beta-readiness/external-beta-operator-input-template/2026-06-29-184f-external-beta-operator-input-template.json (60 required inputs, 57 pending in blank env: 45 human-actionable, 12 auto-fillable constants/keys)"
+        "docs/beta-readiness/external-beta-operator-input-template/2026-06-30-ee177-external-beta-operator-input-template.json (60 required inputs, 57 pending in blank env: 45 human-actionable, 12 auto-fillable constants/keys)"
       ],
       "nextCommands": [
         "npm run beta:readiness:external-beta-operator-input-template -- --status",

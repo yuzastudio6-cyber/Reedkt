@@ -8,7 +8,7 @@ const staleLocalEvidenceSourceShas = [
   '94c37bb492a584c087247625dcb1fb53398c17f4',
   'e8821759a10a43a60795accb596b3b83c15f9dfb',
 ]
-const expectedDeployedSourceSha = '184f8b225d01d5bb38c7d3a09d8461bcf8e325dc'
+const expectedDeployedSourceSha = 'ee177046bfb07868c4eb0ebd04f4eaff42c811ce'
 const expectedCoreToolIds = [
   'ffmpeg',
   'ffprobe',
@@ -28,11 +28,11 @@ const expectedCoreToolIds = [
 ]
 const expectedLibassImage = 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
 const committedManifestJson = readFileSync(
-  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json',
+  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json',
   'utf8',
 )
 const committedManifestMarkdown = readFileSync(
-  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.md',
+  'docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.md',
   'utf8',
 )
 
@@ -89,10 +89,10 @@ assert.equal(emptyManifest.secretLikeInputPaths.length, 0)
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-env-template'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
-assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-value-progress'))
+assert.ok(emptyManifest.recommendedCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
-assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))
+assert.ok(emptyManifest.recommendedCommands.includes('REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:external-beta-operator-input-template'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:source-freshness-preflight'))
 assert.ok(emptyManifest.recommendedCommands.includes('npm run beta:readiness:owner-approval-intake-status'))

@@ -1,40 +1,44 @@
 {
-  "reportId": "beta-readiness-owner-approval-intake-preflight-2026-06-28",
-  "createdAt": "2026-06-29T02:45:00Z",
+  "reportId": "beta-readiness-owner-approval-intake-preflight-current-gates-2026-06-28",
   "decision": "beta_readiness_owner_approval_intake_preflight_passed_ready_for_owner_input_collection",
   "currentNoInputPreflightDecision": "beta_readiness_owner_approval_intake_preflight_blocked_missing_or_unsafe_owner_inputs",
   "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
-  "sourceShaAtRefresh": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
-  "deployedEvidenceSourceSha": "184f8b225d01d5bb38c7d3a09d8461bcf8e325dc",
+  "sourceShaAtRefresh": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+  "deployedEvidenceSourceSha": "ee177046bfb07868c4eb0ebd04f4eaff42c811ce",
+  "sourceFreshnessPacket": "docs/beta-readiness/source-freshness-preflight/2026-06-30-ee177-source-freshness-passed.json",
   "sourceFreshnessDecision": "beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence",
-  "sourceFreshnessPacket": "docs/beta-readiness/source-freshness-preflight/2026-06-29-184f-source-freshness-passed.json",
-  "ownerApprovalPacket": "docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.json",
-  "manifestOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json",
-  "deployedEvidenceInputManifest": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json",
-  "ownerApprovalCollectionHandoff": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-29-184f-owner-approval-collection-handoff.json",
-  "commands": {
-    "template": "npm run beta:readiness:owner-approval-env-template",
-    "sourceFreshness": "npm run beta:readiness:source-freshness-preflight",
-    "preflight": "REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight",
-    "smoke": "npm run smoke:beta-readiness-owner-approval-intake-preflight"
-  },
+  "manifestOwnerGapPacket": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json",
+  "deployedEvidenceInputManifest": "docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json",
+  "ownerApprovalCollectionHandoff": "docs/beta-readiness/owner-approval-collection-handoff/2026-06-30-ee177-owner-approval-collection-handoff.json",
   "requiredInputCount": 29,
   "currentNoInputPendingCount": 29,
   "requiredInputGroups": {
-    "platformApprovals": 7,
-    "platformAttestations": 8,
-    "launchApprovals": 7,
+    "platformApprovalBooleans": 7,
+    "platformAttestationsAndEvidenceNotes": 8,
+    "launchApprovalBooleans": 7,
     "launchEvidenceNotes": 7
   },
+  "trackBToolTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyLocalOssCount": 0,
+  "commands": [
+    "npm run beta:readiness:owner-approval-env-template",
+    "npm run beta:readiness:source-freshness-preflight",
+    "REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight",
+    "npm run smoke:beta-readiness-owner-approval-intake-preflight"
+  ],
   "safetyRules": [
-    "Owner approval and attestation booleans must be explicitly true.",
-    "The no-input preflight remains blocked until owners provide all 29 non-secret inputs outside source control.",
-    "Evidence notes are presence/safety checked but not echoed in the report.",
-    "Secret-like evidence notes fail closed.",
-    "Real-user-media beta and paid-production approval flags fail closed in this external-beta intake.",
-    "The preflight does not grant owner approval by itself."
+    "Owner approval booleans and technical verification booleans must be exactly true when supplied.",
+    "Owner evidence notes must be non-secret summaries only.",
+    "Real-user-media beta and paid-production flags remain rejected in this lane.",
+    "The preflight must not echo evidence-note values."
   ],
   "blockedScopeConfirmations": {
+    "approvalsGrantedByThisPacket": false,
     "deployedBackendCalled": false,
     "backendEvidenceRecorded": false,
     "supabaseWritesRan": false,
@@ -55,12 +59,5 @@
     "sql": "none",
     "migration": "no"
   },
-  "trackBToolTotals": {
-    "owned": 16,
-    "boundedAcceptedProven": 16,
-    "blockedNotInstalledProven": 0,
-    "productReady": 0
-  },
-  "productReadyLocalOssCount": 0,
   "nextSafeAction": "Generate the owner input template with npm run beta:readiness:owner-approval-env-template, have owners fill non-secret approval booleans and evidence notes in the same ignored local file used for operator evidence, run chmod 600 .env.reeditpro-beta-operator.local, run npm run beta:readiness:source-freshness-preflight, run REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
 }

@@ -3,21 +3,21 @@
 Decision: `beta_readiness_owner_approval_packet_passed_ready_for_owner_review`
 
 Source branch: `codex/sound-music-audio-1abc-checkpoint`
-Source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
-Deployed evidence source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
+Source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
+Deployed evidence source SHA: `ee177046bfb07868c4eb0ebd04f4eaff42c811ce`
 
 ## Current Evidence
 
-- Source freshness preflight packet: `docs/beta-readiness/source-freshness-preflight/2026-06-29-184f-source-freshness-passed.json`
+- Source freshness preflight packet: `docs/beta-readiness/source-freshness-preflight/2026-06-30-ee177-source-freshness-passed.json`
 - Source freshness decision: `beta_readiness_source_freshness_preflight_passed_current_source_matches_deploy_evidence`
-- Source freshness policy: current source matches deployed 184f8b225d01 staging evidence after guarded workflow run 28388776429.
+- Source freshness policy: current source matches deployed ee177046bfb0 staging evidence after guarded workflow run 28419763433.
 - Platform technical probe packet: `docs/beta-readiness/platform-technical-probe-current-state/2026-06-28-a735-platform-technical-probe.json`
-- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-184f-api-staging-deploy.json`
-- Deployed evidence input manifest: `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-29-184f-deployed-evidence-input-manifest.json`
-- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00014-xdj` in `us-east1`
-- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-184f8b225d01-20260629T1655Z`
-- Normal API image digest: `sha256:57ad5f03353ea9944b026c71ea35fbd9e478e98b7dd757df68e994a746c683ca`
-- Normal API deploy run: [28388776429](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28388776429)
+- Current-source API deploy packet: `docs/beta-readiness/api-staging-deploy-current-source/2026-06-30-ee177-api-staging-deploy.json`
+- Deployed evidence input manifest: `docs/beta-readiness/deployed-evidence-input-manifest/2026-06-30-ee177-deployed-evidence-input-manifest.json`
+- Normal API: `reeditpro-api-staging` revision `reeditpro-api-staging-00015-skq` in `us-east1`
+- Normal API image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-ee177046bfb0-20260630T0412Z`
+- Normal API image digest: `sha256:d41dbcdc2f1f2467ae9c351e5c8c8b96944c7f446c3f0734ade8c98ea5511d32`
+- Normal API deploy run: [28419763433](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28419763433)
 - Normal API public unauthenticated `/health`: HTTP `403`
 - Normal API authenticated health readback: `not_rerun_local_cloud_cli_auth_expired`
 - Tool-readiness API: `reeditpro-tool-readiness-staging` revision `reeditpro-tool-readiness-staging-00002-qdp`
@@ -28,7 +28,7 @@ Deployed evidence source SHA: `184f8b225d01d5bb38c7d3a09d8461bcf8e325dc`
 
 This packet does not approve anything. It defines the exact non-secret owner evidence needed before the existing evidence collectors can run.
 
-Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, review value-free pending operator inputs with `npm run beta:readiness:external-beta-operator-input-template -- --status`, export the safe non-secret constants/idempotency keys with `npm run beta:readiness:external-beta-operator-autofill-env`, review the human-owned value checklist with `npm run beta:readiness:external-beta-operator-human-input-checklist`, then validate the completed local ignored env file with `npm run beta:readiness:external-beta-operator-local-env-preflight` before generating or running the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, review value-free owner input progress with `npm run beta:readiness:owner-approval-intake-status`, then validate owner-provided approval/attestation booleans and evidence notes from the same owner-only local file with `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects secret-like notes, unsafe local env file permissions, symlinks, and wider-scope real-user-media or paid-production flags without echoing evidence note values.
+Generate an owner input template with `npm run beta:readiness:owner-approval-env-template`, review value-free pending operator inputs with `npm run beta:readiness:external-beta-operator-input-template -- --status`, create the ignored owner-only local skeleton with `npm run beta:readiness:external-beta-operator-local-env-bootstrap`, review redacted local progress with `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown`, export the safe non-secret constants/idempotency keys with `npm run beta:readiness:external-beta-operator-autofill-env`, review the human-owned value checklist with `npm run beta:readiness:external-beta-operator-human-input-checklist`, then validate the completed local ignored env file with `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight` before generating or running the full external-beta operator shell template with `npm run beta:readiness:external-beta-operator-input-template`. Before rerunning the deployed evidence input manifest, run `npm run beta:readiness:source-freshness-preflight`, review value-free owner input progress with `npm run beta:readiness:owner-approval-intake-status`, then validate owner-provided approval/attestation booleans and evidence notes from the same owner-only local file with `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`. The intake preflight rejects placeholder values, secret-like notes, unsafe local env file permissions, symlinks, and wider-scope real-user-media or paid-production flags without echoing evidence note values.
 
 ## Platform Evidence Packet Approvals
 
@@ -185,10 +185,13 @@ Generate an owner input template with `npm run beta:readiness:owner-approval-env
 - `npm run beta:platform:staging-evidence-preflight`
 - `npm run beta:readiness:launch-approval-evidence-preflight`
 - `npm run beta:readiness:external-beta-operator-input-template -- --status`
+- `npm run beta:readiness:external-beta-operator-local-env-bootstrap`
+- `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-value-progress -- --markdown`
 - `npm run beta:readiness:external-beta-operator-autofill-env`
 - `npm run beta:readiness:external-beta-operator-human-input-checklist`
-- `npm run beta:readiness:external-beta-operator-local-env-preflight`
+- `REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight`
 - `npm run beta:readiness:external-beta-operator-input-template`
+- `npm run beta:readiness:deployed-evidence-input-manifest -- --status`
 - `npm run beta:readiness:deployed-evidence-input-manifest`
 - `npm run beta:readiness:external-beta-evidence-collector`
 - `npm run beta:readiness:operator-status-api`

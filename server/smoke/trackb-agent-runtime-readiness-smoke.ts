@@ -67,6 +67,34 @@ for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !==
   assert.ok(contract?.imageRoles.length, `${toolId} should expose image roles`)
 }
 
+const deployedReport = buildTrackBAgentRuntimeReadinessReport({
+  deployedEvidenceSource: 'stored_operator_status_readback',
+  deployedEvidenceWorkspaceId: 'workspace-trackb-runtime-readiness-smoke',
+  deployedEvidencePacketCount: 2,
+  deployedEvidenceRecordedToolCount: 16,
+})
+assert.equal(deployedReport.liveAgentExecutionReady, true)
+assert.equal(deployedReport.deployedEvidenceRecordedToolCount, 16)
+assert.equal(deployedReport.productReadyLocalOssCount, 16)
+assert.equal(deployedReport.sourceEvidence.deployedEvidenceSource, 'stored_operator_status_readback')
+assert.equal(deployedReport.sourceEvidence.deployedEvidenceWorkspaceId, 'workspace-trackb-runtime-readiness-smoke')
+assert.deepEqual(deployedReport.blockedActionScope, [])
+assert.deepEqual(deployedReport.blockers, [])
+
+const deployedHyperframe = deployedReport.contracts.find((contract) => contract.toolId === 'hyperframe')
+assert.ok(deployedHyperframe)
+assert.deepEqual(deployedHyperframe.admittedModes, ['frontend_preview_boundary'])
+assert.equal(deployedHyperframe.liveExecutionReady, true)
+
+for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !== 'hyperframe')) {
+  const contract = deployedReport.contracts.find((candidate) => candidate.toolId === toolId)
+  assert.ok(contract, `${toolId} deployed contract must exist`)
+  assert.ok(contract.admittedModes.includes('mock_safe_worker_dispatch'))
+  assert.ok(contract.admittedModes.includes('deployed_live_execution'))
+  assert.equal(contract.deployedEvidenceRecorded, true)
+  assert.equal(contract.blockedActionScope.length, 0)
+}
+
 const serialized = JSON.stringify(report).toLowerCase()
 assert.equal(serialized.includes('40+ tools proven end-to-end'), false)
 assert.equal(/service_role_key|bearer\s+[a-z0-9._-]+|x-goog-signature|sig=|token=/.test(serialized), false)

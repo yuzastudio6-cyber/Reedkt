@@ -46,6 +46,8 @@ export const trackbAgentToolExecutionSchema = z.object({
     'final_delivery',
   ])).optional(),
   renderMode: z.enum(['preview', 'final_export', 'qa_probe']).optional(),
+  creditEstimateId: idSchema.optional(),
+  creditReservationId: idSchema.optional(),
   workerInstanceId: z.string().min(1).optional(),
   attempt: z.number().int().positive().optional(),
   maxAttempts: z.number().int().positive().optional(),

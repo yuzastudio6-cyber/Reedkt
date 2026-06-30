@@ -143,6 +143,7 @@ export interface EmitProductionToolCostEventInput extends ProductionToolCostBase
   failureCategory?: ToolCostFailureCategory
   billableToUser?: boolean
   nonBillableReason?: string
+  estimateOnlyWhenBlocked?: boolean
 }
 
 export interface ProductionToolCostEventEmission {

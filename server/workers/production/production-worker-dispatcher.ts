@@ -166,6 +166,10 @@ function buildWorkerToolCostMetadata(payload: ProductionWorkerJobPayload): Produ
   const billableToUser = payload.executionMode === 'production_ready'
   const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
   const productEditLevel = readProductEditLevel(payload.metadata)
+  const trackBProductReadyRuntimeEvidenceAccepted = readBooleanMetadata(
+    payload.metadata,
+    'trackBProductReadyRuntimeEvidenceAccepted',
+  )
 
   for (const toolId of payload.requestedToolIds) {
     const estimate = estimateProductionToolCost({
@@ -180,7 +184,7 @@ function buildWorkerToolCostMetadata(payload: ProductionWorkerJobPayload): Produ
       productEditLevel,
       approvedReservationRemainingCredits: readNumberMetadata(payload.metadata, 'approvedReservationRemainingCredits'),
       idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
-      estimateOnlyWhenBlocked: true,
+      estimateOnlyWhenBlocked: !trackBProductReadyRuntimeEvidenceAccepted,
     })
 
     if (!estimate.ok) {
@@ -205,6 +209,7 @@ function buildWorkerToolCostMetadata(payload: ProductionWorkerJobPayload): Produ
       idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
       billableToUser,
       nonBillableReason: billableToUser ? undefined : payload.executionMode,
+      estimateOnlyWhenBlocked: !trackBProductReadyRuntimeEvidenceAccepted,
       metadata: {
         workerExecutionMode: payload.executionMode,
         workerType: payload.workerType,
@@ -238,6 +243,10 @@ function evaluateWorkerRuntimeCreditGuard(payload: ProductionWorkerJobPayload): 
   const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
   const productEditLevel = readProductEditLevel(payload.metadata)
   const estimatedFinalVideoDurationSeconds = readNumberMetadata(payload.metadata, 'estimatedFinalVideoDurationSeconds') ?? 30
+  const trackBProductReadyRuntimeEvidenceAccepted = readBooleanMetadata(
+    payload.metadata,
+    'trackBProductReadyRuntimeEvidenceAccepted',
+  )
   let committedPendingHighCredits = readNumberMetadata(payload.metadata, 'committedPendingHighCredits') ?? 0
   let latest: RuntimeCreditGuardResult | undefined
 
@@ -254,6 +263,7 @@ function evaluateWorkerRuntimeCreditGuard(payload: ProductionWorkerJobPayload): 
       creditEstimateId,
       creditReservationId: payload.creditReservationId,
       idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
+      allowEstimateOnly: !trackBProductReadyRuntimeEvidenceAccepted,
       approvedPlanStatus: payload.approvedSnapshotId ? 'approved' : readStringMetadata(payload.metadata, 'approvedPlanStatus'),
       estimateStatus: readStringMetadata(payload.metadata, 'estimateStatus'),
       committedPendingHighCredits,
@@ -314,6 +324,10 @@ function readStringMetadata(metadata: Record<string, unknown> | undefined, key: 
 function readNumberMetadata(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
   const value = metadata?.[key]
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function readBooleanMetadata(metadata: Record<string, unknown> | undefined, key: string): boolean {
+  return metadata?.[key] === true
 }
 
 function readProductEditLevel(metadata: Record<string, unknown> | undefined): 'normal' | 'premium' | 'ultra_premium' {

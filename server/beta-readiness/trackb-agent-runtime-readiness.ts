@@ -89,10 +89,20 @@ export interface TrackBAgentRuntimeReadinessReport {
     productReadySourceReconciliationPath: string
     productReadySourceDecision?: string
     productReadyCloseoutDecision?: string
+    deployedEvidenceSource: 'source_reconciliation_snapshot' | 'stored_operator_status_readback'
+    deployedEvidenceWorkspaceId?: string
+    deployedEvidencePacketCount?: number
   }
   blockers: string[]
   nextActions: string[]
   warnings: string[]
+}
+
+export interface TrackBAgentRuntimeReadinessReportOptions {
+  deployedEvidenceSource?: 'source_reconciliation_snapshot' | 'stored_operator_status_readback'
+  deployedEvidenceWorkspaceId?: string
+  deployedEvidencePacketCount?: number
+  deployedEvidenceRecordedToolCount?: number
 }
 
 interface LocalAcceptedBundleSnapshot {
@@ -115,14 +125,23 @@ interface ProductReadySourceReconciliationSnapshot {
   }
 }
 
-export function buildTrackBAgentRuntimeReadinessReport(): TrackBAgentRuntimeReadinessReport {
+export function buildTrackBAgentRuntimeReadinessReport(
+  options: TrackBAgentRuntimeReadinessReportOptions = {},
+): TrackBAgentRuntimeReadinessReport {
   const localAccepted = readJson<LocalAcceptedBundleSnapshot>(LOCAL_ACCEPTED_BUNDLE_PATH)
   const productReadySource = readJson<ProductReadySourceReconciliationSnapshot>(PRODUCT_READY_SOURCE_RECONCILIATION_PATH)
   const localAcceptedToolIds = new Set(localAccepted.locallyAcceptedToolIds ?? [])
   const readinessSpecByToolId = new Map(productionToolReadinessSpecs.map((spec) => [spec.toolId, spec]))
   const productReadySourceCount = productReadySource.trackBProductReadyTotals?.productReadyForRankedToolCallLane ?? 0
   const deployedEvidenceRecordedToolCount =
-    productReadySource.activeBetaDeployedEvidenceTotals?.productReadyLocalOssRecordedInActiveBetaEvidence ?? 0
+    normalizeEvidenceCount(options.deployedEvidenceRecordedToolCount) ??
+    productReadySource.activeBetaDeployedEvidenceTotals?.productReadyLocalOssRecordedInActiveBetaEvidence ??
+    0
+  const deployedEvidenceSource = options.deployedEvidenceSource ?? (
+    options.deployedEvidenceRecordedToolCount === undefined
+      ? 'source_reconciliation_snapshot'
+      : 'stored_operator_status_readback'
+  )
   const productReadySourceCloseoutReady = productReadySourceCount === TRACKB_AGENT_RUNTIME_TOOL_IDS.length
 
   const contracts = TRACKB_AGENT_RUNTIME_TOOL_IDS.map((toolId) => {
@@ -137,6 +156,12 @@ export function buildTrackBAgentRuntimeReadinessReport(): TrackBAgentRuntimeRead
       productReadySourceCloseoutReady
     const paymentIndependentRuntimeReady = agentContractReady
     const liveExecutionReady = paymentIndependentRuntimeReady && deployedEvidenceRecorded
+    const baseAdmittedModes: TrackBAgentRuntimeAdmissionMode[] = isFrontendPreviewBoundary
+      ? ['frontend_preview_boundary']
+      : ['mock_safe_worker_dispatch']
+    const admittedModes: TrackBAgentRuntimeAdmissionMode[] = !isFrontendPreviewBoundary && liveExecutionReady
+      ? [...baseAdmittedModes, 'deployed_live_execution']
+      : baseAdmittedModes
 
     return {
       toolId,
@@ -157,9 +182,7 @@ export function buildTrackBAgentRuntimeReadinessReport(): TrackBAgentRuntimeRead
         'secret_block_gate',
         'registry_runtime_gate',
       ],
-      admittedModes: isFrontendPreviewBoundary
-        ? ['frontend_preview_boundary']
-        : ['mock_safe_worker_dispatch'],
+      admittedModes,
       agentContractReady,
       paymentIndependentRuntimeReady,
       liveExecutionReady,
@@ -227,6 +250,9 @@ export function buildTrackBAgentRuntimeReadinessReport(): TrackBAgentRuntimeRead
       productReadySourceReconciliationPath: PRODUCT_READY_SOURCE_RECONCILIATION_PATH,
       productReadySourceDecision: productReadySource.decision,
       productReadyCloseoutDecision: productReadySource.productReadyCloseout?.decision,
+      deployedEvidenceSource,
+      deployedEvidenceWorkspaceId: options.deployedEvidenceWorkspaceId,
+      deployedEvidencePacketCount: options.deployedEvidencePacketCount,
     },
     blockers,
     nextActions: [
@@ -234,6 +260,7 @@ export function buildTrackBAgentRuntimeReadinessReport(): TrackBAgentRuntimeRead
       'Keep agent calls in mock_safe_worker_dispatch or frontend_preview_boundary mode until deployed evidence readback records all 16 tools.',
       'Run npm run beta:tools:trackb-product-ready-deployed-evidence-collector with operator-supplied staging values to record product-ready deployed evidence.',
       'Rerun npm run beta:readiness:operator-status-api after deployed evidence recording and require productReadyLocalOssCount=16 before live execution.',
+      'POST /v1/agent-tools/trackb/execute admits deployed_live_execution only when stored workspace evidence readback has productReadyLocalOssCount=16.',
     ],
     warnings: [
       'This report does not run tools, process media, call providers, write Supabase, enable beta, or enable production.',
@@ -241,6 +268,12 @@ export function buildTrackBAgentRuntimeReadinessReport(): TrackBAgentRuntimeRead
       'Live agent execution remains blocked until deployed staging evidence and operator-status readback prove the 16-tool bundle.',
     ],
   }
+}
+
+function normalizeEvidenceCount(value: number | undefined): number | undefined {
+  if (value === undefined) return undefined
+  if (!Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(TRACKB_AGENT_RUNTIME_TOOL_IDS.length, Math.trunc(value)))
 }
 
 function readJson<T>(path: string): T {

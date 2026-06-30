@@ -68,6 +68,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',
@@ -192,6 +193,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
@@ -249,6 +251,7 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
@@ -350,6 +353,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvBootstrap(
     validationCommands: [
       `REEDITPRO_BETA_OPERATOR_ENV_FILE=${targetPath} npm run beta:readiness:external-beta-operator-local-env-preflight`,
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${targetPath} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
     blockedScopeConfirmations: report.blockedScopeConfirmations,
@@ -612,6 +616,7 @@ function renderLocalEnvBootstrapTemplate(inputs) {
   lines.push(`# chmod 600 ${RECOMMENDED_OPERATOR_ENV_FILE}`)
   lines.push(`# REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`)
   lines.push(`# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`)
+  lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   return lines.join('\n')
 }
@@ -662,6 +667,7 @@ function renderEnvTemplate(requiredInputs) {
   lines.push('# REEDITPRO_BETA_OPERATOR_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:external-beta-operator-local-env-preflight')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight')
+  lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   lines.push('')
   lines.push('# After collector execution:')
@@ -694,6 +700,7 @@ function renderAutofillEnvTemplate(autoFillableInputs) {
   lines.push('# npm run beta:readiness:external-beta-operator-input-template')
   lines.push('# npm run beta:readiness:owner-approval-intake-status')
   lines.push('# REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight')
+  lines.push('# npm run beta:readiness:deployed-evidence-input-manifest -- --status')
   lines.push('# npm run beta:readiness:deployed-evidence-input-manifest')
   return lines.join('\n')
 }

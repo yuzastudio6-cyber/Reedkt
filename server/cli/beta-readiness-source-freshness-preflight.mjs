@@ -227,6 +227,7 @@ export function buildBetaReadinessSourceFreshnessPreflight(env = process.env, op
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:owner-approval-intake-status',
       'REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight',
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
       'npm run beta:readiness:operator-status-api',

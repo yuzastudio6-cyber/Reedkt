@@ -133,6 +133,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`,
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
     ],
@@ -265,6 +266,7 @@ export function buildBetaReadinessExternalBetaOperatorValueProgress(options = {}
       `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-value-progress`,
       `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`,
       `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest -- --status',
       'npm run beta:readiness:deployed-evidence-input-manifest',
     ],
     warnings: [

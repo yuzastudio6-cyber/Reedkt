@@ -80,6 +80,22 @@ function assertNoop(value, label) {
   assert(value?.nextAction === 'none', `${label} Supabase next action must be none`)
 }
 
+function assertFutureSourcePathState(phaseLabel) {
+  if (!fs.existsSync(path.join(repoRoot, futureSourcePath))) return
+
+  const phase69 = parseJsonBlock(
+    'docs/worker-runtime-jobs-sound-cpu-phase69-caption-render-runtime-hook-actual-private-manifest-source-creation-result.md',
+    'worker-runtime-jobs-sound-cpu-phase69-caption-render-runtime-hook-actual-private-manifest-source-creation-result',
+  )
+  assert(
+    phase69.decision ===
+      'worker_runtime_jobs_sound_cpu_phase69_caption_render_runtime_hook_actual_private_manifest_source_created_with_warnings_ready_for_private_manifest_source_static_validation_owner_review_no_media_no_artifacts',
+    `${futureSourcePath} exists after ${phaseLabel}, but Phase 69 source-creation decision is missing`,
+  )
+  assertTrue(phase69.createdSource?.created, 'Phase 69 source creation evidence missing')
+  assert(phase69.createdSource?.path === futureSourcePath, 'Phase 69 source path mismatch')
+}
+
 function assertAllFalse(record, label) {
   for (const [key, value] of Object.entries(record ?? {})) {
     assertFalse(value, `${label}.${key}`)
@@ -218,7 +234,7 @@ for (const key of [
 }
 assertNoop(ownerPrompt.supabaseClassification, 'ownerPrompt')
 
-assert(!fs.existsSync(path.join(repoRoot, futureSourcePath)), `${futureSourcePath} must not exist in Phase 68`)
+assertFutureSourcePathState('Phase 68')
 
 const packageJson = JSON.parse(readText('package.json'))
 assert(packageJson.scripts?.[packageScript]?.includes('worker-runtime-jobs-sound-cpu-phase68-caption-render-runtime-hook-private-manifest-source-creation-plan-diagnostics.mjs'), 'Package diagnostics script missing')

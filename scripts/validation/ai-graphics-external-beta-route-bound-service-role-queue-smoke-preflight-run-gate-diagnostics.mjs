@@ -3,34 +3,33 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const decision =
-  'ai_graphics_external_beta_route_bound_service_role_queue_smoke_authorization_bridge_prepared_with_runtime_blocks'
+  'ai_graphics_external_beta_route_bound_service_role_queue_smoke_preflight_run_gate_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'route_bound_service_role_queue_smoke_authorization_bridge_ready_runtime_still_blocked'
-const sourceRouteToLiveDecision =
-  'ai_graphics_external_beta_route_to_live_enqueue_authorization_bridge_prepared_with_runtime_blocks'
-const sourceRouteToLiveStatus =
-  'route_to_live_enqueue_authorization_bridge_ready_runtime_still_blocked'
-const sourceServiceRoleDecision =
-  'ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks'
+  'route_bound_service_role_queue_smoke_preflight_run_gate_ready_execution_still_blocked'
+const sourceRouteBoundDecision =
+  'ai_graphics_external_beta_route_bound_service_role_queue_smoke_authorization_bridge_prepared_with_runtime_blocks'
+const sourcePreflightDecision =
+  'ai_graphics_external_beta_service_role_queue_smoke_preflight_prepared_with_environment_blocks'
 const runScriptName =
-  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge'
+  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts'
+  'tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge:diagnostics'
+  'ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate-diagnostics.mjs'
 
 const requiredFiles = [
-  'server/routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts',
-  'server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts',
-  'scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge-diagnostics.mjs',
+  'server/routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts',
+  'server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts',
+  'scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.md',
   'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-authorization-bridge.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-authorization-bridge.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-beta-route-to-live-enqueue-authorization-bridge.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-beta-live-enqueue-authorization.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
@@ -76,16 +75,23 @@ const capabilities = [
 ]
 
 const trueKeys = [
-  'externalBetaRouteBoundServiceRoleQueueSmokeAuthorizationBridgePrepared',
-  'sourceRouteToLiveEnqueueAuthorizationBridgeAccepted',
-  'sourceServiceRoleQueueSmokeAuthorizationAccepted',
-  'routeBoundServiceRoleQueueSmokeAuthorizationCandidatesAccepted',
-  'routeBoundServiceRoleQueueSmokeAuthorizationBridgeReadyWithProvidedEvidence',
-  'cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationAccepted',
-  'gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationAccepted',
-  'serviceRoleQueueSmokeAuthorizationRecordAcceptedFromSource',
-  'privateRouteBoundServiceRoleQueueSmokeAuthorizationBridgeOnly',
+  'externalBetaRouteBoundServiceRoleQueueSmokePreflightRunGatePrepared',
+  'sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeAccepted',
+  'sourceServiceRoleQueueSmokePreflightAccepted',
+  'routeBoundServiceRoleQueueSmokePreflightRunGateReadyWithProvidedEvidence',
+  'routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesAccepted',
+  'routeBoundOperatorRefsAccepted',
+  'cpuStaticRouteBoundServiceRoleQueueSmokeRunGateAccepted',
+  'gpuModelRouteBoundServiceRoleQueueSmokeRunGateAccepted',
+  'privateRouteBoundServiceRoleQueueSmokeRunGateOnly',
   'queueJobPreparedNotSubmittedOnly',
+  'serviceRoleCredentialsServerOnly',
+  'nonProductionEnvironmentRequired',
+  'explicitSmokeConfirmationRequired',
+  'cleanupRequired',
+  'rollbackRequired',
+  'telemetryRequired',
+  'costCeilingRequired',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -103,7 +109,7 @@ const falseKeys = [
   'apiRouteExecutionApprovedNow',
   'apiRouteExecutionPerformed',
   'routeExecutionApprovedNow',
-  'routeBoundServiceRoleQueueSmokeAuthorizationApprovedNow',
+  'routeBoundServiceRoleQueueSmokeRunApprovedNow',
   'serviceRoleQueueSmokeApprovedNow',
   'liveServiceRoleQueueSmokeExecutedNow',
   'workerExecutionApprovedNow',
@@ -149,17 +155,41 @@ const falseKeys = [
 ]
 
 const requiredSourceEvidence = [
+  'routeBoundServiceRoleQueueSmokeAuthorizationBridge',
+  'serviceRoleQueueSmokePreflight',
   'routeToLiveEnqueueAuthorizationBridge',
   'serviceRoleQueueSmokeAuthorization',
   'serviceRoleQueueSmokeReadiness',
-  'serviceRoleQueueSmokePreflight',
   'liveEnqueueAuthorization',
 ]
 
+const requiredRunGateRefs = [
+  'routeBoundServiceRoleQueueSmokeRunGateRef',
+  'routeBoundServiceRoleQueueSmokeOperatorRef',
+  'routeBoundServiceRoleQueueSmokeReadinessRef',
+  'routeBoundServiceRoleQueueSmokePreflightRef',
+  'routeBoundServiceRoleQueueSmokeEnvironmentRef',
+  'routeBoundServiceRoleQueueSmokeRouteExecutionWindowRef',
+  'routeBoundServiceRoleQueueSmokeQueueWriteWindowRef',
+  'routeBoundServiceRoleQueueSmokeCleanupPlanRef',
+  'routeBoundServiceRoleQueueSmokeRollbackPlanRef',
+  'routeBoundServiceRoleQueueSmokeTelemetryRef',
+  'routeBoundServiceRoleQueueSmokeCostCeilingRef',
+]
+
 const requiredPolicyKeys = [
-  'privateRouteBoundServiceRoleQueueSmokeAuthorizationBridgeOnly',
-  'sourceRouteToLiveEnqueueAuthorizationBridgeRequired',
-  'sourceServiceRoleQueueSmokeAuthorizationRequired',
+  'privateRouteBoundServiceRoleQueueSmokePreflightRunGateOnly',
+  'sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeRequired',
+  'sourceServiceRoleQueueSmokePreflightRequired',
+  'explicitOperatorConfirmationRequired',
+  'nonProductionEnvironmentRequired',
+  'serverOnlyServiceRoleCredentialsRequired',
+  'routeExecutionWindowRequired',
+  'queueWriteWindowRequired',
+  'cleanupPlanRequired',
+  'rollbackPlanRequired',
+  'telemetryRequired',
+  'costCeilingRequired',
   'queueJobPreparedNotSubmittedOnly',
   'noApiRouteExecution',
   'noServiceRoleQueueSmoke',
@@ -178,7 +208,7 @@ const forbiddenDocPatterns = [
   /apiRouteMountedNow["`:\s=]+true/i,
   /apiRouteExecutionApprovedNow["`:\s=]+true/i,
   /routeExecutionApprovedNow["`:\s=]+true/i,
-  /routeBoundServiceRoleQueueSmokeAuthorizationApprovedNow["`:\s=]+true/i,
+  /routeBoundServiceRoleQueueSmokeRunApprovedNow["`:\s=]+true/i,
   /serviceRoleQueueSmokeApprovedNow["`:\s=]+true/i,
   /liveServiceRoleQueueSmokeExecutedNow["`:\s=]+true/i,
   /workerExecutionApprovedNow["`:\s=]+true/i,
@@ -217,8 +247,6 @@ const changedGeneratedArtifactPattern =
 const allowedPackageDiffLines = [
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts",',
-  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate-diagnostics.mjs",',
 ]
 
 const failures = []
@@ -260,7 +288,7 @@ function exec(command) {
 function countFrom(packet, key) {
   const direct = packet?.[key]
   if (Array.isArray(direct)) return direct.length
-  return direct ?? packet?.counts?.[key] ?? packet?.scope?.[key]
+  return direct ?? packet?.counts?.[key] ?? packet?.expectedCounts?.[key] ?? packet?.scope?.[key]
 }
 
 function checkBooleans(packet, label) {
@@ -286,15 +314,15 @@ function checkCounts(packet, label) {
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
-    routeBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence: 21,
-    sourceRouteToLiveEnqueueAuthorizationBridgeReadyToolsWithProvidedEvidence: 21,
-    sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence: 21,
-    routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 2,
-    cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 1,
-    gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 1,
+    routeBoundServiceRoleQueueSmokePreflightRunGateReadyToolsWithProvidedEvidence: 21,
+    sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence: 21,
+    sourceServiceRoleQueueSmokePreflightReadyToolsWithProvidedEvidence: 21,
+    routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 2,
+    cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 1,
+    gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 1,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
-    routeBoundServiceRoleQueueSmokeAuthorizationsApprovedNow: 0,
+    routeBoundServiceRoleQueueSmokeRunApprovedNowTools: 0,
     serviceRoleQueueSmokeApprovedNowTools: 0,
     serviceRoleQueueSmokesPerformedNowTools: 0,
     backendQueueSubmissionApprovedNowTools: 0,
@@ -315,7 +343,7 @@ function checkCounts(packet, label) {
 }
 
 function checkCandidates(packet, label) {
-  const candidates = packet.routeBoundServiceRoleQueueSmokeAuthorizationCandidates ?? []
+  const candidates = packet.routeBoundServiceRoleQueueSmokePreflightRunGateCandidates ?? []
   if (candidates.length !== 2) fail(`${label}:expected_two_candidates`)
   const d3 = candidates.find((candidate) => candidate.toolId === 'd3')
   const sam2 = candidates.find((candidate) => candidate.toolId === 'sam2')
@@ -327,18 +355,19 @@ function checkCandidates(packet, label) {
   ]
   for (const [candidate, toolId, capabilityId, runtimeTarget, workerType, gpuAllowed] of expected) {
     if (!candidate) continue
-    if (candidate.bridgeId !== `route-bound-service-role-queue-smoke-authorization-${toolId}`) {
-      fail(`${label}:bad_bridge_id:${toolId}`)
+    if (candidate.gateId !== `route-bound-service-role-queue-smoke-preflight-run-gate-${toolId}`) {
+      fail(`${label}:bad_gate_id:${toolId}`)
     }
-    if (candidate.routeToLiveEnqueueBridgeId !== `route-to-live-enqueue-authorization-${toolId}`) {
+    if (candidate.sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeId !==
+      `route-bound-service-role-queue-smoke-authorization-${toolId}`) {
       fail(`${label}:bad_source_bridge_id:${toolId}`)
     }
     if (candidate.capabilityId !== capabilityId) fail(`${label}:bad_capability:${toolId}`)
     if (candidate.runtimeTarget !== runtimeTarget) fail(`${label}:bad_runtime_target:${toolId}`)
     if (candidate.workerType !== workerType) fail(`${label}:bad_worker_type:${toolId}`)
     if (candidate.queueJobStatus !== 'prepared_not_submitted') fail(`${label}:bad_queue_status:${toolId}`)
-    if (candidate.routeBoundServiceRoleQueueSmokeAuthorizationMode !==
-      'route_live_enqueue_scope_matched_to_service_role_smoke_authorization_not_executed') {
+    if (candidate.runGateMode !==
+      'route_bound_service_role_queue_smoke_preflight_ready_execution_still_blocked') {
       fail(`${label}:bad_mode:${toolId}`)
     }
     if (candidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== gpuAllowed) {
@@ -349,7 +378,7 @@ function checkCandidates(packet, label) {
       'apiRouteMountedNow',
       'apiRouteExecutionApprovedNow',
       'routeExecutionPerformed',
-      'routeBoundServiceRoleQueueSmokeAuthorizationApprovedNow',
+      'routeBoundServiceRoleQueueSmokeRunApprovedNow',
       'serviceRoleQueueSmokeApprovedNow',
       'serviceRoleQueueSmokePerformed',
       'backendQueueSubmissionApprovedNow',
@@ -377,22 +406,28 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(path.join(process.cwd(), file))) fail(`missing_file:${file}`)
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-authorization-bridge.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-authorization-bridge.md')
-const sourceRouteToLive = json('docs/tool-intelligence/ai-graphics/external-beta-route-to-live-enqueue-authorization-bridge.json')
-const sourceServiceRole = json('docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json')
-const source = read('server/routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts')
-const cli = read('server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.md')
+const sourceRouteBound = json('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-authorization-bridge.json')
+const sourcePreflight = json('docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json')
+const source = read('server/routes/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts')
+const cli = read('server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts')
 const packageJson = json('package.json')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
-if (sourceRouteToLive.decision !== sourceRouteToLiveDecision) fail('source_route_to_live_decision_mismatch')
-if (sourceRouteToLive.status !== sourceRouteToLiveStatus) fail('source_route_to_live_status_mismatch')
-if (sourceServiceRole.decision !== sourceServiceRoleDecision) fail('source_service_role_decision_mismatch')
-if (countFrom(sourceServiceRole, 'serviceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence') !== 21) {
-  fail('source_service_role_authorization_not_all_21')
+if (sourceRouteBound.decision !== sourceRouteBoundDecision) fail('source_route_bound_decision_mismatch')
+if (sourceRouteBound.status !== 'route_bound_service_role_queue_smoke_authorization_bridge_ready_runtime_still_blocked') {
+  fail('source_route_bound_status_mismatch')
+}
+if (sourcePreflight.decision !== sourcePreflightDecision) fail('source_preflight_decision_mismatch')
+if (countFrom(sourcePreflight, 'payloadPreviewsPrepared') !== 21) {
+  fail('source_preflight_not_all_21')
+}
+if (sourcePreflight.expectedStatuses?.readyStatusWithEnvFlagsAndBridge !==
+  'ready_to_execute_non_production_service_role_queue_smoke') {
+  fail('source_preflight_ready_status_missing')
 }
 
 checkToolsAndCapabilities(docs, 'docs')
@@ -409,8 +444,15 @@ for (const key of requiredSourceEvidence) {
   }
 }
 
+for (const key of requiredRunGateRefs) {
+  const value = docs.requiredRunGateRefs?.[key]
+  if (typeof value !== 'string' || !value.startsWith('route-bound-smoke://')) {
+    fail(`missing_run_gate_ref:${key}`)
+  }
+}
+
 for (const key of requiredPolicyKeys) {
-  if (docs.routeBoundServiceRoleQueueSmokeAuthorizationPolicy?.[key] !== true) {
+  if (docs.routeBoundServiceRoleQueueSmokePreflightRunGatePolicy?.[key] !== true) {
     fail(`policy_key_not_true:${key}`)
   }
 }
@@ -430,10 +472,10 @@ for (const pattern of forbiddenDocPatterns) {
 
 for (const snippet of [
   decision,
-  'AI_GRAPHICS_EXTERNAL_BETA_ROUTE_TO_LIVE_ENQUEUE_AUTHORIZATION_BRIDGE_DECISION',
-  'AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_AUTHORIZATION_DECISION',
-  'route-bound-service-role-queue-smoke-authorization-${toolId}',
-  'route_live_enqueue_scope_matched_to_service_role_smoke_authorization_not_executed',
+  'AI_GRAPHICS_EXTERNAL_BETA_ROUTE_BOUND_SERVICE_ROLE_QUEUE_SMOKE_AUTHORIZATION_BRIDGE_DECISION',
+  'AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION',
+  'route-bound-service-role-queue-smoke-preflight-run-gate-${toolId}',
+  'route_bound_service_role_queue_smoke_preflight_ready_execution_still_blocked',
   'serviceRoleQueueSmokePerformed: false',
   'liveQueueWritePerformed: false',
   'workerDispatchPerformed: false',
@@ -443,8 +485,11 @@ for (const snippet of [
 }
 
 for (const flag of [
-  '--route-to-live-enqueue-authorization-bridge-packet',
-  '--service-role-queue-smoke-authorization-packet',
+  '--route-bound-service-role-queue-smoke-authorization-bridge-packet',
+  '--service-role-queue-smoke-preflight-packet',
+  '--route-bound-service-role-queue-smoke-run-gate-ref',
+  '--route-bound-service-role-queue-smoke-operator-ref',
+  '--route-bound-service-role-queue-smoke-queue-write-window-ref',
 ]) {
   if (!cli.includes(flag)) fail(`cli_missing_flag:${flag}`)
 }
@@ -454,7 +499,7 @@ if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail('package_diagnostic_script_mismatch')
 }
 
-if (!scorecard.includes('AI Graphics External-Beta Route-Bound Service-Role Queue Smoke Authorization Bridge')) {
+if (!scorecard.includes('AI Graphics External-Beta Route-Bound Service-Role Queue Smoke Preflight Run Gate')) {
   fail('scorecard_missing_section')
 }
 if (!scorecard.includes(decision)) fail('scorecard_missing_decision')
@@ -462,7 +507,7 @@ if (!scorecard.includes(decision)) fail('scorecard_missing_decision')
 let cliReport = {}
 try {
   cliReport = JSON.parse(exec(
-    'npx tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts --route-to-live-enqueue-authorization-bridge-packet docs/tool-intelligence/ai-graphics/external-beta-route-to-live-enqueue-authorization-bridge.json --service-role-queue-smoke-authorization-packet docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
+    'npx tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts --route-bound-service-role-queue-smoke-authorization-bridge-packet docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-authorization-bridge.json --service-role-queue-smoke-preflight-packet docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json --route-bound-service-role-queue-smoke-run-gate-ref route-bound-smoke://run-gate/2026-06-30/private-non-production --route-bound-service-role-queue-smoke-operator-ref route-bound-smoke://operator/explicit-approval-required --route-bound-service-role-queue-smoke-readiness-ref route-bound-smoke://readiness/pr-862 --route-bound-service-role-queue-smoke-preflight-ref route-bound-smoke://preflight/service-role-queue-smoke --route-bound-service-role-queue-smoke-environment-ref route-bound-smoke://environment/non-production-only --route-bound-service-role-queue-smoke-route-execution-window-ref route-bound-smoke://window/route-execution-controlled --route-bound-service-role-queue-smoke-queue-write-window-ref route-bound-smoke://window/queue-write-controlled --route-bound-service-role-queue-smoke-cleanup-plan-ref route-bound-smoke://cleanup/required --route-bound-service-role-queue-smoke-rollback-plan-ref route-bound-smoke://rollback/required --route-bound-service-role-queue-smoke-telemetry-ref route-bound-smoke://telemetry/required --route-bound-service-role-queue-smoke-cost-ceiling-ref route-bound-smoke://cost-ceiling/required',
   ))
 } catch (error) {
   fail(`cli_execution_failed:${error.message}`)
@@ -476,6 +521,9 @@ if (Array.isArray(cliReport.rejectionReasons) && cliReport.rejectionReasons.leng
 checkCounts(cliReport, 'cli')
 checkBooleans(cliReport, 'cli')
 checkCandidates(cliReport, 'cli')
+for (const key of requiredRunGateRefs) {
+  if (cliReport.requiredRunGateRefs?.[key] !== true) fail(`cli_missing_ref:${key}`)
+}
 if (cliReport.input?.routeExecutionPerformed !== false) fail('cli_input_route_execution_not_false')
 if (cliReport.input?.serviceRoleQueueSmokePerformed !== false) fail('cli_input_smoke_not_false')
 if (cliReport.input?.gpuRuntimePerformed !== false) fail('cli_input_gpu_not_false')
@@ -515,7 +563,7 @@ console.log(JSON.stringify({
   status: acceptedStatus,
   tools: tools.length,
   capabilities: capabilities.length,
-  candidates: docs.routeBoundServiceRoleQueueSmokeAuthorizationCandidates.length,
+  candidates: docs.routeBoundServiceRoleQueueSmokePreflightRunGateCandidates.length,
   gpuRuntimeShouldStartNow: false,
   liveQueueWritePerformed: false,
   serviceRoleQueueSmokePerformed: false,

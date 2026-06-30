@@ -480,6 +480,7 @@ const unexpectedPackageAdditions = packageDiff
   .filter((line) => !line.includes('ai-graphics:external-beta-route-to-queue-authorization-bridge'))
   .filter((line) => !line.includes('ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge'))
   .filter((line) => !line.includes('ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge'))
+  .filter((line) => !line.includes('ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate'))
 if (unexpectedPackageAdditions.length > 0) {
   fail(`unexpected_package_json_additions:${unexpectedPackageAdditions.join('|')}`)
 }

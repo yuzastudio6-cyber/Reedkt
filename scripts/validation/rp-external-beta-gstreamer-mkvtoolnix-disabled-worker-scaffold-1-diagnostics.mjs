@@ -53,7 +53,18 @@ const reviewFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...reviewFiles])
+const planFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/execution-plan.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/gate-and-input-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...reviewFiles, ...planFiles])
 
 const requiredText = [
   packet,

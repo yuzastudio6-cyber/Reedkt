@@ -2,25 +2,27 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-ENABLEMENT-REVIEW-1'
-const dir = 'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-enablement-review-1'
-const recordPath = `${dir}/gstreamer-mkvtoolnix-guarded-worker-enablement-review-record.json`
-const decision = 'approved_gstreamer_mkvtoolnix_guarded_worker_enablement_review_ready_for_confirmation_gated_worker_execution_plan'
-const execution = 'completed_docs_only_guarded_worker_enablement_review_no_runtime_execution'
-const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-CONFIRMATION-GATED-WORKER-EXECUTION-PLAN-1'
+const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-CONFIRMATION-GATED-WORKER-EXECUTION-PLAN-1'
+const dir = 'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1'
+const recordPath = `${dir}/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-record.json`
+const decision = 'completed_gstreamer_mkvtoolnix_confirmation_gated_worker_execution_plan_ready_for_confirmed_dry_run'
+const execution = 'completed_docs_only_confirmation_gated_worker_execution_plan_no_runtime_execution'
+const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-CONFIRMED-WORKER-EXECUTION-DRY-RUN-1'
+const confirmationGate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_EXECUTION=true'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${dir}/source-audit.md`,
-  `${dir}/guarded-worker-enablement-review.md`,
-  `${dir}/boundary-register.md`,
+  `${dir}/execution-plan.md`,
+  `${dir}/gate-and-input-contract.md`,
   `${dir}/validation-results.md`,
   recordPath,
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1.md',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1.md',
 ]
 
 const implementationFiles = [
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1-diagnostics.mjs',
@@ -29,53 +31,50 @@ const implementationFiles = [
 ]
 
 const sourceFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-enablement-review-1/gstreamer-mkvtoolnix-guarded-worker-enablement-review-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-disabled-worker-scaffold-1/gstreamer-mkvtoolnix-disabled-worker-scaffold-record.json',
   'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/gstreamer-mkvtoolnix-agent-execution-contract-record.json',
   'docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix-record.json',
-  'docs/external-beta/gstreamer-mkvtoolnix-disabled-worker-scaffold-1/validation-results.md',
   'approved-plan-snapshot-policy.md',
   'async-edit-work-graph.md',
   'editing-agent-execution-architecture.md',
   'editing-asset-manifest.md',
 ]
 
-const planFiles = [
-  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/source-audit.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/execution-plan.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/gate-and-input-contract.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/validation-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1/gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-record.json',
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1.md',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-diagnostics.mjs',
-]
-
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...planFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
 
 const requiredText = [
   packet,
   decision,
   execution,
-  'ca011e57276345627cd6f85918f9072c81066f9f',
+  'f04cb79b9945d8d24fbd273506cd10c05c57b72f',
+  'approved_gstreamer_mkvtoolnix_guarded_worker_enablement_review_ready_for_confirmation_gated_worker_execution_plan',
   'completed_gstreamer_mkvtoolnix_disabled_worker_scaffold_negative_tests_ready_for_guarded_worker_enablement_review',
   'completed_gstreamer_mkvtoolnix_guarded_agent_execution_contract_ready_for_disabled_worker_scaffold',
   'completed_external_beta_tool_execution_readiness_matrix_for_guarded_agent_execution',
-  'ready_for_confirmation_gated_worker_execution_plan_only',
+  'ready_for_confirmed_worker_execution_dry_run_only',
+  confirmationGate,
   'Worker enablement in this phase: `false`',
   'Worker execution in this phase: `false`',
   'Tool execution in this phase: `false`',
   nextMilestone,
-  'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_EXECUTION=true',
-  'approved plan snapshot',
-  'approval record',
-  'credit reservation or no-spend fixture policy',
-  'worker lease',
-  'idempotency',
-  'private input manifest',
-  'private output artifact manifest',
-  'QA report',
-  'cleanup',
-  'fail-closed',
+  'blocked_missing_confirmation_gate',
+  'blocked_missing_approved_plan_snapshot',
+  'blocked_missing_approval_record',
+  'blocked_missing_credit_or_no_spend_policy',
+  'blocked_missing_worker_lease',
+  'blocked_missing_idempotency_key',
+  'blocked_unapproved_command_template',
+  'blocked_raw_command_string',
+  'blocked_missing_private_input_manifest',
+  'blocked_manifest_checksum_mismatch',
+  'blocked_unapproved_media_source',
+  'blocked_public_or_signed_url_source',
+  'blocked_output_manifest_missing',
+  'blocked_qa_report_missing',
+  'blocked_cleanup_policy_missing',
+  'blocked_unexpected_worker_or_tool_execution',
+  'blocked_delivery_or_unlock_attempt',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -153,7 +152,7 @@ const forbiddenClaimPatterns = [
   /\bWorker enablement in this phase:\s*`?(true|enabled|completed|passed|run|executed)\b/i,
   /\bWorker execution in this phase:\s*`?(true|enabled|completed|passed|run|executed)\b/i,
   /\bTool execution in this phase:\s*`?(true|enabled|completed|passed|run|executed)\b/i,
-  /\b(?:GStreamer|MKVToolNix|GPAC\/MP4Box|VapourSynth|Revideo|FILM|QWEN|FFmpeg\/FFprobe|Docker|Remotion) execution in this review phase:\s*`?(true|enabled|completed|passed|run|executed)\b/i,
+  /\b(?:GStreamer|MKVToolNix|GPAC\/MP4Box|VapourSynth|Revideo|FILM|QWEN|FFmpeg\/FFprobe|Docker|Remotion) execution in this plan phase:\s*`?(true|enabled|completed|passed|run|executed)\b/i,
   /\b(?:Supabase mutation|SQL execution|Secret Manager payload access|Worker dispatch|Route execution|Service-role route execution|Signed URL creation|Public artifact creation|Private media processing|User media processing|Dependency mutation|Package-lock mutation)\s*:\s*`?(true|enabled|completed|passed|run|executed)\b/i,
   /"workerEnablementInThisPhase"\s*:\s*true/i,
   /"workerExecution"\s*:\s*true/i,
@@ -212,39 +211,37 @@ const record = json(recordPath)
 if (record.packet !== packet) fail('packet mismatch')
 if (record.decision !== decision) fail('decision mismatch')
 if (record.execution !== execution) fail('execution mismatch')
-if (record.integrationBase !== 'ca011e57276345627cd6f85918f9072c81066f9f') fail('integration base mismatch')
-if (record.sourceChain?.disabledWorkerScaffoldMerge !== 'ca011e57276345627cd6f85918f9072c81066f9f') fail('disabled scaffold merge mismatch')
+if (record.integrationBase !== 'f04cb79b9945d8d24fbd273506cd10c05c57b72f') fail('integration base mismatch')
+if (record.sourceChain?.guardedWorkerEnablementReviewMerge !== 'f04cb79b9945d8d24fbd273506cd10c05c57b72f') fail('enablement review merge mismatch')
+if (record.sourceChain?.guardedWorkerEnablementReview !== 'approved_gstreamer_mkvtoolnix_guarded_worker_enablement_review_ready_for_confirmation_gated_worker_execution_plan') fail('enablement review source mismatch')
 if (record.sourceChain?.disabledWorkerScaffold !== 'completed_gstreamer_mkvtoolnix_disabled_worker_scaffold_negative_tests_ready_for_guarded_worker_enablement_review') fail('disabled scaffold source mismatch')
 if (record.sourceChain?.agentExecutionContract !== 'completed_gstreamer_mkvtoolnix_guarded_agent_execution_contract_ready_for_disabled_worker_scaffold') fail('agent contract source mismatch')
 if (record.sourceChain?.toolExecutionReadinessMatrix !== 'completed_external_beta_tool_execution_readiness_matrix_for_guarded_agent_execution') fail('matrix source mismatch')
-if (record.review?.gstreamerReadiness !== 'ready_for_confirmation_gated_worker_execution_plan_only') fail('GStreamer readiness mismatch')
-if (record.review?.mkvtoolnixReadiness !== 'ready_for_confirmation_gated_worker_execution_plan_only') fail('MKVToolNix readiness mismatch')
-if (record.review?.workerEnablementInThisPhase !== false) fail('worker enablement must be false')
-if (record.review?.workerExecutionInThisPhase !== false) fail('worker execution must be false')
-if (record.review?.toolExecutionInThisPhase !== false) fail('tool execution must be false')
-if (record.review?.nextMilestone !== nextMilestone) fail('next milestone mismatch')
+if (record.plan?.status !== 'ready_for_confirmed_worker_execution_dry_run_only') fail('plan status mismatch')
+if (record.plan?.confirmationGate !== confirmationGate) fail('confirmation gate mismatch')
+if (record.plan?.workerEnablementInThisPhase !== false) fail('worker enablement must be false')
+if (record.plan?.workerExecutionInThisPhase !== false) fail('worker execution must be false')
+if (record.plan?.toolExecutionInThisPhase !== false) fail('tool execution must be false')
+if (record.plan?.nextMilestone !== nextMilestone) fail('next milestone mismatch')
+if (!record.requiredFailureCategories?.includes('blocked_missing_confirmation_gate')) fail('missing confirmation-gate blocker')
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 if (record.packageLock !== 'unchanged') fail('package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
 if (record.safety?.docsOnly !== true) fail('docs-only safety flag mismatch')
-if (record.safety?.futurePlanApprovalOnly !== true) fail('future-plan-only safety flag mismatch')
+if (record.safety?.futureConfirmedDryRunPlanOnly !== true) fail('future-dry-run-only safety flag mismatch')
 for (const key of falseSafetyKeys) {
   if (record.safety?.[key] !== false) fail(`safety flag must be false: ${key}`)
 }
 
+const review = json('docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-enablement-review-1/gstreamer-mkvtoolnix-guarded-worker-enablement-review-record.json')
+if (review.decision !== 'approved_gstreamer_mkvtoolnix_guarded_worker_enablement_review_ready_for_confirmation_gated_worker_execution_plan') fail('review source drift')
 const scaffold = json('docs/external-beta/gstreamer-mkvtoolnix-disabled-worker-scaffold-1/gstreamer-mkvtoolnix-disabled-worker-scaffold-record.json')
-if (scaffold.decision !== 'completed_gstreamer_mkvtoolnix_disabled_worker_scaffold_negative_tests_ready_for_guarded_worker_enablement_review') fail('disabled scaffold source drift')
 if (scaffold.scaffold?.scaffoldStatus !== 'disabled_worker_scaffold_registered_no_tool_execution') fail('disabled scaffold status drift')
-const agentContract = json('docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/gstreamer-mkvtoolnix-agent-execution-contract-record.json')
-if (agentContract.decision !== 'completed_gstreamer_mkvtoolnix_guarded_agent_execution_contract_ready_for_disabled_worker_scaffold') fail('agent contract source drift')
-const matrix = json('docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix-record.json')
-if (matrix.toolReadiness?.gstreamer_render_pipeline_support?.agentExecutionReadiness !== 'ready_for_guarded_agent_execution_contract_planning') fail('matrix GStreamer source drift')
-if (matrix.toolReadiness?.mkvtoolnix_container_validation?.agentExecutionReadiness !== 'ready_for_guarded_agent_execution_contract_planning') fail('matrix MKVToolNix source drift')
 
 const packageJson = json('package.json')
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1:diagnostics'] !==
-  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1-diagnostics.mjs'
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1:diagnostics'] !==
+  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-diagnostics.mjs'
 ) {
   fail('missing diagnostics package script')
 }
@@ -281,5 +278,5 @@ gitQuiet(['diff', '--check'], 'git diff --check failed')
 gitQuiet(['diff', '--cached', '--check'], 'git diff --cached --check failed')
 
 console.log(`${packet} diagnostics passed`)
-console.log('GStreamer/MKVToolNix: ready_for_confirmation_gated_worker_execution_plan_only')
+console.log('GStreamer/MKVToolNix: ready_for_confirmed_worker_execution_dry_run_only')
 console.log(`Next milestone: ${nextMilestone}`)

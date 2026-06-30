@@ -1,16 +1,10 @@
 # QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_DRY_RUN_ATTEMPT_1R_AFTER_GCLOUD_REAUTH
 
-## Summary
+Run only after `gcloud auth print-access-token --quiet` and `gcloud auth application-default print-access-token --quiet` can succeed in the execution environment without interactive prompts, and only with an explicit confirmation gate.
 
-Run only after `RP-EXTERNAL-BETA-QWEN-REAL-DISPATCH-DRY-RUN-ATTEMPT-1` is merged and the local gcloud session for `aiediting@reeditpro.com` can refresh non-interactively on project `reeditpro`.
+Use the current-base source chain:
 
-## Required Prechecks
+- `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-ENABLEMENT-CURRENT-IMPORT-1`
+- `RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1`
 
-- `gcloud config get-value account` must return `aiediting@reeditpro.com`.
-- `gcloud config get-value project` must return `reeditpro`.
-- `gcloud run services describe reeditpro-staging-api --project=reeditpro --region=us-central1 --format=json(status.url)` must pass before any later dry-run transport attempt.
-- If the service describe command fails with reauthentication, missing IAM, missing service, or region mismatch, record the exact blocker and stop.
-
-## Boundaries
-
-Do not import draft stacked QWEN PRs wholesale. Do not run QWEN2.5-VL inference, load model weights, create generated assets, mutate Supabase, execute SQL, spend credits, create signed/public artifacts, unlock broad beta, or unlock production from this prompt alone.
+If auth remains blocked, record `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r` and do not attempt Cloud Run, identity token fetch, request send, QWEN execution, worker dispatch, Supabase mutation, SQL, signed/public artifacts, generated assets, media processing, broad beta, or production.

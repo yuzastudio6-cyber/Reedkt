@@ -79,6 +79,15 @@ for (const file of [
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-runtime-source-bridge-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1.mjs',
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1-diagnostics.mjs',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-record.json',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/runtime-result.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/validation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-single-tester-product-flow-qa-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r.mjs',
 ]) {
   allowedChangedFiles.add(file)
 }

@@ -60,6 +60,15 @@ const allowedChangedFiles = new Set([
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-approval-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1-diagnostics.mjs',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-record.json',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/runtime-result.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/validation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-single-tester-product-flow-qa-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r.mjs',
 ])
 
 const blockedChangedPatterns = [
@@ -89,6 +98,33 @@ const forbiddenClaims = [
   /"workerExecution"\s*:\s*true/i,
   /"cloudRunJobExecution"\s*:\s*true/i,
   /"cloudRunServiceUpdate"\s*:\s*true/i,
+  /"supabaseMutation"\s*:\s*true/i,
+  /"sqlExecution"\s*:\s*true/i,
+  /"secretPayloadAccess"\s*:\s*true/i,
+  /"creditMutation"\s*:\s*true/i,
+  /"publicArtifactCreation"\s*:\s*true/i,
+  /"productionUnlock"\s*:\s*true/i,
+  /"packageLockMutation"\s*:\s*true/i,
+]
+
+const confirmedRuntime1rFiles = new Set([
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-record.json',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/runtime-result.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r/validation-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-single-tester-product-flow-qa-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r.mjs',
+])
+
+const confirmedRuntime1rHardForbiddenClaims = [
+  /\bProduct-ready end-to-end local OSS tools:\s*`?[1-9]/i,
+  /\b(?:Supabase mutation|SQL execution|Secret Manager payload access|Worker execution|Worker dispatch|Route execution|Signed URL creation|Public artifact creation|Credit mutation|Persistent credit reservation|Deployment|Broad external beta unlock|Paid production unlock|Production unlock|Final render\/export|Private media processing|User media processing|Remotion execution|FFmpeg\/FFprobe execution|Docker execution|Dependency mutation|Package-lock mutation|Direct adapter shortcut)\s*:\s*`?(true|enabled|completed|passed|run)\b/i,
+  /"routeInvocation"\s*:\s*true/i,
+  /"workerDispatch"\s*:\s*true/i,
+  /"workerExecution"\s*:\s*true/i,
   /"supabaseMutation"\s*:\s*true/i,
   /"sqlExecution"\s*:\s*true/i,
   /"secretPayloadAccess"\s*:\s*true/i,
@@ -236,7 +272,8 @@ for (const file of changed) {
   const redactedDbText = text.replaceAll('postgresql://[redacted]', '').replaceAll('postgres://[REDACTED]', '')
   if (/\bpostgres(?:ql)?:\/\/\S+/i.test(redactedDbText)) fail(`DB URL leaked in ${file}`)
   if (/\b(api[_-]?key|service[_-]?role[_-]?key|secret[_-]?key)\s*[:=]\s*['"][^'"]+['"]/i.test(text)) fail(`secret-like assignment in ${file}`)
-  for (const pattern of forbiddenClaims) {
+  const scopedForbiddenClaims = confirmedRuntime1rFiles.has(file) ? confirmedRuntime1rHardForbiddenClaims : forbiddenClaims
+  for (const pattern of scopedForbiddenClaims) {
     if (pattern.test(text)) fail(`forbidden claim in ${file}: ${pattern}`)
   }
 }

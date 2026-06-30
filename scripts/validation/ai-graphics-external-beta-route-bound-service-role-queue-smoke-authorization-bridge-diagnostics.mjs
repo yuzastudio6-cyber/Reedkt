@@ -221,6 +221,8 @@ const allowedPackageDiffLines = [
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-runbook-authorization": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-runbook-authorization.ts",',
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-runbook-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-runbook-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract-diagnostics.mjs",',
 ]
 
 const failures = []

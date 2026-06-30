@@ -14,6 +14,7 @@ import { buildBetaReadinessDeployedEvidenceInputManifest } from './beta-readines
 
 const DECISION_READY = 'beta_readiness_external_beta_operator_local_env_preflight_passed_ready_for_external_beta_evidence_collector'
 const DECISION_BLOCKED = 'beta_readiness_external_beta_operator_local_env_preflight_blocked_missing_or_unsafe_operator_inputs'
+export const RECOMMENDED_OPERATOR_ENV_FILE = '.env.reeditpro-beta-operator.local'
 
 export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options = {}) {
   const repoRoot = path.resolve(options.repoRoot ?? process.cwd())
@@ -51,6 +52,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
       provided: Boolean(envFilePath || options.envFileContent),
       loaded: envFile.loaded,
       displayPath: envFile.displayPath,
+      recommendedRepoLocalPath: RECOMMENDED_OPERATOR_ENV_FILE,
       insideRepo: envFile.insideRepo,
       gitIgnored: envFile.gitIgnored,
       parsedLineCount: envFile.parsedLineCount,
@@ -104,7 +106,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
-      'REEDITPRO_BETA_OPERATOR_ENV_FILE=/path/to/local-only.env npm run beta:readiness:external-beta-operator-local-env-preflight',
+      `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`,
       'npm run beta:readiness:owner-approval-intake-preflight',
       'npm run beta:readiness:deployed-evidence-input-manifest',
       'npm run beta:readiness:external-beta-evidence-collector',
@@ -114,7 +116,7 @@ export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options 
     warnings: [
       'This preflight loads a local operator env file in memory only and prints names/counts, never values.',
       'Auto-fillable non-secret constants and idempotency keys are applied in memory so operators can validate only the human-owned values they supplied.',
-      'If the env file lives inside the repo it must be git-ignored; committed completed env files remain forbidden.',
+      `If the env file lives inside the repo, use the git-ignored ${RECOMMENDED_OPERATOR_ENV_FILE} path or another git-ignored local-only path; committed completed env files remain forbidden.`,
       'This command does not call deployed services, record evidence, write Supabase/GCS, run tools, process media, enable beta, or enable production.',
     ],
     nextSafeAction: readyForExternalBetaEvidenceCollector
@@ -135,6 +137,7 @@ export function renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown
     `- Provided: \`${report.envFile.provided}\``,
     `- Loaded: \`${report.envFile.loaded}\``,
     `- Path: \`${report.envFile.displayPath ?? 'none'}\``,
+    `- Recommended repo-local path: \`${report.envFile.recommendedRepoLocalPath}\``,
     `- Inside repo: \`${report.envFile.insideRepo}\``,
     `- Git ignored: \`${report.envFile.gitIgnored ?? 'not_applicable'}\``,
     `- Parsed beta input keys: \`${report.envFile.betaInputKeysLoaded}\``,

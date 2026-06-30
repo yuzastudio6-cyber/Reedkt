@@ -32,6 +32,17 @@ const sourceFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/agent-execution-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/command-template-registry.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/worker-io-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/fail-closed-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/readiness-report.json',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-execution-contract-1/gstreamer-mkvtoolnix-agent-execution-contract-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-tool-readiness-status-reconciliation-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',

@@ -1,0 +1,13 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-EXECUTION-CONTRACT-1",
+  "decision": "completed_gstreamer_mkvtoolnix_guarded_agent_execution_contract_ready_for_disabled_worker_scaffold",
+  "execution": "completed_docs_only_agent_execution_contract_no_runtime_execution",
+  "integrationBase": "332ed385e5bf4d1f3406d47a1e8b81e19ff25b03",
+  "gstreamerReadiness": "ready_for_disabled_worker_scaffold_and_negative_tests",
+  "mkvtoolnixReadiness": "ready_for_disabled_worker_scaffold_and_negative_tests",
+  "externalAgentExecutionStatus": "contract_ready_worker_disabled_until_scaffold_negative_tests_pass",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-DISABLED-WORKER-SCAFFOLD-1",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

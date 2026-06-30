@@ -492,6 +492,17 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
       script: POLARS_BOUNDED_REHEARSAL_SCRIPT,
     })
   }
+  if (toolId === 'pyav' && routeClass === 'frame_access_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'pyav',
+      action,
+      routeClass,
+      handler,
+      script: PYAV_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
   if (toolId === 'opentimelineio' && routeClass === 'timeline_serialize_bounded_rehearsal') {
     return runPythonStructuredToolBoundedRehearsal({
       payload,
@@ -501,6 +512,28 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
       routeClass,
       handler,
       script: OPENTIMELINEIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'pyscenedetect' && routeClass === 'scene_boundary_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'pyscenedetect',
+      action,
+      routeClass,
+      handler,
+      script: PYSCENEDETECT_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'opencv' && routeClass === 'frame_analysis_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'opencv',
+      action,
+      routeClass,
+      handler,
+      script: OPENCV_BOUNDED_REHEARSAL_SCRIPT,
     })
   }
   if (toolId === 'opencolorio' && routeClass === 'color_config_bounded_rehearsal') {
@@ -523,6 +556,17 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
       routeClass,
       handler,
       script: OPENIMAGEIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'audioflux' && routeClass === 'audio_feature_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'audioflux',
+      action,
+      routeClass,
+      handler,
+      script: AUDIOFLUX_BOUNDED_REHEARSAL_SCRIPT,
     })
   }
 
@@ -606,9 +650,33 @@ function resolveTrackBAgentToolRecipeHandler(
     }
   }
 
+  if (toolId === 'pyav' && routeClass === 'frame_access_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_pyav_frame_access_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
   if (toolId === 'opentimelineio' && routeClass === 'timeline_serialize_bounded_rehearsal') {
     return {
       futureHandler: 'cpu_analysis_worker_opentimelineio_timeline_serialize_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'pyscenedetect' && routeClass === 'scene_boundary_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_pyscenedetect_scene_boundary_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'opencv' && routeClass === 'frame_analysis_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_opencv_frame_analysis_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -625,6 +693,14 @@ function resolveTrackBAgentToolRecipeHandler(
   if (toolId === 'openimageio' && routeClass === 'imagebuf_metadata_bounded_rehearsal') {
     return {
       futureHandler: 'cpu_analysis_worker_openimageio_imagebuf_metadata_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'audioflux' && routeClass === 'audio_feature_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_audioflux_audio_feature_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -795,6 +871,27 @@ print(json.dumps({
 }))
 `
 
+const PYAV_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import av
+import json
+
+frame = av.VideoFrame(width=2, height=2, format='rgb24')
+array = frame.to_ndarray()
+array[:, :, 0] = 10
+array[:, :, 1] = 20
+array[:, :, 2] = 30
+roundtrip = av.VideoFrame.from_ndarray(array, format='rgb24')
+print(json.dumps({
+  'version': av.__version__,
+  'operation': 'synthetic_video_frame_roundtrip',
+  'width': roundtrip.width,
+  'height': roundtrip.height,
+  'format': roundtrip.format.name,
+  'planes': len(roundtrip.planes),
+  'mean_rgb': [int(array[:, :, channel].mean()) for channel in range(3)],
+}))
+`
+
 const OPENTIMELINEIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
 import json
 import opentimelineio as otio
@@ -822,6 +919,53 @@ print(json.dumps({
   'duration_frames': int(roundtrip.duration().value),
   'serialized_length': len(serialized),
   'media_reference_kind': roundtrip.tracks[0][0].media_reference.schema_name(),
+}))
+`
+
+const PYSCENEDETECT_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import numpy as np
+import scenedetect
+from scenedetect import FrameTimecode
+from scenedetect.detectors import ContentDetector
+
+detector = ContentDetector(threshold=1.0, min_scene_len=1)
+frames = [
+  np.zeros((8, 8, 3), dtype=np.uint8),
+  np.full((8, 8, 3), 255, dtype=np.uint8),
+  np.full((8, 8, 3), 255, dtype=np.uint8),
+]
+cuts = []
+for index, frame in enumerate(frames):
+  cuts.extend(detector.process_frame(FrameTimecode(index, 24.0), frame))
+print(json.dumps({
+  'version': scenedetect.__version__,
+  'detector': 'ContentDetector',
+  'operation': 'synthetic_scene_boundary_detection',
+  'frame_count': len(frames),
+  'cut_frames': [int(cut.frame_num) for cut in cuts],
+  'cut_count': len(cuts),
+}))
+`
+
+const OPENCV_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import cv2
+import json
+import numpy as np
+
+image = np.zeros((16, 16, 3), dtype=np.uint8)
+image[4:12, 4:12] = [255, 255, 255]
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+edges = cv2.Canny(blurred, 50, 150)
+print(json.dumps({
+  'version': cv2.__version__,
+  'operation': 'synthetic_frame_edge_analysis',
+  'shape': list(image.shape),
+  'gray_shape': list(gray.shape),
+  'edge_pixels': int(np.count_nonzero(edges)),
+  'mean_gray': round(float(gray.mean()), 4),
+  'center_pixel': int(gray[8, 8]),
 }))
 `
 
@@ -867,12 +1011,35 @@ print(json.dumps({
 }))
 `
 
+const AUDIOFLUX_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import audioflux as af
+import json
+import numpy as np
+
+samplate = 8000
+audio = np.sin(2 * np.pi * 440 * np.arange(512) / samplate).astype(np.float32)
+bft = af.BFT(num=16, radix2_exp=8, samplate=samplate)
+spec = bft.bft(audio)
+print(json.dumps({
+  'version': af.__version__,
+  'operation': 'synthetic_audio_bft_feature_extract',
+  'sample_rate': samplate,
+  'sample_count': int(audio.shape[0]),
+  'feature_shape': list(spec.shape),
+  'magnitude_sum': round(float(np.abs(spec).sum()), 6),
+}))
+`
+
 type PythonStructuredRehearsalToolId =
   | 'duckdb'
   | 'polars'
+  | 'pyav'
   | 'opentimelineio'
+  | 'pyscenedetect'
+  | 'opencv'
   | 'opencolorio'
   | 'openimageio'
+  | 'audioflux'
 
 function runPythonStructuredToolBoundedRehearsal(input: {
   payload: ProductionWorkerJobPayload
@@ -901,7 +1068,7 @@ function runPythonStructuredToolBoundedRehearsal(input: {
     })
     const proof = parsePythonProof(output)
     return {
-      summary: `Track B agent ${input.toolId} bounded execution rehearsal completed with synthetic in-memory structured data only; no user media or artifact file was processed.`,
+      summary: `Track B agent ${input.toolId} bounded execution rehearsal completed with synthetic in-memory data only; no user media or artifact file was processed.`,
       workerType: input.payload.workerType,
       executionMode: input.payload.executionMode,
       mockOnly: false,
@@ -936,7 +1103,7 @@ function runPythonStructuredToolBoundedRehearsal(input: {
         },
         notes: [
           'Bounded execution rehearsal is payment-independent and non-billable.',
-          'This proof uses synthetic in-memory structured data only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+          'This proof uses synthetic in-memory data only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
         ],
       },
     }

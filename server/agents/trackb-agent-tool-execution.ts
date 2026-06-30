@@ -375,6 +375,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'pyav':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'frame_access_bounded_rehearsal')
+      }
       return {
         mediaFoundation: mediaFoundationRecipe(input, ['extract_keyframes', 'extract_representative_frames', 'build_analysis_report']),
         ...common,
@@ -418,6 +421,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'pyscenedetect':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'scene_boundary_bounded_rehearsal')
+      }
       return {
         smartCutFoundation: {
           mode: 'dry_run',
@@ -429,6 +435,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'opencv':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'frame_analysis_bounded_rehearsal')
+      }
       return {
         mediaFoundation: mediaFoundationRecipe(input, ['extract_representative_frames', 'build_analysis_report']),
         ...common,
@@ -468,6 +477,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'audioflux':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'audio_feature_bounded_rehearsal')
+      }
       return {
         audioFoundation: {
           mode: 'dry_run',

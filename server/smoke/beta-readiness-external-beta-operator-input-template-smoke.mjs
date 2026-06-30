@@ -41,6 +41,10 @@ assert.equal(
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --bootstrap-local-env',
 )
 assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-value-progress'],
+  'node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs --progress',
+)
+assert.equal(
   packageJson.scripts['beta:readiness:external-beta-operator-local-env-preflight'],
   'node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs',
 )
@@ -239,6 +243,7 @@ assert.equal(/^# REEDITPRO_BETA_PLATFORM_APPROVE_SECURITY=/m.test(bootstrap.envF
 assert.ok(checklist.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.envTemplate.includes('npm run beta:readiness:owner-approval-intake-status'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
+assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-value-progress'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.validationCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))

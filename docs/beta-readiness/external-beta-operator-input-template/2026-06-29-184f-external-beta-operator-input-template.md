@@ -124,6 +124,7 @@ REEDITPRO_BETA_LAUNCH_SUPPORT_EVIDENCE="<non-secret owner evidence summary>"
 
 - `npm run beta:readiness:source-freshness-preflight`
 - `npm run beta:readiness:external-beta-operator-local-env-bootstrap`
+- `npm run beta:readiness:external-beta-operator-value-progress`
 - `npm run beta:readiness:external-beta-operator-autofill-env`
 - `npm run beta:readiness:external-beta-operator-human-input-checklist`
 - `npm run beta:readiness:external-beta-operator-local-env-preflight`

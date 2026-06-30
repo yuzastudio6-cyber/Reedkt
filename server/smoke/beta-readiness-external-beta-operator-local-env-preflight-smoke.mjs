@@ -11,8 +11,10 @@ import {
 } from '../cli/beta-readiness-external-beta-operator-input-template.mjs'
 import {
   buildBetaReadinessExternalBetaOperatorLocalEnvPreflight,
+  buildBetaReadinessExternalBetaOperatorValueProgress,
   RECOMMENDED_OPERATOR_ENV_FILE,
   renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown,
+  renderBetaReadinessExternalBetaOperatorValueProgressMarkdown,
 } from '../cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
@@ -25,6 +27,10 @@ assert.equal(
 assert.equal(
   packageJson.scripts['beta:readiness:external-beta-operator-local-env-bootstrap'],
   'node server/cli/beta-readiness-external-beta-operator-input-template.mjs --bootstrap-local-env',
+)
+assert.equal(
+  packageJson.scripts['beta:readiness:external-beta-operator-value-progress'],
+  'node server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs --progress',
 )
 assert.equal(
   packageJson.scripts['smoke:beta-readiness-external-beta-operator-local-env-preflight'],
@@ -55,6 +61,21 @@ assert.equal(blank.operatorInputs.autoFillablePending, 0)
 assert.equal(blank.ownerApprovalIntake.counts.pending, 29)
 assert.equal(blank.deployedEvidenceInputManifest.pendingRequiredInputs, 45)
 assert.equal(blank.safetyGaps.length, 0)
+const blankProgress = buildBetaReadinessExternalBetaOperatorValueProgress({
+  env: {},
+  envFileContent: undefined,
+})
+assert.equal(blankProgress.decision, 'beta_readiness_external_beta_operator_value_progress_passed_redacted_progress_review')
+assert.equal(blankProgress.readyForExternalBetaEvidenceCollector, false)
+assert.equal(blankProgress.progress.requiredInputs, 60)
+assert.equal(blankProgress.progress.presentOrAutofilledInputs, 15)
+assert.equal(blankProgress.progress.pendingInputs, 45)
+assert.equal(blankProgress.progress.humanActionablePending, 45)
+assert.equal(blankProgress.progress.percentComplete, 25)
+assert.equal(blankProgress.blockers.includes('operator_env_file_not_provided'), true)
+assert.equal(blankProgress.blockers.includes('operator_inputs_pending'), true)
+assert.equal(blankProgress.valuePolicyProgress.find((row) => row.name === 'owner_approval_confirmation')?.pending, 15)
+assert.equal(blankProgress.validationCommands.includes(`REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-value-progress`), true)
 
 const checklist = buildBetaReadinessExternalBetaOperatorHumanInputChecklist(
   buildBetaReadinessExternalBetaOperatorInputTemplate({}),
@@ -67,6 +88,13 @@ const copiedTemplatePreflight = buildBetaReadinessExternalBetaOperatorLocalEnvPr
 assert.equal(copiedTemplatePreflight.readyForExternalBetaEvidenceCollector, false)
 assert.equal(copiedTemplatePreflight.safetyGaps.includes('operator_env_file_contains_placeholder_values'), true)
 assert.ok(copiedTemplatePreflight.envFile.placeholderInputPaths.length > 0)
+const copiedTemplateProgress = buildBetaReadinessExternalBetaOperatorValueProgress({
+  env: {},
+  envFileContent: copiedTemplate.envTemplate,
+})
+assert.equal(copiedTemplateProgress.readyForExternalBetaEvidenceCollector, false)
+assert.equal(copiedTemplateProgress.blockers.includes('operator_env_file_contains_placeholder_values'), true)
+assert.equal(copiedTemplateProgress.envFile.placeholderValueCount > 0, true)
 
 const completeEnvText = checklist.humanActionableInputs
   .map((input, index) => `${input.name}=${JSON.stringify(valueForInput(input, index))}`)
@@ -77,6 +105,11 @@ const complete = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
 })
 const serializedComplete = JSON.stringify(complete)
 const markdown = renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown(complete)
+const completeProgress = buildBetaReadinessExternalBetaOperatorValueProgress({
+  env: {},
+  envFileContent: completeEnvText,
+})
+const completeProgressMarkdown = renderBetaReadinessExternalBetaOperatorValueProgressMarkdown(completeProgress)
 
 assert.equal(
   complete.decision,
@@ -108,6 +141,16 @@ assert.equal(markdown.includes('operator-local-bearer-token'), false)
 assert.equal(markdown.includes('workspace-beta-local'), false)
 assert.equal(markdown.includes('non-secret evidence summary'), false)
 assert.equal(markdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
+assert.equal(completeProgress.readyForExternalBetaEvidenceCollector, true)
+assert.equal(completeProgress.progress.presentOrAutofilledInputs, 60)
+assert.equal(completeProgress.progress.pendingInputs, 0)
+assert.equal(completeProgress.progress.percentComplete, 100)
+assert.equal(completeProgress.blockers.length, 0)
+assert.equal(completeProgressMarkdown.includes('Complete: `100%`'), true)
+assert.equal(completeProgressMarkdown.includes('operator-local-bearer-token'), false)
+assert.equal(completeProgressMarkdown.includes('workspace-beta-local'), false)
+assert.equal(completeProgressMarkdown.includes('non-secret evidence summary'), false)
+assert.equal(completeProgressMarkdown.includes('Supabase classification: no write / environment none / SQL none / migration no.'), true)
 
 const completeButSourceStale = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
   env: {},

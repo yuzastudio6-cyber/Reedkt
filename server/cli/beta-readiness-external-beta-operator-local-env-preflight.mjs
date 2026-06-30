@@ -15,6 +15,7 @@ import { buildBetaReadinessSourceFreshnessPreflight } from './beta-readiness-sou
 
 const DECISION_READY = 'beta_readiness_external_beta_operator_local_env_preflight_passed_ready_for_external_beta_evidence_collector'
 const DECISION_BLOCKED = 'beta_readiness_external_beta_operator_local_env_preflight_blocked_missing_or_unsafe_operator_inputs'
+const PROGRESS_DECISION = 'beta_readiness_external_beta_operator_value_progress_passed_redacted_progress_review'
 export const RECOMMENDED_OPERATOR_ENV_FILE = '.env.reeditpro-beta-operator.local'
 
 export function buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options = {}) {
@@ -204,6 +205,138 @@ export function renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown
   return lines.join('\n')
 }
 
+export function buildBetaReadinessExternalBetaOperatorValueProgress(options = {}) {
+  const preflight = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options)
+  const template = buildBetaReadinessExternalBetaOperatorInputTemplate({})
+  const requiredGroups = groupByField(template.requiredInputs, 'group')
+  const requiredValuePolicies = groupByField(template.requiredInputs, 'valuePolicy')
+  const pendingGroups = preflight.operatorInputs.pendingGroups ?? {}
+  const pendingValuePolicies = preflight.operatorInputs.pendingValuePolicies ?? {}
+  const presentGroups = subtractCounts(requiredGroups, pendingGroups)
+  const presentValuePolicies = subtractCounts(requiredValuePolicies, pendingValuePolicies)
+  const blockers = progressBlockers(preflight)
+  return {
+    ok: true,
+    decision: PROGRESS_DECISION,
+    preflightDecision: preflight.decision,
+    readyForExternalBetaEvidenceCollector: preflight.readyForExternalBetaEvidenceCollector,
+    envFile: {
+      provided: preflight.envFile.provided,
+      loaded: preflight.envFile.loaded,
+      displayPath: preflight.envFile.displayPath,
+      recommendedRepoLocalPath: preflight.envFile.recommendedRepoLocalPath,
+      permissionMode: preflight.envFile.permissionMode,
+      ownerOnlyPermissions: preflight.envFile.ownerOnlyPermissions,
+      symlink: preflight.envFile.symlink,
+      insideRepo: preflight.envFile.insideRepo,
+      gitIgnored: preflight.envFile.gitIgnored,
+      betaInputKeysLoaded: preflight.envFile.betaInputKeysLoaded,
+      invalidLineCount: preflight.envFile.invalidLineCount,
+      placeholderValueCount: preflight.envFile.placeholderInputPaths.length,
+      safetyGaps: preflight.envFile.safetyGaps,
+    },
+    progress: {
+      requiredInputs: preflight.operatorInputs.required,
+      presentOrAutofilledInputs: preflight.operatorInputs.required - preflight.operatorInputs.pending,
+      pendingInputs: preflight.operatorInputs.pending,
+      percentComplete: percentage(preflight.operatorInputs.required - preflight.operatorInputs.pending, preflight.operatorInputs.required),
+      humanActionablePending: preflight.operatorInputs.humanActionablePending,
+      autoFillAppliedInMemory: preflight.autoFill.inputCount,
+      autoFillablePending: preflight.operatorInputs.autoFillablePending,
+    },
+    groupProgress: progressRows(requiredGroups, presentGroups, pendingGroups),
+    valuePolicyProgress: progressRows(requiredValuePolicies, presentValuePolicies, pendingValuePolicies),
+    gateProgress: {
+      sourceFreshnessReady: preflight.sourceFreshness.readyForDeployedEvidenceInputManifest,
+      ownerApprovalReady: preflight.ownerApprovalIntake.readyForDeployedEvidenceInputManifest,
+      deployedManifestReady: preflight.deployedEvidenceInputManifest.readyToRunExternalBetaEvidenceCollector,
+      sourceFreshnessDecision: preflight.sourceFreshness.decision,
+      ownerApprovalDecision: preflight.ownerApprovalIntake.decision,
+      deployedManifestDecision: preflight.deployedEvidenceInputManifest.decision,
+    },
+    blockers,
+    pendingInputNames: preflight.operatorInputs.pendingInputNames,
+    pendingOwnerInputNames: preflight.ownerApprovalIntake.pendingInputNames,
+    sourceTruth: preflight.sourceTruth,
+    blockedScopeConfirmations: preflight.blockedScopeConfirmations,
+    supabaseClassification: preflight.supabaseClassification,
+    validationCommands: [
+      'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
+      `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-value-progress`,
+      `REEDITPRO_BETA_OPERATOR_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:external-beta-operator-local-env-preflight`,
+      `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=${RECOMMENDED_OPERATOR_ENV_FILE} npm run beta:readiness:owner-approval-intake-preflight`,
+      'npm run beta:readiness:deployed-evidence-input-manifest',
+    ],
+    warnings: [
+      'This progress report is redacted: it prints names, counts, decisions, and blocker ids only.',
+      'It never prints bearer tokens, workspace/project values, owner evidence text, signed URLs, raw prompts, private media references, or secret values.',
+      'It does not grant approval, call deployed services, record evidence, write Supabase/GCS, run tools, process media, enable external beta, enable real-user-media beta, or enable paid production.',
+    ],
+    nextSafeAction: nextProgressAction(preflight, blockers),
+  }
+}
+
+export function renderBetaReadinessExternalBetaOperatorValueProgressMarkdown(report) {
+  const lines = [
+    '# Beta Readiness External Beta Operator Value Progress',
+    '',
+    `Decision: \`${report.decision}\``,
+    `Preflight decision: \`${report.preflightDecision}\``,
+    `Ready for external beta evidence collector: \`${report.readyForExternalBetaEvidenceCollector}\``,
+    '',
+    '## Progress',
+    '',
+    `- Required inputs: \`${report.progress.requiredInputs}\``,
+    `- Present or auto-filled in memory: \`${report.progress.presentOrAutofilledInputs}\``,
+    `- Pending inputs: \`${report.progress.pendingInputs}\``,
+    `- Complete: \`${report.progress.percentComplete}%\``,
+    `- Human-actionable pending: \`${report.progress.humanActionablePending}\``,
+    `- Auto-fill applied in memory: \`${report.progress.autoFillAppliedInMemory}\``,
+    '',
+    '## Env File',
+    '',
+    `- Provided: \`${report.envFile.provided}\``,
+    `- Loaded: \`${report.envFile.loaded}\``,
+    `- Path: \`${report.envFile.displayPath ?? 'none'}\``,
+    `- Permission mode: \`${report.envFile.permissionMode ?? 'not_applicable'}\``,
+    `- Owner-only permissions: \`${report.envFile.ownerOnlyPermissions ?? 'not_applicable'}\``,
+    `- Symlink: \`${report.envFile.symlink ?? 'not_applicable'}\``,
+    `- Inside repo: \`${report.envFile.insideRepo}\``,
+    `- Git ignored: \`${report.envFile.gitIgnored ?? 'not_applicable'}\``,
+    `- Parsed beta input keys: \`${report.envFile.betaInputKeysLoaded}\``,
+    `- Invalid lines: \`${report.envFile.invalidLineCount}\``,
+    `- Placeholder values: \`${report.envFile.placeholderValueCount}\``,
+    '',
+    '## Gates',
+    '',
+    `- Source freshness ready: \`${report.gateProgress.sourceFreshnessReady}\``,
+    `- Owner approval ready: \`${report.gateProgress.ownerApprovalReady}\``,
+    `- Deployed manifest ready: \`${report.gateProgress.deployedManifestReady}\``,
+    '',
+    '## Pending By Group',
+    '',
+    ...report.groupProgress.map((row) => `- ${row.name}: \`${row.present}/${row.required}\` present, \`${row.pending}\` pending`),
+    '',
+    '## Pending By Value Policy',
+    '',
+    ...report.valuePolicyProgress.map((row) => `- ${row.name}: \`${row.present}/${row.required}\` present, \`${row.pending}\` pending`),
+    '',
+    '## Blockers',
+    '',
+    ...(report.blockers.length ? report.blockers.map((blocker) => `- \`${blocker}\``) : ['- `none`']),
+    '',
+    '## Boundary',
+    '',
+    'This report printed no bearer token, workspace/project value, owner evidence text, signed URL, raw prompt, private media reference, or secret value.',
+    'It did not grant approval, call deployed services, record evidence, write Supabase, run SQL, write GCS, dispatch workers, call providers, process media, enable external beta, enable real-user-media beta, enable paid production, create public artifacts, or create signed URLs.',
+    '',
+    'Supabase classification: no write / environment none / SQL none / migration no.',
+    '',
+    `Next safe action: ${report.nextSafeAction}`,
+  ]
+  return lines.join('\n')
+}
+
 function readOperatorEnvFile({ envFilePath, envFileContent, repoRoot }) {
   const provided = Boolean(envFilePath || envFileContent)
   if (!provided) {
@@ -373,6 +506,68 @@ function isPlaceholderValue(value) {
   return Boolean(cleaned && /^<[^>]+>$/.test(cleaned))
 }
 
+function groupByField(items, field) {
+  return items.reduce((counts, item) => {
+    const key = item[field] ?? 'unknown'
+    counts[key] = (counts[key] ?? 0) + 1
+    return counts
+  }, {})
+}
+
+function subtractCounts(required, pending) {
+  return Object.fromEntries(
+    Object.entries(required).map(([key, count]) => [key, Math.max(0, count - (pending[key] ?? 0))]),
+  )
+}
+
+function progressRows(required, present, pending) {
+  return Object.keys(required).sort().map((name) => ({
+    name,
+    required: required[name] ?? 0,
+    present: present[name] ?? 0,
+    pending: pending[name] ?? 0,
+    percentComplete: percentage(present[name] ?? 0, required[name] ?? 0),
+  }))
+}
+
+function percentage(value, total) {
+  if (!total) return 100
+  return Math.round((value / total) * 100)
+}
+
+function progressBlockers(preflight) {
+  return [
+    ...(preflight.envFile.provided ? [] : ['operator_env_file_not_provided']),
+    ...(preflight.envFile.loaded ? [] : ['operator_env_file_not_loaded']),
+    ...(preflight.envFile.invalidLineCount > 0 ? ['operator_env_file_has_invalid_lines'] : []),
+    ...(preflight.envFile.placeholderInputPaths.length > 0 ? ['operator_env_file_contains_placeholder_values'] : []),
+    ...preflight.safetyGaps,
+    ...(preflight.operatorInputs.pending > 0 ? ['operator_inputs_pending'] : []),
+    ...(preflight.sourceFreshness.readyForDeployedEvidenceInputManifest ? [] : ['source_freshness_not_ready']),
+    ...(preflight.ownerApprovalIntake.readyForDeployedEvidenceInputManifest ? [] : ['owner_approval_intake_not_ready']),
+    ...(preflight.deployedEvidenceInputManifest.readyToRunExternalBetaEvidenceCollector ? [] : ['deployed_evidence_manifest_not_ready']),
+  ].filter((value, index, values) => values.indexOf(value) === index)
+}
+
+function nextProgressAction(preflight, blockers) {
+  if (preflight.readyForExternalBetaEvidenceCollector) {
+    return 'Run the source freshness preflight, owner approval intake preflight, deployed evidence input manifest, and then the external beta evidence collector from the same approved operator shell.'
+  }
+  if (blockers.includes('operator_env_file_not_provided') || blockers.includes('operator_env_file_not_loaded')) {
+    return `Run npm run beta:readiness:external-beta-operator-local-env-bootstrap, fill ${RECOMMENDED_OPERATOR_ENV_FILE} outside source control, chmod 600 it, then rerun this progress report.`
+  }
+  if (blockers.includes('operator_env_file_contains_placeholder_values')) {
+    return 'Replace every placeholder value with the correct operator/owner/technical evidence value outside source control, then rerun the local env preflight.'
+  }
+  if (blockers.includes('operator_inputs_pending')) {
+    return 'Continue filling the pending operator/owner/technical values shown by name only, then rerun this progress report and the local env preflight.'
+  }
+  if (blockers.includes('source_freshness_not_ready')) return 'Refresh or re-record source freshness evidence before deployed evidence collection.'
+  if (blockers.includes('owner_approval_intake_not_ready')) return 'Run the owner approval intake status/preflight with the same local env file and resolve remaining owner inputs.'
+  if (blockers.includes('deployed_evidence_manifest_not_ready')) return 'Run the deployed evidence input manifest and resolve its named gaps before the collector.'
+  return 'Resolve the listed safety gaps, then rerun this progress report.'
+}
+
 function readArg(name) {
   const index = process.argv.indexOf(name)
   if (index === -1) return undefined
@@ -380,18 +575,28 @@ function readArg(name) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const report = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight({
+  const options = {
     envFilePath: readArg('--env-file'),
-  })
-  if (process.argv.includes('--markdown')) {
-    console.log(renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown(report))
+  }
+  if (process.argv.includes('--progress')) {
+    const report = buildBetaReadinessExternalBetaOperatorValueProgress(options)
+    if (process.argv.includes('--markdown')) {
+      console.log(renderBetaReadinessExternalBetaOperatorValueProgressMarkdown(report))
+    } else {
+      console.log(JSON.stringify(report, null, 2))
+    }
   } else {
-    console.log(JSON.stringify(report, null, 2))
-  }
-  if (report.envFile.provided && report.safetyGaps.length > 0) {
-    process.exitCode = 1
-  }
-  if (process.argv.includes('--require-ready') && !report.readyForExternalBetaEvidenceCollector) {
-    process.exitCode = 1
+    const report = buildBetaReadinessExternalBetaOperatorLocalEnvPreflight(options)
+    if (process.argv.includes('--markdown')) {
+      console.log(renderBetaReadinessExternalBetaOperatorLocalEnvPreflightMarkdown(report))
+    } else {
+      console.log(JSON.stringify(report, null, 2))
+    }
+    if (report.envFile.provided && report.safetyGaps.length > 0) {
+      process.exitCode = 1
+    }
+    if (process.argv.includes('--require-ready') && !report.readyForExternalBetaEvidenceCollector) {
+      process.exitCode = 1
+    }
   }
 }

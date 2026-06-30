@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { executeTrackBAgentTool } from '../agents/trackb-agent-tool-execution'
 import { buildTrackBAgentRuntimeReadinessReport } from '../beta-readiness/trackb-agent-runtime-readiness'
+import { runProductionToolReadiness } from '../workers/production-readiness'
 import {
   sharedMockCreditEstimateStore,
   sharedMockCreditReservationStore,
@@ -31,6 +32,11 @@ const expectedWorkerHandlers: Record<string, string> = {
 }
 
 for (const contract of report.contracts) {
+  assert.ok(
+    contract.admittedModes.includes('bounded_runtime_probe'),
+    `${contract.toolId} should admit bounded runtime probe mode`,
+  )
+
   const result = await executeTrackBAgentTool({
     workspaceId: 'workspace-trackb-agent-smoke',
     projectId: 'project-trackb-agent-smoke',
@@ -77,6 +83,40 @@ for (const contract of report.contracts) {
     assert.equal(result.workerResult?.toolCostMetadata?.mockOnly, true)
   }
 }
+
+const scopedHyperframeProbe = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-bounded-probe-hyperframe',
+  agentInvocationId: 'trackb.media_oss.hyperframe',
+  toolId: 'hyperframe',
+  action: 'preview_timeline',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-bounded-probe-hyperframe',
+  mode: 'bounded_runtime_probe',
+  approvedPreviewStateReference: 'preview_state/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/hyperframe-approved-state',
+})
+assert.equal(scopedHyperframeProbe.status, 'completed')
+assert.equal(scopedHyperframeProbe.decision, 'trackb_agent_tool_execution_bounded_runtime_probe_completed')
+assert.equal(scopedHyperframeProbe.runtimeReadinessProof?.toolId, 'hyperframe')
+assert.equal(scopedHyperframeProbe.runtimeReadinessProof?.probeKind, 'command_import_package_metadata_only')
+assert.equal(scopedHyperframeProbe.runtimeReadinessProof?.mediaProcessing, false)
+assert.equal(scopedHyperframeProbe.runtimeReadinessProof?.productRuntimeExecution, false)
+assert.equal(scopedHyperframeProbe.runtimeReadinessProof?.backendEvidenceRecorded, false)
+assert.deepEqual(scopedHyperframeProbe.runtimeReadinessProof?.checkModes, ['node_package_metadata'])
+assert.equal(scopedHyperframeProbe.workerResult, undefined)
+
+const scopedReadiness = runProductionToolReadiness({
+  realCheckMode: true,
+  strict: false,
+  toolIds: ['hyperframe'],
+})
+assert.deepEqual(scopedReadiness.results.map((item) => item.toolId), ['hyperframe'])
+assert.deepEqual(
+  scopedReadiness.coreToolReadiness?.results.map((item) => item.toolId),
+  ['hyperframe'],
+  'scoped Hyperframe readiness must not execute unrelated command/import checks',
+)
 
 const liveBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -187,6 +227,7 @@ console.log(JSON.stringify({
     'all_16_trackb_agent_invocations_admit',
     'backend_tools_dispatch_mock_safe_worker_payloads',
     'backend_tools_select_trackb_worker_recipe_handlers',
+    'bounded_runtime_probe_runs_scoped_command_import_package_metadata_checks',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',
     'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',

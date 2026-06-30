@@ -77,6 +77,33 @@ try {
     }
   }
 
+  const boundedProbe = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-bounded-probe-hyperframe' },
+    body: JSON.stringify({
+      workspaceId: 'workspace-trackb-agent-route-smoke',
+      projectId: 'project-trackb-agent-route-smoke',
+      jobId: 'job-trackb-agent-route-smoke-bounded-probe-hyperframe',
+      agentInvocationId: 'trackb.media_oss.hyperframe',
+      toolId: 'hyperframe',
+      action: 'preview_timeline',
+      approvedSnapshotId: 'approved-snapshot-trackb-agent-route-smoke',
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-bounded-probe-hyperframe',
+      mode: 'bounded_runtime_probe',
+      approvedPreviewStateReference: 'preview_state/workspaces/workspace-trackb-agent-route-smoke/projects/project-trackb-agent-route-smoke/hyperframe-approved-state',
+    }),
+  }, 202)
+  assert.equal(boundedProbe.data.trackBAgentToolExecution.status, 'completed')
+  assert.equal(
+    boundedProbe.data.trackBAgentToolExecution.decision,
+    'trackb_agent_tool_execution_bounded_runtime_probe_completed',
+  )
+  assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.toolId, 'hyperframe')
+  assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.mediaProcessing, false)
+  assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.productRuntimeExecution, false)
+  assert.equal(boundedProbe.data.trackBAgentToolExecution.runtimeReadinessProof.backendEvidenceRecorded, false)
+  assert.equal(boundedProbe.data.trackBAgentToolExecution.workerResult, undefined)
+
   const liveBlocked = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-live-blocked' },
@@ -213,6 +240,7 @@ try {
     checks: [
       'http_route_accepts_all_16_trackb_agent_invocations',
       'http_route_dispatches_backend_tools_mock_safe',
+      'http_route_accepts_bounded_runtime_probe_without_worker_dispatch',
       'http_route_keeps_hyperframe_preview_boundary',
       'http_route_blocks_live_execution_until_deployed_evidence',
       'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',

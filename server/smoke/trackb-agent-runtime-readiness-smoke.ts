@@ -24,6 +24,7 @@ assert.deepEqual(report.blockedActionScope, [
   'paid_production_execution',
 ])
 assert.ok(report.allowedForwardProgressScopes.includes('agent_runtime_contract_validation'))
+assert.ok(report.allowedForwardProgressScopes.includes('bounded_runtime_probe_validation'))
 assert.ok(report.allowedForwardProgressScopes.includes('mock_safe_worker_dispatch_validation'))
 assert.ok(report.allowedForwardProgressScopes.includes('deployed_product_ready_evidence_collection'))
 assert.ok(report.blockers.some((blocker) => blocker.includes('0/16 Track B tools')))
@@ -55,7 +56,7 @@ for (const contract of report.contracts) {
 
 const hyperframe = report.contracts.find((contract) => contract.toolId === 'hyperframe')
 assert.ok(hyperframe, 'hyperframe contract must exist')
-assert.deepEqual(hyperframe.admittedModes, ['frontend_preview_boundary'])
+assert.deepEqual(hyperframe.admittedModes, ['frontend_preview_boundary', 'bounded_runtime_probe'])
 assert.equal(hyperframe.workerType, 'frontend_preview_only')
 assert.ok(hyperframe.requiredPayloadReferences.includes('approvedPreviewStateReference'))
 
@@ -63,6 +64,7 @@ for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !==
   const contract = report.contracts.find((candidate) => candidate.toolId === toolId)
   assert.ok(contract, `${toolId} contract must exist`)
   assert.ok(contract?.admittedModes.includes('mock_safe_worker_dispatch'), `${toolId} should be mock-safe worker admitted`)
+  assert.ok(contract?.admittedModes.includes('bounded_runtime_probe'), `${toolId} should be bounded runtime probe admitted`)
   assert.ok(contract?.expectedWorkerTypes.length, `${toolId} should expose expected worker types`)
   assert.ok(contract?.imageRoles.length, `${toolId} should expose image roles`)
 }
@@ -83,13 +85,14 @@ assert.deepEqual(deployedReport.blockers, [])
 
 const deployedHyperframe = deployedReport.contracts.find((contract) => contract.toolId === 'hyperframe')
 assert.ok(deployedHyperframe)
-assert.deepEqual(deployedHyperframe.admittedModes, ['frontend_preview_boundary'])
+assert.deepEqual(deployedHyperframe.admittedModes, ['frontend_preview_boundary', 'bounded_runtime_probe'])
 assert.equal(deployedHyperframe.liveExecutionReady, true)
 
 for (const toolId of TRACKB_AGENT_RUNTIME_TOOL_IDS.filter((toolId) => toolId !== 'hyperframe')) {
   const contract = deployedReport.contracts.find((candidate) => candidate.toolId === toolId)
   assert.ok(contract, `${toolId} deployed contract must exist`)
   assert.ok(contract.admittedModes.includes('mock_safe_worker_dispatch'))
+  assert.ok(contract.admittedModes.includes('bounded_runtime_probe'))
   assert.ok(contract.admittedModes.includes('deployed_live_execution'))
   assert.equal(contract.deployedEvidenceRecorded, true)
   assert.equal(contract.blockedActionScope.length, 0)

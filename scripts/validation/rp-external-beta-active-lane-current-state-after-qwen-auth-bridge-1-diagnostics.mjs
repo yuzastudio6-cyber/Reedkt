@@ -61,6 +61,20 @@ const requiredText = [
 ]
 
 const allowedChangedFiles = new Set(requiredFiles)
+for (const file of [
+  'docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/source-audit.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/transport-evidence-review.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/runtime-gates.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/safety-boundary.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/validation-results.md',
+  'docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/qwen-persisted-worker-dispatch-source-import-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-source-import-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1.md',
+  'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-source-import-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-qwen-runtime-stack-fresh-source-import-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const blockedChangedPatterns = [
   /^package-lock\.json$/,

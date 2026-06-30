@@ -279,7 +279,9 @@ export function buildTrackBAgentRuntimeReadinessReport(
 }
 
 function supportsBoundedExecutionRehearsal(toolId: ProductionToolId): boolean {
-  return toolId === 'sharp' ||
+  return toolId === 'ffmpeg' ||
+    toolId === 'ffprobe' ||
+    toolId === 'sharp' ||
     toolId === 'duckdb' ||
     toolId === 'polars' ||
     toolId === 'pyav' ||

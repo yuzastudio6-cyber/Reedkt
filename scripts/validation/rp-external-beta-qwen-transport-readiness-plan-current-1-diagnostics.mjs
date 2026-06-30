@@ -48,6 +48,17 @@ const allowedChangedFiles = new Set([
   'docs/implementation-prompts/prompt-rp-external-beta-qwen-staging-api-route-deployment-alignment-1.md',
   'scripts/validation/rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1.mjs',
   'scripts/validation/rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1-diagnostics.mjs',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/source-audit.md',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/deployment-result.md',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/runtime-preflight-result.md',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/artifact-manifest.md',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/runtime-boundary.md',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/validation-results.md',
+  'docs/external-beta/qwen-staging-api-route-deployment-alignment-1/qwen-staging-api-route-deployment-alignment-1-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-staging-api-route-deployment-alignment-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-provider-runtime-fixture-current-1.md',
+  'scripts/validation/rp-external-beta-qwen-staging-api-route-deployment-alignment-1-diagnostics.mjs',
+  'src/server/server-router.ts',
 ])
 
 const requiredText = [
@@ -126,7 +137,7 @@ const forbiddenPatterns = [
 
 const blockedPathPatterns = [
   /^package-lock\.json$/,
-  /^src\//,
+  /^src\/(?!server\/server-router\.ts$)/,
   /^server\/(?!config\/qwen2-5-vl-external-beta-runtime-gate-contract\.ts$)(?!routes\/provider-gateway-routes\.ts$)(?!services\/qwen2-5-vl-external-beta-product-route-handler-source\.ts$)(?!services\/qwen2-5-vl-external-beta-backend-runtime-adapter\.ts$)/,
   /^supabase\//,
   /^database\//,

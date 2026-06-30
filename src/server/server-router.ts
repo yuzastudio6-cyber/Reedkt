@@ -4,6 +4,12 @@ import path from 'node:path'
 import type { ApiRequestEnvelope } from '../backend/api/api-runtime-contracts'
 import { createApiRouteMapSummary, REEDITPRO_API_ROUTES } from '../backend/api/api-route-registry'
 import { createMockApiRuntimeContext, handleMockApiRequest } from '../backend/api/mock-api-router'
+import { loadRuntimeEnv } from '../../server/config/env'
+import {
+  createQwen25VlExternalBetaProductRouteHandlerSource,
+  type Qwen25VlExternalBetaProductRouteHandlerSourceInput,
+} from '../../server/services/qwen2-5-vl-external-beta-product-route-handler-source'
+import type { ServiceContext } from '../../server/types'
 import { getBackendEnvStatus } from './server-env'
 import { createHealthResponse, createJsonResponse, createNotFoundResponse, createReadinessResponse, createServerErrorResponse, sendJsonResponse } from './server-response'
 import { getServerRuntimeConfig, getServerRuntimeWarnings } from './server-runtime-config'
@@ -13,6 +19,7 @@ const SPA_ENTRY_FILE = 'index.html'
 const WEB_DIST_ENV = 'REEDITPRO_WEB_DIST_DIR'
 const STATIC_ROUTE_EXCLUDED_PREFIXES = ['/api', '/v1']
 const STATIC_ROUTE_EXCLUDED_PATHS = new Set(['/health', '/ready'])
+const QWEN_STRUCTURED_VISUAL_METADATA_PATH = '/api/providers/qwen2-5-vl/structured-visual-metadata'
 const MIME_TYPES: Record<string, string> = {
   '.css': 'text/css; charset=utf-8',
   '.gif': 'image/gif',
@@ -86,6 +93,12 @@ export async function handleServerRequest(
       return
     }
 
+    if (method === 'POST' && url.pathname === QWEN_STRUCTURED_VISUAL_METADATA_PATH) {
+      const body = await readJsonBody(request)
+      sendJsonResponse(response, createQwenStructuredVisualMetadataFailClosedResponse(request, body))
+      return
+    }
+
     if (sendStaticWebSurface(request, response, url)) {
       return
     }
@@ -97,6 +110,45 @@ export async function handleServerRequest(
       createServerErrorResponse(error instanceof Error ? error.message : 'Unexpected server error.'),
     )
   }
+}
+
+function createQwenStructuredVisualMetadataFailClosedResponse(
+  request: IncomingMessage,
+  body: unknown,
+) {
+  const routeIdempotencyKey = getHeaderValue(request, 'idempotency-key')
+  if (!routeIdempotencyKey) {
+    return createJsonResponse({
+      ok: false,
+      error: {
+        code: 'IDEMPOTENCY_KEY_REQUIRED',
+        message: 'Idempotency-Key header is required for this provider route.',
+      },
+    }, 400)
+  }
+
+  const context: ServiceContext = {
+    env: loadRuntimeEnv(),
+    clients: {
+      admin: null,
+      public: null,
+    },
+    requestId: getHeaderValue(request, 'x-request-id') ?? 'qwen-structured-visual-metadata-route-preflight',
+  }
+  const routeInput = {
+    ...coerceRecord(body),
+    routeIdempotencyKey,
+  } as Qwen25VlExternalBetaProductRouteHandlerSourceInput
+  const result = createQwen25VlExternalBetaProductRouteHandlerSource(context).buildBlockedResult(routeInput)
+
+  return createJsonResponse(result, result.httpStatus)
+}
+
+function getHeaderValue(request: IncomingMessage, header: string): string | null {
+  const value = request.headers[header.toLowerCase()]
+  if (Array.isArray(value)) return value.find((item) => item.trim())?.trim() ?? null
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  return null
 }
 
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {
@@ -116,6 +168,11 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
 
   const text = Buffer.concat(chunks).toString('utf8').trim()
   return text.length > 0 ? JSON.parse(text) : {}
+}
+
+function coerceRecord(value: unknown): Record<string, string | boolean | null | undefined> {
+  if (!isRecord(value)) return {}
+  return value as Record<string, string | boolean | null | undefined>
 }
 
 function normalizeApiRequestEnvelope(value: unknown): ApiRequestEnvelope {

@@ -1,0 +1,114 @@
+{
+  "packet": "RP-EXTERNAL-BETA-QWEN-STAGING-API-ROUTE-DEPLOYMENT-ALIGNMENT-1",
+  "decision": "completed_qwen_staging_api_route_deployment_alignment_current_source_bridge",
+  "execution": "completed_confirmed_staging_api_image_alignment_and_route_preflight_no_provider_execution",
+  "sourceBase": "5cf82e6242677af8add6b53d5b5dd4c78c9ee9fe",
+  "sourceChain": {
+    "dependencyAttemptResultReviewPr": 1763,
+    "dependencyAttemptResultReviewMergeSha": "805bad1f3d5ad738ecb0204ebf696552a4364eca",
+    "transportReadinessPlanPr": 1767,
+    "transportReadinessPlanMergeSha": "0258873cd11acd4fbc91f829e4c45ce25a44ebf8",
+    "confirmedTransportPreflightPr": 1774,
+    "confirmedTransportPreflightMergeSha": "5cf82e6242677af8add6b53d5b5dd4c78c9ee9fe",
+    "excludedPr": 577
+  },
+  "route": {
+    "routeId": "providers.qwen25Vl.structuredVisualMetadataPlan",
+    "method": "POST",
+    "path": "/api/providers/qwen2-5-vl/structured-visual-metadata",
+    "serverRouterBridge": "src/server/server-router.ts",
+    "routeHandlerSource": "server/services/qwen2-5-vl-external-beta-product-route-handler-source.ts",
+    "failClosedHttpStatus": 424
+  },
+  "cloudBuilds": [
+    {
+      "id": "abd118e3-6593-41e7-8809-1bf6337aadc5",
+      "status": "SUCCESS",
+      "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-api:external-beta-qwen-route-align-1-5cf82e6",
+      "digest": "sha256:282ef97d3bc024155f83640fae9969128922c1a051fd56c2a200b8bc1cf96f3c",
+      "deployedRevision": "reeditpro-staging-api-00007-xbc",
+      "routePreflightRunId": "2026-06-30T03-42-37-137Z-bd4b3772",
+      "routePreflightResult": "blocked_route_response_classification_failed",
+      "routePreflightHttpStatus": 404
+    },
+    {
+      "id": "ef61e232-f563-4e16-bf3e-50b5878d1658",
+      "status": "SUCCESS",
+      "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-api:external-beta-qwen-route-align-1b-5cf82e6",
+      "digest": "sha256:f3deaee047e8f5b9dda7835d1140900c7f4e1f33dc240ddc2743e820be27cf55",
+      "deployedRevision": "reeditpro-staging-api-00008-4ct",
+      "routePreflightRunId": "2026-06-30T03-49-20-516Z-10d064e3",
+      "routePreflightResult": "passed_route_reached_fail_closed_no_provider_execution",
+      "routePreflightHttpStatus": 424
+    }
+  ],
+  "serviceReadback": {
+    "service": "reeditpro-staging-api",
+    "region": "us-central1",
+    "project": "reeditpro",
+    "latestReadyRevisionName": "reeditpro-staging-api-00008-4ct",
+    "trafficPercent": 100,
+    "serviceAccount": "reeditpro-stg-api-sa@reeditpro.iam.gserviceaccount.com",
+    "targetRef": "wmyyttnynmteqgcdishd"
+  },
+  "evidence": {
+    "successfulRunId": "2026-06-30T03-49-20-516Z-10d064e3",
+    "successfulOutputDir": "/tmp/reeditpro-rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1/2026-06-30T03-49-20-516Z-10d064e3",
+    "report": {
+      "fileName": "qwen-confirmed-transport-runtime-preflight-current-1-report.json",
+      "bytes": 8672,
+      "sha256": "d5b6c436770d0c2af2c928ad71dda95601241213980006832ac61bf606108256"
+    },
+    "manifest": {
+      "fileName": "qwen-confirmed-transport-runtime-preflight-current-1-manifest.json",
+      "bytes": 743,
+      "sha256": "c20c5060a5cf0e0803686a24f99a2c3dec9b6a2532c590972219ba47960bb75e"
+    }
+  },
+  "readiness": {
+    "qwenTransportRuntimePreflightCurrent1": "passed_route_reached_fail_closed_no_provider_execution",
+    "qwen25VlExecution": "blocked_pending_separate_confirmed_provider_runtime_packet",
+    "providerModelCall": "blocked_pending_separate_confirmed_provider_runtime_packet",
+    "workerDispatch": "blocked_pending_separate_confirmed_worker_dispatch_packet",
+    "broadExternalBetaExpansion": "blocked_no_additional_named_tester_list",
+    "externalProduction": "blocked_pending_broad_beta_tool_runtime_billing_support_legal_security_and_final_export_gates",
+    "productReadyEndToEndLocalOssTools": 0,
+    "nextMilestone": "RP-EXTERNAL-BETA-QWEN-PROVIDER-RUNTIME-FIXTURE-CURRENT-1"
+  },
+  "safety": {
+    "cloudBuild": true,
+    "cloudRunServiceUpdate": true,
+    "cloudRunDeployment": true,
+    "boundedRouteRequestSent": true,
+    "routeHandlerReached": true,
+    "qwen25VlExecution": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "generatedAssetCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "remotionExecution": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "iamMutation": false,
+    "groupMembershipMutation": false,
+    "broadServiceRoleHandler": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

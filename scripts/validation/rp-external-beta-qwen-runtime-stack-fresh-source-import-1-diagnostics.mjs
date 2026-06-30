@@ -78,6 +78,17 @@ allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwe
 allowedChangedFiles.add('database/migration-drafts/024_qwen2_5_vl_backend_runtime_persistence.draft.sql')
 allowedChangedFiles.add('database/test-sql/022_qwen2_5_vl_backend_runtime_persistence_tests.sql')
 allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-runtime-persistence-draft-source-split-import-1-diagnostics.mjs')
+allowedChangedFiles.add('docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/source-audit.md')
+allowedChangedFiles.add('docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/transport-evidence-review.md')
+allowedChangedFiles.add('docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/runtime-gates.md')
+allowedChangedFiles.add('docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/safety-boundary.md')
+allowedChangedFiles.add('docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/validation-results.md')
+allowedChangedFiles.add('docs/external-beta/qwen-persisted-worker-dispatch-source-import-1/qwen-persisted-worker-dispatch-source-import-record.json')
+allowedChangedFiles.add('docs/activation-phase-rp-external-beta-qwen-persisted-worker-dispatch-source-import-1-results.md')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-source-import-1.md')
+allowedChangedFiles.add('docs/implementation-prompts/prompt-rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-plan-1.md')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-active-lane-current-state-after-qwen-auth-bridge-1-diagnostics.mjs')
+allowedChangedFiles.add('scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-source-import-1-diagnostics.mjs')
 const blockedPrefixes = [
   'package-lock.json',
   'supabase/',

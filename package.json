@@ -833,6 +833,8 @@
     "rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1": "node scripts/validation/rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1.mjs",
     "rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-single-tester-qwen-product-flow-runtime-1-diagnostics.mjs",
     "rp-external-beta-single-tester-real-product-walkthrough-qa-1:diagnostics": "node scripts/validation/rp-external-beta-single-tester-real-product-walkthrough-qa-1-diagnostics.mjs",
+    "rp-external-beta-single-tester-real-usage-qa-1": "node scripts/validation/rp-external-beta-single-tester-real-usage-qa-1.mjs",
+    "rp-external-beta-single-tester-real-usage-qa-1:diagnostics": "node scripts/validation/rp-external-beta-single-tester-real-usage-qa-1-diagnostics.mjs",
     "rp-external-beta-controlled-single-tester-go-no-go-1:diagnostics": "node scripts/validation/rp-external-beta-controlled-single-tester-go-no-go-1-diagnostics.mjs",
     "rp-external-beta-named-tester-expansion-readiness-1:diagnostics": "node scripts/validation/rp-external-beta-named-tester-expansion-readiness-1-diagnostics.mjs",
     "rp-external-beta-additional-named-tester-list-decision-1:diagnostics": "node scripts/validation/rp-external-beta-additional-named-tester-list-decision-1-diagnostics.mjs",

@@ -1,0 +1,214 @@
+{
+  "packet": "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1",
+  "decision": "completed_single_tester_real_usage_qa_authenticated_staging_readback",
+  "execution": "completed_guarded_authenticated_single_tester_real_usage_qa_readonly",
+  "integrationBase": "c77835cc2715f24726da617caca1b477d1c214d0",
+  "post1692SourceClosure": {
+    "toolReadinessAfterGpacDispatch": "RP-EXTERNAL-PRODUCT-TOOL-READINESS-AFTER-GPAC-DISPATCH-1",
+    "mergeSha": "987dd4565bfa5cfedef74814fede477ae36a42d4",
+    "gpacMp4box": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa",
+    "qwen25Vl": "qa_passed_single_tester_qwen_product_flow_runtime_evidence_backend_only_gated_not_broad_provider_unlock"
+  },
+  "post1738SourceClosure": {
+    "qwenTransportDependencyEnablementCurrentImport": "RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-ENABLEMENT-CURRENT-IMPORT-1",
+    "qwenTransportDependencyPreflightCurrent": "RP-EXTERNAL-BETA-QWEN-TRANSPORT-DEPENDENCY-PREFLIGHT-CURRENT-1",
+    "mergeSha": "daff6905af21d9623b14197a4c9a2d61eed47501",
+    "decision": "completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked",
+    "blocker": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
+    "cloudRunInvocation": false,
+    "identityTokenFetch": false,
+    "requestSent": false,
+    "qwen25VlExecution": false,
+    "workerDispatch": false
+  },
+  "post1744SourceClosure": {
+    "operatorGcloudAuthPreflight": "RP-EXTERNAL-BETA-OPERATOR-GCLOUD-AUTH-PREFLIGHT-1",
+    "mergeSha": "387678f5b884364f078a424ca47210b5eca27c19",
+    "decision": "completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation",
+    "runnerExecutedInThisRepair": false,
+    "nextOperatorCommand": "REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1"
+  },
+  "priorOperatorGcloudAuthPreflightAttempt": {
+    "runId": "2026-06-30T01-45-56-932Z-1ef24f39",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-operator-gcloud-auth-preflight-1/2026-06-30T01-45-56-932Z-1ef24f39",
+    "decision": "blocked_gcloud_user_reauthentication_required",
+    "execution": "blocked_user_access_token_preflight_no_runtime_invocation",
+    "blocker": "blocked_gcloud_user_reauthentication_required",
+    "observedAccount": "aiediting@reeditpro.com",
+    "observedProject": "reeditpro",
+    "userTokenProbe": "blocked_gcloud_user_reauthentication_required",
+    "adcTokenProbe": "not_run_user_token_blocked",
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "tokenTempFileDeleted": true,
+    "reportFile": "operator-gcloud-auth-preflight-report.json",
+    "reportBytes": 2388,
+    "reportSha256": "15a3a68656bf70fa56e20372e8c0c7ee15cda6d539a1c69507661755f83f5814",
+    "manifestFile": "operator-gcloud-auth-preflight-manifest.json",
+    "manifestBytes": 639,
+    "manifestSha256": "6111b14a5b17adcfd3108f691cbb758aa6efef6419c2bb2191aa86c1085d66bf"
+  },
+  "operatorGcloudAuthPreflightAttempt": {
+    "runId": "2026-06-30T02-01-10-237Z-03964b88",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-operator-gcloud-auth-preflight-1/2026-06-30T02-01-10-237Z-03964b88",
+    "decision": "completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry",
+    "execution": "completed_local_gcloud_auth_preflight_no_runtime_invocation",
+    "blocker": "none",
+    "observedAccount": "aiediting@reeditpro.com",
+    "observedProject": "reeditpro",
+    "userTokenProbe": "passed",
+    "adcTokenProbe": "passed",
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "tokenTempFileDeleted": true,
+    "reportFile": "operator-gcloud-auth-preflight-report.json",
+    "reportBytes": 2427,
+    "reportSha256": "aa2b21bef41ccd8d321391a224bf7419a2c9cec0259000e5dbcf86f72330468f",
+    "manifestFile": "operator-gcloud-auth-preflight-manifest.json",
+    "manifestBytes": 982,
+    "manifestSha256": "7eba8f232ff07154d6698abd137db640329b003d06c13255845d2530a4226250"
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "service": "reeditpro-staging-api"
+  },
+  "tester": {
+    "email": "aiediting@reeditpro.com",
+    "group": "external-beta-testers@reeditpro.com",
+    "activeAccount": "aiediting@reeditpro.com",
+    "activeAccountMatches": true
+  },
+  "runEvidence": {
+    "runId": "single-tester-real-usage-qa-1-2026-06-30T02-02-22-270Z-1629c2ff",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-single-tester-real-usage-qa-1/single-tester-real-usage-qa-1-2026-06-30T02-02-22-270Z-1629c2ff",
+    "reportFile": "single-tester-real-usage-qa-1-report.json",
+    "manifestFile": "single-tester-real-usage-qa-1-manifest.json",
+    "checksumsFile": "single-tester-real-usage-qa-1-checksums.json",
+    "reportBytes": 4630,
+    "reportSha256": "261d23a9651587511d1c30f980a819b651924878d3a163d884ec87fe874e2c99",
+    "manifestBytes": 488,
+    "manifestSha256": "578184b3adcb96cd9b9a7f84f5c7a3b3b5d3de91cb30b4fef9205c21a761871e",
+    "checksumsBytes": 669,
+    "checksumsSha256": "012e755f16d0a2f5a818576e89f7fa69d20fa99bb9d8ba74cb72f390e94c81a4"
+  },
+  "readback": {
+    "blocker": "none",
+    "qwenTransportCurrentBaseBlocker": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
+    "operatorGcloudAuthPreflightHelper": "completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation",
+    "operatorGcloudAuthPreflightAttempt": "completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry",
+    "unauthenticatedRootStatus": 403,
+    "authenticatedHtmlRoutes": [
+      {
+        "route": "/",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      },
+      {
+        "route": "/dashboard",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      },
+      {
+        "route": "/projects",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      },
+      {
+        "route": "/editor",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      }
+    ],
+    "authenticatedJsonRoutes": [
+      {
+        "route": "/api/runtime/status",
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "bodyBytes": 1102,
+        "jsonLike": true
+      },
+      {
+        "route": "/api/routes",
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "bodyBytes": 22647,
+        "jsonLike": true,
+        "totalRoutes": 117,
+        "mockReadyRoutes": 0,
+        "requiredRoutesPresent": true
+      }
+    ],
+    "requiredRoutesPresent": true,
+    "routeMapTotalRoutes": 117,
+    "routeMapMockReadyRoutes": 0,
+    "staticAssetFetches": [
+      {
+        "assetPath": "/assets/index-BNzAkO71.js",
+        "status": 200,
+        "contentType": "text/javascript; charset=utf-8",
+        "bodyBytes": 2195193
+      },
+      {
+        "assetPath": "/assets/index-B2pxQajw.css",
+        "status": 200,
+        "contentType": "text/css; charset=utf-8",
+        "bodyBytes": 151867
+      }
+    ]
+  },
+  "readiness": {
+    "singleTesterRealUsageQa": "qa_passed_authenticated_staging_readback",
+    "currentLane": "go_single_tester_only",
+    "additionalTesterExpansion": "blocked_no_additional_named_tester_list",
+    "nextMilestone": "RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1",
+    "productReadyEndToEndLocalOssTools": 0
+  },
+  "safety": {
+    "authenticatedStagingReadbackOnly": true,
+    "safeGetRouteExecutionOnly": true,
+    "groupMembershipMutation": false,
+    "cloudRunIamMutation": false,
+    "cloudRunServiceUpdate": false,
+    "deployment": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "identityTokenPrinted": false,
+    "identityTokenPersisted": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "persistentCreditMutation": false,
+    "persistentCreditReservationCreation": false,
+    "stripePaymentProcessing": false,
+    "renderExecution": false,
+    "mediaProcessing": false,
+    "remotionExecution": false,
+    "ffmpegExecution": false,
+    "ffprobeExecution": false,
+    "dockerExecution": false,
+    "internalBetaBroadUnlock": false,
+    "externalBetaBroadAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

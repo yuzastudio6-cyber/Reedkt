@@ -44,7 +44,27 @@ const followOnAdditionalNamedTesterListDecision1Files = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...followOnAdditionalNamedTesterListDecision1Files])
+const followOnSingleTesterRealUsageQa1Files = [
+  'docs/external-beta/single-tester-real-usage-qa-1/source-audit.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/runner-contract.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/real-usage-qa-evidence.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/readiness-gate.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/safety-boundary.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/validation-results.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/single-tester-real-usage-qa-record.json',
+  'docs/activation-phase-rp-external-beta-single-tester-real-usage-qa-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-single-tester-real-usage-qa-1r-after-gcloud-reauth.md',
+  'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1.mjs',
+  'scripts/validation/rp-external-beta-single-tester-real-usage-qa-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-operator-gcloud-auth-preflight-1-diagnostics.mjs',
+  'package.json',
+]
+
+const allowedChangedFiles = new Set([
+  ...requiredFiles,
+  ...followOnAdditionalNamedTesterListDecision1Files,
+  ...followOnSingleTesterRealUsageQa1Files,
+])
 
 const requiredText = [
   packet,

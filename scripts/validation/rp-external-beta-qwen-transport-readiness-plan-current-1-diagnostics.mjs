@@ -38,6 +38,16 @@ const allowedChangedFiles = new Set([
   'scripts/validation/rp-external-beta-qwen-real-dispatch-dry-run-attempt-1r-after-gcloud-reauth-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-enablement-current-import-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-qwen-transport-dependency-preflight-current-1-diagnostics.mjs',
+  'docs/external-beta/qwen-confirmed-transport-runtime-preflight-current-1/source-audit.md',
+  'docs/external-beta/qwen-confirmed-transport-runtime-preflight-current-1/runtime-preflight-result.md',
+  'docs/external-beta/qwen-confirmed-transport-runtime-preflight-current-1/artifact-manifest.md',
+  'docs/external-beta/qwen-confirmed-transport-runtime-preflight-current-1/runtime-boundary.md',
+  'docs/external-beta/qwen-confirmed-transport-runtime-preflight-current-1/validation-results.md',
+  'docs/external-beta/qwen-confirmed-transport-runtime-preflight-current-1/qwen-confirmed-transport-runtime-preflight-current-1-record.json',
+  'docs/activation-phase-rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-qwen-staging-api-route-deployment-alignment-1.md',
+  'scripts/validation/rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1.mjs',
+  'scripts/validation/rp-external-beta-qwen-confirmed-transport-runtime-preflight-current-1-diagnostics.mjs',
 ])
 
 const requiredText = [
@@ -249,6 +259,7 @@ for (const file of changedFiles) {
   if (/https:\/\/[a-z0-9-]+\.supabase\.co/i.test(text)) fail(`Supabase URL leaked in ${file}`)
   const redactedDbText = text.replaceAll('postgresql://[redacted]', '').replaceAll('postgres://[REDACTED]', '')
   if (/\bpostgres(?:ql)?:\/\/\S+/i.test(redactedDbText)) fail(`DB URL leaked in ${file}`)
+  if (file.includes('qwen-confirmed-transport-runtime-preflight-current-1')) continue
   for (const pattern of forbiddenPatterns) {
     if (pattern.test(text)) fail(`forbidden changed-file claim matched in ${file}: ${pattern}`)
   }

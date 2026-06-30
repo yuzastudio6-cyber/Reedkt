@@ -819,6 +819,8 @@
     "rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-enablement-review-1-diagnostics.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmation-gated-worker-execution-plan-1-diagnostics.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1-diagnostics.mjs",
+    "rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r.mjs",
+    "rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-confirmed-worker-execution-dry-run-1r-diagnostics.mjs",
     "rp-qwen2-5-vl-external-beta-stack-integration-rollup-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-stack-integration-rollup-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-structured-output-source-import-1": "tsx server/smoke/qwen2-5-vl-external-beta-structured-output-source-import-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-structured-output-source-import-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-source-import-1-diagnostics.mjs",

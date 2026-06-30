@@ -12,7 +12,7 @@ Commands:
 
 - `npm run beta:readiness:owner-approval-env-template`
 - `npm run beta:readiness:source-freshness-preflight`
-- `npm run beta:readiness:owner-approval-intake-preflight`
+- `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`
 - `npm run smoke:beta-readiness-owner-approval-intake-preflight`
 
 ## Required Input Groups
@@ -46,4 +46,4 @@ This preflight does not grant approval, call the deployed backend, record eviden
 
 Supabase classification: no write / environment none / SQL none / migration no.
 
-Next safe action: generate the owner input template with `npm run beta:readiness:owner-approval-env-template`, have owners fill non-secret approval booleans and evidence notes outside source control, run `npm run beta:readiness:source-freshness-preflight`, run `npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.
+Next safe action: generate the owner input template with `npm run beta:readiness:owner-approval-env-template`, have owners fill non-secret approval booleans and evidence notes in the same ignored local file used for operator evidence, run `chmod 600 .env.reeditpro-beta-operator.local`, run `npm run beta:readiness:source-freshness-preflight`, run `REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight`, then rerun `npm run beta:readiness:deployed-evidence-input-manifest`.

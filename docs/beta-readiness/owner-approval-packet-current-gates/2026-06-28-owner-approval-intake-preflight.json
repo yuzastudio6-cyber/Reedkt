@@ -15,7 +15,7 @@
   "commands": {
     "template": "npm run beta:readiness:owner-approval-env-template",
     "sourceFreshness": "npm run beta:readiness:source-freshness-preflight",
-    "preflight": "npm run beta:readiness:owner-approval-intake-preflight",
+    "preflight": "REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight",
     "smoke": "npm run smoke:beta-readiness-owner-approval-intake-preflight"
   },
   "requiredInputCount": 29,
@@ -62,5 +62,5 @@
     "productReady": 0
   },
   "productReadyLocalOssCount": 0,
-  "nextSafeAction": "Generate the owner input template with npm run beta:readiness:owner-approval-env-template, owners provide non-secret approval booleans and evidence notes outside source control, run npm run beta:readiness:source-freshness-preflight, run npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
+  "nextSafeAction": "Generate the owner input template with npm run beta:readiness:owner-approval-env-template, have owners fill non-secret approval booleans and evidence notes in the same ignored local file used for operator evidence, run chmod 600 .env.reeditpro-beta-operator.local, run npm run beta:readiness:source-freshness-preflight, run REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight, then rerun npm run beta:readiness:deployed-evidence-input-manifest."
 }

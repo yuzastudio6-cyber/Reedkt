@@ -62,6 +62,7 @@ export function buildBetaReadinessExternalBetaOperatorInputTemplate(env = {}) {
     validationCommands: [
       'npm run beta:readiness:source-freshness-preflight',
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
+      'npm run beta:readiness:external-beta-operator-value-progress',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -185,6 +186,7 @@ export function buildBetaReadinessExternalBetaOperatorAutofillEnv(report = build
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
+      'npm run beta:readiness:external-beta-operator-value-progress',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-input-template',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',
@@ -240,6 +242,7 @@ export function buildBetaReadinessExternalBetaOperatorHumanInputChecklist(report
     validationCommands: [
       'npm run beta:readiness:external-beta-operator-input-template -- --status',
       'npm run beta:readiness:external-beta-operator-local-env-bootstrap',
+      'npm run beta:readiness:external-beta-operator-value-progress',
       'npm run beta:readiness:external-beta-operator-autofill-env',
       'npm run beta:readiness:external-beta-operator-human-input-checklist',
       'npm run beta:readiness:external-beta-operator-local-env-preflight',

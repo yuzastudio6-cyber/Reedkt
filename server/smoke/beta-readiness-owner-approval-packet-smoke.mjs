@@ -58,6 +58,7 @@ assert.ok(report.postApprovalCommands.includes('REEDITPRO_BETA_OWNER_APPROVAL_EN
 assert.ok(report.postApprovalCommands.includes('npm run beta:platform:staging-evidence-preflight'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-input-template -- --status'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-local-env-bootstrap'))
+assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-value-progress'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-autofill-env'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-human-input-checklist'))
 assert.ok(report.postApprovalCommands.includes('npm run beta:readiness:external-beta-operator-local-env-preflight'))

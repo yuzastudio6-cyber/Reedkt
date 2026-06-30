@@ -381,7 +381,14 @@ function buildWorkerPayload(input: {
     metadata: {
       aiGraphicsCanonicalToolId: input.tool.toolId,
       aiGraphicsCapabilityId: input.capabilityId,
+      aiGraphicsCapabilityIds: [input.capabilityId],
       aiGraphicsRuntimeTarget: input.tool.runtimeTarget,
+      aiGraphicsRuntimeActivationPolicy: {
+        onDemandOnly: true,
+        noIdleGpuRuntimeApproved: true,
+        startsOnlyForApprovedWorkerOrToolCall: true,
+        cpuFallbackAllowedForHeavyTools: false,
+      },
       sourceProductionTrafficCutoverDecision:
         AI_GRAPHICS_PRODUCTION_TRAFFIC_CUTOVER_DECISION,
       sourceToolCallHandoffDecision: AI_GRAPHICS_TOOL_CALL_HANDOFF_DECISION,
@@ -409,7 +416,9 @@ function buildWorkerPayload(input: {
       gpuRequiredForRuntime: input.tool.gpuRequiredForRuntime,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
       startsOnlyForApprovedProductionWorkerJob: true,
+      cpuFallbackAllowedForHeavyTools: false,
       gpuRuntimeStartAllowedForAcceptedProductionJob: true,
       gpuRuntimeShouldStartNow: false,
       routeExecutionPerformed: false,

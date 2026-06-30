@@ -1590,6 +1590,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: with accepted private evidence, it builds a production Tool Route/Worker handoff candidate and canonical `ProductionWorkerJobPayload` shape with `executionMode=production_blocked` and stable idempotency. It reports all 21 tools ready for controlled on-demand production tool-call handoff.
 - Runtime/beta/production: production handoff readiness is available, but this packet does not submit a queue item, dispatch a worker, execute a route, execute tools, call providers/models, start browser/WebGL/canvas or GPU runtime, download/load model weights, process media, create signed URLs, or create public artifacts. GPU remains on-demand only for future accepted production worker jobs; `agentCanExecuteToolsNow=false`, `workerEnqueuePerformed=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
+## AI Graphics Production Worker Queue Admission
+
+- Decision: `ai_graphics_production_worker_queue_admission_prepared_dispatch_blocked`.
+- Scope: side-effect-free queue-admission envelope after accepted production tool-call gateway handoff, with private/backend refs for queue admission, schema, write authorization, service-role transaction, worker claim policy, dispatch block, audit, rollback, and observability.
+- Result: with accepted private evidence, it validates the AI graphics production worker payload against approved snapshot, idempotency, raw-prompt block, signed-URL block, canonical AI graphics registry, license/model-weight, credit reservation, artifact policy, and QA gates. It prepares a queue batch/job/audit candidate with `prepared_not_submitted` status.
+- Runtime/beta/production: queue admission shape is ready, but live queue writes, service-role transactions, worker enqueue, worker dispatch, Tool Route execution, tool execution, provider/model calls, browser/WebGL/canvas runtime, GPU/model runtime startup, model downloads, media processing, signed URLs, and public artifacts remain blocked. Dispatch is intentionally blocked by `executionMode=production_blocked`; `workerQueueApprovedNow=false`, `liveQueueWriteApprovedNow=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
+
 ## AI Graphics Production Launch Readiness Gap
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.

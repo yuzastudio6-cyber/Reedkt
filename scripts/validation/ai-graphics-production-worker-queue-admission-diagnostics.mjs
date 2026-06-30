@@ -2,25 +2,23 @@ import childProcess from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 
-const decision = 'ai_graphics_production_tool_call_gateway_handoff_ready_with_runtime_blocks'
-const acceptedStatus = 'production_tool_call_gateway_handoff_ready'
-const runScriptName = 'ai-graphics:production-tool-call-gateway-handoff'
-const runScriptCommand = 'tsx server/cli/ai-graphics-production-tool-call-gateway-handoff.ts'
-const diagnosticScriptName = 'ai-graphics:production-tool-call-gateway-handoff:diagnostics'
+const decision = 'ai_graphics_production_worker_queue_admission_prepared_dispatch_blocked'
+const acceptedStatus = 'production_worker_queue_admission_prepared_dispatch_blocked'
+const runScriptName = 'ai-graphics:production-worker-queue-admission'
+const runScriptCommand = 'tsx server/cli/ai-graphics-production-worker-queue-admission.ts'
+const diagnosticScriptName = 'ai-graphics:production-worker-queue-admission:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-production-tool-call-gateway-handoff-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-production-worker-queue-admission-diagnostics.mjs'
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-production-tool-call-gateway-handoff.ts',
-  'server/cli/ai-graphics-production-tool-call-gateway-handoff.ts',
-  'scripts/validation/ai-graphics-production-tool-call-gateway-handoff-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-production-worker-queue-admission.ts',
+  'server/cli/ai-graphics-production-worker-queue-admission.ts',
+  'scripts/validation/ai-graphics-production-worker-queue-admission-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/production-worker-queue-admission.json',
+  'docs/tool-intelligence/ai-graphics/production-worker-queue-admission.md',
   'docs/tool-intelligence/ai-graphics/production-tool-call-gateway-handoff.json',
   'docs/tool-intelligence/ai-graphics/production-tool-call-gateway-handoff.md',
   'docs/tool-intelligence/ai-graphics/production-traffic-cutover.json',
-  'docs/tool-intelligence/ai-graphics/production-launch-go-no-go.json',
-  'docs/tool-intelligence/ai-graphics/production-launch-controls.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
-  'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
   'docs/production-beta-readiness-scorecard.md',
   'server/tool-registry/index.ts',
   'package.json',
@@ -148,85 +146,114 @@ const privateCutoverArgs = [
 
 function privateGatewayArgs(sourceCutoverPacketPath) {
   return [
-  '--source-production-traffic-cutover-packet',
-  sourceCutoverPacketPath,
-  '--execution-requested',
-  '--production-workspace-id',
-  'workspace-ai-graphics-production',
-  '--production-project-id',
-  'project-ai-graphics-production',
-  '--production-request-id',
-  'request-ai-graphics-production-tool-call',
-  '--production-edit-plan-id',
-  'edit-plan-ai-graphics-production',
-  '--production-tool-execution-plan-id',
-  'tool-execution-plan-ai-graphics-production',
-  '--approved-plan-snapshot-id',
-  'approved-snapshot-ai-graphics-production',
-  '--credit-reservation-id',
-  'credit-reservation-ai-graphics-production',
-  '--production-route-path',
-  '/api/ai-graphics/production/tool-call',
-  '--production-queue-name',
-  'ai-graphics-production-tool-call',
-  '--production-gateway-handoff-ref',
-  'private://ai-graphics/production/gateway-handoff',
-  '--production-worker-handoff-candidate-ref',
-  'backend://ai-graphics/production/worker-handoff-candidate',
-  '--production-tool-route-approval-ref',
-  'production-evidence://ai-graphics/production/tool-route-approval',
-  '--production-worker-approval-ref',
-  'private://ai-graphics/production/worker-approval',
-  '--production-runtime-admission-ref',
-  'backend://ai-graphics/production/runtime-admission',
-  '--production-service-role-boundary-ref',
-  'production-evidence://ai-graphics/production/service-role-boundary',
-  '--production-private-artifact-manifest-ref',
-  'private://ai-graphics/production/private-artifact-manifest',
-  '--production-asset-manifest-ref',
-  'backend://ai-graphics/production/asset-manifest',
-  '--production-dependency-graph-ref',
-  'production-evidence://ai-graphics/production/dependency-graph',
-  '--production-cost-guardrail-decision-ref',
-  'private://ai-graphics/production/cost-guardrail-decision',
-  '--production-qa-policy-ref',
-  'backend://ai-graphics/production/qa-policy',
-  '--production-fallback-policy-ref',
-  'production-evidence://ai-graphics/production/fallback-policy',
-  '--production-checkback-policy-ref',
-  'private://ai-graphics/production/checkback-policy',
-  '--production-trace-id',
-  'trace-ai-graphics-production-tool-call',
+    '--source-production-traffic-cutover-packet',
+    sourceCutoverPacketPath,
+    '--execution-requested',
+    '--production-workspace-id',
+    'workspace-ai-graphics-production',
+    '--production-project-id',
+    'project-ai-graphics-production',
+    '--production-request-id',
+    'request-ai-graphics-production-tool-call',
+    '--production-edit-plan-id',
+    'edit-plan-ai-graphics-production',
+    '--production-tool-execution-plan-id',
+    'tool-execution-plan-ai-graphics-production',
+    '--approved-plan-snapshot-id',
+    'approved-snapshot-ai-graphics-production',
+    '--credit-reservation-id',
+    'credit-reservation-ai-graphics-production',
+    '--production-route-path',
+    '/api/ai-graphics/production/tool-call',
+    '--production-queue-name',
+    'ai-graphics-production-tool-call',
+    '--production-gateway-handoff-ref',
+    'private://ai-graphics/production/gateway-handoff',
+    '--production-worker-handoff-candidate-ref',
+    'backend://ai-graphics/production/worker-handoff-candidate',
+    '--production-tool-route-approval-ref',
+    'production-evidence://ai-graphics/production/tool-route-approval',
+    '--production-worker-approval-ref',
+    'private://ai-graphics/production/worker-approval',
+    '--production-runtime-admission-ref',
+    'backend://ai-graphics/production/runtime-admission',
+    '--production-service-role-boundary-ref',
+    'production-evidence://ai-graphics/production/service-role-boundary',
+    '--production-private-artifact-manifest-ref',
+    'private://ai-graphics/production/private-artifact-manifest',
+    '--production-asset-manifest-ref',
+    'backend://ai-graphics/production/asset-manifest',
+    '--production-dependency-graph-ref',
+    'production-evidence://ai-graphics/production/dependency-graph',
+    '--production-cost-guardrail-decision-ref',
+    'private://ai-graphics/production/cost-guardrail-decision',
+    '--production-qa-policy-ref',
+    'backend://ai-graphics/production/qa-policy',
+    '--production-fallback-policy-ref',
+    'production-evidence://ai-graphics/production/fallback-policy',
+    '--production-checkback-policy-ref',
+    'private://ai-graphics/production/checkback-policy',
+    '--production-trace-id',
+    'trace-ai-graphics-production-tool-call',
   ]
 }
 
+const privateQueueAdmissionArgs = [
+  '--execution-requested',
+  '--production-queue-admission-ref',
+  'private://ai-graphics/production/queue-admission',
+  '--production-queue-schema-ref',
+  'backend://ai-graphics/production/queue-schema',
+  '--production-queue-write-authorization-ref',
+  'production-evidence://ai-graphics/production/queue-write-authorization',
+  '--production-service-role-transaction-ref',
+  'private://ai-graphics/production/service-role-transaction',
+  '--production-worker-claim-policy-ref',
+  'backend://ai-graphics/production/worker-claim-policy',
+  '--production-worker-dispatch-block-ref',
+  'production-evidence://ai-graphics/production/worker-dispatch-block',
+  '--production-queue-audit-ref',
+  'private://ai-graphics/production/queue-audit',
+  '--production-queue-rollback-ref',
+  'backend://ai-graphics/production/queue-rollback',
+  '--production-queue-observability-ref',
+  'production-evidence://ai-graphics/production/queue-observability',
+]
+
 const trueAcceptedKeys = [
-  'productionToolCallGatewayHandoffPrepared',
-  'sourceProductionTrafficCutoverAccepted',
-  'productionToolCallGatewayControlsAccepted',
-  'productionToolCallGatewayHandoffReadyWithProvidedEvidence',
-  'routeHandoffPreparedWithProvidedEvidence',
-  'workerHandoffPreparedWithProvidedEvidence',
-  'productionWorkerJobPayloadPrepared',
-  'productionWorkerJobPayloadShapeValid',
+  'productionWorkerQueueAdmissionPrepared',
+  'sourceProductionToolCallGatewayHandoffAccepted',
+  'productionQueueAdmissionControlsAccepted',
+  'productionWorkerQueueAdmissionEnvelopeReadyWithProvidedEvidence',
+  'queueAdmissionEnvelopeShapeValid',
+  'workerPayloadAcceptedByPreDispatchGates',
+  'dispatchBlockedByProductionBlockedMode',
+  'approvedSnapshotGatePassed',
+  'idempotencyGatePassed',
+  'rawPromptBlockGatePassed',
+  'signedUrlBlockGatePassed',
+  'aiGraphicsCanonicalRegistryGatePassed',
+  'licenseModelWeightGatePassed',
+  'creditReservationGatePassed',
+  'artifactPolicyGatePassed',
+  'qaPolicyGatePassed',
+  'workerModeGateBlocksDispatch',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
-  'approvedPlanSnapshotAccepted',
-  'creditReservationAccepted',
-  'privateArtifactManifestAccepted',
-  'assetManifestAccepted',
-  'dependencyGraphAccepted',
-  'idempotencyKeyAccepted',
-  'qaPolicyAccepted',
-  'fallbackPolicyAccepted',
-  'checkbackPolicyAccepted',
+  'queueAdmissionRefAccepted',
+  'queueSchemaAccepted',
+  'queueWriteAuthorizationAccepted',
+  'serviceRoleTransactionRefAccepted',
+  'workerClaimPolicyAccepted',
+  'workerDispatchBlockAccepted',
+  'queueAuditAccepted',
+  'queueRollbackAccepted',
+  'queueObservabilityAccepted',
   'productionControlledToolCallReadyNow',
   'runtimeReadyForOnDemandProductionToolCall',
   'productionRouteReadyNow',
   'productionWorkerPathReadyNow',
-  'productionPrivateArtifactStoreReadyNow',
-  'gpuRuntimeApprovedForAcceptedProductionJobs',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -242,6 +269,7 @@ const falseKeysAlways = [
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
   'productionWorkerDispatchApprovedNow',
+  'liveQueueWriteApprovedNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
@@ -255,6 +283,8 @@ const falseKeysAlways = [
   'workerEnqueuePerformed',
   'workerDispatchPerformed',
   'routeExecutionPerformed',
+  'backendQueueSubmissionPerformed',
+  'serviceRoleTransactionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
   'gpuRuntimePerformed',
@@ -268,27 +298,8 @@ const falseKeysAlways = [
 ]
 
 const allowedPackageDiffLines = [
-  '+    "ai-graphics:production-tool-call-gateway-handoff": "tsx server/cli/ai-graphics-production-tool-call-gateway-handoff.ts",',
-  '+    "ai-graphics:production-tool-call-gateway-handoff:diagnostics": "node scripts/validation/ai-graphics-production-tool-call-gateway-handoff-diagnostics.mjs",',
   '+    "ai-graphics:production-worker-queue-admission": "tsx server/cli/ai-graphics-production-worker-queue-admission.ts",',
   '+    "ai-graphics:production-worker-queue-admission:diagnostics": "node scripts/validation/ai-graphics-production-worker-queue-admission-diagnostics.mjs",',
-]
-
-const forbiddenClaims = [
-  'dry_run_passed',
-  'generated_local_fixture_passed',
-  '"toolExecutionPerformed": true',
-  '"workerExecutionPerformed": true',
-  '"workerEnqueuePerformed": true',
-  '"workerDispatchPerformed": true',
-  '"routeExecutionPerformed": true',
-  '"providerRuntimePerformed": true',
-  '"browserWebglCanvasRuntimePerformed": true',
-  '"gpuRuntimePerformed": true',
-  '"modelWeightsDownloaded": true',
-  '"modelWeightsLoaded": true',
-  '"publicArtifactCreated": true',
-  '"signedUrlCreated": true',
 ]
 
 const failures = []
@@ -314,6 +325,10 @@ function json(file) {
   }
 }
 
+function writeJson(file, value) {
+  fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`)
+}
+
 function git(args) {
   return childProcess.execFileSync('git', args, {
     cwd: process.cwd(),
@@ -333,10 +348,6 @@ function runNpm(scriptName, args = []) {
   return JSON.parse(output)
 }
 
-function writeJson(file, value) {
-  fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`)
-}
-
 function assertFalseKeys(record, label) {
   const booleans = record.booleans ?? {}
   const input = record.input ?? {}
@@ -347,17 +358,21 @@ function assertFalseKeys(record, label) {
   }
 }
 
+function gateStatus(envelope, gateName) {
+  return envelope?.preDispatchGateChecks?.find((gate) => gate.gateName === gateName)?.status
+}
+
 function assertAccepted(record, label, expectedToolId, expectedCapabilityId) {
   if (record.decision !== decision) fail(`${label}_decision:${record.decision}`)
   if (record.status !== acceptedStatus) fail(`${label}_status:${record.status}`)
-  if (record.sourceProductionTrafficCutoverAccepted !== true) {
-    fail(`${label}_source_cutover_not_true`)
+  if (record.sourceProductionToolCallGatewayHandoffAccepted !== true) {
+    fail(`${label}_source_handoff_not_true`)
   }
-  if (record.productionToolCallGatewayControlsAccepted !== true) {
+  if (record.productionQueueAdmissionControlsAccepted !== true) {
     fail(`${label}_controls_not_true`)
   }
-  if (record.productionToolCallGatewayHandoffReadyWithProvidedEvidence !== true) {
-    fail(`${label}_handoff_not_ready`)
+  if (record.productionWorkerQueueAdmissionEnvelopeReadyWithProvidedEvidence !== true) {
+    fail(`${label}_envelope_not_ready`)
   }
   if (record.rejectionReasons?.length !== 0) fail(`${label}_rejections_not_empty`)
   if (record.totalAiGraphicsTools !== 21) fail(`${label}_tools_not_21`)
@@ -370,34 +385,74 @@ function assertAccepted(record, label, expectedToolId, expectedCapabilityId) {
     fail(`${label}_runtime_ready_tools_not_21`)
   }
   if (record.productionReadyNowTools !== 21) fail(`${label}_production_tools_not_21`)
-  if (record.gpuRuntimeShouldStartNow !== false) fail(`${label}_gpu_should_start_not_false`)
-  if (record.selectedTool?.toolId !== expectedToolId) fail(`${label}_selected_tool_mismatch`)
-  if (record.capabilityId !== expectedCapabilityId) fail(`${label}_capability_mismatch`)
-  const candidate = record.productionWorkerCandidate
-  if (!candidate) fail(`${label}_candidate_missing`)
-  if (candidate && candidate.toolId !== expectedToolId) fail(`${label}_candidate_tool_mismatch`)
-  if (candidate && candidate.capabilityId !== expectedCapabilityId) {
-    fail(`${label}_candidate_capability_mismatch`)
+  const envelope = record.productionWorkerQueueAdmissionEnvelope
+  if (!envelope) fail(`${label}_envelope_missing`)
+  if (envelope && envelope.toolId !== expectedToolId) fail(`${label}_tool_mismatch`)
+  if (envelope && envelope.capabilityId !== expectedCapabilityId) fail(`${label}_capability_mismatch`)
+  if (envelope && envelope.queueBatchCandidate.status !== 'prepared_not_submitted') {
+    fail(`${label}_batch_not_prepared`)
   }
-  if (candidate && candidate.productionWorkerJobPayload?.executionMode !== 'production_blocked') {
+  if (envelope && envelope.queueJobCandidate.status !== 'prepared_not_submitted') {
+    fail(`${label}_job_not_prepared`)
+  }
+  if (envelope && envelope.queueBatchCandidate.liveInsertPerformed !== false) {
+    fail(`${label}_batch_insert_not_false`)
+  }
+  if (envelope && envelope.queueJobCandidate.liveInsertPerformed !== false) {
+    fail(`${label}_job_insert_not_false`)
+  }
+  if (envelope && envelope.preDispatchGatesAccepted !== true) {
+    fail(`${label}_predispatch_gates_not_accepted`)
+  }
+  if (envelope && envelope.dispatchBlockedByProductionBlockedMode !== true) {
+    fail(`${label}_dispatch_block_not_true`)
+  }
+  if (envelope && envelope.dispatchBlockGateCheck?.gateName !== 'worker_mode') {
+    fail(`${label}_dispatch_gate_name_mismatch`)
+  }
+  if (envelope && envelope.dispatchBlockGateCheck?.status !== 'blocked') {
+    fail(`${label}_dispatch_gate_not_blocked`)
+  }
+  for (const gateName of [
+    'approved_snapshot',
+    'idempotency',
+    'raw_prompt_block',
+    'signed_url_block',
+    'ai_graphics_canonical_registry',
+    'license_model_weight',
+    'credit_reservation',
+    'artifact_policy',
+    'qa_policy',
+  ]) {
+    if (gateStatus(envelope, gateName) !== 'passed') {
+      fail(`${label}_gate_not_passed:${gateName}:${gateStatus(envelope, gateName)}`)
+    }
+  }
+  const payload = envelope?.productionWorkerJobPayload
+  if (payload && payload.executionMode !== 'production_blocked') {
     fail(`${label}_payload_not_production_blocked`)
   }
-  if (candidate && !candidate.productionWorkerJobPayload?.idempotencyKey?.startsWith('prod-worker:')) {
-    fail(`${label}_payload_idempotency_missing`)
+  const metadata = payload?.metadata ?? {}
+  if (metadata.aiGraphicsCanonicalToolId !== expectedToolId) {
+    fail(`${label}_metadata_tool_mismatch`)
   }
-  if (candidate && candidate.productionWorkerJobPayloadShapeValid !== true) {
-    fail(`${label}_payload_shape_invalid`)
+  if (!Array.isArray(metadata.aiGraphicsCapabilityIds) ||
+      !metadata.aiGraphicsCapabilityIds.includes(expectedCapabilityId)) {
+    fail(`${label}_metadata_capability_ids_missing`)
   }
-  if (candidate && candidate.gpuRuntimeShouldStartNow !== false) {
-    fail(`${label}_candidate_gpu_should_start_not_false`)
+  if (metadata.gpuRuntimeShouldStartNow !== false) {
+    fail(`${label}_metadata_gpu_should_start_not_false`)
   }
-  if (expectedToolId === 'sam2' && candidate?.workerType !== 'gpu_ai_worker') {
-    fail(`${label}_sam2_not_gpu_worker`)
+  if (expectedToolId === 'sam2') {
+    if (envelope?.workerType !== 'gpu_ai_worker') fail(`${label}_sam2_not_gpu_worker`)
+    if (metadata.cpuFallbackAllowedForHeavyTools !== false) {
+      fail(`${label}_cpu_fallback_not_false`)
+    }
+    if (metadata.aiGraphicsRuntimeActivationPolicy?.onDemandOnly !== true) {
+      fail(`${label}_runtime_policy_on_demand_missing`)
+    }
   }
-  if (expectedToolId === 'sam2' && candidate?.gpuRequiredForRuntime !== true) {
-    fail(`${label}_sam2_gpu_required_not_true`)
-  }
-  if (expectedToolId === 'vega_lite' && candidate?.workerType !== 'cpu_analysis_worker') {
+  if (expectedToolId === 'vega_lite' && envelope?.workerType !== 'cpu_analysis_worker') {
     fail(`${label}_vega_lite_not_cpu_worker`)
   }
   for (const key of trueAcceptedKeys) {
@@ -425,14 +480,14 @@ if (git(['diff', '--name-only', '--', 'package-lock.json']).trim().length > 0) {
 }
 
 const indexTs = read('server/tool-registry/index.ts')
-if (!indexTs.includes("export * from './ai-graphics-production-tool-call-gateway-handoff'")) {
+if (!indexTs.includes("export * from './ai-graphics-production-worker-queue-admission'")) {
   fail('missing_registry_export')
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/production-tool-call-gateway-handoff.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/production-tool-call-gateway-handoff.md')
-const source = read('server/tool-registry/ai-graphics-production-tool-call-gateway-handoff.ts')
-const cli = read('server/cli/ai-graphics-production-tool-call-gateway-handoff.ts')
+const docs = json('docs/tool-intelligence/ai-graphics/production-worker-queue-admission.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/production-worker-queue-admission.md')
+const source = read('server/tool-registry/ai-graphics-production-worker-queue-admission.ts')
+const cli = read('server/cli/ai-graphics-production-worker-queue-admission.ts')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
@@ -448,15 +503,11 @@ for (const capability of all12Capabilities) {
   }
 }
 for (const citation of [
+  'production-tool-call-gateway-handoff.json',
   'production-traffic-cutover.json',
   'production-launch-go-no-go.json',
   'production-launch-controls.json',
-  'external-beta-activated-launch-readiness.json',
-  'external-beta-end-to-end-readiness.json',
-  'approved-plan-snapshot-policy.md',
-  'async-edit-work-graph.md',
-  'editing-asset-manifest.md',
-  'tool-strategy-planner.md',
+  'production-worker-gates.ts',
 ]) {
   if (!JSON.stringify(docs).includes(citation) || !docsMd.includes(citation)) {
     fail(`missing_citation:${citation}`)
@@ -469,27 +520,40 @@ for (const key of falseKeysAlways) {
   if (docs.booleans?.[key] !== false) fail(`docs_false_key_not_false:${key}`)
 }
 for (const phrase of [
-  'approved plan snapshot',
-  'asset manifest',
-  'dependency graph',
-  'checkback policy',
+  'prepared_not_submitted',
   'production_blocked',
+  'worker_mode',
+  'ai_graphics_canonical_registry',
+  'cpuFallbackAllowedForHeavyTools',
   'gpuRuntimeShouldStartNow',
 ]) {
   if (!docsMd.includes(phrase) && !JSON.stringify(docs).includes(phrase)) {
-    fail(`missing_handoff_phrase:${phrase}`)
+    fail(`missing_queue_phrase:${phrase}`)
   }
 }
-for (const phrase of forbiddenClaims) {
+for (const phrase of [
+  'dry_run_passed',
+  'generated_local_fixture_passed',
+  '"workerEnqueuePerformed": true',
+  '"workerDispatchPerformed": true',
+  '"toolExecutionPerformed": true',
+  '"backendQueueSubmissionPerformed": true',
+  '"serviceRoleTransactionPerformed": true',
+  '"gpuRuntimePerformed": true',
+  '"publicArtifactCreated": true',
+  '"signedUrlCreated": true',
+]) {
   if (docsMd.includes(phrase) || source.includes(phrase) || cli.includes(phrase)) {
     fail(`forbidden_claim:${phrase}`)
   }
 }
 
-const tmpRoot = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-tool-call-gateway-handoff-`)
+const tmpRoot = fs.mkdtempSync(`${os.tmpdir()}/ai-graphics-production-worker-queue-admission-`)
 const controlsPath = `${tmpRoot}/production-launch-controls.json`
 const goNoGoPath = `${tmpRoot}/production-launch-go-no-go.json`
 const cutoverPath = `${tmpRoot}/production-traffic-cutover.json`
+const sam2HandoffPath = `${tmpRoot}/sam2-production-gateway-handoff.json`
+const vegaLiteHandoffPath = `${tmpRoot}/vega-lite-production-gateway-handoff.json`
 
 const controlsPacket = runNpm('ai-graphics:production-launch-controls', privateControlsArgs)
 writeJson(controlsPath, controlsPacket)
@@ -505,74 +569,57 @@ const cutoverPacket = runNpm('ai-graphics:production-traffic-cutover', [
   ...privateCutoverArgs,
 ])
 writeJson(cutoverPath, cutoverPacket)
-const acceptedGatewayArgs = privateGatewayArgs(cutoverPath)
 
-const sam2Accepted = runNpm(runScriptName, [
-  ...acceptedGatewayArgs,
+const sam2Handoff = runNpm('ai-graphics:production-tool-call-gateway-handoff', [
+  ...privateGatewayArgs(cutoverPath),
   '--capability-id',
   'subject_segmentation',
   '--requested-tool-id',
   'sam2',
 ])
-assertAccepted(sam2Accepted, 'sam2', 'sam2', 'subject_segmentation')
+writeJson(sam2HandoffPath, sam2Handoff)
 
-const vegaLiteAccepted = runNpm(runScriptName, [
-  ...acceptedGatewayArgs,
+const vegaLiteHandoff = runNpm('ai-graphics:production-tool-call-gateway-handoff', [
+  ...privateGatewayArgs(cutoverPath),
   '--capability-id',
   'chart_overlay',
   '--requested-tool-id',
   'vega_lite',
 ])
+writeJson(vegaLiteHandoffPath, vegaLiteHandoff)
+
+const sam2Accepted = runNpm(runScriptName, [
+  '--source-production-tool-call-gateway-handoff-packet',
+  sam2HandoffPath,
+  ...privateQueueAdmissionArgs,
+])
+assertAccepted(sam2Accepted, 'sam2', 'sam2', 'subject_segmentation')
+
+const vegaLiteAccepted = runNpm(runScriptName, [
+  '--source-production-tool-call-gateway-handoff-packet',
+  vegaLiteHandoffPath,
+  ...privateQueueAdmissionArgs,
+])
 assertAccepted(vegaLiteAccepted, 'vega_lite', 'vega_lite', 'chart_overlay')
 
 const noSource = runNpm(runScriptName, [
   '--execution-requested',
-  '--capability-id',
-  'subject_segmentation',
-  '--requested-tool-id',
-  'sam2',
+  ...privateQueueAdmissionArgs,
 ])
-if (noSource.status !== 'missing_production_traffic_cutover') {
+if (noSource.status !== 'missing_production_tool_call_gateway_handoff') {
   fail(`no_source_status:${noSource.status}`)
 }
 assertFalseKeys(noSource, 'no_source')
 
-const invalidCapability = runNpm(runScriptName, [
-  ...acceptedGatewayArgs,
-  '--capability-id',
-  'Track_A_render_export',
-  '--requested-tool-id',
-  'sam2',
-])
-if (invalidCapability.status !== 'invalid_capability_blocked') {
-  fail(`invalid_capability_status:${invalidCapability.status}`)
-}
-assertFalseKeys(invalidCapability, 'invalid_capability')
-
-const eliminatedTool = runNpm(runScriptName, [
-  ...acceptedGatewayArgs,
-  '--capability-id',
-  'chart_overlay',
-  '--requested-tool-id',
-  'sam2',
-])
-if (eliminatedTool.status !== 'requested_tool_eliminated') {
-  fail(`eliminated_tool_status:${eliminatedTool.status}`)
-}
-assertFalseKeys(eliminatedTool, 'eliminated_tool')
-
-const publicEvidenceArgs = [...acceptedGatewayArgs]
-const publicRefIndex =
-  publicEvidenceArgs.indexOf('--production-private-artifact-manifest-ref') + 1
+const publicEvidenceArgs = [...privateQueueAdmissionArgs]
+const publicRefIndex = publicEvidenceArgs.indexOf('--production-queue-admission-ref') + 1
 publicEvidenceArgs[publicRefIndex] = 'https://example.com/signed-url/public-artifact'
 const publicEvidence = runNpm(runScriptName, [
+  '--source-production-tool-call-gateway-handoff-packet',
+  sam2HandoffPath,
   ...publicEvidenceArgs,
-  '--capability-id',
-  'subject_segmentation',
-  '--requested-tool-id',
-  'sam2',
 ])
-if (publicEvidence.status !== 'missing_production_tool_call_gateway_controls') {
+if (publicEvidence.status !== 'missing_production_queue_admission_controls') {
   fail(`public_evidence_status:${publicEvidence.status}`)
 }
 if (!publicEvidence.rejectionReasons?.some((reason) => reason.includes('private/backend'))) {
@@ -584,7 +631,7 @@ const changedFiles = git(['diff', '--name-only']).split('\n').filter(Boolean)
 for (const file of changedFiles) {
   if (file.startsWith('.local-artifacts/')) fail(`local_artifact_changed:${file}`)
   if (/generated|render|browser|canvas|webgl|public-artifact|signed-url/i.test(file)) {
-    if (!file.includes('production-tool-call-gateway-handoff')) {
+    if (!file.includes('production-worker-queue-admission')) {
       fail(`unexpected_generated_output_path:${file}`)
     }
   }
@@ -604,9 +651,10 @@ console.log(JSON.stringify({
   toolsCovered: 21,
   capabilitiesCovered: 12,
   acceptedPaths: ['sam2', 'vega_lite'],
-  routeHandoffPreparedWithProvidedEvidence: true,
-  workerHandoffPreparedWithProvidedEvidence: true,
-  agentCanExecuteToolsNow: false,
+  workerPayloadAcceptedByPreDispatchGates: true,
+  dispatchBlockedByProductionBlockedMode: true,
+  workerQueueApprovedNow: false,
+  liveQueueWriteApprovedNow: false,
   workerEnqueuePerformed: false,
   workerDispatchPerformed: false,
   toolExecutionPerformed: false,

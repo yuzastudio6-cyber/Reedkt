@@ -380,6 +380,9 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'opentimelineio':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'timeline_serialize_bounded_rehearsal')
+      }
       return {
         timelineFoundation: {
           mode: 'dry_run',
@@ -431,7 +434,26 @@ function buildDefaultTrackBWorkerRecipeMetadata(
         ...common,
       }
     case 'opencolorio':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'color_config_bounded_rehearsal')
+      }
+      return {
+        colorExecution: {
+          mode: 'dry_run',
+          sourceVideoArtifactId: input.storageReferenceIds?.[0],
+          sourceStorageObjectPath: input.storageReferenceIds?.[0],
+          colorGradeStyle: 'documentary_neutral',
+          enableFfmpegColorPreview: false,
+          enableOpenColorIOExecution: false,
+          enableOpenImageIOExecution: false,
+          allowFinalExport: false,
+        },
+        ...common,
+      }
     case 'openimageio':
+      if (mode === 'bounded_execution_rehearsal') {
+        return trackBAgentToolRecipe(contract.toolId, input.action, 'imagebuf_metadata_bounded_rehearsal')
+      }
       return {
         colorExecution: {
           mode: 'dry_run',

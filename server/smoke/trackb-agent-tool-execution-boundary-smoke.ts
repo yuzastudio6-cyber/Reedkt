@@ -265,6 +265,114 @@ assert.equal(polarsRehearsalResult?.proof?.operation, 'synthetic_dataframe_trans
 assert.equal(polarsRehearsalResult?.proof?.frames_sum, 60)
 assert.equal(polarsRehearsalResult?.proof?.weighted_sum, 120)
 
+const otioRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-otio-rehearsal',
+  agentInvocationId: 'trackb.media_oss.opentimelineio',
+  toolId: 'opentimelineio',
+  action: 'serialize_otio',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-otio-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['timeline_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/opentimelineio/source-reference'],
+})
+assert.equal(otioRehearsal.status, 'completed')
+assert.equal(otioRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const otioRehearsalResult = otioRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; timeline_name?: string; track_count?: number; clip_count?: number; duration_frames?: number; media_reference_kind?: string }
+} | undefined
+assert.equal(otioRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(otioRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(otioRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(otioRehearsalResult?.productRuntimeExecution, false)
+assert.equal(otioRehearsalResult?.mediaProcessing, false)
+assert.equal(otioRehearsalResult?.syntheticInputOnly, true)
+assert.equal(otioRehearsalResult?.artifactFileWritten, false)
+assert.ok(otioRehearsalResult?.proof?.version)
+assert.equal(otioRehearsalResult?.proof?.timeline_name, 'synthetic_trackb_timeline')
+assert.equal(otioRehearsalResult?.proof?.track_count, 1)
+assert.equal(otioRehearsalResult?.proof?.clip_count, 1)
+assert.equal(otioRehearsalResult?.proof?.duration_frames, 48)
+assert.equal(otioRehearsalResult?.proof?.media_reference_kind, 'MissingReference')
+
+const ocioRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-ocio-rehearsal',
+  agentInvocationId: 'trackb.media_oss.opencolorio',
+  toolId: 'opencolorio',
+  action: 'validate_color_space',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-ocio-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['color_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/opencolorio/source-reference'],
+})
+assert.equal(ocioRehearsal.status, 'completed')
+assert.equal(ocioRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const ocioRehearsalResult = ocioRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; config_name?: string; color_spaces?: string[]; processor_created?: boolean; output_rgba?: number[] }
+} | undefined
+assert.equal(ocioRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(ocioRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(ocioRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(ocioRehearsalResult?.productRuntimeExecution, false)
+assert.equal(ocioRehearsalResult?.mediaProcessing, false)
+assert.equal(ocioRehearsalResult?.syntheticInputOnly, true)
+assert.equal(ocioRehearsalResult?.artifactFileWritten, false)
+assert.ok(ocioRehearsalResult?.proof?.version)
+assert.equal(ocioRehearsalResult?.proof?.config_name, 'synthetic_trackb_raw_config')
+assert.deepEqual(ocioRehearsalResult?.proof?.color_spaces, ['raw'])
+assert.equal(ocioRehearsalResult?.proof?.processor_created, true)
+assert.deepEqual(ocioRehearsalResult?.proof?.output_rgba, [0.1, 0.2, 0.3, 1])
+
+const oiioRehearsal = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-oiio-rehearsal',
+  agentInvocationId: 'trackb.media_oss.openimageio',
+  toolId: 'openimageio',
+  action: 'read_metadata',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-oiio-rehearsal',
+  mode: 'bounded_execution_rehearsal',
+  storageReferenceIds: ['image_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/openimageio/source-reference'],
+})
+assert.equal(oiioRehearsal.status, 'completed')
+assert.equal(oiioRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const oiioRehearsalResult = oiioRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; spec_width?: number; spec_height?: number; nchannels?: number; format?: string; initialized?: boolean; pixel?: number[] }
+} | undefined
+assert.equal(oiioRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(oiioRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(oiioRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(oiioRehearsalResult?.productRuntimeExecution, false)
+assert.equal(oiioRehearsalResult?.mediaProcessing, false)
+assert.equal(oiioRehearsalResult?.syntheticInputOnly, true)
+assert.equal(oiioRehearsalResult?.artifactFileWritten, false)
+assert.ok(oiioRehearsalResult?.proof?.version)
+assert.equal(oiioRehearsalResult?.proof?.spec_width, 2)
+assert.equal(oiioRehearsalResult?.proof?.spec_height, 2)
+assert.equal(oiioRehearsalResult?.proof?.nchannels, 3)
+assert.equal(oiioRehearsalResult?.proof?.format, 'uint8')
+assert.equal(oiioRehearsalResult?.proof?.initialized, true)
+assert.deepEqual(oiioRehearsalResult?.proof?.pixel, [1, 1, 0])
+
 const ffprobeRehearsalBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -394,6 +502,9 @@ console.log(JSON.stringify({
     'sharp_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'duckdb_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'polars_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'opentimelineio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'opencolorio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
+    'openimageio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'bounded_execution_rehearsal_blocks_tools_without_explicit_handlers',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',

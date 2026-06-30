@@ -492,6 +492,39 @@ async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJo
       script: POLARS_BOUNDED_REHEARSAL_SCRIPT,
     })
   }
+  if (toolId === 'opentimelineio' && routeClass === 'timeline_serialize_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'opentimelineio',
+      action,
+      routeClass,
+      handler,
+      script: OPENTIMELINEIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'opencolorio' && routeClass === 'color_config_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'opencolorio',
+      action,
+      routeClass,
+      handler,
+      script: OPENCOLORIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'openimageio' && routeClass === 'imagebuf_metadata_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'openimageio',
+      action,
+      routeClass,
+      handler,
+      script: OPENIMAGEIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
 
   return {
     summary: `Track B agent worker recipe selected for ${toolId}:${action} through ${handler.futureHandler} without running real tool binaries or media processing.`,
@@ -568,6 +601,30 @@ function resolveTrackBAgentToolRecipeHandler(
   if (toolId === 'polars' && routeClass === 'dataframe_transform_bounded_rehearsal') {
     return {
       futureHandler: 'cpu_analysis_worker_polars_dataframe_transform_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'opentimelineio' && routeClass === 'timeline_serialize_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_opentimelineio_timeline_serialize_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'opencolorio' && routeClass === 'color_config_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_opencolorio_color_config_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'openimageio' && routeClass === 'imagebuf_metadata_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_openimageio_imagebuf_metadata_bounded_rehearsal',
       handlerKind: 'explicit_trackb_agent_worker_handler',
       namedHandlerReady: true,
     }
@@ -738,10 +795,89 @@ print(json.dumps({
 }))
 `
 
+const OPENTIMELINEIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import opentimelineio as otio
+
+rate = 24
+source_range = otio.opentime.TimeRange(
+  start_time=otio.opentime.RationalTime(0, rate),
+  duration=otio.opentime.RationalTime(48, rate),
+)
+clip = otio.schema.Clip(
+  name='synthetic_clip',
+  media_reference=otio.schema.MissingReference(name='synthetic_missing_reference'),
+  source_range=source_range,
+)
+track = otio.schema.Track(name='synthetic_video_track', kind=otio.schema.TrackKind.Video)
+track.append(clip)
+timeline = otio.schema.Timeline(name='synthetic_trackb_timeline', tracks=[track])
+serialized = otio.adapters.write_to_string(timeline, adapter_name='otio_json')
+roundtrip = otio.adapters.read_from_string(serialized, adapter_name='otio_json')
+print(json.dumps({
+  'version': otio.__version__,
+  'timeline_name': roundtrip.name,
+  'track_count': len(roundtrip.tracks),
+  'clip_count': sum(len(track) for track in roundtrip.tracks),
+  'duration_frames': int(roundtrip.duration().value),
+  'serialized_length': len(serialized),
+  'media_reference_kind': roundtrip.tracks[0][0].media_reference.schema_name(),
+}))
+`
+
+const OPENCOLORIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import PyOpenColorIO as ocio
+
+config = ocio.Config.CreateRaw()
+config.setName('synthetic_trackb_raw_config')
+roles = [[role, color_space] for role, color_space in config.getRoles()]
+color_spaces = [color_space.getName() for color_space in config.getColorSpaces()]
+processor = config.getProcessor('raw', 'raw')
+cpu_processor = processor.getDefaultCPUProcessor()
+rgba = [0.1, 0.2, 0.3, 1.0]
+result = cpu_processor.applyRGBA(rgba[:])
+print(json.dumps({
+  'version': ocio.__version__,
+  'config_name': config.getName(),
+  'roles': roles,
+  'color_spaces': color_spaces,
+  'processor_created': processor is not None,
+  'input_rgba': rgba,
+  'output_rgba': [round(value, 6) for value in result],
+}))
+`
+
+const OPENIMAGEIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import OpenImageIO as oiio
+
+spec = oiio.ImageSpec(2, 2, 3, oiio.UINT8)
+buf = oiio.ImageBuf(spec)
+buf.setpixel(0, 0, (255, 128, 0))
+pixel = [round(float(value), 6) for value in buf.getpixel(0, 0)]
+print(json.dumps({
+  'version': oiio.VERSION_STRING,
+  'spec_width': spec.width,
+  'spec_height': spec.height,
+  'nchannels': spec.nchannels,
+  'format': str(spec.format),
+  'pixel': pixel,
+  'initialized': bool(buf.initialized),
+}))
+`
+
+type PythonStructuredRehearsalToolId =
+  | 'duckdb'
+  | 'polars'
+  | 'opentimelineio'
+  | 'opencolorio'
+  | 'openimageio'
+
 function runPythonStructuredToolBoundedRehearsal(input: {
   payload: ProductionWorkerJobPayload
   request: Record<string, unknown>
-  toolId: 'duckdb' | 'polars'
+  toolId: PythonStructuredRehearsalToolId
   action: string
   routeClass: string
   handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>
@@ -816,7 +952,7 @@ function runPythonStructuredToolBoundedRehearsal(input: {
 function buildBlockedPythonStructuredToolRehearsal(
   input: {
     payload: ProductionWorkerJobPayload
-    toolId: 'duckdb' | 'polars'
+    toolId: PythonStructuredRehearsalToolId
     action: string
     routeClass: string
     handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>

@@ -709,21 +709,40 @@ assert.equal(libassRehearsalBlocked.status, 'blocked')
 assert.match(libassRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for libass/i)
 assert.equal(libassRehearsalBlocked.workerResult, undefined)
 
-const signalsmithRehearsalBlocked = await executeTrackBAgentTool({
+const signalsmithRehearsal = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
-  jobId: 'job-trackb-agent-signalsmith-rehearsal-blocked',
+  jobId: 'job-trackb-agent-signalsmith-rehearsal',
   agentInvocationId: 'trackb.media_oss.signalsmith_stretch',
   toolId: 'signalsmith_stretch',
   action: 'stretch_audio',
   approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
-  toolExecutionPlanId: 'tool-exec-trackb-agent-signalsmith-rehearsal-blocked',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-signalsmith-rehearsal',
   mode: 'bounded_execution_rehearsal',
   storageReferenceIds: ['audio_artifacts/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/signalsmith/source-reference'],
 })
-assert.equal(signalsmithRehearsalBlocked.status, 'blocked')
-assert.match(signalsmithRehearsalBlocked.blockedReason ?? '', /bounded_execution_rehearsal is not admitted for signalsmith_stretch/i)
-assert.equal(signalsmithRehearsalBlocked.workerResult, undefined)
+assert.equal(signalsmithRehearsal.status, 'completed')
+assert.equal(signalsmithRehearsal.decision, 'trackb_agent_tool_execution_bounded_execution_rehearsal_completed')
+const signalsmithRehearsalResult = signalsmithRehearsal.workerResult?.output?.trackBAgentToolRecipeResult as {
+  realToolBinaryExecution?: boolean
+  productRuntimeExecution?: boolean
+  mediaProcessing?: boolean
+  syntheticInputOnly?: boolean
+  artifactFileWritten?: boolean
+  proof?: { version?: string; operation?: string; inputFilesOpened?: number; outputFilesCreated?: number; audioProcessed?: boolean }
+} | undefined
+assert.equal(signalsmithRehearsal.workerPayload?.executionMode, 'bounded_rehearsal')
+assert.equal(signalsmithRehearsal.workerResult?.output?.mockOnly, false)
+assert.equal(signalsmithRehearsalResult?.realToolBinaryExecution, true)
+assert.equal(signalsmithRehearsalResult?.productRuntimeExecution, false)
+assert.equal(signalsmithRehearsalResult?.mediaProcessing, false)
+assert.equal(signalsmithRehearsalResult?.syntheticInputOnly, true)
+assert.equal(signalsmithRehearsalResult?.artifactFileWritten, false)
+assert.match(signalsmithRehearsalResult?.proof?.version ?? '', /^\d+\.\d+\.\d+/)
+assert.equal(signalsmithRehearsalResult?.proof?.operation, 'signalsmith_stretch_command_shape_version_and_help')
+assert.equal(signalsmithRehearsalResult?.proof?.inputFilesOpened, 0)
+assert.equal(signalsmithRehearsalResult?.proof?.outputFilesCreated, 0)
+assert.equal(signalsmithRehearsalResult?.proof?.audioProcessed, false)
 
 const liveBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
@@ -849,7 +868,8 @@ console.log(JSON.stringify({
     'opencolorio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'openimageio_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
     'audioflux_bounded_execution_rehearsal_runs_real_synthetic_no_user_media_tool_proof',
-    'bounded_execution_rehearsal_blocks_signalsmith_and_libass_until_explicit_handlers_exist',
+    'signalsmith_bounded_execution_rehearsal_runs_real_command_shape_no_audio_tool_proof',
+    'bounded_execution_rehearsal_blocks_libass_until_explicit_handler_exists',
     'hyperframe_stays_frontend_preview_boundary_for_default_and_live_paths',
     'live_execution_blocks_until_deployed_evidence',
     'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',

@@ -26,7 +26,7 @@ export interface BetaToolsCoreRealCheckHydratedPreviewReport {
   warnings: string[]
 }
 
-export interface BetaToolsCoreRealCheckHydratedPreviewOptions extends BetaToolsCoreRealCheckPreviewOptions {}
+export type BetaToolsCoreRealCheckHydratedPreviewOptions = BetaToolsCoreRealCheckPreviewOptions
 
 export function runBetaToolsCoreRealCheckHydratedPreview(
   env: BetaToolsCoreRealCheckHydratedPreviewEnv,

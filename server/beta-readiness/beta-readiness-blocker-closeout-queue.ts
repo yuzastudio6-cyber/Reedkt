@@ -76,14 +76,15 @@ export function buildBetaReadinessBlockerCloseoutQueue(options: {
   createdAt?: string
 } = {}): BetaReadinessBlockerCloseoutQueueReport {
   const ledger = buildBetaReadinessBlockerLedger()
-  const localBundle = readJson(LOCAL_ACCEPTED_BUNDLE_PATH)
-  const operatorTemplate = readJson(EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH)
+  const localBundle = recordValue(readJson(LOCAL_ACCEPTED_BUNDLE_PATH))
+  const operatorTemplate = recordValue(readJson(EXTERNAL_BETA_OPERATOR_TEMPLATE_PATH))
+  const operatorInputCounts = recordValue(operatorTemplate.inputCounts)
   const byClearanceType = countBy(ledger.rows.map((row) => row.clearanceType))
   const byBlockerId = countBy(ledger.rows.map((row) => row.blockerId))
   const acceptedToolIds = stringArray(localBundle.locallyAcceptedToolIds)
-  const requiredOperatorInputs = numberValue(operatorTemplate.inputCounts?.required)
-  const pendingOperatorInputsInBlankEnv = numberValue(operatorTemplate.inputCounts?.currentlyPendingInBlankEnvironment)
-  const pendingTemplateInputs = arrayValue(operatorTemplate.requiredInputs).filter((input) => input.present !== true)
+  const requiredOperatorInputs = numberValue(operatorInputCounts.required)
+  const pendingOperatorInputsInBlankEnv = numberValue(operatorInputCounts.currentlyPendingInBlankEnvironment)
+  const pendingTemplateInputs = arrayValue(operatorTemplate.requiredInputs).filter((input) => recordValue(input).present !== true)
   const humanActionablePendingOperatorInputs = pendingTemplateInputs.filter(isHumanActionableOperatorInput).length
   const autoFillablePendingOperatorInputs = pendingTemplateInputs.length - humanActionablePendingOperatorInputs
 
@@ -316,7 +317,7 @@ function buildBatches(
   ]
 }
 
-function readJson(path: string): any {
+function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
 
@@ -357,19 +358,24 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
 }
 
-function arrayValue(value: unknown): any[] {
+function arrayValue(value: unknown): unknown[] {
   return Array.isArray(value) ? value : []
 }
 
-function isHumanActionableOperatorInput(input: any): boolean {
-  const name = typeof input?.name === 'string' ? input.name : ''
+function recordValue(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+}
+
+function isHumanActionableOperatorInput(input: unknown): boolean {
+  const inputRecord = recordValue(input)
+  const name = typeof inputRecord.name === 'string' ? inputRecord.name : ''
   return (
     isOwnerApprovalConfirmationName(name) ||
     isTechnicalVerificationConfirmationName(name) ||
     isOperatorConfirmationName(name) ||
-    input?.valuePolicy === 'operator_secret_or_sensitive' ||
-    input?.valuePolicy === 'operator_non_secret_value' ||
-    input?.valuePolicy === 'owner_evidence_note'
+    inputRecord.valuePolicy === 'operator_secret_or_sensitive' ||
+    inputRecord.valuePolicy === 'operator_non_secret_value' ||
+    inputRecord.valuePolicy === 'owner_evidence_note'
   )
 }
 

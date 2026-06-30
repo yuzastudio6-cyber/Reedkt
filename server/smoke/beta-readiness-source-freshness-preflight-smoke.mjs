@@ -134,6 +134,8 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'server/cli/beta-readiness-deployed-evidence-input-manifest.mjs',
     'server/cli/beta-readiness-external-beta-operator-input-template.mjs',
     'server/cli/beta-tools-core-real-check-preview.ts',
+    'server/cli/beta-trackb-product-ready-deployed-evidence-collector.ts',
+    'server/cli/beta-trackb-product-ready-source-reconciliation.mjs',
     'server/cli/beta-tools-libass-synthetic-burnin-qa-preflight.ts',
     'server/cli/beta-tools-local-accepted-evidence-bundle.ts',
     'server/cli/beta-tools-local-accepted-evidence-collector.ts',
@@ -182,6 +184,8 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'beta:tools:core-real-check-evidence',
     'beta:tools:core-real-check-evidence-preflight',
     'beta:tools:core-real-check-preview',
+    'beta:tools:trackb-product-ready-deployed-evidence-collector',
+    'beta:tools:trackb-product-ready-source-reconciliation',
     'beta:tools:libass-container-proof-preflight',
     'beta:tools:libass-synthetic-burnin-qa-evidence',
     'beta:tools:libass-synthetic-burnin-qa-evidence-preflight',
@@ -199,6 +203,8 @@ const metadataOnly = buildBetaReadinessSourceFreshnessPreflight({}, {
     'smoke:beta-readiness-external-beta-operator-input-template',
     'smoke:beta-readiness-external-beta-operator-local-env-preflight',
     'smoke:beta-readiness-external-beta-evidence-collector',
+    'smoke:beta-trackb-product-ready-deployed-evidence-collector',
+    'smoke:beta-trackb-product-ready-source-reconciliation',
     'smoke:beta-readiness-launch-approval-evidence-cli',
     'smoke:beta-readiness-launch-approval-evidence-preflight',
     'smoke:beta-readiness-operator-status-api',
@@ -242,6 +248,8 @@ assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.i
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-local-env-preflight.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-deployed-evidence-input-manifest.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-external-beta-operator-input-template.mjs'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-trackb-product-ready-deployed-evidence-collector.ts'))
+assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-trackb-product-ready-source-reconciliation.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-node-ts-register.mjs'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.ts'))
 assert.ok(metadataOnly.sourceDriftClassification.allowedMetadataOnlyPathPolicy.includes('server/cli/beta-readiness-operator-status-api.d.ts'))

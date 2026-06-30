@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import { executeTrackBAgentTool } from '../agents/trackb-agent-tool-execution'
 import { buildTrackBAgentRuntimeReadinessReport } from '../beta-readiness/trackb-agent-runtime-readiness'
+import {
+  sharedMockCreditEstimateStore,
+  sharedMockCreditReservationStore,
+} from '../services/mock-credit-foundation-stores'
 
 const report = buildTrackBAgentRuntimeReadinessReport()
 assert.equal(report.toolCount, 16)
@@ -66,6 +70,59 @@ assert.equal(liveBlocked.status, 'blocked')
 assert.match(liveBlocked.blockedReason ?? '', /deployed product-ready evidence/i)
 assert.equal(liveBlocked.workerResult, undefined)
 
+const deployedReadinessReport = buildTrackBAgentRuntimeReadinessReport({
+  deployedEvidenceSource: 'stored_operator_status_readback',
+  deployedEvidenceWorkspaceId: 'workspace-trackb-agent-smoke',
+  deployedEvidencePacketCount: 2,
+  deployedEvidenceRecordedToolCount: 16,
+})
+const liveScenario = createApprovedCreditScenario('live-duckdb')
+const liveAdmitted = await executeTrackBAgentTool({
+  workspaceId: liveScenario.workspaceId,
+  projectId: liveScenario.projectId,
+  jobId: 'job-trackb-agent-live-admitted-duckdb',
+  agentInvocationId: 'trackb.media_oss.duckdb',
+  toolId: 'duckdb',
+  action: 'query_artifacts',
+  approvedSnapshotId: `approved-snapshot-${liveScenario.projectId}`,
+  editPlanId: liveScenario.editPlanId,
+  toolExecutionPlanId: 'tool-exec-trackb-agent-live-admitted-duckdb',
+  mode: 'deployed_live_execution',
+  storageReferenceIds: [`analysis_artifacts/workspaces/${liveScenario.workspaceId}/projects/${liveScenario.projectId}/duckdb/source-reference`],
+  creditEstimateId: liveScenario.creditEstimateId,
+  creditReservationId: liveScenario.creditReservationId,
+  metadata: {
+    productEditLevel: liveScenario.productEditLevel,
+    estimateStatus: 'approved',
+    estimatedFinalVideoDurationSeconds: liveScenario.durationSeconds,
+    approvedReservationRemainingCredits: liveScenario.approvedReservationRemainingCredits,
+  },
+}, { readinessReport: deployedReadinessReport })
+assert.equal(liveAdmitted.status, 'completed')
+assert.equal(liveAdmitted.decision, 'trackb_agent_tool_execution_deployed_live_execution_completed')
+assert.equal(liveAdmitted.liveExecutionReady, true)
+assert.equal(liveAdmitted.workerPayload?.executionMode, 'production_ready')
+assert.equal(liveAdmitted.workerPayload?.creditReservationId, liveScenario.creditReservationId)
+assert.equal(liveAdmitted.workerResult?.status, 'completed')
+assert.equal(liveAdmitted.workerResult?.toolCostMetadata?.serviceFeeIncluded, false)
+assert.equal(liveAdmitted.workerResult?.toolCostMetadata?.emittedEvents.length, 1)
+assert.equal(liveAdmitted.workerResult?.toolCostMetadata?.emittedEvents[0]?.billableToUser, true)
+
+const liveHyperframeBlocked = await executeTrackBAgentTool({
+  workspaceId: 'workspace-trackb-agent-smoke',
+  projectId: 'project-trackb-agent-smoke',
+  jobId: 'job-trackb-agent-live-hyperframe-blocked',
+  agentInvocationId: 'trackb.media_oss.hyperframe',
+  toolId: 'hyperframe',
+  action: 'preview_timeline',
+  approvedSnapshotId: 'approved-snapshot-trackb-agent-smoke',
+  toolExecutionPlanId: 'tool-exec-trackb-agent-live-hyperframe-blocked',
+  mode: 'deployed_live_execution',
+  approvedPreviewStateReference: 'preview_state/workspaces/workspace-trackb-agent-smoke/projects/project-trackb-agent-smoke/hyperframe-approved-state',
+}, { readinessReport: deployedReadinessReport })
+assert.equal(liveHyperframeBlocked.status, 'blocked')
+assert.match(liveHyperframeBlocked.blockedReason ?? '', /not admitted for hyperframe/i)
+
 const rawPromptBlocked = await executeTrackBAgentTool({
   workspaceId: 'workspace-trackb-agent-smoke',
   projectId: 'project-trackb-agent-smoke',
@@ -101,13 +158,66 @@ console.log(JSON.stringify({
   ok: true,
   admittedToolCount: report.contracts.length,
   liveExecutionReady: report.liveAgentExecutionReady,
+  deployedLiveExecutionReadyWhenEvidenceRecorded: deployedReadinessReport.liveAgentExecutionReady,
   checks: [
     'all_16_trackb_agent_invocations_admit',
     'backend_tools_dispatch_mock_safe_worker_payloads',
     'hyperframe_stays_frontend_preview_boundary',
     'live_execution_blocks_until_deployed_evidence',
+    'live_execution_admits_production_ready_worker_after_stored_evidence_and_credit_references',
+    'hyperframe_never_switches_to_backend_live_execution',
     'raw_prompt_blocks_before_dispatch',
     'unsupported_actions_block',
     'service_fee_excluded',
   ],
 }, null, 2))
+
+function createApprovedCreditScenario(label: string) {
+  const workspaceId = `workspace-trackb-${label}`
+  const projectId = `project-trackb-${label}`
+  const editPlanId = `edit-plan-trackb-${label}`
+  const productEditLevel = 'normal' as const
+  const durationSeconds = 30
+  const creditEstimateId = `credit-estimate-trackb-${label}`
+  const creditReservationId = `credit-reservation-trackb-${label}`
+  const approvedReservationRemainingCredits = 250
+
+  sharedMockCreditEstimateStore.previews.push({
+    estimate: {
+      id: creditEstimateId,
+      workspaceId,
+      projectId,
+      editPlanId,
+      status: 'approved',
+    },
+  } as never)
+  sharedMockCreditReservationStore.creditReservations.push({
+    id: creditReservationId,
+    workspaceId,
+    projectId,
+    editPlanId,
+    creditEstimateId,
+    creditWalletId: `credit-wallet-trackb-${label}`,
+    status: 'reserved',
+    reservedCredits: approvedReservationRemainingCredits,
+    spentCredits: 0,
+    releasedCredits: 0,
+    refundedCredits: 0,
+    reservationReason: 'Track B agent live-admission smoke fixture.',
+    idempotencyKey: `reservation-trackb-${label}`,
+    reservedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    metadata: { mockOnly: true, smoke: 'trackb-agent-tool-execution-boundary' },
+  } as never)
+  return {
+    workspaceId,
+    projectId,
+    editPlanId,
+    productEditLevel,
+    durationSeconds,
+    creditEstimateId,
+    creditReservationId,
+    approvedReservationRemainingCredits,
+  }
+}

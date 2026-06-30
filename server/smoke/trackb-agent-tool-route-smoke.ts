@@ -2,7 +2,14 @@ import assert from 'node:assert/strict'
 import { type AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
-import { buildTrackBAgentRuntimeReadinessReport } from '../beta-readiness/trackb-agent-runtime-readiness'
+import {
+  buildTrackBAgentRuntimeReadinessReport,
+  TRACKB_AGENT_RUNTIME_TOOL_IDS,
+} from '../beta-readiness/trackb-agent-runtime-readiness'
+import {
+  sharedMockCreditEstimateStore,
+  sharedMockCreditReservationStore,
+} from '../services/mock-credit-foundation-stores'
 
 const env = loadRuntimeEnv({
   NODE_ENV: 'test',
@@ -89,6 +96,80 @@ try {
   assert.equal(liveBlocked.data.trackBAgentToolExecution.status, 'blocked')
   assert.match(liveBlocked.data.trackBAgentToolExecution.blockedReason, /deployed product-ready evidence/i)
 
+  const liveScenario = createApprovedCreditScenario('route-live-duckdb')
+  await requestJson(`${baseUrl}/v1/beta-readiness/evidence`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-product-ready-evidence' },
+    body: JSON.stringify({
+      workspaceId: liveScenario.workspaceId,
+      projectId: liveScenario.projectId,
+      acceptedToolEvidence: TRACKB_AGENT_RUNTIME_TOOL_IDS.map((toolId) => ({
+        toolId,
+        sourceId: `trackb-agent-route-smoke-product-ready:${toolId}`,
+        sourceSha: '0123456789abcdef0123456789abcdef01234567',
+        readinessStatus: 'passed',
+        realExecutionVerified: true,
+        productionReadinessAccepted: true,
+        productReadyLocalOss: true,
+        modelWeightsApproved: true,
+        notes: [
+          'Route smoke evidence is in-memory only.',
+          'No media processing, live worker, provider, Supabase, beta, or production action occurred.',
+        ],
+      })),
+    }),
+  }, 201)
+
+  const liveAdmitted = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-live-admitted' },
+    body: JSON.stringify({
+      workspaceId: liveScenario.workspaceId,
+      projectId: liveScenario.projectId,
+      jobId: 'job-trackb-agent-route-smoke-live-admitted',
+      agentInvocationId: 'trackb.media_oss.duckdb',
+      toolId: 'duckdb',
+      action: 'query_artifacts',
+      approvedSnapshotId: `approved-snapshot-${liveScenario.projectId}`,
+      editPlanId: liveScenario.editPlanId,
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-live-admitted',
+      mode: 'deployed_live_execution',
+      storageReferenceIds: [`analysis_artifacts/workspaces/${liveScenario.workspaceId}/projects/${liveScenario.projectId}/duckdb/source-reference`],
+      creditEstimateId: liveScenario.creditEstimateId,
+      creditReservationId: liveScenario.creditReservationId,
+      metadata: {
+        productEditLevel: liveScenario.productEditLevel,
+        estimateStatus: 'approved',
+        estimatedFinalVideoDurationSeconds: liveScenario.durationSeconds,
+        approvedReservationRemainingCredits: liveScenario.approvedReservationRemainingCredits,
+      },
+    }),
+  }, 202)
+  assert.equal(liveAdmitted.data.trackBAgentToolExecution.status, 'completed')
+  assert.equal(liveAdmitted.data.trackBAgentToolExecution.decision, 'trackb_agent_tool_execution_deployed_live_execution_completed')
+  assert.equal(liveAdmitted.data.trackBAgentToolExecution.liveExecutionReady, true)
+  assert.equal(liveAdmitted.data.trackBAgentToolExecution.workerPayload.executionMode, 'production_ready')
+  assert.equal(liveAdmitted.data.trackBAgentToolExecution.workerResult.status, 'completed')
+
+  const liveHyperframeBlocked = await requestJson(endpoint, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'trackb-agent-route-smoke-live-hyperframe-blocked' },
+    body: JSON.stringify({
+      workspaceId: liveScenario.workspaceId,
+      projectId: liveScenario.projectId,
+      jobId: 'job-trackb-agent-route-smoke-live-hyperframe-blocked',
+      agentInvocationId: 'trackb.media_oss.hyperframe',
+      toolId: 'hyperframe',
+      action: 'preview_timeline',
+      approvedSnapshotId: `approved-snapshot-${liveScenario.projectId}`,
+      toolExecutionPlanId: 'tool-exec-trackb-agent-route-smoke-live-hyperframe-blocked',
+      mode: 'deployed_live_execution',
+      approvedPreviewStateReference: `preview_state/workspaces/${liveScenario.workspaceId}/projects/${liveScenario.projectId}/hyperframe-approved-state`,
+    }),
+  }, 409)
+  assert.equal(liveHyperframeBlocked.data.trackBAgentToolExecution.status, 'blocked')
+  assert.match(liveHyperframeBlocked.data.trackBAgentToolExecution.blockedReason, /not admitted for hyperframe/i)
+
   const rawPromptBlocked = await requestJson(endpoint, {
     method: 'POST',
     headers: { 'idempotency-key': 'trackb-agent-route-smoke-raw-prompt' },
@@ -134,12 +215,65 @@ try {
       'http_route_dispatches_backend_tools_mock_safe',
       'http_route_keeps_hyperframe_preview_boundary',
       'http_route_blocks_live_execution_until_deployed_evidence',
+      'http_route_admits_live_execution_after_stored_product_ready_readback_and_credit_references',
+      'http_route_keeps_hyperframe_out_of_backend_live_execution',
       'http_route_blocks_raw_prompt_payloads',
       'http_route_validates_agent_invocation_shape',
     ],
   }, null, 2))
 } finally {
   server.close()
+}
+
+function createApprovedCreditScenario(label: string) {
+  const workspaceId = `workspace-trackb-${label}`
+  const projectId = `project-trackb-${label}`
+  const editPlanId = `edit-plan-trackb-${label}`
+  const productEditLevel = 'normal' as const
+  const durationSeconds = 30
+  const creditEstimateId = `credit-estimate-trackb-${label}`
+  const creditReservationId = `credit-reservation-trackb-${label}`
+  const approvedReservationRemainingCredits = 250
+
+  sharedMockCreditEstimateStore.previews.push({
+    estimate: {
+      id: creditEstimateId,
+      workspaceId,
+      projectId,
+      editPlanId,
+      status: 'approved',
+    },
+  } as never)
+  sharedMockCreditReservationStore.creditReservations.push({
+    id: creditReservationId,
+    workspaceId,
+    projectId,
+    editPlanId,
+    creditEstimateId,
+    creditWalletId: `credit-wallet-trackb-${label}`,
+    status: 'reserved',
+    reservedCredits: approvedReservationRemainingCredits,
+    spentCredits: 0,
+    releasedCredits: 0,
+    refundedCredits: 0,
+    reservationReason: 'Track B agent route live-admission smoke fixture.',
+    idempotencyKey: `reservation-trackb-${label}`,
+    reservedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    metadata: { mockOnly: true, smoke: 'trackb-agent-tool-route' },
+  } as never)
+
+  return {
+    workspaceId,
+    projectId,
+    editPlanId,
+    productEditLevel,
+    durationSeconds,
+    creditEstimateId,
+    creditReservationId,
+    approvedReservationRemainingCredits,
+  }
 }
 
 async function requestJson(

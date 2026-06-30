@@ -1,4 +1,8 @@
-import { buildTrackBAgentRuntimeReadinessReport, type TrackBAgentRuntimeToolContract } from '../beta-readiness/trackb-agent-runtime-readiness'
+import {
+  buildTrackBAgentRuntimeReadinessReport,
+  type TrackBAgentRuntimeReadinessReport,
+  type TrackBAgentRuntimeToolContract,
+} from '../beta-readiness/trackb-agent-runtime-readiness'
 import { findForbiddenWorkerPayloadEntries } from '../workers/production/production-worker-artifact-policy'
 import { dispatchProductionWorkerJob } from '../workers/production/production-worker-dispatcher'
 import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
@@ -37,11 +41,17 @@ export interface TrackBAgentToolExecutionInput {
   requiredQualityGateIds?: string[]
   requiredQualityGateTypes?: ProductionWorkerJobPayload['requiredQualityGateTypes']
   renderMode?: ProductionWorkerJobPayload['renderMode']
+  creditEstimateId?: string
+  creditReservationId?: string
   workerInstanceId?: string
   attempt?: number
   maxAttempts?: number
   metadata?: Record<string, unknown>
   apiIdempotencyKey?: string
+}
+
+export interface TrackBAgentToolExecutionOptions {
+  readinessReport?: TrackBAgentRuntimeReadinessReport
 }
 
 export interface TrackBAgentToolExecutionResult {
@@ -64,8 +74,11 @@ export interface TrackBAgentToolExecutionResult {
   warnings: string[]
 }
 
-export async function executeTrackBAgentTool(input: TrackBAgentToolExecutionInput): Promise<TrackBAgentToolExecutionResult> {
-  const report = buildTrackBAgentRuntimeReadinessReport()
+export async function executeTrackBAgentTool(
+  input: TrackBAgentToolExecutionInput,
+  options: TrackBAgentToolExecutionOptions = {},
+): Promise<TrackBAgentToolExecutionResult> {
+  const report = options.readinessReport ?? buildTrackBAgentRuntimeReadinessReport()
   const contract = findContract(report.contracts, input.agentInvocationId, input.toolId)
   if (!contract) {
     return blocked(input, input.mode ?? 'mock_safe_worker_dispatch', 'unknown_trackb_agent_invocation', [
@@ -124,13 +137,11 @@ export async function executeTrackBAgentTool(input: TrackBAgentToolExecutionInpu
     return blocked(input, mode, 'Worker dispatch requires at least one private storage reference ID/path.', commonWarnings, contract)
   }
 
-  const payload = buildWorkerPayload(input, contract, mode)
+  const payload = buildWorkerPayload(input, contract, mode, report)
   const workerResult = await dispatchProductionWorkerJob({ payload, workerInstanceId: input.workerInstanceId })
   return {
     status: workerResult.status === 'completed' ? 'completed' : 'blocked',
-    decision: workerResult.status === 'completed'
-      ? 'trackb_agent_tool_execution_mock_safe_worker_dispatch_completed'
-      : 'trackb_agent_tool_execution_mock_safe_worker_dispatch_blocked',
+    decision: workerDecision(mode, workerResult.status === 'completed'),
     toolId: contract.toolId,
     agentInvocationId: contract.agentInvocationId,
     mode,
@@ -161,9 +172,12 @@ function validateMode(
   liveExecutionReady: boolean,
 ): string | undefined {
   if (mode === 'deployed_live_execution') {
-    return liveExecutionReady
+    if (!liveExecutionReady) {
+      return 'Live Track B agent execution requires deployed product-ready evidence and operator-status readback for all 16 tools.'
+    }
+    return contract.admittedModes.includes('deployed_live_execution')
       ? undefined
-      : 'Live Track B agent execution requires deployed product-ready evidence and operator-status readback for all 16 tools.'
+      : `Mode deployed_live_execution is not admitted for ${contract.toolId}.`
   }
 
   if (!contract.admittedModes.includes(mode)) {
@@ -177,6 +191,7 @@ function buildWorkerPayload(
   input: TrackBAgentToolExecutionInput,
   contract: TrackBAgentRuntimeToolContract,
   mode: TrackBAgentToolExecutionMode,
+  report: TrackBAgentRuntimeReadinessReport,
 ): ProductionWorkerJobPayload {
   const candidate: ProductionWorkerJobPayload = {
     jobId: input.jobId,
@@ -197,22 +212,44 @@ function buildWorkerPayload(
       ? input.requestedRecipeIds
       : [`trackb_${contract.toolId}_${input.action}`],
     storageReferenceIds: input.storageReferenceIds ?? [],
-    creditReservationId: undefined,
+    creditReservationId: input.creditReservationId,
     renderMode: input.renderMode,
     requiredQualityGateIds: input.requiredQualityGateIds,
     requiredQualityGateTypes: input.requiredQualityGateTypes,
     createdAt: new Date().toISOString(),
     metadata: {
       ...(input.metadata ?? {}),
+      creditEstimateId: input.creditEstimateId ?? stringMetadata(input.metadata, 'creditEstimateId'),
       agentInvocationId: contract.agentInvocationId,
       agentAction: input.action,
       agentExecutionMode: mode,
+      trackBProductReadyRuntimeEvidenceAccepted: mode === 'deployed_live_execution' && report.liveAgentExecutionReady,
+      trackBDeployedEvidenceSource: report.sourceEvidence.deployedEvidenceSource,
+      trackBDeployedEvidenceRecordedToolCount: report.deployedEvidenceRecordedToolCount,
+      trackBDeployedEvidenceWorkspaceId: report.sourceEvidence.deployedEvidenceWorkspaceId,
       apiIdempotencyKey: input.apiIdempotencyKey,
       paymentScope: 'excluded_from_this_runtime_boundary',
       serviceFeeIncluded: false,
     },
   }
   return { ...candidate, idempotencyKey: buildWorkerIdempotencyKey(candidate) }
+}
+
+function workerDecision(mode: TrackBAgentToolExecutionMode, completed: boolean): string {
+  if (mode === 'deployed_live_execution') {
+    return completed
+      ? 'trackb_agent_tool_execution_deployed_live_execution_completed'
+      : 'trackb_agent_tool_execution_deployed_live_execution_blocked'
+  }
+
+  return completed
+    ? 'trackb_agent_tool_execution_mock_safe_worker_dispatch_completed'
+    : 'trackb_agent_tool_execution_mock_safe_worker_dispatch_blocked'
+}
+
+function stringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'string' && value.length > 0 ? value : undefined
 }
 
 function blocked(

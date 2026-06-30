@@ -25,6 +25,19 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1.md',
 ]
 
+const futureRuntimePlanFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/runtime-execution-plan.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/gate-and-input-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/command-template-matrix.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/failure-and-safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-dry-run-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-plan-1-diagnostics.mjs',
+]
+
 const implementationFiles = [
   contractFile,
   'src/backend/contracts/index.ts',
@@ -40,7 +53,7 @@ const sourceFiles = [
   enqueueContractFile,
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...futureRuntimePlanFiles, ...implementationFiles])
 
 const requiredCorpusText = [
   packet,

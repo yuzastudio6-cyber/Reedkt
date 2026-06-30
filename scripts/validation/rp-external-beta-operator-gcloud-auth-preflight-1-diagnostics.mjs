@@ -33,6 +33,7 @@ const allowedSingleTesterQaRepairFiles = [
   'docs/activation-phase-rp-external-beta-single-tester-real-usage-qa-1-results.md',
   'docs/external-beta/single-tester-real-usage-qa-1/readiness-gate.md',
   'docs/external-beta/single-tester-real-usage-qa-1/real-usage-qa-evidence.md',
+  'docs/external-beta/single-tester-real-usage-qa-1/safety-boundary.md',
   'docs/external-beta/single-tester-real-usage-qa-1/single-tester-real-usage-qa-record.json',
   'docs/external-beta/single-tester-real-usage-qa-1/source-audit.md',
   'docs/external-beta/single-tester-real-usage-qa-1/validation-results.md',

@@ -1,7 +1,7 @@
 {
   "packet": "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1",
-  "decision": "blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa",
-  "execution": "blocked_gcloud_reauth_no_staging_route_readback",
+  "decision": "completed_single_tester_real_usage_qa_authenticated_staging_readback",
+  "execution": "completed_guarded_authenticated_single_tester_real_usage_qa_readonly",
   "integrationBase": "c77835cc2715f24726da617caca1b477d1c214d0",
   "post1692SourceClosure": {
     "toolReadinessAfterGpacDispatch": "RP-EXTERNAL-PRODUCT-TOOL-READINESS-AFTER-GPAC-DISPATCH-1",
@@ -28,7 +28,7 @@
     "runnerExecutedInThisRepair": false,
     "nextOperatorCommand": "REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1"
   },
-  "operatorGcloudAuthPreflightAttempt": {
+  "priorOperatorGcloudAuthPreflightAttempt": {
     "runId": "2026-06-30T01-45-56-932Z-1ef24f39",
     "outputDir": "/tmp/reeditpro-rp-external-beta-operator-gcloud-auth-preflight-1/2026-06-30T01-45-56-932Z-1ef24f39",
     "decision": "blocked_gcloud_user_reauthentication_required",
@@ -48,6 +48,26 @@
     "manifestBytes": 639,
     "manifestSha256": "6111b14a5b17adcfd3108f691cbb758aa6efef6419c2bb2191aa86c1085d66bf"
   },
+  "operatorGcloudAuthPreflightAttempt": {
+    "runId": "2026-06-30T02-01-10-237Z-03964b88",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-operator-gcloud-auth-preflight-1/2026-06-30T02-01-10-237Z-03964b88",
+    "decision": "completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry",
+    "execution": "completed_local_gcloud_auth_preflight_no_runtime_invocation",
+    "blocker": "none",
+    "observedAccount": "aiediting@reeditpro.com",
+    "observedProject": "reeditpro",
+    "userTokenProbe": "passed",
+    "adcTokenProbe": "passed",
+    "tokenValuePrinted": false,
+    "tokenValuePersistedInRepo": false,
+    "tokenTempFileDeleted": true,
+    "reportFile": "operator-gcloud-auth-preflight-report.json",
+    "reportBytes": 2427,
+    "reportSha256": "aa2b21bef41ccd8d321391a224bf7419a2c9cec0259000e5dbcf86f72330468f",
+    "manifestFile": "operator-gcloud-auth-preflight-manifest.json",
+    "manifestBytes": 982,
+    "manifestSha256": "7eba8f232ff07154d6698abd137db640329b003d06c13255845d2530a4226250"
+  },
   "target": {
     "projectName": "Reeditpro",
     "projectRef": "wmyyttnynmteqgcdishd",
@@ -61,41 +81,101 @@
     "activeAccountMatches": true
   },
   "runEvidence": {
-    "runId": "single-tester-real-usage-qa-1-2026-06-29T17-28-02-156Z-04217aaf",
-    "outputDir": "/tmp/reeditpro-rp-external-beta-single-tester-real-usage-qa-1/single-tester-real-usage-qa-1-2026-06-29T17-28-02-156Z-04217aaf",
+    "runId": "single-tester-real-usage-qa-1-2026-06-30T02-02-22-270Z-1629c2ff",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-single-tester-real-usage-qa-1/single-tester-real-usage-qa-1-2026-06-30T02-02-22-270Z-1629c2ff",
     "reportFile": "single-tester-real-usage-qa-1-report.json",
     "manifestFile": "single-tester-real-usage-qa-1-manifest.json",
     "checksumsFile": "single-tester-real-usage-qa-1-checksums.json",
-    "reportBytes": 4254,
-    "reportSha256": "4e8da2c42a7ec76b0caf6d2589981f772bcbe1fc2d63ff40f20a9ff63bab0416",
+    "reportBytes": 4630,
+    "reportSha256": "261d23a9651587511d1c30f980a819b651924878d3a163d884ec87fe874e2c99",
     "manifestBytes": 488,
-    "manifestSha256": "900c296cf713f57b10c418e4e45b56ca3123443e0c829a183c52076ec276d085",
+    "manifestSha256": "578184b3adcb96cd9b9a7f84f5c7a3b3b5d3de91cb30b4fef9205c21a761871e",
     "checksumsBytes": 669,
-    "checksumsSha256": "aa9f144154c99a1115fbd098c0a9479c1c689039bb30c22a1da8df438f5b9503"
+    "checksumsSha256": "012e755f16d0a2f5a818576e89f7fa69d20fa99bb9d8ba74cb72f390e94c81a4"
   },
   "readback": {
-    "blocker": "blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa",
+    "blocker": "none",
     "qwenTransportCurrentBaseBlocker": "blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r",
     "operatorGcloudAuthPreflightHelper": "completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation",
-    "operatorGcloudAuthPreflightAttempt": "blocked_gcloud_user_reauthentication_required",
-    "unauthenticatedRootStatus": null,
-    "authenticatedHtmlRoutes": [],
-    "authenticatedJsonRoutes": [],
-    "requiredRoutesPresent": false,
-    "routeMapTotalRoutes": null,
-    "routeMapMockReadyRoutes": null,
-    "staticAssetFetches": "not_run_gcloud_reauth_blocker"
+    "operatorGcloudAuthPreflightAttempt": "completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry",
+    "unauthenticatedRootStatus": 403,
+    "authenticatedHtmlRoutes": [
+      {
+        "route": "/",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      },
+      {
+        "route": "/dashboard",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      },
+      {
+        "route": "/projects",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      },
+      {
+        "route": "/editor",
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "bodyBytes": 455,
+        "htmlLike": true
+      }
+    ],
+    "authenticatedJsonRoutes": [
+      {
+        "route": "/api/runtime/status",
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "bodyBytes": 1102,
+        "jsonLike": true
+      },
+      {
+        "route": "/api/routes",
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "bodyBytes": 22647,
+        "jsonLike": true,
+        "totalRoutes": 117,
+        "mockReadyRoutes": 0,
+        "requiredRoutesPresent": true
+      }
+    ],
+    "requiredRoutesPresent": true,
+    "routeMapTotalRoutes": 117,
+    "routeMapMockReadyRoutes": 0,
+    "staticAssetFetches": [
+      {
+        "assetPath": "/assets/index-BNzAkO71.js",
+        "status": 200,
+        "contentType": "text/javascript; charset=utf-8",
+        "bodyBytes": 2195193
+      },
+      {
+        "assetPath": "/assets/index-B2pxQajw.css",
+        "status": 200,
+        "contentType": "text/css; charset=utf-8",
+        "bodyBytes": 151867
+      }
+    ]
   },
   "readiness": {
-    "singleTesterRealUsageQa": "blocked",
+    "singleTesterRealUsageQa": "qa_passed_authenticated_staging_readback",
     "currentLane": "go_single_tester_only",
     "additionalTesterExpansion": "blocked_no_additional_named_tester_list",
-    "nextMilestone": "RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1R-AFTER-GCLOUD-REAUTH",
+    "nextMilestone": "RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1",
     "productReadyEndToEndLocalOssTools": 0
   },
   "safety": {
     "authenticatedStagingReadbackOnly": true,
-    "safeGetRouteExecutionOnly": false,
+    "safeGetRouteExecutionOnly": true,
     "groupMembershipMutation": false,
     "cloudRunIamMutation": false,
     "cloudRunServiceUpdate": false,

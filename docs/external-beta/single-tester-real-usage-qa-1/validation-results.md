@@ -2,13 +2,13 @@
 
 Packet: `RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1`
 
-Validation status: `passed_for_blocked_packet`
+Validation status: `passed_for_completed_authenticated_staging_readback`
 
 Post-#1692 source closure: `passed_for_blocked_packet_after_tool_readiness_reconciliation_merge`
 
 Post-#1738 source closure: `passed_for_blocked_packet_after_qwen_transport_dependency_preflight_current_merge`
 
-Post-#1744 source closure: `passed_for_blocked_packet_after_operator_gcloud_auth_preflight_helper_merge`
+Post-#1744 source closure: `passed_after_operator_gcloud_auth_preflight_helper_merge_and_confirmed_auth_preflight`
 
 Validation:
 
@@ -32,10 +32,10 @@ Observed result:
 - server typecheck: `passed`
 - build: `passed`
 - build:server: `passed`
-- guarded real-usage QA attempt: `blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa`
+- guarded real-usage QA attempt: `completed_single_tester_real_usage_qa_authenticated_staging_readback`
 - QWEN transport current-base blocker: `blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r`
 - operator gcloud auth preflight helper: `completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation`
-- guarded operator gcloud auth preflight attempt: `blocked_gcloud_user_reauthentication_required`
+- guarded operator gcloud auth preflight attempt: `completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry`
 - active-lane diagnostics: `passed`
 - real-usage QA diagnostics: `passed`
 - cached diff check: `passed`
@@ -43,9 +43,9 @@ Observed result:
 - post-#1692 diagnostics rerun: `passed`
 - post-#1738 diagnostics rerun: `passed`
 
-Blocker: `blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa`
+Blocker: `none`
 
-Operator auth blocker: `blocked_gcloud_user_reauthentication_required`
+Prior operator auth blocker: `blocked_gcloud_user_reauthentication_required`
 
 Attempted runtime command:
 
@@ -55,14 +55,28 @@ Environment status:
 
 - active gcloud account: `aiediting@reeditpro.com`
 - active account matches approved tester: `true`
-- Cloud Run service readback: `blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa`
-- operator auth preflight run ID: `2026-06-30T01-45-56-932Z-1ef24f39`
-- operator auth preflight output directory: `/tmp/reeditpro-rp-external-beta-operator-gcloud-auth-preflight-1/2026-06-30T01-45-56-932Z-1ef24f39`
-- user token probe: `blocked_gcloud_user_reauthentication_required`
+- Cloud Run service readback: `passed`
+- Cloud Run service ready status: `True`
+- Cloud Run latest ready revision: `reeditpro-staging-api-00006-6gw`
+- Cloud Run traffic: `100_percent_reeditpro-staging-api-00006-6gw`
+- operator auth preflight run ID: `2026-06-30T02-01-10-237Z-03964b88`
+- operator auth preflight output directory: `/tmp/reeditpro-rp-external-beta-operator-gcloud-auth-preflight-1/2026-06-30T02-01-10-237Z-03964b88`
+- user token probe: `passed`
 - token value printed: `false`
 - token temporary file deleted: `true`
-- ADC token probe: `not_run_user_token_blocked`
-- Cloud Run invocation: `false`
+- ADC token probe: `passed`
+- unauthenticated `/`: `403`
+- authenticated `/`: `200`
+- authenticated `/dashboard`: `200`
+- authenticated `/projects`: `200`
+- authenticated `/editor`: `200`
+- authenticated `/api/runtime/status`: `200`
+- authenticated `/api/routes`: `200`
+- route map total routes: `117`
+- route map mock-ready routes: `0`
+- required product route IDs present: `true`
+- authenticated static asset fetches: `2`
+- Cloud Run invocation: `safe_authenticated_get_readback_only`
 - QWEN2.5-VL execution: `false`
 
 Merged source closure included on this branch:

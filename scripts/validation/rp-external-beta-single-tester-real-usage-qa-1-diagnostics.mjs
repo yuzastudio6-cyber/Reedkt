@@ -26,8 +26,8 @@ const requiredFiles = [
 
 const requiredText = [
   packet,
-  'blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa',
-  'blocked_gcloud_reauth_no_staging_route_readback',
+  'completed_single_tester_real_usage_qa_authenticated_staging_readback',
+  'completed_guarded_authenticated_single_tester_real_usage_qa_readonly',
   'REEDITPRO_CONFIRM_EXTERNAL_BETA_SINGLE_TESTER_REAL_USAGE_QA',
   'aiediting@reeditpro.com',
   'external-beta-testers@reeditpro.com',
@@ -35,7 +35,7 @@ const requiredText = [
   'wmyyttnynmteqgcdishd',
   'reeditpro-staging-api',
   'blocked_no_additional_named_tester_list',
-  'RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1R-AFTER-GCLOUD-REAUTH',
+  'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -47,9 +47,15 @@ const requiredText = [
   '387678f5b884364f078a424ca47210b5eca27c19',
   'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation',
   'REEDITPRO_CONFIRM_EXTERNAL_BETA_OPERATOR_GCLOUD_AUTH_PREFLIGHT=true npm run rp-external-beta-operator-gcloud-auth-preflight-1',
-  'blocked_gcloud_user_reauthentication_required',
-  '2026-06-30T01-45-56-932Z-1ef24f39',
-  '15a3a68656bf70fa56e20372e8c0c7ee15cda6d539a1c69507661755f83f5814',
+  'completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry',
+  '2026-06-30T02-01-10-237Z-03964b88',
+  'aa2b21bef41ccd8d321391a224bf7419a2c9cec0259000e5dbcf86f72330468f',
+  'single-tester-real-usage-qa-1-2026-06-30T02-02-22-270Z-1629c2ff',
+  '261d23a9651587511d1c30f980a819b651924878d3a163d884ec87fe874e2c99',
+  'unauthenticated `/`: `403`',
+  'authenticated `/api/routes`: `200`',
+  'required product route IDs present: `true`',
+  'route map total routes: `117`',
 ]
 
 const allowedFiles = new Set(requiredFiles)
@@ -138,15 +144,15 @@ for (const pattern of forbiddenText) {
 
 const record = JSON.parse(read(`${packetDir}/single-tester-real-usage-qa-record.json`))
 if (record.packet !== packet) fail('packet mismatch')
-if (record.decision !== 'blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa') fail('decision mismatch')
-if (record.execution !== 'blocked_gcloud_reauth_no_staging_route_readback') fail('execution mismatch')
+if (record.decision !== 'completed_single_tester_real_usage_qa_authenticated_staging_readback') fail('decision mismatch')
+if (record.execution !== 'completed_guarded_authenticated_single_tester_real_usage_qa_readonly') fail('execution mismatch')
 if (record.target?.projectRef !== 'wmyyttnynmteqgcdishd') fail('target ref mismatch')
 if (record.target?.service !== 'reeditpro-staging-api') fail('service mismatch')
 if (record.tester?.email !== 'aiediting@reeditpro.com') fail('tester mismatch')
 if (record.tester?.group !== 'external-beta-testers@reeditpro.com') fail('tester group mismatch')
 if (record.tester?.activeAccount !== 'aiediting@reeditpro.com') fail('active account mismatch')
 if (record.tester?.activeAccountMatches !== true) fail('active account match missing')
-if (record.readback?.blocker !== 'blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa') fail('readback blocker mismatch')
+if (record.readback?.blocker !== 'none') fail('readback blocker mismatch')
 if (record.post1738SourceClosure?.mergeSha !== 'daff6905af21d9623b14197a4c9a2d61eed47501') fail('post-#1738 merge SHA mismatch')
 if (record.post1738SourceClosure?.decision !== 'completed_current_base_qwen_transport_dependency_preflight_runtime_still_blocked') fail('post-#1738 decision mismatch')
 if (record.post1738SourceClosure?.blocker !== 'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r') fail('post-#1738 blocker mismatch')
@@ -158,27 +164,44 @@ if (record.post1738SourceClosure?.workerDispatch !== false) fail('post-#1738 wor
 if (record.readback?.qwenTransportCurrentBaseBlocker !== 'blocked_gcloud_user_and_adc_reauthentication_required_before_qwen_real_dispatch_1r') fail('QWEN transport blocker mismatch')
 if (record.post1744SourceClosure?.mergeSha !== '387678f5b884364f078a424ca47210b5eca27c19') fail('post-#1744 merge SHA mismatch')
 if (record.post1744SourceClosure?.decision !== 'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation') fail('post-#1744 decision mismatch')
-if (record.post1744SourceClosure?.runnerExecutedInThisRepair !== false) fail('operator helper must not run in this repair')
+if (record.post1744SourceClosure?.runnerExecutedInThisRepair !== false) fail('operator helper source closure should remain historical')
 if (record.readback?.operatorGcloudAuthPreflightHelper !== 'completed_operator_gcloud_auth_preflight_helper_ready_no_runtime_invocation') fail('operator helper status mismatch')
-if (record.operatorGcloudAuthPreflightAttempt?.decision !== 'blocked_gcloud_user_reauthentication_required') fail('operator preflight decision mismatch')
-if (record.operatorGcloudAuthPreflightAttempt?.execution !== 'blocked_user_access_token_preflight_no_runtime_invocation') fail('operator preflight execution mismatch')
+if (record.priorOperatorGcloudAuthPreflightAttempt?.decision !== 'blocked_gcloud_user_reauthentication_required') fail('prior operator preflight decision mismatch')
+if (record.priorOperatorGcloudAuthPreflightAttempt?.execution !== 'blocked_user_access_token_preflight_no_runtime_invocation') fail('prior operator preflight execution mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.decision !== 'completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry') fail('operator preflight decision mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.execution !== 'completed_local_gcloud_auth_preflight_no_runtime_invocation') fail('operator preflight execution mismatch')
 if (record.operatorGcloudAuthPreflightAttempt?.observedAccount !== 'aiediting@reeditpro.com') fail('operator preflight account mismatch')
 if (record.operatorGcloudAuthPreflightAttempt?.observedProject !== 'reeditpro') fail('operator preflight project mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.userTokenProbe !== 'passed') fail('operator user token probe mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.adcTokenProbe !== 'passed') fail('operator ADC token probe mismatch')
 if (record.operatorGcloudAuthPreflightAttempt?.tokenValuePrinted !== false) fail('operator preflight token print flag must be false')
 if (record.operatorGcloudAuthPreflightAttempt?.tokenValuePersistedInRepo !== false) fail('operator preflight token repo flag must be false')
 if (record.operatorGcloudAuthPreflightAttempt?.tokenTempFileDeleted !== true) fail('operator preflight temp token deletion mismatch')
-if (record.operatorGcloudAuthPreflightAttempt?.reportSha256 !== '15a3a68656bf70fa56e20372e8c0c7ee15cda6d539a1c69507661755f83f5814') fail('operator preflight report checksum mismatch')
-if (record.readback?.operatorGcloudAuthPreflightAttempt !== 'blocked_gcloud_user_reauthentication_required') fail('operator preflight readback mismatch')
-if (record.readback?.unauthenticatedRootStatus !== null) fail('unauthenticated root should not have run')
-if (!Array.isArray(record.readback?.authenticatedHtmlRoutes) || record.readback.authenticatedHtmlRoutes.length !== 0) fail('authenticated HTML routes should not have run')
-if (!Array.isArray(record.readback?.authenticatedJsonRoutes) || record.readback.authenticatedJsonRoutes.length !== 0) fail('authenticated JSON routes should not have run')
-if (record.readback?.requiredRoutesPresent !== false) fail('required routes should remain unverified')
-if (record.readiness?.singleTesterRealUsageQa !== 'blocked') fail('readiness mismatch')
+if (record.operatorGcloudAuthPreflightAttempt?.reportSha256 !== 'aa2b21bef41ccd8d321391a224bf7419a2c9cec0259000e5dbcf86f72330468f') fail('operator preflight report checksum mismatch')
+if (record.readback?.operatorGcloudAuthPreflightAttempt !== 'completed_operator_gcloud_user_and_adc_auth_preflight_ready_for_single_tester_qa_and_qwen_dispatch_retry') fail('operator preflight readback mismatch')
+if (record.readback?.unauthenticatedRootStatus !== 403) fail('unauthenticated root should be 403')
+if (!Array.isArray(record.readback?.authenticatedHtmlRoutes) || record.readback.authenticatedHtmlRoutes.length !== 4) fail('authenticated HTML route count mismatch')
+for (const route of ['/', '/dashboard', '/projects', '/editor']) {
+  const match = record.readback.authenticatedHtmlRoutes.find((item) => item.route === route)
+  if (!match || match.status !== 200 || match.htmlLike !== true) fail(`authenticated HTML route mismatch: ${route}`)
+}
+if (!Array.isArray(record.readback?.authenticatedJsonRoutes) || record.readback.authenticatedJsonRoutes.length !== 2) fail('authenticated JSON route count mismatch')
+for (const route of ['/api/runtime/status', '/api/routes']) {
+  const match = record.readback.authenticatedJsonRoutes.find((item) => item.route === route)
+  if (!match || match.status !== 200 || match.jsonLike !== true) fail(`authenticated JSON route mismatch: ${route}`)
+}
+if (record.readback?.requiredRoutesPresent !== true) fail('required routes should be verified')
+if (record.readback?.routeMapTotalRoutes !== 117) fail('route total mismatch')
+if (record.readback?.routeMapMockReadyRoutes !== 0) fail('mock-ready route count mismatch')
+if (!Array.isArray(record.readback?.staticAssetFetches) || record.readback.staticAssetFetches.length !== 2) fail('static asset fetch count mismatch')
+if (!record.readback.staticAssetFetches.every((item) => item.status === 200)) fail('static asset status mismatch')
+if (record.runEvidence?.reportSha256 !== '261d23a9651587511d1c30f980a819b651924878d3a163d884ec87fe874e2c99') fail('real-usage report checksum mismatch')
+if (record.readiness?.singleTesterRealUsageQa !== 'qa_passed_authenticated_staging_readback') fail('readiness mismatch')
 if (record.readiness?.additionalTesterExpansion !== 'blocked_no_additional_named_tester_list') fail('additional tester blocker mismatch')
-if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1R-AFTER-GCLOUD-REAUTH') fail('next milestone mismatch')
+if (record.readiness?.nextMilestone !== 'RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1') fail('next milestone mismatch')
 if (record.readiness?.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count changed')
 for (const [key, value] of Object.entries(record.safety ?? {})) {
-  if (key === 'authenticatedStagingReadbackOnly') {
+  if (key === 'authenticatedStagingReadbackOnly' || key === 'safeGetRouteExecutionOnly') {
     if (value !== true) fail(`safety flag must be true: ${key}`)
   } else if (value !== false) {
     fail(`safety flag must remain false: ${key}`)
@@ -217,5 +240,5 @@ for (const file of changedFiles()) {
 }
 
 console.log(`${packet} diagnostics passed`)
-console.log('Decision: blocked_gcloud_reauthentication_required_before_single_tester_real_usage_qa')
-console.log('Next milestone: RP-EXTERNAL-BETA-SINGLE-TESTER-REAL-USAGE-QA-1R-AFTER-GCLOUD-REAUTH')
+console.log('Decision: completed_single_tester_real_usage_qa_authenticated_staging_readback')
+console.log('Next milestone: RP-EXTERNAL-BETA-SINGLE-TESTER-FEEDBACK-ISSUE-FIX-1')

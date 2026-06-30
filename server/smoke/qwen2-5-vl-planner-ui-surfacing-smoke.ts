@@ -367,10 +367,11 @@ check(
     (docText.includes('Retry 15 verified that the active ReEditPro baseline completes') ||
       docText.includes('Retry 15 verified the active local baseline')) &&
     docText.includes('58DQ approved-fixture private inference attempt result') &&
+    docText.includes('58DQ auth-refresh result') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH',
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt result evidence, and the 58DQ auth-refresh next prompt.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh result evidence, and the 58DQ manual-auth next prompt.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

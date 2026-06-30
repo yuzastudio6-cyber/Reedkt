@@ -251,6 +251,7 @@ function requiredPayloadReferencesFor(mode?: ProductionToolExecutionMode): strin
   const common = [
     'workspaceId',
     'projectId',
+    'jobId',
     'approvedSnapshotId',
     'toolExecutionPlanId',
     'idempotencyKey',

@@ -53,6 +53,27 @@ export const SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_STATIC_INTEGRATION_SOURCE_GA
     acceptedForProductionUnlockToday: false,
   } as const
 
+export const SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_RUNTIME_BINDING_SOURCE_GATE =
+  {
+    gate:
+      'worker_runtime_jobs_sound_cpu_phase101_caption_render_runtime_hook_private_manifest_persistence_runtime_binding_source_gate',
+    targetPath: 'server/workers/sound-cpu/runtime/privateManifestPersistence.ts',
+    bindingTarget: 'caption_render_runtime_hook_private_manifest_persistence_boundary',
+    bindingKind: 'fail_closed_runtime_binding_to_blocked_result_adapter',
+    requiredExports: [
+      'createSoundCpuPrivateManifestPersistenceRuntimeBindingBlockedResult',
+      'assertSoundCpuPrivateManifestPersistenceMutationBlocked',
+    ],
+    acceptedForRuntimeExecutionToday: false,
+    acceptedForPersistenceToday: false,
+    acceptedForStorageObjectCreationToday: false,
+    acceptedForSignedUrlCreationToday: false,
+    acceptedForWorkerDispatchToday: false,
+    acceptedForMediaOpenToday: false,
+    acceptedForBetaUnlockToday: false,
+    acceptedForProductionUnlockToday: false,
+  } as const
+
 export type SoundCpuPrivateManifestPersistenceBlockedReason =
   (typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_BLOCKED_REASONS)[number]
 
@@ -61,6 +82,9 @@ export type SoundCpuPrivateManifestPersistenceRejectedInputField =
 
 export type SoundCpuPrivateManifestPersistenceStaticIntegrationSourceGate =
   typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_STATIC_INTEGRATION_SOURCE_GATE
+
+export type SoundCpuPrivateManifestPersistenceRuntimeBindingSourceGate =
+  typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_RUNTIME_BINDING_SOURCE_GATE
 
 export type SoundCpuPrivateManifestPersistenceContract = Readonly<{
   schemaVersion: typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_SCHEMA_VERSION
@@ -157,6 +181,17 @@ export function createSoundCpuPrivateManifestPersistenceStaticIntegrationBlocked
   blockedReason: SoundCpuPrivateManifestPersistenceBlockedReason = 'supabase_owner_gate_required',
 ): SoundCpuPrivateManifestPersistenceResult {
   return createSoundCpuPrivateManifestPersistenceBlockedResult(input, blockedReason)
+}
+
+export function getSoundCpuPrivateManifestPersistenceRuntimeBindingSourceGate(): SoundCpuPrivateManifestPersistenceRuntimeBindingSourceGate {
+  return SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_RUNTIME_BINDING_SOURCE_GATE
+}
+
+export function createSoundCpuPrivateManifestPersistenceRuntimeBindingBlockedResult(
+  input: SoundCpuPrivateManifestPersistenceInput,
+  blockedReason: SoundCpuPrivateManifestPersistenceBlockedReason = 'supabase_owner_gate_required',
+): SoundCpuPrivateManifestPersistenceResult {
+  return createSoundCpuPrivateManifestPersistenceStaticIntegrationBlockedResult(input, blockedReason)
 }
 
 export function assertSoundCpuPrivateManifestPersistenceMutationBlocked(): never {

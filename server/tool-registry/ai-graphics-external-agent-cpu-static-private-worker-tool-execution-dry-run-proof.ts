@@ -10,6 +10,12 @@ import {
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofRow,
 } from './ai-graphics-external-agent-cpu-static-private-worker-dispatch-smoke-proof'
 import {
+  AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF_DECISION,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchRequestLineage,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow,
+} from './ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
+import {
   AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
 } from './ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission'
 import type { ProductionRegistryWorkerType, ProductionToolId } from './production-tool-types'
@@ -36,6 +42,24 @@ export type AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProo
   | 'private_worker_tool_execution_dry_run_proof_blocked_pending_satori_font_fixture'
   | 'private_worker_tool_execution_dry_run_proof_deferred_non_cpu_static_runtime_boundary'
   | 'private_worker_tool_execution_dry_run_proof_blocked_missing_dispatch_smoke_proof'
+  | 'private_worker_tool_execution_dry_run_proof_blocked_missing_worker_claim_and_dispatch_smoke_proof'
+
+type AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceKind =
+  | 'dispatch_smoke'
+  | 'worker_claim_and_dispatch_smoke'
+
+interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceEvidence {
+  sourceKind: AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceKind
+  approvedPlanSnapshotRef: string
+  creditReservationRef: string
+  privateArtifactManifestRef: string
+  queuePayloadIdempotencyKey: string
+  dryDispatchIdempotencyKey: string
+  sourceWorkerDispatchAttemptRef: string
+  workerDispatchSmokeEvidenceRef: string
+  workerDispatchSmokeTelemetryRef: string
+  expectedOutputVisibility: 'private_artifact_only'
+}
 
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunContract {
   queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
@@ -66,6 +90,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRu
   sourceDispatchSmokeProofStatus: string | null
   sourceDispatchSmokeProofAccepted: boolean
   sourceDispatchSmokeEvidenceAccepted: boolean
+  sourceWorkerClaimAndDispatchSmokeProofStatus: string | null
+  sourceWorkerClaimAndDispatchSmokeProofAccepted: boolean
+  sourceWorkerClaimAndDispatchEvidenceAccepted: boolean
   toolExecutionDryRunStatus: AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofStatus
   dryToolExecutionProofPrepared: boolean
   dryToolExecutionContractPrepared: boolean
@@ -119,6 +146,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRu
   decision: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_TOOL_EXECUTION_DRY_RUN_PROOF_DECISION
   status: 'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_five_with_runtime_blocks'
   sourceDispatchSmokeProofDecision: string | null
+  sourceWorkerClaimAndDispatchSmokeProofDecision: string | null
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   tools: AiGraphicsCanonicalToolId[]
@@ -145,6 +173,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRu
     privateOutputManifestContractValidatedTools: number
     toolResultSchemaValidatedTools: number
     sourceDispatchSmokeProofAcceptedTools: number
+    sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: number
     satoriBlockedPendingApprovedFontFixtureTools: number
     nonCpuStaticDeferredTools: number
     externalAgentCanDispatchPrivateWorkerJobNowTools: 0
@@ -166,6 +195,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRu
   booleans: {
     externalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofCompleted: true
     sourceDispatchSmokeProofAccepted: boolean
+    sourceWorkerClaimAndDispatchSmokeProofAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     allFiveCpuStaticToolExecutionDryRunProofsPrepared: boolean
@@ -176,6 +206,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRu
     satoriBlockedPendingApprovedFontFixture: boolean
     fifteenRuntimeDeferredToolsPreserved: boolean
     sourceDispatchSmokeEvidenceRefsPreserved: boolean
+    sourceWorkerClaimAndDispatchEvidenceRefsPreserved: boolean
     privateArtifactOnlyPolicyAccepted: true
     noAdapterInvocationByDryRun: true
     noToolExecutionByDryRun: true
@@ -229,12 +260,22 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRu
 
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofInput {
   sourceDispatchSmokeProofReport?: AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofReport
+  sourceWorkerClaimAndDispatchSmokeProofReport?: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport
 }
 
 function sourceRow(
   report: AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofReport | undefined,
   toolId: AiGraphicsCanonicalToolId,
 ): AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofRow | undefined {
+  return report?.rows?.find((row) => row.toolId === toolId)
+}
+
+function sourceClaimAndDispatchRow(
+  report:
+    | AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport
+    | undefined,
+  toolId: AiGraphicsCanonicalToolId,
+): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow | undefined {
   return report?.rows?.find((row) => row.toolId === toolId)
 }
 
@@ -279,18 +320,118 @@ function sourceDispatchSmokeProofAccepted(
     })
 }
 
+function sourceWorkerClaimAndDispatchSmokeProofAccepted(
+  report?: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport,
+): boolean {
+  const rows = report?.rows ?? []
+  return report?.decision ===
+    AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF_DECISION &&
+    report.status ===
+      'accepted_saved_worker_claim_and_dispatch_smoke_result_execution_blocked' &&
+    report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence === 5 &&
+    report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools === 5 &&
+    report.counts.workerClaimsAcceptedWithProvidedEvidence === 5 &&
+    report.counts.workerDispatchHandoffsAcceptedWithProvidedEvidence === 5 &&
+    report.counts.workerDispatchLeasesReleasedWithProvidedEvidence === 5 &&
+    report.counts.queueRowsPersistedAfterCleanup === 0 &&
+    report.counts.externalAgentExecutableNowTools === 0 &&
+    report.counts.toolExecutionsPerformedNow === 0 &&
+    report.counts.gpuRuntimeShouldStartNowTools === 0 &&
+    report.booleans.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence === true &&
+    report.booleans.allFiveCpuStaticWorkerClaimAndDispatchSmokeResultsAcceptedWithProvidedEvidence === true &&
+    report.booleans.allFiveCpuStaticExactRequestLineagesPreservedWithProvidedEvidence === true &&
+    report.booleans.agentCanExecuteToolsNow === false &&
+    report.booleans.workerClaimApprovedNow === false &&
+    report.booleans.workerDispatchApprovedNow === false &&
+    report.booleans.toolExecutionApprovedNow === false &&
+    report.booleans.gpuRuntimeShouldStartNow === false &&
+    rows.length === 21 &&
+    toolExecutionDryRunReadyTools.every((toolId) => {
+      const row = rows.find((source) => source.toolId === toolId)
+      return row?.workerClaimAndDispatchSmokeProofStatus ===
+        'accepted_saved_worker_claim_and_dispatch_smoke_result_execution_blocked' &&
+        row.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence === true &&
+        row.exactRequestLineagePreserved === true &&
+        row.exactRequestLineage?.expectedOutputVisibility === 'private_artifact_only' &&
+        row.agentCanExecuteToolsNow === false &&
+        row.workerClaimApprovedNow === false &&
+        row.workerDispatchApprovedNow === false &&
+        row.toolExecutionApprovedNow === false &&
+        row.gpuRuntimeShouldStartNow === false
+    })
+}
+
+function evidenceFromClaimAndDispatchLineage(
+  toolId: AiGraphicsCanonicalToolId,
+  lineage: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchRequestLineage,
+): AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceEvidence {
+  return {
+    sourceKind: 'worker_claim_and_dispatch_smoke',
+    approvedPlanSnapshotRef: lineage.approvedPlanSnapshotRef,
+    creditReservationRef: lineage.creditReservationRef,
+    privateArtifactManifestRef: lineage.privateArtifactManifestRef,
+    queuePayloadIdempotencyKey: lineage.queuePayloadIdempotencyKey,
+    dryDispatchIdempotencyKey:
+      `claim-dispatch-dry-tool-execution://${toolId}/${lineage.exactExecutionAdmissionIdempotencyKey}`,
+    sourceWorkerDispatchAttemptRef: lineage.workerClaimAndDispatchHandoffRef,
+    workerDispatchSmokeEvidenceRef: lineage.workerClaimAndDispatchEvidenceRef,
+    workerDispatchSmokeTelemetryRef: lineage.workerClaimAndDispatchTelemetryRef,
+    expectedOutputVisibility: lineage.expectedOutputVisibility,
+  }
+}
+
+function resolvedSourceEvidence(input: {
+  toolId: AiGraphicsCanonicalToolId
+  dispatchSource?: AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofRow
+  dispatchSourceAccepted: boolean
+  claimAndDispatchSource?: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow
+  claimAndDispatchSourceAccepted: boolean
+}): AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceEvidence | null {
+  if (
+    input.claimAndDispatchSourceAccepted &&
+    input.claimAndDispatchSource?.exactRequestLineagePreserved === true &&
+    input.claimAndDispatchSource.exactRequestLineage
+  ) {
+    return evidenceFromClaimAndDispatchLineage(
+      input.toolId,
+      input.claimAndDispatchSource.exactRequestLineage,
+    )
+  }
+
+  const dispatchEvidence = input.dispatchSource?.providedDispatchSmokeEvidence
+  if (
+    input.dispatchSourceAccepted &&
+    input.dispatchSource?.providedDispatchSmokeEvidenceAccepted === true &&
+    dispatchEvidence
+  ) {
+    return {
+      sourceKind: 'dispatch_smoke',
+      approvedPlanSnapshotRef: dispatchEvidence.approvedPlanSnapshotRef,
+      creditReservationRef: dispatchEvidence.creditReservationRef,
+      privateArtifactManifestRef: dispatchEvidence.privateArtifactManifestRef,
+      queuePayloadIdempotencyKey: dispatchEvidence.queuePayloadIdempotencyKey,
+      dryDispatchIdempotencyKey: dispatchEvidence.dryDispatchIdempotencyKey,
+      sourceWorkerDispatchAttemptRef: dispatchEvidence.sourceWorkerDispatchAttemptRef,
+      workerDispatchSmokeEvidenceRef: dispatchEvidence.workerDispatchSmokeEvidenceRef,
+      workerDispatchSmokeTelemetryRef: dispatchEvidence.workerDispatchSmokeTelemetryRef,
+      expectedOutputVisibility: dispatchEvidence.expectedOutputVisibility,
+    }
+  }
+
+  return null
+}
+
 function dryRunStatusFor(input: {
   toolId: AiGraphicsCanonicalToolId
-  source?: AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofRow
-  sourceAccepted: boolean
+  resolvedEvidence: AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceEvidence | null
+  claimAndDispatchSourceProvided: boolean
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofStatus {
   if (toolExecutionDryRunReadyTools.includes(input.toolId)) {
-    if (
-      input.sourceAccepted &&
-      input.source?.providedDispatchSmokeEvidenceAccepted === true &&
-      input.source.providedDispatchSmokeEvidence
-    ) {
+    if (input.resolvedEvidence) {
       return 'private_worker_tool_execution_dry_run_proof_prepared_execution_blocked'
+    }
+    if (input.claimAndDispatchSourceProvided) {
+      return 'private_worker_tool_execution_dry_run_proof_blocked_missing_worker_claim_and_dispatch_smoke_proof'
     }
     return 'private_worker_tool_execution_dry_run_proof_blocked_missing_dispatch_smoke_proof'
   }
@@ -302,7 +443,7 @@ function dryRunStatusFor(input: {
 
 function dryRunContractFor(input: {
   toolId: AiGraphicsCanonicalToolId
-  source?: AiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeProofRow
+  resolvedEvidence: AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunSourceEvidence | null
   status: AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofStatus
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunContract | null {
   if (
@@ -311,7 +452,7 @@ function dryRunContractFor(input: {
   ) {
     return null
   }
-  const evidence = input.source?.providedDispatchSmokeEvidence
+  const evidence = input.resolvedEvidence
   if (!evidence) return null
   const base =
     `ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/${input.toolId}`
@@ -354,6 +495,12 @@ function blockerFor(
   ) {
     return 'tool execution dry-run proof is blocked because accepted private worker dispatch smoke proof is missing for this CPU/static tool'
   }
+  if (
+    status ===
+    'private_worker_tool_execution_dry_run_proof_blocked_missing_worker_claim_and_dispatch_smoke_proof'
+  ) {
+    return 'tool execution dry-run proof is blocked because accepted worker claim and dispatch smoke proof with exact request lineage is missing for this CPU/static tool'
+  }
   return 'non-CPU/static tools remain deferred to browser/canvas/WebGL or GPU/model runtime proof lanes before tool execution dry-run proof'
 }
 
@@ -375,6 +522,12 @@ function nextProofMilestoneFor(
   ) {
     return 'repair private worker dispatch smoke proof before tool execution dry-run proof'
   }
+  if (
+    status ===
+    'private_worker_tool_execution_dry_run_proof_blocked_missing_worker_claim_and_dispatch_smoke_proof'
+  ) {
+    return 'repair worker claim and dispatch smoke proof with exact request lineage before tool execution dry-run proof'
+  }
   return 'future runtime proof and private worker execution dry-run for browser/canvas/WebGL or GPU/model worker target'
 }
 
@@ -382,20 +535,37 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
   input: AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofInput = {},
 ): AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofReport {
   const sourceAccepted = sourceDispatchSmokeProofAccepted(input.sourceDispatchSmokeProofReport)
+  const claimAndDispatchSourceAccepted = sourceWorkerClaimAndDispatchSmokeProofAccepted(
+    input.sourceWorkerClaimAndDispatchSmokeProofReport,
+  )
+  const claimAndDispatchSourceProvided = Boolean(
+    input.sourceWorkerClaimAndDispatchSmokeProofReport,
+  )
 
   const rows = AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => {
     const source = sourceRow(input.sourceDispatchSmokeProofReport, toolId)
-    if (!source) {
+    const claimAndDispatchSource = sourceClaimAndDispatchRow(
+      input.sourceWorkerClaimAndDispatchSmokeProofReport,
+      toolId,
+    )
+    if (!source && !claimAndDispatchSource) {
       throw new Error(`Missing AI graphics tool execution dry-run source row for ${toolId}`)
     }
+    const resolvedEvidence = resolvedSourceEvidence({
+      toolId,
+      dispatchSource: source,
+      dispatchSourceAccepted: sourceAccepted,
+      claimAndDispatchSource,
+      claimAndDispatchSourceAccepted,
+    })
     const toolExecutionDryRunStatus = dryRunStatusFor({
       toolId,
-      source,
-      sourceAccepted,
+      resolvedEvidence,
+      claimAndDispatchSourceProvided,
     })
     const dryRunContract = dryRunContractFor({
       toolId,
-      source,
+      resolvedEvidence,
       status: toolExecutionDryRunStatus,
     })
     const prepared =
@@ -405,13 +575,30 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
 
     return {
       toolId,
-      productionToolId: source.productionToolId,
-      workerType: source.workerType,
-      runtimeTarget: source.runtimeTarget,
+      productionToolId:
+        claimAndDispatchSource?.productionToolId ??
+        source?.productionToolId ??
+        (`ai_graphics_${toolId}` as ProductionToolId),
+      workerType:
+        claimAndDispatchSource?.workerType ?? source?.workerType ?? 'tool_readiness_worker',
+      runtimeTarget:
+        (claimAndDispatchSource?.runtimeTarget === 'deferred'
+          ? source?.runtimeTarget
+          : claimAndDispatchSource?.runtimeTarget) ??
+        source?.runtimeTarget ??
+        'node_cpu_static',
       queueName: prepared ? AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME : null,
-      sourceDispatchSmokeProofStatus: source.dispatchSmokeProofStatus,
+      sourceDispatchSmokeProofStatus: source?.dispatchSmokeProofStatus ?? null,
       sourceDispatchSmokeProofAccepted: sourceAccepted,
-      sourceDispatchSmokeEvidenceAccepted: source.providedDispatchSmokeEvidenceAccepted,
+      sourceDispatchSmokeEvidenceAccepted:
+        source?.providedDispatchSmokeEvidenceAccepted === true,
+      sourceWorkerClaimAndDispatchSmokeProofStatus:
+        claimAndDispatchSource?.workerClaimAndDispatchSmokeProofStatus ?? null,
+      sourceWorkerClaimAndDispatchSmokeProofAccepted: claimAndDispatchSourceAccepted,
+      sourceWorkerClaimAndDispatchEvidenceAccepted:
+        claimAndDispatchSource?.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence ===
+          true &&
+        claimAndDispatchSource?.exactRequestLineagePreserved === true,
       toolExecutionDryRunStatus,
       dryToolExecutionProofPrepared: prepared,
       dryToolExecutionContractPrepared: prepared,
@@ -482,6 +669,8 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
       'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_five_with_runtime_blocks',
     sourceDispatchSmokeProofDecision:
       input.sourceDispatchSmokeProofReport?.decision ?? null,
+    sourceWorkerClaimAndDispatchSmokeProofDecision:
+      input.sourceWorkerClaimAndDispatchSmokeProofReport?.decision ?? null,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     tools: [...AI_GRAPHICS_CANONICAL_TOOL_IDS],
@@ -512,6 +701,9 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
       toolResultSchemaValidatedTools: rows.filter((row) => row.toolResultSchemaValidated).length,
       sourceDispatchSmokeProofAcceptedTools:
         input.sourceDispatchSmokeProofReport?.counts.dispatchSmokeProofAcceptedTools ?? 0,
+      sourceWorkerClaimAndDispatchSmokeProofAcceptedTools:
+        input.sourceWorkerClaimAndDispatchSmokeProofReport?.counts
+          .savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence ?? 0,
       satoriBlockedPendingApprovedFontFixtureTools: satoriBlockedRows.length,
       nonCpuStaticDeferredTools: nonCpuRows.length,
       externalAgentCanDispatchPrivateWorkerJobNowTools: 0,
@@ -533,6 +725,7 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
     booleans: {
       externalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofCompleted: true,
       sourceDispatchSmokeProofAccepted: sourceAccepted,
+      sourceWorkerClaimAndDispatchSmokeProofAccepted: claimAndDispatchSourceAccepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       allFiveCpuStaticToolExecutionDryRunProofsPrepared: preparedRows.length === 5,
@@ -553,10 +746,14 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
         preparedRows.length === 5 &&
         preparedRows.every((row) => {
           const contract = row.dryRunContract
-          return Boolean(contract) &&
+          if (!contract) return false
+          return (
             contract.workerDispatchSmokeEvidenceRef.includes(row.toolId) &&
             contract.workerDispatchSmokeTelemetryRef.includes(row.toolId) &&
-            contract.sourceWorkerDispatchAttemptRef.startsWith('dispatch://') &&
+            (
+              contract.sourceWorkerDispatchAttemptRef.startsWith('dispatch://') ||
+              contract.sourceWorkerDispatchAttemptRef.startsWith('worker-claim-dispatch://')
+            ) &&
             contract.approvedPlanSnapshotRef.startsWith('approved-plan-snapshot://') &&
             contract.creditReservationRef.startsWith('credit-reservation://') &&
             contract.privateArtifactManifestRef.startsWith('private://') &&
@@ -564,6 +761,25 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
             contract.dryDispatchIdempotencyKey.includes(row.toolId) &&
             contract.dryToolExecutionIdempotencyKey.includes(row.toolId) &&
             contract.expectedOutputVisibility === 'private_artifact_only'
+          )
+        }),
+      sourceWorkerClaimAndDispatchEvidenceRefsPreserved:
+        preparedRows.length === 5 &&
+        preparedRows.every((row) => {
+          const contract = row.dryRunContract
+          if (!contract) return false
+          return (
+            (
+              !claimAndDispatchSourceAccepted ||
+              (
+                contract.sourceWorkerDispatchAttemptRef.startsWith(
+                  'worker-claim-dispatch://',
+                ) &&
+                contract.workerDispatchSmokeEvidenceRef.startsWith('private://') &&
+                contract.workerDispatchSmokeTelemetryRef.startsWith('private://')
+              )
+            )
+          )
         }),
       privateArtifactOnlyPolicyAccepted: true,
       noAdapterInvocationByDryRun: true,

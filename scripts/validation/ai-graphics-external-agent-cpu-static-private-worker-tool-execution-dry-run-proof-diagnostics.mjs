@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -17,6 +18,10 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof-diagnostics.mjs'
+const sourceQueueProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
+const claimAndDispatchProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
 const queueName = 'ai_graphics_external_agent_cpu_static_private_worker_queue'
 
 const tools = [
@@ -74,6 +79,7 @@ const expectedCounts = {
   privateOutputManifestContractValidatedTools: 5,
   toolResultSchemaValidatedTools: 5,
   sourceDispatchSmokeProofAcceptedTools: 5,
+  sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: 0,
   satoriBlockedPendingApprovedFontFixtureTools: 1,
   nonCpuStaticDeferredTools: 15,
   externalAgentCanDispatchPrivateWorkerJobNowTools: 0,
@@ -105,6 +111,7 @@ const trueKeys = [
   'satoriBlockedPendingApprovedFontFixture',
   'fifteenRuntimeDeferredToolsPreserved',
   'sourceDispatchSmokeEvidenceRefsPreserved',
+  'sourceWorkerClaimAndDispatchEvidenceRefsPreserved',
   'privateArtifactOnlyPolicyAccepted',
   'noAdapterInvocationByDryRun',
   'noToolExecutionByDryRun',
@@ -268,6 +275,136 @@ function exec(command) {
   })
 }
 
+function writeJson(filePath, value) {
+  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`)
+}
+
+function acceptedQueueWriteSmokeResult() {
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_passed_with_cleanup',
+    status:
+      'non_production_service_role_queue_write_smoke_passed_with_cleanup_no_worker_dispatch_or_tool_execution',
+    queueName,
+    toolsSubmitted: 5,
+    toolsSubmittedIds: dryRunPreparedTools,
+    queueRowsWritten: 5,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    workerClaimsCreated: 0,
+    workerDispatchesPerformed: 0,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/telemetry.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/rollback.md',
+    sourcePreflightDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_prepared_with_runtime_blocks',
+    sourcePreflightAccepted: true,
+    liveServiceRoleQueueWriteSmokeExecutedNow: true,
+    liveSupabaseQueueWritesNow: 5,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }
+}
+
+function acceptedClaimAndDispatchSmokeResult() {
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_passed_with_cleanup',
+    status:
+      'non_production_worker_claim_and_dispatch_smoke_passed_with_cleanup_no_tool_execution',
+    queueName,
+    toolsClaimed: 5,
+    toolsClaimedIds: dryRunPreparedTools,
+    queueRowsRead: 5,
+    workerClaimsCreated: 5,
+    workerDispatchHandoffsCreated: 5,
+    workerDispatchLeasesReleased: 5,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-claim-dispatch-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/telemetry.json',
+    leaseAuditRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/lease-audit.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/rollback.md',
+    sourceQueueWriteSmokeProofDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_validator_prepared_with_runtime_blocks',
+    sourceQueueWriteSmokeProofAccepted: true,
+    liveWorkerClaimAndDispatchSmokeExecutedNow: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }
+}
+
+function runJson(scriptName, args) {
+  return JSON.parse(
+    childProcess.execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
+      cwd: root,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 60 * 1024 * 1024,
+    }),
+  )
+}
+
+function buildAcceptedClaimAndDispatchProofPath() {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-dry-run-'))
+  const queueResultPath = path.join(tempDir, 'accepted-queue-write-smoke-result.json')
+  writeJson(queueResultPath, acceptedQueueWriteSmokeResult())
+  const sourceQueueProof = runJson(sourceQueueProofScriptName, [
+    '--external-agent-cpu-static-service-role-queue-write-smoke-result',
+    queueResultPath,
+    '--print-only',
+  ])
+  const sourceQueueProofPath = path.join(tempDir, 'accepted-queue-write-smoke-proof.json')
+  writeJson(sourceQueueProofPath, sourceQueueProof)
+  const claimResultPath = path.join(tempDir, 'accepted-claim-dispatch-smoke-result.json')
+  writeJson(claimResultPath, acceptedClaimAndDispatchSmokeResult())
+  const claimProof = runJson(claimAndDispatchProofScriptName, [
+    '--source-service-role-queue-write-smoke-proof-packet',
+    sourceQueueProofPath,
+    '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-result',
+    claimResultPath,
+    '--print-only',
+  ])
+  const claimProofPath = path.join(tempDir, 'accepted-claim-dispatch-smoke-proof.json')
+  writeJson(claimProofPath, claimProof)
+  return claimProofPath
+}
+
 function checkList(label, list, expected) {
   if (!Array.isArray(list)) {
     fail(`${label}_not_array`)
@@ -303,9 +440,6 @@ function checkContract(label, toolId, contract) {
     approvedPlanSnapshotRef: 'approved-plan-snapshot://',
     creditReservationRef: 'credit-reservation://',
     privateArtifactManifestRef: 'private://',
-    sourceWorkerDispatchAttemptRef: 'dispatch://',
-    workerDispatchSmokeEvidenceRef: 'evidence://',
-    workerDispatchSmokeTelemetryRef: 'telemetry://',
     adapterInvocationDryRunRef: 'adapter-dry-run://',
     toolInputContractRef: 'tool-input-contract://',
     expectedPrivateOutputContractRef: 'private-output-contract://',
@@ -316,6 +450,26 @@ function checkContract(label, toolId, contract) {
     if (!String(contract[key] ?? '').startsWith(prefix)) {
       fail(`${label}_contract_prefix_mismatch:${toolId}:${key}`)
     }
+  }
+  if (
+    !String(contract.sourceWorkerDispatchAttemptRef ?? '').startsWith('dispatch://') &&
+    !String(contract.sourceWorkerDispatchAttemptRef ?? '').startsWith(
+      'worker-claim-dispatch://',
+    )
+  ) {
+    fail(`${label}_contract_prefix_mismatch:${toolId}:sourceWorkerDispatchAttemptRef`)
+  }
+  if (
+    !String(contract.workerDispatchSmokeEvidenceRef ?? '').startsWith('evidence://') &&
+    !String(contract.workerDispatchSmokeEvidenceRef ?? '').startsWith('private://')
+  ) {
+    fail(`${label}_contract_prefix_mismatch:${toolId}:workerDispatchSmokeEvidenceRef`)
+  }
+  if (
+    !String(contract.workerDispatchSmokeTelemetryRef ?? '').startsWith('telemetry://') &&
+    !String(contract.workerDispatchSmokeTelemetryRef ?? '').startsWith('private://')
+  ) {
+    fail(`${label}_contract_prefix_mismatch:${toolId}:workerDispatchSmokeTelemetryRef`)
   }
   for (const key of [
     'queuePayloadIdempotencyKey',
@@ -544,6 +698,7 @@ for (const required of [
 
 for (const required of [
   'sourceDispatchSmokeProofPath',
+  '--source-worker-claim-and-dispatch-smoke-proof-packet',
   'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProof',
   '--write-records',
   'report.counts.toolExecutionDryRunProofPreparedTools === 5',
@@ -585,6 +740,67 @@ if (JSON.stringify(docs.counts) !== JSON.stringify(cliReport.counts)) {
 }
 if (JSON.stringify(docs.booleans) !== JSON.stringify(cliReport.booleans)) {
   fail('docs_cli_booleans_mismatch')
+}
+
+let claimAndDispatchSourceCliReport = {}
+try {
+  const claimProofPath = buildAcceptedClaimAndDispatchProofPath()
+  claimAndDispatchSourceCliReport = runJson(runScriptName, [
+    '--source-worker-claim-and-dispatch-smoke-proof-packet',
+    claimProofPath,
+  ])
+} catch (error) {
+  fail(`claim_dispatch_source_cli_report_failed:${error.message}`)
+}
+
+if (claimAndDispatchSourceCliReport.decision !== decision) {
+  fail('claim_dispatch_source_cli_decision_mismatch')
+}
+if (claimAndDispatchSourceCliReport.status !== acceptedStatus) {
+  fail('claim_dispatch_source_cli_status_mismatch')
+}
+if (
+  claimAndDispatchSourceCliReport.counts?.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools !== 5
+) {
+  fail('claim_dispatch_source_cli_source_tools_not_5')
+}
+if (claimAndDispatchSourceCliReport.counts?.toolExecutionDryRunProofPreparedTools !== 5) {
+  fail('claim_dispatch_source_cli_dry_run_tools_not_5')
+}
+if (claimAndDispatchSourceCliReport.booleans?.sourceWorkerClaimAndDispatchSmokeProofAccepted !== true) {
+  fail('claim_dispatch_source_cli_source_not_true')
+}
+if (claimAndDispatchSourceCliReport.booleans?.sourceWorkerClaimAndDispatchEvidenceRefsPreserved !== true) {
+  fail('claim_dispatch_source_cli_refs_not_true')
+}
+if (claimAndDispatchSourceCliReport.booleans?.agentCanExecuteToolsNow !== false) {
+  fail('claim_dispatch_source_cli_agent_execution_not_false')
+}
+if (claimAndDispatchSourceCliReport.booleans?.toolExecutionApprovedNow !== false) {
+  fail('claim_dispatch_source_cli_tool_execution_not_false')
+}
+if (claimAndDispatchSourceCliReport.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('claim_dispatch_source_cli_gpu_start_not_false')
+}
+checkRows('claim_dispatch_source_cli', claimAndDispatchSourceCliReport.rows)
+for (const toolId of dryRunPreparedTools) {
+  const row = claimAndDispatchSourceCliReport.rows?.find((entry) => entry.toolId === toolId)
+  const contract = row?.dryRunContract
+  if (row?.sourceWorkerClaimAndDispatchSmokeProofAccepted !== true) {
+    fail(`claim_dispatch_source_cli_source_row_not_true:${toolId}`)
+  }
+  if (row?.sourceWorkerClaimAndDispatchEvidenceAccepted !== true) {
+    fail(`claim_dispatch_source_cli_evidence_row_not_true:${toolId}`)
+  }
+  if (!String(contract?.sourceWorkerDispatchAttemptRef ?? '').startsWith('worker-claim-dispatch://')) {
+    fail(`claim_dispatch_source_cli_not_using_claim_dispatch_handoff:${toolId}`)
+  }
+  if (!String(contract?.workerDispatchSmokeEvidenceRef ?? '').startsWith('private://')) {
+    fail(`claim_dispatch_source_cli_not_using_claim_dispatch_evidence:${toolId}`)
+  }
+  if (!String(contract?.workerDispatchSmokeTelemetryRef ?? '').startsWith('private://')) {
+    fail(`claim_dispatch_source_cli_not_using_claim_dispatch_telemetry:${toolId}`)
+  }
 }
 
 for (const fileText of [JSON.stringify(docs), docsMd, promptResult, implementationPrompt]) {

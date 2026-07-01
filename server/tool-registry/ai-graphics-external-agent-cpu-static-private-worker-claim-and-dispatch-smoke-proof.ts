@@ -12,6 +12,12 @@ import {
 import {
   AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
 } from './ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission'
+import {
+  AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionEvidence,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow,
+} from './ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission'
 import type { ProductionRegistryWorkerType, ProductionToolId } from './production-tool-types'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF_DECISION =
@@ -33,9 +39,37 @@ const productFacingCapabilities = AI_GRAPHICS_TOOL_CALL_CAPABILITY_IDS.filter(
 
 export type AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofStatus =
   | 'blocked_pending_source_non_production_service_role_queue_write_smoke_proof'
+  | 'blocked_pending_source_exact_execution_admission'
   | 'blocked_pending_saved_worker_claim_and_dispatch_smoke_result'
   | 'rejected_saved_worker_claim_and_dispatch_smoke_result'
   | 'accepted_saved_worker_claim_and_dispatch_smoke_result_execution_blocked'
+
+export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchRequestLineage {
+  queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
+  approvedPlanSnapshotRef: string
+  creditReservationRef: string
+  privateArtifactManifestRef: string
+  queuePayloadIdempotencyKey: string
+  controlledToolExecutionIdempotencyKey: string
+  exactExecutionAdmissionIdempotencyKey: string
+  sourceControlledToolExecutionEvidenceRef: string
+  sourcePhase0LocalArtifactEvidenceRef: string
+  sourceAdapterInvocationDryRunRef: string
+  externalAgentExactRequestEnvelopeRef: string
+  externalAgentAdmissionDecisionRef: string
+  workerAcceptedRequestSchemaRef: string
+  privateOutputManifestRef: string
+  toolResultSchemaRef: string
+  toolSpecificQaGateRef: string
+  executionUnlockConditionRef: string
+  workerClaimAndDispatchEvidenceRef: string
+  workerClaimAndDispatchTelemetryRef: string
+  workerClaimAndDispatchLeaseAuditRef: string
+  workerClaimAndDispatchCleanupProofRef: string
+  workerClaimAndDispatchRollbackRef: string
+  workerClaimAndDispatchHandoffRef: string
+  expectedOutputVisibility: 'private_artifact_only'
+}
 
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult {
   ok: true
@@ -76,6 +110,8 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofInput {
   sourceQueueWriteSmokeProofPacket?:
     AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport
+  sourceExactExecutionAdmissionPacket?:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport
   workerClaimAndDispatchSmokeResult?:
     AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult
 }
@@ -88,9 +124,13 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME | null
   sourceQueueWriteSmokeProofStatus: string | null
   sourceQueueWriteSmokeProofAccepted: boolean
+  sourceExactExecutionAdmissionStatus: string | null
+  sourceExactExecutionAdmissionAccepted: boolean
   workerClaimAndDispatchSmokeProofStatus:
     AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofStatus
   workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
+  exactRequestLineagePreserved: boolean
+  exactRequestLineage: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchRequestLineage | null
   workerClaimEvidenceRef: string | null
   workerDispatchEvidenceRef: string | null
   workerDispatchTelemetryRef: string | null
@@ -127,6 +167,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   status:
     AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofStatus
   sourceQueueWriteSmokeProofDecision: string | null
+  sourceExactExecutionAdmissionDecision: string | null
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   tools: AiGraphicsCanonicalToolId[]
@@ -151,6 +192,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
     sourceQueueWriteSmokeProofAcceptedTools: number
     savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence: number
     savedWorkerClaimAndDispatchSmokeRejectedTools: number
+    exactRequestLineagePreservedWithProvidedEvidenceTools: number
     queueRowsReadAcceptedWithProvidedEvidence: number
     workerClaimsAcceptedWithProvidedEvidence: number
     workerDispatchHandoffsAcceptedWithProvidedEvidence: number
@@ -167,10 +209,12 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
     externalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofValidatorPrepared:
       true
     sourceNonProductionServiceRoleQueueWriteSmokeProofAccepted: boolean
+    sourceExactExecutionAdmissionAccepted: boolean
     savedWorkerClaimAndDispatchSmokeResultProvided: boolean
     workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence: boolean
     allFiveCpuStaticWorkerClaimAndDispatchSmokeResultsAcceptedWithProvidedEvidence:
       boolean
+    allFiveCpuStaticExactRequestLineagesPreservedWithProvidedEvidence: boolean
     cleanupVerifiedWithProvidedEvidence: boolean
     workerDispatchLeasesReleasedWithProvidedEvidence: boolean
     serverOnlyServiceRoleCredentialsRequired: true
@@ -265,6 +309,40 @@ function sourceAccepted(
     packet.booleans?.gpuRuntimeShouldStartNow === false
 }
 
+function sourceExactExecutionAdmissionAccepted(
+  packet?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport,
+): boolean {
+  return packet?.decision ===
+    AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION &&
+    packet.status ===
+      'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks' &&
+    packet.counts?.exactExecutionAdmissionReadyTools === 5 &&
+    packet.counts?.exactRequestEnvelopeAcceptedTools === 5 &&
+    packet.counts?.approvedPlanSnapshotAcceptedTools === 5 &&
+    packet.counts?.creditReservationAcceptedTools === 5 &&
+    packet.counts?.privateArtifactManifestAcceptedTools === 5 &&
+    packet.counts?.workerAcceptedRequestSchemaAcceptedTools === 5 &&
+    packet.counts?.toolSpecificQaGateAcceptedTools === 5 &&
+    packet.counts?.externalAgentExecutableNowTools === 0 &&
+    packet.counts?.workerClaimApprovedNowTools === 0 &&
+    packet.counts?.workerDispatchApprovedNowTools === 0 &&
+    packet.counts?.toolExecutionApprovedNowTools === 0 &&
+    packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
+    packet.booleans?.allFiveExactExecutionAdmissionsReady === true &&
+    packet.booleans?.allFiveExactRequestEnvelopesAccepted === true &&
+    packet.booleans?.allFiveApprovedPlanSnapshotsAccepted === true &&
+    packet.booleans?.allFiveCreditReservationsAccepted === true &&
+    packet.booleans?.allFivePrivateArtifactManifestsAccepted === true &&
+    packet.booleans?.allFiveWorkerAcceptedRequestSchemasAccepted === true &&
+    packet.booleans?.allFiveToolSpecificQaGatesAccepted === true &&
+    packet.booleans?.exactExecutionAdmissionRefsPreserved === true &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.workerClaimApprovedNow === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false
+}
+
 function sourceRow(
   packet:
     | AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport
@@ -272,6 +350,61 @@ function sourceRow(
   toolId: AiGraphicsCanonicalToolId,
 ): AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofRow | undefined {
   return packet?.rows?.find((row) => row.toolId === toolId)
+}
+
+function exactAdmissionSourceRow(
+  packet:
+    | AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport
+    | undefined,
+  toolId: AiGraphicsCanonicalToolId,
+): AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow | undefined {
+  return packet?.rows?.find((row) => row.toolId === toolId)
+}
+
+function exactLineageFor(input: {
+  toolId: AiGraphicsCanonicalToolId
+  exactSource?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
+  exactSourceAccepted: boolean
+  accepted: boolean
+  result?: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult
+}): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchRequestLineage | null {
+  if (!input.accepted || !input.exactSourceAccepted || !input.result) return null
+  const evidence: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionEvidence | null | undefined =
+    input.exactSource?.exactExecutionAdmissionEvidence
+  if (!evidence) return null
+  const base =
+    `worker-claim-dispatch://ai-graphics/external-agent/cpu-static-private-worker-claim-and-dispatch-smoke-proof/${input.toolId}`
+  return {
+    queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
+    approvedPlanSnapshotRef: evidence.approvedPlanSnapshotRef,
+    creditReservationRef: evidence.creditReservationRef,
+    privateArtifactManifestRef: evidence.privateArtifactManifestRef,
+    queuePayloadIdempotencyKey: evidence.queuePayloadIdempotencyKey,
+    controlledToolExecutionIdempotencyKey: evidence.controlledToolExecutionIdempotencyKey,
+    exactExecutionAdmissionIdempotencyKey: evidence.exactExecutionAdmissionIdempotencyKey,
+    sourceControlledToolExecutionEvidenceRef: evidence.sourceControlledToolExecutionEvidenceRef,
+    sourcePhase0LocalArtifactEvidenceRef: evidence.sourcePhase0LocalArtifactEvidenceRef,
+    sourceAdapterInvocationDryRunRef: evidence.sourceAdapterInvocationDryRunRef,
+    externalAgentExactRequestEnvelopeRef: evidence.externalAgentExactRequestEnvelopeRef,
+    externalAgentAdmissionDecisionRef: evidence.externalAgentAdmissionDecisionRef,
+    workerAcceptedRequestSchemaRef: evidence.workerAcceptedRequestSchemaRef,
+    privateOutputManifestRef: evidence.privateOutputManifestRef,
+    toolResultSchemaRef: evidence.toolResultSchemaRef,
+    toolSpecificQaGateRef: evidence.toolSpecificQaGateRef,
+    executionUnlockConditionRef: evidence.executionUnlockConditionRef,
+    workerClaimAndDispatchEvidenceRef:
+      `${input.result.privateEvidenceRef}#${input.toolId}`,
+    workerClaimAndDispatchTelemetryRef:
+      `${input.result.telemetryRef}#${input.toolId}`,
+    workerClaimAndDispatchLeaseAuditRef:
+      `${input.result.leaseAuditRef}#${input.toolId}`,
+    workerClaimAndDispatchCleanupProofRef:
+      `${input.result.cleanupProofRef}#${input.toolId}`,
+    workerClaimAndDispatchRollbackRef:
+      `${input.result.rollbackRef}#${input.toolId}`,
+    workerClaimAndDispatchHandoffRef: `${base}/handoff`,
+    expectedOutputVisibility: evidence.expectedOutputVisibility,
+  }
 }
 
 function validateSmokeResult(
@@ -371,11 +504,15 @@ function validateSmokeResult(
 
 function reportStatus(input: {
   sourceAccepted: boolean
+  exactSourceAccepted: boolean
   resultProvided: boolean
   resultAccepted: boolean
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofStatus {
   if (!input.sourceAccepted) {
     return 'blocked_pending_source_non_production_service_role_queue_write_smoke_proof'
+  }
+  if (!input.exactSourceAccepted) {
+    return 'blocked_pending_source_exact_execution_admission'
   }
   if (!input.resultProvided) {
     return 'blocked_pending_saved_worker_claim_and_dispatch_smoke_result'
@@ -388,13 +525,22 @@ function reportStatus(input: {
 function buildRow(input: {
   toolId: AiGraphicsCanonicalToolId
   source?: AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofRow
+  exactSource?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
   sourceAccepted: boolean
+  exactSourceAccepted: boolean
   result?: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult
   resultAccepted: boolean
   status: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofStatus
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow {
   const isProofTool = proofTools.includes(input.toolId)
   const accepted = isProofTool && input.resultAccepted
+  const exactRequestLineage = exactLineageFor({
+    toolId: input.toolId,
+    exactSource: input.exactSource,
+    exactSourceAccepted: input.exactSourceAccepted,
+    accepted,
+    result: input.result,
+  })
   return {
     toolId: input.toolId,
     productionToolId:
@@ -406,10 +552,16 @@ function buildRow(input: {
       input.source?.serviceRoleQueueWriteSmokeProofStatus ?? null,
     sourceQueueWriteSmokeProofAccepted:
       input.source?.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence === true,
+    sourceExactExecutionAdmissionStatus:
+      input.exactSource?.exactExecutionAdmissionStatus ?? null,
+    sourceExactExecutionAdmissionAccepted:
+      input.exactSource?.externalAgentExactRequestAdmittedWithProvidedEvidence === true,
     workerClaimAndDispatchSmokeProofStatus: isProofTool
       ? input.status
       : 'blocked_pending_source_non_production_service_role_queue_write_smoke_proof',
     workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence: accepted,
+    exactRequestLineagePreserved: exactRequestLineage !== null,
+    exactRequestLineage,
     workerClaimEvidenceRef: accepted ? input.result?.privateEvidenceRef ?? null : null,
     workerDispatchEvidenceRef: accepted ? input.result?.privateEvidenceRef ?? null : null,
     workerDispatchTelemetryRef: accepted ? input.result?.telemetryRef ?? null : null,
@@ -454,11 +606,19 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
     AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofInput = {},
 ): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport {
   const sourceIsAccepted = sourceAccepted(input.sourceQueueWriteSmokeProofPacket)
+  const exactSourceIsAccepted = sourceExactExecutionAdmissionAccepted(
+    input.sourceExactExecutionAdmissionPacket,
+  )
   const resultRejections = validateSmokeResult(input.workerClaimAndDispatchSmokeResult)
   const resultProvided = Boolean(input.workerClaimAndDispatchSmokeResult)
-  const resultAccepted = sourceIsAccepted && resultProvided && resultRejections.length === 0
+  const resultAccepted =
+    sourceIsAccepted &&
+    exactSourceIsAccepted &&
+    resultProvided &&
+    resultRejections.length === 0
   const status = reportStatus({
     sourceAccepted: sourceIsAccepted,
+    exactSourceAccepted: exactSourceIsAccepted,
     resultProvided,
     resultAccepted,
   })
@@ -466,13 +626,18 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
     !sourceIsAccepted
       ? 'source non-production service-role queue-write smoke proof is missing or not accepted'
       : undefined,
+    !exactSourceIsAccepted
+      ? 'source exact execution admission is missing or not accepted'
+      : undefined,
     ...resultRejections,
   ].filter((reason): reason is string => Boolean(reason))
   const rows = AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) =>
     buildRow({
       toolId,
       source: sourceRow(input.sourceQueueWriteSmokeProofPacket, toolId),
+      exactSource: exactAdmissionSourceRow(input.sourceExactExecutionAdmissionPacket, toolId),
       sourceAccepted: sourceIsAccepted,
+      exactSourceAccepted: exactSourceIsAccepted,
       result: input.workerClaimAndDispatchSmokeResult,
       resultAccepted,
       status,
@@ -490,6 +655,8 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
     status,
     sourceQueueWriteSmokeProofDecision:
       input.sourceQueueWriteSmokeProofPacket?.decision ?? null,
+    sourceExactExecutionAdmissionDecision:
+      input.sourceExactExecutionAdmissionPacket?.decision ?? null,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     tools: [...AI_GRAPHICS_CANONICAL_TOOL_IDS],
@@ -517,6 +684,8 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
         acceptedRows.length,
       savedWorkerClaimAndDispatchSmokeRejectedTools:
         resultProvided && !resultAccepted ? proofTools.length : 0,
+      exactRequestLineagePreservedWithProvidedEvidenceTools:
+        rows.filter((row) => row.exactRequestLineagePreserved).length,
       queueRowsReadAcceptedWithProvidedEvidence:
         resultAccepted ? input.workerClaimAndDispatchSmokeResult?.queueRowsRead ?? 0 : 0,
       workerClaimsAcceptedWithProvidedEvidence:
@@ -544,10 +713,32 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
       externalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofValidatorPrepared:
         true,
       sourceNonProductionServiceRoleQueueWriteSmokeProofAccepted: sourceIsAccepted,
+      sourceExactExecutionAdmissionAccepted: exactSourceIsAccepted,
       savedWorkerClaimAndDispatchSmokeResultProvided: resultProvided,
       workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence: resultAccepted,
       allFiveCpuStaticWorkerClaimAndDispatchSmokeResultsAcceptedWithProvidedEvidence:
         acceptedRows.length === 5,
+      allFiveCpuStaticExactRequestLineagesPreservedWithProvidedEvidence:
+        acceptedRows.length === 5 &&
+        acceptedRows.every((row) => {
+          const lineage = row.exactRequestLineage
+          if (!lineage) return false
+          return (
+            lineage.approvedPlanSnapshotRef.startsWith('approved-plan-snapshot://') &&
+            lineage.creditReservationRef.startsWith('credit-reservation://') &&
+            lineage.privateArtifactManifestRef.startsWith('private://') &&
+            lineage.queuePayloadIdempotencyKey.includes(row.toolId) &&
+            lineage.externalAgentExactRequestEnvelopeRef.includes(row.toolId) &&
+            lineage.workerAcceptedRequestSchemaRef.includes(row.toolId) &&
+            lineage.toolResultSchemaRef.includes(row.toolId) &&
+            lineage.toolSpecificQaGateRef.includes(row.toolId) &&
+            lineage.workerClaimAndDispatchEvidenceRef.startsWith('private://') &&
+            lineage.workerClaimAndDispatchTelemetryRef.startsWith('private://') &&
+            lineage.workerClaimAndDispatchLeaseAuditRef.startsWith('private://') &&
+            lineage.workerClaimAndDispatchHandoffRef.includes(row.toolId) &&
+            lineage.expectedOutputVisibility === 'private_artifact_only'
+          )
+        }),
       cleanupVerifiedWithProvidedEvidence:
         resultAccepted &&
         input.workerClaimAndDispatchSmokeResult?.queueRowsPersistedAfterCleanup === 0,

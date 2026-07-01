@@ -6,6 +6,7 @@
 - Status: `blocked_pending_source_non_production_service_role_queue_write_smoke_proof`
 - Source queue-write smoke proof accepted tools: `0`
 - Saved worker claim and dispatch smoke accepted tools: `0`
+- Exact request lineages preserved: `0`
 - Worker dispatch handoffs accepted with provided evidence: `0`
 - Worker executions performed now: `0`
 - Tool executions performed now: `0`
@@ -14,7 +15,7 @@
 
 ## Interpretation
 
-The claim and dispatch smoke proof validator is ready, but the checked-in repository packet remains blocked until the source queue-write smoke proof is accepted and an operator supplies a saved worker claim and dispatch smoke result. That future result must cover exactly five CPU/static tools, release five dispatch leases, leave zero queue rows after cleanup, and preserve all worker-execution/tool-execution/runtime gates as false.
+The claim and dispatch smoke proof validator is ready, but the checked-in repository packet remains blocked until the source queue-write smoke proof is accepted, the exact execution admission lineage is accepted, and an operator supplies a saved worker claim and dispatch smoke result. That future result must cover exactly five CPU/static tools, release five dispatch leases, leave zero queue rows after cleanup, preserve exact request lineage for approved snapshot, credit reservation, private artifact manifest, idempotency, worker schema, result schema, and QA gate references, and keep all worker-execution/tool-execution/runtime gates false.
 
 ## No-Scope
 

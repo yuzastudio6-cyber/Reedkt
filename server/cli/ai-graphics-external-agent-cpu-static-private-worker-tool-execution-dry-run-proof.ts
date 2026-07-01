@@ -17,6 +17,12 @@ const implementationPromptPath =
 
 type JsonRecord = Record<string, any>
 
+function stringFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  if (index === -1) return undefined
+  return process.argv[index + 1]
+}
+
 function readJson(file: string): JsonRecord {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as JsonRecord
 }
@@ -60,6 +66,7 @@ This packet prepares exact dry-run tool execution contracts for the five CPU/sta
 
 - Private worker dispatch smoke-proof packet: \`${sourceDispatchSmokeProofPath}\`
 - Source dispatch smoke-proof decision: \`${report.sourceDispatchSmokeProofDecision}\`
+- Source worker claim/dispatch smoke-proof decision: \`${report.sourceWorkerClaimAndDispatchSmokeProofDecision}\`
 - Private worker queue: \`${report.queueName}\`
 - Builder: \`server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts\`
 - CLI: \`server/cli/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts\`
@@ -73,6 +80,7 @@ This packet prepares exact dry-run tool execution contracts for the five CPU/sta
 - Private output manifest contracts validated: \`${report.counts.privateOutputManifestContractValidatedTools}\`
 - Tool result schemas validated: \`${report.counts.toolResultSchemaValidatedTools}\`
 - Source dispatch smoke proof accepted tools: \`${report.counts.sourceDispatchSmokeProofAcceptedTools}\`
+- Source worker claim/dispatch smoke proof accepted tools: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`
 - Satori blocked pending approved font fixture: \`${report.counts.satoriBlockedPendingApprovedFontFixtureTools}\`
 - Non-CPU/static tools deferred by runtime boundary: \`${report.counts.nonCpuStaticDeferredTools}\`
 - External-agent adapter invocations approved now: \`${report.counts.externalAgentCanInvokeAdapterNowTools}\`
@@ -193,8 +201,15 @@ Implemented the private worker tool execution dry-run proof contract from accept
 
 async function main() {
   const source = readJson(sourceDispatchSmokeProofPath)
+  const claimAndDispatchSourcePath = stringFlag(
+    '--source-worker-claim-and-dispatch-smoke-proof-packet',
+  )
+  const claimAndDispatchSource = claimAndDispatchSourcePath
+    ? readJson(claimAndDispatchSourcePath)
+    : undefined
   const report = buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProof({
     sourceDispatchSmokeProofReport: source as any,
+    sourceWorkerClaimAndDispatchSmokeProofReport: claimAndDispatchSource as any,
   })
 
   assert(

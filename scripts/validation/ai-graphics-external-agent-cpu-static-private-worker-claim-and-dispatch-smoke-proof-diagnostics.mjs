@@ -55,6 +55,7 @@ const requiredFiles = [
   'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof-results.md',
   'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.md',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
   'server/tool-registry/index.ts',
   'package.json',
 ]
@@ -310,6 +311,9 @@ if (docs.counts?.sourceQueueWriteSmokeProofAcceptedTools !== 0) {
 if (docs.counts?.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence !== 0) {
   fail('docs_saved_claim_dispatch_tools_not_0')
 }
+if (docs.counts?.exactRequestLineagePreservedWithProvidedEvidenceTools !== 0) {
+  fail('docs_exact_request_lineage_not_0')
+}
 if (docs.counts?.workerClaimsAcceptedWithProvidedEvidence !== 0) {
   fail('docs_worker_claims_not_0')
 }
@@ -336,6 +340,9 @@ if (docs.booleans?.externalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProof
 if (docs.booleans?.sourceNonProductionServiceRoleQueueWriteSmokeProofAccepted !== false) {
   fail('docs_source_queue_write_proof_not_false')
 }
+if (docs.booleans?.sourceExactExecutionAdmissionAccepted !== true) {
+  fail('docs_source_exact_execution_admission_not_true')
+}
 if (docs.booleans?.agentCanSelectForPlanning !== true) {
   fail('docs_agent_planning_not_true')
 }
@@ -344,6 +351,7 @@ for (const phrase of [
   'validates a saved non-production worker claim and dispatch handoff smoke result',
   'Source queue-write smoke proof accepted tools: `0`',
   'Saved worker claim and dispatch smoke accepted tools with provided evidence: `0`',
+  'Exact request lineages preserved with provided evidence: `0`',
   'Worker executions performed now: `0`',
   'Tool executions performed now: `0`',
   'External-agent executable now tools: `0`',
@@ -372,6 +380,9 @@ if (acceptedReport.counts?.sourceQueueWriteSmokeProofAcceptedTools !== 5) {
 if (acceptedReport.counts?.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence !== 5) {
   fail('accepted_fixture_claim_dispatch_tools_not_5')
 }
+if (acceptedReport.counts?.exactRequestLineagePreservedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_fixture_exact_request_lineage_tools_not_5')
+}
 if (acceptedReport.counts?.queueRowsReadAcceptedWithProvidedEvidence !== 5) {
   fail('accepted_fixture_queue_rows_read_not_5')
 }
@@ -396,6 +407,12 @@ if (acceptedReport.booleans?.workerClaimAndDispatchSmokeProofAcceptedWithProvide
 if (acceptedReport.booleans?.allFiveCpuStaticWorkerClaimAndDispatchSmokeResultsAcceptedWithProvidedEvidence !== true) {
   fail('accepted_fixture_all_five_not_true')
 }
+if (acceptedReport.booleans?.sourceExactExecutionAdmissionAccepted !== true) {
+  fail('accepted_fixture_source_exact_admission_not_true')
+}
+if (acceptedReport.booleans?.allFiveCpuStaticExactRequestLineagesPreservedWithProvidedEvidence !== true) {
+  fail('accepted_fixture_exact_request_lineage_not_true')
+}
 if (acceptedReport.booleans?.cleanupVerifiedWithProvidedEvidence !== true) {
   fail('accepted_fixture_cleanup_not_true')
 }
@@ -404,6 +421,32 @@ if (acceptedReport.booleans?.workerDispatchLeasesReleasedWithProvidedEvidence !=
 }
 assertToolCoverage('accepted_fixture', acceptedReport.rows)
 assertFalseBooleans('accepted_fixture', acceptedReport.booleans)
+for (const toolId of proofTools) {
+  const row = acceptedReport.rows.find((candidate) => candidate.toolId === toolId)
+  const lineage = row?.exactRequestLineage
+  if (!row?.exactRequestLineagePreserved || !lineage) {
+    fail(`accepted_fixture_missing_exact_lineage:${toolId}`)
+    continue
+  }
+  const lineageChecks = [
+    lineage.approvedPlanSnapshotRef?.startsWith('approved-plan-snapshot://'),
+    lineage.creditReservationRef?.startsWith('credit-reservation://'),
+    lineage.privateArtifactManifestRef?.startsWith('private://'),
+    lineage.queuePayloadIdempotencyKey?.includes(toolId),
+    lineage.externalAgentExactRequestEnvelopeRef?.includes(toolId),
+    lineage.workerAcceptedRequestSchemaRef?.includes(toolId),
+    lineage.toolResultSchemaRef?.includes(toolId),
+    lineage.toolSpecificQaGateRef?.includes(toolId),
+    lineage.workerClaimAndDispatchEvidenceRef?.startsWith('private://'),
+    lineage.workerClaimAndDispatchTelemetryRef?.startsWith('private://'),
+    lineage.workerClaimAndDispatchLeaseAuditRef?.startsWith('private://'),
+    lineage.workerClaimAndDispatchHandoffRef?.includes(toolId),
+    lineage.expectedOutputVisibility === 'private_artifact_only',
+  ]
+  if (!lineageChecks.every(Boolean)) {
+    fail(`accepted_fixture_invalid_exact_lineage:${toolId}`)
+  }
+}
 
 const unsafeResultPath = path.join(tempDir, 'unsafe-claim-dispatch-smoke-result.json')
 writeJson(unsafeResultPath, acceptedClaimAndDispatchSmokeResult({

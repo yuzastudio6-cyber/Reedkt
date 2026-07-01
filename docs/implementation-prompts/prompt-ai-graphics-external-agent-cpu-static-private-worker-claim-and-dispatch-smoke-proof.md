@@ -5,6 +5,7 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 ## Source
 
 - Default source queue-write smoke proof packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json`
+- Default source exact execution admission packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json`
 
 ## Result
 
@@ -12,6 +13,7 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 - Status: `blocked_pending_source_non_production_service_role_queue_write_smoke_proof`
 - Source queue-write smoke proof accepted tools: `0`
 - Saved worker claim and dispatch smoke accepted tools: `0`
+- Exact request lineages preserved: `0`
 - External-agent executable now tools: `0`
 - GPU runtime starts now: `0`
 

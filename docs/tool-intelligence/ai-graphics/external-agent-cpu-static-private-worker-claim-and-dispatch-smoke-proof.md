@@ -9,7 +9,9 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 ## Source Evidence
 
 - Source queue-write smoke proof packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json`
+- Source exact execution admission packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json`
 - Source queue-write smoke proof decision: `ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_validator_prepared_with_runtime_blocks`
+- Source exact execution admission decision: `ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks`
 - Builder: `server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts`
 - CLI: `server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts`
 
@@ -17,6 +19,7 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 
 - Source queue-write smoke proof accepted tools: `0`
 - Saved worker claim and dispatch smoke accepted tools with provided evidence: `0`
+- Exact request lineages preserved with provided evidence: `0`
 - Saved worker claim and dispatch smoke rejected tools: `0`
 - Queue rows read accepted with provided evidence: `0`
 - Worker claims accepted with provided evidence: `0`

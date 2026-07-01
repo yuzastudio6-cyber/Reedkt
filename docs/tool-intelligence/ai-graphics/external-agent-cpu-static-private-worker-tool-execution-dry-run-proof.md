@@ -10,6 +10,7 @@ This packet prepares exact dry-run tool execution contracts for the five CPU/sta
 
 - Private worker dispatch smoke-proof packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-dispatch-smoke-proof.json`
 - Source dispatch smoke-proof decision: `ai_graphics_external_agent_cpu_static_private_worker_dispatch_smoke_proof_prepared_with_runtime_blocks`
+- Source worker claim/dispatch smoke-proof decision: `null`
 - Private worker queue: `ai_graphics_external_agent_cpu_static_private_worker_queue`
 - Builder: `server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts`
 - CLI: `server/cli/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts`
@@ -23,6 +24,7 @@ This packet prepares exact dry-run tool execution contracts for the five CPU/sta
 - Private output manifest contracts validated: `5`
 - Tool result schemas validated: `5`
 - Source dispatch smoke proof accepted tools: `5`
+- Source worker claim/dispatch smoke proof accepted tools: `0`
 - Satori blocked pending approved font fixture: `1`
 - Non-CPU/static tools deferred by runtime boundary: `15`
 - External-agent adapter invocations approved now: `0`

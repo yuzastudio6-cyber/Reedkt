@@ -7,9 +7,14 @@ import {
 import type {
   AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
+import type {
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport,
+} from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission'
 
 const defaultSourceQueueWriteSmokeProofPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json'
+const defaultSourceExactExecutionAdmissionPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.json'
 const outputMdPath =
@@ -60,7 +65,9 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 ## Source Evidence
 
 - Source queue-write smoke proof packet: \`${defaultSourceQueueWriteSmokeProofPath}\`
+- Source exact execution admission packet: \`${defaultSourceExactExecutionAdmissionPath}\`
 - Source queue-write smoke proof decision: \`${report.sourceQueueWriteSmokeProofDecision}\`
+- Source exact execution admission decision: \`${report.sourceExactExecutionAdmissionDecision}\`
 - Builder: \`server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts\`
 - CLI: \`server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts\`
 
@@ -68,6 +75,7 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 
 - Source queue-write smoke proof accepted tools: \`${report.counts.sourceQueueWriteSmokeProofAcceptedTools}\`
 - Saved worker claim and dispatch smoke accepted tools with provided evidence: \`${report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence}\`
+- Exact request lineages preserved with provided evidence: \`${report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools}\`
 - Saved worker claim and dispatch smoke rejected tools: \`${report.counts.savedWorkerClaimAndDispatchSmokeRejectedTools}\`
 - Queue rows read accepted with provided evidence: \`${report.counts.queueRowsReadAcceptedWithProvidedEvidence}\`
 - Worker claims accepted with provided evidence: \`${report.counts.workerClaimsAcceptedWithProvidedEvidence}\`
@@ -127,6 +135,7 @@ function makePromptResult(report: Report): string {
 - Status: \`${report.status}\`
 - Source queue-write smoke proof accepted tools: \`${report.counts.sourceQueueWriteSmokeProofAcceptedTools}\`
 - Saved worker claim and dispatch smoke accepted tools: \`${report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence}\`
+- Exact request lineages preserved: \`${report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools}\`
 - Worker dispatch handoffs accepted with provided evidence: \`${report.counts.workerDispatchHandoffsAcceptedWithProvidedEvidence}\`
 - Worker executions performed now: \`${report.counts.workerExecutionsPerformedNow}\`
 - Tool executions performed now: \`${report.counts.toolExecutionsPerformedNow}\`
@@ -135,7 +144,7 @@ function makePromptResult(report: Report): string {
 
 ## Interpretation
 
-The claim and dispatch smoke proof validator is ready, but the checked-in repository packet remains blocked until the source queue-write smoke proof is accepted and an operator supplies a saved worker claim and dispatch smoke result. That future result must cover exactly five CPU/static tools, release five dispatch leases, leave zero queue rows after cleanup, and preserve all worker-execution/tool-execution/runtime gates as false.
+The claim and dispatch smoke proof validator is ready, but the checked-in repository packet remains blocked until the source queue-write smoke proof is accepted, the exact execution admission lineage is accepted, and an operator supplies a saved worker claim and dispatch smoke result. That future result must cover exactly five CPU/static tools, release five dispatch leases, leave zero queue rows after cleanup, preserve exact request lineage for approved snapshot, credit reservation, private artifact manifest, idempotency, worker schema, result schema, and QA gate references, and keep all worker-execution/tool-execution/runtime gates false.
 
 ## No-Scope
 
@@ -155,6 +164,7 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 ## Source
 
 - Default source queue-write smoke proof packet: \`${defaultSourceQueueWriteSmokeProofPath}\`
+- Default source exact execution admission packet: \`${defaultSourceExactExecutionAdmissionPath}\`
 
 ## Result
 
@@ -162,6 +172,7 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 - Status: \`${report.status}\`
 - Source queue-write smoke proof accepted tools: \`${report.counts.sourceQueueWriteSmokeProofAcceptedTools}\`
 - Saved worker claim and dispatch smoke accepted tools: \`${report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence}\`
+- Exact request lineages preserved: \`${report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools}\`
 - External-agent executable now tools: \`${report.counts.externalAgentExecutableNowTools}\`
 - GPU runtime starts now: \`${report.counts.gpuRuntimeShouldStartNowTools}\`
 
@@ -172,15 +183,22 @@ The validator is intentionally fail-closed until a saved queue-write smoke proof
 const sourceQueueWriteSmokeProofPath =
   stringFlag('--source-service-role-queue-write-smoke-proof-packet') ??
   defaultSourceQueueWriteSmokeProofPath
+const sourceExactExecutionAdmissionPath =
+  stringFlag('--source-exact-execution-admission-packet') ??
+  defaultSourceExactExecutionAdmissionPath
 const sourceQueueWriteSmokeProof = readJsonFile<
   AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport
 >(sourceQueueWriteSmokeProofPath)
+const sourceExactExecutionAdmission = readJsonFile<
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport
+>(sourceExactExecutionAdmissionPath)
 const smokeResult = optionalJsonFlag<
   AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult
 >('--external-agent-cpu-static-worker-claim-and-dispatch-smoke-result')
 const report =
   evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProof({
     sourceQueueWriteSmokeProofPacket: sourceQueueWriteSmokeProof,
+    sourceExactExecutionAdmissionPacket: sourceExactExecutionAdmission,
     workerClaimAndDispatchSmokeResult: smokeResult,
   })
 
@@ -209,8 +227,12 @@ if (process.argv.includes('--print-only')) {
     status: report.status,
     sourceQueueWriteSmokeProofAcceptedTools:
       report.counts.sourceQueueWriteSmokeProofAcceptedTools,
+    sourceExactExecutionAdmissionAccepted:
+      report.booleans.sourceExactExecutionAdmissionAccepted,
     savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence:
       report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence,
+    exactRequestLineagePreservedWithProvidedEvidenceTools:
+      report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools,
     externalAgentExecutableNowTools: report.counts.externalAgentExecutableNowTools,
     agentCanExecuteToolsNow: report.booleans.agentCanExecuteToolsNow,
     gpuRuntimeShouldStartNow: report.booleans.gpuRuntimeShouldStartNow,

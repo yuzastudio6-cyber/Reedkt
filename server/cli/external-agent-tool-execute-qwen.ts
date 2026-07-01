@@ -149,12 +149,7 @@ function runJson(
     stdio: ['ignore', 'pipe', 'pipe'],
   })
 
-  let json: JsonRecord | undefined
-  try {
-    json = JSON.parse(String(result.stdout ?? '')) as JsonRecord
-  } catch {
-    json = undefined
-  }
+  const json = parseJsonOutput(String(result.stdout ?? ''))
 
   return {
     id,
@@ -162,6 +157,25 @@ function runJson(
     exitCode: result.status,
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function parseJsonOutput(output: string): JsonRecord | undefined {
+  const trimmed = output.trim()
+  if (!trimmed) return undefined
+
+  try {
+    return JSON.parse(trimmed) as JsonRecord
+  } catch {
+    const start = trimmed.indexOf('{')
+    const end = trimmed.lastIndexOf('}')
+    if (start < 0 || end <= start) return undefined
+
+    try {
+      return JSON.parse(trimmed.slice(start, end + 1)) as JsonRecord
+    } catch {
+      return undefined
+    }
   }
 }
 

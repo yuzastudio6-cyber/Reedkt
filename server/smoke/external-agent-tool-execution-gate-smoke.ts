@@ -90,7 +90,7 @@ for (const row of gate.toolRows) {
 const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 assert.equal(
   qwenGateRow?.currentBlocker,
-  'bounded_private_inference_retry_plan_required_after_auth_refresh',
+  'bounded_private_inference_retry_gate_required_after_retry_plan',
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
@@ -101,6 +101,12 @@ assert.equal(
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
     requirement.includes('private inference retry plan'),
+  ),
+  true,
+)
+assert.equal(
+  qwenGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('runtime gate must be explicitly rechecked'),
   ),
   true,
 )

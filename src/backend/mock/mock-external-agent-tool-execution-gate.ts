@@ -43,11 +43,11 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
       requiredBeforeExecution: [
         'non-interactive gcloud token refresh must remain verified in this shell',
         'Cloud Run service and caller job visibility must remain verified via read-only describe',
-        'bounded approved-fixture private inference retry plan must be recorded',
+        'bounded approved-fixture private inference retry plan must remain recorded',
         'approved fixture private inference attempt must remain bounded and fail-closed',
         'runtime gate must be explicitly rechecked immediately before any private inference retry',
       ],
-      currentBlocker: 'bounded_private_inference_retry_plan_required_after_auth_refresh',
+      currentBlocker: 'bounded_private_inference_retry_gate_required_after_retry_plan',
       safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
     },
     {

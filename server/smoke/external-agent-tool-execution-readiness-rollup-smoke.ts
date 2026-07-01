@@ -79,6 +79,7 @@ for (const required of [
   'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
   'auth/service/job visibility is now verified',
+  'bounded private inference retry planning is recorded',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
   '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',
@@ -164,7 +165,25 @@ assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
 assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(qwen?.primaryBlocker, 'bounded_private_inference_retry_plan_required_after_auth_refresh')
+assert.equal(qwen?.primaryBlocker, 'bounded_private_inference_retry_gate_required_after_retry_plan')
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan-smoke.ts',
+  ),
+  true,
+)
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-diagnostic.ts'), true)

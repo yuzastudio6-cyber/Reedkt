@@ -139,15 +139,17 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'video_understanding_vlm',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_result',
+        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_plan',
       selectedModelOrTool: 'Qwen/Qwen2.5-VL-7B-Instruct',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'bounded_private_inference_retry_plan_required_after_auth_refresh',
+      primaryBlocker: 'bounded_private_inference_retry_gate_required_after_retry_plan',
       evidence: [
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.md',
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.ts',
         'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
         'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
         'src/backend/mock/mock-external-agent-gcloud-session-diagnostic.ts',
@@ -155,11 +157,12 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/cli/external-agent-gcloud-session-diagnostic.ts',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan-smoke.ts',
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result-smoke.ts',
         'pull_request_1914_open_draft_clean',
       ],
       nextAction:
-        'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation',
+        'QWEN2_5_VL_STACK_TOOL_58DS-PRIVATE-INFERENCE-RETRY-GATE: verify bounded approved-fixture private inference retry gate after auth refresh, no inference/no mutation',
     },
     {
       toolId: 'ai_video_broll_generation_wan',

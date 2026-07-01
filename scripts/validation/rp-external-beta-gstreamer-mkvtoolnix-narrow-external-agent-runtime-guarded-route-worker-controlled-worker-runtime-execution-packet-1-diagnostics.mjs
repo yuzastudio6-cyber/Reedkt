@@ -46,11 +46,26 @@ const implementationFiles = [
   'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-smoke.ts',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1.ts',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-qa-rollup-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1-diagnostics.mjs',
   'package.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const qaRollupDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-qa-rollup-1'
+const qaRollupFiles = [
+  `${qaRollupDir}/source-audit.md`,
+  `${qaRollupDir}/evidence-matrix.md`,
+  `${qaRollupDir}/qa-decision.md`,
+  `${qaRollupDir}/readiness.md`,
+  `${qaRollupDir}/safety-boundary.md`,
+  `${qaRollupDir}/validation-results.md`,
+  `${qaRollupDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-qa-rollup-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-planning-1.md',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...qaRollupFiles, ...implementationFiles])
 
 const requiredText = [
   packet,

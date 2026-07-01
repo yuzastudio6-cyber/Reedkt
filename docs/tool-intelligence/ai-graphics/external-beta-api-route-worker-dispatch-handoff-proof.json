@@ -14,6 +14,7 @@
     "externalBetaApiRouteQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json",
     "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
     "externalBetaApiRouteQueueSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-authorization.json",
+    "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "externalBetaWorkerDispatchReadiness": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-readiness.json",
     "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
@@ -24,6 +25,7 @@
     "apiRouteWorkerDispatchHandoffPreparedRequestsWithProvidedEvidence": 1,
     "sourceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence": 21,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
+    "sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests": 1,
     "sourceRouteQueueSmokeRowsAcceptedWithProvidedEvidence": 1,
     "sourceRouteQueueRowsPersistedAfterCleanup": 0,
     "sourceWorkerDispatchSmokeInMemoryLeasesAcceptedWithProvidedEvidence": 21,
@@ -32,6 +34,7 @@
   },
   "handoffRequires": [
     "accepted saved API route queue smoke proof packet",
+    "accepted source service-role queue smoke preflight evidence carried by the route queue smoke proof",
     "accepted saved worker dispatch smoke proof packet",
     "accepted 21-tool route-bound service-role queue smoke operator preflight preserved through the worker dispatch smoke proof",
     "requested tool covered by the all-21 worker dispatch smoke proof",
@@ -75,6 +78,7 @@
     "sourceExternalBetaWorkerDispatchSmokeProofAccepted": true,
     "sourceWorkerDispatchSmokeProofCoversRequestedTool": true,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
+    "sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence": true,
     "apiRouteWorkerDispatchHandoffPreparedWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

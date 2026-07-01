@@ -184,6 +184,7 @@ function routeQueueSmokeProofFixture(toolId, capabilityId, overrides = {}) {
     capabilityId,
     proofAcceptedWithProvidedEvidence: true,
     apiRouteQueueSmokeProofAcceptedRequestsWithProvidedEvidence: 1,
+    sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 1,
     liveQueueRowsAcceptedWithProvidedEvidence: 1,
     liveQueueRowsPersistedAfterCleanup: 0,
     liveWorkerClaimsAcceptedWithProvidedEvidence: 0,
@@ -202,6 +203,7 @@ function routeQueueSmokeProofFixture(toolId, capabilityId, overrides = {}) {
     booleans: {
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
+      sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence: true,
       all8GpuToolsTargetGpuRuntime: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
@@ -414,6 +416,8 @@ for (const phrase of [
   'privateArtifactManifestCoversRequestedTool',
   'toolRouteRuntimeProofCoversRequestedTool',
   'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
+  'sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence',
+  'sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
@@ -450,8 +454,20 @@ assertFalseBooleans('docs', docs.booleans)
 if (docs.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== 21) {
   fail('docs_operator_preflight_count_not_21')
 }
+if (docs.scope?.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+  fail('docs_service_role_preflight_count_not_1')
+}
 if (docs.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true) {
   fail('docs_operator_preflight_boolean_not_true')
+}
+if (docs.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== true) {
+  fail('docs_service_role_preflight_boolean_not_true')
+}
+if (!docs.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight) {
+  fail('docs_missing_service_role_preflight_source')
+}
+if (!docsMd.includes('Accepted service-role queue smoke preflight evidence carried by the handoff proof')) {
+  fail('docs_md_missing_service_role_preflight_requirement')
 }
 if (!scorecard.includes('AI Graphics External-Beta API Route Worker Artifact Tool Route Admission')) {
   fail('scorecard_missing_section')
@@ -470,6 +486,10 @@ try {
   const strippedOperatorPreflightHandoffPath = path.join(
     tmpRoot,
     'stripped-operator-preflight-handoff-proof.json',
+  )
+  const strippedServiceRolePreflightHandoffPath = path.join(
+    tmpRoot,
+    'stripped-service-role-preflight-handoff-proof.json',
   )
   const rejectedManifestPath = path.join(tmpRoot, 'rejected-private-artifact-manifest.json')
   const rejectedToolRoutePath = path.join(tmpRoot, 'rejected-tool-route-runtime-proof.json')
@@ -527,6 +547,13 @@ try {
   strippedOperatorPreflightHandoff.handoffCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
   writeJson(strippedOperatorPreflightHandoffPath, strippedOperatorPreflightHandoff)
 
+  const strippedServiceRolePreflightHandoff = JSON.parse(fs.readFileSync(d3HandoffPath, 'utf8'))
+  strippedServiceRolePreflightHandoff.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests = 0
+  strippedServiceRolePreflightHandoff.evidence.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence = false
+  strippedServiceRolePreflightHandoff.booleans.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence = false
+  strippedServiceRolePreflightHandoff.handoffCandidate.sourceServiceRoleQueueSmokePreflightAccepted = false
+  writeJson(strippedServiceRolePreflightHandoffPath, strippedServiceRolePreflightHandoff)
+
   const rejectedManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
   rejectedManifest.decision = 'external_beta_private_artifact_manifest_rejected'
   rejectedManifest.privateArtifactManifestReadyWithProvidedEvidence = false
@@ -565,6 +592,29 @@ try {
       ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== false
   ) {
     fail('stripped_operator_preflight_handoff_boolean_not_false')
+  }
+
+  const strippedServiceRolePreflightHandoffResult = npmJson(
+    runScriptName,
+    admissionArgs(strippedServiceRolePreflightHandoffPath, manifestPath, toolRoutePath),
+  )
+  if (
+    strippedServiceRolePreflightHandoffResult.status !==
+      'external_beta_api_route_worker_dispatch_handoff_proof_rejected'
+  ) {
+    fail('stripped_service_role_preflight_handoff_wrong_status')
+  }
+  if (
+    strippedServiceRolePreflightHandoffResult
+      .sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 0
+  ) {
+    fail('stripped_service_role_preflight_handoff_count_not_0')
+  }
+  if (
+    strippedServiceRolePreflightHandoffResult.booleans
+      ?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== false
+  ) {
+    fail('stripped_service_role_preflight_handoff_boolean_not_false')
   }
 
   const missingManifest = npmJson(
@@ -628,10 +678,23 @@ try {
   ) {
     fail('accepted_d3_operator_preflight_count_not_21')
   }
+  if (acceptedD3.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+    fail('accepted_d3_service_role_preflight_count_not_1')
+  }
   if (
     acceptedD3.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
   ) {
     fail('accepted_d3_operator_preflight_boolean_not_true')
+  }
+  if (
+    acceptedD3.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== true
+  ) {
+    fail('accepted_d3_service_role_preflight_boolean_not_true')
+  }
+  if (
+    acceptedD3.admissionCandidate?.sourceServiceRoleQueueSmokePreflightAccepted !== true
+  ) {
+    fail('accepted_d3_candidate_service_role_preflight_boolean_not_true')
   }
   if (
     acceptedD3.admissionCandidate?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted !== true
@@ -657,6 +720,9 @@ try {
   }
   if (acceptedSam2.admissionCandidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
     fail('accepted_sam2_gpu_start_allowed_not_true')
+  }
+  if (acceptedSam2.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+    fail('accepted_sam2_service_role_preflight_count_not_1')
   }
   if (acceptedSam2.booleans?.gpuRuntimeShouldStartNow !== false) {
     fail('accepted_sam2_gpu_should_start_not_false')
@@ -749,6 +815,7 @@ console.log(JSON.stringify({
   sourcePrivateArtifactRecordsReadyWithProvidedEvidence: 21,
   sourceToolRouteRecordsReadyWithProvidedEvidence: 21,
   sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
+  sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 1,
   externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
   gpuRuntimeShouldStartNow: false,

@@ -15,6 +15,7 @@
     "externalBetaPrivateArtifactManifest": "docs/tool-intelligence/ai-graphics/external-beta-private-artifact-manifest.json",
     "externalBetaToolRouteRuntimeProof": "docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json",
     "externalBetaApiRouteQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json",
+    "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json",
     "externalBetaWorkerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
     "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json"
   },
@@ -59,6 +60,7 @@
     "sourcePrivateArtifactRecordsReadyWithProvidedEvidence": 21,
     "sourceToolRouteRecordsReadyWithProvidedEvidence": 21,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 21,
+    "sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests": 1,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
@@ -109,6 +111,7 @@
     "externalBetaApiRouteWorkerArtifactToolRouteAdmissionPrepared": true,
     "sourceApiRouteWorkerDispatchHandoffProofAccepted": true,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
+    "sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence": true,
     "sourcePrivateArtifactManifestAccepted": true,
     "sourceToolRouteRuntimeProofAccepted": true,
     "privateArtifactManifestCoversRequestedTool": true,

@@ -10,6 +10,7 @@ This is still proof and handoff metadata only. It does not create live worker le
 
 - All 21 AI graphics tools remain covered by the worker dispatch proof.
 - All 12 product-facing capabilities remain covered by the worker dispatch proof.
+- The API route queue smoke proof carries accepted service-role queue smoke preflight evidence.
 - The worker dispatch proof preserves 21-tool route-bound service-role queue smoke operator preflight evidence.
 - The handoff candidate covers one route-smoke request at a time.
 - GPU/model tools preserve native GPU targets and on-demand GPU policy.
@@ -18,6 +19,7 @@ This is still proof and handoff metadata only. It does not create live worker le
 ## Required Inputs
 
 - Accepted `external-beta-api-route-queue-smoke-proof` packet.
+- Accepted service-role queue smoke preflight evidence carried by the route queue smoke proof.
 - Accepted `external-beta-worker-dispatch-smoke-proof` packet.
 - Preserved route-bound service-role queue smoke operator preflight marker on the worker dispatch smoke proof.
 - Private route-worker dispatch handoff policy ref.
@@ -45,6 +47,7 @@ This is still proof and handoff metadata only. It does not create live worker le
 
 - `agentCanSelectForPlanning=true`
 - `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
+- `sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence=true`
 - `agentCanExecuteToolsNow=false`
 - `workerLeaseCreationApprovedNow=false`
 - `workerDispatchApprovedNow=false`

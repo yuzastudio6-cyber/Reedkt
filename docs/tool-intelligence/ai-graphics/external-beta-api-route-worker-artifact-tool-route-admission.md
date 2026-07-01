@@ -10,6 +10,7 @@ This is still admission proof metadata only. It does not write private artifacts
 
 - All 21 AI graphics tools remain covered by the accepted source proof packets.
 - All 12 product-facing capabilities remain covered by the accepted source proof packets.
+- The handoff proof carries accepted service-role queue smoke preflight evidence from the route queue smoke proof.
 - The handoff proof preserves the 21-tool route-bound service-role queue smoke operator preflight.
 - The admission candidate covers one route-worker handoff request at a time.
 - The requested handoff tool must have matching private artifact and Tool Route runtime proof records.
@@ -19,6 +20,7 @@ This is still admission proof metadata only. It does not write private artifacts
 ## Required Inputs
 
 - Accepted `external-beta-api-route-worker-dispatch-handoff-proof` packet.
+- Accepted service-role queue smoke preflight evidence carried by the handoff proof.
 - Preserved route-bound service-role queue smoke operator preflight marker on the handoff proof.
 - Accepted `external-beta-private-artifact-manifest` packet.
 - Accepted `external-beta-tool-route-runtime-proof` packet.
@@ -50,6 +52,7 @@ This is still admission proof metadata only. It does not write private artifacts
 
 - `agentCanSelectForPlanning=true`
 - `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
+- `sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence=true`
 - `agentCanExecuteToolsNow=false`
 - `artifactToolRouteAdmissionApprovedNow=false`
 - `privateArtifactWriteApprovedNow=false`

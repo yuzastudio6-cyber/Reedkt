@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_handler_gateway_binding_prepared_
 
 Status: `api_route_handler_gateway_binding_ready_runtime_still_blocked`
 
-This packet binds the source-controlled external-beta API route-handler contract to the existing external-beta tool-call gateway contract. It proves the future route-handler ingress shape can map into the gateway candidate shape without mounting the route or executing anything.
+This packet binds the source-controlled external-beta API route-handler contract to the existing external-beta tool-call gateway contract. It proves the future route-handler ingress shape can map into the gateway candidate shape without mounting the route or executing anything, and it requires the route-handler packet to preserve 21/21 route-bound service-role queue-smoke operator-preflight evidence.
 
 ## Source Evidence
 
@@ -20,6 +20,7 @@ This packet binds the source-controlled external-beta API route-handler contract
 - Product-facing capabilities: `12`
 - GPU/model runtime targeted tools: `8`
 - Route-handler request shapes accepted: `21`
+- Route-bound service-role queue-smoke operator-preflight accepted: `21`
 - Gateway contract covered tools: `21`
 - Gateway worker enqueue candidate examples accepted: `3`
 - Full per-tool gateway binding proof tools now: `0`
@@ -78,6 +79,7 @@ The binding preserves these fields as contract metadata:
 ## Required Booleans
 
 - `agentCanSelectForPlanning`: `true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence`: `true`
 - `agentCanExecuteToolsNow`: `false`
 - `apiRouteMountedNow`: `false`
 - `routeExecutionApprovedNow`: `false`

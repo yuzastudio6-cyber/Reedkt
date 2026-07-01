@@ -35,6 +35,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerGatewayBinding {
   sourceExternalBetaApiRouteHandlerContractDecision: string | null
   sourceExternalBetaToolCallGatewayDecision: string | null
   sourceExternalBetaApiRouteHandlerContractAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+    boolean
   sourceExternalBetaToolCallGatewayContractAccepted: boolean
   routeHandlerRequestShapeAll21Accepted: boolean
   gatewayContractAll21CoverageAccepted: boolean
@@ -45,6 +47,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerGatewayBinding {
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
   routeHandlerRequestShapeAcceptedTools: 0 | 21
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+    0 | 21
   gatewayContractCoveredTools: 0 | 21
   gatewayWorkerEnqueueCandidateReadyExamples: number
   routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence: 0 | 21
@@ -78,6 +82,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerGatewayBinding {
   booleans: {
     externalBetaApiRouteHandlerGatewayBindingPrepared: true
     sourceExternalBetaApiRouteHandlerContractAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
     sourceExternalBetaToolCallGatewayContractAccepted: boolean
     routeHandlerRequestShapeAll21Accepted: boolean
     gatewayContractAll21CoverageAccepted: boolean
@@ -238,6 +244,10 @@ function routeHandlerContractAccepted(packet?: Record<string, unknown>): boolean
     numberFrom(packet, 'gpuRuntimeTargetedTools') === 8 &&
     numberFrom(packet, 'externalBetaControlledOnDemandReadyTools') === 21 &&
     numberFrom(packet, 'externalBetaCallableNowTools') === 21 &&
+    numberFrom(
+      packet,
+      'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+    ) === 21 &&
     numberFrom(packet, 'apiRouteHandlerContractReadyToolsWithProvidedEvidence') === 21 &&
     numberFrom(packet, 'apiRouteMountedNowTools') === 0 &&
     numberFrom(packet, 'routeExecutionsApprovedNow') === 0 &&
@@ -245,6 +255,10 @@ function routeHandlerContractAccepted(packet?: Record<string, unknown>): boolean
     numberFrom(packet, 'toolExecutionsApprovedNow') === 0 &&
     numberFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'externalBetaApiRouteHandlerContractReadyWithProvidedEvidence') === true &&
+    booleanFrom(
+      packet,
+      'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+    ) === true &&
     booleanFrom(packet, 'all21ToolsCovered') === true &&
     booleanFrom(packet, 'all12CapabilitiesCovered') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
@@ -326,6 +340,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayBinding(
   const gatewayPacket = input.sourceExternalBetaToolCallGatewayPacket
   const sourceExternalBetaApiRouteHandlerContractAccepted =
     routeHandlerContractAccepted(routeHandlerPacket)
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence =
+    sourceExternalBetaApiRouteHandlerContractAccepted
   const sourceExternalBetaToolCallGatewayContractAccepted =
     toolCallGatewayContractAccepted(gatewayPacket)
   const missingControls = missingBindingControls(input)
@@ -372,6 +388,7 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayBinding(
     sourceExternalBetaToolCallGatewayDecision:
       typeof gatewayPacket?.decision === 'string' ? gatewayPacket.decision : null,
     sourceExternalBetaApiRouteHandlerContractAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
     sourceExternalBetaToolCallGatewayContractAccepted,
     routeHandlerRequestShapeAll21Accepted,
     gatewayContractAll21CoverageAccepted,
@@ -383,6 +400,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayBinding(
     gpuRuntimeTargetedTools: 8,
     routeHandlerRequestShapeAcceptedTools:
       routeHandlerRequestShapeAll21Accepted ? 21 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence ? 21 : 0,
     gatewayContractCoveredTools:
       gatewayContractAll21CoverageAccepted ? 21 : 0,
     gatewayWorkerEnqueueCandidateReadyExamples,
@@ -403,6 +422,7 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayBinding(
     booleans: {
       externalBetaApiRouteHandlerGatewayBindingPrepared: true,
       sourceExternalBetaApiRouteHandlerContractAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
       sourceExternalBetaToolCallGatewayContractAccepted,
       routeHandlerRequestShapeAll21Accepted,
       gatewayContractAll21CoverageAccepted,

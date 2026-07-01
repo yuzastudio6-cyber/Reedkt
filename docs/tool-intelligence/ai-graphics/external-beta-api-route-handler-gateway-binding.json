@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-handler-gateway-binding",
   "decision": "ai_graphics_external_beta_api_route_handler_gateway_binding_prepared_with_runtime_blocks",
   "status": "api_route_handler_gateway_binding_ready_runtime_still_blocked",
-  "summary": "Source-controlled contract binding between the future external-beta API route-handler request shape and the existing external-beta tool-call gateway candidate shape. The binding covers all 21 AI graphics tools at the route-handler request-shape level and accepts the gateway candidate-shape evidence, while keeping full per-tool gateway binding proof, mounted API routes, queue writes, worker dispatch, tool execution, GPU startup, signed URLs, public artifacts, external-beta traffic, and production deferred.",
+  "summary": "Source-controlled contract binding between the future external-beta API route-handler request shape and the existing external-beta tool-call gateway candidate shape. The binding covers all 21 AI graphics tools at the route-handler request-shape level, requires the route-handler contract to preserve 21/21 route-bound service-role queue-smoke operator-preflight evidence, and accepts the gateway candidate-shape evidence, while keeping full per-tool gateway binding proof, mounted API routes, queue writes, worker dispatch, tool execution, GPU startup, signed URLs, public artifacts, external-beta traffic, and production deferred.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-handler-gateway-binding.ts",
     "cli": "server/cli/ai-graphics-external-beta-api-route-handler-gateway-binding.ts",
@@ -78,6 +78,7 @@
     "totalProductFacingCapabilities": 12,
     "gpuRuntimeTargetedTools": 8,
     "routeHandlerRequestShapeAcceptedTools": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "gatewayContractCoveredTools": 21,
     "gatewayWorkerEnqueueCandidateReadyExamples": 3,
     "routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence": 21,
@@ -130,6 +131,7 @@
   "booleans": {
     "externalBetaApiRouteHandlerGatewayBindingPrepared": true,
     "sourceExternalBetaApiRouteHandlerContractAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "sourceExternalBetaToolCallGatewayContractAccepted": true,
     "routeHandlerRequestShapeAll21Accepted": true,
     "gatewayContractAll21CoverageAccepted": true,

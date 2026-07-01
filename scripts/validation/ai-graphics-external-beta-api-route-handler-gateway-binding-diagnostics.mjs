@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -73,6 +74,7 @@ const capabilities = [
 const trueKeys = [
   'externalBetaApiRouteHandlerGatewayBindingPrepared',
   'sourceExternalBetaApiRouteHandlerContractAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'sourceExternalBetaToolCallGatewayContractAccepted',
   'routeHandlerRequestShapeAll21Accepted',
   'gatewayContractAll21CoverageAccepted',
@@ -295,8 +297,17 @@ function verifySourceEvidence() {
     'route_handler_status',
   )
   requireEqual(routeHandler.counts?.apiRouteHandlerContractReadyToolsWithProvidedEvidence, 21, 'route_handler_ready_count')
+  requireEqual(
+    routeHandler.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'route_handler_operator_preflight_count',
+  )
   requireEqual(routeHandler.counts?.apiRouteMountedNowTools, 0, 'route_handler_mounted_count')
   requireEqual(routeHandler.counts?.routeExecutionsApprovedNow, 0, 'route_handler_route_count')
+  requireTruthy(
+    routeHandler.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'route_handler_operator_preflight_boolean',
+  )
   requireFalse(routeHandler.booleans?.apiRouteMountedNow, 'route_handler_mounted_false')
   requireFalse(routeHandler.booleans?.routeExecutionApprovedNow, 'route_handler_route_false')
   requireFalse(routeHandler.booleans?.toolExecutionApprovedNow, 'route_handler_tool_false')
@@ -342,6 +353,11 @@ function verifyDocs() {
   requireEqual(doc.counts?.totalProductFacingCapabilities, 12, 'doc_capability_count')
   requireEqual(doc.counts?.gpuRuntimeTargetedTools, 8, 'doc_gpu_count')
   requireEqual(doc.counts?.routeHandlerRequestShapeAcceptedTools, 21, 'doc_route_handler_tool_count')
+  requireEqual(
+    doc.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_route_bound_operator_preflight_count',
+  )
   requireEqual(doc.counts?.gatewayContractCoveredTools, 21, 'doc_gateway_tool_count')
   requireEqual(doc.counts?.gatewayWorkerEnqueueCandidateReadyExamples, 3, 'doc_gateway_examples')
   requireEqual(doc.counts?.routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence, 21, 'doc_binding_count')
@@ -375,6 +391,12 @@ function verifyDocs() {
   if (!source.includes('apiRouteMountedNow: false')) {
     fail('source_missing_route_mounted_false')
   }
+  if (!source.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence')) {
+    fail('source_missing_route_bound_operator_preflight_count_gate')
+  }
+  if (!source.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence')) {
+    fail('source_missing_route_bound_operator_preflight_boolean_gate')
+  }
   if (!cli.includes('evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayBinding')) {
     fail('cli_missing_evaluator')
   }
@@ -405,6 +427,11 @@ function verifyCli() {
   requireEqual(output.decision, decision, 'cli_decision')
   requireEqual(output.status, acceptedStatus, 'cli_status')
   requireEqual(output.routeHandlerRequestShapeAcceptedTools, 21, 'cli_route_handler_tools')
+  requireEqual(
+    output.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'cli_route_bound_operator_preflight_count',
+  )
   requireEqual(output.gatewayContractCoveredTools, 21, 'cli_gateway_tools')
   requireEqual(output.routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence, 21, 'cli_binding_tools')
   requireEqual(output.fullPerToolGatewayBindingProofToolsNow, 0, 'cli_per_tool_count')
@@ -425,6 +452,69 @@ function verifyCli() {
   requireEqual(blocked.routeHandlerGatewayBindingReadyWithProvidedEvidence, false, 'blocked_ready_false')
 }
 
+function verifyStaleRouteHandlerOperatorPreflightRejected() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-route-binding-'))
+  try {
+    const routeHandler = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-contract.json')
+    routeHandler.counts = {
+      ...(routeHandler.counts ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+    }
+    routeHandler.booleans = {
+      ...(routeHandler.booleans ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    }
+    const staleRouteHandlerPath = path.join(tmpDir, 'stale-route-handler-contract.json')
+    fs.writeFileSync(staleRouteHandlerPath, JSON.stringify(routeHandler, null, 2))
+
+    const output = parseJson(runNpm(runScriptName, [
+      '--external-beta-api-route-handler-contract-packet',
+      staleRouteHandlerPath,
+      '--external-beta-tool-call-gateway-packet',
+      'docs/tool-intelligence/ai-graphics/external-beta-tool-call-gateway.json',
+      '--route-handler-gateway-binding-ref',
+      'external-beta-route-binding://ai-graphics/binding',
+      '--route-handler-gateway-schema-ref',
+      'external-beta-route-binding://ai-graphics/schema',
+      '--route-handler-gateway-policy-ref',
+      'external-beta-route-binding://ai-graphics/policy',
+      '--route-handler-gateway-audit-ref',
+      'external-beta-route-binding://ai-graphics/audit',
+      '--route-handler-gateway-rollback-ref',
+      'external-beta-route-binding://ai-graphics/rollback',
+    ]), 'stale_route_handler_operator_preflight_binding_cli')
+
+    requireEqual(
+      output.status,
+      'api_route_handler_contract_rejected',
+      'stale_route_handler_operator_preflight_status',
+    )
+    requireEqual(
+      output.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_route_handler_operator_preflight_count',
+    )
+    requireFalse(
+      output.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+      'stale_route_handler_operator_preflight_boolean',
+    )
+    requireEqual(
+      output.routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence,
+      0,
+      'stale_route_handler_operator_preflight_binding_count',
+    )
+    requireFalse(
+      output.booleans?.routeHandlerGatewayBindingReadyWithProvidedEvidence,
+      'stale_route_handler_operator_preflight_ready_boolean',
+    )
+    requireFalse(output.booleans?.routeExecutionApprovedNow, 'stale_route_handler_operator_preflight_route_false')
+    requireFalse(output.booleans?.workerEnqueuePerformed, 'stale_route_handler_operator_preflight_enqueue_false')
+    requireFalse(output.booleans?.toolExecutionApprovedNow, 'stale_route_handler_operator_preflight_tool_false')
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true })
+  }
+}
+
 for (const file of requiredFiles) read(file)
 verifyPackageJson()
 verifyPackageLockUnchanged()
@@ -432,6 +522,7 @@ verifyTrackedArtifacts()
 verifySourceEvidence()
 verifyDocs()
 verifyCli()
+verifyStaleRouteHandlerOperatorPreflightRejected()
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))

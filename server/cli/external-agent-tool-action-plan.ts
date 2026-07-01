@@ -111,6 +111,7 @@ function main() {
       scaleToZeroRequired: tool.scaleToZeroRequired,
       readyForExternalAgentExecutionNow: tool.readyForExternalAgentExecutionNow,
       readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+      noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
       primaryBlocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
       ...actionForTool(tool.toolId),

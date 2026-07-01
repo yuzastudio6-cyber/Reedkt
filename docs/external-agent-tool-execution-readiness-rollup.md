@@ -27,6 +27,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 - B-roll selected proof GPU: `nvidia_l4`.
 - B-roll proof path remains quota-blocked before VM creation.
 - B-roll no-idle GPU lifecycle is required: any future controlled L4 proof VM must be created only for the bounded prompt, use no external IP, and be deleted with cleanup verification before the prompt can be considered complete.
+- B-roll structured no-idle lifecycle gate: proof VM `reeditpro-ai-broll-wan-l4-proof`, machine `g2-standard-4`, region `us-central1`, zone `us-central1-b`, minimum `GPUS_ALL_REGIONS` quota `1`, minimum regional L4 quota `1`, no public IP, boot disk auto-delete, pre-existing resource check, delete-only-resources-created-by-prompt, cleanup verification, no idle GPU, no VM creation now, and no model inference now.
 - No always-on GPU runtime is approved by this rollup.
 
 ## Current Manual Blockers

@@ -77,6 +77,10 @@ for (const required of [
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
   'B-roll no-idle GPU lifecycle is required',
+  'B-roll structured no-idle lifecycle gate',
+  'proof VM `reeditpro-ai-broll-wan-l4-proof`',
+  'machine `g2-standard-4`',
+  'minimum `GPUS_ALL_REGIONS` quota `1`',
   '## Safe Agent Commands',
   'the 58DW live-preflight result is blocked by local gcloud reauthentication',
   'refresh the active local gcloud account/configuration visible to this shell',
@@ -311,6 +315,32 @@ assert.equal(
 )
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
+assert.equal(broll?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(broll?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
+assert.equal(broll?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
+assert.equal(broll?.noIdleLifecycleGate?.targetRegion, 'us-central1')
+assert.equal(broll?.noIdleLifecycleGate?.targetZone, 'us-central1-b')
+assert.equal(broll?.noIdleLifecycleGate?.minimumGlobalGpusAllRegionsQuota, 1)
+assert.equal(broll?.noIdleLifecycleGate?.minimumRegionalL4Quota, 1)
+assert.equal(broll?.noIdleLifecycleGate?.noPublicIpRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.externalIpAllowed, false)
+assert.equal(broll?.noIdleLifecycleGate?.bootDiskAutoDeleteRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.preExistingResourceCheckRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.deleteOnlyResourcesCreatedByPrompt, true)
+assert.equal(broll?.noIdleLifecycleGate?.cleanupVerificationRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.idleGpuAllowed, false)
+assert.equal(broll?.noIdleLifecycleGate?.vmCreateAllowedNow, false)
+assert.equal(broll?.noIdleLifecycleGate?.modelInferenceAllowedNow, false)
+assert.equal(broll?.noIdleLifecycleGate?.runtimePromptRequiredBeforeVmCreate, true)
+assert.equal(
+  broll?.noIdleLifecycleGate?.cacheReadinessCommand,
+  'npm run ai-video-broll-wan-fast-cache-readiness:check',
+)
+assert.equal(broll?.noIdleLifecycleGate?.quotaVerificationCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(
+  broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears.includes('GPU-GLOBAL-QUOTA-VERIFY'),
+  true,
+)
 
 for (const tool of rollup.tools) {
   assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)

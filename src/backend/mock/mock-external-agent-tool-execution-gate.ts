@@ -1,5 +1,6 @@
 import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
+  type ExternalAgentToolNoIdleLifecycleGate,
   QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
@@ -15,9 +16,13 @@ export type ExternalAgentToolExecutionGateRow = {
   requiredBeforeExecution: string[]
   currentBlocker: string
   safeNextCommand: string
+  noIdleLifecycleGate?: ExternalAgentToolNoIdleLifecycleGate
 }
 
 const ROLLUP = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
+const BROLL_NO_IDLE_LIFECYCLE_GATE = ROLLUP.tools.find(
+  (tool) => tool.toolId === 'ai_video_broll_generation_wan',
+)?.noIdleLifecycleGate as ExternalAgentToolNoIdleLifecycleGate
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   decision: 'external_agent_execution_no_go_live_preflight_required' satisfies ExternalAgentToolExecutionGateDecision,
@@ -75,6 +80,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
       ],
       currentBlocker: 'gpus_all_regions_quota_zero_or_unverified',
       safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
+      noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
       toolId: 'sound_music_audio',

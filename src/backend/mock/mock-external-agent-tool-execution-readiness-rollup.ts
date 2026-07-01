@@ -18,6 +18,30 @@ export type ExternalAgentToolReadinessEntry = {
   primaryBlocker: string
   evidence: string[]
   nextAction: string
+  noIdleLifecycleGate?: ExternalAgentToolNoIdleLifecycleGate
+}
+
+export type ExternalAgentToolNoIdleLifecycleGate = {
+  proofVmName: string
+  selectedGpu: 'nvidia_l4'
+  machineType: 'g2-standard-4'
+  targetRegion: 'us-central1'
+  targetZone: 'us-central1-b'
+  minimumGlobalGpusAllRegionsQuota: 1
+  minimumRegionalL4Quota: 1
+  noPublicIpRequired: true
+  externalIpAllowed: false
+  bootDiskAutoDeleteRequired: true
+  preExistingResourceCheckRequired: true
+  deleteOnlyResourcesCreatedByPrompt: true
+  cleanupVerificationRequired: true
+  idleGpuAllowed: false
+  vmCreateAllowedNow: false
+  modelInferenceAllowedNow: false
+  runtimePromptRequiredBeforeVmCreate: true
+  cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check'
+  quotaVerificationCommand: 'npm run external-agent-tool-blockers:preflight'
+  nextActionAfterQuotaClears: string
 }
 
 export type ExternalAgentToolSafeNextCommand = {
@@ -212,6 +236,29 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       ],
       nextAction:
         'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
+      noIdleLifecycleGate: {
+        proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
+        selectedGpu: 'nvidia_l4',
+        machineType: 'g2-standard-4',
+        targetRegion: 'us-central1',
+        targetZone: 'us-central1-b',
+        minimumGlobalGpusAllRegionsQuota: 1,
+        minimumRegionalL4Quota: 1,
+        noPublicIpRequired: true,
+        externalIpAllowed: false,
+        bootDiskAutoDeleteRequired: true,
+        preExistingResourceCheckRequired: true,
+        deleteOnlyResourcesCreatedByPrompt: true,
+        cleanupVerificationRequired: true,
+        idleGpuAllowed: false,
+        vmCreateAllowedNow: false,
+        modelInferenceAllowedNow: false,
+        runtimePromptRequiredBeforeVmCreate: true,
+        cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
+        quotaVerificationCommand: 'npm run external-agent-tool-blockers:preflight',
+        nextActionAfterQuotaClears:
+          'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-VERIFY: verify GPUS_ALL_REGIONS quota increase and regional L4 quota before any bounded no-idle VM prompt',
+      },
     },
     {
       toolId: 'sound_music_audio',

@@ -129,6 +129,20 @@ const broll = toolActions.get('ai_video_broll_generation_wan') as {
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
+  noIdleLifecycleGate: {
+    proofVmName: string
+    machineType: string
+    targetRegion: string
+    targetZone: string
+    minimumGlobalGpusAllRegionsQuota: number
+    minimumRegionalL4Quota: number
+    noPublicIpRequired: boolean
+    externalIpAllowed: boolean
+    cleanupVerificationRequired: boolean
+    idleGpuAllowed: boolean
+    vmCreateAllowedNow: boolean
+    modelInferenceAllowedNow: boolean
+  }
 }
 assert.equal(broll.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
@@ -138,6 +152,18 @@ assert.equal(broll.externalManualBlocker.includes('GPUS_ALL_REGIONS'), true)
 assert.equal(broll.externalManualBlocker.includes('Google Cloud Console'), true)
 assert.equal(broll.externalManualBlocker.includes('do not create VMs'), true)
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
+assert.equal(broll.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-4')
+assert.equal(broll.noIdleLifecycleGate.targetRegion, 'us-central1')
+assert.equal(broll.noIdleLifecycleGate.targetZone, 'us-central1-b')
+assert.equal(broll.noIdleLifecycleGate.minimumGlobalGpusAllRegionsQuota, 1)
+assert.equal(broll.noIdleLifecycleGate.minimumRegionalL4Quota, 1)
+assert.equal(broll.noIdleLifecycleGate.noPublicIpRequired, true)
+assert.equal(broll.noIdleLifecycleGate.externalIpAllowed, false)
+assert.equal(broll.noIdleLifecycleGate.cleanupVerificationRequired, true)
+assert.equal(broll.noIdleLifecycleGate.idleGpuAllowed, false)
+assert.equal(broll.noIdleLifecycleGate.vmCreateAllowedNow, false)
+assert.equal(broll.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 
 for (const toolAction of plan.toolActions as Array<{ toolId: string; immediateSafeActions: string[] }>) {
   assert.equal(

@@ -100,6 +100,19 @@ assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('ai_video_broll_generation_wan'),
   true,
 )
+assert.deepEqual(summary.noIdleLifecycleGateToolIds, ['ai_video_broll_generation_wan'])
+assert.equal(summary.noIdleLifecycleGates.length, 1)
+assert.equal(summary.noIdleLifecycleGates[0].toolId, 'ai_video_broll_generation_wan')
+assert.equal(summary.noIdleLifecycleGates[0].gate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-4')
+assert.equal(summary.noIdleLifecycleGates[0].gate.targetRegion, 'us-central1')
+assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'us-central1-b')
+assert.equal(summary.noIdleLifecycleGates[0].gate.noPublicIpRequired, true)
+assert.equal(summary.noIdleLifecycleGates[0].gate.externalIpAllowed, false)
+assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, true)
+assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
+assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
+assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
 
 let liveModeFailed = false
 try {

@@ -72,6 +72,7 @@ function main() {
     (tool) => tool.status === 'ready_for_explicit_tool_gate',
   )
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
+  const noIdleLifecycleGateTools = rollup.tools.filter((tool) => tool.noIdleLifecycleGate)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
   const safeNextCommands = rollup.safeNextCommands
@@ -102,6 +103,11 @@ function main() {
     livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     retryReadyAfterBlockerClearsToolIds: retryReadyAfterBlockerClears.map((tool) => tool.toolId),
+    noIdleLifecycleGateToolIds: noIdleLifecycleGateTools.map((tool) => tool.toolId),
+    noIdleLifecycleGates: noIdleLifecycleGateTools.map((tool) => ({
+      toolId: tool.toolId,
+      gate: tool.noIdleLifecycleGate,
+    })),
     blockers: blockedTools.map((tool) => ({
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,

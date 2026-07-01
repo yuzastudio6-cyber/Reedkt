@@ -173,6 +173,17 @@ assert.equal(
   brollGateRow?.requiredBeforeExecution.some((requirement) => requirement.includes('verify cleanup')),
   true,
 )
+assert.equal(brollGateRow?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'us-central1')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'us-central1-b')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.noPublicIpRequired, true)
+assert.equal(brollGateRow?.noIdleLifecycleGate?.externalIpAllowed, false)
+assert.equal(brollGateRow?.noIdleLifecycleGate?.cleanupVerificationRequired, true)
+assert.equal(brollGateRow?.noIdleLifecycleGate?.idleGpuAllowed, false)
+assert.equal(brollGateRow?.noIdleLifecycleGate?.vmCreateAllowedNow, false)
+assert.equal(brollGateRow?.noIdleLifecycleGate?.modelInferenceAllowedNow, false)
 for (const [flag, value] of Object.entries(gate.runtimeSideEffects)) {
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)
 }
@@ -200,6 +211,12 @@ assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
 assert.deepEqual(report.readyToolIds, [])
 assert.equal(report.blockedToolIds.length, 4)
+const reportBrollGateRow = report.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
+)
+assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(reportBrollGateRow.noIdleLifecycleGate.externalIpAllowed, false)
+assert.equal(reportBrollGateRow.noIdleLifecycleGate.vmCreateAllowedNow, false)
 
 const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
   cwd: ROOT,

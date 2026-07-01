@@ -323,9 +323,9 @@ function checkCounts(packet, label) {
     routeBoundServiceRoleQueueSmokePreflightRunGateReadyToolsWithProvidedEvidence: 21,
     sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence: 21,
     sourceServiceRoleQueueSmokePreflightReadyToolsWithProvidedEvidence: 21,
-    routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 2,
-    cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 1,
-    gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 1,
+    routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 21,
+    cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 13,
+    gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 8,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     routeBoundServiceRoleQueueSmokeRunApprovedNowTools: 0,
@@ -350,17 +350,23 @@ function checkCounts(packet, label) {
 
 function checkCandidates(packet, label) {
   const candidates = packet.routeBoundServiceRoleQueueSmokePreflightRunGateCandidates ?? []
-  if (candidates.length !== 2) fail(`${label}:expected_two_candidates`)
-  const d3 = candidates.find((candidate) => candidate.toolId === 'd3')
-  const sam2 = candidates.find((candidate) => candidate.toolId === 'sam2')
-  if (!d3) fail(`${label}:missing_d3_candidate`)
-  if (!sam2) fail(`${label}:missing_sam2_candidate`)
-  const expected = [
-    [d3, 'd3', 'chart_overlay', 'node_cpu_static', 'render_worker', false],
-    [sam2, 'sam2', 'subject_segmentation', 'native_linux_amd64_nvidia_l4_sam2_runtime', 'gpu_ai_worker', true],
-  ]
-  for (const [candidate, toolId, capabilityId, runtimeTarget, workerType, gpuAllowed] of expected) {
+  if (candidates.length !== 21) fail(`${label}:expected_21_candidates`)
+  const ids = candidates.map((candidate) => candidate.toolId).sort()
+  const expectedIds = [...tools].sort()
+  if (JSON.stringify(ids) !== JSON.stringify(expectedIds)) {
+    fail(`${label}:candidate_tool_coverage_mismatch`)
+  }
+  for (const toolId of tools) {
+    const candidate = candidates.find((item) => item.toolId === toolId)
+    const sourceCandidate =
+      sourceRouteBound.routeBoundServiceRoleQueueSmokeAuthorizationCandidates?.find(
+        (item) => item.toolId === toolId,
+      )
     if (!candidate) continue
+    if (!sourceCandidate) {
+      fail(`${label}:missing_source_route_bound_candidate:${toolId}`)
+      continue
+    }
     if (candidate.gateId !== `route-bound-service-role-queue-smoke-preflight-run-gate-${toolId}`) {
       fail(`${label}:bad_gate_id:${toolId}`)
     }
@@ -368,15 +374,16 @@ function checkCandidates(packet, label) {
       `route-bound-service-role-queue-smoke-authorization-${toolId}`) {
       fail(`${label}:bad_source_bridge_id:${toolId}`)
     }
-    if (candidate.capabilityId !== capabilityId) fail(`${label}:bad_capability:${toolId}`)
-    if (candidate.runtimeTarget !== runtimeTarget) fail(`${label}:bad_runtime_target:${toolId}`)
-    if (candidate.workerType !== workerType) fail(`${label}:bad_worker_type:${toolId}`)
+    if (candidate.capabilityId !== sourceCandidate.capabilityId) fail(`${label}:bad_capability:${toolId}`)
+    if (candidate.runtimeTarget !== sourceCandidate.runtimeTarget) fail(`${label}:bad_runtime_target:${toolId}`)
+    if (candidate.workerType !== sourceCandidate.workerType) fail(`${label}:bad_worker_type:${toolId}`)
     if (candidate.queueJobStatus !== 'prepared_not_submitted') fail(`${label}:bad_queue_status:${toolId}`)
     if (candidate.runGateMode !==
       'route_bound_service_role_queue_smoke_preflight_ready_execution_still_blocked') {
       fail(`${label}:bad_mode:${toolId}`)
     }
-    if (candidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== gpuAllowed) {
+    if (candidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !==
+      sourceCandidate.gpuRuntimeStartAllowedForAcceptedExternalBetaJob) {
       fail(`${label}:bad_gpu_allowed:${toolId}`)
     }
     for (const flag of [
@@ -477,7 +484,7 @@ for (const key of requiredPolicyKeys) {
 for (const tool of tools) {
   if (!docsMd.includes(tool)) fail(`md_missing_tool:${tool}`)
 }
-for (const capability of ['chart_overlay', 'subject_segmentation']) {
+for (const capability of capabilities) {
   if (!docsMd.includes(capability)) fail(`md_missing_capability:${capability}`)
 }
 
@@ -489,6 +496,7 @@ for (const pattern of forbiddenDocPatterns) {
 
 for (const snippet of [
   decision,
+  'AI_GRAPHICS_CANONICAL_TOOL_IDS',
   'AI_GRAPHICS_EXTERNAL_BETA_ROUTE_BOUND_SERVICE_ROLE_QUEUE_SMOKE_AUTHORIZATION_BRIDGE_DECISION',
   'AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION',
   'route-bound-service-role-queue-smoke-preflight-run-gate-${toolId}',

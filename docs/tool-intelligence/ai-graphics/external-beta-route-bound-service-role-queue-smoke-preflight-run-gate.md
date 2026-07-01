@@ -6,7 +6,7 @@ Status: `route_bound_service_role_queue_smoke_preflight_run_gate_ready_execution
 
 ## Summary
 
-This packet adds the route-bound preflight/run gate between the accepted service-role queue-smoke authorization bridge and any later private non-production smoke attempt. It accepts the route-bound `d3` and `sam2` candidates from the authorization bridge, verifies the all-21 service-role queue-smoke preflight contract, and records the operator, environment, run-window, queue-write-window, cleanup, rollback, telemetry, and cost-ceiling references that must exist before a later smoke can be attempted.
+This packet adds the route-bound preflight/run gate between the accepted service-role queue-smoke authorization bridge and any later private non-production smoke attempt. It accepts all 21 route-bound candidates from the authorization bridge, verifies the all-21 service-role queue-smoke preflight contract, and records the operator, environment, run-window, queue-write-window, cleanup, rollback, telemetry, and cost-ceiling references that must exist before a later smoke can be attempted.
 
 The packet is still readiness metadata only. It does not mount or execute the API route, run a service-role smoke, submit queue rows, enqueue or dispatch workers, execute tools, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production.
 
@@ -24,11 +24,13 @@ The packet is still readiness metadata only. It does not mount or execute the AP
 - Total AI graphics tools covered: `21`
 - Product-facing capabilities covered: `12`
 - GPU-targeted tools tracked for later on-demand runtime: `8`
-- Route-bound preflight/run gate candidates: `2`
-- CPU/static candidate: `d3`
-- GPU/model candidate: `sam2`
+- Route-bound preflight/run gate candidates: `21`
+- CPU/static or non-GPU candidates: `13`
+- GPU/model candidates: `8`
 
 All tools covered: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`.
+
+Product-facing capabilities covered: `chart_overlay`, `data_visualization`, `svg_graphics`, `diagram_graphics`, `animation_overlay`, `canvas_scene`, `webgl_3d_scene`, `background_removal`, `subject_segmentation`, `upscaling`, `tensor_image_ops`, `model_runtime_foundation`.
 
 ## Required Run Gate Refs
 
@@ -46,19 +48,22 @@ All tools covered: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `rea
 
 ## Candidates
 
-| Tool | Capability | Runtime target | Worker type | GPU allowed for later accepted job | GPU starts now |
-| --- | --- | --- | --- | --- | --- |
-| `d3` | `chart_overlay` | `node_cpu_static` | `render_worker` | `false` | `false` |
-| `sam2` | `subject_segmentation` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `gpu_ai_worker` | `true` | `false` |
+The JSON record carries one route-bound preflight/run gate candidate for each of the 21 tools. Representative groups:
 
-Both candidates remain `prepared_not_submitted`.
+| Tools | Capabilities | Runtime target group | Worker type | GPU allowed for later accepted job | GPU starts now |
+| --- | --- | --- | --- | --- | --- |
+| `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js` | `chart_overlay`, `data_visualization`, `svg_graphics`, `diagram_graphics` | CPU/static | `render_worker` | `false` | `false` |
+| `echarts`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs` | `chart_overlay`, `animation_overlay`, `canvas_scene`, `webgl_3d_scene` | Browser/chart/animation/canvas/WebGL later | `render_worker` | `false` | `false` |
+| `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background` | `model_runtime_foundation`, `tensor_image_ops`, `subject_segmentation`, `background_removal`, `upscaling` | GPU/model later | `gpu_ai_worker` | `true` | `false` |
+
+All candidates remain `prepared_not_submitted`.
 
 ## Allowed Gate Actions
 
 - Read accepted route-bound service-role queue-smoke authorization bridge metadata.
 - Read accepted all-21 service-role queue smoke preflight metadata.
 - Verify private operator, run-window, rollback, telemetry, and cost refs exist.
-- Prepare route-bound `d3` and `sam2` smoke candidates without submitting queue jobs.
+- Prepare all 21 route-bound smoke candidates without submitting queue jobs.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
 
 ## Blocked Runtime Actions
@@ -94,9 +99,9 @@ Both candidates remain `prepared_not_submitted`.
 | `routeBoundServiceRoleQueueSmokePreflightRunGateReadyToolsWithProvidedEvidence` | `21` |
 | `sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence` | `21` |
 | `sourceServiceRoleQueueSmokePreflightReadyToolsWithProvidedEvidence` | `21` |
-| `routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence` | `2` |
-| `cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence` | `1` |
-| `gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence` | `1` |
+| `routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence` | `21` |
+| `cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence` | `13` |
+| `gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence` | `8` |
 | `serviceRoleQueueSmokeApprovedNowTools` | `0` |
 | `liveQueueWritesPerformedNowTools` | `0` |
 | `workerDispatchesApprovedNow` | `0` |

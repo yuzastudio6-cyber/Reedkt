@@ -4,6 +4,10 @@ import {
 import {
   AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_AUTHORIZATION_DECISION,
 } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-authorization'
+import {
+  AI_GRAPHICS_CANONICAL_TOOL_IDS,
+  type AiGraphicsCanonicalToolId,
+} from '../tool-registry/ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_ROUTE_BOUND_SERVICE_ROLE_QUEUE_SMOKE_AUTHORIZATION_BRIDGE_DECISION =
   'ai_graphics_external_beta_route_bound_service_role_queue_smoke_authorization_bridge_prepared_with_runtime_blocks'
@@ -26,15 +30,15 @@ export interface AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeAuthorizat
   routeToLiveEnqueueBridgeId: string
   authorizationId: string
   requestId: string
-  toolId: 'd3' | 'sam2'
-  capabilityId: 'chart_overlay' | 'subject_segmentation'
+  toolId: AiGraphicsCanonicalToolId
+  capabilityId: string
   routePath: '/api/ai-graphics/external-beta/tool-call'
   method: 'POST'
   queueName: 'ai_graphics_external_beta_tool_runtime'
   queueJobType: 'ai_graphics_tool_runtime'
   queueJobStatus: 'prepared_not_submitted'
   runtimeTarget: string
-  workerType: 'render_worker' | 'gpu_ai_worker'
+  workerType: string
   sourceRouteToLiveEnqueueAuthorizationAccepted: true
   sourceServiceRoleQueueSmokeAuthorizationAccepted: true
   sourceServiceRoleQueueSmokeAuthorizationRecordedWithProvidedEvidence: true
@@ -93,9 +97,9 @@ export interface AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeAuthorizat
   routeBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence: 0 | 21
   sourceRouteToLiveEnqueueAuthorizationBridgeReadyToolsWithProvidedEvidence: 0 | 21
   sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence: 0 | 21
-  routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 0 | 2
-  cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 0 | 1
-  gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 0 | 1
+  routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 0 | 21
+  cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 0 | 13
+  gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence: 0 | 8
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
   routeBoundServiceRoleQueueSmokeAuthorizationsApprovedNow: 0
@@ -222,7 +226,7 @@ const routeBoundServiceRoleQueueSmokeAuthorizationPolicy = {
 const allowedBridgeActions = [
   'read accepted route-to-live-enqueue authorization bridge metadata',
   'read accepted all-21 service-role queue smoke authorization metadata',
-  'match route-bound d3 and sam2 candidates to service-role smoke authorization scope',
+  'match all 21 route-bound tool candidates to service-role smoke authorization scope',
   'keep queue jobs prepared_not_submitted with no live queue writes',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
@@ -288,9 +292,9 @@ function routeToLiveEnqueueAuthorizationBridgeAccepted(packet?: Record<string, u
     packet.status === 'route_to_live_enqueue_authorization_bridge_ready_runtime_still_blocked' &&
     countFrom(packet, 'routeToLiveEnqueueAuthorizationBridgeReadyToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence') === 21 &&
-    countFrom(packet, 'routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') === 2 &&
-    countFrom(packet, 'cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') === 1 &&
-    countFrom(packet, 'gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') === 1 &&
+    countFrom(packet, 'routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') === 13 &&
+    countFrom(packet, 'gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') === 8 &&
     countFrom(packet, 'liveQueueWritesPerformedNowTools') === 0 &&
     countFrom(packet, 'workerEnqueueApprovedNowTools') === 0 &&
     countFrom(packet, 'workerDispatchesApprovedNow') === 0 &&
@@ -319,10 +323,10 @@ function serviceRoleQueueSmokeAuthorizationAccepted(packet?: Record<string, unkn
     countFrom(packet, 'toolExecutionApprovedNowTools') === 0 &&
     countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
-    stringArrayFrom(packet, 'tools').includes('d3') &&
-    stringArrayFrom(packet, 'tools').includes('sam2') &&
-    stringArrayFrom(packet, 'capabilities').includes('chart_overlay') &&
-    stringArrayFrom(packet, 'capabilities').includes('subject_segmentation') &&
+    AI_GRAPHICS_CANONICAL_TOOL_IDS.every((toolId) =>
+      stringArrayFrom(packet, 'tools').includes(toolId),
+    ) &&
+    stringArrayFrom(packet, 'capabilities').length >= 12 &&
     booleanFrom(packet, 'serviceRoleQueueSmokeAuthorizationRecordAccepted') === true &&
     booleanFrom(packet, 'all21ServiceRoleQueueSmokeAuthorizationScopesRecordedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'gpuRuntimeOnDemandOnly') === true &&
@@ -334,7 +338,10 @@ function serviceRoleQueueSmokeAuthorizationAccepted(packet?: Record<string, unkn
     booleanFrom(packet, 'gpuRuntimeShouldStartNow') === false
 }
 
-function routeCandidateFor(packet: Record<string, unknown> | undefined, toolId: 'd3' | 'sam2') {
+function routeCandidateFor(
+  packet: Record<string, unknown> | undefined,
+  toolId: AiGraphicsCanonicalToolId,
+) {
   const candidates = (packet?.routeToLiveEnqueueAuthorizationCandidates ?? []) as Array<Record<string, unknown>>
   return candidates.find((item) => item.toolId === toolId)
 }
@@ -345,17 +352,20 @@ function candidateReasons(
 ): string[] {
   const serviceRoleTools = stringArrayFrom(serviceRolePacket, 'tools')
   const serviceRoleCapabilities = stringArrayFrom(serviceRolePacket, 'capabilities')
-  return (['d3', 'sam2'] as const).flatMap((toolId) => {
+  return AI_GRAPHICS_CANONICAL_TOOL_IDS.flatMap((toolId) => {
     const routeCandidate = routeCandidateFor(routePacket, toolId)
-    const capabilityId = toolId === 'd3' ? 'chart_overlay' : 'subject_segmentation'
+    const capabilityId =
+      typeof routeCandidate?.capabilityId === 'string'
+        ? routeCandidate.capabilityId
+        : undefined
     return [
       !routeCandidate ? `missing route-to-live-enqueue authorization candidate for ${toolId}` : undefined,
       !serviceRoleTools.includes(toolId) ? `missing service-role queue smoke authorization tool scope for ${toolId}` : undefined,
-      !serviceRoleCapabilities.includes(capabilityId)
+      capabilityId && !serviceRoleCapabilities.includes(capabilityId)
         ? `missing service-role queue smoke authorization capability scope for ${capabilityId}`
         : undefined,
-      routeCandidate && routeCandidate.capabilityId !== capabilityId
-        ? `route candidate capability mismatch for ${toolId}`
+      !capabilityId
+        ? `route candidate capability missing for ${toolId}`
         : undefined,
       routeCandidate && routeCandidate.queueJobStatus !== 'prepared_not_submitted'
         ? `route candidate queue status is not prepared_not_submitted for ${toolId}`
@@ -399,21 +409,21 @@ function statusFromInput(input: {
 function buildCandidate(
   routeCandidate: Record<string, unknown>,
 ): AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeAuthorizationCandidate {
-  const toolId = routeCandidate.toolId as 'd3' | 'sam2'
+  const toolId = routeCandidate.toolId as AiGraphicsCanonicalToolId
   return {
     bridgeId: `route-bound-service-role-queue-smoke-authorization-${toolId}`,
     routeToLiveEnqueueBridgeId: routeCandidate.bridgeId as string,
     authorizationId: routeCandidate.authorizationId as string,
     requestId: routeCandidate.requestId as string,
     toolId,
-    capabilityId: routeCandidate.capabilityId as 'chart_overlay' | 'subject_segmentation',
+    capabilityId: routeCandidate.capabilityId as string,
     routePath: routeCandidate.routePath as '/api/ai-graphics/external-beta/tool-call',
     method: 'POST',
     queueName: 'ai_graphics_external_beta_tool_runtime',
     queueJobType: 'ai_graphics_tool_runtime',
     queueJobStatus: 'prepared_not_submitted',
     runtimeTarget: routeCandidate.runtimeTarget as string,
-    workerType: routeCandidate.workerType as 'render_worker' | 'gpu_ai_worker',
+    workerType: routeCandidate.workerType as string,
     sourceRouteToLiveEnqueueAuthorizationAccepted: true,
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
     sourceServiceRoleQueueSmokeAuthorizationRecordedWithProvidedEvidence: true,
@@ -481,20 +491,22 @@ export function evaluateAiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeAut
     status ===
       'route_bound_service_role_queue_smoke_authorization_bridge_ready_runtime_still_blocked'
   const routeBoundServiceRoleQueueSmokeAuthorizationCandidates = ready
-    ? (['d3', 'sam2'] as const).map((toolId) =>
+    ? AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) =>
         buildCandidate(
           routeCandidateFor(input.sourceRouteToLiveEnqueueAuthorizationBridgePacket, toolId)!,
         ),
       )
     : []
-  const cpuStaticAccepted =
-    routeBoundServiceRoleQueueSmokeAuthorizationCandidates.some(
-      (item) => item.toolId === 'd3' && !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-    )
-  const gpuModelAccepted =
-    routeBoundServiceRoleQueueSmokeAuthorizationCandidates.some(
-      (item) => item.toolId === 'sam2' && item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-    )
+  const cpuStaticCandidateCount =
+    routeBoundServiceRoleQueueSmokeAuthorizationCandidates.filter(
+      (item) => !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    ).length
+  const gpuModelCandidateCount =
+    routeBoundServiceRoleQueueSmokeAuthorizationCandidates.filter(
+      (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    ).length
+  const cpuStaticAccepted = cpuStaticCandidateCount === 13
+  const gpuModelAccepted = gpuModelCandidateCount === 8
 
   const rejectionReasons = [
     !input.sourceRouteToLiveEnqueueAuthorizationBridgePacket
@@ -538,11 +550,11 @@ export function evaluateAiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokeAut
     sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence:
       serviceRoleAccepted ? 21 : 0,
     routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence:
-      ready ? 2 : 0,
+      ready ? 21 : 0,
     cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence:
-      cpuStaticAccepted ? 1 : 0,
+      cpuStaticAccepted ? 13 : 0,
     gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence:
-      gpuModelAccepted ? 1 : 0,
+      gpuModelAccepted ? 8 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     routeBoundServiceRoleQueueSmokeAuthorizationsApprovedNow: 0,

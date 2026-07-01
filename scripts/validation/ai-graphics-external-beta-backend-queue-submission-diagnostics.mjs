@@ -504,9 +504,9 @@ for (const [key, expected] of Object.entries({
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
   defaultSubmissionReadyExamples: 0,
-  fullSubmissionEnvelopeReadyExamples: 3,
-  cpuStaticFirstCohortSubmissionEnvelopeReadyExamples: 1,
-  gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 1,
+  fullSubmissionEnvelopeReadyExamples: 21,
+  cpuStaticFirstCohortSubmissionEnvelopeReadyExamples: 13,
+  gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 8,
   liveBackendQueueSubmissionsNow: 0,
   liveServiceRoleTransactionsNow: 0,
   liveWorkerLeasesCreatedNow: 0,
@@ -521,8 +521,36 @@ for (const [key, expected] of Object.entries({
 for (const tool of allTools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
 }
+const acceptedQueueEnvelopeExamples = docs.exampleEvaluations?.filter(
+  (example) => example.decision === 'external_beta_backend_queue_submission_envelope_ready',
+) ?? []
+if (acceptedQueueEnvelopeExamples.length !== allTools.length) {
+  fail(`docs_accepted_queue_envelope_example_count_mismatch:${acceptedQueueEnvelopeExamples.length}`)
+}
+for (const tool of allTools) {
+  const entry = acceptedQueueEnvelopeExamples.find(
+    (example) => example.id === `accepted_future_${tool}_backend_queue_submission_envelope`,
+  )
+  if (!entry) fail(`docs_missing_all21_queue_envelope_example:${tool}`)
+  if (entry?.toolId !== tool) fail(`docs_queue_envelope_tool_mismatch:${tool}:${entry?.toolId}`)
+  if (entry?.queueJobStatus !== 'prepared_not_submitted') fail(`docs_queue_job_status:${tool}`)
+  if (entry?.backendQueueSubmissionPerformed !== false) {
+    fail(`docs_backend_queue_submission_performed:${tool}`)
+  }
+  if (entry?.serviceRoleTransactionPerformed !== false) {
+    fail(`docs_service_role_transaction_performed:${tool}`)
+  }
+  if (entry?.workerDispatchPerformed !== false) fail(`docs_worker_dispatch_performed:${tool}`)
+  if (entry?.gpuRuntimeShouldStartNow !== false) fail(`docs_gpu_should_start_now:${tool}`)
+}
 for (const tool of gpuTools) {
   if (!docs.gpuRuntimeTargetedTools?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
+}
+for (const entry of acceptedQueueEnvelopeExamples) {
+  const expectedGpu = gpuTools.includes(entry.toolId)
+  if (entry.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== expectedGpu) {
+    fail(`docs_queue_envelope_gpu_start_allowed_mismatch:${entry.toolId}`)
+  }
 }
 for (const gate of [
   'accepted external-beta worker enqueue adapter packet',
@@ -581,8 +609,6 @@ for (const [id, expected] of Object.entries({
     'external_beta_backend_queue_submission_envelope_ready',
   accepted_future_d3_backend_queue_submission_envelope:
     'external_beta_backend_queue_submission_envelope_ready',
-  accepted_future_d3_cpu_static_backend_queue_submission_envelope:
-    'external_beta_backend_queue_submission_envelope_ready',
 })) {
   const entry = docs.exampleEvaluations?.find((example) => example.id === id)
   if (!entry) fail(`docs_missing_example:${id}`)
@@ -631,7 +657,7 @@ for (const needle of [
   'batch, job, and audit candidates',
   'Source worker enqueue adapter proof bridge accepted: `true`',
   'sourceGatewayRuntimeAdmissionProofBridgeAccepted=true',
-  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'sourceGatewayRuntimeAdmissionMode',
   'Live backend queue submissions now: `0`',
   'Live service-role transactions now: `0`',
   'GPU remains on-demand only',
@@ -644,7 +670,7 @@ for (const needle of [
   'batch/job/audit queue submission envelope',
   'rejects source worker enqueue adapter packets',
   'proof bridge flag',
-  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'sourceGatewayRuntimeAdmissionMode',
   '`backendQueueSubmissionPerformed=false`',
   '`serviceRoleTransactionPerformed=false`',
   '`workerLeaseCreated=false`',

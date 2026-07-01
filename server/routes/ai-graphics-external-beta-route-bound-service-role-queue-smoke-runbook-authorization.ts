@@ -332,9 +332,9 @@ function routeBoundRunGateAccepted(packet?: Record<string, unknown>): boolean {
     countFrom(packet, 'routeBoundServiceRoleQueueSmokePreflightRunGateReadyToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'sourceServiceRoleQueueSmokePreflightReadyToolsWithProvidedEvidence') === 21 &&
-    countFrom(packet, 'routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence') === 2 &&
-    countFrom(packet, 'cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence') === 1 &&
-    countFrom(packet, 'gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence') === 1 &&
+    countFrom(packet, 'routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence') === 13 &&
+    countFrom(packet, 'gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence') === 8 &&
     countFrom(packet, 'serviceRoleQueueSmokesPerformedNowTools') === 0 &&
     countFrom(packet, 'liveQueueWritesPerformedNowTools') === 0 &&
     countFrom(packet, 'workerDispatchesApprovedNow') === 0 &&

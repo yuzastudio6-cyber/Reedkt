@@ -263,16 +263,16 @@ if (countFrom(docs, 'routeToQueueAuthorizationBridgeReadyToolsWithProvidedEviden
 if (countFrom(docs, 'sourceHandlerBridgeReadyToolsWithProvidedEvidence') !== 21) {
   fail('source_handler_ready_count_mismatch')
 }
-if (countFrom(docs, 'sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence') !== 3) {
+if (countFrom(docs, 'sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence') !== 21) {
   fail('source_queue_examples_count_mismatch')
 }
-if (countFrom(docs, 'routeToQueueAuthorizationCandidatesWithProvidedEvidence') !== 2) {
+if (countFrom(docs, 'routeToQueueAuthorizationCandidatesWithProvidedEvidence') !== 21) {
   fail('candidate_count_mismatch')
 }
-if (countFrom(docs, 'cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence') !== 13) {
   fail('cpu_static_candidate_count_mismatch')
 }
-if (countFrom(docs, 'gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence') !== 8) {
   fail('gpu_model_candidate_count_mismatch')
 }
 for (const zeroKey of [
@@ -294,7 +294,21 @@ for (const zeroKey of [
 checkBooleans(docs)
 
 const candidates = docs.routeToQueueAuthorizationCandidates ?? []
-if (candidates.length !== 2) fail('candidate_length_mismatch')
+if (candidates.length !== tools.length) fail('candidate_length_mismatch')
+const candidateToolIds = candidates.map((item) => item.toolId).sort()
+if (JSON.stringify(candidateToolIds) !== JSON.stringify([...tools].sort())) {
+  fail('candidate_tool_coverage_mismatch')
+}
+const gpuCandidates = candidates.filter(
+  (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true,
+)
+const cpuStaticCandidates = candidates.filter(
+  (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === false,
+)
+if (gpuCandidates.length !== 8) fail(`gpu_candidate_count_unexpected:${gpuCandidates.length}`)
+if (cpuStaticCandidates.length !== 13) {
+  fail(`cpu_static_candidate_count_unexpected:${cpuStaticCandidates.length}`)
+}
 const d3Candidate = candidates.find((item) => item.toolId === 'd3')
 const sam2Candidate = candidates.find((item) => item.toolId === 'sam2')
 if (!d3Candidate) fail('missing_d3_candidate')
@@ -321,6 +335,23 @@ if (sam2Candidate) {
 }
 
 for (const candidate of candidates) {
+  const sourceHandlerCase = sourceHandler.handlerBridgeCases?.find(
+    (item) => item.toolId === candidate.toolId,
+  )
+  const sourceQueueExample = sourceQueue.exampleEvaluations?.find(
+    (item) => item.id === `accepted_future_${candidate.toolId}_backend_queue_submission_envelope`,
+  )
+  if (!sourceHandlerCase) fail(`candidate_missing_source_handler_case:${candidate.toolId}`)
+  if (!sourceQueueExample) fail(`candidate_missing_source_queue_example:${candidate.toolId}`)
+  if (sourceHandlerCase && candidate.capabilityId !== sourceHandlerCase.capabilityId) {
+    fail(`candidate_capability_mismatch:${candidate.toolId}`)
+  }
+  if (sourceQueueExample && candidate.runtimeTarget !== sourceQueueExample.runtimeTarget) {
+    fail(`candidate_runtime_target_mismatch:${candidate.toolId}`)
+  }
+  if (sourceQueueExample && candidate.workerType !== sourceQueueExample.workerType) {
+    fail(`candidate_worker_type_mismatch:${candidate.toolId}`)
+  }
   for (const key of [
     'apiRouteMountedNow',
     'apiRouteExecutionApprovedNow',
@@ -393,8 +424,8 @@ for (const required of [
   'AI_GRAPHICS_EXTERNAL_BETA_ROUTE_TO_QUEUE_AUTHORIZATION_BRIDGE_DECISION',
   'evaluateAiGraphicsExternalBetaRouteToQueueAuthorizationBridge',
   'buildAiGraphicsExternalBetaRouteToQueueAuthorizationBridgeInput',
-  'route-to-queue-authorization-d3',
-  'route-to-queue-authorization-sam2',
+  'AI_GRAPHICS_CANONICAL_TOOL_IDS',
+  'route-to-queue-authorization-${toolId}',
   'queueJobStatus',
   'prepared_not_submitted',
   'backendQueueSubmissionPerformed: false',
@@ -536,9 +567,9 @@ console.log(JSON.stringify({
   acceptedStatus,
   tools: tools.length,
   capabilities: capabilities.length,
-  routeToQueueAuthorizationCandidatesWithProvidedEvidence: 2,
-  cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 1,
-  gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 1,
+  routeToQueueAuthorizationCandidatesWithProvidedEvidence: 21,
+  cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 13,
+  gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 8,
   liveQueueWritePerformed: false,
   packageLockUnchanged: true,
   runtimeReadyNow: false,

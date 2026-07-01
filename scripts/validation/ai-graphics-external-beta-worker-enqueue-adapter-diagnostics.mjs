@@ -565,9 +565,9 @@ for (const [key, expected] of Object.entries({
   totalProductFacingCapabilities: 12,
   gpuRuntimeTargetedTools: 8,
   defaultAdapterReadyExamples: 0,
-  fullAdapterPayloadReadyExamples: 3,
-  cpuStaticFirstCohortAdapterPayloadReadyExamples: 1,
-  gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 1,
+  fullAdapterPayloadReadyExamples: 21,
+  cpuStaticFirstCohortAdapterPayloadReadyExamples: 13,
+  gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples: 8,
   liveBackendQueueSubmissionsNow: 0,
   liveWorkerLeasesCreatedNow: 0,
   liveWorkerDispatchesNow: 0,
@@ -581,8 +581,33 @@ for (const [key, expected] of Object.entries({
 for (const tool of allTools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
 }
+const acceptedWorkerPayloadExamples = docs.exampleEvaluations?.filter(
+  (example) => example.decision === 'external_beta_worker_enqueue_adapter_payload_ready',
+) ?? []
+if (acceptedWorkerPayloadExamples.length !== allTools.length) {
+  fail(`docs_accepted_worker_payload_example_count_mismatch:${acceptedWorkerPayloadExamples.length}`)
+}
+for (const tool of allTools) {
+  const entry = acceptedWorkerPayloadExamples.find(
+    (example) => example.id === `accepted_future_${tool}_worker_payload_candidate`,
+  )
+  if (!entry) fail(`docs_missing_all21_worker_payload_example:${tool}`)
+  if (entry?.toolId !== tool) fail(`docs_worker_payload_tool_mismatch:${tool}:${entry?.toolId}`)
+  if (entry?.externalBetaWorkerEnqueueAdapterPayloadReadyWithProvidedEvidence !== true) {
+    fail(`docs_worker_payload_not_ready:${tool}`)
+  }
+  if (entry?.workerEnqueuePerformed !== false) fail(`docs_worker_enqueue_performed:${tool}`)
+  if (entry?.workerDispatchPerformed !== false) fail(`docs_worker_dispatch_performed:${tool}`)
+  if (entry?.gpuRuntimeShouldStartNow !== false) fail(`docs_gpu_should_start_now:${tool}`)
+}
 for (const tool of gpuTools) {
   if (!docs.gpuRuntimeTargetedTools?.includes(tool)) fail(`docs_missing_gpu_tool:${tool}`)
+}
+for (const entry of acceptedWorkerPayloadExamples) {
+  const expectedGpu = gpuTools.includes(entry.toolId)
+  if (entry.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== expectedGpu) {
+    fail(`docs_worker_payload_gpu_start_allowed_mismatch:${entry.toolId}`)
+  }
 }
 for (const gate of [
   'accepted external-beta tool-call gateway packet',
@@ -633,8 +658,6 @@ for (const [id, expected] of Object.entries({
   accepted_future_sam2_worker_payload_candidate:
     'external_beta_worker_enqueue_adapter_payload_ready',
   accepted_future_d3_worker_payload_candidate:
-    'external_beta_worker_enqueue_adapter_payload_ready',
-  accepted_future_d3_cpu_static_worker_payload_candidate:
     'external_beta_worker_enqueue_adapter_payload_ready',
 })) {
   const entry = docs.exampleEvaluations?.find((example) => example.id === id)
@@ -695,14 +718,14 @@ for (const needle of [
   'Live backend queue submissions now: `0`',
   'Worker enqueue performed now: `0`',
   'GPU remains on-demand only',
-  'If no one is using the tool through an accepted future worker job, no GPU runtime should be running',
+  'If no one is using a GPU tool through an accepted future worker job, no GPU runtime should be running',
 ]) {
   if (!docsMd.includes(needle)) fail(`markdown_missing:${needle}`)
 }
 for (const needle of [
   'AI graphics external beta worker enqueue adapter decision',
   'ProductionWorkerJobPayload',
-  'sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort',
+  'all 13 non-GPU tools can be shaped into `production_blocked` worker payload candidates',
   'rejects source tool-call gateway packets that strip',
   '`sourceGatewayRuntimeAdmissionProofBridgeAccepted=true`',
   '`backendQueueSubmissionPerformed=false`',

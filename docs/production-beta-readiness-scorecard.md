@@ -220,11 +220,12 @@ request admission.
 AI graphics external beta worker enqueue adapter decision
 `ai_graphics_external_beta_worker_enqueue_adapter_contract_prepared_with_runtime_blocks`
 shapes a gateway-approved external beta request into a canonical
-`ProductionWorkerJobPayload` candidate for a future backend worker queue. The
-SAM2 example targets `native_linux_amd64_nvidia_l4_sam2_runtime` and the D3
-examples target `node_cpu_static`, including the CPU/static first-cohort gateway
-path with `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`. All
-examples keep `executionMode=production_blocked`.
+`ProductionWorkerJobPayload` candidate for a future backend worker queue. It
+now records all 21 AI graphics worker payload candidates: the eight GPU/model
+tools target their native NVIDIA L4 runtime classes, and all 13 non-GPU tools can be shaped into `production_blocked` worker payload candidates. The adapter
+preserves `sourceGatewayRuntimeAdmissionMode` and
+`sourceGatewayRuntimeAdmissionProofBridgeAccepted=true` in worker payload
+metadata. All examples keep `executionMode=production_blocked`.
 This is still an adapter contract only: `backendQueueSubmissionPerformed=false`,
 `workerEnqueuePerformed=false`, `workerLeaseCreated=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
@@ -239,13 +240,12 @@ metadata before any future backend queue submission.
 AI graphics external beta backend queue submission decision
 `ai_graphics_external_beta_backend_queue_submission_envelope_prepared_with_runtime_blocks`
 prepares the external-beta batch/job/audit queue submission envelope after the
-worker enqueue adapter. With provided evidence, SAM2 and D3 can shape
-`ai_graphics_tool_runtime` queue job candidates whose status is
-`prepared_not_submitted`; the CPU/static first-cohort D3 path preserves
-`sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` in the worker
-payload metadata. SAM2 remains pointed at
-`native_linux_amd64_nvidia_l4_sam2_runtime`; D3 remains pointed at
-`node_cpu_static`. This still does not write a backend queue row or run a
+worker enqueue adapter. With provided evidence, all 21 AI graphics tools can
+shape `ai_graphics_tool_runtime` queue job candidates whose status is
+`prepared_not_submitted`; the eight GPU/model tools preserve their native NVIDIA
+L4 runtime targets, and the 13 non-GPU tools preserve non-GPU queue envelope
+targets. The worker payload metadata preserves `sourceGatewayRuntimeAdmissionMode`.
+This still does not write a backend queue row or run a
 service-role transaction: `backendQueueSubmissionPerformed=false`,
 `serviceRoleTransactionPerformed=false`, `workerLeaseCreated=false`,
 `workerDispatchPerformed=false`, `gpuRuntimeShouldStartNow=false`,
@@ -1628,29 +1628,29 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 ## AI Graphics External-Beta API Route Backend Adapter Smoke
 
 - Decision: `ai_graphics_external_beta_api_route_backend_adapter_smoke_prepared_with_runtime_blocks`.
-- Scope: private route-to-backend-adapter smoke after accepted backend adapter preflight. It validates route-shaped requests for one CPU/static representative (`d3`) and one GPU/model representative (`sam2`) against the disabled route schema, then binds them to backend adapter preflight metadata.
-- Result: it records `backendAdapterSmokeReadyToolsWithProvidedEvidence=21`, `backendAdapterPreflightReadyToolsWithProvidedEvidence=21`, `routeSmokeRequestsAcceptedWithProvidedEvidence=2`, `cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence=1`, `gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence=1`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Scope: private route-to-backend-adapter smoke after accepted backend adapter preflight. It validates route-shaped requests for all 21 AI graphics tools against the disabled route schema, then binds them to backend adapter preflight metadata.
+- Result: it records `backendAdapterSmokeReadyToolsWithProvidedEvidence=21`, `backendAdapterPreflightReadyToolsWithProvidedEvidence=21`, `routeSmokeRequestsAcceptedWithProvidedEvidence=21`, `cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence=13`, `gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence=8`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this smoke does not mount or execute the API route, mutate approved snapshots, mutate credit reservations, write private artifacts, write queue rows, enqueue or dispatch workers, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. The `sam2` smoke case marks GPU runtime as allowed for a later accepted job, but `gpuRuntimeShouldStartNow=false`.
 
 ## AI Graphics External-Beta Tool Call Handler Bridge
 
 - Decision: `ai_graphics_external_beta_tool_call_handler_bridge_prepared_with_runtime_blocks`.
-- Scope: disabled Express handler bridge after accepted route-to-backend-adapter smoke. It validates two representative handler requests (`d3` CPU/static and `sam2` GPU/model) through the disabled route schema and prepares the handler-to-adapter call site while keeping the app route unmounted.
-- Result: it records `handlerBridgeReadyToolsWithProvidedEvidence=21`, `backendAdapterSmokeReadyToolsWithProvidedEvidence=21`, `handlerBridgeRequestsAcceptedWithProvidedEvidence=2`, `cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence=1`, `gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence=1`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Scope: disabled Express handler bridge after accepted route-to-backend-adapter smoke. It validates one handler bridge case per AI graphics tool through the disabled route schema and prepares the handler-to-adapter call sites while keeping the app route unmounted.
+- Result: it records `handlerBridgeReadyToolsWithProvidedEvidence=21`, `backendAdapterSmokeReadyToolsWithProvidedEvidence=21`, `handlerBridgeRequestsAcceptedWithProvidedEvidence=21`, `cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence=13`, `gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence=8`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this bridge does not mount or execute the API route, mutate approved snapshots, mutate credit reservations, write private artifacts, write queue rows, enqueue or dispatch workers, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. The `sam2` bridge case preserves GPU as allowed only for a later accepted job, with `gpuRuntimeShouldStartNow=false`.
 
 ## AI Graphics External-Beta Route-To-Queue Authorization Bridge
 
 - Decision: `ai_graphics_external_beta_route_to_queue_authorization_bridge_prepared_with_runtime_blocks`.
-- Scope: private route-to-queue authorization bridge after accepted disabled handler bridge and backend queue-submission evidence. It prepares `d3` CPU/static and `sam2` GPU/model queue authorization candidates as `prepared_not_submitted`.
-- Result: it records `routeToQueueAuthorizationBridgeReadyToolsWithProvidedEvidence=21`, `sourceHandlerBridgeReadyToolsWithProvidedEvidence=21`, `sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence=3`, `routeToQueueAuthorizationCandidatesWithProvidedEvidence=2`, `cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence=1`, `gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence=1`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `routeToQueueAuthorizationsApprovedNow=0`, `backendQueueSubmissionApprovedNowTools=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Scope: private route-to-queue authorization bridge after accepted disabled handler bridge and backend queue-submission evidence. It prepares one queue authorization candidate per AI graphics tool as `prepared_not_submitted`.
+- Result: it records `routeToQueueAuthorizationBridgeReadyToolsWithProvidedEvidence=21`, `sourceHandlerBridgeReadyToolsWithProvidedEvidence=21`, `sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence=21`, `routeToQueueAuthorizationCandidatesWithProvidedEvidence=21`, `cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence=13`, `gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence=8`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `routeToQueueAuthorizationsApprovedNow=0`, `backendQueueSubmissionApprovedNowTools=0`, `liveQueueWriteApprovedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this bridge does not mount or execute the API route, approve route-to-queue authorization now, submit backend queue jobs, write live queue rows, open service-role transactions, enqueue or dispatch workers, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.
 
 ## AI Graphics External-Beta Route-To-Live-Enqueue Authorization Bridge
 
 - Decision: `ai_graphics_external_beta_route_to_live_enqueue_authorization_bridge_prepared_with_runtime_blocks`.
-- Scope: private bridge after accepted route-to-queue authorization and all-21 live-enqueue authorization evidence. It matches the `d3` CPU/static and `sam2` GPU/model route candidates to live-enqueue authorization scope while keeping queue jobs `prepared_not_submitted`.
-- Result: it records `routeToLiveEnqueueAuthorizationBridgeReadyToolsWithProvidedEvidence=21`, `sourceRouteToQueueAuthorizationBridgeReadyToolsWithProvidedEvidence=21`, `sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence=21`, `routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence=2`, `cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence=1`, `gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence=1`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `routeToQueueAuthorizationsApprovedNow=0`, `routeToLiveEnqueueAuthorizationsApprovedNow=0`, `backendQueueSubmissionApprovedNowTools=0`, `liveQueueWriteApprovedNowTools=0`, `liveQueueWritesPerformedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `workerDispatchesApprovedNow=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+- Scope: private bridge after accepted route-to-queue authorization and all-21 live-enqueue authorization evidence. It matches all 21 AI graphics route candidates to live-enqueue authorization scope while keeping queue jobs `prepared_not_submitted`.
+- Result: it records `routeToLiveEnqueueAuthorizationBridgeReadyToolsWithProvidedEvidence=21`, `sourceRouteToQueueAuthorizationBridgeReadyToolsWithProvidedEvidence=21`, `sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence=21`, `routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence=21`, `cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence=13`, `gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence=8`, `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools=8`, `gpuRuntimeShouldStartNowTools=0`, `apiRouteMountedNowTools=0`, `routeExecutionsApprovedNow=0`, `routeToQueueAuthorizationsApprovedNow=0`, `routeToLiveEnqueueAuthorizationsApprovedNow=0`, `backendQueueSubmissionApprovedNowTools=0`, `liveQueueWriteApprovedNowTools=0`, `liveQueueWritesPerformedNowTools=0`, `workerEnqueueApprovedNowTools=0`, `workerDispatchesApprovedNow=0`, `toolExecutionsApprovedNow=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
 - Runtime/beta/production: no unlock; this bridge does not mount or execute the API route, approve route-to-live-enqueue authorization now, submit backend queue jobs, write live queue rows, open service-role transactions, run service-role queue smoke, enqueue or dispatch workers, execute tools, start browser/WebGL/canvas or GPU/model runtime, create signed URLs, create public artifacts, enable external-beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.
 
 ## AI Graphics Production Launch Controls
@@ -1762,14 +1762,14 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_route_bound_service_role_queue_smoke_authorization_bridge_prepared_with_runtime_blocks`.
 - Scope: route-bound service-role queue-smoke authorization bridge after accepted route-to-live-enqueue authorization and all-21 service-role queue-smoke authorization evidence.
-- Result: it matches the private route-bound `d3` CPU/static candidate and `sam2` GPU/model candidate to service-role queue-smoke authorization scope while keeping both queue jobs `prepared_not_submitted`. The bridge covers all 21 AI graphics tools, all 12 capabilities, and records 2 representative route-bound candidates.
+- Result: it matches one private route-bound candidate for each of the 21 AI graphics tools to service-role queue-smoke authorization scope while keeping every queue job `prepared_not_submitted`. The bridge covers all 21 tools, all 12 capabilities, 13 non-GPU candidates, and 8 GPU/model candidates; GPU remains on-demand only and `gpuRuntimeShouldStartNow=false`.
 - Runtime/beta/production: no unlock; this packet does not mount or execute the API route, run a service-role smoke, mutate Supabase/GCS, submit live queue rows, enqueue or dispatch workers, execute tools, call providers/models, start browser/WebGL/canvas or GPU runtime, download/load model weights, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.
 
 ## AI Graphics External-Beta Route-Bound Service-Role Queue Smoke Preflight Run Gate
 
 - Decision: `ai_graphics_external_beta_route_bound_service_role_queue_smoke_preflight_run_gate_prepared_with_runtime_blocks`.
 - Scope: side-effect-free route-bound run gate after the accepted route-bound service-role queue-smoke authorization bridge and the all-21 service-role queue-smoke preflight contract.
-- Result: it accepts the private route-bound `d3` CPU/static candidate and `sam2` GPU/model candidate, records required operator/environment/run-window/queue-write-window/cleanup/rollback/telemetry/cost refs, and prepares the later private non-production queue-smoke attempt without approving execution. The gate covers all 21 AI graphics tools, all 12 capabilities, and the 8 GPU-targeted tools remain on-demand only.
+- Result: it accepts all 21 private route-bound candidates, records required operator/environment/run-window/queue-write-window/cleanup/rollback/telemetry/cost refs, and prepares the later private non-production queue-smoke attempt without approving execution. The gate covers all 21 AI graphics tools, all 12 capabilities, 13 non-GPU candidates, and 8 GPU-targeted candidates; GPU remains on-demand only and `gpuRuntimeShouldStartNow=false`.
 - Runtime/beta/production: no unlock; this packet does not mount or execute the API route, run a service-role smoke, mutate Supabase/GCS, submit live queue rows, enqueue or dispatch workers, execute tools, call providers/models, start browser/WebGL/canvas or GPU runtime, download/load model weights, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. `routeBoundServiceRoleQueueSmokeRunApprovedNow=false`, `serviceRoleQueueSmokePerformed=false`, `liveQueueWritePerformed=false`, `workerDispatchPerformed=false`, `toolExecutionPerformed=false`, and `gpuRuntimeShouldStartNow=false`.
 
 ## AI Graphics External-Beta Route-Bound Service-Role Queue Smoke Runbook Authorization

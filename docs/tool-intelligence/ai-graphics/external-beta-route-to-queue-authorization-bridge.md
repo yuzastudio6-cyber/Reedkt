@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_route_to_queue_authorization_bridge_prepare
 
 Status: `route_to_queue_authorization_bridge_ready_runtime_still_blocked`
 
-This packet connects the disabled all-21 external-beta handler bridge to the existing backend queue-submission evidence. It prepares route-to-queue authorization candidates for `d3` and `sam2`, but every candidate remains `prepared_not_submitted`. The next implementation gap is widening backend queue-submission examples so this bridge can authorize all 21 tool candidates without weakening runtime gates.
+This packet connects the disabled all-21 external-beta handler bridge to the all-21 backend queue-submission evidence. It prepares route-to-queue authorization candidates for every AI graphics tool, but every candidate remains `prepared_not_submitted`. The next implementation gap is widening route-to-live-enqueue authorization beyond representative candidates without weakening runtime gates.
 
 ## Scope
 
@@ -13,10 +13,10 @@ This packet connects the disabled all-21 external-beta handler bridge to the exi
 - GPU/model runtime targeted tools: `8`
 - Route-to-queue authorization bridge ready tools with provided evidence: `21`
 - Source handler bridge ready tools with provided evidence: `21`
-- Source backend queue-submission ready examples with provided evidence: `3`
-- Route-to-queue authorization candidates with provided evidence: `2`
-- CPU/static route-to-queue authorization candidates with provided evidence: `1`
-- GPU/model route-to-queue authorization candidates with provided evidence: `1`
+- Source backend queue-submission ready examples with provided evidence: `21`
+- Route-to-queue authorization candidates with provided evidence: `21`
+- CPU/static route-to-queue authorization candidates with provided evidence: `13`
+- GPU/model route-to-queue authorization candidates with provided evidence: `8`
 - API route mounted now: `0`
 - Route executions approved now: `0`
 - Route-to-queue authorizations approved now: `0`
@@ -43,7 +43,7 @@ Covered tools:
 
 ## Authorization Candidates
 
-The source handler bridge now covers all 21 tools. Route-to-queue authorization remains scoped to the existing backend queue-submission examples for `d3` and `sam2`.
+The source handler bridge and backend queue-submission packet now cover all 21 tools. The JSON packet carries one route-to-queue authorization candidate per tool; the examples below show the non-GPU and GPU runtime classes.
 
 ### CPU/static representative
 
@@ -94,7 +94,7 @@ Allowed bridge actions:
 
 - read accepted disabled handler bridge metadata
 - read accepted backend queue submission envelope metadata
-- prepare route-to-queue authorization candidates for `d3` and `sam2`
+- prepare route-to-queue authorization candidates for all 21 AI graphics tools
 - keep queue jobs `prepared_not_submitted` with no live queue writes
 - preserve GPU startup as on-demand only for a later accepted worker/tool job
 
@@ -183,7 +183,6 @@ Blocked now:
 
 ## Next Milestones
 
-1. QA the private route-to-queue authorization bridge while queue writes remain blocked.
-2. Add a private route-to-queue smoke authorization gate before any live queue write is attempted.
+1. QA the all-21 private route-to-queue authorization bridge while queue writes remain blocked.
+2. Widen route-to-live-enqueue authorization to consume all 21 route-to-queue candidates.
 3. Run a single private non-production route-to-queue smoke only after explicit operator authorization.
-4. Widen backend queue-submission envelope examples from `d3`/`sam2` representatives to all 21 AI graphics tools.

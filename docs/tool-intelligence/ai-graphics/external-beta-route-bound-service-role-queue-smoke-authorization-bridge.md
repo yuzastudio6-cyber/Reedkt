@@ -6,7 +6,7 @@ Status: `route_bound_service_role_queue_smoke_authorization_bridge_ready_runtime
 
 ## Summary
 
-This packet bridges the accepted route-to-live-enqueue authorization evidence to the all-21 service-role queue-smoke authorization evidence. It proves that the private route-bound candidates for `d3` and `sam2` can be matched to service-role queue-smoke authorization scope before any live queue write is attempted.
+This packet bridges the accepted route-to-live-enqueue authorization evidence to the all-21 service-role queue-smoke authorization evidence. It proves that private route-bound candidates for all 21 AI graphics tools can be matched to service-role queue-smoke authorization scope before any live queue write is attempted.
 
 The bridge is still planning/readiness metadata only. It does not mount or execute the API route, run a service-role smoke, submit a queue job, enqueue or dispatch a worker, execute a tool, start GPU runtime, create a signed URL, create a public artifact, unlock external beta traffic, or unlock production.
 
@@ -23,26 +23,31 @@ The bridge is still planning/readiness metadata only. It does not mount or execu
 - Total AI graphics tools covered: `21`
 - Product-facing capabilities covered: `12`
 - GPU-targeted tools tracked for later on-demand runtime: `8`
-- Route-bound service-role queue-smoke authorization candidates: `2`
-- CPU/static candidate: `d3`
-- GPU/model candidate: `sam2`
+- Route-bound service-role queue-smoke authorization candidates: `21`
+- CPU/static or non-GPU candidates: `13`
+- GPU/model candidates: `8`
 
 All tools covered: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background`, `d3`, `echarts`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs`.
 
+Product-facing capabilities covered: `chart_overlay`, `data_visualization`, `svg_graphics`, `diagram_graphics`, `animation_overlay`, `canvas_scene`, `webgl_3d_scene`, `background_removal`, `subject_segmentation`, `upscaling`, `tensor_image_ops`, `model_runtime_foundation`.
+
 ## Candidates
 
-| Tool | Capability | Runtime target | Worker type | GPU allowed for later accepted job | GPU starts now |
-| --- | --- | --- | --- | --- | --- |
-| `d3` | `chart_overlay` | `node_cpu_static` | `render_worker` | `false` | `false` |
-| `sam2` | `subject_segmentation` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `gpu_ai_worker` | `true` | `false` |
+The JSON record carries one route-bound authorization candidate for each of the 21 tools. Representative groups:
 
-Both candidates remain `prepared_not_submitted`.
+| Tools | Capabilities | Runtime target group | Worker type | GPU allowed for later accepted job | GPU starts now |
+| --- | --- | --- | --- | --- | --- |
+| `d3`, `vega_lite`, `vega`, `satori`, `svgdotjs_svg_js`, `viz_js` | `chart_overlay`, `data_visualization`, `svg_graphics`, `diagram_graphics` | CPU/static | `render_worker` | `false` | `false` |
+| `echarts`, `lottie_web`, `animejs`, `three_js`, `pixi_js`, `konva`, `babylonjs` | `chart_overlay`, `animation_overlay`, `canvas_scene`, `webgl_3d_scene` | Browser/chart/animation/canvas/WebGL later | `render_worker` | `false` | `false` |
+| `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, `transparent_background` | `model_runtime_foundation`, `tensor_image_ops`, `subject_segmentation`, `background_removal`, `upscaling` | GPU/model later | `gpu_ai_worker` | `true` | `false` |
+
+All candidates remain `prepared_not_submitted`.
 
 ## Allowed Bridge Actions
 
 - Read accepted route-to-live-enqueue authorization bridge metadata.
 - Read accepted all-21 service-role queue-smoke authorization metadata.
-- Match route-bound `d3` and `sam2` candidates to service-role smoke authorization scope.
+- Match all 21 route-bound tool candidates to service-role smoke authorization scope.
 - Keep queue jobs in `prepared_not_submitted` state with no live queue writes.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
 
@@ -79,9 +84,9 @@ Both candidates remain `prepared_not_submitted`.
 | `routeBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence` | `21` |
 | `sourceRouteToLiveEnqueueAuthorizationBridgeReadyToolsWithProvidedEvidence` | `21` |
 | `sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence` | `21` |
-| `routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence` | `2` |
-| `cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence` | `1` |
-| `gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence` | `1` |
+| `routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence` | `21` |
+| `cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence` | `13` |
+| `gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence` | `8` |
 | `serviceRoleQueueSmokeApprovedNowTools` | `0` |
 | `liveQueueWritesPerformedNowTools` | `0` |
 | `workerDispatchesApprovedNow` | `0` |

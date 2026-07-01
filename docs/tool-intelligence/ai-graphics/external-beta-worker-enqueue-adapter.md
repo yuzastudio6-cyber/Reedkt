@@ -10,9 +10,9 @@ This contract is the external-beta backend queue adapter boundary for AI graphic
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
 - Source tool-call gateway proof bridge accepted: `true`
-- Full adapter payload examples ready with provided evidence: `3`
-- CPU/static first-cohort adapter payload examples ready with provided evidence: `1`
-- GPU runtime start allowed for accepted external-beta job examples: `1`
+- Full adapter payload examples ready with provided evidence: `21`
+- CPU/static/non-GPU adapter payload examples ready with provided evidence: `13`
+- GPU runtime start allowed for accepted external-beta job examples: `8`
 - Live backend queue submissions now: `0`
 - Live worker leases created now: `0`
 - Live worker dispatches now: `0`
@@ -33,12 +33,12 @@ An external-beta gateway candidate can become a worker enqueue adapter payload w
 
 ## GPU Boundary
 
-GPU remains on-demand only. SAM2 can be marked as start-allowed for an accepted future external-beta worker job, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `backendQueueSubmissionPerformed=false`, and `workerEnqueuePerformed=false` remain enforced. If no one is using the tool through an accepted future worker job, no GPU runtime should be running.
+GPU remains on-demand only. The eight GPU/model tools can be marked as start-allowed for an accepted future external-beta worker job, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `backendQueueSubmissionPerformed=false`, and `workerEnqueuePerformed=false` remain enforced. If no one is using a GPU tool through an accepted future worker job, no GPU runtime should be running.
 
 ## Runtime Boundary
 
 ## CPU/Static First Cohort
 
-The adapter now preserves `sourceGatewayRuntimeAdmissionMode` and `sourceGatewayRuntimeAdmissionProofBridgeAccepted` inside the `ProductionWorkerJobPayload` metadata. `d3` can be prepared through the CPU/static first-cohort gateway path with `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort`, `runtimeTarget=node_cpu_static`, and `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=false`.
+The adapter now preserves `sourceGatewayRuntimeAdmissionMode` and `sourceGatewayRuntimeAdmissionProofBridgeAccepted` inside the `ProductionWorkerJobPayload` metadata. All 13 non-GPU tools can be shaped into `production_blocked` worker payload candidates with `gpuRuntimeStartAllowedForAcceptedExternalBetaJob=false`.
 
 This adapter does not submit backend queues, create worker leases, dispatch workers, execute tools, start GPU runtime, call providers, create signed URLs, create public artifacts, process media, mutate Supabase/GCS, unlock external beta traffic, or unlock production.

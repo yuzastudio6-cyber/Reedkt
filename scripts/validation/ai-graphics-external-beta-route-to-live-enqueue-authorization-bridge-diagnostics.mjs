@@ -249,7 +249,7 @@ if (docs.status !== acceptedStatus) fail('status_mismatch')
 if (sourceRoute.decision !== sourceRouteDecision) fail('source_route_decision_mismatch')
 if (sourceRoute.status !== sourceRouteStatus) fail('source_route_status_mismatch')
 if (sourceLive.decision !== sourceLiveDecision) fail('source_live_decision_mismatch')
-if (countFrom(sourceRoute, 'routeToQueueAuthorizationCandidatesWithProvidedEvidence') !== 2) {
+if (countFrom(sourceRoute, 'routeToQueueAuthorizationCandidatesWithProvidedEvidence') !== 21) {
   fail('source_route_candidate_count_mismatch')
 }
 if (countFrom(sourceLive, 'liveEnqueueAuthorizationRecordedToolsWithProvidedEvidence') !== 21) {
@@ -274,13 +274,13 @@ if (countFrom(docs, 'sourceRouteToQueueAuthorizationBridgeReadyToolsWithProvided
 if (countFrom(docs, 'sourceLiveEnqueueAuthorizationRecordedToolsWithProvidedEvidence') !== 21) {
   fail('source_live_ready_count_mismatch')
 }
-if (countFrom(docs, 'routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') !== 2) {
+if (countFrom(docs, 'routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') !== 21) {
   fail('candidate_count_mismatch')
 }
-if (countFrom(docs, 'cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') !== 13) {
   fail('cpu_static_candidate_count_mismatch')
 }
-if (countFrom(docs, 'gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence') !== 8) {
   fail('gpu_model_candidate_count_mismatch')
 }
 for (const zeroKey of [
@@ -304,7 +304,21 @@ for (const zeroKey of [
 checkBooleans(docs)
 
 const candidates = docs.routeToLiveEnqueueAuthorizationCandidates ?? []
-if (candidates.length !== 2) fail('candidate_length_mismatch')
+if (candidates.length !== tools.length) fail('candidate_length_mismatch')
+const candidateToolIds = candidates.map((item) => item.toolId).sort()
+if (JSON.stringify(candidateToolIds) !== JSON.stringify([...tools].sort())) {
+  fail('candidate_tool_coverage_mismatch')
+}
+const gpuCandidates = candidates.filter(
+  (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true,
+)
+const cpuStaticCandidates = candidates.filter(
+  (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === false,
+)
+if (gpuCandidates.length !== 8) fail(`gpu_candidate_count_unexpected:${gpuCandidates.length}`)
+if (cpuStaticCandidates.length !== 13) {
+  fail(`cpu_static_candidate_count_unexpected:${cpuStaticCandidates.length}`)
+}
 const d3Candidate = candidates.find((item) => item.toolId === 'd3')
 const sam2Candidate = candidates.find((item) => item.toolId === 'sam2')
 if (!d3Candidate) fail('missing_d3_candidate')
@@ -331,6 +345,22 @@ if (sam2Candidate) {
 }
 
 for (const candidate of candidates) {
+  const sourceRouteCandidate = sourceRoute.routeToQueueAuthorizationCandidates?.find(
+    (item) => item.toolId === candidate.toolId,
+  )
+  if (!sourceRouteCandidate) fail(`candidate_missing_source_route:${candidate.toolId}`)
+  if (sourceRouteCandidate && candidate.authorizationId !== sourceRouteCandidate.authorizationId) {
+    fail(`candidate_authorization_mismatch:${candidate.toolId}`)
+  }
+  if (sourceRouteCandidate && candidate.capabilityId !== sourceRouteCandidate.capabilityId) {
+    fail(`candidate_capability_mismatch:${candidate.toolId}`)
+  }
+  if (sourceRouteCandidate && candidate.runtimeTarget !== sourceRouteCandidate.runtimeTarget) {
+    fail(`candidate_runtime_target_mismatch:${candidate.toolId}`)
+  }
+  if (sourceRouteCandidate && candidate.workerType !== sourceRouteCandidate.workerType) {
+    fail(`candidate_worker_type_mismatch:${candidate.toolId}`)
+  }
   for (const key of [
     'apiRouteMountedNow',
     'apiRouteExecutionApprovedNow',
@@ -406,6 +436,7 @@ for (const required of [
   'AI_GRAPHICS_EXTERNAL_BETA_ROUTE_TO_LIVE_ENQUEUE_AUTHORIZATION_BRIDGE_DECISION',
   'evaluateAiGraphicsExternalBetaRouteToLiveEnqueueAuthorizationBridge',
   'buildAiGraphicsExternalBetaRouteToLiveEnqueueAuthorizationBridgeInput',
+  'AI_GRAPHICS_CANONICAL_TOOL_IDS',
   'route-to-live-enqueue-authorization-${toolId}',
   'route_authorization_matched_to_live_enqueue_scope_not_enqueued',
   'queueJobStatus',
@@ -545,9 +576,9 @@ console.log(JSON.stringify({
   acceptedStatus,
   tools: tools.length,
   capabilities: capabilities.length,
-  routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence: 2,
-  cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence: 1,
-  gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence: 1,
+  routeToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence: 21,
+  cpuStaticRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence: 13,
+  gpuModelRouteToLiveEnqueueAuthorizationCandidatesWithProvidedEvidence: 8,
   liveQueueWritePerformed: false,
   workerEnqueuePerformed: false,
   packageLockUnchanged: true,

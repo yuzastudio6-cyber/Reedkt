@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_route_to_live_enqueue_authorization_bridge_
 
 Status: `route_to_live_enqueue_authorization_bridge_ready_runtime_still_blocked`
 
-This packet connects the private route-to-queue authorization bridge to the accepted all-21 live-enqueue authorization packet. It proves that the `d3` CPU/static and `sam2` GPU/model route candidates can be matched to live-enqueue authorization scope without approving a queue write, worker enqueue, worker dispatch, tool execution, or GPU startup.
+This packet connects the private all-21 route-to-queue authorization bridge to the accepted all-21 live-enqueue authorization packet. It proves that every AI graphics route candidate can be matched to live-enqueue authorization scope without approving a queue write, worker enqueue, worker dispatch, tool execution, or GPU startup.
 
 ## Scope
 
@@ -13,9 +13,9 @@ This packet connects the private route-to-queue authorization bridge to the acce
 - GPU/model runtime targeted tools: `8`
 - Source route-to-queue authorization bridge ready tools with provided evidence: `21`
 - Source live-enqueue authorization recorded tools with provided evidence: `21`
-- Route-to-live-enqueue authorization candidates with provided evidence: `2`
-- CPU/static route-to-live-enqueue authorization candidates with provided evidence: `1`
-- GPU/model route-to-live-enqueue authorization candidates with provided evidence: `1`
+- Route-to-live-enqueue authorization candidates with provided evidence: `21`
+- CPU/static route-to-live-enqueue authorization candidates with provided evidence: `13`
+- GPU/model route-to-live-enqueue authorization candidates with provided evidence: `8`
 - API route mounted now: `0`
 - Route executions approved now: `0`
 - Route-to-queue authorizations approved now: `0`
@@ -42,6 +42,8 @@ Covered tools:
 - `docs/tool-intelligence/ai-graphics/external-beta-runtime-queue-service-bridge.json`
 
 ## Authorization Candidates
+
+The JSON packet carries one route-to-live-enqueue authorization candidate per tool. The examples below show the non-GPU and GPU runtime classes.
 
 ### CPU/static representative
 
@@ -94,7 +96,7 @@ Allowed bridge actions:
 
 - read accepted route-to-queue authorization bridge metadata
 - read accepted all-21 live-enqueue authorization metadata
-- match route candidates for `d3` and `sam2` to live-enqueue authorization scope
+- match route candidates for all 21 AI graphics tools to live-enqueue authorization scope
 - keep queue jobs `prepared_not_submitted` with no live queue writes
 - preserve GPU startup as on-demand only for a later accepted worker/tool job
 
@@ -188,6 +190,6 @@ Blocked now:
 
 ## Next Milestones
 
-1. QA the private route-to-live-enqueue authorization bridge while queue writes remain blocked.
-2. Add a route-bound service-role queue smoke authorization bridge before any live queue write is attempted.
+1. QA the all-21 private route-to-live-enqueue authorization bridge while queue writes remain blocked.
+2. Widen route-bound service-role queue smoke authorization to consume all 21 route-to-live candidates.
 3. Run a single private non-production service-role queue smoke only after explicit operator authorization.

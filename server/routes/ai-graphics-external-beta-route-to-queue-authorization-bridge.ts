@@ -4,6 +4,10 @@ import {
 import {
   AI_GRAPHICS_EXTERNAL_BETA_BACKEND_QUEUE_SUBMISSION_DECISION,
 } from '../tool-registry/ai-graphics-external-beta-backend-queue-submission'
+import {
+  AI_GRAPHICS_CANONICAL_TOOL_IDS,
+  type AiGraphicsCanonicalToolId,
+} from '../tool-registry/ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_ROUTE_TO_QUEUE_AUTHORIZATION_BRIDGE_DECISION =
   'ai_graphics_external_beta_route_to_queue_authorization_bridge_prepared_with_runtime_blocks'
@@ -24,8 +28,8 @@ export interface AiGraphicsExternalBetaRouteToQueueAuthorizationBridgeInput {
 export interface AiGraphicsExternalBetaRouteToQueueAuthorizationCandidate {
   authorizationId: string
   requestId: string
-  toolId: 'd3' | 'sam2'
-  capabilityId: 'chart_overlay' | 'subject_segmentation'
+  toolId: AiGraphicsCanonicalToolId
+  capabilityId: string
   routePath: '/api/ai-graphics/external-beta/tool-call'
   method: 'POST'
   queueName: 'ai_graphics_external_beta_tool_runtime'
@@ -79,9 +83,9 @@ export interface AiGraphicsExternalBetaRouteToQueueAuthorizationBridge {
   routeToQueueAuthorizationBridgeReadyToolsWithProvidedEvidence: 0 | 21
   sourceHandlerBridgeReadyToolsWithProvidedEvidence: 0 | 21
   sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence: number
-  routeToQueueAuthorizationCandidatesWithProvidedEvidence: 0 | 2
-  cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 0 | 1
-  gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 0 | 1
+  routeToQueueAuthorizationCandidatesWithProvidedEvidence: 0 | 21
+  cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 0 | 13
+  gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence: 0 | 8
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
   routeToQueueAuthorizationsApprovedNow: 0
@@ -196,7 +200,7 @@ const routeToQueueAuthorizationPolicy = {
 const allowedBridgeActions = [
   'read accepted disabled handler bridge metadata',
   'read accepted backend queue submission envelope metadata',
-  'prepare route-to-queue authorization candidates for d3 and sam2',
+  'prepare route-to-queue authorization candidates for all 21 AI graphics tools',
   'keep queue jobs prepared_not_submitted with no live queue writes',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
@@ -228,15 +232,10 @@ const blockedRuntimeActions = [
 ]
 
 const nextMilestones = [
-  'QA the private route-to-queue authorization bridge while queue writes remain blocked.',
-  'Add a private route-to-queue smoke authorization gate before any live queue write is attempted.',
+  'QA the all-21 private route-to-queue authorization bridge while queue writes remain blocked.',
+  'Widen route-to-live-enqueue authorization to consume all 21 route-to-queue candidates.',
   'Run a single private non-production route-to-queue smoke only after explicit operator authorization.',
 ]
-
-const authorizationIds = {
-  d3: 'route-to-queue-authorization-d3',
-  sam2: 'route-to-queue-authorization-sam2',
-} as const
 
 function countFrom(packet: Record<string, unknown> | undefined, key: string): number | undefined {
   const counts = (packet?.counts ?? {}) as Record<string, unknown>
@@ -278,8 +277,9 @@ function backendQueueSubmissionAccepted(packet?: Record<string, unknown>): boole
   return Boolean(packet) &&
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_BACKEND_QUEUE_SUBMISSION_DECISION &&
     packet.status === 'prepared_external_beta_backend_queue_submission_envelope_runtime_blocked' &&
-    countFrom(packet, 'fullSubmissionEnvelopeReadyExamples') === 3 &&
-    countFrom(packet, 'cpuStaticFirstCohortSubmissionEnvelopeReadyExamples') === 1 &&
+    countFrom(packet, 'fullSubmissionEnvelopeReadyExamples') === 21 &&
+    countFrom(packet, 'cpuStaticFirstCohortSubmissionEnvelopeReadyExamples') === 13 &&
+    countFrom(packet, 'gpuRuntimeStartAllowedForAcceptedExternalBetaJobExamples') === 8 &&
     countFrom(packet, 'liveBackendQueueSubmissionsNow') === 0 &&
     countFrom(packet, 'liveServiceRoleTransactionsNow') === 0 &&
     countFrom(packet, 'liveWorkerDispatchesNow') === 0 &&
@@ -296,12 +296,12 @@ function backendQueueSubmissionAccepted(packet?: Record<string, unknown>): boole
     booleanFrom(packet, 'gpuRuntimeShouldStartNow') === false
 }
 
-function handlerCaseFor(packet: Record<string, unknown> | undefined, toolId: 'd3' | 'sam2') {
+function handlerCaseFor(packet: Record<string, unknown> | undefined, toolId: AiGraphicsCanonicalToolId) {
   const cases = (packet?.handlerBridgeCases ?? []) as Array<Record<string, unknown>>
   return cases.find((item) => item.toolId === toolId)
 }
 
-function backendExampleFor(packet: Record<string, unknown> | undefined, toolId: 'd3' | 'sam2') {
+function backendExampleFor(packet: Record<string, unknown> | undefined, toolId: AiGraphicsCanonicalToolId) {
   const examples = (packet?.exampleEvaluations ?? []) as Array<Record<string, unknown>>
   return examples.find((item) => item.id === `accepted_future_${toolId}_backend_queue_submission_envelope`)
 }
@@ -310,7 +310,7 @@ function candidateReasons(
   handlerPacket: Record<string, unknown> | undefined,
   queuePacket: Record<string, unknown> | undefined,
 ): string[] {
-  return (['d3', 'sam2'] as const).flatMap((toolId) => {
+  return AI_GRAPHICS_CANONICAL_TOOL_IDS.flatMap((toolId) => {
     const handlerCase = handlerCaseFor(handlerPacket, toolId)
     const queueExample = backendExampleFor(queuePacket, toolId)
     return [
@@ -365,12 +365,12 @@ function buildCandidate(
     queueExample: Record<string, unknown>
   },
 ): AiGraphicsExternalBetaRouteToQueueAuthorizationCandidate {
-  const toolId = input.handlerCase.toolId as 'd3' | 'sam2'
+  const toolId = input.handlerCase.toolId as AiGraphicsCanonicalToolId
   return {
-    authorizationId: authorizationIds[toolId],
+    authorizationId: `route-to-queue-authorization-${toolId}`,
     requestId: input.handlerCase.requestId as string,
     toolId,
-    capabilityId: input.handlerCase.capabilityId as 'chart_overlay' | 'subject_segmentation',
+    capabilityId: input.handlerCase.capabilityId as string,
     routePath: input.handlerCase.routePath as '/api/ai-graphics/external-beta/tool-call',
     method: 'POST',
     queueName: 'ai_graphics_external_beta_tool_runtime',
@@ -428,15 +428,19 @@ export function evaluateAiGraphicsExternalBetaRouteToQueueAuthorizationBridge(
   })
   const ready = status === 'route_to_queue_authorization_bridge_ready_runtime_still_blocked'
   const routeToQueueAuthorizationCandidates = ready
-    ? (['d3', 'sam2'] as const).map((toolId) => buildCandidate({
+    ? AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => buildCandidate({
         handlerCase: handlerCaseFor(input.sourceHandlerBridgePacket, toolId)!,
         queueExample: backendExampleFor(input.sourceBackendQueueSubmissionPacket, toolId)!,
       }))
     : []
-  const cpuStaticAccepted =
-    routeToQueueAuthorizationCandidates.some((item) => item.toolId === 'd3' && !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
-  const gpuModelAccepted =
-    routeToQueueAuthorizationCandidates.some((item) => item.toolId === 'sam2' && item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
+  const cpuStaticAcceptedCount =
+    routeToQueueAuthorizationCandidates.filter(
+      (item) => !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    ).length
+  const gpuModelAcceptedCount =
+    routeToQueueAuthorizationCandidates.filter(
+      (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    ).length
 
   const rejectionReasons = [
     !input.sourceHandlerBridgePacket ? 'accepted handler bridge packet is missing' : undefined,
@@ -474,9 +478,11 @@ export function evaluateAiGraphicsExternalBetaRouteToQueueAuthorizationBridge(
     sourceHandlerBridgeReadyToolsWithProvidedEvidence: handlerAccepted ? 21 : 0,
     sourceBackendQueueSubmissionReadyExamplesWithProvidedEvidence:
       countFrom(input.sourceBackendQueueSubmissionPacket, 'fullSubmissionEnvelopeReadyExamples') ?? 0,
-    routeToQueueAuthorizationCandidatesWithProvidedEvidence: ready ? 2 : 0,
-    cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence: cpuStaticAccepted ? 1 : 0,
-    gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence: gpuModelAccepted ? 1 : 0,
+    routeToQueueAuthorizationCandidatesWithProvidedEvidence: ready ? 21 : 0,
+    cpuStaticRouteToQueueAuthorizationCandidatesWithProvidedEvidence:
+      ready ? cpuStaticAcceptedCount as 13 : 0,
+    gpuModelRouteToQueueAuthorizationCandidatesWithProvidedEvidence:
+      ready ? gpuModelAcceptedCount as 8 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     routeToQueueAuthorizationsApprovedNow: 0,
@@ -499,8 +505,8 @@ export function evaluateAiGraphicsExternalBetaRouteToQueueAuthorizationBridge(
       sourceBackendQueueSubmissionAccepted: queueAccepted,
       routeToQueueAuthorizationCandidatesAccepted: ready,
       routeToQueueAuthorizationBridgeReadyWithProvidedEvidence: ready,
-      cpuStaticRouteToQueueAuthorizationAccepted: cpuStaticAccepted,
-      gpuModelRouteToQueueAuthorizationAccepted: gpuModelAccepted,
+      cpuStaticRouteToQueueAuthorizationAccepted: cpuStaticAcceptedCount === 13,
+      gpuModelRouteToQueueAuthorizationAccepted: gpuModelAcceptedCount === 8,
       privateRouteToQueueAuthorizationBridgeOnly: true,
       queueJobPreparedNotSubmittedOnly: true,
       all21ToolsCovered: true,

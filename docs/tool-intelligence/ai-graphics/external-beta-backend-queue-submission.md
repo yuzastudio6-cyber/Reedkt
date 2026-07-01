@@ -10,9 +10,9 @@ This contract is the external-beta backend queue submission envelope for AI grap
 - Product-facing capabilities covered: `12`
 - GPU runtime targeted tools: `8`
 - Source worker enqueue adapter proof bridge accepted: `true`
-- Full backend queue submission envelope examples ready with provided evidence: `3`
-- CPU/static first-cohort queue submission envelope examples ready with provided evidence: `1`
-- GPU runtime start allowed for accepted external-beta job examples: `1`
+- Full backend queue submission envelope examples ready with provided evidence: `21`
+- CPU/static/non-GPU queue submission envelope examples ready with provided evidence: `13`
+- GPU runtime start allowed for accepted external-beta job examples: `8`
 - Live backend queue submissions now: `0`
 - Live service-role transactions now: `0`
 - Live worker leases created now: `0`
@@ -35,12 +35,12 @@ An external-beta adapter payload can become a backend queue submission envelope 
 
 ## GPU Boundary
 
-GPU remains on-demand only. SAM2 can be marked as start-allowed for an accepted future external-beta worker job, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `backendQueueSubmissionPerformed=false`, and `serviceRoleTransactionPerformed=false` remain enforced. If no accepted worker job is submitted and claimed, no GPU runtime should be running.
+GPU remains on-demand only. The eight GPU/model tools can be marked as start-allowed for an accepted future external-beta worker job, but `gpuRuntimeShouldStartNow=false`, `gpuRuntimePerformed=false`, `backendQueueSubmissionPerformed=false`, and `serviceRoleTransactionPerformed=false` remain enforced. If no accepted worker job is submitted and claimed, no GPU runtime should be running.
 
 ## Runtime Boundary
 
 ## CPU/Static First Cohort
 
-The queue envelope now preserves the adapter payload metadata carrying `sourceGatewayRuntimeAdmissionMode=cpu_static_first_cohort` and `sourceGatewayRuntimeAdmissionProofBridgeAccepted=true`. `d3` can be shaped into a prepared-not-submitted queue job candidate through the CPU/static first-cohort path with `runtimeTarget=node_cpu_static`, while `backendQueueSubmissionPerformed=false`, `serviceRoleTransactionPerformed=false`, and `gpuRuntimeShouldStartNow=false` remain enforced.
+The queue envelope now preserves the adapter payload metadata carrying `sourceGatewayRuntimeAdmissionMode` and `sourceGatewayRuntimeAdmissionProofBridgeAccepted=true`. All 13 non-GPU tools can be shaped into prepared-not-submitted queue job candidates while `backendQueueSubmissionPerformed=false`, `serviceRoleTransactionPerformed=false`, and `gpuRuntimeShouldStartNow=false` remain enforced.
 
 This envelope does not submit backend queues, run service-role transactions, create worker leases, dispatch workers, execute tools, start GPU runtime, call providers, create signed URLs, create public artifacts, process media, mutate Supabase/GCS, unlock external beta traffic, or unlock production.

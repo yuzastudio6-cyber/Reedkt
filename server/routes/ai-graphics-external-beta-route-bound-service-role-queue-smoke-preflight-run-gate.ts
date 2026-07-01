@@ -4,6 +4,10 @@ import {
 import {
   AI_GRAPHICS_EXTERNAL_BETA_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_DECISION,
 } from '../tool-registry/ai-graphics-external-beta-service-role-queue-smoke-preflight'
+import {
+  AI_GRAPHICS_CANONICAL_TOOL_IDS,
+  type AiGraphicsCanonicalToolId,
+} from '../tool-registry/ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_ROUTE_BOUND_SERVICE_ROLE_QUEUE_SMOKE_PREFLIGHT_RUN_GATE_DECISION =
   'ai_graphics_external_beta_route_bound_service_role_queue_smoke_preflight_run_gate_prepared_with_runtime_blocks'
@@ -36,15 +40,15 @@ export interface AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePreflightR
 export interface AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePreflightRunGateCandidate {
   gateId: string
   sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeId: string
-  toolId: 'd3' | 'sam2'
-  capabilityId: 'chart_overlay' | 'subject_segmentation'
+  toolId: AiGraphicsCanonicalToolId
+  capabilityId: string
   routePath: '/api/ai-graphics/external-beta/tool-call'
   method: 'POST'
   queueName: 'ai_graphics_external_beta_tool_runtime'
   queueJobType: 'ai_graphics_tool_runtime'
   queueJobStatus: 'prepared_not_submitted'
   runtimeTarget: string
-  workerType: 'render_worker' | 'gpu_ai_worker'
+  workerType: string
   sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeAccepted: true
   sourceServiceRoleQueueSmokePreflightAccepted: true
   runGateMode:
@@ -103,9 +107,9 @@ export interface AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePreflightR
   routeBoundServiceRoleQueueSmokePreflightRunGateReadyToolsWithProvidedEvidence: 0 | 21
   sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence: 0 | 21
   sourceServiceRoleQueueSmokePreflightReadyToolsWithProvidedEvidence: 0 | 21
-  routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 0 | 2
-  cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 0 | 1
-  gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 0 | 1
+  routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 0 | 21
+  cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 0 | 13
+  gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence: 0 | 8
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
   routeBoundServiceRoleQueueSmokeRunApprovedNowTools: 0
@@ -258,7 +262,7 @@ const allowedGateActions = [
   'read accepted route-bound service-role queue-smoke authorization bridge metadata',
   'read accepted all-21 service-role queue smoke preflight metadata',
   'verify private operator/run-window/rollback/telemetry/cost refs exist',
-  'prepare route-bound d3 and sam2 smoke candidates without submitting queue jobs',
+  'prepare all 21 route-bound smoke candidates without submitting queue jobs',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
@@ -343,9 +347,9 @@ function routeBoundAuthorizationBridgeAccepted(packet?: Record<string, unknown>)
       AI_GRAPHICS_EXTERNAL_BETA_ROUTE_BOUND_SERVICE_ROLE_QUEUE_SMOKE_AUTHORIZATION_BRIDGE_DECISION &&
     packet.status === 'route_bound_service_role_queue_smoke_authorization_bridge_ready_runtime_still_blocked' &&
     countFrom(packet, 'routeBoundServiceRoleQueueSmokeAuthorizationBridgeReadyToolsWithProvidedEvidence') === 21 &&
-    countFrom(packet, 'routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence') === 2 &&
-    countFrom(packet, 'cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence') === 1 &&
-    countFrom(packet, 'gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence') === 1 &&
+    countFrom(packet, 'routeBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'cpuStaticRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence') === 13 &&
+    countFrom(packet, 'gpuModelRouteBoundServiceRoleQueueSmokeAuthorizationCandidatesWithProvidedEvidence') === 8 &&
     countFrom(packet, 'serviceRoleQueueSmokeApprovedNowTools') === 0 &&
     countFrom(packet, 'liveQueueWritesPerformedNowTools') === 0 &&
     countFrom(packet, 'workerDispatchesApprovedNow') === 0 &&
@@ -392,7 +396,7 @@ function serviceRoleQueueSmokePreflightAccepted(packet?: Record<string, unknown>
 
 function routeBoundCandidateFor(
   packet: Record<string, unknown> | undefined,
-  toolId: 'd3' | 'sam2',
+  toolId: AiGraphicsCanonicalToolId,
 ) {
   const candidates =
     (packet?.routeBoundServiceRoleQueueSmokeAuthorizationCandidates ?? []) as
@@ -420,17 +424,20 @@ function candidateReasons(
 ): string[] {
   const preflightTools = stringArrayFrom(preflightPacket, 'tools')
   const preflightCapabilities = stringArrayFrom(preflightPacket, 'capabilities')
-  return (['d3', 'sam2'] as const).flatMap((toolId) => {
+  return AI_GRAPHICS_CANONICAL_TOOL_IDS.flatMap((toolId) => {
     const routeCandidate = routeBoundCandidateFor(routeBoundPacket, toolId)
-    const capabilityId = toolId === 'd3' ? 'chart_overlay' : 'subject_segmentation'
+    const capabilityId =
+      typeof routeCandidate?.capabilityId === 'string'
+        ? routeCandidate.capabilityId
+        : undefined
     return [
       !routeCandidate ? `missing route-bound authorization bridge candidate for ${toolId}` : undefined,
       !preflightTools.includes(toolId) ? `missing service-role queue smoke preflight tool coverage for ${toolId}` : undefined,
-      !preflightCapabilities.includes(capabilityId)
+      capabilityId && !preflightCapabilities.includes(capabilityId)
         ? `missing service-role queue smoke preflight capability coverage for ${capabilityId}`
         : undefined,
-      routeCandidate && routeCandidate.capabilityId !== capabilityId
-        ? `route-bound candidate capability mismatch for ${toolId}`
+      !capabilityId
+        ? `route-bound candidate capability missing for ${toolId}`
         : undefined,
       routeCandidate && routeCandidate.queueJobStatus !== 'prepared_not_submitted'
         ? `route-bound candidate queue status is not prepared_not_submitted for ${toolId}`
@@ -480,20 +487,20 @@ function statusFromInput(input: {
 function buildCandidate(
   sourceCandidate: Record<string, unknown>,
 ): AiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePreflightRunGateCandidate {
-  const toolId = sourceCandidate.toolId as 'd3' | 'sam2'
+  const toolId = sourceCandidate.toolId as AiGraphicsCanonicalToolId
   return {
     gateId: `route-bound-service-role-queue-smoke-preflight-run-gate-${toolId}`,
     sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeId:
       sourceCandidate.bridgeId as string,
     toolId,
-    capabilityId: sourceCandidate.capabilityId as 'chart_overlay' | 'subject_segmentation',
+    capabilityId: sourceCandidate.capabilityId as string,
     routePath: sourceCandidate.routePath as '/api/ai-graphics/external-beta/tool-call',
     method: 'POST',
     queueName: 'ai_graphics_external_beta_tool_runtime',
     queueJobType: 'ai_graphics_tool_runtime',
     queueJobStatus: 'prepared_not_submitted',
     runtimeTarget: sourceCandidate.runtimeTarget as string,
-    workerType: sourceCandidate.workerType as 'render_worker' | 'gpu_ai_worker',
+    workerType: sourceCandidate.workerType as string,
     sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgeAccepted: true,
     sourceServiceRoleQueueSmokePreflightAccepted: true,
     runGateMode:
@@ -563,7 +570,7 @@ export function evaluateAiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePre
     status ===
       'route_bound_service_role_queue_smoke_preflight_run_gate_ready_execution_still_blocked'
   const routeBoundServiceRoleQueueSmokePreflightRunGateCandidates = ready
-    ? (['d3', 'sam2'] as const).map((toolId) =>
+    ? AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) =>
         buildCandidate(
           routeBoundCandidateFor(
             input.sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgePacket,
@@ -573,13 +580,13 @@ export function evaluateAiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePre
       )
     : []
   const cpuStaticAccepted =
-    routeBoundServiceRoleQueueSmokePreflightRunGateCandidates.some(
-      (item) => item.toolId === 'd3' && !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-    )
+    routeBoundServiceRoleQueueSmokePreflightRunGateCandidates.filter(
+      (item) => !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    ).length === 13
   const gpuModelAccepted =
-    routeBoundServiceRoleQueueSmokePreflightRunGateCandidates.some(
-      (item) => item.toolId === 'sam2' && item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-    )
+    routeBoundServiceRoleQueueSmokePreflightRunGateCandidates.filter(
+      (item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+    ).length === 8
 
   const rejectionReasons = [
     !input.sourceRouteBoundServiceRoleQueueSmokeAuthorizationBridgePacket
@@ -629,11 +636,11 @@ export function evaluateAiGraphicsExternalBetaRouteBoundServiceRoleQueueSmokePre
     sourceServiceRoleQueueSmokePreflightReadyToolsWithProvidedEvidence:
       sourcePreflightAccepted ? 21 : 0,
     routeBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence:
-      ready ? 2 : 0,
+      ready ? 21 : 0,
     cpuStaticRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence:
-      cpuStaticAccepted ? 1 : 0,
+      cpuStaticAccepted ? 13 : 0,
     gpuModelRouteBoundServiceRoleQueueSmokePreflightRunGateCandidatesWithProvidedEvidence:
-      gpuModelAccepted ? 1 : 0,
+      gpuModelAccepted ? 8 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     routeBoundServiceRoleQueueSmokeRunApprovedNowTools: 0,

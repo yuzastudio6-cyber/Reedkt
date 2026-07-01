@@ -63,7 +63,8 @@ function main() {
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)
   const preferredNextSafeCommand =
-    rollup.safeNextCommands.find((command) => command.id === 'live_blocker_preflight') ?? rollup.safeNextCommands[0]
+    rollup.safeNextCommands.find((command) => command.id === 'live_next_command_decision') ??
+    rollup.safeNextCommands[0]
 
   const actionPlan = {
     ok: runtimeGatesAllFalse,

@@ -203,7 +203,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'video_understanding_vlm',
       status: 'ready_for_explicit_tool_gate',
       currentStage:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_result_review_accepted_for_explicit_external_agent_gate',
+        'controlled_persisted_worker_dispatch_runtime_external_agent_wrapper_execution_result_recorded',
       selectedModelOrTool: 'Qwen/Qwen2.5-VL-7B-Instruct',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
@@ -211,6 +211,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       readyForBoundedRetryAfterBlockerClears: true,
       primaryBlocker: 'none_explicit_gate_ready_live_preflight_required',
       evidence: [
+        'docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md',
         'docs/qwen2-5-vl-7b-58dx-private-inference-result-review.md',
         'docs/qwen2-5-vl-7b-58dw-retry-2-result.md',
         'docs/qwen2-5-vl-7b-58dw-structured-output-fix.md',
@@ -221,6 +222,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate.md',
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.md',
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
+        'src/backend/mock/mock-qwen2-5-vl-58dy-external-agent-wrapper-execution-result.ts',
         'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
         'src/backend/mock/mock-qwen2-5-vl-58dx-private-inference-result-review.ts',
         'src/backend/mock/mock-qwen2-5-vl-58dw-retry-2-result.ts',
@@ -237,6 +239,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/cli/external-agent-gcloud-session-diagnostic.ts',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts',
+        'server/smoke/qwen2-5-vl-58dy-external-agent-wrapper-execution-result-smoke.ts',
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result-smoke.ts',
         'server/smoke/qwen2-5-vl-58dx-private-inference-result-review-smoke.ts',
         'server/smoke/qwen2-5-vl-58dw-retry-2-result-smoke.ts',

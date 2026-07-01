@@ -86,6 +86,7 @@ for (const required of [
   '58DW-FIX strict structured-output source fix is recorded and locally validated',
   '58DW-RETRY-2 bounded private fixture retry passed with fail-closed restoration',
   '58DX private inference result review accepts the sanitized metadata result',
+  '58DY wrapper result records a successful canonical external-agent wrapper run',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static gate',
   'a static gate is not runtime permission',
@@ -111,6 +112,8 @@ for (const required of [
   '`npm run external-agent-tool-next-command` provides a read-only live next-command decision',
   '`npm run external-agent-tool-execute-qwen` is the canonical guarded Qwen wrapper',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION=true`',
+  'docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md',
+  'parsed delegated npm output',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
   '`npm run external-agent-gcloud-session:diagnostic`',
   'read-only local gcloud session/config diagnostic',
@@ -201,7 +204,19 @@ assert.equal(qwen?.nextAction, NEXT_PROMPT)
 assert.equal(qwen?.manualBlockerActions?.length, 0)
 assert.equal(qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dx-private-inference-result-review.md'), true)
 assert.equal(
+  qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md'),
+  true,
+)
+assert.equal(
   qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dx-private-inference-result-review.ts'),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dy-external-agent-wrapper-execution-result.ts'),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes('server/smoke/qwen2-5-vl-58dy-external-agent-wrapper-execution-result-smoke.ts'),
   true,
 )
 assert.equal(

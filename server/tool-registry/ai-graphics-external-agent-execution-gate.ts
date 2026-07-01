@@ -19,6 +19,11 @@ import {
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport,
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow,
 } from './ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof'
+import {
+  AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow,
+} from './ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
@@ -36,6 +41,8 @@ export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'external_beta_controlled_on_demand_status_bridge_rejected'
   | 'missing_external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof'
   | 'external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_rejected'
+  | 'missing_external_agent_cpu_static_private_worker_exact_execution_admission'
+  | 'external_agent_cpu_static_private_worker_exact_execution_admission_rejected'
   | 'external_agent_execution_gate_fail_closed_runtime_blocked'
 
 export interface AiGraphics21ToolProperInstallAudit {
@@ -88,6 +95,8 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
   sourceExternalBetaControlledOnDemandStatusBridgePacket?: Partial<AiGraphicsExternalBetaControlledOnDemandStatusBridge>
   sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofPacket?:
     Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport>
+  sourceExternalAgentCpuStaticExactExecutionAdmissionPacket?:
+    Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport>
 }
 
 export interface AiGraphicsExternalAgentExecutionGateToolRow {
@@ -105,6 +114,10 @@ export interface AiGraphicsExternalAgentExecutionGateToolRow {
   cpuStaticLiveAdapterQueueWriteProofStatus: string | null
   cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidence: boolean
   nonProductionServiceRoleQueueWriteSmokeRequired: boolean
+  cpuStaticExactExecutionAdmissionStatus: string | null
+  cpuStaticExactExecutionAdmissionReady: boolean
+  externalAgentExactRequestAdmittedWithProvidedEvidence: boolean
+  adapterInvocationAndWorkerEnqueueAdmissionRequired: boolean
   executionAllowedNow: false
   gpuRuntimeShouldStartNow: false
   currentBlocker: string
@@ -126,11 +139,14 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION | null
   sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofDecision:
     typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION | null
+  sourceExternalAgentCpuStaticExactExecutionAdmissionDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION | null
   source21ToolProperInstallAuditAccepted: boolean
   sourceExternalBetaCallableRequestAdmissionAccepted: boolean
   sourceExternalBetaApiRouteMountReadinessAccepted: boolean
   sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
   sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted: boolean
+  sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted: boolean
   readyForAnyExternalAgentExecutionNow: false
   executionAllowedNow: false
   requireGoExitCodeWhenBlocked: 2
@@ -147,9 +163,16 @@ export interface AiGraphicsExternalAgentExecutionGate {
   controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence: 0 | 21
   cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools: 0 | 5
   cpuStaticMockQueueServiceValidationPassedTools: 0 | 5
+  cpuStaticExactExecutionAdmissionReadyTools: 0 | 5
+  cpuStaticExactRequestEnvelopeAcceptedTools: 0 | 5
+  cpuStaticApprovedPlanSnapshotAcceptedTools: 0 | 5
+  cpuStaticPrivateArtifactManifestAcceptedTools: 0 | 5
+  cpuStaticWorkerAcceptedRequestSchemaAcceptedTools: 0 | 5
+  externalAgentExactRequestAdmittedWithProvidedEvidenceTools: 0 | 5
   cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: 0 | 1
   cpuStaticNonCpuStaticDeferredTools: 0 | 15
   nonProductionServiceRoleQueueWriteSmokeRequiredTools: 0 | 5
+  adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: 0 | 5
   externalBetaCallableCandidateToolsWithProvidedEvidence: number
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: number
   externalAgentExecutableNowTools: 0
@@ -169,6 +192,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalBetaApiRouteMountReadinessAccepted: boolean
     sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
     sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted: boolean
+    sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted: boolean
     properInstallAuditAccepted: boolean
     all21ToolsProperlyInstalledForPlannedSurface: boolean
     installAuditSeparatesPlannedSurfaceFromRuntimeCallable: boolean
@@ -185,9 +209,17 @@ export interface AiGraphicsExternalAgentExecutionGate {
     cpuStaticLiveAdapterQueueServiceProofAccepted: boolean
     allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence: boolean
     allFiveCpuStaticMockQueueServiceValidationsPassed: boolean
+    cpuStaticExactExecutionAdmissionAccepted: boolean
+    allFiveCpuStaticExactExecutionAdmissionsReady: boolean
+    allFiveCpuStaticExactRequestEnvelopesAccepted: boolean
+    allFiveCpuStaticApprovedPlanSnapshotsAccepted: boolean
+    allFiveCpuStaticPrivateArtifactManifestsAccepted: boolean
+    allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted: boolean
+    allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence: boolean
     satoriRemainsBlockedPendingApprovedFontFixture: boolean
     fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes: boolean
     nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution: boolean
+    adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution: boolean
     approvedPlanSnapshotRequired: true
     creditReservationRequired: true
     privateArtifactManifestRequired: true
@@ -243,6 +275,7 @@ const safeCommandsBeforeExecution = [
   'npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics',
   'npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics',
   'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics',
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics',
   'npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics',
 ]
 
@@ -254,6 +287,7 @@ const allowedPreExecutionActions = [
   'return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call',
   'distinguish controlled on-demand worker-path readiness from direct agent execution',
   'read CPU/static live-adapter queue-service proof for the five closest tools while preserving execution blocks',
+  'read CPU/static exact execution-admission evidence for the same five tools while preserving adapter, queue, worker, and tool execution blocks',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
@@ -276,6 +310,14 @@ const forbiddenRuntimeActions = [
   'external beta traffic enablement',
   'production unlock',
 ]
+
+const cpuStaticExactAdmissionTools = new Set<AiGraphicsCanonicalToolId>([
+  'd3',
+  'vega_lite',
+  'vega',
+  'svgdotjs_svg_js',
+  'viz_js',
+])
 
 function sourceAdmissionAccepted(
   packet?: Partial<AiGraphicsExternalBetaCallableRequestAdmission>,
@@ -474,6 +516,96 @@ function sourceCpuStaticLiveAdapterQueueWriteProofAccepted(
     packet.rows.length === 21
 }
 
+function sourceCpuStaticExactExecutionAdmissionAccepted(
+  packet?:
+    Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION &&
+    packet.status ===
+      'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks' &&
+    packet.counts?.totalAiGraphicsTools === 21 &&
+    packet.counts?.exactExecutionAdmissionReadyTools === 5 &&
+    packet.counts?.sourceControlledToolExecutionProofAcceptedTools === 5 &&
+    packet.counts?.exactRequestEnvelopeAcceptedTools === 5 &&
+    packet.counts?.approvedPlanSnapshotAcceptedTools === 5 &&
+    packet.counts?.creditReservationAcceptedTools === 5 &&
+    packet.counts?.privateArtifactManifestAcceptedTools === 5 &&
+    packet.counts?.workerAcceptedRequestSchemaAcceptedTools === 5 &&
+    packet.counts?.toolSpecificQaGateAcceptedTools === 5 &&
+    packet.counts?.satoriBlockedPendingApprovedFontFixtureTools === 1 &&
+    packet.counts?.nonCpuStaticDeferredTools === 15 &&
+    packet.counts?.externalAgentExactRequestAdmittedWithProvidedEvidenceTools === 5 &&
+    packet.counts?.externalAgentCanDispatchPrivateWorkerJobNowTools === 0 &&
+    packet.counts?.externalAgentCanSubmitPrivateWorkerQueueNowTools === 0 &&
+    packet.counts?.externalAgentCanRequestPrivateWorkerHandoffNowTools === 0 &&
+    packet.counts?.externalAgentCanInvokeAdapterNowTools === 0 &&
+    packet.counts?.externalAgentExecutableNowTools === 0 &&
+    packet.counts?.backendQueueSubmissionApprovedNowTools === 0 &&
+    packet.counts?.liveQueueWriteApprovedNowTools === 0 &&
+    packet.counts?.workerClaimApprovedNowTools === 0 &&
+    packet.counts?.workerDispatchApprovedNowTools === 0 &&
+    packet.counts?.workerEnqueueApprovedNowTools === 0 &&
+    packet.counts?.toolExecutionApprovedNowTools === 0 &&
+    packet.counts?.publicArtifactAllowedTools === 0 &&
+    packet.counts?.signedUrlAllowedTools === 0 &&
+    packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
+    packet.booleans?.sourceControlledToolExecutionProofAccepted === true &&
+    packet.booleans?.allFiveExactExecutionAdmissionsReady === true &&
+    packet.booleans?.allFiveSourceControlledProofsAccepted === true &&
+    packet.booleans?.allFiveExactRequestEnvelopesAccepted === true &&
+    packet.booleans?.allFiveApprovedPlanSnapshotsAccepted === true &&
+    packet.booleans?.allFiveCreditReservationsAccepted === true &&
+    packet.booleans?.allFivePrivateArtifactManifestsAccepted === true &&
+    packet.booleans?.allFiveWorkerAcceptedRequestSchemasAccepted === true &&
+    packet.booleans?.allFiveToolSpecificQaGatesAccepted === true &&
+    packet.booleans?.exactExecutionAdmissionRefsPreserved === true &&
+    packet.booleans?.privateArtifactOnlyPolicyAccepted === true &&
+    packet.booleans?.noLiveQueueWriteByAdmission === true &&
+    packet.booleans?.noAdapterInvocationByAdmission === true &&
+    packet.booleans?.noToolExecutionByAdmission === true &&
+    packet.booleans?.nextGateRequiresAdapterInvocationAndWorkerEnqueueAdmission === true &&
+    packet.booleans?.gpuRuntimeOnDemandOnly === true &&
+    packet.booleans?.noIdleGpuRuntimeApproved === true &&
+    packet.booleans?.gpuStartsOnlyForApprovedWorkerOrToolCall === true &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.externalAgentCanDispatchPrivateWorkerJobNow === false &&
+    packet.booleans?.externalAgentCanSubmitPrivateWorkerQueueNow === false &&
+    packet.booleans?.externalAgentCanRequestPrivateWorkerHandoffNow === false &&
+    packet.booleans?.externalAgentCanInvokeAdapterNow === false &&
+    packet.booleans?.backendQueueSubmissionApprovedNow === false &&
+    packet.booleans?.liveQueueWriteApprovedNow === false &&
+    packet.booleans?.workerClaimApprovedNow === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.workerEnqueueApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.runtimeReadyNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false &&
+    Array.isArray(packet.rows) &&
+    packet.rows.length === 21 &&
+    [...cpuStaticExactAdmissionTools].every((toolId) => {
+      const row = packet.rows?.find((candidate) => candidate.toolId === toolId)
+      return row?.exactExecutionAdmissionStatus ===
+        'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked' &&
+        row.exactExecutionAdmissionReady === true &&
+        row.externalAgentExactRequestAdmittedWithProvidedEvidence === true &&
+        row.exactRequestEnvelopeAccepted === true &&
+        row.approvedPlanSnapshotAccepted === true &&
+        row.creditReservationAccepted === true &&
+        row.privateArtifactManifestAccepted === true &&
+        row.workerAcceptedRequestSchemaAccepted === true &&
+        row.toolSpecificQaGateAccepted === true &&
+        row.externalAgentCanInvokeAdapterNow === false &&
+        row.externalAgentCanSubmitPrivateWorkerQueueNow === false &&
+        row.externalAgentCanDispatchPrivateWorkerJobNow === false &&
+        row.toolExecutionApprovedNow === false &&
+        row.gpuRuntimeShouldStartNow === false
+    })
+}
+
 function statusFromInput(input: {
   hasProperInstallAudit: boolean
   properInstallAuditAccepted: boolean
@@ -485,6 +617,8 @@ function statusFromInput(input: {
   controlledOnDemandStatusBridgeAccepted: boolean
   hasCpuStaticLiveAdapterQueueWriteProof: boolean
   cpuStaticLiveAdapterQueueWriteProofAccepted: boolean
+  hasCpuStaticExactExecutionAdmission: boolean
+  cpuStaticExactExecutionAdmissionAccepted: boolean
 }): AiGraphicsExternalAgentExecutionGateStatus {
   if (!input.hasProperInstallAudit) {
     return 'missing_21_tool_proper_install_audit'
@@ -516,13 +650,23 @@ function statusFromInput(input: {
   if (!input.cpuStaticLiveAdapterQueueWriteProofAccepted) {
     return 'external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_rejected'
   }
+  if (!input.hasCpuStaticExactExecutionAdmission) {
+    return 'missing_external_agent_cpu_static_private_worker_exact_execution_admission'
+  }
+  if (!input.cpuStaticExactExecutionAdmissionAccepted) {
+    return 'external_agent_cpu_static_private_worker_exact_execution_admission_rejected'
+  }
   return 'external_agent_execution_gate_fail_closed_runtime_blocked'
 }
 
 function requiredBeforeExecution(input: {
   gpuRequiredForRuntime: boolean
   cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
+  cpuStaticExactAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
 }): string[] {
+  const exactAdmissionReady =
+    input.cpuStaticExactAdmissionRow?.externalAgentExactRequestAdmittedWithProvidedEvidence ===
+    true
   const cpuStaticProofPassed =
     input.cpuStaticProofRow?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidence ===
     true
@@ -530,7 +674,9 @@ function requiredBeforeExecution(input: {
     'explicit external-agent execution approval must pass this gate in require-go mode',
     'real external-beta API route handler mount must be approved; current route-mount readiness evidence is accepted but still unmounted',
     'approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present',
-    cpuStaticProofPassed
+    exactAdmissionReady
+      ? 'adapter invocation and worker enqueue admission must pass next; current exact request admission still performs no live queue write, adapter invocation, worker enqueue, dispatch, or tool execution'
+      : cpuStaticProofPassed
       ? 'non-production service-role queue write smoke must pass next; current proof only validates the runtime queue service adapter in mock-only mode'
       : 'private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass',
     'Tool Route and Worker execution must remain private and explicitly approved before any tool call',
@@ -551,6 +697,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalBetaControlledOnDemandStatusBridgePacket
   const sourceCpuStaticLiveAdapterQueueWriteProof =
     input.sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofPacket
+  const sourceCpuStaticExactExecutionAdmission =
+    input.sourceExternalAgentCpuStaticExactExecutionAdmissionPacket
   const installAccepted = sourceProperInstallAuditAccepted(sourceProperInstallAudit)
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
   const routeMountAccepted =
@@ -560,6 +708,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const cpuStaticLiveAdapterQueueWriteProofAccepted =
     sourceCpuStaticLiveAdapterQueueWriteProofAccepted(
       sourceCpuStaticLiveAdapterQueueWriteProof,
+    )
+  const cpuStaticExactExecutionAdmissionAccepted =
+    sourceCpuStaticExactExecutionAdmissionAccepted(
+      sourceCpuStaticExactExecutionAdmission,
     )
   const tools = listAiGraphicsToolCallHandoffTools()
   const gpuRuntimeTargetedTools =
@@ -582,12 +734,23 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       row,
     ]),
   )
+  const cpuStaticExactAdmissionRows = new Map(
+    (sourceCpuStaticExactExecutionAdmission?.rows ?? []).map((row) => [
+      row.toolId,
+      row,
+    ]),
+  )
   const toolRows = tools.map((tool): AiGraphicsExternalAgentExecutionGateToolRow => {
     const installRow = installRows.get(tool.toolId)
     const cpuStaticProofRow = cpuStaticProofRows.get(tool.toolId)
+    const cpuStaticExactAdmissionRow = cpuStaticExactAdmissionRows.get(tool.toolId)
     const cpuStaticProofPassed =
       cpuStaticLiveAdapterQueueWriteProofAccepted &&
       cpuStaticProofRow?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidence ===
+        true
+    const cpuStaticExactAdmissionReady =
+      cpuStaticExactExecutionAdmissionAccepted &&
+      cpuStaticExactAdmissionRow?.externalAgentExactRequestAdmittedWithProvidedEvidence ===
         true
     return {
       toolId: tool.toolId,
@@ -610,12 +773,23 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       nonProductionServiceRoleQueueWriteSmokeRequired:
         cpuStaticProofPassed &&
         cpuStaticProofRow?.serviceRoleQueueWriteSmokeRequired === true,
+      cpuStaticExactExecutionAdmissionStatus:
+        cpuStaticExactAdmissionRow?.exactExecutionAdmissionStatus ?? null,
+      cpuStaticExactExecutionAdmissionReady: cpuStaticExactAdmissionReady,
+      externalAgentExactRequestAdmittedWithProvidedEvidence:
+        cpuStaticExactAdmissionReady,
+      adapterInvocationAndWorkerEnqueueAdmissionRequired:
+        cpuStaticExactAdmissionReady &&
+        cpuStaticExactAdmissionRow?.externalAgentCanInvokeAdapterNow === false &&
+        cpuStaticExactAdmissionRow?.externalAgentCanSubmitPrivateWorkerQueueNow ===
+          false,
       executionAllowedNow: false,
       gpuRuntimeShouldStartNow: false,
       currentBlocker: 'external_agent_execution_gate_fail_closed_runtime_blocked',
       requiredBeforeExecution: requiredBeforeExecution({
         gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
         cpuStaticProofRow,
+        cpuStaticExactAdmissionRow,
       }),
       safeNextCommand: 'npm run ai-graphics:external-agent-execution-gate',
     }
@@ -636,6 +810,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         Boolean(sourceCpuStaticLiveAdapterQueueWriteProof),
       cpuStaticLiveAdapterQueueWriteProofAccepted:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
+      hasCpuStaticExactExecutionAdmission:
+        Boolean(sourceCpuStaticExactExecutionAdmission),
+      cpuStaticExactExecutionAdmissionAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
     }),
     mode: 'fail_closed_ai_graphics_external_agent_execution_gate',
     source21ToolProperInstallAuditDecision:
@@ -659,6 +837,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION
         ? sourceCpuStaticLiveAdapterQueueWriteProof.decision
         : null,
+    sourceExternalAgentCpuStaticExactExecutionAdmissionDecision:
+      sourceCpuStaticExactExecutionAdmission?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION
+        ? sourceCpuStaticExactExecutionAdmission.decision
+        : null,
     source21ToolProperInstallAuditAccepted: installAccepted,
     sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
     sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
@@ -666,6 +849,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       controlledOnDemandAccepted,
     sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted:
       cpuStaticLiveAdapterQueueWriteProofAccepted,
+    sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted:
+      cpuStaticExactExecutionAdmissionAccepted,
     readyForAnyExternalAgentExecutionNow: false,
     executionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
@@ -687,12 +872,26 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       cpuStaticLiveAdapterQueueWriteProofAccepted ? 5 : 0,
     cpuStaticMockQueueServiceValidationPassedTools:
       cpuStaticLiveAdapterQueueWriteProofAccepted ? 5 : 0,
+    cpuStaticExactExecutionAdmissionReadyTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
+    cpuStaticExactRequestEnvelopeAcceptedTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
+    cpuStaticApprovedPlanSnapshotAcceptedTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
+    cpuStaticPrivateArtifactManifestAcceptedTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
+    cpuStaticWorkerAcceptedRequestSchemaAcceptedTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
+    externalAgentExactRequestAdmittedWithProvidedEvidenceTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
     cpuStaticSatoriBlockedPendingApprovedFontFixtureTools:
       cpuStaticLiveAdapterQueueWriteProofAccepted ? 1 : 0,
     cpuStaticNonCpuStaticDeferredTools:
       cpuStaticLiveAdapterQueueWriteProofAccepted ? 15 : 0,
     nonProductionServiceRoleQueueWriteSmokeRequiredTools:
       cpuStaticLiveAdapterQueueWriteProofAccepted ? 5 : 0,
+    adapterInvocationAndWorkerEnqueueAdmissionRequiredTools:
+      cpuStaticExactExecutionAdmissionAccepted ? 5 : 0,
     externalBetaCallableCandidateToolsWithProvidedEvidence:
       candidateTools,
     externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
@@ -718,6 +917,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         controlledOnDemandAccepted,
       sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
+      sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
       properInstallAuditAccepted: installAccepted,
       all21ToolsProperlyInstalledForPlannedSurface: installAccepted,
       installAuditSeparatesPlannedSurfaceFromRuntimeCallable: installAccepted,
@@ -740,12 +941,28 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         cpuStaticLiveAdapterQueueWriteProofAccepted,
       allFiveCpuStaticMockQueueServiceValidationsPassed:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
+      cpuStaticExactExecutionAdmissionAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
+      allFiveCpuStaticExactExecutionAdmissionsReady:
+        cpuStaticExactExecutionAdmissionAccepted,
+      allFiveCpuStaticExactRequestEnvelopesAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
+      allFiveCpuStaticApprovedPlanSnapshotsAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
+      allFiveCpuStaticPrivateArtifactManifestsAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
+      allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted:
+        cpuStaticExactExecutionAdmissionAccepted,
+      allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence:
+        cpuStaticExactExecutionAdmissionAccepted,
       satoriRemainsBlockedPendingApprovedFontFixture:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
       fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
       nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
+      adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution:
+        cpuStaticExactExecutionAdmissionAccepted,
       approvedPlanSnapshotRequired: true,
       creditReservationRequired: true,
       privateArtifactManifestRequired: true,

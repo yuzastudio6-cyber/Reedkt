@@ -16,6 +16,9 @@ import type {
 import type {
   AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof'
+import type {
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport,
+} from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission'
 
 function valueAfterFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -49,6 +52,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport>>(
       '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
     ),
+  sourceExternalAgentCpuStaticExactExecutionAdmissionPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport>>(
+      '--external-agent-cpu-static-exact-execution-admission-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -69,6 +76,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-controlled-on-demand-status-bridge-packet')),
     externalAgentCpuStaticLiveAdapterQueueWriteProofPacketRead:
       Boolean(valueAfterFlag('--external-agent-cpu-static-live-adapter-queue-write-proof-packet')),
+    externalAgentCpuStaticExactExecutionAdmissionPacketRead:
+      Boolean(valueAfterFlag('--external-agent-cpu-static-exact-execution-admission-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

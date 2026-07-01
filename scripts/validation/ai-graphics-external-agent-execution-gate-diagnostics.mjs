@@ -91,6 +91,7 @@ const trueBooleanKeys = [
   'sourceExternalBetaApiRouteMountReadinessAccepted',
   'sourceExternalBetaControlledOnDemandStatusBridgeAccepted',
   'sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted',
+  'sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted',
   'properInstallAuditAccepted',
   'all21ToolsProperlyInstalledForPlannedSurface',
   'installAuditSeparatesPlannedSurfaceFromRuntimeCallable',
@@ -106,9 +107,17 @@ const trueBooleanKeys = [
   'cpuStaticLiveAdapterQueueServiceProofAccepted',
   'allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence',
   'allFiveCpuStaticMockQueueServiceValidationsPassed',
+  'cpuStaticExactExecutionAdmissionAccepted',
+  'allFiveCpuStaticExactExecutionAdmissionsReady',
+  'allFiveCpuStaticExactRequestEnvelopesAccepted',
+  'allFiveCpuStaticApprovedPlanSnapshotsAccepted',
+  'allFiveCpuStaticPrivateArtifactManifestsAccepted',
+  'allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted',
+  'allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence',
   'satoriRemainsBlockedPendingApprovedFontFixture',
   'fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes',
   'nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution',
+  'adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution',
   'approvedPlanSnapshotRequired',
   'creditReservationRequired',
   'privateArtifactManifestRequired',
@@ -130,6 +139,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -317,6 +327,24 @@ if (docs.counts?.cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTo
 if (docs.counts?.cpuStaticMockQueueServiceValidationPassedTools !== 5) {
   fail('docs_cpu_static_mock_queue_service_validation_not_5')
 }
+if (docs.counts?.cpuStaticExactExecutionAdmissionReadyTools !== 5) {
+  fail('docs_cpu_static_exact_execution_admission_ready_not_5')
+}
+if (docs.counts?.cpuStaticExactRequestEnvelopeAcceptedTools !== 5) {
+  fail('docs_cpu_static_exact_request_envelope_not_5')
+}
+if (docs.counts?.cpuStaticApprovedPlanSnapshotAcceptedTools !== 5) {
+  fail('docs_cpu_static_approved_plan_snapshot_not_5')
+}
+if (docs.counts?.cpuStaticPrivateArtifactManifestAcceptedTools !== 5) {
+  fail('docs_cpu_static_private_artifact_manifest_not_5')
+}
+if (docs.counts?.cpuStaticWorkerAcceptedRequestSchemaAcceptedTools !== 5) {
+  fail('docs_cpu_static_worker_schema_not_5')
+}
+if (docs.counts?.externalAgentExactRequestAdmittedWithProvidedEvidenceTools !== 5) {
+  fail('docs_external_agent_exact_request_admitted_not_5')
+}
 if (docs.counts?.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
   fail('docs_cpu_static_satori_blocked_not_1')
 }
@@ -325,6 +353,9 @@ if (docs.counts?.cpuStaticNonCpuStaticDeferredTools !== 15) {
 }
 if (docs.counts?.nonProductionServiceRoleQueueWriteSmokeRequiredTools !== 5) {
   fail('docs_non_production_service_role_queue_smoke_required_not_5')
+}
+if (docs.counts?.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 5) {
+  fail('docs_adapter_invocation_worker_enqueue_admission_required_not_5')
 }
 if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
   fail('docs_disabled_route_blocked_detail_cases_not_21')
@@ -352,9 +383,13 @@ for (const phrase of [
   'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`',
   'cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools: `5`',
   'cpuStaticMockQueueServiceValidationPassedTools: `5`',
+  'cpuStaticExactExecutionAdmissionReadyTools: `5`',
+  'externalAgentExactRequestAdmittedWithProvidedEvidenceTools: `5`',
+  'adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `5`',
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
   'CPU/static live-adapter queue-service proof accepted: `true`',
+  'CPU/static exact execution admission accepted: `true`',
   'direct agent execution remains blocked',
   'actual execution still blocked',
   'tool/capability-specific blocked details',
@@ -505,6 +540,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
   '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -545,6 +582,24 @@ if (acceptedSourceReport.cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEv
 if (acceptedSourceReport.cpuStaticMockQueueServiceValidationPassedTools !== 5) {
   fail('accepted_report_cpu_static_mock_queue_service_validation_not_5')
 }
+if (acceptedSourceReport.cpuStaticExactExecutionAdmissionReadyTools !== 5) {
+  fail('accepted_report_cpu_static_exact_execution_admission_ready_not_5')
+}
+if (acceptedSourceReport.cpuStaticExactRequestEnvelopeAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_exact_request_envelope_not_5')
+}
+if (acceptedSourceReport.cpuStaticApprovedPlanSnapshotAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_approved_plan_snapshot_not_5')
+}
+if (acceptedSourceReport.cpuStaticPrivateArtifactManifestAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_private_artifact_manifest_not_5')
+}
+if (acceptedSourceReport.cpuStaticWorkerAcceptedRequestSchemaAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_worker_schema_not_5')
+}
+if (acceptedSourceReport.externalAgentExactRequestAdmittedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_report_exact_request_admitted_not_5')
+}
 if (acceptedSourceReport.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
   fail('accepted_report_cpu_static_satori_blocked_not_1')
 }
@@ -553,6 +608,9 @@ if (acceptedSourceReport.cpuStaticNonCpuStaticDeferredTools !== 15) {
 }
 if (acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools !== 5) {
   fail('accepted_report_non_production_service_role_queue_smoke_required_not_5')
+}
+if (acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 5) {
+  fail('accepted_report_adapter_invocation_worker_enqueue_admission_required_not_5')
 }
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')
@@ -585,6 +643,8 @@ const requireGo = spawnSync(
     'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
     '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
     'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+    '--external-agent-cpu-static-exact-execution-admission-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
     '--require-go',
   ],
   {
@@ -633,8 +693,14 @@ console.log(JSON.stringify({
     acceptedSourceReport.cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools,
   cpuStaticMockQueueServiceValidationPassedTools:
     acceptedSourceReport.cpuStaticMockQueueServiceValidationPassedTools,
+  cpuStaticExactExecutionAdmissionReadyTools:
+    acceptedSourceReport.cpuStaticExactExecutionAdmissionReadyTools,
+  externalAgentExactRequestAdmittedWithProvidedEvidenceTools:
+    acceptedSourceReport.externalAgentExactRequestAdmittedWithProvidedEvidenceTools,
   nonProductionServiceRoleQueueWriteSmokeRequiredTools:
     acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools,
+  adapterInvocationAndWorkerEnqueueAdmissionRequiredTools:
+    acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools,
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
     acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence,
   apiRouteMountReadyToolsWithProvidedEvidence:

@@ -14,6 +14,8 @@ RP-RUNTIME-GUARD-01 applies the policy at paid runtime boundaries. Worker/provid
 
 RP-CREDITREVISION-01 resolves projected-overage pauses through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work. Approve & Continue can add a mock `revised_credit_additional_hold` to the existing reservation, but paid work starts only after a later runtime guard recheck; lower-cost and cancel resolutions do not reserve credits or resume the original paid tool. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
 
+RP-SETTLEMENT-01 adds final credit settlement in mock state. It charges actual billable tool cost plus the separate ReEditPro service/edit fee, releases unused reserved credits, records absorbed overage when ReEditPro failed to pause, and records approved-but-unfunded export top-up state without wiring checkout/top-up or export unlock. See `docs/credit-settlement-finalization.md` and `smoke:credit-settlement`.
+
 ## Credit Value
 
 - 1 credit = $0.10 retail value.
@@ -94,3 +96,7 @@ RP-RUNTIME-GUARD-01 checks paid work after the max hold and before worker leases
 ## RP-CREDITREVISION-01 Action Resolution
 
 RP-CREDITREVISION-01 resolves the mock pause. Approve & Continue reserves only the additional max hold in local mock state, Choose Lower-Cost Option requires a new lower-cost plan/estimate, and Cancel Extra Work leaves the reservation unchanged. No live billing, provider call, render/export, settlement, spend/release/refund, checkout/top-up, or export unlock is wired.
+
+## RP-SETTLEMENT-01 Final Settlement
+
+RP-SETTLEMENT-01 settles completed edits in local mock state only. The final user charge is actual billable tool credits plus the ReEditPro service/edit fee; unused hold is released back to the mock wallet, and unapproved overage is absorbed by ReEditPro. Approved-but-unfunded settlement remains an informational state for a later export/top-up milestone.

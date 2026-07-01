@@ -29,3 +29,5 @@ Tool-cost events remain `serviceFeeIncluded = false`; ReEditPro service fee stay
 No live billing, no Stripe/payment, no Supabase migrations or writes, no provider call, no production wallet mutation, no production ledger write, no settlement execution, no reservation spend/release/refund, no worker/provider/render/export execution, no export lock/unlock, and no checkout/top-up are wired.
 
 Validation: `smoke:credit-revision-action` covers approval with additional hold, insufficient-credit no-mutation behavior, idempotency, lower-cost/cancel resolution, invalid states, secret-like metadata rejection, runtime guard recheck, and boundary language.
+
+RP-SETTLEMENT-01 consumes the resulting approved hold only after completed work. It may settle with unused-hold release or absorbed overage in local mock state, while lower-cost/cancelled revision actions still require a future plan path before any final settlement.

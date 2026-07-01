@@ -1,9 +1,11 @@
 import { z } from 'zod'
 import {
+  CREDIT_SETTLEMENT_MODES,
   CREDIT_REVISION_ACTION_STATUSES,
   CREDIT_REVISION_PAUSE_REASONS,
   CREDIT_SETTLEMENT_REASONS,
   CREDIT_SETTLEMENT_STATUSES,
+  SETTLE_CREDIT_RESERVATION_STATUSES,
 } from '../../src/types/credits'
 import {
   REEDITPRO_EDIT_LEVELS,
@@ -18,6 +20,8 @@ export const positiveDurationSecondsSchema = z.number().positive()
 export const productEditLevelSchema = z.enum(REEDITPRO_EDIT_LEVELS)
 export const creditSettlementStatusSchema = z.enum(CREDIT_SETTLEMENT_STATUSES)
 export const creditSettlementReasonSchema = z.enum(CREDIT_SETTLEMENT_REASONS)
+export const creditSettlementModeSchema = z.enum(CREDIT_SETTLEMENT_MODES)
+export const settleCreditReservationStatusSchema = z.enum(SETTLE_CREDIT_RESERVATION_STATUSES)
 export const creditRevisionActionStatusSchema = z.enum(CREDIT_REVISION_ACTION_STATUSES)
 export const creditRevisionPauseReasonSchema = z.enum(CREDIT_REVISION_PAUSE_REASONS)
 
@@ -43,6 +47,22 @@ export const previewCreditSettlementSchema = z.object({
   reservedCredits: nonNegativeIntegerCreditSchema,
   toolCostEventIds: z.array(idSchema).optional(),
   idempotencyKey: idSchema,
+})
+
+export const settleCreditReservationSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  editPlanId: idSchema.nullish(),
+  creditEstimateId: idSchema,
+  creditReservationId: idSchema,
+  settledByUserId: idSchema.nullish(),
+  settledByAgent: z.string().min(1).max(120).nullish(),
+  productEditLevel: productEditLevelSchema,
+  finalVideoDurationSeconds: positiveDurationSecondsSchema,
+  settlementMode: creditSettlementModeSchema,
+  toolCostEventIds: z.array(idSchema).optional(),
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema.default({}),
 })
 
 export const creditSettlementRecordSchema = z.object({
@@ -83,15 +103,33 @@ export const creditSettlementRecordSchema = z.object({
   settledAt: z.string().min(1).nullish(),
   failedAt: z.string().min(1).nullish(),
 }).superRefine((record, context) => {
-  const statusesRequiringFormula = new Set(['previewed', 'settled', 'settled_with_absorbed_overage'])
+  const computedFinalChargeCredits = record.actualToolCostCredits + record.reeditproServiceFeeCredits
+  const statusesRequiringFormula = new Set(['previewed', 'settled', 'requires_top_up_before_export'])
   if (
     statusesRequiringFormula.has(record.status) &&
-    record.finalChargeCredits !== record.actualToolCostCredits + record.reeditproServiceFeeCredits
+    record.finalChargeCredits !== computedFinalChargeCredits
   ) {
     context.addIssue({
       code: 'custom',
       message: 'finalChargeCredits must equal actualToolCostCredits + reeditproServiceFeeCredits.',
       path: ['finalChargeCredits'],
+    })
+  }
+  if (
+    record.status === 'settled_with_absorbed_overage' &&
+    record.finalChargeCredits + record.absorbedOverageCredits !== computedFinalChargeCredits
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Absorbed-overage settlements must satisfy finalChargeCredits + absorbedOverageCredits = actualToolCostCredits + reeditproServiceFeeCredits.',
+      path: ['absorbedOverageCredits'],
+    })
+  }
+  if (record.releasedCredits + record.finalChargeCredits > record.reservedCredits && record.status !== 'requires_top_up_before_export') {
+    context.addIssue({
+      code: 'custom',
+      message: 'Settled records cannot spend and release more than reserved credits.',
+      path: ['releasedCredits'],
     })
   }
 })

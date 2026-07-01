@@ -7,12 +7,19 @@ import type {
   CreditRevisionActionRecord,
   CreditRevisionPauseReason,
   CreditRevisionUserOption,
+  CreditReservationLineItemRecord,
+  CreditReservationRecord,
+  CreditReservationWalletBalance,
   CreditSettlementRecord,
+  CreditSettlementMode,
   EditCreditCostSummary,
   EditCreditCostSummaryLine,
   PreviewCreditSettlementRequest,
   PreviewCreditSettlementResponse,
   JSONObject,
+  SettleCreditReservationRequest,
+  SettleCreditReservationResponse,
+  SettleCreditReservationStatus,
 } from '../../src/types'
 import {
   calculateReEditProFinalChargeCredits,
@@ -27,9 +34,16 @@ import { TOOL_COST_RATE_CARD_VERSION } from '../tool-cost-metering/rate-card'
 import { summarizeMockToolCostEvents } from '../tool-cost-metering/cost-math'
 import {
   reserveAdditionalCreditsForRevisionAction,
+  getCreditReservation,
+  listCreditReservationLineItems,
+  getMockCreditWalletBalance,
   type MockCreditReservationStore,
   type ReserveAdditionalCreditsForRevisionActionResult,
 } from './mock-credit-reservation-store'
+import {
+  getEditCreditEstimatePreview,
+  type MockCreditEstimateStore,
+} from './mock-credit-estimate-store'
 import {
   createMockToolCostStore,
   listMockToolCostEventsByIds,
@@ -114,6 +128,15 @@ export function listCreditSettlementsForProject(
   projectId: string,
 ): CreditSettlementRecord[] {
   return store.creditSettlements.filter((settlement) => settlement.projectId === projectId)
+}
+
+export function getCreditSettlementForReservation(
+  store: MockCreditDataStore,
+  creditReservationId: string,
+): CreditSettlementRecord | undefined {
+  return store.creditSettlements.find((settlement) =>
+    settlement.creditReservationId === creditReservationId &&
+    settlement.status !== 'previewed')
 }
 
 export function upsertCreditSettlementByIdempotencyKey(
@@ -459,6 +482,297 @@ export function previewCreditSettlement(
   }
 }
 
+export function settleCreditReservation(
+  store: MockCreditDataStore,
+  reservationStore: MockCreditReservationStore,
+  estimateStore: MockCreditEstimateStore,
+  request: SettleCreditReservationRequest,
+): SettleCreditReservationResponse {
+  const existingByIdempotency = store.creditSettlements.find((settlement) =>
+    settlement.workspaceId === request.workspaceId &&
+    settlement.idempotencyKey === request.idempotencyKey)
+  if (existingByIdempotency) {
+    return settlementResponse(
+      resolveSettlementResponseStatus(existingByIdempotency.status),
+      existingByIdempotency,
+      getCreditReservation(reservationStore, existingByIdempotency.creditReservationId) ?? null,
+      existingByIdempotency.creditReservationId
+        ? listCreditReservationLineItems(reservationStore, existingByIdempotency.creditReservationId)
+        : [],
+      walletBalanceForReservation(reservationStore, getCreditReservation(reservationStore, existingByIdempotency.creditReservationId)),
+      buildEditCreditCostSummary(existingByIdempotency, settlementContextEvents(store, request)),
+      'duplicate_returned',
+      userFacingCopy(existingByIdempotency).title,
+      userFacingCopy(existingByIdempotency).message,
+      false,
+      false,
+      [
+        'Duplicate settlement idempotency key returned the existing mock settlement.',
+        'No second mock wallet, reservation, ledger, export, provider, worker, render, checkout, or top-up mutation occurred.',
+      ],
+    )
+  }
+
+  const preview = getEditCreditEstimatePreview(estimateStore, request.creditEstimateId)
+  if (!preview) {
+    return blockedSettlementResponse('estimate_not_found', 'Credit estimate was not found.', [
+      'No mock settlement, wallet, reservation, ledger, export, provider, worker, render, checkout, or top-up mutation occurred.',
+    ])
+  }
+
+  const reservation = getCreditReservation(reservationStore, request.creditReservationId)
+  if (!reservation) {
+    return blockedSettlementResponse('reservation_not_found', 'Credit reservation was not found.', [
+      'No mock settlement, wallet, reservation, ledger, export, provider, worker, render, checkout, or top-up mutation occurred.',
+    ])
+  }
+
+  const existingForReservation = getCreditSettlementForReservation(store, request.creditReservationId)
+  if (existingForReservation) {
+    return settlementResponse(
+      'already_settled',
+      existingForReservation,
+      reservation,
+      listCreditReservationLineItems(reservationStore, reservation.id),
+      walletBalanceForReservation(reservationStore, reservation),
+      buildEditCreditCostSummary(existingForReservation, settlementContextEvents(store, request)),
+      'duplicate_returned',
+      'Final credit charge already settled',
+      'This mock reservation already has a final settlement; no second spend or release occurred.',
+      false,
+      false,
+      [
+        'A reservation cannot be settled twice in RP-SETTLEMENT-01.',
+        'No additional mock wallet or reservation mutation occurred.',
+      ],
+    )
+  }
+
+  if (!reservationMatchesRequest(reservation, request)) {
+    return blockedSettlementResponse('invalid_request', 'Credit reservation scope does not match the settlement request.', [
+      'Reservation must match workspace, project, estimate, and optional edit plan.',
+    ], reservation)
+  }
+
+  if (reservation.status !== 'reserved') {
+    return blockedSettlementResponse('reservation_not_active', 'Only active reserved mock reservations can be settled.', [
+      `Reservation status ${reservation.status} is not active for final mock settlement.`,
+    ], reservation)
+  }
+
+  const wallet = reservationStore.creditWallets.find((candidate) => candidate.id === reservation.creditWalletId) ?? null
+  if (!wallet) {
+    return blockedSettlementResponse('invalid_request', 'Credit wallet was not found for the reservation.', [
+      'No mock settlement, wallet, reservation, ledger, export, provider, worker, render, checkout, or top-up mutation occurred.',
+    ], reservation)
+  }
+
+  if (wallet.cachedReservedCredits < reservation.reservedCredits) {
+    return blockedSettlementResponse('invalid_request', 'Mock wallet reserved balance is lower than the reservation hold.', [
+      'Settlement was blocked instead of creating a negative reserved balance.',
+    ], reservation, walletToBalance(wallet))
+  }
+
+  const events = settlementContextEvents(store, request)
+  const invalidServiceFeeEvent = events.find((event) =>
+    (event as { serviceFeeIncluded?: unknown }).serviceFeeIncluded !== false)
+  if (invalidServiceFeeEvent) {
+    return blockedSettlementResponse('invalid_request', 'Tool-cost event includes a service fee, which settlement cannot accept.', [
+      `Invalid tool-cost event: ${invalidServiceFeeEvent.id}.`,
+      'Tool owners must report actual internal tool cost only.',
+    ], reservation, walletToBalance(wallet))
+  }
+
+  if (request.settlementMode === 'preview_only') {
+    const previewResult = previewCreditSettlement(store, {
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editPlanId: request.editPlanId ?? null,
+      creditEstimateId: request.creditEstimateId,
+      creditReservationId: request.creditReservationId,
+      editComputeLevel: request.productEditLevel,
+      finalVideoDurationSeconds: request.finalVideoDurationSeconds,
+      reservedCredits: reservation.reservedCredits,
+      toolCostEventIds: events.map((event) => event.id),
+      idempotencyKey: request.idempotencyKey,
+    })
+    return settlementResponse(
+      'previewed',
+      previewResult.settlement,
+      reservation,
+      listCreditReservationLineItems(reservationStore, reservation.id),
+      walletToBalance(wallet),
+      previewResult.summary,
+      'not_created',
+      'Final credit charge previewed',
+      'Settlement preview is read-only; no credits were spent or released.',
+      false,
+      false,
+      previewResult.warnings,
+    )
+  }
+
+  const aggregation = summarizeMockToolCostEvents(events)
+  const finalCharge = calculateReEditProFinalChargeCredits({
+    actualToolCostCredits: aggregation.actualBillableCostCredits,
+    durationSeconds: request.finalVideoDurationSeconds,
+    editLevel: request.productEditLevel,
+  })
+  if (finalCharge.finalChargeCredits === null || finalCharge.serviceFeeCredits === null) {
+    return blockedSettlementResponse('invalid_request', 'Final duration requires a custom credit settlement before mock spend/release.', [
+      '60+ minute custom-estimate settlement is blocked in RP-SETTLEMENT-01 unless a future approved custom settlement exists.',
+      'No mock wallet or reservation mutation occurred.',
+    ], reservation, walletToBalance(wallet))
+  }
+
+  const computedFinalChargeCredits = finalCharge.finalChargeCredits
+  const outcome = settlementOutcome(request.settlementMode, computedFinalChargeCredits, reservation.reservedCredits)
+  const createdAt = nowIso()
+  const settlement: CreditSettlementRecord = {
+    id: createMockId('credit_settlement'),
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editPlanId: request.editPlanId ?? null,
+    chatSessionId: null,
+    jobBatchId: null,
+    creditWalletId: wallet.id,
+    creditEstimateId: request.creditEstimateId,
+    creditReservationId: request.creditReservationId,
+    creditApprovalId: reservation.creditApprovalId ?? null,
+    editComputeLevel: request.productEditLevel,
+    finalVideoDurationSeconds: request.finalVideoDurationSeconds,
+    status: outcome.settlementStatus,
+    settlementReason: outcome.reason,
+    reservedCredits: reservation.reservedCredits,
+    actualToolCostCents: aggregation.actualBillableCostCents,
+    actualToolCostCredits: aggregation.actualBillableCostCredits,
+    reeditproServiceFeeCredits: finalCharge.serviceFeeCredits,
+    finalChargeCredits: outcome.userFinalChargeCredits,
+    releasedCredits: outcome.releasedCredits,
+    absorbedOverageCredits: outcome.absorbedOverageCredits,
+    outstandingCredits: outcome.outstandingCredits,
+    billableToolEventCount: aggregation.billableEventCount,
+    nonBillableToolEventCount: aggregation.nonBillableEventCount,
+    toolCostEventIds: events.map((event) => event.id),
+    rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+    creditPolicyVersion: REEDITPRO_CREDIT_POLICY_VERSION,
+    serviceFeePolicyVersion: REEDITPRO_SERVICE_FEE_POLICY_VERSION,
+    idempotencyKey: request.idempotencyKey,
+    settlementPayload: asJsonObject({
+      milestone: 'RP-SETTLEMENT-01',
+      settlementMode: request.settlementMode,
+      computedFinalChargeCredits,
+      userFinalChargeCredits: outcome.userFinalChargeCredits,
+      lineItemSettlementAllocationMode: outcome.mutatesReservation ? 'proportional_mock' : 'not_mutated',
+      settledByUserId: request.settledByUserId ?? null,
+      settledByAgent: request.settledByAgent ?? null,
+      noProductionLedgerWrite: true,
+      noExportUnlock: true,
+      noCheckoutOrTopUp: true,
+    }),
+    receiptPayload: {},
+    metadata: asJsonObject({
+      ...(request.metadata ?? {}),
+      mockOnly: true,
+      milestone: 'RP-SETTLEMENT-01',
+      serviceFeeIncludedInToolCosts: false,
+      productionPersistence: false,
+    }),
+    createdAt,
+    updatedAt: createdAt,
+    settledAt: outcome.mutatesReservation ? createdAt : null,
+    failedAt: null,
+  }
+  const summary = buildEditCreditCostSummary(settlement, events)
+  settlement.receiptPayload = asJsonObject({
+    userFacingLines: summary.userFacingLines.map((line): JSONObject => ({
+      label: line.label,
+      credits: line.credits,
+      ...(line.description ? { description: line.description } : {}),
+    })),
+    warnings: summary.warnings,
+    nonBillableAbsorbed: summary.nonBillableAbsorbed ?? null,
+    computedFinalChargeCredits,
+  })
+
+  creditSettlementRecordSchema.parse(settlement)
+
+  let lineItems = listCreditReservationLineItems(reservationStore, reservation.id)
+  let walletMutated = false
+  let reservationMutated = false
+  if (outcome.mutatesReservation) {
+    lineItems = applyMockSettlementToReservationLines(lineItems, {
+      finalChargeCredits: outcome.userFinalChargeCredits,
+      serviceFeeCredits: settlement.reeditproServiceFeeCredits,
+    })
+    const spentAt = nowIso()
+    wallet.cachedReservedCredits -= reservation.reservedCredits
+    wallet.cachedSpentCredits += outcome.userFinalChargeCredits
+    wallet.cachedAvailableCredits += outcome.releasedCredits
+    wallet.lastCalculatedAt = spentAt
+    wallet.updatedAt = spentAt
+
+    reservation.status = 'spent'
+    reservation.spentCredits = outcome.userFinalChargeCredits
+    reservation.releasedCredits = outcome.releasedCredits
+    reservation.spentAt = spentAt
+    reservation.releasedAt = outcome.releasedCredits > 0 ? spentAt : reservation.releasedAt
+    reservation.updatedAt = spentAt
+    reservation.metadata = {
+      ...(reservation.metadata ?? {}),
+      milestone: 'RP-SETTLEMENT-01',
+      creditSettlementId: settlement.id,
+      finalChargeCredits: outcome.userFinalChargeCredits,
+      releasedCredits: outcome.releasedCredits,
+      absorbedOverageCredits: outcome.absorbedOverageCredits,
+      lineItemSettlementAllocationMode: 'proportional_mock',
+      noLedgerWrite: true,
+      noExportUnlock: true,
+      noCheckoutOrTopUp: true,
+    }
+    walletMutated = true
+    reservationMutated = true
+    reservationStore.walletMutationRecords.push({
+      mutation: 'mock_final_credit_settlement_wallet_updated',
+      walletId: wallet.id,
+      creditReservationId: reservation.id,
+      creditSettlementId: settlement.id,
+      finalChargeCredits: outcome.userFinalChargeCredits,
+      releasedCredits: outcome.releasedCredits,
+      createdAt: spentAt,
+    })
+    reservationStore.reservationMutationRecords.push({
+      mutation: 'mock_credit_reservation_settled',
+      creditReservationId: reservation.id,
+      creditSettlementId: settlement.id,
+      finalChargeCredits: outcome.userFinalChargeCredits,
+      releasedCredits: outcome.releasedCredits,
+      absorbedOverageCredits: outcome.absorbedOverageCredits,
+      createdAt: spentAt,
+    })
+  }
+
+  insertCreditSettlement(store, settlement)
+  const copy = userFacingCopy(settlement)
+  return settlementResponse(
+    outcome.responseStatus,
+    settlement,
+    reservation,
+    lineItems,
+    walletToBalance(wallet),
+    summary,
+    'created',
+    copy.title,
+    copy.message,
+    walletMutated,
+    reservationMutated,
+    [
+      ...(outcome.mutatesReservation ? ['Reservation line items use lineItemSettlementAllocationMode = proportional_mock.'] : []),
+      'RP-SETTLEMENT-01 is mock-only; no live billing, Stripe/payment, Supabase write, production wallet mutation, production ledger write, provider call, worker, render/export, checkout/top-up, or export unlock occurred.',
+    ],
+  )
+}
+
 export function buildEditCreditCostSummary(
   settlement: CreditSettlementRecord,
   events: readonly MockToolCostEvent[],
@@ -519,6 +833,292 @@ export function buildEditCreditCostSummary(
       'Mock receipt summary only; no live billing, wallet mutation, reservation spend/release/refund, ledger write, or export unlock occurred.',
       ...(settlement.outstandingCredits > 0 ? ['Outstanding credits are informational only in this milestone.'] : []),
     ],
+  }
+}
+
+function settlementContextEvents(
+  store: MockCreditDataStore,
+  request: Pick<SettleCreditReservationRequest, 'workspaceId' | 'projectId' | 'creditEstimateId' | 'creditReservationId' | 'toolCostEventIds'>,
+): MockToolCostEvent[] {
+  const sourceEvents = request.toolCostEventIds?.length
+    ? listMockToolCostEventsByIds(store.toolCostStore, request.toolCostEventIds)
+    : listMockToolCostEventsForProject(store.toolCostStore, request.projectId)
+  return sourceEvents.filter((event) =>
+    event.workspaceId === request.workspaceId &&
+    event.projectId === request.projectId &&
+    event.creditEstimateId === request.creditEstimateId &&
+    event.creditReservationId === request.creditReservationId)
+}
+
+function reservationMatchesRequest(
+  reservation: CreditReservationRecord,
+  request: SettleCreditReservationRequest,
+): boolean {
+  return reservation.workspaceId === request.workspaceId &&
+    reservation.projectId === request.projectId &&
+    reservation.creditEstimateId === request.creditEstimateId &&
+    reservation.id === request.creditReservationId &&
+    (!request.editPlanId || reservation.editPlanId === request.editPlanId)
+}
+
+function settlementOutcome(
+  mode: CreditSettlementMode,
+  computedFinalChargeCredits: number,
+  reservedCredits: number,
+): {
+  responseStatus: Extract<SettleCreditReservationStatus, 'settled' | 'settled_with_absorbed_overage' | 'requires_top_up_before_export'>
+  settlementStatus: Extract<CreditSettlementRecord['status'], 'settled' | 'settled_with_absorbed_overage' | 'requires_top_up_before_export'>
+  reason: CreditSettlementRecord['settlementReason']
+  userFinalChargeCredits: number
+  releasedCredits: number
+  absorbedOverageCredits: number
+  outstandingCredits: number
+  mutatesReservation: boolean
+} {
+  if (computedFinalChargeCredits <= reservedCredits) {
+    return {
+      responseStatus: 'settled',
+      settlementStatus: 'settled',
+      reason: 'edit_completed',
+      userFinalChargeCredits: computedFinalChargeCredits,
+      releasedCredits: reservedCredits - computedFinalChargeCredits,
+      absorbedOverageCredits: 0,
+      outstandingCredits: 0,
+      mutatesReservation: true,
+    }
+  }
+
+  if (mode === 'approved_but_unfunded') {
+    return {
+      responseStatus: 'requires_top_up_before_export',
+      settlementStatus: 'requires_top_up_before_export',
+      reason: 'approved_but_unfunded',
+      userFinalChargeCredits: computedFinalChargeCredits,
+      releasedCredits: 0,
+      absorbedOverageCredits: 0,
+      outstandingCredits: computedFinalChargeCredits - reservedCredits,
+      mutatesReservation: false,
+    }
+  }
+
+  return {
+    responseStatus: 'settled_with_absorbed_overage',
+    settlementStatus: 'settled_with_absorbed_overage',
+    reason: mode === 'force_absorb_unapproved_overage'
+      ? 'reeditpro_failed_to_pause_absorbed'
+      : 'reeditpro_failed_to_pause_absorbed',
+    userFinalChargeCredits: reservedCredits,
+    releasedCredits: 0,
+    absorbedOverageCredits: computedFinalChargeCredits - reservedCredits,
+    outstandingCredits: 0,
+    mutatesReservation: true,
+  }
+}
+
+function applyMockSettlementToReservationLines(
+  lineItems: CreditReservationLineItemRecord[],
+  input: {
+    finalChargeCredits: number
+    serviceFeeCredits: number
+  },
+): CreditReservationLineItemRecord[] {
+  const updatedAt = nowIso()
+  for (const line of lineItems) {
+    line.spentCredits = 0
+    line.releasedCredits = 0
+  }
+
+  let remainingSpend = input.finalChargeCredits
+  const serviceLines = lineItems.filter(isServiceFeeReservationLine)
+  let serviceFeeRemaining = Math.min(input.serviceFeeCredits, remainingSpend)
+  for (const line of serviceLines) {
+    const capacity = line.reservedCredits - line.spentCredits - line.refundedCredits
+    const spend = Math.max(0, Math.min(capacity, serviceFeeRemaining))
+    line.spentCredits += spend
+    serviceFeeRemaining -= spend
+    remainingSpend -= spend
+  }
+
+  const toolLines = lineItems.filter((line) => !isServiceFeeReservationLine(line))
+  allocateProportionalSpend(toolLines.length > 0 ? toolLines : lineItems, Math.max(0, remainingSpend))
+
+  for (const line of lineItems) {
+    line.releasedCredits = Math.max(0, line.reservedCredits - line.spentCredits - line.refundedCredits)
+    line.updatedAt = updatedAt
+    line.linePayload = {
+      ...(line.linePayload ?? {}),
+      settlementAllocationMode: 'proportional_mock',
+      settledSpentCredits: line.spentCredits,
+      settledReleasedCredits: line.releasedCredits,
+      noLedgerWrite: true,
+    }
+    line.metadata = {
+      ...(line.metadata ?? {}),
+      milestone: 'RP-SETTLEMENT-01',
+      settledInMockState: true,
+    }
+  }
+  return lineItems
+}
+
+function allocateProportionalSpend(
+  lineItems: CreditReservationLineItemRecord[],
+  spendCredits: number,
+): void {
+  if (spendCredits <= 0 || lineItems.length === 0) return
+  const capacities = lineItems.map((line) => Math.max(0, line.reservedCredits - line.spentCredits - line.refundedCredits))
+  const totalCapacity = capacities.reduce((total, value) => total + value, 0)
+  if (totalCapacity <= 0) return
+
+  const allocations = capacities.map((capacity) =>
+    Math.min(capacity, Math.floor((spendCredits * capacity) / totalCapacity)))
+  let allocated = allocations.reduce((total, value) => total + value, 0)
+  let remainder = Math.min(spendCredits, totalCapacity) - allocated
+
+  for (let index = 0; remainder > 0 && index < lineItems.length; index += 1) {
+    const available = capacities[index] - allocations[index]
+    if (available <= 0) continue
+    const extra = Math.min(available, remainder)
+    allocations[index] += extra
+    allocated += extra
+    remainder -= extra
+  }
+
+  lineItems.forEach((line, index) => {
+    line.spentCredits += allocations[index]
+  })
+}
+
+function isServiceFeeReservationLine(line: CreditReservationLineItemRecord): boolean {
+  const payload = line.linePayload
+  return payload?.lineItemRole === 'reeditpro_service_fee' || line.usageCategory === 'admin'
+}
+
+function resolveSettlementResponseStatus(status: CreditSettlementRecord['status']): SettleCreditReservationStatus {
+  if (status === 'previewed') return 'previewed'
+  if (status === 'settled') return 'settled'
+  if (status === 'settled_with_absorbed_overage') return 'settled_with_absorbed_overage'
+  if (status === 'requires_top_up_before_export') return 'requires_top_up_before_export'
+  return 'invalid_request'
+}
+
+function settlementResponse(
+  status: SettleCreditReservationStatus,
+  settlement: CreditSettlementRecord | null,
+  reservation: CreditReservationRecord | null,
+  reservationLineItems: CreditReservationLineItemRecord[],
+  walletBalance: CreditReservationWalletBalance | null,
+  summary: EditCreditCostSummary | undefined,
+  idempotencyStatus: SettleCreditReservationResponse['idempotencyStatus'],
+  userFacingTitle: string,
+  userFacingMessage: string,
+  walletMutated: boolean,
+  reservationMutated: boolean,
+  warnings: string[],
+): SettleCreditReservationResponse {
+  return {
+    status,
+    settlement,
+    reservation,
+    reservationLineItems,
+    walletBalance,
+    summary,
+    idempotencyStatus,
+    userFacingTitle,
+    userFacingMessage,
+    safetyFlags: {
+      mockOnly: true,
+      walletMutated,
+      reservationMutated,
+      creditsSpent: walletMutated && (settlement?.finalChargeCredits ?? 0) > 0,
+      creditsReleased: walletMutated && (settlement?.releasedCredits ?? 0) > 0,
+      creditsRefunded: false,
+      ledgerWritten: false,
+      productionWalletMutated: false,
+      productionSettlementWritten: false,
+      providerCalled: false,
+      workerRun: false,
+      renderOrExportStarted: false,
+      exportUnlocked: false,
+      checkoutOrTopUpStarted: false,
+      supabaseWritten: false,
+      serviceFeeIncludedInToolCosts: false,
+    },
+    warnings: [
+      ...warnings,
+      'Settlement route/service is mock-only and does not wire live billing, Stripe/payment, Supabase persistence, production ledger writes, provider calls, render/export, checkout/top-up, or export unlock.',
+    ],
+  }
+}
+
+function blockedSettlementResponse(
+  status: Exclude<SettleCreditReservationStatus, 'previewed' | 'settled' | 'settled_with_absorbed_overage' | 'requires_top_up_before_export' | 'already_settled'>,
+  userFacingMessage: string,
+  warnings: string[],
+  reservation: CreditReservationRecord | null = null,
+  walletBalance: CreditReservationWalletBalance | null = null,
+): SettleCreditReservationResponse {
+  return settlementResponse(
+    status,
+    null,
+    reservation,
+    [],
+    walletBalance,
+    undefined,
+    'not_created',
+    'Final credit charge not settled',
+    userFacingMessage,
+    false,
+    false,
+    warnings,
+  )
+}
+
+function userFacingCopy(settlement: CreditSettlementRecord): {
+  title: string
+  message: string
+} {
+  if (settlement.status === 'settled_with_absorbed_overage') {
+    return {
+      title: 'Final credit charge settled',
+      message: `This edit cost more to process than your approved maximum, but you were not charged above your approved hold. ReEditPro absorbed ${settlement.absorbedOverageCredits} credits.`,
+    }
+  }
+  if (settlement.status === 'requires_top_up_before_export') {
+    return {
+      title: 'Action required: add credits to export',
+      message: `Your edit is ready, but ${settlement.outstandingCredits} approved credits are still needed before export. Add credits to unlock export in a later milestone.`,
+    }
+  }
+  if (settlement.status === 'previewed') {
+    return {
+      title: 'Final credit charge previewed',
+      message: 'Settlement preview is read-only; no credits were spent or released.',
+    }
+  }
+  return {
+    title: 'Final credit charge settled',
+    message: `Your edit used ${settlement.finalChargeCredits} credits. ${settlement.releasedCredits} unused reserved credits were returned. Final charge includes actual billable tool usage plus the ReEditPro service/edit fee.`,
+  }
+}
+
+function walletBalanceForReservation(
+  reservationStore: MockCreditReservationStore,
+  reservation: CreditReservationRecord | undefined,
+): CreditReservationWalletBalance | null {
+  return reservation ? getMockCreditWalletBalance(reservationStore, reservation.creditWalletId) : null
+}
+
+function walletToBalance(wallet: MockCreditReservationStore['creditWallets'][number]): CreditReservationWalletBalance {
+  return {
+    creditWalletId: wallet.id,
+    workspaceId: wallet.workspaceId,
+    userId: wallet.userId,
+    walletType: wallet.walletType,
+    availableCredits: wallet.cachedAvailableCredits,
+    reservedCredits: wallet.cachedReservedCredits,
+    spentCredits: wallet.cachedSpentCredits,
+    refundedCredits: wallet.cachedRefundedCredits,
   }
 }
 

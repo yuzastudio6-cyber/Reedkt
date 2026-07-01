@@ -253,6 +253,7 @@ insertCreditSettlement(store, settlement({
   id: 'settlement-absorbed-overage',
   status: 'settled_with_absorbed_overage',
   settlementReason: 'provider_variance_absorbed',
+  finalChargeCredits: preview.settlement.finalChargeCredits - 25,
   absorbedOverageCredits: 25,
 }))
 for (const status of ['settled', 'requires_revised_estimate', 'requires_top_up_before_export', 'settled_with_absorbed_overage']) {

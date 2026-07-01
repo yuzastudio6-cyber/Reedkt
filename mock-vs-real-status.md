@@ -66,3 +66,9 @@
 - Real: local/mock projected-overage actions can be resolved as approved, lower-cost selected, or cancelled.
 - Real: Approve & Continue can add a local mock `revised_credit_additional_hold` to the existing reservation, and a later runtime guard call can pass when the revised hold covers the projection.
 - Mock-only: no live billing, Stripe/payment, provider call, render/export, settlement, spend/release/refund, checkout/top-up, export unlock, Supabase write, production wallet mutation, or ledger write is wired.
+
+## RP-SETTLEMENT-01 Mock Settlement Status
+
+- Real: local/mock completed edits can settle against reserved credits, release unused hold, and mark the mock reservation `spent`.
+- Real: final charge uses billable tool-cost events plus the separate ReEditPro service/edit fee; non-billable costs are shown as absorbed internal cost.
+- Mock-only: absorbed overage and approved-but-unfunded top-up states are recorded without live billing, Stripe/payment, provider call, render/export, checkout/top-up, export unlock, Supabase write, production wallet mutation, or ledger write.

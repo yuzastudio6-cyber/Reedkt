@@ -77,7 +77,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
       status: 'blocked_external_state',
-      currentStage: 'controlled_l4_private_proof_quota_blocked_after_private_cache_and_runner_evidence',
+      currentStage:
+        'controlled_l4_private_proof_quota_blocked_after_private_cache_runner_and_fast_cache_readiness_evidence',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: false,
@@ -88,6 +89,9 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/ai-video-broll-generation-gpu-global-quota-fix-result.md',
         'docs/ai-video-broll-generation-gcp-private-cache-validate-result.md',
         'docs/ai-video-broll-generation-gcp-private-diffusers-cache-manifest.md',
+        'src/backend/mock/mock-ai-video-broll-wan-fast-cache-readiness.ts',
+        'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts',
+        'server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
       nextAction:

@@ -1796,6 +1796,6 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 ## AI Graphics External Agent Execution Gate
 
 - Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings`.
-- Scope: fail-closed external-agent go/no-go gate after sanitized external-beta callable request-admission evidence.
-- Result: all 21 AI graphics tools and all 12 product-facing capabilities are visible to the external agent as planning/select/rank/eliminate candidates, with 21 callable-scope candidates and one request-admission candidate accepted as evidence. The gate still returns `executionAllowedNow=false` and exits `2` in `--require-go` mode.
+- Scope: fail-closed external-agent go/no-go gate after sanitized external-beta callable request-admission evidence and route-mount readiness evidence.
+- Result: all 21 AI graphics tools and all 12 product-facing capabilities are visible to the external agent as planning/select/rank/eliminate candidates, with 21 callable-scope candidates, one request-admission candidate, and 21 route-mount-ready tools accepted as evidence. The app route remains unmounted with `apiRouteMountedNow=false` and `apiRouteMountedNowTools=0`; the gate still returns `executionAllowedNow=false` and exits `2` in `--require-go` mode.
 - Runtime/beta/production: no unlock; this packet does not execute tools, mount or execute routes, enqueue workers, dispatch workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download/load model weights, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.

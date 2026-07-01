@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_w
 
 Status: `external_agent_execution_gate_fail_closed_runtime_blocked`
 
-This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the sanitized external-beta callable request-admission evidence and returns a clear no-go until a later route, worker, and private runtime proof explicitly opens execution.
+This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the sanitized external-beta callable request-admission evidence plus route-mount readiness evidence and returns a clear no-go until a later route, worker, and private runtime proof explicitly opens execution.
 
 ## Scope
 
@@ -13,6 +13,8 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - GPU/runtime-targeted tools: `8`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
+- Route-mount-ready tools with provided evidence: `21`
+- API-route-mounted-now tools: `0`
 - External-agent executable now tools: `0`
 - External-beta-ready-now tools: `0`
 - Production-ready-now tools: `0`
@@ -23,6 +25,7 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - Select, rank, and eliminate planning tools from the 21-tool AI graphics set.
 - Explain missing proof before execution.
 - Verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata.
+- Read route-mount readiness evidence while preserving `apiRouteMountedNow=false`.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
 
@@ -64,14 +67,19 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 - `externalAgentExecutionGatePrepared=true`
 - `sourceExternalBetaCallableRequestAdmissionAccepted=true`
+- `sourceExternalBetaApiRouteMountReadinessAccepted=true`
 - `all21ToolsCovered=true`
 - `all12CapabilitiesCovered=true`
 - `all8GpuToolsTargetGpuRuntime=true`
 - `externalBetaCallableCandidatesWithProvidedEvidence=true`
 - `externalBetaCallableRequestAdmissionReadyWithProvidedEvidence=true`
+- `routeMountReadyWithProvidedEvidence=true`
+- `routeMountPreparedButNotMounted=true`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
 - `externalAgentExecutionAllowedNow=false`
+- `apiRouteMountedNow=false`
+- `apiRouteExecutionApprovedNow=false`
 - `routeExecutionApprovedNow=false`
 - `workerExecutionApprovedNow=false`
 - `workerQueueApprovedNow=false`
@@ -85,4 +93,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning and request-admission evidence has reached the fail-closed gate. Actual execution is still blocked. The next aligned step is to prove the real external-beta API route handler and private queue/worker path without production traffic.
+The 21 tools are organized for external-agent planning, request-admission evidence has reached the fail-closed gate, and route-mount readiness evidence is accepted. Actual execution is still blocked because the app route is not mounted and no worker/tool runtime is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.

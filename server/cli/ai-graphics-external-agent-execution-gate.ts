@@ -6,6 +6,9 @@ import {
 import type {
   AiGraphicsExternalBetaCallableRequestAdmission,
 } from '../tool-registry/ai-graphics-external-beta-callable-request-admission'
+import type {
+  AiGraphicsExternalBetaApiRouteMountReadiness,
+} from '../tool-registry/ai-graphics-external-beta-api-route-mount-readiness'
 
 function valueAfterFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -23,6 +26,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalBetaCallableRequestAdmission>>(
       '--external-beta-callable-request-admission-packet',
     ),
+  sourceExternalBetaApiRouteMountReadinessPacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaApiRouteMountReadiness>>(
+      '--external-beta-api-route-mount-readiness-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -35,6 +42,8 @@ console.log(JSON.stringify({
     requireGo,
     callableRequestAdmissionPacketRead:
       Boolean(valueAfterFlag('--external-beta-callable-request-admission-packet')),
+    apiRouteMountReadinessPacketRead:
+      Boolean(valueAfterFlag('--external-beta-api-route-mount-readiness-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

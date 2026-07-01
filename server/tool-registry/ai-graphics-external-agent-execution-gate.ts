@@ -6,6 +6,10 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_CALLABLE_REQUEST_ADMISSION_DECISION,
   type AiGraphicsExternalBetaCallableRequestAdmission,
 } from './ai-graphics-external-beta-callable-request-admission'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION,
+  type AiGraphicsExternalBetaApiRouteMountReadiness,
+} from './ai-graphics-external-beta-api-route-mount-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
@@ -13,10 +17,13 @@ export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
 export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'missing_external_beta_callable_request_admission'
   | 'external_beta_callable_request_admission_rejected'
+  | 'missing_external_beta_api_route_mount_readiness'
+  | 'external_beta_api_route_mount_readiness_rejected'
   | 'external_agent_execution_gate_fail_closed_runtime_blocked'
 
 export interface AiGraphicsExternalAgentExecutionGateInput {
   sourceExternalBetaCallableRequestAdmissionPacket?: Partial<AiGraphicsExternalBetaCallableRequestAdmission>
+  sourceExternalBetaApiRouteMountReadinessPacket?: Partial<AiGraphicsExternalBetaApiRouteMountReadiness>
 }
 
 export interface AiGraphicsExternalAgentExecutionGateToolRow {
@@ -40,7 +47,10 @@ export interface AiGraphicsExternalAgentExecutionGate {
   mode: 'fail_closed_ai_graphics_external_agent_execution_gate'
   sourceExternalBetaCallableRequestAdmissionDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_CALLABLE_REQUEST_ADMISSION_DECISION | null
+  sourceExternalBetaApiRouteMountReadinessDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION | null
   sourceExternalBetaCallableRequestAdmissionAccepted: boolean
+  sourceExternalBetaApiRouteMountReadinessAccepted: boolean
   readyForAnyExternalAgentExecutionNow: false
   executionAllowedNow: false
   requireGoExitCodeWhenBlocked: 2
@@ -50,6 +60,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
   externalBetaCallableCandidateToolsWithProvidedEvidence: number
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: number
   externalAgentExecutableNowTools: 0
+  apiRouteMountReadyToolsWithProvidedEvidence: 0 | 21
+  apiRouteMountedNowTools: 0
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
   toolRows: AiGraphicsExternalAgentExecutionGateToolRow[]
@@ -60,11 +72,14 @@ export interface AiGraphicsExternalAgentExecutionGate {
   booleans: {
     externalAgentExecutionGatePrepared: true
     sourceExternalBetaCallableRequestAdmissionAccepted: boolean
+    sourceExternalBetaApiRouteMountReadinessAccepted: boolean
     all21ToolsCovered: boolean
     all12CapabilitiesCovered: boolean
     all8GpuToolsTargetGpuRuntime: boolean
     externalBetaCallableCandidatesWithProvidedEvidence: boolean
     externalBetaCallableRequestAdmissionReadyWithProvidedEvidence: boolean
+    routeMountReadyWithProvidedEvidence: boolean
+    routeMountPreparedButNotMounted: boolean
     approvedPlanSnapshotRequired: true
     creditReservationRequired: true
     privateArtifactManifestRequired: true
@@ -76,6 +91,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
     externalAgentExecutionAllowedNow: false
+    apiRouteMountedNow: false
+    apiRouteExecutionApprovedNow: false
     routeExecutionApprovedNow: false
     workerExecutionApprovedNow: false
     workerQueueApprovedNow: false
@@ -169,9 +186,32 @@ function sourceAdmissionAccepted(
     packet.booleans?.productionReadyNow === false
 }
 
+function sourceRouteMountReadinessAccepted(
+  packet?: Partial<AiGraphicsExternalBetaApiRouteMountReadiness>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION &&
+    packet.status === 'api_route_mount_ready_with_provided_evidence_runtime_still_blocked' &&
+    packet.booleans?.apiRouteMountReadyWithProvidedEvidence === true &&
+    packet.booleans?.routeMountControlsSatisfied === true &&
+    packet.booleans?.all21ToolsCovered === true &&
+    packet.booleans?.all12CapabilitiesCovered === true &&
+    packet.booleans?.all8GpuToolsTargetGpuRuntime === true &&
+    packet.booleans?.apiRouteMountedNow === false &&
+    packet.booleans?.routeExecutionApprovedNow === false &&
+    packet.booleans?.workerExecutionApprovedNow === false &&
+    packet.booleans?.workerEnqueueApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false
+}
+
 function statusFromInput(input: {
   hasSourceAdmission: boolean
   sourceAdmissionAccepted: boolean
+  hasSourceRouteMountReadiness: boolean
+  sourceRouteMountReadinessAccepted: boolean
 }): AiGraphicsExternalAgentExecutionGateStatus {
   if (!input.hasSourceAdmission) {
     return 'missing_external_beta_callable_request_admission'
@@ -179,13 +219,19 @@ function statusFromInput(input: {
   if (!input.sourceAdmissionAccepted) {
     return 'external_beta_callable_request_admission_rejected'
   }
+  if (!input.hasSourceRouteMountReadiness) {
+    return 'missing_external_beta_api_route_mount_readiness'
+  }
+  if (!input.sourceRouteMountReadinessAccepted) {
+    return 'external_beta_api_route_mount_readiness_rejected'
+  }
   return 'external_agent_execution_gate_fail_closed_runtime_blocked'
 }
 
 function requiredBeforeExecution(gpuRequiredForRuntime: boolean): string[] {
   return [
     'explicit external-agent execution approval must pass this gate in require-go mode',
-    'real external-beta API route handler must be mounted and accepted',
+    'real external-beta API route handler mount must be approved; current route-mount readiness evidence is accepted but still unmounted',
     'approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present',
     'private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass',
     'Tool Route and Worker execution must remain private and explicitly approved before any tool call',
@@ -199,7 +245,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   input: AiGraphicsExternalAgentExecutionGateInput = {},
 ): AiGraphicsExternalAgentExecutionGate {
   const sourceAdmission = input.sourceExternalBetaCallableRequestAdmissionPacket
+  const sourceRouteMountReadiness =
+    input.sourceExternalBetaApiRouteMountReadinessPacket
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
+  const routeMountAccepted =
+    sourceRouteMountReadinessAccepted(sourceRouteMountReadiness)
   const tools = listAiGraphicsToolCallHandoffTools()
   const gpuRuntimeTargetedTools =
     tools.filter((tool) => tool.gpuRequiredForRuntime).length
@@ -233,13 +283,20 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     status: statusFromInput({
       hasSourceAdmission: Boolean(sourceAdmission),
       sourceAdmissionAccepted: sourceAccepted,
+      hasSourceRouteMountReadiness: Boolean(sourceRouteMountReadiness),
+      sourceRouteMountReadinessAccepted: routeMountAccepted,
     }),
     mode: 'fail_closed_ai_graphics_external_agent_execution_gate',
     sourceExternalBetaCallableRequestAdmissionDecision:
       sourceAdmission?.decision === AI_GRAPHICS_EXTERNAL_BETA_CALLABLE_REQUEST_ADMISSION_DECISION
         ? sourceAdmission.decision
         : null,
+    sourceExternalBetaApiRouteMountReadinessDecision:
+      sourceRouteMountReadiness?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION
+        ? sourceRouteMountReadiness.decision
+        : null,
     sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
+    sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
     readyForAnyExternalAgentExecutionNow: false,
     executionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
@@ -251,6 +308,9 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
       requestAdmissionReadyTools,
     externalAgentExecutableNowTools: 0,
+    apiRouteMountReadyToolsWithProvidedEvidence:
+      routeMountAccepted ? 21 : 0,
+    apiRouteMountedNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     toolRows,
@@ -262,12 +322,15 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     booleans: {
       externalAgentExecutionGatePrepared: true,
       sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
+      sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
       all21ToolsCovered: toolRows.length === 21,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
       externalBetaCallableCandidatesWithProvidedEvidence: candidateTools === 21,
       externalBetaCallableRequestAdmissionReadyWithProvidedEvidence:
         requestAdmissionReadyTools >= 1,
+      routeMountReadyWithProvidedEvidence: routeMountAccepted,
+      routeMountPreparedButNotMounted: routeMountAccepted,
       approvedPlanSnapshotRequired: true,
       creditReservationRequired: true,
       privateArtifactManifestRequired: true,
@@ -279,6 +342,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       externalAgentExecutionAllowedNow: false,
+      apiRouteMountedNow: false,
+      apiRouteExecutionApprovedNow: false,
       routeExecutionApprovedNow: false,
       workerExecutionApprovedNow: false,
       workerQueueApprovedNow: false,

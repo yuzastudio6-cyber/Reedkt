@@ -51,6 +51,8 @@ const falseBooleanKeys = [
   'rawChatExecutionAllowed',
   'agentCanExecuteToolsNow',
   'externalAgentExecutionAllowedNow',
+  'apiRouteMountedNow',
+  'apiRouteExecutionApprovedNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
   'workerQueueApprovedNow',
@@ -84,11 +86,14 @@ const falseBooleanKeys = [
 const trueBooleanKeys = [
   'externalAgentExecutionGatePrepared',
   'sourceExternalBetaCallableRequestAdmissionAccepted',
+  'sourceExternalBetaApiRouteMountReadinessAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
   'externalBetaCallableCandidatesWithProvidedEvidence',
   'externalBetaCallableRequestAdmissionReadyWithProvidedEvidence',
+  'routeMountReadyWithProvidedEvidence',
+  'routeMountPreparedButNotMounted',
   'approvedPlanSnapshotRequired',
   'creditReservationRequired',
   'privateArtifactManifestRequired',
@@ -106,6 +111,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.md',
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
   'server/tool-registry/index.ts',
   'package.json',
 ]
@@ -229,6 +235,12 @@ if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_total_tools_not_21')
 if (docs.counts?.totalProductFacingCapabilities !== 12) fail('docs_capability_count_not_12')
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_tools_not_8')
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_0')
+if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
+  fail('docs_route_mount_ready_tools_not_21')
+}
+if (docs.counts?.apiRouteMountedNowTools !== 0) {
+  fail('docs_route_mounted_now_tools_not_0')
+}
 assertToolCoverage('docs', docs.tools)
 assertRuntimeRows('docs', docs.tools)
 assertTrueBooleans('docs', docs.booleans)
@@ -238,6 +250,8 @@ for (const phrase of [
   'fail-closed',
   '21',
   'GPU startup as on-demand only',
+  'route-mount readiness evidence',
+  'apiRouteMountedNow=false',
   'exit code `2`',
   'agentCanExecuteToolsNow=false',
 ]) {
@@ -247,6 +261,8 @@ for (const phrase of [
 for (const forbidden of [
   /"agentCanExecuteToolsNow"\s*:\s*true/i,
   /"externalAgentExecutionAllowedNow"\s*:\s*true/i,
+  /"apiRouteMountedNow"\s*:\s*true/i,
+  /"apiRouteExecutionApprovedNow"\s*:\s*true/i,
   /"routeExecutionApprovedNow"\s*:\s*true/i,
   /"workerExecutionApprovedNow"\s*:\s*true/i,
   /"toolExecutionApprovedNow"\s*:\s*true/i,
@@ -280,6 +296,8 @@ assertFalseBooleans('missing_source_report', missingSourceReport.booleans)
 const acceptedSourceReport = runGate([
   '--external-beta-callable-request-admission-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -292,6 +310,12 @@ if (acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence 
 }
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')
+}
+if (acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_route_mount_ready_tools_not_21')
+}
+if (acceptedSourceReport.apiRouteMountedNowTools !== 0) {
+  fail('accepted_report_route_mounted_now_tools_not_0')
 }
 assertToolCoverage('accepted_report', acceptedSourceReport.toolRows)
 assertRuntimeRows('accepted_report', acceptedSourceReport.toolRows)
@@ -307,6 +331,8 @@ const requireGo = spawnSync(
     '--',
     '--external-beta-callable-request-admission-packet',
     'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+    '--external-beta-api-route-mount-readiness-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
     '--require-go',
   ],
   {
@@ -347,6 +373,9 @@ console.log(JSON.stringify({
     acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence,
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
     acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence,
+  apiRouteMountReadyToolsWithProvidedEvidence:
+    acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence,
+  apiRouteMountedNowTools: acceptedSourceReport.apiRouteMountedNowTools,
   executionAllowedNow: acceptedSourceReport.executionAllowedNow,
   requireGoBlockedExitCode: requireGo.status,
   agentCanExecuteToolsNow: acceptedSourceReport.booleans.agentCanExecuteToolsNow,

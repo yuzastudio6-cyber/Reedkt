@@ -34,12 +34,28 @@ const implementationFiles = [
   'package.json',
 ]
 
+const bridgeImplementationFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/bridge-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/smoke-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/negative-cases.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/readiness.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1/gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-qa-rollup-1.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1-diagnostics.mjs',
+]
+
 const sourceFiles = [
   handoffRecordPath,
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-dry-run-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...bridgeImplementationFiles])
 
 const requiredText = [
   packet,

@@ -39,6 +39,20 @@ const sourceFiles = [
 ]
 
 const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+for (const file of [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/readiness-decision.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/evidence-matrix.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/route-dispatch-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-readiness-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const requiredText = [
   packet,

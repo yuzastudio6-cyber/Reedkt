@@ -52,6 +52,16 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
       runsInference: false,
     },
     {
+      id: 'gcloud_all_paths',
+      toolId: 'qwen2_5_vl_7b_instruct',
+      command: 'which',
+      args: ['-a', 'gcloud'],
+      purpose: 'list every visible gcloud binary candidate before auth-dependent probes',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      runsInference: false,
+    },
+    {
       id: 'gcloud_version',
       toolId: 'qwen2_5_vl_7b_instruct',
       command: 'gcloud',

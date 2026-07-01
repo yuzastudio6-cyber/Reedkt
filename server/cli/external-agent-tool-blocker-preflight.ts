@@ -58,6 +58,19 @@ function commandLabel(command: string, args: readonly string[]): string {
   return [command, ...args].join(' ')
 }
 
+function outputLines(value: string | undefined): string[] {
+  if (!value) return []
+
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)]
+}
+
 function runReadOnlyCommand(
   id: string,
   command: string,
@@ -148,6 +161,7 @@ function main() {
   }
 
   const gcloudPath = run('gcloud_path', { captureStdout: true })
+  const gcloudAllPaths = gcloudPath.ok ? run('gcloud_all_paths', { captureStdout: true }) : undefined
   const gcloudVersion = gcloudPath.ok ? run('gcloud_version', { captureStdout: true }) : undefined
   const project = gcloudPath.ok ? run('gcloud_project', { captureStdout: true }) : undefined
   const activeAccount = gcloudPath.ok ? run('gcloud_active_account', { captureStdout: true }) : undefined
@@ -180,6 +194,25 @@ function main() {
   const globalGpuQuota = findQuota(projectQuotaDoc, 'GPUS_ALL_REGIONS')
   const regionalL4Quota = findQuota(regionQuotaDoc, 'NVIDIA_L4_GPUS')
   const preemptibleRegionalL4Quota = findQuota(regionQuotaDoc, 'PREEMPTIBLE_NVIDIA_L4_GPUS')
+  const gcloudPathCandidates = uniqueStrings(outputLines(gcloudAllPaths?.rawStdout))
+  const expectedAppleSiliconHomebrewPath = '/opt/homebrew/bin/gcloud'
+  const usrLocalGcloudPath = '/usr/local/bin/gcloud'
+  const pathEntries = uniqueStrings(outputLines(process.env.PATH?.split(':').join('\n')))
+  const pathToolSearchEntries = pathEntries
+    .filter((entry) => !entry.endsWith('/node_modules/.bin'))
+    .slice(0, 8)
+  const appleSiliconHomebrewPathIndex = pathEntries.indexOf('/opt/homebrew/bin')
+  const usrLocalPathIndex = pathEntries.indexOf('/usr/local/bin')
+  const appleSiliconHomebrewPrecedesUsrLocal =
+    appleSiliconHomebrewPathIndex >= 0 && usrLocalPathIndex >= 0
+      ? appleSiliconHomebrewPathIndex < usrLocalPathIndex
+      : false
+  const expectedAppleSiliconHomebrewGcloudPresent = gcloudPathCandidates.includes(expectedAppleSiliconHomebrewPath)
+  const usrLocalGcloudPresent = gcloudPathCandidates.includes(usrLocalGcloudPath)
+  const gcloudPathDiagnosticHint =
+    appleSiliconHomebrewPrecedesUsrLocal && !expectedAppleSiliconHomebrewGcloudPresent && usrLocalGcloudPresent
+      ? 'PATH includes /opt/homebrew/bin before /usr/local/bin, but no /opt/homebrew/bin/gcloud is visible; this shell resolves gcloud from /usr/local/bin'
+      : undefined
 
   const qwenAuthCleared = Boolean(
     accessTokenRefresh?.ok &&
@@ -226,6 +259,15 @@ function main() {
         gcloud: {
           available: gcloudPath.ok,
           path: gcloudPath.stdout,
+          pathCandidates: gcloudPathCandidates.map((candidate) => sanitize(candidate)).filter(Boolean),
+          pathCandidateCount: gcloudPathCandidates.length,
+          pathToolSearchEntries,
+          appleSiliconHomebrewPrecedesUsrLocal,
+          expectedAppleSiliconHomebrewPath,
+          expectedAppleSiliconHomebrewGcloudPresent,
+          usrLocalGcloudPath,
+          usrLocalGcloudPresent,
+          pathDiagnosticHint: gcloudPathDiagnosticHint,
           versionChecked: Boolean(gcloudVersion?.ok),
           configuredProject: project?.stdout,
           projectMatches: project?.stdout === spec.projectId,

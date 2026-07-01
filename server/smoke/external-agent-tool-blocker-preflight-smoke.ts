@@ -80,7 +80,7 @@ assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refre
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
-assert.equal(spec.allowedReadOnlyCommands.length >= 9, true)
+assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
 
 for (const command of spec.allowedReadOnlyCommands) {
   assert.equal(command.capturesTokenValue, false, `${command.id} must not capture token values`)
@@ -89,6 +89,7 @@ for (const command of spec.allowedReadOnlyCommands) {
 }
 
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
+assert.equal(renderedCommands.includes('which -a gcloud'), true)
 for (const forbiddenPattern of [
   /\bgcloud\s+run\s+deploy\b/i,
   /\bgcloud\s+run\s+jobs\s+execute\b/i,
@@ -161,6 +162,15 @@ if (live.gcloud.activeAccountDomain) {
   assert.equal(live.gcloud.activeAccountDomain.includes('@'), false)
   assert.equal(live.gcloud.activeAccountDomain.includes('<redacted'), false)
 }
+assert.equal(Array.isArray(live.gcloud.pathCandidates), true)
+assert.equal(typeof live.gcloud.pathCandidateCount, 'number')
+assert.equal(live.gcloud.pathCandidateCount >= 1, true)
+assert.equal(Array.isArray(live.gcloud.pathToolSearchEntries), true)
+assert.equal(typeof live.gcloud.appleSiliconHomebrewPrecedesUsrLocal, 'boolean')
+assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewPath, 'string')
+assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewGcloudPresent, 'boolean')
+assert.equal(typeof live.gcloud.usrLocalGcloudPath, 'string')
+assert.equal(typeof live.gcloud.usrLocalGcloudPresent, 'boolean')
 
 const downstreamCommandIds = [
   'qwen_cloud_run_service_describe',

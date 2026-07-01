@@ -206,6 +206,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       purpose:
         'Fail-closed B-roll Wan wrapper static guard; execution mode only runs read-only quota/cache checks and blocks before VM or model work.',
     },
+    {
+      id: 'sound_music_audio_external_agent_wrapper_static_guard',
+      command: 'npm run external-agent-tool-execute-sound',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Fail-closed Sound/Music/Audio wrapper static guard; execution mode only runs static evidence diagnostics and blocks before provider, worker, storage, or media work.',
+    },
   ] satisfies ExternalAgentToolSafeNextCommand[],
   tools: [
     {
@@ -348,6 +358,10 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       evidence: [
         'docs/sound-music-audio-open-source-tool-final-cross-chat-handoff-summary.md',
         'docs/sound-music-audio-open-source-tool-final-archive-handoff-summary.md',
+        'docs/sound-oss-tools-15-post-archive-handoff-review.md',
+        'docs/sound-runtime-media-gate-2f-controlled-synthetic-route-source-validation-result.md',
+        'server/cli/external-agent-tool-execute-sound.ts',
+        'server/smoke/external-agent-tool-execute-sound-smoke.ts',
       ],
       nextAction: 'continue only after runtime owner evidence accepts real execution paths',
     },

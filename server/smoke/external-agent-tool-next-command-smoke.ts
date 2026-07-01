@@ -130,6 +130,29 @@ assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, fals
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.soundMusicAudioEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-sound',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.soundMusicAudioEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+)
+assert.equal(spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.runsProvider, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.runsMediaProcessing, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.createsGeneratedAudio, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.createsGeneratedAssets, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.touchesSupabase, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.touchesSql, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.unlocksBetaOrProduction, false)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -248,6 +271,16 @@ assert.equal(brollGateSummary.noIdleLifecycleGate.externalIpAllowed, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.idleGpuAllowed, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.modelInferenceAllowedNow, false)
+const soundGateSummary = gateToolSummaries.get('sound_music_audio') as {
+  executionAllowedNow: boolean
+  staticExplicitToolGateReady: boolean
+  currentBlocker: string
+  safeNextCommand: string
+}
+assert.equal(soundGateSummary.executionAllowedNow, false)
+assert.equal(soundGateSummary.staticExplicitToolGateReady, false)
+assert.equal(soundGateSummary.currentBlocker, 'real_provider_worker_storage_track_qa_billing_export_handoffs_required')
+assert.equal(soundGateSummary.safeNextCommand, 'npm run external-agent-tool-execute-sound')
 assert.equal(
   decision.executionAllowedNow,
   (decision.executionGateAllowsRuntime || decision.staticExplicitToolGateReady) &&
@@ -303,6 +336,38 @@ assert.equal(decision.brollWanExternalAgentProofCommand.unlocksBetaOrProduction,
 assert.equal(
   decision.brollWanExternalAgentProofCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
+)
+assert.equal(typeof decision.soundMusicAudioEvidenceCommand, 'object')
+assert.deepEqual(decision.soundMusicAudioEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-sound',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.soundMusicAudioEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+)
+assert.equal(decision.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.soundMusicAudioEvidenceCommand.verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime, true)
+assert.equal(
+  decision.soundMusicAudioEvidenceCommand.verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime,
+  true,
+)
+assert.equal(decision.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
+assert.equal(decision.soundMusicAudioEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.runsProvider, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.runsMediaProcessing, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.createsGeneratedAudio, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.createsGeneratedAssets, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.touchesSupabase, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.touchesSql, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.soundMusicAudioEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-sound -- --execute --json',
 )
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)

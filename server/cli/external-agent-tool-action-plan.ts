@@ -53,7 +53,7 @@ function actionForTool(toolId: string) {
 
   if (toolId === 'sound_music_audio') {
     return {
-      immediateSafeActions: [...externalAgentPreExecutionActions, 'inspect mock evidence only'],
+      immediateSafeActions: [...externalAgentPreExecutionActions, 'npm run external-agent-tool-execute-sound'],
       externalManualBlocker: 'runtime owner handoffs still required',
       afterBlockerClears: 'continue only after real provider, worker, storage, QA, billing, and export paths are accepted',
     }

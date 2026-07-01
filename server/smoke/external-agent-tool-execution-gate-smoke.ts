@@ -92,6 +92,7 @@ assert.equal(
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-broll-wan'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-sound'), true)
 
 for (const row of gate.toolRows) {
   if (row.toolId === 'qwen2_5_vl_7b_instruct') {
@@ -111,6 +112,12 @@ assert.equal(
   qwenGateRow?.safeNextCommand,
   'npm run external-agent-tool-next-command',
 )
+const soundGateRow = gate.toolRows.find((row) => row.toolId === 'sound_music_audio')
+assert.equal(
+  soundGateRow?.currentBlocker,
+  'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
+)
+assert.equal(soundGateRow?.safeNextCommand, 'npm run external-agent-tool-execute-sound')
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
     requirement.includes('58DW bounded retry result'),

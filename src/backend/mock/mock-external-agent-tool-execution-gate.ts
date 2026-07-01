@@ -47,6 +47,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'npm run external-agent-gcloud-session:diagnostic',
     'npm run ai-video-broll-wan-fast-cache-readiness:check',
     'npm run external-agent-tool-execute-broll-wan',
+    'npm run external-agent-tool-execute-sound',
   ],
   toolRows: [
     {
@@ -93,7 +94,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'Track A/B, QA, observability, and billing owners must accept real execution',
       ],
       currentBlocker: 'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
-      safeNextCommand: 'inspect mock evidence only',
+      safeNextCommand: 'npm run external-agent-tool-execute-sound',
     },
     {
       toolId: 'supabase_local_fixture_harness',

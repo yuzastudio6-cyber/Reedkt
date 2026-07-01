@@ -121,6 +121,9 @@ for (const required of [
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
   '`broll_gpus_all_regions_quota_not_sufficient`',
+  '`npm run external-agent-tool-execute-sound`',
+  '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
+  '`sound_metadata_only_runtime_execution_not_accepted`',
   'B-roll external-agent execution must not leave an idle GPU running',
   NEXT_PROMPT,
 ]) {
@@ -141,7 +144,7 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 9)
+assert.equal(rollup.safeNextCommands.length, 10)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -178,6 +181,10 @@ assert.equal(
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-execute-broll-wan'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-execute-sound'),
   true,
 )
 for (const command of rollup.safeNextCommands) {
@@ -420,6 +427,21 @@ assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears.includes('GPU-GLOBAL-QUOTA-VERIFY'),
   true,
 )
+
+const sound = toolsById.get('sound_music_audio')
+assert.equal(sound?.status, 'metadata_only')
+assert.equal(sound?.readyForExternalAgentExecutionNow, false)
+assert.equal(sound?.readyForBoundedRetryAfterBlockerClears, false)
+assert.equal(sound?.primaryBlocker, 'real_provider_worker_storage_track_qa_billing_export_handoffs_required')
+assert.equal(sound?.evidence.includes('docs/sound-music-audio-open-source-tool-final-cross-chat-handoff-summary.md'), true)
+assert.equal(sound?.evidence.includes('docs/sound-music-audio-open-source-tool-final-archive-handoff-summary.md'), true)
+assert.equal(sound?.evidence.includes('docs/sound-oss-tools-15-post-archive-handoff-review.md'), true)
+assert.equal(
+  sound?.evidence.includes('docs/sound-runtime-media-gate-2f-controlled-synthetic-route-source-validation-result.md'),
+  true,
+)
+assert.equal(sound?.evidence.includes('server/cli/external-agent-tool-execute-sound.ts'), true)
+assert.equal(sound?.evidence.includes('server/smoke/external-agent-tool-execute-sound-smoke.ts'), true)
 
 for (const tool of rollup.tools) {
   if (tool.toolId === 'qwen2_5_vl_7b_instruct') {

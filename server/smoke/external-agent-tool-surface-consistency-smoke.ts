@@ -211,6 +211,7 @@ const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-pref
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
 const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
 const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
+const soundExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-sound.ts')
 
 const qwenSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, QWEN_TOOL_ID, 'actionPlan.toolActions')],
@@ -408,6 +409,62 @@ assert.equal(
   false,
 )
 
+const soundWrapperCanonicalCommand = asRecord(
+  soundExecutionWrapper.canonicalCommand,
+  'soundExecutionWrapper.canonicalCommand',
+)
+assert.equal(soundExecutionWrapper.mode, 'external_agent_sound_execution_static_guard')
+assert.equal(soundExecutionWrapper.executeRequired, true)
+assert.equal(soundExecutionWrapper.runtimeRunNow, false)
+assert.equal(soundExecutionWrapper.providerCallsMade, false)
+assert.equal(soundExecutionWrapper.workersDispatched, false)
+assert.equal(soundExecutionWrapper.mediaProcessingRun, false)
+assert.equal(soundExecutionWrapper.generatedAudioCreated, false)
+assert.equal(soundExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(soundExecutionWrapper.supabaseTouched, false)
+assert.equal(soundExecutionWrapper.sqlExecuted, false)
+assert.equal(soundExecutionWrapper.creditMutationCreated, false)
+assert.equal(soundExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const soundExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime',
+  'verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime',
+  'blocksRealProviderWorkerStorageExport',
+  'runsProvider',
+  'dispatchesWorker',
+  'runsMediaProcessing',
+  'createsGeneratedAudio',
+  'createsGeneratedAssets',
+  'touchesSupabase',
+  'touchesSql',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of soundExecutionCommandKeys) {
+  assert.deepEqual(
+    soundWrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.soundMusicAudioEvidenceCommand[key],
+    `Sound wrapper command drifted from spec at ${key}`,
+  )
+  const nextSoundCommand = asRecord(
+    nextCommand.soundMusicAudioEvidenceCommand,
+    'nextCommand.soundMusicAudioEvidenceCommand',
+  )
+  assert.deepEqual(
+    soundWrapperCanonicalCommand[key],
+    nextSoundCommand[key],
+    `Sound wrapper command drifted at ${key}`,
+  )
+}
+assert.equal(
+  asRecord(nextCommand.soundMusicAudioEvidenceCommand, 'nextCommand.soundMusicAudioEvidenceCommand')
+    .executionAllowedNow,
+  false,
+)
+
 const normalizedSurfaceData = {
   rollupQwenActions: normalizeManualActions(rollupQwenActions),
   rollupBrollActions: normalizeManualActions(rollupBrollActions),
@@ -435,6 +492,15 @@ const normalizedSurfaceData = {
     generatedAssetsCreated: brollExecutionWrapper.generatedAssetsCreated,
     generatedLocalFixturePassedClaimed: brollExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
+  soundExecutionWrapper: {
+    canonicalCommand: soundExecutionWrapper.canonicalCommand,
+    runtimeRunNow: soundExecutionWrapper.runtimeRunNow,
+    providerCallsMade: soundExecutionWrapper.providerCallsMade,
+    workersDispatched: soundExecutionWrapper.workersDispatched,
+    mediaProcessingRun: soundExecutionWrapper.mediaProcessingRun,
+    generatedAssetsCreated: soundExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: soundExecutionWrapper.generatedLocalFixturePassedClaimed,
+  },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
 assert.equal(forbiddenFindings.length, 0, `Forbidden values in surface data: ${forbiddenFindings.join('; ')}`)
@@ -453,6 +519,7 @@ console.log(
         'external-agent-tool-next-command',
         'external-agent-tool-execute-qwen',
         'external-agent-tool-execute-broll-wan',
+        'external-agent-tool-execute-sound',
       ],
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),

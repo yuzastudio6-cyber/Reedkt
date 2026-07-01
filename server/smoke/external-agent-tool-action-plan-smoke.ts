@@ -199,6 +199,17 @@ assert.equal(broll.noIdleLifecycleGate.idleGpuAllowed, false)
 assert.equal(broll.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(broll.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 
+const sound = toolActions.get('sound_music_audio') as {
+  immediateSafeActions: string[]
+  externalManualBlocker: string
+  manualBlockerActions: unknown[]
+}
+assert.equal(sound.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
+assert.equal(sound.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
+assert.equal(sound.immediateSafeActions.includes('npm run external-agent-tool-execute-sound'), true)
+assert.equal(sound.externalManualBlocker.includes('runtime owner handoffs still required'), true)
+assert.equal(sound.manualBlockerActions.length, 0)
+
 for (const toolAction of plan.toolActions as Array<{ toolId: string; immediateSafeActions: string[] }>) {
   assert.equal(
     toolAction.immediateSafeActions[0],

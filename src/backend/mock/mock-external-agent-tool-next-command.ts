@@ -67,6 +67,25 @@ export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
   unlocksBetaOrProduction: false
 }
 
+export type ExternalAgentToolSoundMusicAudioEvidenceCommand = {
+  toolId: 'sound_music_audio'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-sound', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW'
+  confirmationEnvRequiredValue: 'true'
+  verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true
+  verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true
+  blocksRealProviderWorkerStorageExport: true
+  runsProvider: false
+  dispatchesWorker: false
+  runsMediaProcessing: false
+  createsGeneratedAudio: false
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
 export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   decision: 'external_agent_live_next_command_read_only_decision_defined',
   mode: 'read_only_external_agent_tool_next_command_decision',
@@ -171,6 +190,24 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     touchesSql: false,
     unlocksBetaOrProduction: false,
   } satisfies ExternalAgentToolBrollWanExternalAgentProofCommand,
+  soundMusicAudioEvidenceCommand: {
+    toolId: 'sound_music_audio',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-sound', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+    confirmationEnvRequiredValue: 'true',
+    verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true,
+    verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true,
+    blocksRealProviderWorkerStorageExport: true,
+    runsProvider: false,
+    dispatchesWorker: false,
+    runsMediaProcessing: false,
+    createsGeneratedAudio: false,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolSoundMusicAudioEvidenceCommand,
   forbiddenRuntimeActions: [
     'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
     'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',

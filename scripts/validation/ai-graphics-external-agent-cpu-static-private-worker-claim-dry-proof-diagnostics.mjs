@@ -4,19 +4,19 @@ import path from 'node:path'
 
 const root = process.cwd()
 const decision =
-  'ai_graphics_external_agent_cpu_static_private_worker_queue_dry_admission_prepared_with_runtime_blocks'
+  'ai_graphics_external_agent_cpu_static_private_worker_claim_dry_proof_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'external_agent_cpu_static_private_worker_queue_dry_admission_prepared_five_dry_admitted_one_blocked_execution_blocked'
+  'external_agent_cpu_static_private_worker_claim_dry_proof_prepared_five_claimable_one_blocked_execution_blocked'
 const sourceDecision =
-  'ai_graphics_external_agent_cpu_static_private_worker_handoff_admission_prepared_with_runtime_blocks'
+  'ai_graphics_external_agent_cpu_static_private_worker_queue_dry_admission_prepared_with_runtime_blocks'
 const runScriptName =
-  'ai-graphics:external-agent-cpu-static-private-worker-queue-dry-admission'
+  'ai-graphics:external-agent-cpu-static-private-worker-claim-dry-proof'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts'
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-agent-cpu-static-private-worker-queue-dry-admission:diagnostics'
+  'ai-graphics:external-agent-cpu-static-private-worker-claim-dry-proof:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-diagnostics.mjs'
 const queueName = 'ai_graphics_external_agent_cpu_static_private_worker_queue'
 
 const tools = [
@@ -58,7 +58,7 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
-const dryAdmittedTools = [
+const claimableTools = [
   'd3',
   'vega_lite',
   'vega',
@@ -68,18 +68,20 @@ const dryAdmittedTools = [
 
 const expectedCounts = {
   totalAiGraphicsTools: 21,
-  privateWorkerQueueDryAdmissionPreparedTools: 5,
-  cpuStaticPrivateWorkerQueueDryReadyTools: 5,
-  cpuStaticPrivateWorkerQueueDryBlockedTools: 1,
+  privateWorkerClaimDryProofPreparedTools: 5,
+  cpuStaticPrivateWorkerClaimDryReadyTools: 5,
+  cpuStaticPrivateWorkerClaimDryBlockedTools: 1,
   satoriBlockedPendingApprovedFontFixtureTools: 1,
   nonCpuStaticDeferredTools: 15,
-  dryQueuePayloadContractsPreparedTools: 5,
+  dryWorkerClaimEnvelopesPreparedTools: 5,
+  externalAgentCanClaimPrivateWorkerJobNowTools: 0,
   externalAgentCanSubmitPrivateWorkerQueueNowTools: 0,
   externalAgentCanRequestPrivateWorkerHandoffNowTools: 0,
   externalAgentCanInvokeAdapterNowTools: 0,
   externalAgentExecutableNowTools: 0,
   backendQueueSubmissionApprovedNowTools: 0,
   liveQueueWriteApprovedNowTools: 0,
+  workerClaimApprovedNowTools: 0,
   workerEnqueueApprovedNowTools: 0,
   workerDispatchApprovedNowTools: 0,
   toolExecutionApprovedNowTools: 0,
@@ -89,20 +91,25 @@ const expectedCounts = {
 }
 
 const trueKeys = [
-  'externalAgentCpuStaticPrivateWorkerQueueDryAdmissionPrepared',
-  'sourcePrivateWorkerHandoffAdmissionAccepted',
+  'externalAgentCpuStaticPrivateWorkerClaimDryProofCompleted',
+  'sourceQueueDryAdmissionAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'fiveCpuStaticPrivateWorkerQueueDryAdmissionsPrepared',
+  'allFiveCpuStaticQueuePayloadsClaimableDry',
   'satoriBlockedPendingApprovedFontFixture',
-  'nonCpuStaticToolsDeferredByRuntimeBoundary',
-  'dryQueuePayloadContractsPreparedForAdmittedTools',
-  'approvedPlanSnapshotFixtureRefsPrepared',
-  'creditReservationFixtureRefsPrepared',
-  'privateArtifactManifestRefsInheritedFromHandoff',
+  'fifteenRuntimeDeferredToolsPreserved',
+  'dryWorkerClaimEnvelopesPreparedForAdmittedTools',
+  'approvedPlanSnapshotRefsPreserved',
+  'creditReservationFixtureRefsPreserved',
+  'privateArtifactManifestRefsPreserved',
+  'idempotencyKeysPreserved',
+  'checkbackPolicyRefsPreserved',
+  'fallbackPolicyRefsPreserved',
+  'qaGateRefsPreserved',
   'privateArtifactOnlyPolicyAccepted',
-  'queueTransportProofRequired',
+  'backendQueueTransportProofRequired',
   'workerClaimLeaseRequired',
+  'workerDispatchProofRequired',
   'workerCheckbackPolicyRequired',
   'workerFallbackPolicyRequired',
   'workerQaGateRequired',
@@ -114,6 +121,7 @@ const trueKeys = [
 ]
 
 const falseKeys = [
+  'externalAgentCanClaimPrivateWorkerJobNow',
   'externalAgentCanSubmitPrivateWorkerQueueNow',
   'externalAgentCanRequestPrivateWorkerHandoffNow',
   'externalAgentCanInvokeAdapterNow',
@@ -121,6 +129,7 @@ const falseKeys = [
   'routeExecutionApprovedNow',
   'backendQueueSubmissionApprovedNow',
   'liveQueueWriteApprovedNow',
+  'workerClaimApprovedNow',
   'workerExecutionApprovedNow',
   'workerEnqueueApprovedNow',
   'workerDispatchApprovedNow',
@@ -136,6 +145,7 @@ const falseKeys = [
   'packageLockMutationPerformed',
   'backendQueueSubmissionPerformed',
   'liveQueueWritePerformed',
+  'workerClaimPerformed',
   'workerEnqueuePerformed',
   'workerDispatchPerformed',
   'toolExecutionPerformed',
@@ -153,14 +163,14 @@ const falseKeys = [
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts',
-  'server/cli/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts',
-  'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts',
+  'server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts',
+  'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-dry-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-dry-proof.md',
+  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-results.md',
+  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.md',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-queue-dry-admission.json',
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-queue-dry-admission.md',
-  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission-results.md',
-  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.md',
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-handoff-admission.json',
   'server/tool-registry/index.ts',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
@@ -169,14 +179,13 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-dry-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts",',
-  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-dry-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =
   /(^|\/)(\.local-artifacts|generated|render|renders|media-output|browser-output|canvas-output|webgl-output|public-artifacts?|signed-urls?)(\/|$)|\.(mp4|mov|webm|png|jpe?g|gif|webp)$/i
 
 const forbiddenDocPatterns = [
+  /externalAgentCanClaimPrivateWorkerJobNow["`:\s=]+true/i,
   /externalAgentCanSubmitPrivateWorkerQueueNow["`:\s=]+true/i,
   /externalAgentCanRequestPrivateWorkerHandoffNow["`:\s=]+true/i,
   /externalAgentCanInvokeAdapterNow["`:\s=]+true/i,
@@ -184,6 +193,7 @@ const forbiddenDocPatterns = [
   /routeExecutionApprovedNow["`:\s=]+true/i,
   /backendQueueSubmissionApprovedNow["`:\s=]+true/i,
   /liveQueueWriteApprovedNow["`:\s=]+true/i,
+  /workerClaimApprovedNow["`:\s=]+true/i,
   /workerExecutionApprovedNow["`:\s=]+true/i,
   /workerEnqueueApprovedNow["`:\s=]+true/i,
   /workerDispatchApprovedNow["`:\s=]+true/i,
@@ -197,6 +207,7 @@ const forbiddenDocPatterns = [
   /productionReadyNow["`:\s=]+true/i,
   /backendQueueSubmissionPerformed["`:\s=]+true/i,
   /liveQueueWritePerformed["`:\s=]+true/i,
+  /workerClaimPerformed["`:\s=]+true/i,
   /workerEnqueuePerformed["`:\s=]+true/i,
   /workerDispatchPerformed["`:\s=]+true/i,
   /toolExecutionPerformed["`:\s=]+true/i,
@@ -292,81 +303,89 @@ function checkRows(label, rows) {
       fail(`${label}_missing_row:${toolId}`)
       continue
     }
-    if (dryAdmittedTools.includes(toolId)) {
+    if (claimableTools.includes(toolId)) {
       if (
-        row.dryAdmissionStatus !==
-        'private_worker_queue_dry_admission_prepared_execution_blocked'
+        row.claimDryProofStatus !==
+        'private_worker_claim_dry_proof_prepared_execution_blocked'
       ) {
-        fail(`${label}_admitted_status_mismatch:${toolId}:${row.dryAdmissionStatus}`)
+        fail(`${label}_claim_status_mismatch:${toolId}:${row.claimDryProofStatus}`)
       }
-      if (row.privateWorkerQueueDryAdmissionPrepared !== true) {
-        fail(`${label}_admitted_not_prepared:${toolId}`)
+      if (row.dryWorkerClaimProofPrepared !== true) {
+        fail(`${label}_claim_not_prepared:${toolId}`)
       }
-      if (row.dryQueuePayloadContractPrepared !== true) {
-        fail(`${label}_admitted_missing_payload_contract:${toolId}`)
+      if (row.dryWorkerClaimEnvelopePrepared !== true) {
+        fail(`${label}_claim_missing_envelope:${toolId}`)
       }
       if (row.queueName !== queueName) fail(`${label}_queue_name_mismatch:${toolId}`)
-      const payload = row.queuePayloadContract
-      if (!payload) {
-        fail(`${label}_missing_payload:${toolId}`)
+      const claim = row.dryClaimContract
+      if (!claim) {
+        fail(`${label}_missing_claim_contract:${toolId}`)
       } else {
-        if (payload.queueName !== queueName) fail(`${label}_payload_queue_name_mismatch:${toolId}`)
-        if (payload.queueTransportMode !== 'dry_contract_only_no_backend_write') {
-          fail(`${label}_payload_transport_mode_mismatch:${toolId}`)
+        if (claim.queueName !== queueName) fail(`${label}_claim_queue_name_mismatch:${toolId}`)
+        if (claim.claimTransportMode !== 'dry_contract_only_no_worker_claim') {
+          fail(`${label}_claim_transport_mode_mismatch:${toolId}`)
         }
-        if (!String(payload.approvedPlanSnapshotRef ?? '').startsWith('approved-plan-snapshot://')) {
-          fail(`${label}_payload_missing_snapshot_ref:${toolId}`)
+        if (claim.dryClaimLeaseSeconds !== 900) fail(`${label}_claim_lease_mismatch:${toolId}`)
+        if (!String(claim.approvedPlanSnapshotRef ?? '').startsWith('approved-plan-snapshot://')) {
+          fail(`${label}_claim_missing_snapshot_ref:${toolId}`)
         }
-        if (!String(payload.creditReservationRef ?? '').startsWith('credit-reservation://')) {
-          fail(`${label}_payload_missing_credit_reservation_ref:${toolId}`)
+        if (!String(claim.creditReservationRef ?? '').startsWith('credit-reservation://')) {
+          fail(`${label}_claim_missing_credit_reservation_ref:${toolId}`)
         }
-        if (!String(payload.privateArtifactManifestRef ?? '').startsWith('private://')) {
-          fail(`${label}_payload_manifest_not_private:${toolId}`)
+        if (!String(claim.privateArtifactManifestRef ?? '').startsWith('private://')) {
+          fail(`${label}_claim_manifest_not_private:${toolId}`)
         }
-        if (!String(payload.idempotencyKey ?? '').includes(toolId)) {
-          fail(`${label}_payload_idempotency_missing_tool:${toolId}`)
+        if (!String(claim.queuePayloadIdempotencyKey ?? '').includes(toolId)) {
+          fail(`${label}_queue_idempotency_missing_tool:${toolId}`)
         }
-        if (!String(payload.requestTraceRef ?? '').startsWith('trace://')) {
-          fail(`${label}_payload_trace_missing:${toolId}`)
+        if (!String(claim.dryClaimIdempotencyKey ?? '').includes(toolId)) {
+          fail(`${label}_claim_idempotency_missing_tool:${toolId}`)
         }
-        if (!String(payload.workerCheckbackPolicyRef ?? '').startsWith('policy://')) {
-          fail(`${label}_payload_checkback_missing:${toolId}`)
+        if (!String(claim.requestTraceRef ?? '').startsWith('trace://')) {
+          fail(`${label}_claim_trace_missing:${toolId}`)
         }
-        if (!String(payload.workerFallbackPolicyRef ?? '').startsWith('policy://')) {
-          fail(`${label}_payload_fallback_missing:${toolId}`)
+        if (!String(claim.workerClaimLeaseRef ?? '').startsWith('lease://')) {
+          fail(`${label}_claim_lease_ref_missing:${toolId}`)
         }
-        if (!String(payload.workerQaGateRef ?? '').startsWith('policy://')) {
-          fail(`${label}_payload_qa_gate_missing:${toolId}`)
+        if (!String(claim.workerCheckbackPolicyRef ?? '').startsWith('policy://')) {
+          fail(`${label}_claim_checkback_missing:${toolId}`)
         }
-        if (payload.expectedOutputVisibility !== 'private_artifact_only') {
-          fail(`${label}_payload_visibility_mismatch:${toolId}`)
+        if (!String(claim.workerFallbackPolicyRef ?? '').startsWith('policy://')) {
+          fail(`${label}_claim_fallback_missing:${toolId}`)
+        }
+        if (!String(claim.workerQaGateRef ?? '').startsWith('policy://')) {
+          fail(`${label}_claim_qa_gate_missing:${toolId}`)
+        }
+        if (claim.expectedOutputVisibility !== 'private_artifact_only') {
+          fail(`${label}_claim_visibility_mismatch:${toolId}`)
         }
       }
     }
     if (toolId === 'satori') {
       if (
-        row.dryAdmissionStatus !==
-        'private_worker_queue_dry_admission_blocked_pending_satori_font_fixture'
+        row.claimDryProofStatus !==
+        'private_worker_claim_dry_proof_blocked_pending_satori_font_fixture'
       ) {
-        fail(`${label}_satori_status_mismatch:${row.dryAdmissionStatus}`)
+        fail(`${label}_satori_status_mismatch:${row.claimDryProofStatus}`)
       }
       if (!/font/i.test(row.blocker ?? '')) fail(`${label}_satori_blocker_missing_font`)
-      if (row.privateWorkerQueueDryAdmissionPrepared !== false) {
-        fail(`${label}_satori_unexpected_dry_admission`)
+      if (row.dryWorkerClaimProofPrepared !== false) {
+        fail(`${label}_satori_unexpected_claim_proof`)
       }
     }
-    if (!dryAdmittedTools.includes(toolId) && toolId !== 'satori') {
-      if (row.privateWorkerQueueDryAdmissionPrepared !== false) {
-        fail(`${label}_unexpected_dry_admission:${toolId}`)
+    if (!claimableTools.includes(toolId) && toolId !== 'satori') {
+      if (row.dryWorkerClaimProofPrepared !== false) {
+        fail(`${label}_unexpected_claim_proof:${toolId}`)
       }
       if (
-        row.dryAdmissionStatus !==
-        'private_worker_queue_dry_admission_deferred_non_cpu_static_runtime_boundary'
+        row.claimDryProofStatus !==
+        'private_worker_claim_dry_proof_deferred_non_cpu_static_runtime_boundary'
       ) {
-        fail(`${label}_deferred_status_mismatch:${toolId}:${row.dryAdmissionStatus}`)
+        fail(`${label}_deferred_status_mismatch:${toolId}:${row.claimDryProofStatus}`)
       }
     }
     for (const field of [
+      'externalAgentCanClaimPrivateWorkerJobNow',
       'externalAgentCanSubmitPrivateWorkerQueueNow',
       'externalAgentCanRequestPrivateWorkerHandoffNow',
       'externalAgentCanInvokeAdapterNow',
@@ -374,6 +393,7 @@ function checkRows(label, rows) {
       'routeExecutionApprovedNow',
       'backendQueueSubmissionApprovedNow',
       'liveQueueWriteApprovedNow',
+      'workerClaimApprovedNow',
       'workerExecutionApprovedNow',
       'workerEnqueueApprovedNow',
       'workerDispatchApprovedNow',
@@ -410,26 +430,26 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(absolute(file))) fail(`missing_file:${file}`)
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-queue-dry-admission.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-queue-dry-admission.md')
-const promptResult = read('docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission-results.md')
-const implementationPrompt = read('docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.md')
-const source = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-handoff-admission.json')
+const docs = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-dry-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-dry-proof.md')
+const promptResult = read('docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-results.md')
+const implementationPrompt = read('docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.md')
+const source = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-queue-dry-admission.json')
 const packageJson = json('package.json')
-const moduleSource = read('server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts')
-const cliSource = read('server/cli/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts')
-const diagnosticSource = read('scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission-diagnostics.mjs')
+const moduleSource = read('server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts')
+const cliSource = read('server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts')
+const diagnosticSource = read('scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-diagnostics.mjs')
 const indexSource = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
-if (docs.sourceHandoffDecision !== sourceDecision) fail('docs_source_decision_mismatch')
+if (docs.sourceQueueDryAdmissionDecision !== sourceDecision) fail('docs_source_decision_mismatch')
 if (docs.queueName !== queueName) fail('docs_queue_name_mismatch')
 if (source.decision !== sourceDecision) fail('source_decision_mismatch')
 if (
   source.status !==
-  'external_agent_cpu_static_private_worker_handoff_admission_prepared_five_admitted_one_blocked_execution_blocked'
+  'external_agent_cpu_static_private_worker_queue_dry_admission_prepared_five_dry_admitted_one_blocked_execution_blocked'
 ) {
   fail('source_status_mismatch')
 }
@@ -440,13 +460,14 @@ checkCounts('docs', docs.counts)
 checkBooleans('docs', docs.booleans)
 checkRows('docs', docs.rows)
 
-if (docs.dryAdmissionPolicy?.temporaryRuntimeBlock !== true) fail('dry_policy_not_temporary')
+if (docs.dryClaimPolicy?.temporaryRuntimeBlock !== true) fail('dry_claim_policy_not_temporary')
 if (
-  docs.dryAdmissionPolicy?.mode !==
-  'prepare_private_worker_queue_payloads_without_backend_write'
+  docs.dryClaimPolicy?.mode !==
+  'prepare_private_worker_claim_envelopes_without_worker_claim_or_dispatch'
 ) {
-  fail('dry_policy_mode_mismatch')
+  fail('dry_claim_policy_mode_mismatch')
 }
+if (docs.dryClaimPolicy?.dryClaimLeaseSeconds !== 900) fail('dry_claim_lease_mismatch')
 for (const required of [
   'approved plan snapshot record persisted by backend',
   'approved credit reservation record persisted by backend',
@@ -454,14 +475,16 @@ for (const required of [
   'Worker admission approval for the exact tool request',
   'private artifact manifest writer and retention policy',
   'backend queue transport proof',
+  'live queue write proof',
   'worker claim and lease proof',
+  'worker dispatch proof',
   'idempotency and retry policy',
   'checkback policy',
   'fallback policy',
   'tool-specific QA gate',
 ]) {
-  if (!docs.dryAdmissionPolicy?.requiredBeforeAnyLiveQueueSubmission?.includes(required)) {
-    fail(`dry_policy_missing:${required}`)
+  if (!docs.dryClaimPolicy?.requiredBeforeAnyLiveWorkerClaim?.includes(required)) {
+    fail(`dry_claim_policy_missing:${required}`)
   }
 }
 
@@ -471,13 +494,14 @@ if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
 }
 
 for (const required of [
-  'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_DRY_ADMISSION_DECISION',
-  'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerQueueDryAdmission',
-  'requiredBeforeAnyLiveQueueSubmission',
-  'privateWorkerQueueDryAdmissionPrepared',
-  'dryQueuePayloadContractPrepared',
-  'externalAgentCanSubmitPrivateWorkerQueueNow: false',
-  'liveQueueWriteApprovedNow: false',
+  'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_DRY_PROOF_DECISION',
+  'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimDryProof',
+  'requiredBeforeAnyLiveWorkerClaim',
+  'dryWorkerClaimProofPrepared',
+  'dryWorkerClaimEnvelopePrepared',
+  'externalAgentCanClaimPrivateWorkerJobNow: false',
+  'workerClaimApprovedNow: false',
+  'workerDispatchApprovedNow: false',
   'agentCanExecuteToolsNow: false',
   'gpuRuntimeShouldStartNow: false',
 ]) {
@@ -485,12 +509,12 @@ for (const required of [
 }
 
 for (const required of [
-  'sourceHandoffPath',
-  'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerQueueDryAdmission',
+  'sourceQueueDryAdmissionPath',
+  'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimDryProof',
   '--write-records',
-  'report.counts.privateWorkerQueueDryAdmissionPreparedTools === 5',
+  'report.counts.privateWorkerClaimDryProofPreparedTools === 5',
   'report.booleans.agentCanExecuteToolsNow === false',
-  'report.booleans.liveQueueWriteApprovedNow === false',
+  'report.booleans.workerClaimApprovedNow === false',
 ]) {
   if (!cliSource.includes(required)) fail(`cli_missing_required_text:${required}`)
 }
@@ -499,8 +523,8 @@ if (!diagnosticSource.includes('forbiddenDocPatterns')) fail('diagnostic_missing
 if (!diagnosticSource.includes('generatedArtifactPattern')) {
   fail('diagnostic_missing_generated_artifact_scan')
 }
-if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission'")) {
-  fail('index_missing_private_worker_queue_dry_admission_export')
+if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof'")) {
+  fail('index_missing_private_worker_claim_dry_proof_export')
 }
 
 let cliReport = {}
@@ -535,24 +559,26 @@ for (const required of [
   decision,
   acceptedStatus,
   queueName,
-  'externalAgentCanSubmitPrivateWorkerQueueNow=false',
-  'liveQueueWriteApprovedNow=false',
+  'externalAgentCanClaimPrivateWorkerJobNow=false',
+  'workerClaimApprovedNow=false',
+  'workerDispatchApprovedNow=false',
   'agentCanExecuteToolsNow=false',
   'gpuRuntimeShouldStartNow=false',
   'temporary',
-  'Private worker queue dry admissions prepared',
+  'Private worker claim dry proofs prepared',
 ]) {
   if (!docsMd.includes(required)) fail(`docs_md_missing:${required}`)
 }
 
 for (const required of [
-  'AI Graphics External Agent CPU Static Private Worker Queue Dry Admission',
+  'AI Graphics External Agent CPU Static Private Worker Claim Dry Proof',
   decision,
-  'privateWorkerQueueDryAdmissionPreparedTools=5',
-  'dryQueuePayloadContractsPreparedTools=5',
+  'privateWorkerClaimDryProofPreparedTools=5',
+  'dryWorkerClaimEnvelopesPreparedTools=5',
   'satoriBlockedPendingApprovedFontFixtureTools=1',
-  'externalAgentCanSubmitPrivateWorkerQueueNowTools=0',
-  'liveQueueWriteApprovedNowTools=0',
+  'externalAgentCanClaimPrivateWorkerJobNowTools=0',
+  'workerClaimApprovedNowTools=0',
+  'workerDispatchApprovedNowTools=0',
   'toolExecutionApprovedNowTools=0',
 ]) {
   if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
@@ -605,10 +631,11 @@ console.log(
       decision,
       status: acceptedStatus,
       totalTools: 21,
-      privateWorkerQueueDryAdmissionsPrepared: dryAdmittedTools.length,
+      privateWorkerClaimDryProofPrepared: claimableTools.length,
       satoriBlocked: true,
-      externalAgentCanSubmitPrivateWorkerQueueNow: false,
-      liveQueueWriteApprovedNow: false,
+      externalAgentCanClaimPrivateWorkerJobNow: false,
+      workerClaimApprovedNow: false,
+      workerDispatchApprovedNow: false,
       agentCanExecuteToolsNow: false,
       gpuRuntimeShouldStartNow: false,
     },

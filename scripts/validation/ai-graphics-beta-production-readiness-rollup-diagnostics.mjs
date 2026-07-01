@@ -1188,6 +1188,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-queue-dry-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-queue-dry-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-dry-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-dry-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-mount-feature-flag:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-boundary": "tsx server/cli/ai-graphics-external-beta-api-route-boundary.ts",',
   '+    "ai-graphics:external-beta-api-route-boundary:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-boundary-diagnostics.mjs",',

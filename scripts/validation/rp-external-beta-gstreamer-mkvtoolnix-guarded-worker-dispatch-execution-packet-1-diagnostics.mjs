@@ -27,6 +27,18 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1.md',
 ]
 
+const followOnRuntimeHandoffFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1/worker-runtime-handoff-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1/source-chain-reconciliation.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1/gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1-diagnostics.mjs',
+]
+
 const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-plan-1-diagnostics.mjs',
@@ -42,7 +54,7 @@ const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-record.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...followOnRuntimeHandoffFiles, ...implementationFiles])
 
 const requiredText = [
   packet,

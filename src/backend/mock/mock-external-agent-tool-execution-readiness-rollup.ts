@@ -92,6 +92,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'Read-only live preflight to see whether Qwen gcloud auth/service/job visibility and B-roll GPU quota blockers have cleared.',
     },
     {
+      id: 'gcloud_session_diagnostic',
+      command: 'npm run external-agent-gcloud-session:diagnostic',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Read-only local gcloud session diagnostic for auth/config mismatches when refreshed auth is not visible to this shell.',
+    },
+    {
       id: 'broll_fast_cache_readiness',
       command: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
       liveReadOnly: false,
@@ -119,8 +129,11 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
         'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
         'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
+        'src/backend/mock/mock-external-agent-gcloud-session-diagnostic.ts',
         'server/cli/external-agent-tool-blocker-preflight.ts',
+        'server/cli/external-agent-gcloud-session-diagnostic.ts',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
+        'server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts',
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result-smoke.ts',
         'pull_request_1914_open_draft_clean',
       ],

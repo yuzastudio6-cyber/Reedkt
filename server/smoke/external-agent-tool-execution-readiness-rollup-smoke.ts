@@ -79,6 +79,8 @@ for (const required of [
   'External agents should start with `npm run external-agent-tool-action-plan`',
   'the preferred next safe command is `npm run external-agent-tool-blockers:preflight`',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
+  '`npm run external-agent-gcloud-session:diagnostic`',
+  'read-only local gcloud session/config diagnostic',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
   NEXT_PROMPT,
 ]) {
@@ -96,7 +98,7 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 4)
+assert.equal(rollup.safeNextCommands.length, 5)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -107,6 +109,10 @@ assert.equal(
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-blockers:preflight'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-gcloud-session:diagnostic'),
   true,
 )
 assert.equal(
@@ -144,6 +150,8 @@ assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(qwen?.primaryBlocker, 'local_gcloud_reauthentication_required')
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
+assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-diagnostic.ts'), true)
+assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
 assert.equal(broll?.status, 'blocked_external_state')

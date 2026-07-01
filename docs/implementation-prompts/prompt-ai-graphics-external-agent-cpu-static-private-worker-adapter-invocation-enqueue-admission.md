@@ -4,6 +4,14 @@ Implemented the adapter-invocation and worker-enqueue admission layer for the fi
 
 Decision: `ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks`
 
+## PR Record
+
+- Branch: `codex/rp-ai-graphics-tool-call-readiness-contract`
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862
+- PR status: `OPEN` / draft / `CLEAN`
+- PR head: `7768e93e4818c8f743927f625c8aba1f69174ddf`
+- Check rollup: empty at verification
+
 ## Accepted Source
 
 - Exact admission packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json`

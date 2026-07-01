@@ -90,7 +90,7 @@ for (const row of gate.toolRows) {
 const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 assert.equal(
   qwenGateRow?.currentBlocker,
-  'bounded_private_inference_retry_attempt_approval_required_after_gate',
+  'bounded_private_inference_retry_attempt_required_after_approval',
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
@@ -112,7 +112,13 @@ assert.equal(
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('retry attempt approval is required'),
+    requirement.includes('retry attempt approval must remain recorded'),
+  ),
+  true,
+)
+assert.equal(
+  qwenGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('58DU gate'),
   ),
   true,
 )

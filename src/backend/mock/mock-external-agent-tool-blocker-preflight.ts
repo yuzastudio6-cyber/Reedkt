@@ -22,7 +22,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfCleared:
-      'QWEN2_5_VL_STACK_TOOL_58DT-PRIVATE-INFERENCE-RETRY-ATTEMPT-APPROVAL: approve one bounded approved-fixture private inference retry after gate verification, no inference/no mutation',
+      'QWEN2_5_VL_STACK_TOOL_58DU-PRIVATE-INFERENCE-RETRY-ATTEMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation',
   },
   broll: {
     toolId: 'ai_video_broll_generation_wan',

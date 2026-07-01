@@ -45,10 +45,11 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'Cloud Run service and caller job visibility must remain verified via read-only describe',
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
-        'bounded approved-fixture private inference retry attempt approval is required before any retry',
+        'bounded approved-fixture private inference retry attempt approval must remain recorded',
+        'bounded approved-fixture private inference retry attempt must run only through the approved 58DU gate',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'bounded_private_inference_retry_attempt_approval_required_after_gate',
+      currentBlocker: 'bounded_private_inference_retry_attempt_required_after_approval',
       safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
     },
     {

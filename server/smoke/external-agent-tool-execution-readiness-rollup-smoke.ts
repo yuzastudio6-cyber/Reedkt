@@ -77,7 +77,10 @@ for (const required of [
   'B-roll selected proof GPU: `nvidia_l4`',
   '## Safe Agent Commands',
   'External agents should start with `npm run external-agent-tool-action-plan`',
+  '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
+  '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',
   'the preferred next safe command is `npm run external-agent-tool-blockers:preflight`',
+  '`npm run external-agent-tool-execution-gate` provides a fail-closed static go/no-go report',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
   '`npm run external-agent-gcloud-session:diagnostic`',
   'read-only local gcloud session/config diagnostic',
@@ -98,13 +101,17 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 5)
+assert.equal(rollup.safeNextCommands.length, 6)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-readiness:check'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-execution-gate'),
   true,
 )
 assert.equal(

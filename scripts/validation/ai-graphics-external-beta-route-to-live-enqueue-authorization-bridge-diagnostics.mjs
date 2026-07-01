@@ -535,6 +535,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-agent-mounted-blocked-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-mounted-blocked-route-smoke-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-route-to-queue-blocked-admission": "tsx server/cli/ai-graphics-external-agent-route-to-queue-blocked-admission.ts",',
   '+    "ai-graphics:external-agent-route-to-queue-blocked-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-route-to-queue-blocked-admission-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-mock-queue-insertion-proof": "tsx server/cli/ai-graphics-external-agent-mock-queue-insertion-proof.ts",',
+  '+    "ai-graphics:external-agent-mock-queue-insertion-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-mock-queue-insertion-proof-diagnostics.mjs",',
 ])
 const unexpectedPackageAdditions = packageDiff
   .split('\n')

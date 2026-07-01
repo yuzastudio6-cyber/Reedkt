@@ -1,4 +1,10 @@
 import { createRequire } from 'node:module'
+import type {
+  StripeBillingMode,
+  StripeBillingRuntimeConfig,
+  StripeSecretSource,
+  StripeWebhookEndpointMode,
+} from '../../src/types/stripe-billing'
 
 const optionalRequire = createRequire(import.meta.url)
 
@@ -47,6 +53,7 @@ export interface RuntimeEnv {
   pythonBin: string
   playwrightBin: string
   providerSecretReferenceNames: Record<string, string | undefined>
+  stripeBilling: StripeBillingRuntimeConfig
   hasSupabaseAdmin: boolean
   hasSupabasePublic: boolean
   mockOnly: boolean
@@ -96,6 +103,18 @@ interface ParsedRuntimeEnvSource {
   GOOGLE_SECRET_LYRIA_API_KEY_NAME?: string
   GOOGLE_SECRET_MIRELO_API_KEY_NAME?: string
   GOOGLE_SECRET_MMAUDIO_API_KEY_NAME?: string
+  REEDITPRO_STRIPE_BILLING_MODE: StripeBillingMode
+  REEDITPRO_STRIPE_SECRET_SOURCE: StripeSecretSource
+  REEDITPRO_STRIPE_TEST_SECRET_KEY_SECRET_NAME?: string
+  REEDITPRO_STRIPE_TEST_PUBLISHABLE_KEY_SECRET_NAME?: string
+  REEDITPRO_STRIPE_TEST_WEBHOOK_SECRET_NAME?: string
+  REEDITPRO_STRIPE_LIVE_SECRET_KEY_SECRET_NAME?: string
+  REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME?: string
+  REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME?: string
+  REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED?: string
+  REEDITPRO_STRIPE_LIVE_MODE_ALLOWED?: string
+  REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL?: string
+  REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE: StripeWebhookEndpointMode
 }
 
 export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): RuntimeEnv {
@@ -108,6 +127,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
   const mockOnly = parsed.E2E_RUNTIME_MODE === 'mock' || parsed.E2E_RUNTIME_MODE === 'disabled' || !hasSupabaseAdmin
   const warnings: string[] = []
+  const stripeBilling = createStripeBillingRuntimeConfig(parsed)
 
   if (!hasSupabaseAdmin) {
     warnings.push('Supabase service-role runtime is unavailable; privileged writes are disabled.')
@@ -167,6 +187,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       mirelo: clean(parsed.GOOGLE_SECRET_MIRELO_API_KEY_NAME),
       mmaudio: clean(parsed.GOOGLE_SECRET_MMAUDIO_API_KEY_NAME),
     },
+    stripeBilling,
     hasSupabaseAdmin,
     hasSupabasePublic,
     mockOnly,
@@ -220,6 +241,20 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     providerSecretReferenceNamesConfigured: Object.fromEntries(
       Object.entries(env.providerSecretReferenceNames).map(([key, value]) => [key, Boolean(value)]),
     ),
+    stripeBilling: {
+      mode: env.stripeBilling.mode,
+      secretSource: env.stripeBilling.secretSource,
+      publishableKeyMode: env.stripeBilling.publishableKeyMode,
+      secretKeySecretNameConfigured: Boolean(env.stripeBilling.secretKeySecretName),
+      publishableKeySecretNameConfigured: Boolean(env.stripeBilling.publishableKeySecretName),
+      webhookSigningSecretNameConfigured: Boolean(env.stripeBilling.webhookSigningSecretName),
+      restrictedKeyPreferred: env.stripeBilling.restrictedKeyPreferred,
+      liveModeAllowed: env.stripeBilling.liveModeAllowed,
+      liveModeRequiresManualApproval: env.stripeBilling.liveModeRequiresManualApproval,
+      webhookEndpointMode: env.stripeBilling.webhookEndpointMode,
+      environment: env.stripeBilling.environment,
+      mockOnly: env.stripeBilling.mockOnly,
+    },
     mockOnly: env.mockOnly,
     warnings: env.warnings,
   }
@@ -278,6 +313,18 @@ function parseRuntimeEnvSource(source: NodeJS.ProcessEnv): ParsedRuntimeEnvSourc
     GOOGLE_SECRET_LYRIA_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_LYRIA_API_KEY_NAME),
     GOOGLE_SECRET_MIRELO_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_MIRELO_API_KEY_NAME),
     GOOGLE_SECRET_MMAUDIO_API_KEY_NAME: optionalString(source.GOOGLE_SECRET_MMAUDIO_API_KEY_NAME),
+    REEDITPRO_STRIPE_BILLING_MODE: enumValue(source.REEDITPRO_STRIPE_BILLING_MODE, 'REEDITPRO_STRIPE_BILLING_MODE', ['disabled', 'test', 'live'], 'disabled'),
+    REEDITPRO_STRIPE_SECRET_SOURCE: enumValue(source.REEDITPRO_STRIPE_SECRET_SOURCE, 'REEDITPRO_STRIPE_SECRET_SOURCE', ['google_secret_manager', 'environment_variable', 'disabled'], 'disabled'),
+    REEDITPRO_STRIPE_TEST_SECRET_KEY_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_TEST_SECRET_KEY_SECRET_NAME),
+    REEDITPRO_STRIPE_TEST_PUBLISHABLE_KEY_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_TEST_PUBLISHABLE_KEY_SECRET_NAME),
+    REEDITPRO_STRIPE_TEST_WEBHOOK_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_TEST_WEBHOOK_SECRET_NAME),
+    REEDITPRO_STRIPE_LIVE_SECRET_KEY_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_LIVE_SECRET_KEY_SECRET_NAME),
+    REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME),
+    REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME),
+    REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED: optionalString(source.REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED),
+    REEDITPRO_STRIPE_LIVE_MODE_ALLOWED: optionalString(source.REEDITPRO_STRIPE_LIVE_MODE_ALLOWED),
+    REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL: optionalString(source.REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL),
+    REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE: enumValue(source.REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE, 'REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE', ['disabled', 'test', 'live'], 'disabled'),
   }
 }
 
@@ -336,4 +383,52 @@ function hasRequiredGcsBuckets(parsed: ParsedRuntimeEnvSource): boolean {
     clean(parsed.GCS_QA_ARTIFACTS_BUCKET) &&
     clean(parsed.GCS_WORKER_TEMP_BUCKET),
   )
+}
+
+function createStripeBillingRuntimeConfig(parsed: ParsedRuntimeEnvSource): StripeBillingRuntimeConfig {
+  const mode = parsed.REEDITPRO_STRIPE_BILLING_MODE
+  const activeMode = mode === 'live' ? 'live' : mode === 'test' ? 'test' : undefined
+  const secretReferences = {
+    testSecretKeySecretName: clean(parsed.REEDITPRO_STRIPE_TEST_SECRET_KEY_SECRET_NAME) ?? null,
+    testPublishableKeySecretName: clean(parsed.REEDITPRO_STRIPE_TEST_PUBLISHABLE_KEY_SECRET_NAME) ?? null,
+    testWebhookSigningSecretName: clean(parsed.REEDITPRO_STRIPE_TEST_WEBHOOK_SECRET_NAME) ?? null,
+    liveSecretKeySecretName: clean(parsed.REEDITPRO_STRIPE_LIVE_SECRET_KEY_SECRET_NAME) ?? null,
+    livePublishableKeySecretName: clean(parsed.REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME) ?? null,
+    liveWebhookSigningSecretName: clean(parsed.REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME) ?? null,
+  }
+
+  const secretKeySecretName = activeMode === 'live'
+    ? secretReferences.liveSecretKeySecretName
+    : activeMode === 'test'
+      ? secretReferences.testSecretKeySecretName
+      : null
+  const publishableKeySecretName = activeMode === 'live'
+    ? secretReferences.livePublishableKeySecretName
+    : activeMode === 'test'
+      ? secretReferences.testPublishableKeySecretName
+      : null
+  const webhookSigningSecretName = activeMode === 'live'
+    ? secretReferences.liveWebhookSigningSecretName
+    : activeMode === 'test'
+      ? secretReferences.testWebhookSigningSecretName
+      : null
+
+  return {
+    mode,
+    secretSource: parsed.REEDITPRO_STRIPE_SECRET_SOURCE,
+    publishableKeyMode: activeMode ?? 'disabled',
+    secretKeySecretName,
+    publishableKeySecretName,
+    webhookSigningSecretName,
+    secretReferences,
+    restrictedKeyPreferred: parseBoolean(parsed.REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED),
+    liveModeAllowed: parseBoolean(parsed.REEDITPRO_STRIPE_LIVE_MODE_ALLOWED),
+    liveModeRequiresManualApproval: parseBoolean(parsed.REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL),
+    webhookEndpointMode: parsed.REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE,
+    environment: parsed.NODE_ENV,
+    mockOnly: true,
+    warnings: [
+      'RP-STRIPE-FOUNDATION-01 is config/mock only; no Stripe SDK call, checkout session, setup intent, payment intent, webhook credit grant, wallet mutation, or ledger write is enabled.',
+    ],
+  }
 }

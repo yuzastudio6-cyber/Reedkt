@@ -23,3 +23,7 @@ Top-up suggestions are read-only. They can recommend the smallest active pack fo
 ## Boundaries
 
 This is mock-only: no live billing, no Stripe/payment, no real checkout, no provider calls, no Supabase migrations or writes, no production wallet mutation, no production ledger writes, no render/export execution, no export unlock, and no production persistence. See `smoke:credit-purchase`.
+
+## Stripe Foundation Handoff
+
+RP-STRIPE-FOUNDATION-01 adds the mock/config-only Stripe billing foundation that future real top-up checkout will use. It defines test/live mode separation, Secret Manager reference validation, Checkout Session stubs, webhook idempotency, and live-readiness gates, but it still does not create real Stripe checkout sessions, grant credits from webhooks, mutate production wallets, or unlock exports. See `docs/stripe-billing-foundation.md` and `smoke:stripe-foundation`.

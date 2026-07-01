@@ -18,6 +18,7 @@ import { createJobRoutes } from './routes/job-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
+import { createStripeBillingRoutes } from './routes/stripe-billing-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createTrackBAgentToolRoutes } from './routes/trackb-agent-tool-routes'
 import { createUploadRoutes } from './routes/upload-routes'
@@ -54,6 +55,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createCreditEstimateRoutes())
   app.use(createCreditPurchaseRoutes())
   app.use(createCreditReservationRoutes())
+  app.use(createStripeBillingRoutes())
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())

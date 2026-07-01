@@ -44,6 +44,22 @@ const implementationFiles = [
   'package.json',
 ]
 
+const controlledDispatchExecutionPacketQaRollupDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-qa-rollup-1'
+const controlledDispatchExecutionPacketQaRollupFiles = [
+  `${controlledDispatchExecutionPacketQaRollupDir}/source-audit.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/evidence-matrix.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/qa-decision.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/artifact-manifest-summary.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/readiness.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/safety-boundary.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/validation-results.md`,
+  `${controlledDispatchExecutionPacketQaRollupDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-qa-rollup-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-queue-integration-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-qa-rollup-1-diagnostics.mjs',
+]
+
 const sourceFiles = [
   sourceRecordPath,
   'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-planning-1/source-audit.md',
@@ -51,7 +67,11 @@ const sourceFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...controlledDispatchExecutionPacketQaRollupFiles,
+])
 
 const requiredText = [
   packet,

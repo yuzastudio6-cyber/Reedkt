@@ -90,6 +90,22 @@ function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) 
 
   return {
     path: nestedString(document, ['gcloud', 'path']),
+    pathCandidates: nestedArray(document, ['gcloud', 'pathCandidates']),
+    pathCandidateCount: nestedUnknown(document, ['gcloud', 'pathCandidateCount']),
+    pathToolSearchEntries: nestedArray(document, ['gcloud', 'pathToolSearchEntries']),
+    pathPrefersAppleSiliconHomebrew: nestedUnknown(document, ['gcloud', 'pathPrefersAppleSiliconHomebrew']),
+    appleSiliconHomebrewPrecedesUsrLocal: nestedUnknown(document, [
+      'gcloud',
+      'appleSiliconHomebrewPrecedesUsrLocal',
+    ]),
+    expectedAppleSiliconHomebrewPath: nestedString(document, ['gcloud', 'expectedAppleSiliconHomebrewPath']),
+    expectedAppleSiliconHomebrewGcloudPresent: nestedUnknown(document, [
+      'gcloud',
+      'expectedAppleSiliconHomebrewGcloudPresent',
+    ]),
+    usrLocalGcloudPath: nestedString(document, ['gcloud', 'usrLocalGcloudPath']),
+    usrLocalGcloudPresent: nestedUnknown(document, ['gcloud', 'usrLocalGcloudPresent']),
+    pathDiagnosticHint: nestedString(document, ['gcloud', 'pathDiagnosticHint']),
     installationSdkRoot: nestedString(document, ['gcloud', 'installationSdkRoot']),
     installationOnPath: nestedUnknown(document, ['gcloud', 'installationOnPath']),
     releaseChannel: nestedString(document, ['gcloud', 'releaseChannel']),

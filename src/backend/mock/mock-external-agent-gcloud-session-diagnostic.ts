@@ -83,6 +83,16 @@ export const EXTERNAL_AGENT_GCLOUD_SESSION_DIAGNOSTIC = {
       runsInference: false,
     },
     {
+      id: 'gcloud_all_paths',
+      command: 'which',
+      args: ['-a', 'gcloud'],
+      purpose:
+        'list every gcloud binary candidate on PATH so auth refreshes against a different install are visible',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      runsInference: false,
+    },
+    {
       id: 'gcloud_version',
       command: 'gcloud',
       args: ['--version'],

@@ -7,10 +7,10 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_prompt_blocked_live_gcloud_reauthentication_required'
-const BLOCKER = 'local_gcloud_reauthentication_required_before_58dw_runtime'
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_prompt_blocked_structured_metadata_schema_invalid'
+const BLOCKER = 'structured_metadata_schema_invalid_after_bounded_58dw_retry'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+  'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
 
 type JsonRecord = Record<string, unknown>
 
@@ -32,8 +32,7 @@ const forbiddenTextPatterns: Array<[string, RegExp]> = [
   ['public storage endpoint', /\bstorage\.googleapis\.com\//i],
   ['private key block', /BEGIN (?:RSA |EC |OPENSSH |)?PRIVATE KEY/i],
   ['raw worker prompt field', /\braw[_-]?worker[_-]?prompt\b/i],
-  ['unsafe runtime true claim', /\b(runtimeRunNow|serviceTargetResolvedNow|audienceResolvedNow|identityTokenFetched|authHeaderCreated|cloudRunInvocationAttempted|cloudRunJobExecuted|serviceRuntimeRequestSent|modelImportRun|modelLoadRun|vllmEngineInitialized|promptProcessed|forwardPassRun|inferenceRun|workersDispatched|supabaseTouched|sqlExecuted|generatedAssetsCreated|publicArtifactsCreated|signedUrlsCreated|creditMutationCreated|betaReady|productionReady)\b\s*[:=]\s*(true|"true")/i],
-  ['unsafe pass claim', /\b(dryRunPassedClaimed|generatedLocalFixturePassedClaimed)\b\s*[:=]\s*(true|"true")/i],
+  ['unsafe output true claim', /\b(generatedAssetsCreated|publicArtifactsCreated|signedUrlsCreated|supabaseTouched|sqlExecuted|creditMutationCreated|betaReady|productionReady|dryRunPassedClaimed|generatedLocalFixturePassedClaimed)\b\s*[:=]\s*(true|"true")/i],
 ]
 
 const forbiddenValuePatterns: Array<[string, RegExp]> = [
@@ -74,6 +73,7 @@ function scanValues(value: unknown, pathParts: string[] = []): string[] {
 for (const file of [
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.md',
+  'server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.ts',
   'server/cli/external-agent-tool-next-command.ts',
@@ -89,18 +89,26 @@ assert.equal(
     'smoke:qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result'
   ],
   'tsx server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result-smoke.ts',
-  'package script mismatch',
+  'package result smoke script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.['qwen2-5-vl-58dw-bounded-private-inference-retry'],
+  'tsx server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts',
+  'package bounded retry runner script mismatch',
 )
 
-const cliSource = read('server/cli/external-agent-tool-next-command.ts')
+const runnerSource = read('server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts')
 for (const phrase of [
-  'staticExecutionGateAllowed',
-  'qwenLivePreflightPassed',
-  'qwenServiceDescribePassed',
-  'qwenJobDescribePassed',
-  'whenStaticGateAllowsButQwenLivePreflightFails',
+  'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY',
+  'external-agent-tool-next-command.ts',
+  'QWEN_APPROVED_FIXTURE_INFERENCE_ENABLED',
+  'QWEN_CPU_CALLER_EXECUTION_ENABLED',
+  'QWEN_PRIVATE_INVOKE_TARGET_URL',
+  'redacted_not_stored',
+  'restore_service_fail_closed',
+  'generatedLocalFixturePassedClaimed',
 ]) {
-  assert.ok(cliSource.includes(phrase), `Next-command CLI missing live preflight guard phrase: ${phrase}`)
+  assert.ok(runnerSource.includes(phrase), `Runner missing safety phrase: ${phrase}`)
 }
 
 const doc = read(
@@ -108,18 +116,24 @@ const doc = read(
 )
 for (const phrase of [
   DECISION,
-  '58DW bounded retry prompt boundary',
-  'static external-agent gate allows Qwen prompt: true',
-  'Qwen live preflight passed: false',
-  'Qwen auth refresh passed: false',
-  'Qwen service describe passed: false',
-  'Qwen job describe passed: false',
-  'bounded retry prompt executed: false',
+  '58DW bounded retry prompt result',
+  'Qwen live preflight passed: true',
+  'Qwen auth refresh passed: true',
+  'Qwen service describe passed: true',
+  'Qwen job describe passed: true',
+  'bounded retry prompt executed: true',
+  'CPU caller exit code: `3`',
   BLOCKER,
-  '`cloudRunInvocationAttempted=false`',
-  '`modelImportRun=false`',
-  '`modelLoadRun=false`',
-  '`inferenceRun=false`',
+  '`parsedJson=true`',
+  '`schemaValid=false`',
+  '`schemaKeys=["confidence","label","region"]`',
+  '`rawOutputStoredInRepo=false`',
+  '`modelImportRun=true`',
+  '`modelLoadRun=true`',
+  '`vllmEngineInitialized=true`',
+  '`inferenceRun=true`',
+  '`serviceRestoredFailClosed=true`',
+  '`generatedAssetsCreated=false`',
   '`generatedLocalFixturePassedClaimed=false`',
   NEXT_PROMPT,
 ]) {
@@ -129,6 +143,7 @@ for (const phrase of [
 for (const file of [
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
+  'server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts',
 ]) {
   assertNoForbiddenText(file)
 }
@@ -140,31 +155,72 @@ assert.equal(result.nextPrompt, NEXT_PROMPT)
 assert.equal(result.upstreamGateAlignmentDecision, QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_GATE_ALIGNMENT.decision)
 assert.equal(result.boundedRetryPromptResult.staticExternalAgentGateAllowsQwenPrompt, true)
 assert.equal(result.boundedRetryPromptResult.liveNextCommandRequiresQwenPreflight, true)
-assert.equal(result.boundedRetryPromptResult.qwenLivePreflightPassed, false)
-assert.equal(result.boundedRetryPromptResult.qwenAuthRefreshPassed, false)
-assert.equal(result.boundedRetryPromptResult.qwenServiceDescribePassed, false)
-assert.equal(result.boundedRetryPromptResult.qwenJobDescribePassed, false)
-assert.equal(result.boundedRetryPromptResult.qwenDownstreamProbeSkipped, true)
+assert.equal(result.boundedRetryPromptResult.qwenLivePreflightPassed, true)
+assert.equal(result.boundedRetryPromptResult.qwenAuthRefreshPassed, true)
+assert.equal(result.boundedRetryPromptResult.qwenServiceDescribePassed, true)
+assert.equal(result.boundedRetryPromptResult.qwenJobDescribePassed, true)
+assert.equal(result.boundedRetryPromptResult.qwenDownstreamProbeSkipped, false)
 assert.equal(result.boundedRetryPromptResult.blocker, BLOCKER)
-assert.equal(result.boundedRetryPromptResult.blockedBeforeRuntimeMutation, true)
-assert.equal(result.boundedRetryPromptResult.blockedBeforeGpuSpend, true)
-assert.equal(result.boundedRetryPromptResult.boundedRetryPromptExecuted, false)
+assert.equal(result.boundedRetryPromptResult.boundedRetryPromptExecuted, true)
+assert.equal(result.boundedRetryPromptResult.boundedRetryPassed, false)
+assert.equal(result.boundedRetryPromptResult.serviceRestoredFailClosed, true)
+assert.equal(result.sanitizedMetadataOutput.parsedJson, true)
+assert.equal(result.sanitizedMetadataOutput.schemaValid, false)
+assert.deepEqual(result.sanitizedMetadataOutput.schemaKeys, ['confidence', 'label', 'region'])
+assert.equal(result.sanitizedMetadataOutput.rawOutputStoredInRepo, false)
 assert.equal(result.sanitizedDiagnosticSummary.tokenRefreshValueCaptured, false)
 assert.equal(result.sanitizedDiagnosticSummary.tokenPrinted, false)
 assert.equal(result.sanitizedDiagnosticSummary.credentialPrinted, false)
 assert.equal(result.sanitizedDiagnosticSummary.serviceUrlPrinted, false)
+assert.equal(result.sanitizedDiagnosticSummary.rawModelOutputStored, false)
 
-for (const [key, value] of Object.entries(result.runtimeFlags)) {
-  if ([
-    'boundedRetryPromptResultRecorded',
-    'liveNextCommandAuthGuardRecorded',
-    'staticExternalAgentGateInspected',
-    'staticExternalAgentGateAllowsQwenPrompt',
-  ].includes(key)) {
-    assert.equal(value, true, `${key} must be true`)
-  } else {
-    assert.equal(value, false, `${key} must be false`)
-  }
+for (const key of [
+  'runtimeRunNow',
+  'temporaryFixtureInferenceServiceRevisionDeployed',
+  'cloudRunJobExecuted',
+  'serviceTargetResolvedAtRuntimeOnly',
+  'audienceResolvedAtRuntimeOnly',
+  'identityTokenFetched',
+  'authHeaderCreated',
+  'cloudRunInvocationAttempted',
+  'serviceRuntimeRequestSent',
+  'modelImportRun',
+  'modelLoadRun',
+  'vllmEngineInitialized',
+  'promptProcessed',
+  'forwardPassRun',
+  'inferenceRun',
+  'temporaryFixtureInferenceServiceRestored',
+  'serviceRestoredFailClosed',
+] as const) {
+  assert.equal(result.runtimeFlags[key], true, `${key} must be true`)
+}
+
+for (const key of [
+  'structuredMetadataAccepted',
+  'schemaValid',
+  'rawModelOutputStored',
+  'serviceTargetValueStoredInRepo',
+  'audienceValueStoredInRepo',
+  'identityTokenPrinted',
+  'identityTokenValueStored',
+  'authHeaderValueStored',
+  'providerCallsMade',
+  'workersDispatched',
+  'supabaseTouched',
+  'sqlExecuted',
+  'generatedAssetsCreated',
+  'publicArtifactsCreated',
+  'signedUrlsCreated',
+  'creditMutationCreated',
+  'mediaProcessingRun',
+  'renderExportRun',
+  'betaReady',
+  'productionReady',
+  'dryRunPassedClaimed',
+  'generatedLocalFixturePassedClaimed',
+] as const) {
+  assert.equal(result.runtimeFlags[key], false, `${key} must be false`)
 }
 
 const forbiddenDataFindings = scanValues(result)
@@ -180,11 +236,11 @@ console.log(
       ok: true,
       decision: result.decision,
       blocker: result.boundedRetryPromptResult.blocker,
-      staticExternalAgentGateAllowsQwenPrompt:
-        result.boundedRetryPromptResult.staticExternalAgentGateAllowsQwenPrompt,
       qwenLivePreflightPassed: result.boundedRetryPromptResult.qwenLivePreflightPassed,
       boundedRetryPromptExecuted: result.boundedRetryPromptResult.boundedRetryPromptExecuted,
       inferenceRun: result.runtimeFlags.inferenceRun,
+      schemaValid: result.sanitizedMetadataOutput.schemaValid,
+      serviceRestoredFailClosed: result.runtimeFlags.serviceRestoredFailClosed,
       generatedAssetsCreated: result.runtimeFlags.generatedAssetsCreated,
       nextPrompt: result.nextPrompt,
     },

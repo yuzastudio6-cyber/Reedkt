@@ -236,7 +236,7 @@ function main() {
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
     : qwenLivePreflightVerificationRequired
-      ? nestedString(liveBlocker.json, ['qwen', 'nextAction'])
+      ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
     : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
   const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required

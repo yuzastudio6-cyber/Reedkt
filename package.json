@@ -482,6 +482,7 @@
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-smoke-plan": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-smoke-plan-smoke.ts",
     "qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight": "tsx server/cli/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight.ts",
     "qwen2-5-vl-7b-cloud-run-gpu-private-invoke-smoke-execute": "tsx server/cli/qwen2-5-vl-cloud-run-gpu-private-invoke-smoke-execute.ts",
+    "qwen2-5-vl-58dw-bounded-private-inference-retry": "tsx server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts",
     "smoke:qwen2-5-vl-private-invoke-smoke-execute-result": "tsx server/smoke/qwen2-5-vl-private-invoke-smoke-execute-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-token-path-fix-result": "tsx server/smoke/qwen2-5-vl-private-invoke-token-path-fix-result-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-authz-fix-result": "tsx server/smoke/qwen2-5-vl-private-invoke-authz-fix-result-smoke.ts",

@@ -1,7 +1,7 @@
 import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
-  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+  QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
@@ -25,7 +25,7 @@ const BROLL_NO_IDLE_LIFECYCLE_GATE = ROLLUP.tools.find(
 )?.noIdleLifecycleGate as ExternalAgentToolNoIdleLifecycleGate
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_go_after_explicit_tool_gate' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_no_go_runtime_blocked' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -34,8 +34,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresApprovedSnapshotBeforeExecution: true,
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
-  readyForAnyExternalAgentExecutionNow: true,
-  staticExplicitToolGateReady: true,
+  readyForAnyExternalAgentExecutionNow: false,
+  staticExplicitToolGateReady: false,
   requiresLivePreflightBeforeRuntime: true,
   requireGoExitCodeWhenBlocked: 2,
   safeCommandsBeforeExecution: [
@@ -50,23 +50,21 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   toolRows: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',
-      executionAllowedNow: true,
-      staticExplicitToolGateReady: true,
+      executionAllowedNow: false,
+      staticExplicitToolGateReady: false,
       requiredBeforeExecution: [
-        'non-interactive gcloud token refresh must pass in this shell',
-        'Cloud Run service and caller job visibility must remain verified via read-only describe',
+        '58DW bounded retry result must remain recorded as schema-invalid runtime evidence',
+        'Qwen structured-output generation must be tightened before another runtime attempt',
+        'no second bounded runtime retry may run until the 58DW-FIX prompt updates and validates schema constraints',
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
         'bounded approved-fixture private inference retry attempt approval must remain recorded',
         'bounded approved-fixture private inference retry attempt result must remain recorded as historical blocked evidence',
         'private inference gate alignment must remain recorded and accepted',
-        'the exact 58DW bounded retry prompt must be used before any runtime action',
-        '58DW must rerun live auth/service/job checks immediately before execution',
-        '58DW must use approved fixture, persisted job, lease bridge, and private source-of-truth refs',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'none_live_preflight_recheck_and_exact_58dw_prompt_required',
-      safeNextCommand: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+      currentBlocker: 'structured_metadata_schema_invalid_after_bounded_58dw_retry',
+      safeNextCommand: QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -106,13 +104,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     },
   ] satisfies ExternalAgentToolExecutionGateRow[],
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
-    'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
+    'do not invoke Cloud Run until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not execute Cloud Run jobs until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models outside the approved 58DW bounded Qwen retry prompt',
-    'do not run inference outside the approved 58DW bounded Qwen retry prompt',
+    'do not import models until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not run inference until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

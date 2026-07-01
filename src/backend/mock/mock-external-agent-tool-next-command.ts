@@ -1,4 +1,7 @@
-import { QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT } from './mock-external-agent-tool-execution-readiness-rollup'
+import {
+  QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
+  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+} from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolNextCommandAllowedProbe = {
   id: string
@@ -50,7 +53,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
-    whenQwenLivePreflightPassesButExecutionGateBlocked: 'npm run external-agent-tool-execution-gate',
+    whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
     whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
@@ -64,13 +67,13 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   },
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
-    'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
+    'do not invoke Cloud Run until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not execute Cloud Run jobs until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models outside the approved 58DW bounded Qwen retry prompt',
-    'do not run inference outside the approved 58DW bounded Qwen retry prompt',
+    'do not import models until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not run inference until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

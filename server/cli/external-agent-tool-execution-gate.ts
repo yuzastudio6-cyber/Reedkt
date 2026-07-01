@@ -7,6 +7,11 @@ function main() {
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const staticExplicitGateTools = gate.toolRows.filter((tool) => tool.staticExplicitToolGateReady)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
+  const rollupToolsById = new Map(rollup.tools.map((tool) => [tool.toolId, tool]))
+  const toolRows = gate.toolRows.map((tool) => ({
+    ...tool,
+    manualBlockerActions: rollupToolsById.get(tool.toolId)?.manualBlockerActions ?? [],
+  }))
   const runtimeGatesAllFalse = Object.values(gate.runtimeSideEffects).every((value) => value === false)
   const executionAllowedNow =
     gate.readyForAnyExternalAgentExecutionNow && readyTools.length > 0 && runtimeGatesAllFalse
@@ -36,7 +41,7 @@ function main() {
     requiresStructuredToolEnvelopeBeforeExecution: gate.requiresStructuredToolEnvelopeBeforeExecution,
     rawChatExecutionAllowed: gate.rawChatExecutionAllowed,
     runtimeGatesAllFalse,
-    toolRows: gate.toolRows,
+    toolRows,
     safeCommandsBeforeExecution: gate.safeCommandsBeforeExecution,
     forbiddenRuntimeActions: gate.forbiddenRuntimeActions,
     runtimeSideEffects: gate.runtimeSideEffects,

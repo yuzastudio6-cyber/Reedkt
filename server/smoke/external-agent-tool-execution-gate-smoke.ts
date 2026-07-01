@@ -214,6 +214,63 @@ assert.equal(report.blockedToolIds.length, 4)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
+const reportQwenGateRow = report.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'qwen2_5_vl_7b_instruct',
+)
+assert.equal(reportQwenGateRow.manualBlockerActions.length, 2)
+assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
+assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { mutatesRuntime: boolean }) => action.mutatesRuntime === false), true)
+assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { runsModel: boolean }) => action.runsModel === false), true)
+assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { createsAssets: boolean }) => action.createsAssets === false), true)
+assert.equal(
+  reportQwenGateRow.manualBlockerActions.some(
+    (action: {
+      id: string
+      mutatesCloud: boolean
+      mutatesLocalGcloudAuth: boolean
+      mutatesLocalGcloudConfig: boolean
+      changesQuotaRequest: boolean
+      afterCompletionCommand: string
+    }) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.mutatesLocalGcloudConfig === false &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  reportQwenGateRow.manualBlockerActions.some(
+    (action: {
+      id: string
+      mutatesCloud: boolean
+      mutatesLocalGcloudAuth: boolean
+      mutatesLocalGcloudConfig: boolean
+      changesQuotaRequest: boolean
+      afterCompletionCommand: string
+    }) =>
+      action.id === 'select_authenticated_gcloud_account_if_needed' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === false &&
+      action.mutatesLocalGcloudConfig === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(reportBrollGateRow.manualBlockerActions.length, 1)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(reportBrollGateRow.manualBlockerActions[0].runInsideCodex, false)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesRuntime, false)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].runsModel, false)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].createsAssets, false)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesCloud, true)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].changesQuotaRequest, true)
+assert.equal(reportBrollGateRow.manualBlockerActions[0].afterCompletionCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.externalIpAllowed, false)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.vmCreateAllowedNow, false)

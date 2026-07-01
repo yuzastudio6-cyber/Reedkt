@@ -89,7 +89,7 @@ for (const required of [
   'a static gate is not runtime permission',
   'The preferred next safe command is `npm run external-agent-tool-next-command`',
   'combines the static gate and live read-only blocker probes',
-  'The shared rollup, readiness check, live next-command selector, and static action plan include `manualBlockerActions`',
+  'The shared rollup, readiness check, execution gate, live next-command selector, and static action plan include `manualBlockerActions`',
   '`runInsideCodex=false`',
   '`mutatesRuntime=false`',
   'B-roll `GPUS_ALL_REGIONS` quota request is explicitly outside Codex',

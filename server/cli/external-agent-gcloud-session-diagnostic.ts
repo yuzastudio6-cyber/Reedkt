@@ -29,6 +29,23 @@ type GcloudAuthAccount = {
   status?: string
 }
 
+type GcloudInfo = {
+  installation?: {
+    on_path?: boolean
+    release_channel?: string
+    sdk_root?: string
+  }
+  config?: {
+    active_config_name?: string
+    universe_domain?: string
+    paths?: {
+      active_config_path?: string
+      global_config_dir?: string
+      sdk_root?: string
+    }
+  }
+}
+
 const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['url', /\bhttps?:\/\/\S+/gi],
   ['access token', /\bya29\.[A-Za-z0-9._-]+/g],
@@ -139,6 +156,7 @@ function main() {
   const gcloudVersion = gcloudPath.ok ? run('gcloud_version', { captureStdout: true }) : undefined
   const configurations = gcloudPath.ok ? run('gcloud_configurations_list', { captureStdout: true }) : undefined
   const configList = gcloudPath.ok ? run('gcloud_config_list', { captureStdout: true }) : undefined
+  const info = gcloudPath.ok ? run('gcloud_info', { captureStdout: true }) : undefined
   const project = gcloudPath.ok ? run('gcloud_project', { captureStdout: true }) : undefined
   const account = gcloudPath.ok ? run('gcloud_account', { captureStdout: true }) : undefined
   const activeAuth = gcloudPath.ok ? run('gcloud_auth_active_account', { captureStdout: true }) : undefined
@@ -150,6 +168,7 @@ function main() {
   const activeConfig = configurationDocs?.find((configuration) => configuration.is_active)
   const activeConfigName = activeConfig?.name
   const config = parseJson<GcloudConfigList>(configList)
+  const gcloudInfo = parseJson<GcloudInfo>(info)
   const authAccounts = parseJson<GcloudAuthAccount[]>(activeAuth)
   const activeAuthAccount = authAccounts?.find((authAccount) => authAccount.status === 'ACTIVE')
   const accountValue = account?.rawStdout?.trim() || config?.core?.account || activeAuthAccount?.account
@@ -183,7 +202,14 @@ function main() {
           available: gcloudPath.ok,
           path: gcloudPath.stdout,
           versionChecked: Boolean(gcloudVersion?.ok),
-          activeConfigurationName: sanitize(activeConfigName),
+          installationSdkRoot: sanitize(gcloudInfo?.installation?.sdk_root),
+          installationOnPath: gcloudInfo?.installation?.on_path,
+          releaseChannel: sanitize(gcloudInfo?.installation?.release_channel),
+          activeConfigurationName: sanitize(activeConfigName ?? gcloudInfo?.config?.active_config_name),
+          globalConfigDir: sanitize(gcloudInfo?.config?.paths?.global_config_dir),
+          activeConfigPath: sanitize(gcloudInfo?.config?.paths?.active_config_path),
+          configSdkRoot: sanitize(gcloudInfo?.config?.paths?.sdk_root),
+          universeDomain: sanitize(gcloudInfo?.config?.universe_domain),
           availableConfigurationCount: configurationDocs?.length,
           configuredProject: project?.stdout ?? sanitize(config?.core?.project),
           projectMatches,

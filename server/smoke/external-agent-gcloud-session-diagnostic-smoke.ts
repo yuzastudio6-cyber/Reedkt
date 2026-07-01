@@ -74,7 +74,7 @@ assert.equal(spec.decision, 'external_agent_gcloud_session_diagnostic_read_only_
 assert.equal(spec.mode, 'read_only_external_agent_gcloud_session_diagnostic')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
-assert.equal(spec.allowedReadOnlyCommands.length >= 8, true)
+assert.equal(spec.allowedReadOnlyCommands.length >= 9, true)
 
 for (const command of spec.allowedReadOnlyCommands) {
   assert.equal(command.capturesTokenValue, false, `${command.id} must not capture token values`)
@@ -83,6 +83,7 @@ for (const command of spec.allowedReadOnlyCommands) {
 }
 
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
+assert.equal(renderedCommands.includes('gcloud info --format=json'), true)
 for (const forbiddenPattern of [
   /\bgcloud\s+auth\s+login\b/i,
   /\bgcloud\s+config\s+set\b/i,
@@ -144,6 +145,11 @@ assert.equal(live.runtimeGatesAllFalse, true)
 assert.equal(live.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
 assert.equal(typeof live.gcloud.accessTokenRefreshPassed, 'boolean')
+assert.equal(typeof live.gcloud.path, 'string')
+assert.equal(typeof live.gcloud.installationSdkRoot, 'string')
+assert.equal(typeof live.gcloud.globalConfigDir, 'string')
+assert.equal(typeof live.gcloud.activeConfigPath, 'string')
+assert.equal(typeof live.gcloud.universeDomain, 'string')
 assert.equal(typeof live.recommendedNextPrompt, 'string')
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(live.commandSummaries.length > 0, true)

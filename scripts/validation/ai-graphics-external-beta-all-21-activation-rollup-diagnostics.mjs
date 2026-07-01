@@ -124,6 +124,7 @@ const falseGateKeys = [
 const trueRollupKeys = [
   'externalBetaAll21ActivationRollupPrepared',
   'sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
@@ -230,6 +231,7 @@ function activationPacketFixture(toolId) {
     capabilityId,
     externalBetaActivationGoNoGoApprovedToolsWithProvidedEvidence: 1,
     sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence: 1,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
     externalBetaToolCallReadyNowTools: 1,
     externalBetaReadyNowTools: 1,
     runtimeReadyForOnDemandExternalBetaToolCallTools: 1,
@@ -244,6 +246,7 @@ function activationPacketFixture(toolId) {
       routePath: '/api/ai-graphics/external-beta/tool-call',
       routeId,
       sourceControlledTrafficRuntimeSoakResultAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       externalBetaActivationApprovedWithProvidedEvidence: true,
       externalBetaToolCallReadyNow: true,
       runtimeReadyForOnDemandExternalBetaToolCall: true,
@@ -262,6 +265,7 @@ function activationPacketFixture(toolId) {
       postActivationReviewRef: `private://ai-graphics/external-beta/activation/${toolId}/post-activation-review.json`,
     },
     evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
       ownerApprovalRef: `private://ai-graphics/external-beta/activation/${toolId}/owner-approval.json`,
       featureFlagRef: `private://ai-graphics/external-beta/activation/${toolId}/feature-flag.json`,
       cohortRef: `private://ai-graphics/external-beta/activation/${toolId}/cohort.json`,
@@ -289,6 +293,7 @@ function activationPacketFixture(toolId) {
     booleans: {
       externalBetaActivationGoNoGoPrepared: true,
       sourceControlledTrafficRuntimeSoakResultAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       externalBetaActivationControlsAccepted: true,
       externalBetaActivationApprovedWithProvidedEvidence: true,
       externalBetaToolCallReadyNow: true,
@@ -450,6 +455,11 @@ function verifyDocs() {
   requireEqual(docJson.scope?.productFacingCapabilities, 12, 'doc_json_capability_count')
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
   requireEqual(docJson.scope?.externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence, 21, 'doc_json_activation_count')
+  requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_json_operator_preflight_count',
+  )
   requireEqual(docJson.scope?.externalBetaToolCallReadyNowTools, 21, 'doc_json_tool_call_ready_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 21, 'doc_json_external_beta_count')
   requireEqual(docJson.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'doc_json_runtime_ready_count')
@@ -472,6 +482,8 @@ function verifyDocs() {
     decision,
     'external-beta tool-call ready',
     '`externalBetaToolCallReadyNowTools`: 21',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21',
+    'route-bound service-role queue smoke operator-preflight evidence',
     '`externalBetaReadyNowTools`: 21',
     '`runtimeReadyForOnDemandExternalBetaToolCallTools`: 21',
     '`agentCanExecuteToolsNow=false`',
@@ -504,6 +516,7 @@ function verifySourceWiring() {
     'approvesAll21ExternalBetaToolCallReadinessMetadata: true',
     'directAgentExecutionStillBlocked: true',
     'runtimeStartsOnlyForAcceptedWorkerJob: true',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'noProductionUnlockByRollup: true',
     'externalBetaReadyNow: accepted',
     'gpuRuntimeShouldStartNow: false',
@@ -546,6 +559,11 @@ function verifyCliBehavior() {
     21,
     'accepted_activation_count',
   )
+  requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'accepted_operator_preflight_count',
+  )
   requireEqual(accepted.externalBetaToolCallReadyNowTools, 21, 'accepted_tool_call_ready')
   requireEqual(accepted.externalBetaReadyNowTools, 21, 'accepted_external_beta_ready')
   requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'accepted_runtime_on_demand')
@@ -556,9 +574,37 @@ function verifyCliBehavior() {
     8,
     'accepted_gpu_tool_count',
   )
+  requireEqual(
+    accepted.activatedTools?.filter((tool) =>
+      tool.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted
+    ).length,
+    21,
+    'accepted_operator_preflight_tool_count',
+  )
   requireFalse(accepted.gpuRuntimeShouldStartNow, 'accepted_gpu_should_not_start')
   verifyTrueRollup(accepted, 'accepted')
   verifyFalseGates(accepted, 'accepted')
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-all21-stripped-preflight-'))
+  const strippedArgs = tools.flatMap((toolId) => {
+    const packet = activationPacketFixture(toolId)
+    if (toolId === 'sam2') {
+      packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+      packet.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+      packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+      packet.activatedToolCallReadiness.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    }
+    return [
+      '--external-beta-activation-go-no-go-packet',
+      writeJson(path.join(tempDir, `${toolId}.json`), packet),
+    ]
+  })
+  const stripped = npmJson(runScriptName, strippedArgs)
+  requireEqual(stripped.status, 'partial_external_beta_activation_go_no_go_packets', 'stripped_operator_preflight_status')
+  requireEqual(stripped.externalBetaReadyNowTools, 0, 'stripped_operator_preflight_external_beta_ready')
+  if (!stripped.rejectionReasons?.some((reason) => reason.includes('sam2'))) {
+    fail('stripped_operator_preflight_missing_rejection_reason')
+  }
 }
 
 verifyRequiredFiles()
@@ -587,6 +633,7 @@ console.log(JSON.stringify({
   totalAiGraphicsTools: 21,
   gpuRuntimeTargetedTools: 8,
   externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   externalBetaToolCallReadyNowTools: 21,
   externalBetaReadyNowTools: 21,
   runtimeReadyForOnDemandExternalBetaToolCallTools: 21,

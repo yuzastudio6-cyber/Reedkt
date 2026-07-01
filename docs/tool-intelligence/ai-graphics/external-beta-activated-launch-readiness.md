@@ -15,6 +15,7 @@ When both are accepted, all 21 AI graphics tools are marked ready for controlled
 
 - `totalAiGraphicsTools`: 21
 - `gpuRuntimeTargetedTools`: 8
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21
 - `externalBetaActivatedLaunchReadyToolsWithProvidedEvidence`: 21
 - `externalBetaToolCallReadyNowTools`: 21
 - `externalBetaReadyNowTools`: 21
@@ -24,6 +25,7 @@ When both are accepted, all 21 AI graphics tools are marked ready for controlled
 ## Boundary
 
 - External beta readiness means controlled on-demand tool-call readiness.
+- All 21 tools must preserve route-bound service-role queue smoke operator-preflight evidence through the activation rollup.
 - Direct agent execution remains blocked: `agentCanExecuteToolsNow=false`.
 - Route, worker, tool, provider, browser/WebGL/canvas, and GPU execution are not performed by this readiness gate.
 - GPU/model runtime remains on-demand only: `gpuRuntimeShouldStartNow=false`.

@@ -12,12 +12,14 @@
   },
   "sourceEvidence": {
     "externalBetaLaunchGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "accepted through the all-21 activation rollup",
     "externalBetaAll21ActivationRollup": "docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.json"
   },
   "scope": {
     "totalAiGraphicsTools": 21,
     "productFacingCapabilities": 12,
     "gpuRuntimeTargetedTools": 8,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaActivatedLaunchReadyToolsWithProvidedEvidence": 21,
     "externalBetaToolCallReadyNowTools": 21,
     "externalBetaReadyNowTools": 21,
@@ -28,6 +30,7 @@
   "acceptedPreparedActions": [
     "read accepted external-beta launch go/no-go evidence",
     "read accepted all-21 activation rollup evidence",
+    "verify all 21 tools preserved route-bound service-role queue smoke operator-preflight evidence",
     "mark all 21 AI graphics tools ready for controlled on-demand external-beta tool calls",
     "preserve direct agent execution as blocked",
     "preserve GPU runtime as on-demand and not started by this readiness gate",
@@ -52,6 +55,7 @@
     "externalBetaActivatedLaunchReadinessPrepared": true,
     "sourceExternalBetaLaunchGoNoGoAccepted": true,
     "sourceExternalBetaAll21ActivationRollupAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

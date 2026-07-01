@@ -36,6 +36,8 @@ export interface AiGraphicsExternalBetaActivatedLaunchReadiness {
   gpuRuntimeTargetedTools: 8
   sourceExternalBetaLaunchGoNoGoAccepted: boolean
   sourceExternalBetaAll21ActivationRollupAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+    0 | 21
   externalBetaActivatedLaunchReadyToolsWithProvidedEvidence: 0 | 21
   externalBetaToolCallReadyNowTools: 0 | 21
   externalBetaReadyNowTools: 0 | 21
@@ -59,6 +61,8 @@ export interface AiGraphicsExternalBetaActivatedLaunchReadiness {
     externalBetaActivatedLaunchReadinessPrepared: true
     sourceExternalBetaLaunchGoNoGoAccepted: boolean
     sourceExternalBetaAll21ActivationRollupAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
     all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -146,6 +150,7 @@ function all21ActivationRollupAccepted(
     packet.status ===
       'external_beta_all_21_activation_rollup_accepted_runtime_on_demand' &&
     packet.externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence === 21 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence === 21 &&
     packet.externalBetaToolCallReadyNowTools === 21 &&
     packet.externalBetaReadyNowTools === 21 &&
     packet.runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
@@ -155,7 +160,11 @@ function all21ActivationRollupAccepted(
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.gpuRuntimeShouldStartNow === false &&
     packet.activatedTools.length === 21 &&
+    packet.activatedTools.every((tool) =>
+      tool.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
+    ) &&
     packet.booleans.all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.externalBetaReadyNow === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.directAgentToolExecutionApprovedNow === false &&
@@ -221,6 +230,8 @@ export function evaluateAiGraphicsExternalBetaActivatedLaunchReadiness(
     gpuRuntimeTargetedTools: 8,
     sourceExternalBetaLaunchGoNoGoAccepted: launchAccepted,
     sourceExternalBetaAll21ActivationRollupAccepted: activationAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      activationAccepted ? 21 : 0,
     externalBetaActivatedLaunchReadyToolsWithProvidedEvidence: accepted ? 21 : 0,
     externalBetaToolCallReadyNowTools: accepted ? 21 : 0,
     externalBetaReadyNowTools: accepted ? 21 : 0,
@@ -244,6 +255,8 @@ export function evaluateAiGraphicsExternalBetaActivatedLaunchReadiness(
       externalBetaActivatedLaunchReadinessPrepared: true,
       sourceExternalBetaLaunchGoNoGoAccepted: launchAccepted,
       sourceExternalBetaAll21ActivationRollupAccepted: activationAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        activationAccepted,
       all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence: accepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,

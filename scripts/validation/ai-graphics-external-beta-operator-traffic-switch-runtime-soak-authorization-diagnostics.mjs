@@ -228,6 +228,7 @@ function sourceTrafficEnablementGateFixture(toolId) {
       'ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks',
     status: sourceStatus,
     sourcePerToolCallableResultGateAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     sourceExternalBetaLaunchGoNoGoAccepted: true,
     trafficEnablementControlsAccepted: true,
     rejectionReasons: [],
@@ -235,6 +236,7 @@ function sourceTrafficEnablementGateFixture(toolId) {
     capabilityId,
     perToolTrafficEnablementPreparedRequestsWithProvidedEvidence: 1,
     sourceCallableResultGateAcceptedRequestsWithProvidedEvidence: 1,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
     sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
     externalBetaTrafficCandidateToolsWithProvidedEvidence: 1,
     externalBetaTrafficEnabledNowTools: 0,
@@ -268,6 +270,7 @@ function sourceTrafficEnablementGateFixture(toolId) {
       ownerApprovalRef:
         `private://ai-graphics/external-beta/traffic/${toolId}/owner-approval.json`,
       sourceCallableResultGateAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       sourceExternalBetaLaunchGoNoGoAccepted: true,
       externalBetaTrafficEnablementPreparedWithProvidedEvidence: true,
       externalBetaTrafficEnabledNow: false,
@@ -275,6 +278,9 @@ function sourceTrafficEnablementGateFixture(toolId) {
       workerDispatchApprovedNow: false,
       toolExecutionApprovedNow: false,
       gpuRuntimeShouldStartNow: false,
+    },
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
     },
     policy: {
       validatesPreparedTrafficEnablementOnly: true,
@@ -290,6 +296,7 @@ function sourceTrafficEnablementGateFixture(toolId) {
     booleans: {
       externalBetaPerToolTrafficEnablementGatePrepared: true,
       sourcePerToolCallableResultGateAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       sourceExternalBetaLaunchGoNoGoAccepted: true,
       trafficEnablementControlsAccepted: true,
       perToolTrafficEnablementPreparedWithProvidedEvidence: true,
@@ -487,6 +494,11 @@ function verifyDocs() {
     'doc_json_source_gate_count',
   )
   requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'doc_json_operator_preflight_count',
+  )
+  requireEqual(
     docJson.scope?.operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence,
     1,
     'doc_json_candidate_count',
@@ -505,6 +517,7 @@ function verifyDocs() {
   for (const key of [
     'externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared',
     'sourcePerToolTrafficEnablementGateAccepted',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'operatorTrafficSwitchRuntimeSoakControlsAccepted',
     'operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence',
     'all21ToolsCovered',
@@ -528,6 +541,8 @@ function verifyDocs() {
     'does not start runtime soak',
     '`externalBetaTrafficSwitchEnabledNow=false`',
     '`externalBetaRuntimeSoakStartedNow=false`',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`',
+    'route-bound service-role queue smoke operator preflight',
     '`gpuRuntimeShouldStartNow=false`',
     'This gate only proves the authorization controls exist.',
   ]) {
@@ -573,6 +588,7 @@ function verifySourceWiring() {
     'noGpuRuntimeStartByGate: true',
     'externalBetaTrafficSwitchEnabledNow: false',
     'externalBetaRuntimeSoakStartedNow: false',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'gpuRuntimeShouldStartNow: false',
     'toolExecutionApprovedNow: false',
   ]) {
@@ -608,6 +624,11 @@ function verifyCliBehavior() {
     'accepted_source_count',
   )
   requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'accepted_operator_preflight_count',
+  )
+  requireEqual(
     accepted.operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence,
     1,
     'accepted_candidate_count',
@@ -617,6 +638,14 @@ function verifyCliBehavior() {
   requireTruthy(
     accepted.trafficSwitchRuntimeSoakCandidate?.sourceTrafficEnablementGateAccepted,
     'candidate_source',
+  )
+  requireTruthy(
+    accepted.trafficSwitchRuntimeSoakCandidate?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'candidate_operator_preflight',
+  )
+  requireTruthy(
+    accepted.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'accepted_operator_preflight_boolean',
   )
   requireFalse(
     accepted.trafficSwitchRuntimeSoakCandidate?.externalBetaTrafficSwitchEnabledNow,
@@ -635,6 +664,23 @@ function verifyCliBehavior() {
     badSource.status,
     'external_beta_per_tool_traffic_enablement_gate_rejected',
     'bad_source_status',
+  )
+
+  const strippedOperatorPreflightSource = runGate('sam2', privateAuthorizationRefs('sam2'), (source) => {
+    source.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    source.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+    source.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+    source.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    source.trafficEnablementCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  })
+  requireEqual(
+    strippedOperatorPreflightSource.status,
+    'external_beta_per_tool_traffic_enablement_gate_rejected',
+    'stripped_operator_preflight_source_status',
+  )
+  requireFalse(
+    strippedOperatorPreflightSource.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'stripped_operator_preflight_source_boolean',
   )
 
   const badPublicRef = runGate('sam2', [
@@ -699,6 +745,7 @@ console.log(JSON.stringify({
   totalAiGraphicsTools: tools.length,
   gpuRuntimeTargetedTools: gpuTools.length,
   operatorTrafficSwitchRuntimeSoakAuthorizationAccepted: true,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
   externalBetaTrafficSwitchEnabledNow: false,
   externalBetaRuntimeSoakStartedNow: false,
   routeExecutionApprovedNow: false,

@@ -9,6 +9,7 @@ The gate does not execute traffic. It does not enable traffic switches, start ru
 ## Accepted Observed Evidence
 
 - Accepted operator traffic-switch/runtime-soak authorization gate.
+- Accepted route-bound service-role queue smoke operator preflight, preserved through the operator traffic-switch/runtime-soak authorization gate.
 - Private controlled traffic run result ref.
 - Private runtime soak metrics ref.
 - Private request sample audit ref.
@@ -42,6 +43,7 @@ The gate does not execute traffic. It does not enable traffic switches, start ru
 - `agentCanExecuteToolsNow=false`
 - `controlledTrafficRunObservedWithProvidedEvidence=true`
 - `runtimeSoakObservedWithProvidedEvidence=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `controlledTrafficRunExecutedByThisGate=false`
 - `externalBetaTrafficEnabledNow=false`
 - `externalBetaTrafficSwitchEnabledByThisGate=false`

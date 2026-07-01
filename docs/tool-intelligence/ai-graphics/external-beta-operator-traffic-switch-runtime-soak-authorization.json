@@ -12,6 +12,7 @@
   },
   "sourceEvidence": {
     "perToolTrafficEnablementGate": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-traffic-enablement-gate.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "accepted via per-tool traffic enablement gate evidence",
     "perToolCallableResultGate": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json",
     "externalBetaLaunchGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json"
   },
@@ -54,6 +55,7 @@
     "gpuRuntimeTargetedTools": 8,
     "operatorTrafficSwitchRuntimeSoakAuthorizationPreparedRequestsWithProvidedEvidence": 1,
     "sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence": 1,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 1,
     "operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence": 1,
     "externalBetaTrafficSwitchEnabledNowTools": 0,
     "externalBetaRuntimeSoakStartedNowTools": 0,
@@ -76,6 +78,7 @@
   ],
   "acceptedPreparedActions": [
     "read accepted per-tool traffic-enablement gate evidence",
+    "preserve accepted route-bound service-role queue smoke operator-preflight evidence from the traffic-enablement gate",
     "record one per-tool operator traffic-switch/runtime-soak authorization candidate with private controls",
     "prove canary cohort, monitoring, alert, rollback, support, cost, kill-switch drill, and post-soak review metadata are present before future traffic",
     "preserve GPU runtime as on-demand only for a later accepted worker/tool job",
@@ -100,6 +103,7 @@
   "booleans": {
     "externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared": true,
     "sourcePerToolTrafficEnablementGateAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "operatorTrafficSwitchRuntimeSoakControlsAccepted": true,
     "operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence": true,
     "all21ToolsCovered": true,

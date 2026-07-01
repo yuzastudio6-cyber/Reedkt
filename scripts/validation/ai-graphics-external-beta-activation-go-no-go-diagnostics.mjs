@@ -128,6 +128,7 @@ const falseGateKeys = [
 const trueActivationKeys = [
   'externalBetaActivationGoNoGoPrepared',
   'sourceControlledTrafficRuntimeSoakResultAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
   'externalBetaActivationControlsAccepted',
   'externalBetaActivationApprovedWithProvidedEvidence',
   'externalBetaToolCallReadyNow',
@@ -243,6 +244,7 @@ function sourceResultFixture(toolId) {
     capabilityId,
     controlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence: 1,
     sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAcceptedRequestsWithProvidedEvidence: 1,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
     controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence: 1,
     externalBetaTrafficSwitchEnabledByThisGateTools: 0,
     externalBetaRuntimeSoakStartedByThisGateTools: 0,
@@ -259,6 +261,7 @@ function sourceResultFixture(toolId) {
       routePath: '/api/ai-graphics/external-beta/tool-call',
       routeId,
       sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       controlledTrafficRunResultRef:
         `private://ai-graphics/external-beta/observed-soak/${toolId}/traffic-run-result.json`,
       runtimeSoakMetricsRef:
@@ -288,6 +291,9 @@ function sourceResultFixture(toolId) {
       toolExecutionPerformedByThisGate: false,
       gpuRuntimePerformedByThisGate: false,
     },
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     policy: {
       validatesObservedResultEvidenceOnly: true,
       noControlledTrafficExecutedByGate: true,
@@ -303,6 +309,7 @@ function sourceResultFixture(toolId) {
     booleans: {
       externalBetaControlledTrafficRuntimeSoakResultPrepared: true,
       sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       controlledTrafficRuntimeSoakObservedEvidenceAccepted: true,
       controlledTrafficRunObservedWithProvidedEvidence: true,
       runtimeSoakObservedWithProvidedEvidence: true,
@@ -496,6 +503,11 @@ function verifyDocs() {
   requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
   requireEqual(docJson.scope?.externalBetaActivationGoNoGoApprovedToolsWithProvidedEvidence, 1, 'doc_json_activation_count')
   requireEqual(docJson.scope?.sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence, 1, 'doc_json_source_count')
+  requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'doc_json_operator_preflight_count',
+  )
   requireEqual(docJson.scope?.externalBetaToolCallReadyNowTools, 1, 'doc_json_tool_call_ready_count')
   requireEqual(docJson.scope?.externalBetaReadyNowTools, 1, 'doc_json_external_beta_count')
   requireEqual(docJson.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 1, 'doc_json_runtime_ready_count')
@@ -519,6 +531,8 @@ function verifyDocs() {
     'external-beta tool-call ready',
     '`externalBetaToolCallReadyNow=true`',
     '`runtimeReadyForOnDemandExternalBetaToolCall=true`',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`',
+    'route-bound service-role queue smoke operator preflight',
     '`externalBetaReadyNow=true`',
     '`agentCanExecuteToolsNow=false`',
     '`gpuRuntimeShouldStartNow=false`',
@@ -561,6 +575,7 @@ function verifySourceWiring() {
     'approvesExternalBetaToolCallReadinessMetadata: true',
     'directAgentExecutionStillBlocked: true',
     'runtimeStartsOnlyForAcceptedWorkerJob: true',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'noProductionUnlockByGate: true',
     'externalBetaReadyNow: accepted',
     'gpuRuntimeShouldStartNow: false',
@@ -596,6 +611,11 @@ function verifyCliBehavior() {
     1,
     'accepted_source_count',
   )
+  requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'accepted_operator_preflight_count',
+  )
   requireEqual(accepted.externalBetaToolCallReadyNowTools, 1, 'accepted_tool_call_ready')
   requireEqual(accepted.externalBetaReadyNowTools, 1, 'accepted_external_beta_ready')
   requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 1, 'accepted_runtime_on_demand')
@@ -607,6 +627,10 @@ function verifyCliBehavior() {
   requireTruthy(
     accepted.activatedToolCallReadiness?.runtimeReadyForOnDemandExternalBetaToolCall,
     'activated_runtime_ready',
+  )
+  requireTruthy(
+    accepted.activatedToolCallReadiness?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'activated_operator_preflight',
   )
   requireFalse(
     accepted.activatedToolCallReadiness?.gpuRuntimeShouldStartNow,
@@ -626,6 +650,22 @@ function verifyCliBehavior() {
     badSource.status,
     'external_beta_controlled_traffic_runtime_soak_result_rejected',
     'bad_source_status',
+  )
+
+  const strippedOperatorPreflightSource = runGate('sam2', privateActivationRefs('sam2'), (source) => {
+    source.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+    source.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+    source.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    source.observedResult.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  })
+  requireEqual(
+    strippedOperatorPreflightSource.status,
+    'external_beta_controlled_traffic_runtime_soak_result_rejected',
+    'stripped_operator_preflight_source_status',
+  )
+  requireFalse(
+    strippedOperatorPreflightSource.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'stripped_operator_preflight_source_boolean',
   )
 
   const badPublicRef = runGate('sam2', [
@@ -686,6 +726,7 @@ console.log(JSON.stringify({
   totalAiGraphicsTools: tools.length,
   gpuRuntimeTargetedTools: gpuTools.length,
   externalBetaActivationApprovedWithProvidedEvidence: true,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
   externalBetaToolCallReadyNowTools: 1,
   externalBetaReadyNowTools: 1,
   runtimeReadyForOnDemandExternalBetaToolCallTools: 1,

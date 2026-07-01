@@ -231,6 +231,7 @@ function sourceAuthorizationFixture(toolId) {
     capabilityId,
     operatorTrafficSwitchRuntimeSoakAuthorizationPreparedRequestsWithProvidedEvidence: 1,
     sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence: 1,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
     operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence: 1,
     externalBetaTrafficSwitchEnabledNowTools: 0,
     externalBetaRuntimeSoakStartedNowTools: 0,
@@ -247,6 +248,7 @@ function sourceAuthorizationFixture(toolId) {
       routePath: '/api/ai-graphics/external-beta/tool-call',
       routeId,
       sourceTrafficEnablementGateAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       operatorTrafficSwitchApprovalRef:
         `private://ai-graphics/external-beta/operator-switch/${toolId}/approval.json`,
       runtimeSoakPlanRef:
@@ -277,6 +279,9 @@ function sourceAuthorizationFixture(toolId) {
       toolExecutionApprovedNow: false,
       gpuRuntimeShouldStartNow: false,
     },
+    evidence: {
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+    },
     policy: {
       validatesOperatorSwitchAndSoakAuthorizationOnly: true,
       noExternalBetaTrafficSwitchEnabledByGate: true,
@@ -292,6 +297,7 @@ function sourceAuthorizationFixture(toolId) {
     booleans: {
       externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared: true,
       sourcePerToolTrafficEnablementGateAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       operatorTrafficSwitchRuntimeSoakControlsAccepted: true,
       operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence: true,
       all21ToolsCovered: true,
@@ -484,6 +490,11 @@ function verifyDocs() {
     'doc_json_source_count',
   )
   requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'doc_json_operator_preflight_count',
+  )
+  requireEqual(
     docJson.scope?.controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence,
     1,
     'doc_json_observed_count',
@@ -502,6 +513,7 @@ function verifyDocs() {
   for (const key of [
     'externalBetaControlledTrafficRuntimeSoakResultPrepared',
     'sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'controlledTrafficRuntimeSoakObservedEvidenceAccepted',
     'controlledTrafficRunObservedWithProvidedEvidence',
     'runtimeSoakObservedWithProvidedEvidence',
@@ -526,6 +538,8 @@ function verifyDocs() {
     'does not enable traffic switches',
     '`controlledTrafficRunExecutedByThisGate=false`',
     '`externalBetaRuntimeSoakStartedByThisGate=false`',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`',
+    'route-bound service-role queue smoke operator preflight',
     '`gpuRuntimeShouldStartNow=false`',
     'This result gate only accepts observed evidence refs.',
   ]) {
@@ -572,6 +586,7 @@ function verifySourceWiring() {
     'noGpuRuntimeStartByGate: true',
     'controlledTrafficRunExecutedByThisGate: false',
     'externalBetaRuntimeSoakStartedByThisGate: false',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'gpuRuntimeShouldStartNow: false',
   ]) {
     if (!evaluator.includes(required)) fail(`evaluator_missing:${required}`)
@@ -607,6 +622,11 @@ function verifyCliBehavior() {
     'accepted_source_count',
   )
   requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    1,
+    'accepted_operator_preflight_count',
+  )
+  requireEqual(
     accepted.controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence,
     1,
     'accepted_observed_count',
@@ -617,6 +637,14 @@ function verifyCliBehavior() {
   requireTruthy(
     accepted.observedResult?.sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted,
     'observed_source',
+  )
+  requireTruthy(
+    accepted.observedResult?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'observed_operator_preflight',
+  )
+  requireTruthy(
+    accepted.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'accepted_operator_preflight_boolean',
   )
   requireTruthy(
     accepted.observedResult?.controlledTrafficRunObservedWithProvidedEvidence,
@@ -644,6 +672,22 @@ function verifyCliBehavior() {
     badSource.status,
     'external_beta_operator_traffic_switch_runtime_soak_authorization_rejected',
     'bad_source_status',
+  )
+
+  const strippedOperatorPreflightSource = runGate('sam2', privateObservedRefs('sam2'), (source) => {
+    source.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = 0
+    source.evidence.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+    source.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+    source.trafficSwitchRuntimeSoakCandidate.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  })
+  requireEqual(
+    strippedOperatorPreflightSource.status,
+    'external_beta_operator_traffic_switch_runtime_soak_authorization_rejected',
+    'stripped_operator_preflight_source_status',
+  )
+  requireFalse(
+    strippedOperatorPreflightSource.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
+    'stripped_operator_preflight_source_boolean',
   )
 
   const badPublicRef = runGate('sam2', [
@@ -704,6 +748,7 @@ console.log(JSON.stringify({
   totalAiGraphicsTools: tools.length,
   gpuRuntimeTargetedTools: gpuTools.length,
   controlledTrafficRuntimeSoakObservedEvidenceAccepted: true,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 1,
   controlledTrafficRunExecutedByThisGate: false,
   externalBetaTrafficSwitchEnabledByThisGate: false,
   externalBetaRuntimeSoakStartedByThisGate: false,

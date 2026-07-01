@@ -12,6 +12,7 @@
   },
   "sourceEvidence": {
     "controlledTrafficRuntimeSoakResult": "docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "accepted via controlled traffic/runtime-soak result evidence",
     "operatorTrafficSwitchRuntimeSoakAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.json",
     "perToolTrafficEnablementGate": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-traffic-enablement-gate.json"
   },
@@ -54,6 +55,7 @@
     "gpuRuntimeTargetedTools": 8,
     "externalBetaActivationGoNoGoApprovedToolsWithProvidedEvidence": 1,
     "sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence": 1,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 1,
     "externalBetaToolCallReadyNowTools": 1,
     "externalBetaReadyNowTools": 1,
     "runtimeReadyForOnDemandExternalBetaToolCallTools": 1,
@@ -73,6 +75,7 @@
   ],
   "acceptedPreparedActions": [
     "read accepted observed controlled-traffic/runtime-soak result evidence",
+    "preserve accepted route-bound service-role queue smoke operator-preflight evidence from the observed result chain",
     "record one per-tool external-beta activation go/no-go approval",
     "mark that tool external-beta tool-call ready through the controlled on-demand worker path",
     "preserve direct agent execution as blocked",
@@ -97,6 +100,7 @@
   "booleans": {
     "externalBetaActivationGoNoGoPrepared": true,
     "sourceControlledTrafficRuntimeSoakResultAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "externalBetaActivationControlsAccepted": true,
     "externalBetaActivationApprovedWithProvidedEvidence": true,
     "externalBetaToolCallReadyNow": true,

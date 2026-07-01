@@ -34,6 +34,7 @@ export interface AiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakCandidate
   routePath: '/api/ai-graphics/external-beta/tool-call'
   routeId: string
   sourceTrafficEnablementGateAccepted: true
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true
   operatorTrafficSwitchApprovalRef: string
   runtimeSoakPlanRef: string
   runtimeSoakWindowRef: string
@@ -68,6 +69,8 @@ export interface AiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAuthoriza
   operatorTrafficSwitchRuntimeSoakAuthorizationPreparedRequestsWithProvidedEvidence:
     0 | 1
   sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence: 0 | 1
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+    0 | 1
   operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence: 0 | 1
   externalBetaTrafficSwitchEnabledNowTools: 0
   externalBetaRuntimeSoakStartedNowTools: 0
@@ -96,6 +99,8 @@ export interface AiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAuthoriza
     requiredTrafficMode:
       'prepared_operator_traffic_switch_runtime_soak_authorization_metadata_only'
     sourcePerToolTrafficEnablementGateRequired: true
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
   }
   policy: {
     validatesOperatorSwitchAndSoakAuthorizationOnly: true
@@ -112,6 +117,7 @@ export interface AiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAuthoriza
   booleans: {
     externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared: true
     sourcePerToolTrafficEnablementGateAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     operatorTrafficSwitchRuntimeSoakControlsAccepted: boolean
     operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence:
       boolean
@@ -209,6 +215,8 @@ function sourceTrafficGateAccepted(
     packet.trafficEnablementControlsAccepted === true &&
     packet.perToolTrafficEnablementPreparedRequestsWithProvidedEvidence === 1 &&
     packet.sourceCallableResultGateAcceptedRequestsWithProvidedEvidence === 1 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
     packet.sourceLaunchGoNoGoApprovedToolsWithProvidedEvidence === 21 &&
     packet.externalBetaTrafficCandidateToolsWithProvidedEvidence === 1 &&
     packet.externalBetaTrafficEnabledNowTools === 0 &&
@@ -220,6 +228,8 @@ function sourceTrafficGateAccepted(
     packet.gpuRuntimeShouldStartNow === false &&
     packet.trafficEnablementCandidate !== null &&
     packet.trafficEnablementCandidate.externalBetaTrafficEnabledNow === false &&
+    packet.trafficEnablementCandidate
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.trafficEnablementCandidate.routeExecutionApprovedNow === false &&
     packet.trafficEnablementCandidate.workerDispatchApprovedNow === false &&
     packet.trafficEnablementCandidate.toolExecutionApprovedNow === false &&
@@ -230,6 +240,9 @@ function sourceTrafficGateAccepted(
     packet.policy.noToolExecutionByGate === true &&
     packet.policy.noGpuRuntimeStartByGate === true &&
     packet.booleans.perToolTrafficEnablementPreparedWithProvidedEvidence === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.externalBetaTrafficEnabledNow === false &&
     packet.booleans.routeExecutionApprovedNow === false &&
     packet.booleans.workerDispatchApprovedNow === false &&
@@ -309,6 +322,7 @@ function buildCandidate(
     routePath: sourceCandidate.routePath,
     routeId: sourceCandidate.routeId,
     sourceTrafficEnablementGateAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     operatorTrafficSwitchApprovalRef:
       input.externalBetaOperatorTrafficSwitchApprovalRef ?? '',
     runtimeSoakPlanRef: input.externalBetaRuntimeSoakPlanRef ?? '',
@@ -339,6 +353,18 @@ export function evaluateAiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAu
   const sourceAccepted = sourceTrafficGateAccepted(
     input.sourcePerToolTrafficEnablementGatePacket,
   )
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    sourceAccepted &&
+    input.sourcePerToolTrafficEnablementGatePacket
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    input.sourcePerToolTrafficEnablementGatePacket
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
+    input.sourcePerToolTrafficEnablementGatePacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    input.sourcePerToolTrafficEnablementGatePacket?.booleans
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    input.sourcePerToolTrafficEnablementGatePacket?.trafficEnablementCandidate
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const missing = sourceAccepted ? missingControls(input) : []
   const controlsAccepted = missing.length === 0
   const status = statusFromInput({
@@ -367,6 +393,8 @@ export function evaluateAiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAu
       accepted ? 1 : 0,
     sourcePerToolTrafficEnablementGateAcceptedRequestsWithProvidedEvidence:
       sourceAccepted ? 1 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 1 : 0,
     operatorTrafficSwitchRuntimeSoakCandidateToolsWithProvidedEvidence:
       accepted ? 1 : 0,
     externalBetaTrafficSwitchEnabledNowTools: 0,
@@ -396,6 +424,8 @@ export function evaluateAiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAu
       requiredTrafficMode:
         'prepared_operator_traffic_switch_runtime_soak_authorization_metadata_only',
       sourcePerToolTrafficEnablementGateRequired: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     },
     policy: {
       validatesOperatorSwitchAndSoakAuthorizationOnly: true,
@@ -412,6 +442,8 @@ export function evaluateAiGraphicsExternalBetaOperatorTrafficSwitchRuntimeSoakAu
     booleans: {
       externalBetaOperatorTrafficSwitchRuntimeSoakAuthorizationPrepared: true,
       sourcePerToolTrafficEnablementGateAccepted: sourceAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       operatorTrafficSwitchRuntimeSoakControlsAccepted: controlsAccepted,
       operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence:
         accepted,

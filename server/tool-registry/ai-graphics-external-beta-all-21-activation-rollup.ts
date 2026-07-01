@@ -59,6 +59,7 @@ export interface AiGraphicsExternalBetaAll21ActivatedTool {
   routePath: '/api/ai-graphics/external-beta/tool-call'
   routeId: string
   gpuRuntimeTargetedTool: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true
   externalBetaToolCallReadyNow: true
   runtimeReadyForOnDemandExternalBetaToolCall: true
   gpuRuntimeOnDemandOnly: true
@@ -76,6 +77,8 @@ export interface AiGraphicsExternalBetaAll21ActivationRollup {
   missingToolIds: string[]
   duplicateToolIds: string[]
   externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence: number
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+    number
   externalBetaToolCallReadyNowTools: 0 | 21
   externalBetaReadyNowTools: 0 | 21
   runtimeReadyForOnDemandExternalBetaToolCallTools: 0 | 21
@@ -98,6 +101,8 @@ export interface AiGraphicsExternalBetaAll21ActivationRollup {
   booleans: {
     externalBetaAll21ActivationRollupPrepared: true
     sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
     all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -162,6 +167,7 @@ function isAcceptedActivationPacket(
     packet.externalBetaActivationControlsAccepted === true &&
     packet.externalBetaActivationGoNoGoApprovedToolsWithProvidedEvidence === 1 &&
     packet.sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence === 1 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
     packet.externalBetaToolCallReadyNowTools === 1 &&
     packet.externalBetaReadyNowTools === 1 &&
     packet.runtimeReadyForOnDemandExternalBetaToolCallTools === 1 &&
@@ -171,12 +177,17 @@ function isAcceptedActivationPacket(
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.gpuRuntimeShouldStartNow === false &&
     packet.activatedToolCallReadiness !== null &&
+    packet.activatedToolCallReadiness
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.activatedToolCallReadiness.externalBetaToolCallReadyNow === true &&
     packet.activatedToolCallReadiness.runtimeReadyForOnDemandExternalBetaToolCall === true &&
     packet.activatedToolCallReadiness.gpuRuntimeOnDemandOnly === true &&
     packet.activatedToolCallReadiness.gpuRuntimeShouldStartNow === false &&
     packet.activatedToolCallReadiness.productionReadyNow === false &&
     packet.booleans.externalBetaActivationApprovedWithProvidedEvidence === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.externalBetaReadyNow === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.directAgentToolExecutionApprovedNow === false &&
@@ -242,6 +253,7 @@ export function evaluateAiGraphicsExternalBetaAll21ActivationRollup(
       routePath: readiness.routePath,
       routeId: readiness.routeId,
       gpuRuntimeTargetedTool: gpuTools.has(toolId as AiGraphicsToolId),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       externalBetaToolCallReadyNow: true,
       runtimeReadyForOnDemandExternalBetaToolCall: true,
       gpuRuntimeOnDemandOnly: true,
@@ -268,6 +280,8 @@ export function evaluateAiGraphicsExternalBetaAll21ActivationRollup(
     duplicateToolIds: [...duplicateToolIds],
     externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence:
       acceptedToolIds.length,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      acceptedToolIds.length,
     externalBetaToolCallReadyNowTools: accepted ? 21 : 0,
     externalBetaReadyNowTools: accepted ? 21 : 0,
     runtimeReadyForOnDemandExternalBetaToolCallTools: accepted ? 21 : 0,
@@ -291,6 +305,8 @@ export function evaluateAiGraphicsExternalBetaAll21ActivationRollup(
       externalBetaAll21ActivationRollupPrepared: true,
       sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence:
         acceptedToolIds.length > 0,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        acceptedToolIds.length === 21,
       all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence: accepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,

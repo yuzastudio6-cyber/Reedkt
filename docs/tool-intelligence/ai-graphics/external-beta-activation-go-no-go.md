@@ -9,6 +9,7 @@ This is not direct agent execution. It does not execute traffic, execute API rou
 ## Accepted Activation Evidence
 
 - Accepted observed controlled-traffic/runtime-soak result.
+- Accepted route-bound service-role queue smoke operator preflight, preserved through the observed result chain.
 - Private owner approval ref.
 - Private feature flag and cohort refs.
 - Private support acknowledgment and monitoring-live refs.
@@ -19,6 +20,7 @@ This is not direct agent execution. It does not execute traffic, execute API rou
 ## Activation Result
 
 - `externalBetaActivationApprovedWithProvidedEvidence=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `externalBetaToolCallReadyNow=true`
 - `runtimeReadyForOnDemandExternalBetaToolCall=true`
 - `controlledWorkerToolCallReadyNow=true`

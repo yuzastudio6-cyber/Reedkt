@@ -33,6 +33,7 @@ export interface AiGraphicsExternalBetaActivatedToolCallReadiness {
   routePath: '/api/ai-graphics/external-beta/tool-call'
   routeId: string
   sourceControlledTrafficRuntimeSoakResultAccepted: true
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true
   externalBetaActivationApprovedWithProvidedEvidence: true
   externalBetaToolCallReadyNow: true
   runtimeReadyForOnDemandExternalBetaToolCall: true
@@ -64,6 +65,8 @@ export interface AiGraphicsExternalBetaActivationGoNoGo {
   externalBetaActivationGoNoGoApprovedToolsWithProvidedEvidence: 0 | 1
   sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence:
     0 | 1
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+    0 | 1
   externalBetaToolCallReadyNowTools: 0 | 1
   externalBetaReadyNowTools: 0 | 1
   runtimeReadyForOnDemandExternalBetaToolCallTools: 0 | 1
@@ -89,6 +92,8 @@ export interface AiGraphicsExternalBetaActivationGoNoGo {
     requiredActivationMode:
       'external_beta_tool_call_ready_on_demand_metadata_only'
     sourceControlledTrafficRuntimeSoakResultRequired: true
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
   }
   policy: {
     approvesExternalBetaToolCallReadinessMetadata: true
@@ -103,6 +108,7 @@ export interface AiGraphicsExternalBetaActivationGoNoGo {
   booleans: {
     externalBetaActivationGoNoGoPrepared: true
     sourceControlledTrafficRuntimeSoakResultAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: boolean
     externalBetaActivationControlsAccepted: boolean
     externalBetaActivationApprovedWithProvidedEvidence: boolean
     externalBetaToolCallReadyNow: boolean
@@ -200,6 +206,7 @@ function sourceResultAccepted(
     packet.controlledTrafficRuntimeSoakObservedEvidenceAccepted === true &&
     packet.controlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence === 1 &&
     packet.sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAcceptedRequestsWithProvidedEvidence === 1 &&
+    packet.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
     packet.controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence === 1 &&
     packet.externalBetaTrafficSwitchEnabledByThisGateTools === 0 &&
     packet.externalBetaRuntimeSoakStartedByThisGateTools === 0 &&
@@ -211,6 +218,7 @@ function sourceResultAccepted(
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.gpuRuntimeShouldStartNow === false &&
     packet.observedResult !== null &&
+    packet.observedResult.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
     packet.observedResult.controlledTrafficRunObservedWithProvidedEvidence === true &&
     packet.observedResult.runtimeSoakObservedWithProvidedEvidence === true &&
     packet.observedResult.gpuLifecycleObservedAsOnDemandWithProvidedEvidence === true &&
@@ -230,6 +238,9 @@ function sourceResultAccepted(
     packet.policy.noGpuRuntimeStartByGate === true &&
     packet.booleans.controlledTrafficRunObservedWithProvidedEvidence === true &&
     packet.booleans.runtimeSoakObservedWithProvidedEvidence === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    packet.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.controlledTrafficRunExecutedByThisGate === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false &&
     packet.booleans.productionReadyNow === false
@@ -298,6 +309,7 @@ function buildActivatedTool(
     routePath: observedResult.routePath,
     routeId: observedResult.routeId,
     sourceControlledTrafficRuntimeSoakResultAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     externalBetaActivationApprovedWithProvidedEvidence: true,
     externalBetaToolCallReadyNow: true,
     runtimeReadyForOnDemandExternalBetaToolCall: true,
@@ -325,6 +337,16 @@ export function evaluateAiGraphicsExternalBetaActivationGoNoGo(
   const sourceAccepted = sourceResultAccepted(
     input.sourceControlledTrafficRuntimeSoakResultPacket,
   )
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    sourceAccepted &&
+    input.sourceControlledTrafficRuntimeSoakResultPacket
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === 1 &&
+    input.sourceControlledTrafficRuntimeSoakResultPacket?.evidence
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
+    input.sourceControlledTrafficRuntimeSoakResultPacket?.booleans
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true &&
+    input.sourceControlledTrafficRuntimeSoakResultPacket?.observedResult
+      ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted === true
   const missing = sourceAccepted ? missingControls(input) : []
   const controlsAccepted = missing.length === 0
   const status = statusFromInput({
@@ -352,6 +374,8 @@ export function evaluateAiGraphicsExternalBetaActivationGoNoGo(
       accepted ? 1 : 0,
     sourceControlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence:
       sourceAccepted ? 1 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 1 : 0,
     externalBetaToolCallReadyNowTools: accepted ? 1 : 0,
     externalBetaReadyNowTools: accepted ? 1 : 0,
     runtimeReadyForOnDemandExternalBetaToolCallTools: accepted ? 1 : 0,
@@ -380,6 +404,8 @@ export function evaluateAiGraphicsExternalBetaActivationGoNoGo(
       requiredActivationMode:
         'external_beta_tool_call_ready_on_demand_metadata_only',
       sourceControlledTrafficRuntimeSoakResultRequired: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     },
     policy: {
       approvesExternalBetaToolCallReadinessMetadata: true,
@@ -394,6 +420,8 @@ export function evaluateAiGraphicsExternalBetaActivationGoNoGo(
     booleans: {
       externalBetaActivationGoNoGoPrepared: true,
       sourceControlledTrafficRuntimeSoakResultAccepted: sourceAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       externalBetaActivationControlsAccepted: controlsAccepted,
       externalBetaActivationApprovedWithProvidedEvidence: accepted,
       externalBetaToolCallReadyNow: accepted,

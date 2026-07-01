@@ -12,6 +12,7 @@
   },
   "sourceEvidence": {
     "operatorTrafficSwitchRuntimeSoakAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "accepted via operator traffic-switch/runtime-soak authorization evidence",
     "perToolTrafficEnablementGate": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-traffic-enablement-gate.json",
     "perToolCallableResultGate": "docs/tool-intelligence/ai-graphics/external-beta-per-tool-callable-result-gate.json",
     "externalBetaLaunchGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json"
@@ -55,6 +56,7 @@
     "gpuRuntimeTargetedTools": 8,
     "controlledTrafficRuntimeSoakResultAcceptedRequestsWithProvidedEvidence": 1,
     "sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAcceptedRequestsWithProvidedEvidence": 1,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": 1,
     "controlledTrafficRuntimeSoakObservedToolsWithProvidedEvidence": 1,
     "externalBetaTrafficSwitchEnabledByThisGateTools": 0,
     "externalBetaRuntimeSoakStartedByThisGateTools": 0,
@@ -75,6 +77,7 @@
   ],
   "acceptedPreparedActions": [
     "read accepted operator traffic-switch/runtime-soak authorization evidence",
+    "preserve accepted route-bound service-role queue smoke operator-preflight evidence from the authorization chain",
     "record one observed controlled-traffic/runtime-soak result with private evidence refs",
     "prove request sample, zero-critical-incident, cost, GPU lifecycle, user impact, rollback, and owner review metadata are present",
     "preserve GPU runtime as on-demand only and not started by this gate",
@@ -101,6 +104,7 @@
   "booleans": {
     "externalBetaControlledTrafficRuntimeSoakResultPrepared": true,
     "sourceOperatorTrafficSwitchRuntimeSoakAuthorizationAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted": true,
     "controlledTrafficRuntimeSoakObservedEvidenceAccepted": true,
     "controlledTrafficRunObservedWithProvidedEvidence": true,
     "runtimeSoakObservedWithProvidedEvidence": true,

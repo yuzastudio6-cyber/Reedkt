@@ -9,6 +9,7 @@ The gate does not enable traffic. It does not start runtime soak, execute API ro
 ## Accepted Prepared Evidence
 
 - Accepted per-tool traffic-enablement gate.
+- Accepted route-bound service-role queue smoke operator preflight, preserved through the traffic-enablement gate.
 - Private operator traffic switch approval ref.
 - Private runtime soak plan and window refs.
 - Private canary cohort ref.
@@ -39,6 +40,7 @@ The gate does not enable traffic. It does not start runtime soak, execute API ro
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
 - `operatorTrafficSwitchRuntimeSoakAuthorizationPreparedWithProvidedEvidence=true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted=true`
 - `externalBetaTrafficEnabledNow=false`
 - `externalBetaTrafficSwitchEnabledNow=false`
 - `externalBetaRuntimeSoakStartedNow=false`

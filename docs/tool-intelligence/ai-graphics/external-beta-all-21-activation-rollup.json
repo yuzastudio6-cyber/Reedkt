@@ -12,6 +12,7 @@
   },
   "sourceEvidence": {
     "perToolActivationGoNoGo": "docs/tool-intelligence/ai-graphics/external-beta-activation-go-no-go.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "accepted through all 21 per-tool activation go/no-go packets",
     "controlledTrafficRuntimeSoakResult": "docs/tool-intelligence/ai-graphics/external-beta-controlled-traffic-runtime-soak-result.json",
     "operatorTrafficSwitchRuntimeSoakAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-operator-traffic-switch-runtime-soak-authorization.json"
   },
@@ -53,6 +54,7 @@
     "productFacingCapabilities": 12,
     "gpuRuntimeTargetedTools": 8,
     "externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaToolCallReadyNowTools": 21,
     "externalBetaReadyNowTools": 21,
     "runtimeReadyForOnDemandExternalBetaToolCallTools": 21,
@@ -60,6 +62,7 @@
   },
   "acceptedPreparedActions": [
     "read 21 accepted per-tool activation go/no-go packets",
+    "verify all 21 activation packets preserved route-bound service-role queue smoke operator-preflight evidence",
     "verify exactly one accepted activation packet per AI graphics tool",
     "mark all 21 tools external-beta tool-call ready through the controlled on-demand worker path",
     "preserve direct agent execution as blocked",
@@ -84,6 +87,7 @@
   "booleans": {
     "externalBetaAll21ActivationRollupPrepared": true,
     "sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

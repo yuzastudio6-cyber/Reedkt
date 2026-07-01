@@ -4,19 +4,19 @@ import path from 'node:path'
 
 const root = process.cwd()
 const decision =
-  'ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks'
+  'ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks'
-const sourceControlledDecision =
-  'ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks'
+  'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_five_with_runtime_blocks'
+const sourceExactDecision =
+  'ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks'
 const runScriptName =
-  'ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission'
+  'ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission.ts'
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics'
+  'ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission-diagnostics.mjs'
 const queueName = 'ai_graphics_external_agent_cpu_static_private_worker_queue'
 
 const tools = [
@@ -68,54 +68,71 @@ const admittedTools = [
 
 const expectedCounts = {
   totalAiGraphicsTools: 21,
-  exactExecutionAdmissionReadyTools: 5,
-  sourceControlledToolExecutionProofAcceptedTools: 5,
+  adapterInvocationEnqueueAdmissionReadyTools: 5,
+  sourceExactExecutionAdmissionAcceptedTools: 5,
   exactRequestEnvelopeAcceptedTools: 5,
-  approvedPlanSnapshotAcceptedTools: 5,
-  creditReservationAcceptedTools: 5,
-  privateArtifactManifestAcceptedTools: 5,
-  workerAcceptedRequestSchemaAcceptedTools: 5,
-  toolSpecificQaGateAcceptedTools: 5,
+  adapterInvocationEnvelopePreparedTools: 5,
+  adapterInvocationContractAcceptedTools: 5,
+  workerEnqueuePayloadPreparedTools: 5,
+  workerEnqueueAdmissionContractAcceptedTools: 5,
+  productionWorkerJobPayloadAcceptedTools: 5,
+  backendQueueAdapterRefAcceptedTools: 5,
+  serviceRoleBoundaryAcceptedTools: 5,
+  workerPayloadSchemaAcceptedTools: 5,
+  privateStoragePolicyAcceptedTools: 5,
+  retryPolicyAcceptedTools: 5,
+  deadLetterPolicyAcceptedTools: 5,
+  checkbackPolicyAcceptedTools: 5,
+  fallbackPolicyAcceptedTools: 5,
+  idempotencyAcceptedTools: 5,
   satoriBlockedPendingApprovedFontFixtureTools: 1,
   nonCpuStaticDeferredTools: 15,
-  externalAgentExactRequestAdmittedWithProvidedEvidenceTools: 5,
-  externalAgentCanDispatchPrivateWorkerJobNowTools: 0,
-  externalAgentCanSubmitPrivateWorkerQueueNowTools: 0,
-  externalAgentCanRequestPrivateWorkerHandoffNowTools: 0,
+  externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools: 5,
   externalAgentCanInvokeAdapterNowTools: 0,
-  externalAgentExecutableNowTools: 0,
+  externalAgentCanSubmitPrivateWorkerQueueNowTools: 0,
   backendQueueSubmissionApprovedNowTools: 0,
   liveQueueWriteApprovedNowTools: 0,
+  workerEnqueueApprovedNowTools: 0,
   workerClaimApprovedNowTools: 0,
   workerDispatchApprovedNowTools: 0,
-  workerEnqueueApprovedNowTools: 0,
+  workerExecutionApprovedNowTools: 0,
   toolExecutionApprovedNowTools: 0,
+  externalAgentExecutableNowTools: 0,
   publicArtifactAllowedTools: 0,
   signedUrlAllowedTools: 0,
   gpuRuntimeShouldStartNowTools: 0,
 }
 
 const trueKeys = [
-  'externalAgentCpuStaticPrivateWorkerExactExecutionAdmissionCompleted',
-  'sourceControlledToolExecutionProofAccepted',
+  'externalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionCompleted',
+  'sourceExactExecutionAdmissionAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'allFiveExactExecutionAdmissionsReady',
-  'allFiveSourceControlledProofsAccepted',
-  'allFiveExactRequestEnvelopesAccepted',
-  'allFiveApprovedPlanSnapshotsAccepted',
-  'allFiveCreditReservationsAccepted',
-  'allFivePrivateArtifactManifestsAccepted',
-  'allFiveWorkerAcceptedRequestSchemasAccepted',
-  'allFiveToolSpecificQaGatesAccepted',
+  'allFiveAdapterInvocationEnqueueAdmissionsReady',
+  'allFiveSourceExactAdmissionsAccepted',
+  'allFiveAdapterInvocationEnvelopesPrepared',
+  'allFiveWorkerEnqueuePayloadsPrepared',
+  'allFiveProductionWorkerJobPayloadsAccepted',
+  'allFiveBackendQueueAdapterRefsAccepted',
+  'allFiveServiceRoleBoundariesAccepted',
+  'allFiveWorkerPayloadSchemasAccepted',
+  'allFivePrivateStoragePoliciesAccepted',
+  'allFiveRetryPoliciesAccepted',
+  'allFiveDeadLetterPoliciesAccepted',
+  'allFiveCheckbackPoliciesAccepted',
+  'allFiveFallbackPoliciesAccepted',
+  'allFiveIdempotencyContractsAccepted',
   'satoriBlockedPendingApprovedFontFixture',
   'fifteenRuntimeDeferredToolsPreserved',
-  'exactExecutionAdmissionRefsPreserved',
   'privateArtifactOnlyPolicyAccepted',
-  'noLiveQueueWriteByAdmission',
+  'adapterInvocationEnqueueRefsPreserved',
   'noAdapterInvocationByAdmission',
+  'noBackendQueueSubmissionByAdmission',
+  'noLiveQueueWriteByAdmission',
+  'noWorkerEnqueueByAdmission',
+  'noWorkerDispatchByAdmission',
   'noToolExecutionByAdmission',
-  'nextGateRequiresAdapterInvocationAndWorkerEnqueueAdmission',
+  'nextGateRequiresLiveAdapterInvocationAndQueueWriteProof',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -123,18 +140,16 @@ const trueKeys = [
 ]
 
 const falseKeys = [
-  'externalAgentCanDispatchPrivateWorkerJobNow',
-  'externalAgentCanSubmitPrivateWorkerQueueNow',
-  'externalAgentCanRequestPrivateWorkerHandoffNow',
   'externalAgentCanInvokeAdapterNow',
+  'externalAgentCanSubmitPrivateWorkerQueueNow',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
   'backendQueueSubmissionApprovedNow',
   'liveQueueWriteApprovedNow',
+  'workerEnqueueApprovedNow',
   'workerClaimApprovedNow',
   'workerDispatchApprovedNow',
   'workerExecutionApprovedNow',
-  'workerEnqueueApprovedNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
@@ -145,14 +160,15 @@ const falseKeys = [
   'productionReadyNow',
   'dependencyInstallPerformed',
   'packageLockMutationPerformed',
+  'adapterInvocationPerformed',
   'backendQueueSubmissionPerformed',
   'liveQueueWritePerformed',
+  'workerEnqueuePerformed',
   'workerClaimPerformed',
   'workerDispatchPerformed',
-  'workerEnqueuePerformed',
-  'adapterInvocationPerformed',
   'toolExecutionPerformed',
   'routeExecutionPerformed',
+  'workerExecutionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
   'gpuRuntimePerformed',
@@ -166,14 +182,14 @@ const falseKeys = [
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission.ts',
-  'server/cli/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission.ts',
-  'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.ts',
+  'server/cli/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.ts',
+  'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.md',
+  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission-results.md',
+  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.md',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.md',
-  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission-results.md',
-  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission.md',
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-controlled-tool-execution-proof.json',
   'server/tool-registry/index.ts',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
@@ -182,18 +198,14 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.ts",',
-  '+    "ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =
   /(^|\/)(\.local-artifacts|generated|render|renders|media-output|browser-output|canvas-output|webgl-output|public-artifacts?|signed-urls?)(\/|$)|\.(mp4|mov|webm|png|jpe?g|gif|webp)$/i
 
 const forbiddenDocPatterns = [
-  /externalAgentCanDispatchPrivateWorkerJobNow["`:\s=]+true/i,
-  /externalAgentCanSubmitPrivateWorkerQueueNow["`:\s=]+true/i,
-  /externalAgentCanRequestPrivateWorkerHandoffNow["`:\s=]+true/i,
   /externalAgentCanInvokeAdapterNow["`:\s=]+true/i,
+  /externalAgentCanSubmitPrivateWorkerQueueNow["`:\s=]+true/i,
   /agentCanExecuteToolsNow["`:\s=]+true/i,
   /routeExecutionApprovedNow["`:\s=]+true/i,
   /backendQueueSubmissionApprovedNow["`:\s=]+true/i,
@@ -210,14 +222,15 @@ const forbiddenDocPatterns = [
   /runtimeReadyNow["`:\s=]+true/i,
   /externalBetaReadyNow["`:\s=]+true/i,
   /productionReadyNow["`:\s=]+true/i,
+  /adapterInvocationPerformed["`:\s=]+true/i,
   /backendQueueSubmissionPerformed["`:\s=]+true/i,
   /liveQueueWritePerformed["`:\s=]+true/i,
   /workerClaimPerformed["`:\s=]+true/i,
   /workerDispatchPerformed["`:\s=]+true/i,
   /workerEnqueuePerformed["`:\s=]+true/i,
-  /adapterInvocationPerformed["`:\s=]+true/i,
   /toolExecutionPerformed["`:\s=]+true/i,
   /routeExecutionPerformed["`:\s=]+true/i,
+  /workerExecutionPerformed["`:\s=]+true/i,
   /providerRuntimePerformed["`:\s=]+true/i,
   /browserWebglCanvasRuntimePerformed["`:\s=]+true/i,
   /gpuRuntimePerformed["`:\s=]+true/i,
@@ -298,77 +311,107 @@ function checkBooleans(label, booleans) {
   }
 }
 
-function checkEvidence(toolId, evidence) {
+function checkEvidence(toolId, evidence, row) {
   if (!evidence) {
-    fail(`missing_exact_admission_evidence:${toolId}`)
+    fail(`missing_adapter_enqueue_evidence:${toolId}`)
     return
   }
   const expectedPrefixes = {
+    sourceExactRequestEnvelopeRef: 'exact-request-envelope://',
+    sourceExactAdmissionDecisionRef: 'exact-execution-admission://',
+    sourceWorkerAcceptedRequestSchemaRef: 'worker-accepted-request-schema://',
+    sourcePrivateOutputManifestRef: 'private-output-contract://',
+    sourceToolResultSchemaRef: 'tool-result-schema://',
+    sourceToolSpecificQaGateRef: 'tool-qa-gate://',
     approvedPlanSnapshotRef: 'approved-plan-snapshot://',
     creditReservationRef: 'credit-reservation://',
     privateArtifactManifestRef: 'private://',
-    sourceControlledToolExecutionEvidenceRef: 'controlled-tool-execution-proof://',
-    sourcePhase0LocalArtifactEvidenceRef: 'phase0-local-artifact-evidence://',
-    sourceAdapterInvocationDryRunRef: 'adapter-dry-run://',
-    externalAgentExactRequestEnvelopeRef: 'exact-request-envelope://',
-    externalAgentAdmissionDecisionRef: 'exact-execution-admission://',
-    workerAcceptedRequestSchemaRef: 'worker-accepted-request-schema://',
-    privateOutputManifestRef: 'private-output-contract://',
-    toolResultSchemaRef: 'tool-result-schema://',
-    toolSpecificQaGateRef: 'tool-qa-gate://',
-    executionUnlockConditionRef: 'execution-unlock-condition://',
+    adapterInvocationEnvelopeRef: 'adapter-invocation-envelope://',
+    adapterInvocationAuthorizationRef: 'adapter-invocation-authorization://',
+    adapterInvocationIdempotencyKey: 'adapter-invocation://',
+    workerEnqueuePayloadRef: 'worker-enqueue-payload://',
+    workerEnqueueAdmissionRef: 'worker-enqueue-admission://',
+    workerPayloadSchemaRef: 'worker-payload-schema://',
+    backendQueueAdapterRef: 'backend-queue-adapter://',
+    serviceRoleBoundaryRef: 'service-role-boundary://',
+    privateStoragePolicyRef: 'private-storage-policy://',
+    retryPolicyRef: 'worker-retry-policy://',
+    deadLetterPolicyRef: 'worker-dead-letter-policy://',
+    checkbackPolicyRef: 'worker-checkback-policy://',
+    fallbackPolicyRef: 'worker-fallback-policy://',
   }
   for (const [key, prefix] of Object.entries(expectedPrefixes)) {
     if (!String(evidence[key] ?? '').startsWith(prefix)) {
       fail(`evidence_prefix_mismatch:${toolId}:${key}`)
     }
   }
-  for (const key of [
-    'exactExecutionAdmissionIdempotencyKey',
-    'sourceControlledToolExecutionEvidenceRef',
-    'sourcePhase0LocalArtifactEvidenceRef',
-    'sourceAdapterInvocationDryRunRef',
-    'externalAgentExactRequestEnvelopeRef',
-    'externalAgentAdmissionDecisionRef',
-    'workerAcceptedRequestSchemaRef',
-    'privateOutputManifestRef',
-    'toolResultSchemaRef',
-    'toolSpecificQaGateRef',
-    'executionUnlockConditionRef',
-  ]) {
+  for (const key of Object.keys(expectedPrefixes)) {
     if (!String(evidence[key] ?? '').includes(toolId)) {
       fail(`evidence_missing_tool:${toolId}:${key}`)
     }
   }
   if (evidence.queueName !== queueName) fail(`evidence_queue_mismatch:${toolId}`)
   if (
-    evidence.exactExecutionAdmissionMode !==
-    'admit_exact_private_worker_request_without_live_queue_or_adapter_execution'
+    evidence.admissionMode !==
+    'prepare_adapter_invocation_and_worker_enqueue_payload_without_calling_adapter_or_queue'
   ) {
-    fail(`exact_admission_mode_mismatch:${toolId}`)
+    fail(`admission_mode_mismatch:${toolId}`)
   }
   if (evidence.expectedOutputVisibility !== 'private_artifact_only') {
     fail(`visibility_mismatch:${toolId}`)
+  }
+  const payload = evidence.productionWorkerJobPayload
+  if (!payload) {
+    fail(`missing_worker_payload:${toolId}`)
+    return
+  }
+  if (!String(payload.jobId ?? '').includes(toolId)) fail(`payload_job_missing_tool:${toolId}`)
+  if (payload.executionMode !== 'production_blocked') fail(`payload_execution_mode:${toolId}`)
+  if (!String(payload.idempotencyKey ?? '').startsWith('prod-worker:')) {
+    fail(`payload_idempotency_prefix:${toolId}`)
+  }
+  if (!Array.isArray(payload.requestedToolIds) || payload.requestedToolIds[0] !== row.productionToolId) {
+    fail(`payload_requested_tool_mismatch:${toolId}`)
+  }
+  if (
+    !Array.isArray(payload.storageReferenceIds) ||
+    payload.storageReferenceIds[0] !== evidence.privateArtifactManifestRef
+  ) {
+    fail(`payload_storage_ref_mismatch:${toolId}`)
+  }
+  for (const key of [
+    'adapterInvocationPerformed',
+    'backendQueueSubmissionPerformed',
+    'liveQueueWritePerformed',
+    'workerEnqueuePerformed',
+    'workerDispatchPerformed',
+    'toolExecutionPerformed',
+    'gpuRuntimeShouldStartNow',
+    'agentCanExecuteToolsNow',
+  ]) {
+    if (payload.metadata?.[key] !== false) fail(`payload_boolean_not_false:${toolId}:${key}`)
   }
 }
 
 for (const file of requiredFiles) read(file)
 
 const report = json(
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
 )
-const sourceControlled = json(
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-controlled-tool-execution-proof.json',
+const sourceExact = json(
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
 )
 const packageJson = json('package.json')
 
 if (report.decision !== decision) fail(`decision_mismatch:${report.decision}`)
 if (report.status !== acceptedStatus) fail(`status_mismatch:${report.status}`)
-if (report.sourceControlledToolExecutionProofDecision !== sourceControlledDecision) {
-  fail(`source_decision_mismatch:${report.sourceControlledToolExecutionProofDecision}`)
+if (report.sourceExactExecutionAdmissionDecision !== sourceExactDecision) {
+  fail(`source_decision_mismatch:${report.sourceExactExecutionAdmissionDecision}`)
 }
-if (report.schemaVersion !==
-  '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-exact-execution-admission') {
+if (
+  report.schemaVersion !==
+  '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'
+) {
   fail(`schema_version_mismatch:${report.schemaVersion}`)
 }
 if (report.queueName !== queueName) fail(`queue_name_mismatch:${report.queueName}`)
@@ -377,9 +420,12 @@ checkList('capabilities', report.capabilities, capabilities)
 checkCounts('report', report.counts)
 checkBooleans('report', report.booleans)
 
-if (sourceControlled.decision !== sourceControlledDecision) fail('source_controlled_decision_missing')
-if (sourceControlled.counts?.controlledToolExecutionProofAcceptedTools !== 5) {
-  fail('source_controlled_count_mismatch')
+if (sourceExact.decision !== sourceExactDecision) fail('source_exact_decision_missing')
+if (sourceExact.counts?.exactExecutionAdmissionReadyTools !== 5) {
+  fail('source_exact_count_mismatch')
+}
+if (sourceExact.booleans?.agentCanExecuteToolsNow !== false) {
+  fail('source_exact_execution_not_blocked')
 }
 
 const rows = Array.isArray(report.rows) ? report.rows : []
@@ -392,63 +438,69 @@ for (const toolId of admittedTools) {
     continue
   }
   if (
-    row.exactExecutionAdmissionStatus !==
-    'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked'
+    row.adapterInvocationEnqueueAdmissionStatus !==
+    'adapter_invocation_enqueue_admission_ready_execution_still_blocked'
   ) {
-    fail(`admitted_tool_status_mismatch:${toolId}:${row.exactExecutionAdmissionStatus}`)
+    fail(`admitted_tool_status_mismatch:${toolId}:${row.adapterInvocationEnqueueAdmissionStatus}`)
   }
   for (const key of [
-    'sourceControlledToolExecutionProofAccepted',
-    'exactExecutionAdmissionReady',
+    'sourceExactExecutionAdmissionAccepted',
+    'adapterInvocationEnqueueAdmissionReady',
     'exactRequestEnvelopeAccepted',
-    'approvedPlanSnapshotAccepted',
-    'creditReservationAccepted',
-    'privateArtifactManifestAccepted',
-    'sourceControlledEvidenceAccepted',
-    'workerAcceptedRequestSchemaAccepted',
-    'toolSpecificQaGateAccepted',
-    'externalAgentExactRequestAdmittedWithProvidedEvidence',
+    'adapterInvocationEnvelopePrepared',
+    'adapterInvocationContractAccepted',
+    'workerEnqueuePayloadPrepared',
+    'workerEnqueueAdmissionContractAccepted',
+    'productionWorkerJobPayloadAccepted',
+    'backendQueueAdapterRefAccepted',
+    'serviceRoleBoundaryAccepted',
+    'workerPayloadSchemaAccepted',
+    'privateStoragePolicyAccepted',
+    'retryPolicyAccepted',
+    'deadLetterPolicyAccepted',
+    'checkbackPolicyAccepted',
+    'fallbackPolicyAccepted',
+    'idempotencyAccepted',
+    'externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence',
   ]) {
     if (row[key] !== true) fail(`admitted_tool_boolean_not_true:${toolId}:${key}`)
   }
   for (const key of [
-    'externalAgentCanDispatchPrivateWorkerJobNow',
-    'externalAgentCanSubmitPrivateWorkerQueueNow',
-    'externalAgentCanRequestPrivateWorkerHandoffNow',
     'externalAgentCanInvokeAdapterNow',
+    'externalAgentCanSubmitPrivateWorkerQueueNow',
     'agentCanExecuteToolsNow',
     'routeExecutionApprovedNow',
     'backendQueueSubmissionApprovedNow',
     'liveQueueWriteApprovedNow',
+    'workerEnqueueApprovedNow',
     'workerClaimApprovedNow',
     'workerDispatchApprovedNow',
     'workerExecutionApprovedNow',
-    'workerEnqueueApprovedNow',
     'toolExecutionApprovedNow',
     'gpuRuntimeShouldStartNow',
   ]) {
     if (row[key] !== false) fail(`admitted_tool_boolean_not_false:${toolId}:${key}`)
   }
-  checkEvidence(toolId, row.exactExecutionAdmissionEvidence)
+  checkEvidence(toolId, row.adapterInvocationEnqueueEvidence, row)
 }
 
 const satori = rows.find((row) => row.toolId === 'satori')
 if (
-  satori?.exactExecutionAdmissionStatus !==
-  'exact_external_agent_execution_admission_blocked_pending_satori_font_fixture'
+  satori?.adapterInvocationEnqueueAdmissionStatus !==
+  'adapter_invocation_enqueue_admission_blocked_pending_satori_font_fixture'
 ) {
-  fail(`satori_status_mismatch:${satori?.exactExecutionAdmissionStatus}`)
+  fail(`satori_status_mismatch:${satori?.adapterInvocationEnqueueAdmissionStatus}`)
 }
 if (!/font fixture/i.test(satori?.blocker ?? '')) fail('satori_font_fixture_block_missing')
 
 for (const row of rows.filter((candidate) => !admittedTools.includes(candidate.toolId) && candidate.toolId !== 'satori')) {
   if (
-    row.exactExecutionAdmissionStatus !==
-    'exact_external_agent_execution_admission_deferred_non_cpu_static_runtime_boundary'
+    row.adapterInvocationEnqueueAdmissionStatus !==
+    'adapter_invocation_enqueue_admission_deferred_non_cpu_static_runtime_boundary'
   ) {
-    fail(`deferred_status_mismatch:${row.toolId}:${row.exactExecutionAdmissionStatus}`)
+    fail(`deferred_status_mismatch:${row.toolId}:${row.adapterInvocationEnqueueAdmissionStatus}`)
   }
-  if (row.exactExecutionAdmissionReady !== false) fail(`deferred_ready_not_false:${row.toolId}`)
+  if (row.adapterInvocationEnqueueAdmissionReady !== false) fail(`deferred_ready_not_false:${row.toolId}`)
 }
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) fail('package_run_script_missing')
@@ -476,9 +528,9 @@ const trackedLocalArtifacts = exec('git ls-files .local-artifacts').trim()
 if (trackedLocalArtifacts) fail(`tracked_local_artifacts:${trackedLocalArtifacts}`)
 
 const combinedDocs = [
-  read('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.md'),
-  read('docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission-results.md'),
-  read('docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission.md'),
+  read('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.md'),
+  read('docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission-results.md'),
+  read('docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.md'),
   read('docs/production-beta-readiness-scorecard.md'),
 ].join('\n')
 
@@ -487,18 +539,19 @@ for (const pattern of forbiddenDocPatterns) {
 }
 for (const required of [
   decision,
-  'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_ADAPTER_INVOCATION_AND_ENQUEUE_ADMISSION',
+  'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_AND_QUEUE_WRITE_PROOF',
   '`agentCanExecuteToolsNow=false`',
   '`externalAgentCanInvokeAdapterNow=false`',
+  '`workerEnqueueApprovedNow=false`',
   '`toolExecutionApprovedNow=false`',
   '`gpuRuntimeShouldStartNow=false`',
-  'temporary and intentional',
+  'temporary',
 ]) {
   if (!combinedDocs.includes(required)) fail(`missing_doc_phrase:${required}`)
 }
 
 const indexSource = read('server/tool-registry/index.ts')
-if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission'")) {
+if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'")) {
   fail('index_export_missing')
 }
 
@@ -511,9 +564,13 @@ console.log(JSON.stringify({
   ok: true,
   decision: report.decision,
   acceptedStatus: report.status,
-  exactExecutionAdmissionReadyTools: report.counts.exactExecutionAdmissionReadyTools,
+  adapterInvocationEnqueueAdmissionReadyTools:
+    report.counts.adapterInvocationEnqueueAdmissionReadyTools,
+  productionWorkerJobPayloadAcceptedTools:
+    report.counts.productionWorkerJobPayloadAcceptedTools,
   agentCanExecuteToolsNow: report.booleans.agentCanExecuteToolsNow,
   externalAgentCanInvokeAdapterNow: report.booleans.externalAgentCanInvokeAdapterNow,
+  workerEnqueueApprovedNow: report.booleans.workerEnqueueApprovedNow,
   toolExecutionApprovedNow: report.booleans.toolExecutionApprovedNow,
   gpuRuntimeShouldStartNow: report.booleans.gpuRuntimeShouldStartNow,
   packageLockUnchanged: true,

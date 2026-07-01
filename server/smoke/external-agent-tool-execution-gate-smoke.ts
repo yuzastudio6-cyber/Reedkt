@@ -78,6 +78,8 @@ assert.equal(gate.requiresApprovedSnapshotBeforeExecution, true)
 assert.equal(gate.requiresStructuredToolEnvelopeBeforeExecution, true)
 assert.equal(gate.rawChatExecutionAllowed, false)
 assert.equal(gate.toolRows.length, 4)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-next-command'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execution-gate -- --require-go'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
 
@@ -85,6 +87,15 @@ for (const row of gate.toolRows) {
   assert.equal(row.executionAllowedNow, false, `${row.toolId} must be blocked`)
   assert.equal(row.requiredBeforeExecution.length > 0, true, `${row.toolId} needs required-before-execution rows`)
 }
+const brollGateRow = gate.toolRows.find((row) => row.toolId === 'ai_video_broll_generation_wan')
+assert.equal(
+  brollGateRow?.requiredBeforeExecution.some((requirement) => requirement.includes('no-idle')),
+  true,
+)
+assert.equal(
+  brollGateRow?.requiredBeforeExecution.some((requirement) => requirement.includes('verify cleanup')),
+  true,
+)
 for (const [flag, value] of Object.entries(gate.runtimeSideEffects)) {
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)
 }

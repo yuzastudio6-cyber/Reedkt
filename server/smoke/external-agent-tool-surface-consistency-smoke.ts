@@ -212,6 +212,9 @@ const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
 const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
 const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
 const soundExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-sound.ts')
+const supabaseHarnessExecutionWrapper = runJsonCli(
+  'server/cli/external-agent-tool-execute-supabase-harness.ts',
+)
 
 const qwenSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, QWEN_TOOL_ID, 'actionPlan.toolActions')],
@@ -465,6 +468,63 @@ assert.equal(
   false,
 )
 
+const supabaseHarnessWrapperCanonicalCommand = asRecord(
+  supabaseHarnessExecutionWrapper.canonicalCommand,
+  'supabaseHarnessExecutionWrapper.canonicalCommand',
+)
+assert.equal(supabaseHarnessExecutionWrapper.mode, 'external_agent_supabase_harness_execution_static_guard')
+assert.equal(supabaseHarnessExecutionWrapper.executeRequired, true)
+assert.equal(supabaseHarnessExecutionWrapper.runtimeRunNow, false)
+assert.equal(supabaseHarnessExecutionWrapper.supabaseCliExecuted, false)
+assert.equal(supabaseHarnessExecutionWrapper.dockerStarted, false)
+assert.equal(supabaseHarnessExecutionWrapper.sqlExecuted, false)
+assert.equal(supabaseHarnessExecutionWrapper.databaseCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.migrationDeployed, false)
+assert.equal(supabaseHarnessExecutionWrapper.rowsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.storageObjectsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.signedUrlsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const supabaseHarnessExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesLocalConfigBeforeAnyRuntime',
+  'verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime',
+  'blocksLiveSupabaseMutation',
+  'runsSupabaseCli',
+  'runsDocker',
+  'executesSql',
+  'createsRows',
+  'createsStorageObjects',
+  'createsSignedUrls',
+  'touchesSupabaseCloud',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of supabaseHarnessExecutionCommandKeys) {
+  assert.deepEqual(
+    supabaseHarnessWrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.supabaseLocalHarnessEvidenceCommand[key],
+    `Supabase harness wrapper command drifted from spec at ${key}`,
+  )
+  const nextSupabaseHarnessCommand = asRecord(
+    nextCommand.supabaseLocalHarnessEvidenceCommand,
+    'nextCommand.supabaseLocalHarnessEvidenceCommand',
+  )
+  assert.deepEqual(
+    supabaseHarnessWrapperCanonicalCommand[key],
+    nextSupabaseHarnessCommand[key],
+    `Supabase harness wrapper command drifted at ${key}`,
+  )
+}
+assert.equal(
+  asRecord(nextCommand.supabaseLocalHarnessEvidenceCommand, 'nextCommand.supabaseLocalHarnessEvidenceCommand')
+    .executionAllowedNow,
+  false,
+)
+
 const normalizedSurfaceData = {
   rollupQwenActions: normalizeManualActions(rollupQwenActions),
   rollupBrollActions: normalizeManualActions(rollupBrollActions),
@@ -501,6 +561,16 @@ const normalizedSurfaceData = {
     generatedAssetsCreated: soundExecutionWrapper.generatedAssetsCreated,
     generatedLocalFixturePassedClaimed: soundExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
+  supabaseHarnessExecutionWrapper: {
+    canonicalCommand: supabaseHarnessExecutionWrapper.canonicalCommand,
+    runtimeRunNow: supabaseHarnessExecutionWrapper.runtimeRunNow,
+    supabaseCliExecuted: supabaseHarnessExecutionWrapper.supabaseCliExecuted,
+    dockerStarted: supabaseHarnessExecutionWrapper.dockerStarted,
+    sqlExecuted: supabaseHarnessExecutionWrapper.sqlExecuted,
+    migrationDeployed: supabaseHarnessExecutionWrapper.migrationDeployed,
+    generatedAssetsCreated: supabaseHarnessExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: supabaseHarnessExecutionWrapper.generatedLocalFixturePassedClaimed,
+  },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
 assert.equal(forbiddenFindings.length, 0, `Forbidden values in surface data: ${forbiddenFindings.join('; ')}`)
@@ -520,6 +590,7 @@ console.log(
         'external-agent-tool-execute-qwen',
         'external-agent-tool-execute-broll-wan',
         'external-agent-tool-execute-sound',
+        'external-agent-tool-execute-supabase-harness',
       ],
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),

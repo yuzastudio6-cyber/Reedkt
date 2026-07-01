@@ -93,6 +93,10 @@ assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-t
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-broll-wan'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-sound'), true)
+assert.equal(
+  gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-supabase-harness'),
+  true,
+)
 
 for (const row of gate.toolRows) {
   if (row.toolId === 'qwen2_5_vl_7b_instruct') {
@@ -118,6 +122,12 @@ assert.equal(
   'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
 )
 assert.equal(soundGateRow?.safeNextCommand, 'npm run external-agent-tool-execute-sound')
+const supabaseHarnessGateRow = gate.toolRows.find((row) => row.toolId === 'supabase_local_fixture_harness')
+assert.equal(supabaseHarnessGateRow?.currentBlocker, 'not_a_model_or_media_execution_lane_on_this_branch')
+assert.equal(
+  supabaseHarnessGateRow?.safeNextCommand,
+  'npm run external-agent-tool-execute-supabase-harness',
+)
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
     requirement.includes('58DW bounded retry result'),

@@ -153,6 +153,29 @@ assert.equal(spec.soundMusicAudioEvidenceCommand.createsGeneratedAssets, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.touchesSupabase, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.touchesSql, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.supabaseLocalHarnessEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-supabase-harness',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.supabaseLocalHarnessEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBeforeAnyRuntime, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.executesSql, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.createsRows, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.createsStorageObjects, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.createsSignedUrls, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.touchesSupabaseCloud, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.unlocksBetaOrProduction, false)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -281,6 +304,19 @@ assert.equal(soundGateSummary.executionAllowedNow, false)
 assert.equal(soundGateSummary.staticExplicitToolGateReady, false)
 assert.equal(soundGateSummary.currentBlocker, 'real_provider_worker_storage_track_qa_billing_export_handoffs_required')
 assert.equal(soundGateSummary.safeNextCommand, 'npm run external-agent-tool-execute-sound')
+const supabaseHarnessGateSummary = gateToolSummaries.get('supabase_local_fixture_harness') as {
+  executionAllowedNow: boolean
+  staticExplicitToolGateReady: boolean
+  currentBlocker: string
+  safeNextCommand: string
+}
+assert.equal(supabaseHarnessGateSummary.executionAllowedNow, false)
+assert.equal(supabaseHarnessGateSummary.staticExplicitToolGateReady, false)
+assert.equal(supabaseHarnessGateSummary.currentBlocker, 'not_a_model_or_media_execution_lane_on_this_branch')
+assert.equal(
+  supabaseHarnessGateSummary.safeNextCommand,
+  'npm run external-agent-tool-execute-supabase-harness',
+)
 assert.equal(
   decision.executionAllowedNow,
   (decision.executionGateAllowsRuntime || decision.staticExplicitToolGateReady) &&
@@ -368,6 +404,35 @@ assert.equal(decision.soundMusicAudioEvidenceCommand.unlocksBetaOrProduction, fa
 assert.equal(
   decision.soundMusicAudioEvidenceCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-sound -- --execute --json',
+)
+assert.equal(typeof decision.supabaseLocalHarnessEvidenceCommand, 'object')
+assert.deepEqual(decision.supabaseLocalHarnessEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-supabase-harness',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.supabaseLocalHarnessEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBeforeAnyRuntime, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executesSql, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.createsRows, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.createsStorageObjects, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.createsSignedUrls, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.touchesSupabaseCloud, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.supabaseLocalHarnessEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-supabase-harness -- --execute --json',
 )
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)

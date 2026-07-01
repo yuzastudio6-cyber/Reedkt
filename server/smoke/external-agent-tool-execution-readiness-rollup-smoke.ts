@@ -124,6 +124,9 @@ for (const required of [
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
   '`sound_metadata_only_runtime_execution_not_accepted`',
+  '`npm run external-agent-tool-execute-supabase-harness`',
+  '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true`',
+  '`supabase_local_harness_supporting_evidence_only`',
   'B-roll external-agent execution must not leave an idle GPU running',
   NEXT_PROMPT,
 ]) {
@@ -144,7 +147,7 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 10)
+assert.equal(rollup.safeNextCommands.length, 11)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -185,6 +188,12 @@ assert.equal(
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-execute-sound'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some(
+    (command) => command.command === 'npm run external-agent-tool-execute-supabase-harness',
+  ),
   true,
 )
 for (const command of rollup.safeNextCommands) {
@@ -442,6 +451,33 @@ assert.equal(
 )
 assert.equal(sound?.evidence.includes('server/cli/external-agent-tool-execute-sound.ts'), true)
 assert.equal(sound?.evidence.includes('server/smoke/external-agent-tool-execute-sound-smoke.ts'), true)
+
+const supabaseHarness = toolsById.get('supabase_local_fixture_harness')
+assert.equal(supabaseHarness?.status, 'supporting_evidence_only')
+assert.equal(supabaseHarness?.readyForExternalAgentExecutionNow, false)
+assert.equal(supabaseHarness?.readyForBoundedRetryAfterBlockerClears, false)
+assert.equal(supabaseHarness?.primaryBlocker, 'not_a_model_or_media_execution_lane_on_this_branch')
+assert.equal(supabaseHarness?.evidence.includes('supabase/config.toml'), true)
+assert.equal(
+  supabaseHarness?.evidence.includes(
+    'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-config-verify-report.md',
+  ),
+  true,
+)
+assert.equal(
+  supabaseHarness?.evidence.includes(
+    'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-15-result.md',
+  ),
+  true,
+)
+assert.equal(
+  supabaseHarness?.evidence.includes('server/cli/external-agent-tool-execute-supabase-harness.ts'),
+  true,
+)
+assert.equal(
+  supabaseHarness?.evidence.includes('server/smoke/external-agent-tool-execute-supabase-harness-smoke.ts'),
+  true,
+)
 
 for (const tool of rollup.tools) {
   if (tool.toolId === 'qwen2_5_vl_7b_instruct') {

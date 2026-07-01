@@ -48,6 +48,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'npm run ai-video-broll-wan-fast-cache-readiness:check',
     'npm run external-agent-tool-execute-broll-wan',
     'npm run external-agent-tool-execute-sound',
+    'npm run external-agent-tool-execute-supabase-harness',
   ],
   toolRows: [
     {
@@ -104,7 +105,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'must not mutate live Supabase from the external-agent tool rollup',
       ],
       currentBlocker: 'not_a_model_or_media_execution_lane_on_this_branch',
-      safeNextCommand: 'use as source-of-truth evidence only',
+      safeNextCommand: 'npm run external-agent-tool-execute-supabase-harness',
     },
   ] satisfies ExternalAgentToolExecutionGateRow[],
   forbiddenRuntimeActions: [

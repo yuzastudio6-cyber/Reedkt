@@ -210,6 +210,20 @@ assert.equal(sound.immediateSafeActions.includes('npm run external-agent-tool-ex
 assert.equal(sound.externalManualBlocker.includes('runtime owner handoffs still required'), true)
 assert.equal(sound.manualBlockerActions.length, 0)
 
+const supabaseHarness = toolActions.get('supabase_local_fixture_harness') as {
+  immediateSafeActions: string[]
+  externalManualBlocker: string
+  manualBlockerActions: unknown[]
+}
+assert.equal(supabaseHarness.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
+assert.equal(supabaseHarness.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
+assert.equal(
+  supabaseHarness.immediateSafeActions.includes('npm run external-agent-tool-execute-supabase-harness'),
+  true,
+)
+assert.equal(supabaseHarness.externalManualBlocker.includes('not a model or media execution lane'), true)
+assert.equal(supabaseHarness.manualBlockerActions.length, 0)
+
 for (const toolAction of plan.toolActions as Array<{ toolId: string; immediateSafeActions: string[] }>) {
   assert.equal(
     toolAction.immediateSafeActions[0],

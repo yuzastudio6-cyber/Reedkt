@@ -86,6 +86,25 @@ export type ExternalAgentToolSoundMusicAudioEvidenceCommand = {
   unlocksBetaOrProduction: false
 }
 
+export type ExternalAgentToolSupabaseHarnessEvidenceCommand = {
+  toolId: 'supabase_local_fixture_harness'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-supabase-harness', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW'
+  confirmationEnvRequiredValue: 'true'
+  verifiesLocalConfigBeforeAnyRuntime: true
+  verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true
+  blocksLiveSupabaseMutation: true
+  runsSupabaseCli: false
+  runsDocker: false
+  executesSql: false
+  createsRows: false
+  createsStorageObjects: false
+  createsSignedUrls: false
+  touchesSupabaseCloud: false
+  unlocksBetaOrProduction: false
+}
+
 export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   decision: 'external_agent_live_next_command_read_only_decision_defined',
   mode: 'read_only_external_agent_tool_next_command_decision',
@@ -208,6 +227,24 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     touchesSql: false,
     unlocksBetaOrProduction: false,
   } satisfies ExternalAgentToolSoundMusicAudioEvidenceCommand,
+  supabaseLocalHarnessEvidenceCommand: {
+    toolId: 'supabase_local_fixture_harness',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-supabase-harness', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+    confirmationEnvRequiredValue: 'true',
+    verifiesLocalConfigBeforeAnyRuntime: true,
+    verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true,
+    blocksLiveSupabaseMutation: true,
+    runsSupabaseCli: false,
+    runsDocker: false,
+    executesSql: false,
+    createsRows: false,
+    createsStorageObjects: false,
+    createsSignedUrls: false,
+    touchesSupabaseCloud: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolSupabaseHarnessEvidenceCommand,
   forbiddenRuntimeActions: [
     'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
     'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',

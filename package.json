@@ -641,6 +641,8 @@
     "smoke:external-agent-tool-execute-broll-wan": "tsx server/smoke/external-agent-tool-execute-broll-wan-smoke.ts",
     "external-agent-tool-execute-sound": "tsx server/cli/external-agent-tool-execute-sound.ts",
     "smoke:external-agent-tool-execute-sound": "tsx server/smoke/external-agent-tool-execute-sound-smoke.ts",
+    "external-agent-tool-execute-supabase-harness": "tsx server/cli/external-agent-tool-execute-supabase-harness.ts",
+    "smoke:external-agent-tool-execute-supabase-harness": "tsx server/smoke/external-agent-tool-execute-supabase-harness-smoke.ts",
     "external-agent-tool-next-command": "tsx server/cli/external-agent-tool-next-command.ts",
     "smoke:external-agent-tool-next-command": "tsx server/smoke/external-agent-tool-next-command-smoke.ts",
     "external-agent-tool-readiness:check": "tsx server/cli/external-agent-tool-readiness-check.ts",

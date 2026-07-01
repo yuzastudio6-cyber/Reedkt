@@ -59,6 +59,17 @@ function actionForTool(toolId: string) {
     }
   }
 
+  if (toolId === 'supabase_local_fixture_harness') {
+    return {
+      immediateSafeActions: [
+        ...externalAgentPreExecutionActions,
+        'npm run external-agent-tool-execute-supabase-harness',
+      ],
+      externalManualBlocker: 'not a model or media execution lane on this branch',
+      afterBlockerClears: 'use a dedicated Supabase prompt before any local harness, SQL, migration, or cloud path',
+    }
+  }
+
   return {
     immediateSafeActions: [...externalAgentPreExecutionActions, 'use as source-of-truth evidence only'],
     externalManualBlocker: 'not a model or media execution lane',

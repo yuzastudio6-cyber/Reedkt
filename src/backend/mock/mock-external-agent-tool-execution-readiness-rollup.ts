@@ -216,6 +216,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       purpose:
         'Fail-closed Sound/Music/Audio wrapper static guard; execution mode only runs static evidence diagnostics and blocks before provider, worker, storage, or media work.',
     },
+    {
+      id: 'supabase_local_harness_external_agent_wrapper_static_guard',
+      command: 'npm run external-agent-tool-execute-supabase-harness',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Fail-closed Supabase local harness wrapper static guard; execution mode only runs no-execution config and local-harness evidence smokes before blocking live mutation.',
+    },
   ] satisfies ExternalAgentToolSafeNextCommand[],
   tools: [
     {
@@ -376,7 +386,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
       primaryBlocker: 'not_a_model_or_media_execution_lane_on_this_branch',
-      evidence: ['approved_snapshot_private_path_manifest_checksum_policy_referenced_by_tool_rollups'],
+      evidence: [
+        'approved_snapshot_private_path_manifest_checksum_policy_referenced_by_tool_rollups',
+        'supabase/config.toml',
+        'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-config-verify-report.md',
+        'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-15-result.md',
+        'server/cli/external-agent-tool-execute-supabase-harness.ts',
+        'server/smoke/external-agent-tool-execute-supabase-harness-smoke.ts',
+      ],
       nextAction: 'use as source-of-truth evidence only; do not mutate live Supabase from this rollup',
     },
   ] satisfies ExternalAgentToolReadinessEntry[],

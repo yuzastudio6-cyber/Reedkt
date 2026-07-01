@@ -283,6 +283,15 @@ function main() {
       ...spec.soundMusicAudioEvidenceCommand.args,
     ].join(' ')}`,
   }
+  const supabaseLocalHarnessEvidenceCommand = {
+    ...spec.supabaseLocalHarnessEvidenceCommand,
+    executionAllowedNow: false,
+    blocker: 'not_a_model_or_media_execution_lane_on_this_branch',
+    shellExample: `${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnv}=${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue} ${[
+      spec.supabaseLocalHarnessEvidenceCommand.command,
+      ...spec.supabaseLocalHarnessEvidenceCommand.args,
+    ].join(' ')}`,
+  }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
@@ -332,6 +341,7 @@ function main() {
         qwenBoundedExecutionCommand,
         brollWanExternalAgentProofCommand,
         soundMusicAudioEvidenceCommand,
+        supabaseLocalHarnessEvidenceCommand,
         chosenManualAction,
         manualActionRequired,
         manualActionReason,

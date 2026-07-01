@@ -147,9 +147,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_reauthentication_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_verified_retry_plan_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+  'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation'
 
 type JsonRecord = Record<string, unknown>
 
@@ -1943,7 +1943,7 @@ for (const phrase of [
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference approval | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval | ready',
-  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt | blocked controlled persisted worker dispatch runtime real-dispatch approved fixture private inference auth reauthentication required',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt | blocked controlled persisted worker dispatch runtime real-dispatch approved fixture private inference auth verified retry plan required',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
@@ -2628,7 +2628,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -3412,7 +3412,7 @@ assert.equal(
 assert.equal(
   rollup.readinessGates.filter(
     (gate) => String(gate.status) ===
-      'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+      'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
   ).length,
   1,
 )
@@ -4481,7 +4481,7 @@ assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferenceAttemptA
 assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferenceAttempt, false)
 assert.equal(
   rollup.blockedUntil[0],
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
 )
 assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopeReadinessAccepted, true)
 assert.equal(rollup.runtimeFlags.persistedWorkerDispatchRefsReadinessAccepted, true)

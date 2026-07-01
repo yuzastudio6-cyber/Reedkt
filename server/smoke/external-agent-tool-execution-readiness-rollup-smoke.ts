@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+  'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,20 +65,20 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota',
+  'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_verified_broll_quota',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'local `gcloud` reauthentication',
-  'prior evidence says `GPUS_ALL_REGIONS` quota is `0`, but live quota verification is currently gated by gcloud auth',
-  'after auth-readable live preflight',
+  'auth verified, runtime blocked',
+  'auth-readable live preflight now reads GPU quota',
+  '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
   'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
-  'refresh the active local `gcloud` account/configuration used by this shell',
+  'auth/service/job visibility is now verified',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
   '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',
@@ -97,7 +97,7 @@ for (const required of [
 }
 
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
-assert.equal(rollup.decision, 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota')
+assert.equal(rollup.decision, 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_verified_broll_quota')
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
 assert.equal(rollup.dryRunPassedClaimed, false)
@@ -159,12 +159,12 @@ for (const requiredTool of [
 }
 
 const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
-assert.equal(qwen?.status, 'blocked_external_state')
+assert.equal(qwen?.status, 'auth_verified_runtime_blocked')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
 assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(qwen?.primaryBlocker, 'local_gcloud_reauthentication_required')
+assert.equal(qwen?.primaryBlocker, 'bounded_private_inference_retry_plan_required_after_auth_refresh')
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-diagnostic.ts'), true)
@@ -178,7 +178,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'prior_gpus_all_regions_quota_zero_pending_auth_readable_live_verification',
+  'gpus_all_regions_quota_zero_or_unverified',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md'),

@@ -1,6 +1,6 @@
 # External Agent Tool Execution Readiness Rollup
 
-Decision: `external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota`.
+Decision: `external_agent_tool_execution_readiness_partial_blocked_qwen_auth_verified_broll_quota`.
 
 This rollup is a coordination artifact for external AI-agent execution readiness. It does not install packages, start GPU runtime, call providers, dispatch workers, mutate Supabase, run SQL, create generated assets, create public artifacts, create signed URLs, spend credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -15,8 +15,8 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 | Tool lane | Current stage | External-agent execution readiness | Primary blocker | Next action |
 | --- | --- | --- | --- | --- |
-| `qwen2_5_vl_7b_instruct` | controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference auth-refresh result | blocked | local `gcloud` reauthentication is required before read-only Cloud Run service/job inspection, token fetch, private request, model load, or inference | `QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight` |
-| `ai_video_broll_generation_wan` | controlled L4 private proof, Wan/Wan2.1 selected, private cache/proof-runner/fast cache readiness evidence present | blocked | prior evidence says `GPUS_ALL_REGIONS` quota is `0`, but live quota verification is currently gated by gcloud auth | `AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: after auth-readable live preflight, request GPUS_ALL_REGIONS quota increase to 1 only if quota remains insufficient` |
+| `qwen2_5_vl_7b_instruct` | controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference auth-refresh result | auth verified, runtime blocked | read-only gcloud token refresh, Cloud Run service describe, and private caller job describe now pass; bounded private inference retry planning and runtime gate recheck remain required before any invocation, model load, or inference | `QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation` |
+| `ai_video_broll_generation_wan` | controlled L4 private proof, Wan/Wan2.1 selected, private cache/proof-runner/fast cache readiness evidence present | blocked | auth-readable live preflight now reads GPU quota and `GPUS_ALL_REGIONS` remains insufficient for one L4 proof VM | `AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes` |
 | `sound_music_audio` | mock/dry-run/local-fixture evidence and handoff planning | metadata-only | real provider gateway, worker runtime, Supabase/storage, Track A/B, QA, billing, and export paths are still not execution-accepted here | continue only after owner evidence and runtime paths are accepted |
 | `supabase_local_fixture_harness` | supporting local harness/config evidence in related branches | supporting evidence only | current branch is not a Supabase execution branch and must not mutate live data | use only as source-of-truth/private-path evidence, not runtime execution |
 
@@ -31,8 +31,8 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 ## Current Manual Blockers
 
-1. Qwen: refresh the active local `gcloud` account/configuration used by this shell, then rerun `npm run external-agent-tool-blockers:preflight` before the approved private inference attempt can be retried.
-2. B-roll: after auth-readable live preflight can read quota, Google Cloud `GPUS_ALL_REGIONS` quota must be increased to at least `1` only if it remains insufficient before a controlled L4 proof VM can be created.
+1. Qwen: auth/service/job visibility is now verified; record a bounded approved-fixture private inference retry plan and re-run read-only preflight immediately before any future runtime gate.
+2. B-roll: Google Cloud `GPUS_ALL_REGIONS` quota must be increased to at least `1` before a controlled L4 proof VM can be created.
 
 ## Safe Agent Commands
 
@@ -51,7 +51,7 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 - `npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight for Qwen local gcloud auth/service/job visibility and B-roll `GPUS_ALL_REGIONS`/regional L4 quota without Cloud Run invocation, VM creation, quota requests, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation.
 - `npm run external-agent-gcloud-session:diagnostic` provides a read-only local gcloud session/config diagnostic when user-refreshed auth is not visible to the Codex shell, without token logging, Cloud Run invocation, configuration mutation, VM creation, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation.
 - `npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight without cache hashing, GPU work, model imports, inference, provider calls, workers, Docker, Supabase, SQL, or mutations.
-- Qwen is the closest lane to controlled private model inference, but remains auth-blocked.
+- Qwen is the closest lane to controlled private model inference; auth/service/job visibility is now verified, but runtime remains blocked until a bounded private inference retry plan and execution gate are recorded.
 - B-roll has Wan/Wan2.1 planning, private cache evidence, proof-runner evidence, and fast stat-only cache readiness evidence, but remains quota-blocked for cloud GPU proof.
 - B-roll external-agent execution must not leave an idle GPU running; the accepted proof posture is bounded, private, no-public-IP, cleanup-verified execution only.
 - SOUND and Supabase are supporting readiness lanes here, not currently executable media/model tools.
@@ -65,4 +65,4 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 
 ## Recommended Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight`
+`AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes`

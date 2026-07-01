@@ -7,9 +7,9 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_blocked_reauthentication_required'
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_verified_read_only_service_job_visible'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+  'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation'
 
 type JsonRecord = Record<string, unknown>
 
@@ -92,13 +92,13 @@ const doc = read(
 )
 for (const phrase of [
   DECISION,
-  'access token refresh: blocked',
-  'service describe: blocked',
-  'job describe: blocked',
-  '`gcloud_reauthentication_required`',
+  'access token refresh: passed',
+  'service describe: passed',
+  'job describe: passed',
+  '`cleared`',
   '`authRefreshResultRecorded=true`',
-  '`accessTokenRefreshPassed=false`',
-  '`manualInteractiveAuthRequired=true`',
+  '`accessTokenRefreshPassed=true`',
+  '`manualInteractiveAuthRequired=false`',
   '`cloudRunInvocationAttempted=false`',
   '`inferenceRun=false`',
   '`generatedAssetsCreated=false`',
@@ -127,12 +127,12 @@ assert.equal(result.authRefreshSummary.localGcloudBinaryFound, true)
 assert.equal(result.authRefreshSummary.projectConfigured, true)
 assert.equal(result.authRefreshSummary.activeAccountConfigured, true)
 assert.equal(result.authRefreshSummary.accessTokenRefreshAttempted, true)
-assert.equal(result.authRefreshSummary.accessTokenRefreshPassed, false)
+assert.equal(result.authRefreshSummary.accessTokenRefreshPassed, true)
 assert.equal(result.authRefreshSummary.serviceDescribeAttempted, true)
-assert.equal(result.authRefreshSummary.serviceDescribePassed, false)
+assert.equal(result.authRefreshSummary.serviceDescribePassed, true)
 assert.equal(result.authRefreshSummary.jobDescribeAttempted, true)
-assert.equal(result.authRefreshSummary.jobDescribePassed, false)
-assert.equal(result.authRefreshSummary.manualInteractiveAuthRequired, true)
+assert.equal(result.authRefreshSummary.jobDescribePassed, true)
+assert.equal(result.authRefreshSummary.manualInteractiveAuthRequired, false)
 assert.equal(result.authRefreshSummary.tokenValuePrinted, false)
 assert.equal(result.authRefreshSummary.tokenValueStored, false)
 assert.equal(result.authRefreshSummary.rawGcloudOutputStored, false)
@@ -144,9 +144,11 @@ for (const [key, value] of Object.entries(result.runtimeFlags)) {
     'projectConfigured',
     'activeAccountConfigured',
     'accessTokenRefreshAttempted',
+    'accessTokenRefreshPassed',
     'serviceDescribeAttempted',
+    'serviceDescribePassed',
     'jobDescribeAttempted',
-    'manualInteractiveAuthRequired',
+    'jobDescribePassed',
   ].includes(key)) {
     assert.equal(value, true, `${key} must be true`)
   } else {

@@ -1,9 +1,9 @@
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_ATTEMPT_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-attempt-result'
 
 const DECISION =
-  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_blocked_reauthentication_required' as const
+  'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_verified_read_only_service_job_visible' as const
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight' as const
+  'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation' as const
 
 const attemptResult =
   QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_ATTEMPT_RESULT
@@ -17,9 +17,9 @@ export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPAT
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInferenceAttemptResultDecision:
     attemptResult.decision,
   authRefreshSummary: {
-    sourceBranch: 'codex/qwen2-5-vl-private-inference-attempt-result-auth-blocked',
-    sourceCommit: '145efd4',
-    sourcePullRequest: 1911,
+    sourceBranch: 'codex/external-agent-preflight-auth-skip-handoff',
+    sourceCommit: '07a5993',
+    sourcePullRequest: 1950,
     localGcloudBinaryFound: true,
     gcloudVersion: '558.0.0',
     projectConfigured: true,
@@ -27,13 +27,13 @@ export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPAT
     activeAccountConfigured: true,
     activeAccountDomain: 'reeditpro.com',
     accessTokenRefreshAttempted: true,
-    accessTokenRefreshPassed: false,
+    accessTokenRefreshPassed: true,
     serviceDescribeAttempted: true,
-    serviceDescribePassed: false,
+    serviceDescribePassed: true,
     jobDescribeAttempted: true,
-    jobDescribePassed: false,
-    blocker: 'gcloud_reauthentication_required',
-    manualInteractiveAuthRequired: true,
+    jobDescribePassed: true,
+    blocker: 'cleared',
+    manualInteractiveAuthRequired: false,
     tokenValuePrinted: false,
     tokenValueStored: false,
     rawGcloudOutputStored: false,
@@ -56,12 +56,12 @@ export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPAT
     projectConfigured: true,
     activeAccountConfigured: true,
     accessTokenRefreshAttempted: true,
-    accessTokenRefreshPassed: false,
+    accessTokenRefreshPassed: true,
     serviceDescribeAttempted: true,
-    serviceDescribePassed: false,
+    serviceDescribePassed: true,
     jobDescribeAttempted: true,
-    jobDescribePassed: false,
-    manualInteractiveAuthRequired: true,
+    jobDescribePassed: true,
+    manualInteractiveAuthRequired: false,
     serviceUpdateAttempted: false,
     cpuCallerJobExecuted: false,
     serviceIdentityTokenFetched: false,

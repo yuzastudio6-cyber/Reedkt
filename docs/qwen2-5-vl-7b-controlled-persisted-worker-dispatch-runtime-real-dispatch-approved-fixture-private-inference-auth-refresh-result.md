@@ -1,17 +1,17 @@
 # Qwen2.5-VL 7B Controlled Persisted Worker Dispatch Runtime Real-Dispatch Approved-Fixture Private Inference Auth Refresh Result
 
-Decision: `qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_blocked_reauthentication_required`.
+Decision: `qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_verified_read_only_service_job_visible`.
 
-This packet records the 58DQ-AUTH-REFRESH result. The local gcloud account and project are configured, but non-interactive token refresh is still blocked by interactive reauthentication. Read-only Cloud Run service and job describe probes also remain blocked for the same reason.
+This packet records the 58DQ-AUTH-REFRESH result after the local gcloud account was refreshed outside Codex. Non-interactive token refresh now works in this shell, and read-only Cloud Run service/job describe probes can see the expected Qwen service and private caller job.
 
 No Cloud Run service update, Cloud Run Job execution, identity-token fetch for the service, auth header creation, private request, model import, model load, vLLM initialization, forward pass, Qwen inference, generated asset creation, Supabase mutation, SQL, storage write, signed URL creation, public artifact creation, credit mutation, beta unlock, production unlock, `dry_run_passed`, or `generated_local_fixture_passed` claim occurred.
 
 ## Source Branch
 
-- source branch: `codex/qwen2-5-vl-private-inference-attempt-result-auth-blocked`
-- upstream result commit: `145efd4`
-- upstream PR: `#1911`
-- upstream blocker: `gcloud_reauthentication_required`
+- source branch: `codex/external-agent-preflight-auth-skip-handoff`
+- source commit: `07a5993`
+- source PR: `#1950`
+- upstream blocker: `cleared`
 
 ## Commands Run
 
@@ -30,12 +30,12 @@ The checks were local auth/tooling checks only. Token values were not printed or
 - gcloud path: `/usr/local/bin/gcloud`
 - gcloud version: `558.0.0`
 - active project: `reeditpro`
-- active account: `aiediting@reeditpro.com`
-- access token refresh: blocked
-- service describe: blocked
-- job describe: blocked
-- blocker: `gcloud_reauthentication_required`
-- sanitized error summary: current auth tokens could not be refreshed in non-interactive execution and gcloud requested `gcloud auth login`
+- active account domain: `reeditpro.com`
+- access token refresh: passed
+- service describe: passed
+- job describe: passed
+- blocker: `cleared`
+- sanitized error summary: none; token stdout was suppressed and no token value was stored
 
 ## Runtime Gates
 
@@ -44,12 +44,12 @@ The checks were local auth/tooling checks only. Token values were not printed or
 - `projectConfigured=true`
 - `activeAccountConfigured=true`
 - `accessTokenRefreshAttempted=true`
-- `accessTokenRefreshPassed=false`
+- `accessTokenRefreshPassed=true`
 - `serviceDescribeAttempted=true`
-- `serviceDescribePassed=false`
+- `serviceDescribePassed=true`
 - `jobDescribeAttempted=true`
-- `jobDescribePassed=false`
-- `manualInteractiveAuthRequired=true`
+- `jobDescribePassed=true`
+- `manualInteractiveAuthRequired=false`
 - `serviceUpdateAttempted=false`
 - `cpuCallerJobExecuted=false`
 - `serviceIdentityTokenFetched=false`
@@ -75,17 +75,17 @@ The checks were local auth/tooling checks only. Token values were not printed or
 
 ## What This Proves
 
-- The current shell still cannot refresh gcloud auth non-interactively.
-- The approved private inference attempt must not be retried until gcloud auth is refreshed outside Codex or through another approved user-safe path.
-- The Qwen runtime remains fail-closed before Cloud Run mutation, job execution, token fetch, model load, and inference.
+- The current shell can refresh gcloud auth non-interactively without printing or storing token values.
+- The expected Qwen Cloud Run service and private caller job are visible through read-only describe probes.
+- The Qwen runtime remains fail-closed before Cloud Run mutation, job execution, identity token fetch, private request, model load, and inference.
 
 ## What This Does Not Prove
 
-- It does not prove the Cloud Run service is ready.
-- It does not prove the CPU caller job is ready.
+- It does not prove the Cloud Run service has been invoked.
+- It does not prove the CPU caller job has executed.
 - It does not prove private inference can run.
 - It does not authorize service mutation, job execution, model runtime, generated assets, beta, production, `dry_run_passed`, or `generated_local_fixture_passed`.
 
 ## Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight`
+`QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation`

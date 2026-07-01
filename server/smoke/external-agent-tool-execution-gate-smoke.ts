@@ -87,6 +87,23 @@ for (const row of gate.toolRows) {
   assert.equal(row.executionAllowedNow, false, `${row.toolId} must be blocked`)
   assert.equal(row.requiredBeforeExecution.length > 0, true, `${row.toolId} needs required-before-execution rows`)
 }
+const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
+assert.equal(
+  qwenGateRow?.currentBlocker,
+  'bounded_private_inference_retry_plan_required_after_auth_refresh',
+)
+assert.equal(
+  qwenGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('token refresh must remain verified'),
+  ),
+  true,
+)
+assert.equal(
+  qwenGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('private inference retry plan'),
+  ),
+  true,
+)
 const brollGateRow = gate.toolRows.find((row) => row.toolId === 'ai_video_broll_generation_wan')
 assert.equal(
   brollGateRow?.requiredBeforeExecution.some((requirement) =>

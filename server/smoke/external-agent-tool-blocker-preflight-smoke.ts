@@ -190,6 +190,10 @@ if (!live.qwen.accessTokenRefreshPassed) {
     spec.qwen.nextActionIfBlocked,
     'auth failure must recommend refreshing the active local gcloud account/configuration',
   )
+} else {
+  assert.equal(live.qwen.blocker, 'cleared')
+  assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfCleared)
+  assert.equal(live.qwen.downstreamProbeSkipped, false)
 }
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {

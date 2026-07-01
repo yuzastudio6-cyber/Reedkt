@@ -1,5 +1,6 @@
 export type ExternalAgentToolReadinessStatus =
   | 'blocked_external_state'
+  | 'auth_verified_runtime_blocked'
   | 'metadata_only'
   | 'supporting_evidence_only'
 
@@ -29,7 +30,7 @@ export type ExternalAgentToolSafeNextCommand = {
 }
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
-  decision: 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota',
+  decision: 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_verified_broll_quota',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -136,7 +137,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'qwen2_5_vl_7b_instruct',
       lane: 'video_understanding_vlm',
-      status: 'blocked_external_state',
+      status: 'auth_verified_runtime_blocked',
       currentStage:
         'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_result',
       selectedModelOrTool: 'Qwen/Qwen2.5-VL-7B-Instruct',
@@ -144,7 +145,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'local_gcloud_reauthentication_required',
+      primaryBlocker: 'bounded_private_inference_retry_plan_required_after_auth_refresh',
       evidence: [
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
         'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
@@ -158,7 +159,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'pull_request_1914_open_draft_clean',
       ],
       nextAction:
-        'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
+        'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation',
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -171,7 +172,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'prior_gpus_all_regions_quota_zero_pending_auth_readable_live_verification',
+      primaryBlocker: 'gpus_all_regions_quota_zero_or_unverified',
       evidence: [
         'docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md',
         'docs/ai-video-broll-generation-gpu-global-quota-fix-result.md',
@@ -187,7 +188,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
       nextAction:
-        'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: after auth-readable live preflight, request GPUS_ALL_REGIONS quota increase to 1 only if quota remains insufficient',
+        'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     },
     {
       toolId: 'sound_music_audio',
@@ -222,7 +223,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
+    'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

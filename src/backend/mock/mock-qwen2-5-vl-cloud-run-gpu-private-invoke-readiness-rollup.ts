@@ -252,7 +252,7 @@ export type Qwen25VlPrivateInvokeReadinessStatus =
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_preflight_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval_required'
   | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_required'
-  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required'
+  | 'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required'
   | 'blocked_approved_fixture_inference_service_deploy_required'
 
 export type Qwen25VlPrivateInvokeReadinessGate = {
@@ -269,7 +269,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_reauthentication_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_controlled_persisted_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_verified_retry_plan_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -2078,7 +2078,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt',
       status:
-        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+        'blocked_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
       evidence: [
         'The 58DP attempt approval is recorded for one future bounded approved-fixture private Qwen inference attempt.',
         'The 58DQ private inference attempt result is recorded and stopped during safety preflight because local gcloud requires reauthentication before Cloud Run service/job inspection.',
@@ -2907,11 +2907,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
+    'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN: plan bounded approved-fixture private inference retry after auth refresh, no inference/no mutation',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

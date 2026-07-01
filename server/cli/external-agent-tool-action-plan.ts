@@ -29,12 +29,11 @@ function actionForTool(toolId: string) {
       immediateSafeActions: [
         ...externalAgentPreExecutionActions,
         'npm run external-agent-tool-blockers:preflight',
-        'npm run external-agent-gcloud-session:diagnostic',
       ],
       externalManualBlocker:
-        'refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
+        'bounded approved-fixture private inference retry plan is required after auth refresh; no direct inference is allowed from this action plan',
       afterBlockerClears:
-        'record refreshed read-only auth/service/job visibility before any bounded private inference retry',
+        'rerun read-only blocker preflight immediately before any future bounded private inference retry gate',
     }
   }
 
@@ -46,7 +45,7 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'request GPUS_ALL_REGIONS quota increase to 1 only after auth-readable live preflight confirms quota is still insufficient',
+        'request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console; do not create VMs or request quota from this repo',
       afterBlockerClears:
         'verify quota increase, then require bounded no-idle L4 proof cleanup before any inference path',
     }

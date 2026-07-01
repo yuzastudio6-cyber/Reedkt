@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
-  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference auth blocker.',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
+  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference retry-plan blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -205,8 +205,11 @@ check(
     docText.includes(
       'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
     ) ||
+    docText.includes(
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
+    ) ||
     data.privateInvokeClient.currentStatus ===
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_verified_retry_plan_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -369,9 +372,9 @@ check(
     docText.includes('58DQ approved-fixture private inference attempt result') &&
     docText.includes('58DQ auth-refresh result') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER',
+      'QWEN2_5_VL_STACK_TOOL_58DR-PRIVATE-INFERENCE-RETRY-PLAN',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh result evidence, and the 58DQ manual-auth next prompt.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh result evidence, and the 58DR retry-plan next prompt.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

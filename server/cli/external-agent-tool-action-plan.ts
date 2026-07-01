@@ -31,7 +31,8 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
         'npm run external-agent-gcloud-session:diagnostic',
       ],
-      externalManualBlocker: 'refresh local gcloud auth interactively outside Codex',
+      externalManualBlocker:
+        'refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
       afterBlockerClears:
         'record refreshed read-only auth/service/job visibility before any bounded private inference retry',
     }

@@ -15,7 +15,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 | Tool lane | Current stage | External-agent execution readiness | Primary blocker | Next action |
 | --- | --- | --- | --- | --- |
-| `qwen2_5_vl_7b_instruct` | controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference auth-refresh result | blocked | local `gcloud` reauthentication is required before read-only Cloud Run service/job inspection, token fetch, private request, model load, or inference | `QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta` |
+| `qwen2_5_vl_7b_instruct` | controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference auth-refresh result | blocked | local `gcloud` reauthentication is required before read-only Cloud Run service/job inspection, token fetch, private request, model load, or inference | `QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight` |
 | `ai_video_broll_generation_wan` | controlled L4 private proof, Wan/Wan2.1 selected, private cache/proof-runner/fast cache readiness evidence present | blocked | `GPUS_ALL_REGIONS` quota is `0`, so one controlled L4 proof VM cannot be created | `AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes` |
 | `sound_music_audio` | mock/dry-run/local-fixture evidence and handoff planning | metadata-only | real provider gateway, worker runtime, Supabase/storage, Track A/B, QA, billing, and export paths are still not execution-accepted here | continue only after owner evidence and runtime paths are accepted |
 | `supabase_local_fixture_harness` | supporting local harness/config evidence in related branches | supporting evidence only | current branch is not a Supabase execution branch and must not mutate live data | use only as source-of-truth/private-path evidence, not runtime execution |
@@ -31,7 +31,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 ## Current Manual Blockers
 
-1. Qwen: local `gcloud` credentials must be refreshed interactively outside Codex before the approved private inference attempt can be retried.
+1. Qwen: refresh the active local `gcloud` account/configuration used by this shell, then rerun `npm run external-agent-tool-blockers:preflight` before the approved private inference attempt can be retried.
 2. B-roll: Google Cloud `GPUS_ALL_REGIONS` quota must be increased to at least `1` before a controlled L4 proof VM can be created.
 
 ## Safe Agent Commands
@@ -65,4 +65,4 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 
 ## Recommended Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta`
+`QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight`

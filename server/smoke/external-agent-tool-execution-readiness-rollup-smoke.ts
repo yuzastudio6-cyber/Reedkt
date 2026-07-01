@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -77,6 +77,7 @@ for (const required of [
   'B-roll selected proof GPU: `nvidia_l4`',
   'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
+  'refresh the active local `gcloud` account/configuration used by this shell',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
   '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',

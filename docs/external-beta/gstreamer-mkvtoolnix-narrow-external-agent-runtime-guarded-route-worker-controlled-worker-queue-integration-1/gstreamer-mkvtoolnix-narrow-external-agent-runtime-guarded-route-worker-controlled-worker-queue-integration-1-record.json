@@ -1,0 +1,77 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-WORKER-QUEUE-INTEGRATION-1",
+  "integrationBase": "b0b32faefc809dd90ceb37fe99be8e9bbf5fbdf3",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_controlled_worker_queue_integration_metadata_only",
+  "execution": "completed_confirmation_gated_narrow_controlled_worker_queue_metadata_only_no_route_worker_tool_or_media_execution",
+  "sourceChain": {
+    "controlledDispatchExecutionPacketQaRollupPr": 2022,
+    "controlledDispatchExecutionPacketQaRollupMergeSha": "b0b32faefc809dd90ceb37fe99be8e9bbf5fbdf3",
+    "controlledDispatchExecutionPacketQaDecision": "qa_passed_gstreamer_mkvtoolnix_narrow_controlled_dispatch_execution_packet_evidence",
+    "controlledDispatchExecutionPacketQaReadiness": "ready_for_guarded_narrow_route_worker_controlled_worker_queue_integration",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "runId": "2026-07-01T19-06-40-470Z-35b9b73b",
+  "outputDirectory": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-narrow-route-worker-controlled-worker-queue-integration-1/2026-07-01T19-06-40-470Z-35b9b73b",
+  "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_CONTROLLED_WORKER_QUEUE_INTEGRATION=true",
+  "workerQueueIntegration": {
+    "status": "queued_narrow_controlled_worker_queue_metadata_only",
+    "queueMode": "mock_queue_metadata_only",
+    "queueId": "queue-gstreamer-mkvtoolnix-narrow-controlled-worker-queue-1",
+    "queueItemId": "mock-job-runtime-queue-item-0001",
+    "jobId": "job-gstreamer-mkvtoolnix-narrow-controlled-worker-queue-1",
+    "queueStatus": "queued",
+    "workerKind": "render_export",
+    "localMockQueueItemCreated": true,
+    "persistentJobQueueWrite": "not_run_local_mock_queue_metadata_only",
+    "routeExecution": "not_run_controlled_worker_queue_metadata_only",
+    "workerDispatch": "not_run_controlled_worker_queue_metadata_only",
+    "workerExecution": "not_run_controlled_worker_queue_metadata_only",
+    "toolExecution": "not_run_controlled_worker_queue_metadata_only",
+    "nextSourceStatus": "ready_for_guarded_narrow_route_worker_controlled_worker_dispatch_dry_run"
+  },
+  "artifacts": {
+    "input": {
+      "fileName": "narrow-controlled-worker-queue-input.json",
+      "bytes": 1272,
+      "sha256": "50bd457490092eafe244aff2e219fd653abea810f199fa8424a456f09a0aeead"
+    },
+    "report": {
+      "fileName": "narrow-controlled-worker-queue-report.json",
+      "bytes": 6539,
+      "sha256": "ae4d8862eaf86681fe0a95d1aec25d3a22f2894fe4a2546d2525d114a5385f10"
+    },
+    "manifest": {
+      "fileName": "narrow-controlled-worker-queue-manifest.json",
+      "bytes": 1582,
+      "sha256": "dc663d8039a43be4c9b15b2f70547cc61d904f30ba2f343b3f0019d1314ae96a"
+    }
+  },
+  "safety": {
+    "routeExecutionInThisQueueIntegration": false,
+    "workerDispatchInThisQueueIntegration": false,
+    "workerExecutionInThisQueueIntegration": false,
+    "workerProcessStartInThisQueueIntegration": false,
+    "workerLeaseClaimInThisQueueIntegration": false,
+    "persistentJobQueueWriteInThisQueueIntegration": false,
+    "gstreamerExecutionInThisQueueIntegration": false,
+    "mkvtoolnixExecutionInThisQueueIntegration": false,
+    "ffmpegFfprobeExecutionInThisQueueIntegration": false,
+    "dockerExecutionInThisQueueIntegration": false,
+    "remotionExecutionInThisQueueIntegration": false,
+    "privateMediaProcessingInThisQueueIntegration": false,
+    "userMediaProcessingInThisQueueIntegration": false,
+    "supabaseMutationInThisQueueIntegration": false,
+    "sqlExecutionInThisQueueIntegration": false,
+    "signedUrlCreationInThisQueueIntegration": false,
+    "publicArtifactCreationInThisQueueIntegration": false,
+    "finalRenderExportInThisQueueIntegration": false,
+    "broadExternalBetaUnlockInThisQueueIntegration": false,
+    "paidProductionUnlockInThisQueueIntegration": false,
+    "productionUnlockInThisQueueIntegration": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-WORKER-DISPATCH-DRY-RUN-1"
+}

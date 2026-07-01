@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT } from '../../src/backend/mock/mock-external-agent-tool-blocker-preflight'
 
 type CommandResult = {
@@ -121,6 +122,13 @@ function activeAccountDomain(account: string | undefined): string | undefined {
 
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT
+  const rollupToolsById = new Map(EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.map((tool) => [tool.toolId, tool]))
+  const qwenManualBlockerActions = rollupToolsById.get(spec.qwen.toolId)?.manualBlockerActions ?? []
+  const brollManualBlockerActions = rollupToolsById.get(spec.broll.toolId)?.manualBlockerActions ?? []
+  const manualBlockerActionToolIds = [
+    ...(qwenManualBlockerActions.length > 0 ? [spec.qwen.toolId] : []),
+    ...(brollManualBlockerActions.length > 0 ? [spec.broll.toolId] : []),
+  ]
 
   if (process.argv.includes('--plan')) {
     console.log(
@@ -139,6 +147,7 @@ function main() {
             mutatesCloud: command.mutatesCloud,
             runsInference: command.runsInference,
           })),
+          manualBlockerActionToolIds,
           runtimeSideEffects: spec.runtimeSideEffects,
         },
         null,
@@ -286,6 +295,7 @@ function main() {
           readyForNextAuthRefreshVerify: qwenAuthCleared,
           readyForExternalAgentExecutionNow: false,
           nextAction: qwenNextAction,
+          manualBlockerActions: qwenManualBlockerActions,
         },
         broll: {
           toolId: spec.broll.toolId,
@@ -307,7 +317,9 @@ function main() {
           readyForNextQuotaVerify: brollQuotaCleared,
           readyForExternalAgentExecutionNow: false,
           nextAction: brollNextAction,
+          manualBlockerActions: brollManualBlockerActions,
         },
+        manualBlockerActionToolIds,
         commandSummaries,
         skippedCommandSummaries,
         runtimeSideEffects: spec.runtimeSideEffects,

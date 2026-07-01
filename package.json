@@ -864,6 +864,8 @@
     "rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-handoff-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-handoff-1-diagnostics.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-dry-run-1": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-dry-run-1.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-dry-run-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-dry-run-1-diagnostics.mjs",
+    "smoke:rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1": "tsx server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1-smoke.ts",
+    "rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-bridge-implementation-1-diagnostics.mjs",
     "rp-qwen2-5-vl-external-beta-stack-integration-rollup-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-stack-integration-rollup-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-structured-output-source-import-1": "tsx server/smoke/qwen2-5-vl-external-beta-structured-output-source-import-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-structured-output-source-import-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-source-import-1-diagnostics.mjs",

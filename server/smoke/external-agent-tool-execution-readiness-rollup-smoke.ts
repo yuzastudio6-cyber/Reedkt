@@ -112,6 +112,7 @@ for (const required of [
   '`nextCodexCommandAfterManualAction`',
   '`npm run external-agent-tool-execution-gate` provides a fail-closed static go/no-go report',
   '`npm run external-agent-tool-next-command` provides a read-only live next-command decision',
+  'docs/external-agent-tool-live-next-command-result.md',
   '`npm run external-agent-tool-execute-qwen` is the canonical guarded Qwen wrapper',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION=true`',
   'docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md',
@@ -236,6 +237,7 @@ assert.equal(
   qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dz-external-agent-wrapper-rerun-result.md'),
   true,
 )
+assert.equal(qwen?.evidence.includes('docs/external-agent-tool-live-next-command-result.md'), true)
 assert.equal(
   qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md'),
   true,
@@ -248,6 +250,7 @@ assert.equal(
   qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dz-external-agent-wrapper-rerun-result.ts'),
   true,
 )
+assert.equal(qwen?.evidence.includes('src/backend/mock/mock-external-agent-tool-live-next-command-result.ts'), true)
 assert.equal(
   qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dy-external-agent-wrapper-execution-result.ts'),
   true,
@@ -260,6 +263,7 @@ assert.equal(
   qwen?.evidence.includes('server/smoke/qwen2-5-vl-58dz-external-agent-wrapper-rerun-result-smoke.ts'),
   true,
 )
+assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-live-next-command-result-smoke.ts'), true)
 assert.equal(
   qwen?.evidence.includes('server/smoke/qwen2-5-vl-58dx-private-inference-result-review-smoke.ts'),
   true,

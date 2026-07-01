@@ -242,6 +242,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       primaryBlocker: 'none_explicit_gate_ready_live_preflight_required',
       evidence: [
         'docs/qwen2-5-vl-7b-58dz-external-agent-wrapper-rerun-result.md',
+        'docs/external-agent-tool-live-next-command-result.md',
         'docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md',
         'docs/qwen2-5-vl-7b-58dx-private-inference-result-review.md',
         'docs/qwen2-5-vl-7b-58dw-retry-2-result.md',
@@ -254,6 +255,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.md',
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
         'src/backend/mock/mock-qwen2-5-vl-58dz-external-agent-wrapper-rerun-result.ts',
+        'src/backend/mock/mock-external-agent-tool-live-next-command-result.ts',
         'src/backend/mock/mock-qwen2-5-vl-58dy-external-agent-wrapper-execution-result.ts',
         'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
         'src/backend/mock/mock-qwen2-5-vl-58dx-private-inference-result-review.ts',
@@ -272,6 +274,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts',
         'server/smoke/qwen2-5-vl-58dz-external-agent-wrapper-rerun-result-smoke.ts',
+        'server/smoke/external-agent-tool-live-next-command-result-smoke.ts',
         'server/smoke/qwen2-5-vl-58dy-external-agent-wrapper-execution-result-smoke.ts',
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result-smoke.ts',
         'server/smoke/qwen2-5-vl-58dx-private-inference-result-review-smoke.ts',

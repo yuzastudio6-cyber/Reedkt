@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_backend_adapter_smoke_prepared_wi
 
 Status: `route_to_backend_adapter_smoke_ready_runtime_still_blocked`
 
-This packet adds a private, side-effect-free route-to-backend-adapter smoke for the future AI graphics external-beta tool-call route. It validates route-shaped requests against the disabled route schema, binds them to the accepted backend adapter preflight, and returns smoke candidates only.
+This packet adds a private, side-effect-free route-to-backend-adapter smoke for the future AI graphics external-beta tool-call route. It validates route-shaped requests against the disabled route schema, binds them to the accepted backend adapter preflight with route-bound service-role queue smoke operator-preflight evidence for all 21 tools, and returns smoke candidates only.
 
 ## Scope
 
@@ -13,6 +13,7 @@ This packet adds a private, side-effect-free route-to-backend-adapter smoke for 
 - GPU/model runtime targeted tools: `8`
 - Backend adapter smoke ready tools with provided evidence: `21`
 - Backend adapter preflight ready tools with provided evidence: `21`
+- Route-bound service-role queue smoke operator-preflight accepted: `21`
 - Route smoke requests accepted with provided evidence: `2`
 - CPU/static route smoke cases accepted with provided evidence: `1`
 - GPU/model route smoke cases accepted with provided evidence: `1`
@@ -113,6 +114,7 @@ Blocked now:
 
 - `externalBetaApiRouteBackendAdapterSmokePrepared`: `true`
 - `sourceBackendAdapterPreflightAccepted`: `true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence`: `true`
 - `routeSmokeRequestsAccepted`: `true`
 - `backendAdapterSmokeReadyWithProvidedEvidence`: `true`
 - `cpuStaticRouteSmokeAccepted`: `true`

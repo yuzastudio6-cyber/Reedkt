@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-mount-implementation-qa",
   "decision": "ai_graphics_external_beta_api_route_mount_implementation_qa_passed_with_runtime_blocks",
   "status": "route_mount_implementation_qa_passed_runtime_still_blocked",
-  "summary": "QA accepts the source-controlled disabled route implementation review for the future AI graphics external-beta tool-call endpoint. The route schema covers all 21 tools and 12 product-facing capabilities, server/app.ts remains unmounted, and every route, queue, worker, tool, runtime, public artifact, external-beta traffic, and production gate remains false.",
+  "summary": "QA accepts the source-controlled disabled route implementation review for the future AI graphics external-beta tool-call endpoint, including the route-bound service-role queue smoke operator-preflight evidence for all 21 tools. The route schema covers all 21 tools and 12 product-facing capabilities, server/app.ts remains unmounted, and every route, queue, worker, tool, runtime, public artifact, external-beta traffic, and production gate remains false.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-mount-implementation-qa.ts",
     "routeModule": "server/routes/ai-graphics-external-beta-tool-call-routes.ts",
@@ -43,6 +43,7 @@
     "apiRouteMountImplementationReadyToolsWithProvidedEvidence": 21,
     "apiRouteMountReadyToolsWithProvidedEvidence": 21,
     "routeHandlerGatewayFullProofToolsWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "runtimeAdmissionAcceptedToolsWithProvidedEvidence": 21,
     "gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence": 21,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
@@ -135,6 +136,7 @@
   "booleans": {
     "externalBetaApiRouteMountImplementationQaCompleted": true,
     "sourceRouteMountImplementationReviewAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "routeImplementationContractQaAccepted": true,
     "routeSchemaAll21ToolsQaAccepted": true,
     "routeSchemaAll12CapabilitiesQaAccepted": true,

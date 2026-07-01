@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-backend-adapter-smoke",
   "decision": "ai_graphics_external_beta_api_route_backend_adapter_smoke_prepared_with_runtime_blocks",
   "status": "route_to_backend_adapter_smoke_ready_runtime_still_blocked",
-  "summary": "Private route-to-backend-adapter smoke for the future AI graphics external-beta tool-call route. It validates route-shaped requests for a CPU/static representative tool and a GPU/model representative tool, binds them to the accepted backend adapter preflight, and keeps every route, queue, worker, tool, GPU, storage, artifact, beta, and production side effect blocked.",
+  "summary": "Private route-to-backend-adapter smoke for the future AI graphics external-beta tool-call route. It validates route-shaped requests for a CPU/static representative tool and a GPU/model representative tool, binds them to the accepted backend adapter preflight with route-bound service-role queue smoke operator-preflight evidence for all 21 tools, and keeps every route, queue, worker, tool, GPU, storage, artifact, beta, and production side effect blocked.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-backend-adapter-smoke.ts",
     "cli": "server/cli/ai-graphics-external-beta-api-route-backend-adapter-smoke.ts",
@@ -79,6 +79,7 @@
     "gpuRuntimeTargetedTools": 8,
     "backendAdapterSmokeReadyToolsWithProvidedEvidence": 21,
     "backendAdapterPreflightReadyToolsWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "routeSmokeRequestsAcceptedWithProvidedEvidence": 2,
     "cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence": 1,
     "gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence": 1,
@@ -183,6 +184,7 @@
   "booleans": {
     "externalBetaApiRouteBackendAdapterSmokePrepared": true,
     "sourceBackendAdapterPreflightAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "routeSmokeRequestsAccepted": true,
     "backendAdapterSmokeReadyWithProvidedEvidence": true,
     "cpuStaticRouteSmokeAccepted": true,

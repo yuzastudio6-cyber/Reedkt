@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -71,6 +72,7 @@ const capabilities = [
 const trueKeys = [
   'externalBetaApiRouteBackendAdapterSmokePrepared',
   'sourceBackendAdapterPreflightAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'routeSmokeRequestsAccepted',
   'backendAdapterSmokeReadyWithProvidedEvidence',
   'cpuStaticRouteSmokeAccepted',
@@ -239,6 +241,11 @@ if (countFrom(docs, 'gpuRuntimeTargetedTools') !== 8) fail('gpu_tools_mismatch')
 if (countFrom(docs, 'backendAdapterSmokeReadyToolsWithProvidedEvidence') !== 21) {
   fail('smoke_ready_count_mismatch')
 }
+if (
+  countFrom(docs, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') !== 21
+) {
+  fail('route_bound_operator_preflight_count_mismatch')
+}
 if (countFrom(docs, 'routeSmokeRequestsAcceptedWithProvidedEvidence') !== 2) {
   fail('route_smoke_request_count_mismatch')
 }
@@ -268,6 +275,12 @@ if (sourcePacket.decision !== sourceDecision) fail('source_decision_mismatch')
 if (sourcePacket.status !== sourceStatus) fail('source_status_mismatch')
 if (sourcePacket.booleans?.backendAdapterPreflightReadyWithProvidedEvidence !== true) {
   fail('source_backend_adapter_preflight_not_ready')
+}
+if (
+  countFrom(sourcePacket, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') !== 21 ||
+  sourcePacket.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('source_route_bound_operator_preflight_not_ready')
 }
 if (sourcePacket.booleans?.agentCanExecuteToolsNow !== false) {
   fail('source_agent_execution_not_false')
@@ -370,6 +383,8 @@ for (const required of [
   'workerEnqueueApprovedNow: false',
   'toolExecutionPerformed: false',
   'gpuRuntimeShouldStartNow: false',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(required)) fail(`source_missing:${required}`)
 }
@@ -431,6 +446,12 @@ if (cliReport.status !== acceptedStatus) fail('cli_status_mismatch')
 if (cliReport.booleans?.backendAdapterSmokeReadyWithProvidedEvidence !== true) {
   fail('cli_smoke_ready_not_true')
 }
+if (
+  cliReport.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence !== 21 ||
+  cliReport.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('cli_route_bound_operator_preflight_not_accepted')
+}
 if (cliReport.booleans?.agentCanExecuteToolsNow !== false) {
   fail('cli_agent_execution_not_false')
 }
@@ -442,6 +463,59 @@ if (cliReport.input?.routeExecutionPerformed !== false ||
     cliReport.input?.workerEnqueuePerformed !== false ||
     cliReport.input?.gpuRuntimePerformed !== false) {
   fail('cli_input_runtime_flags_not_false')
+}
+
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-backend-smoke-stale-adapter-'))
+try {
+  const staleBackendAdapterPath = path.join(tempDir, 'stale-backend-adapter.json')
+  const staleBackendAdapter = JSON.parse(JSON.stringify(sourcePacket))
+  staleBackendAdapter.counts = {
+    ...(staleBackendAdapter.counts ?? {}),
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+  }
+  staleBackendAdapter.booleans = {
+    ...(staleBackendAdapter.booleans ?? {}),
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+  }
+  fs.writeFileSync(staleBackendAdapterPath, JSON.stringify(staleBackendAdapter, null, 2))
+
+  const staleReport = JSON.parse(exec([
+    'npx',
+    'tsx',
+    'server/cli/ai-graphics-external-beta-api-route-backend-adapter-smoke.ts',
+    '--backend-adapter-packet',
+    staleBackendAdapterPath,
+  ].join(' ')))
+
+  if (staleReport.status !== 'backend_adapter_preflight_rejected') {
+    fail(`stale_backend_adapter_status:${staleReport.status}`)
+  }
+  if (staleReport.sourceBackendAdapterAccepted !== false) {
+    fail('stale_backend_adapter_not_rejected')
+  }
+  if (
+    staleReport.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== false ||
+    staleReport.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence !== 0
+  ) {
+    fail('stale_route_bound_operator_preflight_not_rejected')
+  }
+  if (staleReport.backendAdapterSmokeReadyToolsWithProvidedEvidence !== 0) {
+    fail('stale_smoke_ready_not_zero')
+  }
+  if (staleReport.booleans?.backendAdapterSmokeReadyWithProvidedEvidence !== false) {
+    fail('stale_smoke_ready_not_false')
+  }
+  if (
+    staleReport.booleans?.agentCanExecuteToolsNow !== false ||
+    staleReport.booleans?.apiRouteExecutionApprovedNow !== false ||
+    staleReport.booleans?.workerEnqueueApprovedNow !== false ||
+    staleReport.booleans?.toolExecutionApprovedNow !== false ||
+    staleReport.booleans?.gpuRuntimeShouldStartNow !== false
+  ) {
+    fail('stale_runtime_flags_not_false')
+  }
+} finally {
+  fs.rmSync(tempDir, { recursive: true, force: true })
 }
 
 const packageDiff = [
@@ -515,6 +589,7 @@ console.log(JSON.stringify({
   routeSmokeRequestsAcceptedWithProvidedEvidence: 2,
   cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: 1,
   gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: 1,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   packageLockUnchanged: true,
   runtimeReadyNow: false,
   externalBetaReadyNow: false,

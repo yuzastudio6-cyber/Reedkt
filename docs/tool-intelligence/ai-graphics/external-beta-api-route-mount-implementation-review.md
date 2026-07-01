@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_mount_implementation_review_prepa
 
 Status: `route_mount_implementation_review_ready_runtime_still_blocked`
 
-This packet adds the source-controlled disabled route contract for the future `POST /api/ai-graphics/external-beta/tool-call` endpoint. It consumes the accepted route mount readiness packet and verifies that the route file exists, the request schema covers all 21 AI graphics tools and all 12 product-facing capabilities, and `server/app.ts` still does not mount the route.
+This packet adds the source-controlled disabled route contract for the future `POST /api/ai-graphics/external-beta/tool-call` endpoint. It consumes the accepted route mount readiness packet, including route-bound service-role queue smoke operator-preflight evidence for all 21 tools, and verifies that the route file exists, the request schema covers all 21 AI graphics tools and all 12 product-facing capabilities, and `server/app.ts` still does not mount the route.
 
 ## Result
 
@@ -13,6 +13,7 @@ This packet adds the source-controlled disabled route contract for the future `P
 - GPU runtime targeted tools: `8`
 - API route mount implementation ready with provided evidence: `21`
 - API route mount ready with provided evidence: `21`
+- Route-bound service-role queue smoke operator-preflight accepted: `21`
 - Runtime admissions accepted with provided evidence: `21`
 - Gateway worker-enqueue candidates ready with provided evidence: `21`
 - GPU start allowed only for accepted external-beta jobs: `8`

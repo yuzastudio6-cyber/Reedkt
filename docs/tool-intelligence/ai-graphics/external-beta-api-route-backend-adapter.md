@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_backend_adapter_preflight_ready_w
 
 Status: `backend_adapter_preflight_ready_runtime_still_blocked`
 
-This packet adds the no-write backend adapter preflight surface for the future AI graphics external-beta tool-call route. It consumes the accepted backend adapter contract and accepted API route handler contract, creates backend-private adapter stubs, and keeps the route unmounted.
+This packet adds the no-write backend adapter preflight surface for the future AI graphics external-beta tool-call route. It consumes the accepted backend adapter contract and accepted API route handler contract, including route-bound service-role queue smoke operator-preflight evidence for all 21 tools from both source packets, creates backend-private adapter stubs, and keeps the route unmounted.
 
 ## Scope
 
@@ -12,6 +12,7 @@ This packet adds the no-write backend adapter preflight surface for the future A
 - Product-facing capabilities covered: `12`
 - GPU/model runtime targeted tools: `8`
 - Backend adapter preflight ready tools with provided evidence: `21`
+- Route-bound service-role queue smoke operator-preflight accepted: `21`
 - API route mounted now: `0`
 - Route executions approved now: `0`
 - Live queue writes approved now: `0`
@@ -91,6 +92,7 @@ Blocked now:
 - `externalBetaApiRouteBackendAdapterPreflightPrepared`: `true`
 - `sourceBackendAdapterContractAccepted`: `true`
 - `sourceApiRouteHandlerContractAccepted`: `true`
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence`: `true`
 - `backendAdapterPreflightRefsAccepted`: `true`
 - `backendAdapterPreflightReadyWithProvidedEvidence`: `true`
 - `all21ToolsCovered`: `true`

@@ -75,6 +75,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
   rejectionReasons: string[]
   sourceBackendAdapterDecision: string | null
   sourceBackendAdapterAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
   routeSmokeRequestsAccepted: boolean
   routeSmokeRequestCount: 0 | 2
   routeSmokeCases: AiGraphicsExternalBetaApiRouteBackendAdapterSmokeCase[]
@@ -83,6 +84,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
   gpuRuntimeTargetedTools: 8
   backendAdapterSmokeReadyToolsWithProvidedEvidence: 0 | 21
   backendAdapterPreflightReadyToolsWithProvidedEvidence: 0 | 21
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
   routeSmokeRequestsAcceptedWithProvidedEvidence: 0 | 2
   cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: 0 | 1
   gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: 0 | 1
@@ -118,6 +120,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
   booleans: {
     externalBetaApiRouteBackendAdapterSmokePrepared: true
     sourceBackendAdapterPreflightAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     routeSmokeRequestsAccepted: boolean
     backendAdapterSmokeReadyWithProvidedEvidence: boolean
     cpuStaticRouteSmokeAccepted: boolean
@@ -238,6 +241,7 @@ function backendAdapterAccepted(
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_BACKEND_ADAPTER_DECISION &&
     packet.status === 'backend_adapter_preflight_ready_runtime_still_blocked' &&
     countFrom(packet, 'backendAdapterPreflightReadyToolsWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'apiRouteMountedNowTools') === 0 &&
     countFrom(packet, 'routeExecutionsApprovedNow') === 0 &&
     countFrom(packet, 'workerEnqueueApprovedNowTools') === 0 &&
@@ -246,6 +250,7 @@ function backendAdapterAccepted(
     countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'backendAdapterPreflightReadyWithProvidedEvidence') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'apiRouteMountedNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
@@ -352,6 +357,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
   input: AiGraphicsExternalBetaApiRouteBackendAdapterSmokeInput = {},
 ): AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
   const sourceAccepted = backendAdapterAccepted(input.sourceBackendAdapterPacket)
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    sourceAccepted
   const requests = input.routeSmokeRequests ?? []
   const requestReasons = [
     requests.length > 0 && requests.length !== 2
@@ -399,6 +406,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
     sourceBackendAdapterDecision:
       input.sourceBackendAdapterPacket?.decision ?? null,
     sourceBackendAdapterAccepted: sourceAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     routeSmokeRequestsAccepted: ready,
     routeSmokeRequestCount: ready ? 2 : 0,
     routeSmokeCases,
@@ -407,6 +416,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
     gpuRuntimeTargetedTools: 8,
     backendAdapterSmokeReadyToolsWithProvidedEvidence: ready ? 21 : 0,
     backendAdapterPreflightReadyToolsWithProvidedEvidence: sourceAccepted ? 21 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 21 : 0,
     routeSmokeRequestsAcceptedWithProvidedEvidence: acceptedRequestCount,
     cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: cpuStaticAccepted ? 1 : 0,
     gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: gpuModelAccepted ? 1 : 0,
@@ -427,6 +438,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
     booleans: {
       externalBetaApiRouteBackendAdapterSmokePrepared: true,
       sourceBackendAdapterPreflightAccepted: sourceAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       routeSmokeRequestsAccepted: ready,
       backendAdapterSmokeReadyWithProvidedEvidence: ready,
       cpuStaticRouteSmokeAccepted: cpuStaticAccepted,

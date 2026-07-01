@@ -36,6 +36,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterContract {
   rejectionReasons: string[]
   sourceRouteMountImplementationQaDecision: string | null
   sourceRouteMountImplementationQaAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
   backendAdapterContractRefsAccepted: boolean
   missingBackendAdapterContractRefs: string[]
   totalAiGraphicsTools: 21
@@ -43,6 +44,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterContract {
   gpuRuntimeTargetedTools: 8
   backendAdapterContractReadyToolsWithProvidedEvidence: 0 | 21
   routeMountImplementationQaAcceptedToolsWithProvidedEvidence: 0 | 21
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
   apiRouteMountImplementationReadyToolsWithProvidedEvidence: 0 | 21
   apiRouteMountReadyToolsWithProvidedEvidence: 0 | 21
   runtimeAdmissionAcceptedToolsWithProvidedEvidence: 0 | 21
@@ -117,6 +119,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterContract {
   booleans: {
     externalBetaApiRouteBackendAdapterContractPrepared: true
     sourceRouteMountImplementationQaAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     backendAdapterContractRefsAccepted: boolean
     approvedSnapshotLookupAdapterContractAccepted: boolean
     creditReservationLookupAdapterContractAccepted: boolean
@@ -250,6 +253,7 @@ function acceptedRouteMountImplementationQa(packet?: Record<string, unknown>): b
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_IMPLEMENTATION_QA_DECISION &&
     packet.status === 'route_mount_implementation_qa_passed_runtime_still_blocked' &&
     countFrom(packet, 'routeMountImplementationQaAcceptedToolsWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'apiRouteMountImplementationReadyToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'runtimeAdmissionAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence') === 21 &&
@@ -260,6 +264,7 @@ function acceptedRouteMountImplementationQa(packet?: Record<string, unknown>): b
     countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'routeImplementationContractQaAccepted') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'appMountStillDeferred') === true &&
     booleanFrom(packet, 'apiRouteMountedNow') === false &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
@@ -294,6 +299,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterContract(
   const sourceAccepted = acceptedRouteMountImplementationQa(
     input.sourceRouteMountImplementationQaPacket,
   )
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    sourceAccepted
   const missingRefs = missingAdapterRefs(input)
   const refsAccepted = sourceAccepted && missingRefs.length === 0
   const status = statusFromInput({
@@ -322,6 +329,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterContract(
         ? input.sourceRouteMountImplementationQaPacket.decision
         : null,
     sourceRouteMountImplementationQaAccepted: sourceAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     backendAdapterContractRefsAccepted: refsAccepted,
     missingBackendAdapterContractRefs: missingRefs,
     totalAiGraphicsTools: 21,
@@ -330,6 +339,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterContract(
     backendAdapterContractReadyToolsWithProvidedEvidence: refsAccepted ? 21 : 0,
     routeMountImplementationQaAcceptedToolsWithProvidedEvidence:
       sourceAccepted ? 21 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 21 : 0,
     apiRouteMountImplementationReadyToolsWithProvidedEvidence:
       sourceAccepted ? 21 : 0,
     apiRouteMountReadyToolsWithProvidedEvidence: sourceAccepted ? 21 : 0,
@@ -409,6 +420,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterContract(
     booleans: {
       externalBetaApiRouteBackendAdapterContractPrepared: true,
       sourceRouteMountImplementationQaAccepted: sourceAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       backendAdapterContractRefsAccepted: refsAccepted,
       approvedSnapshotLookupAdapterContractAccepted: refsAccepted,
       creditReservationLookupAdapterContractAccepted: refsAccepted,

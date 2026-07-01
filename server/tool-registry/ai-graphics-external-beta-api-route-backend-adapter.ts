@@ -91,6 +91,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapter {
   sourceApiRouteHandlerContractDecision: string | null
   sourceBackendAdapterContractAccepted: boolean
   sourceApiRouteHandlerContractAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
   backendAdapterPreflightRefsAccepted: boolean
   missingBackendAdapterPreflightRefs: string[]
   totalAiGraphicsTools: 21
@@ -99,6 +100,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapter {
   backendAdapterPreflightReadyToolsWithProvidedEvidence: 0 | 21
   backendAdapterContractReadyToolsWithProvidedEvidence: 0 | 21
   apiRouteHandlerContractReadyToolsWithProvidedEvidence: 0 | 21
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
   liveQueueWriteApprovedNowTools: 0
@@ -117,6 +119,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapter {
     externalBetaApiRouteBackendAdapterPreflightPrepared: true
     sourceBackendAdapterContractAccepted: boolean
     sourceApiRouteHandlerContractAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     backendAdapterPreflightRefsAccepted: boolean
     backendAdapterPreflightReadyWithProvidedEvidence: boolean
     approvedSnapshotLookupAdapterStubReady: boolean
@@ -289,11 +292,13 @@ function backendAdapterContractAccepted(packet?: Record<string, unknown>): boole
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_BACKEND_ADAPTER_CONTRACT_DECISION &&
     packet.status === 'backend_adapter_contract_ready_runtime_still_blocked' &&
     countFrom(packet, 'backendAdapterContractReadyToolsWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'apiRouteMountedNowTools') === 0 &&
     countFrom(packet, 'routeExecutionsApprovedNow') === 0 &&
     countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'backendAdapterContractReadyWithProvidedEvidence') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'apiRouteMountedNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
@@ -305,11 +310,13 @@ function apiRouteHandlerContractAccepted(packet?: Record<string, unknown>): bool
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_HANDLER_CONTRACT_DECISION &&
     packet.status === 'external_beta_api_route_handler_contract_ready_runtime_still_blocked' &&
     countFrom(packet, 'apiRouteHandlerContractReadyToolsWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'apiRouteMountedNowTools') === 0 &&
     countFrom(packet, 'routeExecutionsApprovedNow') === 0 &&
     countFrom(packet, 'toolExecutionsApprovedNow') === 0 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'externalBetaApiRouteHandlerContractReadyWithProvidedEvidence') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'apiRouteMountedNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
@@ -366,6 +373,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapter(
   const sourceApiRouteHandlerContractAccepted = apiRouteHandlerContractAccepted(
     input.sourceApiRouteHandlerContractPacket,
   )
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted =
+    sourceBackendAdapterContractAccepted && sourceApiRouteHandlerContractAccepted
   const missingRefs = missingPreflightRefs(input)
   const backendAdapterPreflightRefsAccepted =
     sourceBackendAdapterContractAccepted &&
@@ -415,6 +424,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapter(
         : null,
     sourceBackendAdapterContractAccepted,
     sourceApiRouteHandlerContractAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     backendAdapterPreflightRefsAccepted,
     missingBackendAdapterPreflightRefs: missingRefs,
     totalAiGraphicsTools: 21,
@@ -425,6 +436,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapter(
       sourceBackendAdapterContractAccepted ? 21 : 0,
     apiRouteHandlerContractReadyToolsWithProvidedEvidence:
       sourceApiRouteHandlerContractAccepted ? 21 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 21 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     liveQueueWriteApprovedNowTools: 0,
@@ -465,6 +478,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapter(
       externalBetaApiRouteBackendAdapterPreflightPrepared: true,
       sourceBackendAdapterContractAccepted,
       sourceApiRouteHandlerContractAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       backendAdapterPreflightRefsAccepted,
       backendAdapterPreflightReadyWithProvidedEvidence: ready,
       approvedSnapshotLookupAdapterStubReady: ready,

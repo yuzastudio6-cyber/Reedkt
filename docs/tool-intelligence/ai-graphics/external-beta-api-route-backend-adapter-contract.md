@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_backend_adapter_contract_prepared
 
 Status: `backend_adapter_contract_ready_runtime_still_blocked`
 
-This packet defines the backend adapter contract required before the future `POST /api/ai-graphics/external-beta/tool-call` route can be mounted or executed. It consumes the accepted route-mount implementation QA packet and records the exact backend refs needed for approved snapshot lookup, credit reservation lookup, private artifact policy, asset manifest binding, dependency readiness, async checkback, queue authorization, worker enqueue authorization, service-role boundary, idempotency, rate limit, cost guardrails, audit/telemetry, kill switch, and rollback.
+This packet defines the backend adapter contract required before the future `POST /api/ai-graphics/external-beta/tool-call` route can be mounted or executed. It consumes the accepted route-mount implementation QA packet, including route-bound service-role queue smoke operator-preflight evidence for all 21 tools, and records the exact backend refs needed for approved snapshot lookup, credit reservation lookup, private artifact policy, asset manifest binding, dependency readiness, async checkback, queue authorization, worker enqueue authorization, service-role boundary, idempotency, rate limit, cost guardrails, audit/telemetry, kill switch, and rollback.
 
 ## Result
 
@@ -13,6 +13,7 @@ This packet defines the backend adapter contract required before the future `POS
 - GPU runtime targeted tools: `8`
 - Backend adapter contract ready with provided evidence: `21`
 - Route mount implementation QA accepted with provided evidence: `21`
+- Route-bound service-role queue smoke operator-preflight accepted: `21`
 - API route mount implementation ready with provided evidence: `21`
 - API route mount ready with provided evidence: `21`
 - Runtime admissions accepted with provided evidence: `21`

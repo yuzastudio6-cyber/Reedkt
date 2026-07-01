@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-mount-implementation-review",
   "decision": "ai_graphics_external_beta_api_route_mount_implementation_review_prepared_with_runtime_blocks",
   "status": "route_mount_implementation_review_ready_runtime_still_blocked",
-  "summary": "Source-controlled disabled route implementation review for the future AI graphics external-beta tool-call route. This packet consumes accepted route mount readiness, adds the disabled route contract file, verifies the app mount remains deferred, and keeps all route, queue, worker, tool, runtime, public artifact, external-beta traffic, and production gates false.",
+  "summary": "Source-controlled disabled route implementation review for the future AI graphics external-beta tool-call route. This packet consumes accepted route mount readiness, including the route-bound service-role queue smoke operator-preflight evidence for all 21 tools, adds the disabled route contract file, verifies the app mount remains deferred, and keeps all route, queue, worker, tool, runtime, public artifact, external-beta traffic, and production gates false.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-mount-implementation-review.ts",
     "routeModule": "server/routes/ai-graphics-external-beta-tool-call-routes.ts",
@@ -39,6 +39,7 @@
     "apiRouteMountImplementationReadyToolsWithProvidedEvidence": 21,
     "apiRouteMountReadyToolsWithProvidedEvidence": 21,
     "routeHandlerGatewayFullProofToolsWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "runtimeAdmissionAcceptedToolsWithProvidedEvidence": 21,
     "gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence": 21,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools": 8,
@@ -129,6 +130,7 @@
   "booleans": {
     "externalBetaApiRouteMountImplementationReviewPrepared": true,
     "sourceRouteMountReadinessAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "sourceControlledRouteImplementationReviewed": true,
     "appMountStillDeferred": true,
     "apiRouteMountImplementationReadyWithProvidedEvidence": true,

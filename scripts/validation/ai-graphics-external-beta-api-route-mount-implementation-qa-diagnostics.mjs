@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -76,6 +77,7 @@ const capabilities = [
 const trueKeys = [
   'externalBetaApiRouteMountImplementationQaCompleted',
   'sourceRouteMountImplementationReviewAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'routeImplementationContractQaAccepted',
   'routeSchemaAll21ToolsQaAccepted',
   'routeSchemaAll12CapabilitiesQaAccepted',
@@ -300,6 +302,11 @@ function verifySourceImplementationReview() {
   requireEqual(source.status, sourceStatus, 'source_review_status')
   requireEqual(countFrom(source, 'apiRouteMountImplementationReadyToolsWithProvidedEvidence'), 21, 'source_impl_ready_count')
   requireEqual(countFrom(source, 'apiRouteMountReadyToolsWithProvidedEvidence'), 21, 'source_route_mount_ready_count')
+  requireEqual(
+    countFrom(source, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence'),
+    21,
+    'source_route_bound_operator_preflight_count',
+  )
   requireEqual(countFrom(source, 'runtimeAdmissionAcceptedToolsWithProvidedEvidence'), 21, 'source_runtime_admission_count')
   requireEqual(countFrom(source, 'gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence'), 21, 'source_gateway_candidate_count')
   requireEqual(countFrom(source, 'gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools'), 8, 'source_gpu_allowed_count')
@@ -309,6 +316,10 @@ function verifySourceImplementationReview() {
   requireEqual(countFrom(source, 'externalBetaReadyNowTools'), 0, 'source_external_beta_count')
   requireEqual(countFrom(source, 'productionReadyNowTools'), 0, 'source_production_count')
   requireTruthy(source.booleans?.sourceControlledRouteImplementationReviewed, 'source_impl_reviewed_boolean')
+  requireTruthy(
+    source.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'source_route_bound_operator_preflight_boolean',
+  )
   requireTruthy(source.booleans?.appMountStillDeferred, 'source_app_mount_deferred_boolean')
   requireFalse(source.booleans?.apiRouteMountedNow, 'source_route_mounted_false')
   requireFalse(source.booleans?.agentCanExecuteToolsNow, 'source_agent_execute_false')
@@ -323,6 +334,11 @@ function verifyDoc(doc, markdown) {
   requireEqual(doc.counts?.routeMountImplementationQaAcceptedToolsWithProvidedEvidence, 21, 'doc_qa_count')
   requireEqual(doc.counts?.apiRouteMountImplementationReadyToolsWithProvidedEvidence, 21, 'doc_impl_ready_count')
   requireEqual(doc.counts?.apiRouteMountReadyToolsWithProvidedEvidence, 21, 'doc_mount_ready_count')
+  requireEqual(
+    doc.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_route_bound_operator_preflight_count',
+  )
   requireEqual(doc.counts?.runtimeAdmissionAcceptedToolsWithProvidedEvidence, 21, 'doc_runtime_admission_count')
   requireEqual(doc.counts?.gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence, 21, 'doc_gateway_candidate_count')
   requireEqual(doc.counts?.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools, 8, 'doc_gpu_allowed_count')
@@ -406,6 +422,16 @@ function verifySourceFiles() {
     fail('app_imported_route_file')
   }
   requireIncludes(source, 'evaluateAiGraphicsExternalBetaApiRouteMountImplementationQa', 'source_evaluator')
+  requireIncludes(
+    source,
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+    'source_route_bound_operator_preflight_count',
+  )
+  requireIncludes(
+    source,
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+    'source_route_bound_operator_preflight_boolean',
+  )
   requireIncludes(source, 'appMountStillDeferred: true', 'source_app_mount_deferred')
   requireIncludes(source, 'apiRouteMountedNow: false', 'source_route_mounted_false')
   requireIncludes(source, 'gpuRuntimeShouldStartNow: false', 'source_gpu_false')
@@ -413,6 +439,11 @@ function verifySourceFiles() {
   requireIncludes(index, "export * from './ai-graphics-external-beta-api-route-mount-implementation-qa'", 'index_export')
   requireIncludes(scorecard, decision, 'scorecard_decision')
   requireIncludes(scorecard, 'routeMountImplementationQaAcceptedToolsWithProvidedEvidence=21', 'scorecard_qa_count')
+  requireIncludes(
+    markdown,
+    'Route-bound service-role queue smoke operator-preflight accepted: `21`',
+    'markdown_route_bound_operator_preflight_count',
+  )
   requireIncludes(scorecard, 'apiRouteMountedNowTools=0', 'scorecard_route_mounted_zero')
 }
 
@@ -425,6 +456,11 @@ function verifyRuntimeReport(report) {
   requireEqual(report.routeMountImplementationQaAcceptedToolsWithProvidedEvidence, 21, 'runtime_qa_count')
   requireEqual(report.apiRouteMountImplementationReadyToolsWithProvidedEvidence, 21, 'runtime_impl_ready_count')
   requireEqual(report.apiRouteMountReadyToolsWithProvidedEvidence, 21, 'runtime_mount_ready_count')
+  requireEqual(
+    report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'runtime_route_bound_operator_preflight_count',
+  )
   requireEqual(report.runtimeAdmissionAcceptedToolsWithProvidedEvidence, 21, 'runtime_admission_count')
   requireEqual(report.gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence, 21, 'runtime_gateway_count')
   requireEqual(report.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools, 8, 'runtime_gpu_allowed_count')
@@ -440,6 +476,61 @@ function verifyRuntimeReport(report) {
   requireTruthy(report.routeImplementationQa?.disabledRuntimeHandlerOnly, 'runtime_disabled_handler')
   for (const key of trueKeys) requireTruthy(report.booleans?.[key], `runtime_boolean_true:${key}`)
   for (const key of falseKeys) requireFalse(report.booleans?.[key], `runtime_boolean_false:${key}`)
+}
+
+function verifyStaleImplementationReviewOperatorPreflightRejected() {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-route-qa-stale-impl-'))
+  const stalePacketPath = path.join(tempDir, 'stale-route-mount-implementation-review.json')
+  try {
+    const source = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-implementation-review.json')
+    const stale = JSON.parse(JSON.stringify(source))
+    stale.counts = {
+      ...(stale.counts ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+    }
+    stale.booleans = {
+      ...(stale.booleans ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    }
+    fs.writeFileSync(stalePacketPath, JSON.stringify(stale, null, 2))
+
+    const report = parseJson(runNpm(runScriptName, [
+      '--route-mount-implementation-review-packet',
+      stalePacketPath,
+    ]), 'stale_route_mount_implementation_qa_cli')
+
+    requireEqual(report.status, 'route_mount_implementation_review_rejected', 'stale_status')
+    requireFalse(
+      report.sourceRouteMountImplementationReviewAccepted,
+      'stale_source_implementation_review_rejected',
+    )
+    requireFalse(
+      report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+      'stale_route_bound_operator_preflight_rejected',
+    )
+    requireEqual(
+      report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_route_bound_operator_preflight_count_zero',
+    )
+    requireEqual(
+      report.routeMountImplementationQaAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_qa_ready_zero',
+    )
+    requireFalse(
+      report.booleans?.routeMountImplementationQaAcceptedWithProvidedEvidence,
+      'stale_qa_ready_false',
+    )
+    requireFalse(report.booleans?.agentCanExecuteToolsNow, 'stale_agent_execute_false')
+    requireFalse(report.booleans?.apiRouteMountedNow, 'stale_route_mounted_false')
+    requireFalse(report.booleans?.apiRouteExecutionApprovedNow, 'stale_route_execute_false')
+    requireFalse(report.booleans?.workerExecutionApprovedNow, 'stale_worker_execute_false')
+    requireFalse(report.booleans?.toolExecutionApprovedNow, 'stale_tool_execute_false')
+    requireFalse(report.booleans?.gpuRuntimeShouldStartNow, 'stale_gpu_start_false')
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true })
+  }
 }
 
 function verifyTextSafety(files) {
@@ -475,6 +566,7 @@ const runtimeReport = parseJson(runNpm(runScriptName, [
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-implementation-review.json',
 ]), 'route_mount_implementation_qa_cli')
 verifyRuntimeReport(runtimeReport)
+verifyStaleImplementationReviewOperatorPreflightRejected()
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))
@@ -488,6 +580,7 @@ console.log(JSON.stringify({
   routeMountImplementationQaAcceptedToolsWithProvidedEvidence: 21,
   apiRouteMountImplementationReadyToolsWithProvidedEvidence: 21,
   apiRouteMountReadyToolsWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
   gpuRuntimeShouldStartNowTools: 0,
   apiRouteMountedNowTools: 0,

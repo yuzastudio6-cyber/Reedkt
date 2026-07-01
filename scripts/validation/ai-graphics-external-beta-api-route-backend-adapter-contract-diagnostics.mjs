@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -92,6 +93,7 @@ const adapterRefs = [
 const trueKeys = [
   'externalBetaApiRouteBackendAdapterContractPrepared',
   'sourceRouteMountImplementationQaAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'backendAdapterContractRefsAccepted',
   'approvedSnapshotLookupAdapterContractAccepted',
   'creditReservationLookupAdapterContractAccepted',
@@ -321,6 +323,11 @@ function verifySourcePacket() {
   requireEqual(source.decision, sourceDecision, 'source_qa_decision')
   requireEqual(source.status, sourceStatus, 'source_qa_status')
   requireEqual(countFrom(source, 'routeMountImplementationQaAcceptedToolsWithProvidedEvidence'), 21, 'source_qa_count')
+  requireEqual(
+    countFrom(source, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence'),
+    21,
+    'source_route_bound_operator_preflight_count',
+  )
   requireEqual(countFrom(source, 'apiRouteMountImplementationReadyToolsWithProvidedEvidence'), 21, 'source_impl_ready_count')
   requireEqual(countFrom(source, 'runtimeAdmissionAcceptedToolsWithProvidedEvidence'), 21, 'source_runtime_admission_count')
   requireEqual(countFrom(source, 'gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence'), 21, 'source_gateway_candidate_count')
@@ -331,6 +338,10 @@ function verifySourcePacket() {
   requireEqual(countFrom(source, 'externalBetaReadyNowTools'), 0, 'source_external_beta_count')
   requireEqual(countFrom(source, 'productionReadyNowTools'), 0, 'source_production_count')
   requireTruthy(source.booleans?.routeImplementationContractQaAccepted, 'source_contract_qa_boolean')
+  requireTruthy(
+    source.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'source_route_bound_operator_preflight_boolean',
+  )
   requireTruthy(source.booleans?.appMountStillDeferred, 'source_app_mount_deferred_boolean')
   requireFalse(source.booleans?.apiRouteMountedNow, 'source_route_mounted_false')
   requireFalse(source.booleans?.agentCanExecuteToolsNow, 'source_agent_execute_false')
@@ -344,6 +355,11 @@ function verifyDoc(doc, markdown) {
   requireEqual(doc.counts?.gpuRuntimeTargetedTools, 8, 'doc_gpu_count')
   requireEqual(doc.counts?.backendAdapterContractReadyToolsWithProvidedEvidence, 21, 'doc_backend_adapter_count')
   requireEqual(doc.counts?.routeMountImplementationQaAcceptedToolsWithProvidedEvidence, 21, 'doc_source_qa_count')
+  requireEqual(
+    doc.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_route_bound_operator_preflight_count',
+  )
   requireEqual(doc.counts?.gpuRuntimeShouldStartNowTools, 0, 'doc_gpu_start_now_count')
   requireEqual(doc.counts?.apiRouteMountedNowTools, 0, 'doc_route_mounted_count')
   requireEqual(doc.counts?.routeExecutionsApprovedNow, 0, 'doc_route_execution_count')
@@ -412,6 +428,16 @@ function verifySourceFiles() {
     fail('app_imported_route_file')
   }
   requireIncludes(source, 'evaluateAiGraphicsExternalBetaApiRouteBackendAdapterContract', 'source_evaluator')
+  requireIncludes(
+    source,
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+    'source_route_bound_operator_preflight_count',
+  )
+  requireIncludes(
+    source,
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+    'source_route_bound_operator_preflight_boolean',
+  )
   requireIncludes(source, 'approvedSnapshotLookupAdapterRef', 'source_snapshot_ref')
   requireIncludes(source, 'creditReservationLookupAdapterRef', 'source_credit_ref')
   requireIncludes(source, 'workerEnqueueAuthorizationAdapterRef', 'source_worker_auth_ref')
@@ -421,6 +447,11 @@ function verifySourceFiles() {
   requireIncludes(index, "export * from './ai-graphics-external-beta-api-route-backend-adapter-contract'", 'index_export')
   requireIncludes(scorecard, decision, 'scorecard_decision')
   requireIncludes(scorecard, 'backendAdapterContractReadyToolsWithProvidedEvidence=21', 'scorecard_adapter_count')
+  requireIncludes(
+    markdown,
+    'Route-bound service-role queue smoke operator-preflight accepted: `21`',
+    'markdown_route_bound_operator_preflight_count',
+  )
   requireIncludes(scorecard, 'apiRouteMountedNowTools=0', 'scorecard_route_mounted_zero')
 }
 
@@ -432,6 +463,11 @@ function verifyRuntimeReport(report) {
   requireEqual(report.gpuRuntimeTargetedTools, 8, 'runtime_gpu_count')
   requireEqual(report.backendAdapterContractReadyToolsWithProvidedEvidence, 21, 'runtime_adapter_count')
   requireEqual(report.routeMountImplementationQaAcceptedToolsWithProvidedEvidence, 21, 'runtime_source_qa_count')
+  requireEqual(
+    report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'runtime_route_bound_operator_preflight_count',
+  )
   requireEqual(report.gpuRuntimeShouldStartNowTools, 0, 'runtime_gpu_start_now_count')
   requireEqual(report.apiRouteMountedNowTools, 0, 'runtime_route_mounted_count')
   requireEqual(report.routeExecutionsApprovedNow, 0, 'runtime_route_execution_count')
@@ -445,6 +481,61 @@ function verifyRuntimeReport(report) {
   requireTruthy(report.backendAdapterContract?.workerEnqueueAuthorizationRequired, 'runtime_worker_auth_required')
   for (const key of trueKeys) requireTruthy(report.booleans?.[key], `runtime_boolean_true:${key}`)
   for (const key of falseKeys) requireFalse(report.booleans?.[key], `runtime_boolean_false:${key}`)
+}
+
+function verifyStaleImplementationQaOperatorPreflightRejected() {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-backend-contract-stale-qa-'))
+  const stalePacketPath = path.join(tempDir, 'stale-route-mount-implementation-qa.json')
+  try {
+    const source = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-implementation-qa.json')
+    const stale = JSON.parse(JSON.stringify(source))
+    stale.counts = {
+      ...(stale.counts ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+    }
+    stale.booleans = {
+      ...(stale.booleans ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    }
+    fs.writeFileSync(stalePacketPath, JSON.stringify(stale, null, 2))
+
+    const report = parseJson(runNpm(runScriptName, [
+      '--route-mount-implementation-qa-packet',
+      stalePacketPath,
+    ]), 'stale_backend_adapter_contract_cli')
+
+    requireEqual(report.status, 'route_mount_implementation_qa_rejected', 'stale_status')
+    requireFalse(
+      report.sourceRouteMountImplementationQaAccepted,
+      'stale_source_qa_rejected',
+    )
+    requireFalse(
+      report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+      'stale_route_bound_operator_preflight_rejected',
+    )
+    requireEqual(
+      report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_route_bound_operator_preflight_count_zero',
+    )
+    requireEqual(
+      report.backendAdapterContractReadyToolsWithProvidedEvidence,
+      0,
+      'stale_backend_adapter_contract_ready_zero',
+    )
+    requireFalse(
+      report.booleans?.backendAdapterContractReadyWithProvidedEvidence,
+      'stale_backend_adapter_contract_ready_false',
+    )
+    requireFalse(report.booleans?.agentCanExecuteToolsNow, 'stale_agent_execute_false')
+    requireFalse(report.booleans?.apiRouteMountedNow, 'stale_route_mounted_false')
+    requireFalse(report.booleans?.apiRouteExecutionApprovedNow, 'stale_route_execute_false')
+    requireFalse(report.booleans?.workerExecutionApprovedNow, 'stale_worker_execute_false')
+    requireFalse(report.booleans?.toolExecutionApprovedNow, 'stale_tool_execute_false')
+    requireFalse(report.booleans?.gpuRuntimeShouldStartNow, 'stale_gpu_start_false')
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true })
+  }
 }
 
 function verifyTextSafety(files) {
@@ -479,6 +570,7 @@ const runtimeReport = parseJson(runNpm(runScriptName, [
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-implementation-qa.json',
 ]), 'route_backend_adapter_contract_cli')
 verifyRuntimeReport(runtimeReport)
+verifyStaleImplementationQaOperatorPreflightRejected()
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))
@@ -491,6 +583,7 @@ console.log(JSON.stringify({
   status: acceptedStatus,
   backendAdapterContractReadyToolsWithProvidedEvidence: 21,
   routeMountImplementationQaAcceptedToolsWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
   gpuRuntimeShouldStartNowTools: 0,
   apiRouteMountedNowTools: 0,

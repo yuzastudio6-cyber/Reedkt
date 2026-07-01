@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-backend-adapter-contract",
   "decision": "ai_graphics_external_beta_api_route_backend_adapter_contract_prepared_with_runtime_blocks",
   "status": "backend_adapter_contract_ready_runtime_still_blocked",
-  "summary": "Defines the backend adapter contract required before the future AI graphics external-beta tool-call route can be mounted or executed. The contract consumes the accepted route-mount implementation QA packet, records approved snapshot, credit reservation, private artifact, dependency readiness, async checkback, queue authorization, worker enqueue authorization, service-role, idempotency, rate-limit, cost, audit, kill-switch, and rollback refs, and keeps every runtime/execution/storage/public/beta/production gate false.",
+  "summary": "Defines the backend adapter contract required before the future AI graphics external-beta tool-call route can be mounted or executed. The contract consumes the accepted route-mount implementation QA packet, including the route-bound service-role queue smoke operator-preflight evidence for all 21 tools, records approved snapshot, credit reservation, private artifact, dependency readiness, async checkback, queue authorization, worker enqueue authorization, service-role, idempotency, rate-limit, cost, audit, kill-switch, and rollback refs, and keeps every runtime/execution/storage/public/beta/production gate false.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-backend-adapter-contract.ts",
     "cli": "server/cli/ai-graphics-external-beta-api-route-backend-adapter-contract.ts",
@@ -63,6 +63,7 @@
     "gpuRuntimeTargetedTools": 8,
     "backendAdapterContractReadyToolsWithProvidedEvidence": 21,
     "routeMountImplementationQaAcceptedToolsWithProvidedEvidence": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "apiRouteMountImplementationReadyToolsWithProvidedEvidence": 21,
     "apiRouteMountReadyToolsWithProvidedEvidence": 21,
     "runtimeAdmissionAcceptedToolsWithProvidedEvidence": 21,
@@ -165,6 +166,7 @@
   "booleans": {
     "externalBetaApiRouteBackendAdapterContractPrepared": true,
     "sourceRouteMountImplementationQaAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "backendAdapterContractRefsAccepted": true,
     "approvedSnapshotLookupAdapterContractAccepted": true,
     "creditReservationLookupAdapterContractAccepted": true,

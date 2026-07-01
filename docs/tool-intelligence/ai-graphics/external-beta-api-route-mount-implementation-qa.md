@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_mount_implementation_qa_passed_wi
 
 Status: `route_mount_implementation_qa_passed_runtime_still_blocked`
 
-This QA packet accepts the source-controlled disabled route implementation review for the future `POST /api/ai-graphics/external-beta/tool-call` endpoint. The route schema covers all 21 AI graphics tools and all 12 product-facing capabilities, `server/app.ts` still does not import or mount the route, and the handler remains blocked before queue, worker, tool, provider, GPU, media, storage, signed URL, public artifact, external-beta traffic, or production actions.
+This QA packet accepts the source-controlled disabled route implementation review for the future `POST /api/ai-graphics/external-beta/tool-call` endpoint, including route-bound service-role queue smoke operator-preflight evidence for all 21 tools. The route schema covers all 21 AI graphics tools and all 12 product-facing capabilities, `server/app.ts` still does not import or mount the route, and the handler remains blocked before queue, worker, tool, provider, GPU, media, storage, signed URL, public artifact, external-beta traffic, or production actions.
 
 ## Result
 
@@ -14,6 +14,7 @@ This QA packet accepts the source-controlled disabled route implementation revie
 - Route mount implementation QA accepted with provided evidence: `21`
 - API route mount implementation ready with provided evidence: `21`
 - API route mount ready with provided evidence: `21`
+- Route-bound service-role queue smoke operator-preflight accepted: `21`
 - Runtime admissions accepted with provided evidence: `21`
 - Gateway worker-enqueue candidates ready with provided evidence: `21`
 - GPU start allowed only for accepted external-beta jobs: `8`

@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -98,6 +99,7 @@ const trueKeys = [
   'externalBetaApiRouteBackendAdapterPreflightPrepared',
   'sourceBackendAdapterContractAccepted',
   'sourceApiRouteHandlerContractAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'backendAdapterPreflightRefsAccepted',
   'backendAdapterPreflightReadyWithProvidedEvidence',
   'approvedSnapshotLookupAdapterStubReady',
@@ -305,6 +307,11 @@ if (countFrom(docs, 'gpuRuntimeTargetedTools') !== 8) fail('gpu_tools_mismatch')
 if (countFrom(docs, 'backendAdapterPreflightReadyToolsWithProvidedEvidence') !== 21) {
   fail('preflight_ready_count_mismatch')
 }
+if (
+  countFrom(docs, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') !== 21
+) {
+  fail('route_bound_operator_preflight_count_mismatch')
+}
 if (countFrom(docs, 'apiRouteMountedNowTools') !== 0) fail('api_route_mounted_count_not_zero')
 if (countFrom(docs, 'routeExecutionsApprovedNow') !== 0) {
   fail('route_execution_count_not_zero')
@@ -325,6 +332,18 @@ if (countFrom(docs, 'productionReadyNowTools') !== 0) {
 checkBooleans(docs)
 checkSourcePacket(backendContract, sourceBackendDecision, sourceBackendStatus, 'backend_contract')
 checkSourcePacket(handlerContract, sourceHandlerDecision, sourceHandlerStatus, 'handler_contract')
+if (
+  countFrom(backendContract, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') !== 21 ||
+  backendContract.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('backend_contract_missing_route_bound_operator_preflight')
+}
+if (
+  countFrom(handlerContract, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') !== 21 ||
+  handlerContract.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('handler_contract_missing_route_bound_operator_preflight')
+}
 
 for (const tool of tools) {
   if (!docs.tools?.includes(tool)) fail(`missing_tool:${tool}`)
@@ -399,6 +418,8 @@ for (const required of [
   'workerEnqueueApprovedNow: false',
   'toolExecutionApprovedNow: false',
   'gpuRuntimeShouldStartNow: false',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(required)) fail(`source_missing:${required}`)
 }
@@ -454,6 +475,12 @@ if (cliReport.status !== acceptedStatus) fail('cli_status_mismatch')
 if (cliReport.booleans?.backendAdapterPreflightReadyWithProvidedEvidence !== true) {
   fail('cli_preflight_ready_not_true')
 }
+if (
+  cliReport.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence !== 21 ||
+  cliReport.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('cli_route_bound_operator_preflight_not_accepted')
+}
 if (cliReport.booleans?.agentCanExecuteToolsNow !== false) {
   fail('cli_agent_execution_not_false')
 }
@@ -465,6 +492,61 @@ if (cliReport.input?.routeExecutionPerformed !== false ||
     cliReport.input?.workerEnqueuePerformed !== false ||
     cliReport.input?.gpuRuntimePerformed !== false) {
   fail('cli_input_runtime_flags_not_false')
+}
+
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-backend-adapter-stale-contract-'))
+try {
+  const staleBackendContractPath = path.join(tempDir, 'stale-backend-adapter-contract.json')
+  const staleBackendContract = JSON.parse(JSON.stringify(backendContract))
+  staleBackendContract.counts = {
+    ...(staleBackendContract.counts ?? {}),
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+  }
+  staleBackendContract.booleans = {
+    ...(staleBackendContract.booleans ?? {}),
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+  }
+  fs.writeFileSync(staleBackendContractPath, JSON.stringify(staleBackendContract, null, 2))
+
+  const staleReport = JSON.parse(exec([
+    'npx',
+    'tsx',
+    'server/cli/ai-graphics-external-beta-api-route-backend-adapter.ts',
+    '--backend-adapter-contract-packet',
+    staleBackendContractPath,
+    '--api-route-handler-contract-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-contract.json',
+  ].join(' ')))
+
+  if (staleReport.status !== 'backend_adapter_contract_rejected') {
+    fail(`stale_backend_contract_status:${staleReport.status}`)
+  }
+  if (staleReport.sourceBackendAdapterContractAccepted !== false) {
+    fail('stale_backend_contract_not_rejected')
+  }
+  if (
+    staleReport.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== false ||
+    staleReport.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence !== 0
+  ) {
+    fail('stale_route_bound_operator_preflight_not_rejected')
+  }
+  if (staleReport.backendAdapterPreflightReadyToolsWithProvidedEvidence !== 0) {
+    fail('stale_preflight_ready_not_zero')
+  }
+  if (staleReport.booleans?.backendAdapterPreflightReadyWithProvidedEvidence !== false) {
+    fail('stale_preflight_ready_not_false')
+  }
+  if (
+    staleReport.booleans?.agentCanExecuteToolsNow !== false ||
+    staleReport.booleans?.apiRouteExecutionApprovedNow !== false ||
+    staleReport.booleans?.workerEnqueueApprovedNow !== false ||
+    staleReport.booleans?.toolExecutionApprovedNow !== false ||
+    staleReport.booleans?.gpuRuntimeShouldStartNow !== false
+  ) {
+    fail('stale_runtime_flags_not_false')
+  }
+} finally {
+  fs.rmSync(tempDir, { recursive: true, force: true })
 }
 
 const packageDiff = [
@@ -525,6 +607,7 @@ console.log(JSON.stringify({
   tools: tools.length,
   capabilities: capabilities.length,
   adapterStubs: requiredStubIds.length,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   packageLockUnchanged: true,
   runtimeReadyNow: false,
   externalBetaReadyNow: false,

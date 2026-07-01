@@ -37,6 +37,8 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 External agents should start with `npm run external-agent-tool-action-plan` for an ordered static plan, then run `npm run external-agent-tool-readiness:check` for the static evidence surface. When static evidence is present and runtime gates remain closed, the preferred next safe command is `npm run external-agent-tool-blockers:preflight`. That command may perform read-only live blocker checks only; it must not invoke Cloud Run, create VMs, request quota, import models, run inference, mutate Supabase, execute SQL, create storage, create signed URLs, call providers, dispatch workers, create assets, or mutate credits.
 
+If Qwen auth is reported as refreshed but the live blocker preflight still fails token refresh in this shell, agents may run `npm run external-agent-gcloud-session:diagnostic`. That command is a read-only local gcloud session/config diagnostic with token stdout suppressed and account values redacted; it must not run `gcloud auth login`, change configurations, invoke Cloud Run, execute jobs, create VMs, run inference, or mutate cloud resources.
+
 For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-cache-readiness:check`. That command is stat-only and avoids hashing the full private cache.
 
 ## What This Proves
@@ -44,6 +46,7 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 - There is a single status surface for external agents to choose the next tool-readiness action.
 - `npm run external-agent-tool-readiness:check` provides a fast static JSON check for this status surface without live auth checks, cache hashing, GPU work, model imports, or mutations.
 - `npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight for Qwen local gcloud auth/service/job visibility and B-roll `GPUS_ALL_REGIONS`/regional L4 quota without Cloud Run invocation, VM creation, quota requests, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation.
+- `npm run external-agent-gcloud-session:diagnostic` provides a read-only local gcloud session/config diagnostic when user-refreshed auth is not visible to the Codex shell, without token logging, Cloud Run invocation, configuration mutation, VM creation, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation.
 - `npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight without cache hashing, GPU work, model imports, inference, provider calls, workers, Docker, Supabase, SQL, or mutations.
 - Qwen is the closest lane to controlled private model inference, but remains auth-blocked.
 - B-roll has Wan/Wan2.1 planning, private cache evidence, proof-runner evidence, and fast stat-only cache readiness evidence, but remains quota-blocked for cloud GPU proof.

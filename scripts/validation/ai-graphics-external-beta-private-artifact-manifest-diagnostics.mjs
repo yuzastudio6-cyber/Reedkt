@@ -318,6 +318,7 @@ try {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
     sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
@@ -325,6 +326,7 @@ try {
     acceptedSourceEvidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
       serviceRoleQueueSmokeAuthorizationRef:
         'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
@@ -332,6 +334,7 @@ try {
       toolId,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
@@ -339,6 +342,7 @@ try {
     booleans: {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,

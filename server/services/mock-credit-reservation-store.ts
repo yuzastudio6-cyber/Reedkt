@@ -2,6 +2,7 @@ import type {
   CreditEstimateLineItemRecord,
   CreditEstimateRecord,
   CreditGrantRecord,
+  MockCreditTopUpIntent,
   CreditRevisionActionRecord,
   CreditReservationLineItemRecord,
   CreditReservationRecord,
@@ -21,6 +22,7 @@ import { createMockId, nowIso } from './service-helpers'
 export interface MockCreditReservationStore {
   creditWallets: CreditWalletRecord[]
   creditGrants: CreditGrantRecord[]
+  creditTopUpIntents: MockCreditTopUpIntent[]
   creditReservations: CreditReservationRecord[]
   creditReservationLineItems: CreditReservationLineItemRecord[]
   walletMutationRecords: unknown[]
@@ -47,6 +49,11 @@ export interface GrantMockCreditsInput {
   sourceType?: CreditSourceType
   userId?: string
   grantReason?: string
+  retailValueCents?: number
+  purchaseAmountCents?: number
+  billingProvider?: string
+  billingPaymentId?: string
+  metadata?: JSONObject
 }
 
 export type ReserveAdditionalCreditsForRevisionActionStatus =
@@ -89,6 +96,7 @@ export function createMockCreditReservationStore(): MockCreditReservationStore {
   return {
     creditWallets: [],
     creditGrants: [],
+    creditTopUpIntents: [],
     creditReservations: [],
     creditReservationLineItems: [],
     walletMutationRecords: [],
@@ -173,10 +181,15 @@ export function grantMockCredits(
     status: 'active',
     originalAmount: input.amount,
     remainingAmount: input.amount,
+    retailValueCents: input.retailValueCents,
+    purchaseAmountCents: input.purchaseAmountCents,
+    billingProvider: input.billingProvider,
+    billingPaymentId: input.billingPaymentId,
     grantReason: input.grantReason ?? 'Mock credits granted for RP-RESERVATION-01 smoke coverage.',
     createdAt,
     updatedAt: createdAt,
     metadata: {
+      ...(input.metadata ?? {}),
       mockOnly: true,
       noLedgerWrite: true,
       noStripePayment: true,

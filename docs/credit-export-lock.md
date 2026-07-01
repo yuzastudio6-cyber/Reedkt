@@ -12,3 +12,5 @@ Export readiness is settlement-state driven:
 The mock lock record is created only for approved-but-unfunded settlement state. It stores the settlement/reservation IDs, outstanding credits, final charge, reserved credits, and action copy. It never performs checkout/top-up and never unlocks export.
 
 Render/export boundary wiring is deferred. Future export routes must call this gate before marking export-ready or unlocking delivery, but this milestone adds only the readiness contract, routes, validation, docs, and `smoke:credit-export-lock`.
+
+RP-CREDITPURCHASE-01 adds the mock purchased-credit top-up path for `requires_top_up_before_export`. Top-up only increases local mock available credits; it does not unlock export, run render/export, or silently recover the gate. The caller must retry the export gate explicitly after top-up.

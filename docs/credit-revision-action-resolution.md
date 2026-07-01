@@ -33,3 +33,5 @@ Validation: `smoke:credit-revision-action` covers approval with additional hold,
 RP-SETTLEMENT-01 consumes the resulting approved hold only after completed work. It may settle with unused-hold release or absorbed overage in local mock state, while lower-cost/cancelled revision actions still require a future plan path before any final settlement.
 
 RP-EXPORTLOCK-01 runs after final settlement. Approved-but-unfunded settlement is the only export lock state; lower-cost or cancelled revision paths still require a new plan/estimate/settlement path before export readiness can be allowed.
+
+RP-CREDITPURCHASE-01 can add purchased credits to the local mock wallet when Approve & Continue needs an additional hold but available credits are insufficient. It does not automatically approve the revised action or resume paid work; callers must retry the revised-credit approval and then pass the runtime guard again.

@@ -193,3 +193,7 @@ RP-SETTLEMENT-01 performs final settlement in local mock state only. It aggregat
 ## RP-EXPORTLOCK-01 Export Credit Gate
 
 RP-EXPORTLOCK-01 adds a local/mock export readiness gate over settlement state. It allows `settled` and `settled_with_absorbed_overage`, and creates only an idempotent mock export lock for `requires_top_up_before_export`. It does not create ledger entries, mutate production wallets, run checkout/top-up, execute render/export, unlock export, write Supabase, or wire live billing.
+
+## RP-CREDITPURCHASE-01 Mock Purchased Grants
+
+RP-CREDITPURCHASE-01 adds fixed mock credit packs and purchased grants to the shared mock wallet store. Completing a mock top-up creates a local `purchased` grant and increases available credits only; it creates no production ledger entry, real checkout session, Stripe/payment call, Supabase write, reservation retry, revised-credit retry, export unlock, provider call, or render/export execution.

@@ -92,6 +92,17 @@ function commandLabel(command: string, args: readonly string[]): string {
   return [command, ...args].join(' ')
 }
 
+function manualRepairActionsForResolvedGcloud(resolvedGcloudPath: string | undefined) {
+  return EXTERNAL_AGENT_GCLOUD_SESSION_DIAGNOSTIC.qwen.manualOnlyRepairActions.map((action) => ({
+    ...action,
+    pathSpecificCommand:
+      resolvedGcloudPath && action.command.startsWith('gcloud ')
+        ? action.command.replace(/^gcloud\b/, resolvedGcloudPath)
+        : action.command,
+    usesResolvedGcloudPath: Boolean(resolvedGcloudPath),
+  }))
+}
+
 function runReadOnlyCommand(
   id: string,
   command: string,
@@ -297,7 +308,9 @@ function main() {
           'refresh the active account/configuration that this Codex shell reports, outside Codex',
           'rerun npm run external-agent-tool-blockers:preflight after auth refresh succeeds',
         ],
-        manualOnlyRepairActions: tokenRefreshPassed ? [] : spec.qwen.manualOnlyRepairActions,
+        manualOnlyRepairActions: tokenRefreshPassed
+          ? []
+          : manualRepairActionsForResolvedGcloud(gcloudPath.stdout),
         postRepairCodexVerificationCommand: spec.qwen.postRepairCodexVerificationCommand,
         runtimeSideEffects: spec.runtimeSideEffects,
         runtimeGatesAllFalse,

@@ -178,7 +178,25 @@ assert.equal(live.commandSummaries.length > 0, true)
 if (!live.gcloud.accessTokenRefreshPassed) {
   assert.equal(typeof live.gcloud.authFailure, 'object')
   assert.equal(live.manualOnlyRepairActions.length, spec.qwen.manualOnlyRepairActions.length)
-  assert.equal(live.manualOnlyRepairActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
+  assert.equal(
+    live.manualOnlyRepairActions.every(
+      (action: {
+        runInsideCodex: boolean
+        pathSpecificCommand: string
+        usesResolvedGcloudPath: boolean
+      }) =>
+        action.runInsideCodex === false &&
+        typeof action.pathSpecificCommand === 'string' &&
+        typeof action.usesResolvedGcloudPath === 'boolean',
+    ),
+    true,
+  )
+  assert.equal(
+    live.manualOnlyRepairActions.every((action: { pathSpecificCommand: string }) =>
+      action.pathSpecificCommand.startsWith(live.gcloud.path),
+    ),
+    true,
+  )
 }
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {

@@ -195,8 +195,25 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(Array.isArray(decision.gcloudDiagnosticSummary.manualOnlyRepairActions), true)
   assert.equal(
     decision.gcloudDiagnosticSummary.manualOnlyRepairActions.every(
-      (action: { runInsideCodex: boolean; mutatesCloud: boolean; runsRuntime: boolean }) =>
-        action.runInsideCodex === false && action.mutatesCloud === false && action.runsRuntime === false,
+      (action: {
+        runInsideCodex: boolean
+        mutatesCloud: boolean
+        runsRuntime: boolean
+        pathSpecificCommand: string
+        usesResolvedGcloudPath: boolean
+      }) =>
+        action.runInsideCodex === false &&
+        action.mutatesCloud === false &&
+        action.runsRuntime === false &&
+        typeof action.pathSpecificCommand === 'string' &&
+        typeof action.usesResolvedGcloudPath === 'boolean',
+    ),
+    true,
+  )
+  assert.equal(
+    decision.gcloudDiagnosticSummary.manualOnlyRepairActions.every(
+      (action: { pathSpecificCommand: string }) =>
+        action.pathSpecificCommand.startsWith(decision.gcloudDiagnosticSummary.path),
     ),
     true,
   )

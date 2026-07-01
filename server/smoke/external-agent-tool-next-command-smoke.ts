@@ -92,6 +92,22 @@ assert.equal(
   QWEN_RESULT_REVIEW_PROMPT,
 )
 assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_READY_PROMPT)
+assert.deepEqual(spec.qwenBoundedExecutionCommand.args, [
+  'run',
+  'qwen2-5-vl-58dw-bounded-private-inference-retry',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(spec.qwenBoundedExecutionCommand.confirmationEnv, 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY')
+assert.equal(spec.qwenBoundedExecutionCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.qwenBoundedExecutionCommand.requiresLivePreflightPassed, true)
+assert.equal(spec.qwenBoundedExecutionCommand.requiresStaticExplicitToolGateReady, true)
+assert.equal(spec.qwenBoundedExecutionCommand.boundedApprovedFixtureOnly, true)
+assert.equal(spec.qwenBoundedExecutionCommand.createsGeneratedAssets, false)
+assert.equal(spec.qwenBoundedExecutionCommand.touchesSupabase, false)
+assert.equal(spec.qwenBoundedExecutionCommand.touchesSql, false)
+assert.equal(spec.qwenBoundedExecutionCommand.unlocksBetaOrProduction, false)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -253,6 +269,26 @@ if (decision.qwenLivePreflightPassed && decision.staticExplicitToolGateReady) {
   assert.equal(decision.chosenNextCommand, undefined)
   assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
   assert.equal(decision.codexRunnableNextCommandNow, null)
+  assert.deepEqual(decision.qwenBoundedExecutionCommand.args, [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+  ])
+  assert.equal(decision.qwenBoundedExecutionCommand.confirmationEnv, 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY')
+  assert.equal(decision.qwenBoundedExecutionCommand.confirmationEnvRequiredValue, 'true')
+  assert.equal(decision.qwenBoundedExecutionCommand.requiresLivePreflightPassed, true)
+  assert.equal(decision.qwenBoundedExecutionCommand.requiresStaticExplicitToolGateReady, true)
+  assert.equal(decision.qwenBoundedExecutionCommand.boundedApprovedFixtureOnly, true)
+  assert.equal(decision.qwenBoundedExecutionCommand.createsGeneratedAssets, false)
+  assert.equal(decision.qwenBoundedExecutionCommand.touchesSupabase, false)
+  assert.equal(decision.qwenBoundedExecutionCommand.touchesSql, false)
+  assert.equal(decision.qwenBoundedExecutionCommand.unlocksBetaOrProduction, false)
+  assert.equal(
+    decision.qwenBoundedExecutionCommand.shellExample,
+    'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY=true npm run qwen2-5-vl-58dw-bounded-private-inference-retry -- --execute --json',
+  )
   assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.manualActionReason, undefined)
   assert.equal(decision.manualActionBlocksRuntime, undefined)
@@ -260,6 +296,7 @@ if (decision.qwenLivePreflightPassed && decision.staticExplicitToolGateReady) {
   assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else if (decision.qwenLivePreflightPassed) {
   assert.equal(decision.executionAllowedNow, false)
+  assert.equal(decision.qwenBoundedExecutionCommand, null)
   assert.equal(decision.qwenLivePreflightVerificationRequired, true)
   assert.equal(
     decision.chosenNextCommand,
@@ -272,6 +309,7 @@ if (decision.qwenLivePreflightPassed && decision.staticExplicitToolGateReady) {
   assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else {
   assert.equal(decision.executionAllowedNow, false)
+  assert.equal(decision.qwenBoundedExecutionCommand, null)
   assert.equal(
     decision.chosenNextCommand,
     decision.qwenAuthRefreshPassed

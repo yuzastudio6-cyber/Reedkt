@@ -13,6 +13,27 @@ export type ExternalAgentToolNextCommandAllowedProbe = {
   purpose: string
 }
 
+export type ExternalAgentToolQwenBoundedExecutionCommand = {
+  toolId: 'qwen2_5_vl_7b_instruct'
+  command: 'npm'
+  args: readonly [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+  ]
+  confirmationEnv: 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY'
+  confirmationEnvRequiredValue: 'true'
+  requiresLivePreflightPassed: true
+  requiresStaticExplicitToolGateReady: true
+  boundedApprovedFixtureOnly: true
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
 export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   decision: 'external_agent_live_next_command_read_only_decision_defined',
   mode: 'read_only_external_agent_tool_next_command_decision',
@@ -66,6 +87,26 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
       rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
     },
   },
+  qwenBoundedExecutionCommand: {
+    toolId: 'qwen2_5_vl_7b_instruct',
+    command: 'npm',
+    args: [
+      'run',
+      'qwen2-5-vl-58dw-bounded-private-inference-retry',
+      '--',
+      '--execute',
+      '--json',
+    ],
+    confirmationEnv: 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY',
+    confirmationEnvRequiredValue: 'true',
+    requiresLivePreflightPassed: true,
+    requiresStaticExplicitToolGateReady: true,
+    boundedApprovedFixtureOnly: true,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolQwenBoundedExecutionCommand,
   forbiddenRuntimeActions: [
     'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
     'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',

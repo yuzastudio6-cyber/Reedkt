@@ -247,6 +247,15 @@ function main() {
     chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
   const codexRunnableNextCommandNow =
     manualActionRequired || chosenNextCommandAlreadyExecutedInThisRun ? undefined : chosenNextCommand
+  const qwenBoundedExecutionCommand = executionAllowedNow
+    ? {
+        ...spec.qwenBoundedExecutionCommand,
+        shellExample: `${spec.qwenBoundedExecutionCommand.confirmationEnv}=${spec.qwenBoundedExecutionCommand.confirmationEnvRequiredValue} ${[
+          spec.qwenBoundedExecutionCommand.command,
+          ...spec.qwenBoundedExecutionCommand.args,
+        ].join(' ')}`,
+      }
+    : null
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
@@ -292,6 +301,7 @@ function main() {
         chosenNextCommand,
         chosenNextCommandAlreadyExecutedInThisRun,
         codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
+        qwenBoundedExecutionCommand,
         chosenManualAction,
         manualActionRequired,
         manualActionReason,

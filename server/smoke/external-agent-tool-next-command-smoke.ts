@@ -13,6 +13,8 @@ const PACKAGE_SCRIPT = 'external-agent-tool-next-command'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-next-command'
 const QWEN_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
+const QWEN_AUTH_NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -79,6 +81,10 @@ assert.equal(spec.paidProductionInScope, false)
 assert.equal(spec.dryRunPassedClaimed, false)
 assert.equal(spec.generatedLocalFixturePassedClaimed, false)
 assert.equal(spec.allowedProbeScripts.length, 3)
+assert.equal(
+  spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails,
+  'npm run external-agent-tool-blockers:preflight',
+)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -110,8 +116,9 @@ const decision = JSON.parse(output)
 assert.equal(decision.ok, true)
 assert.equal(decision.mode, spec.mode)
 assert.equal(decision.liveReadOnlyChecksRun, true)
-assert.equal(decision.executionAllowedNow, true)
-assert.equal(decision.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(decision.staticExecutionGateAllowed, true)
+assert.equal(decision.executionAllowedNow, decision.qwenLivePreflightPassed)
+assert.equal(decision.readyForAnyExternalAgentExecutionNow, decision.qwenLivePreflightPassed)
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)
@@ -119,14 +126,33 @@ assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
 assert.equal(typeof decision.chosenManualAction, 'string')
-assert.equal(decision.chosenManualAction, QWEN_NEXT_PROMPT)
-assert.equal(decision.chosenNextCommand, undefined)
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
-if (decision.gcloudDiagnosticRun) {
+if (decision.qwenLivePreflightPassed) {
+  assert.equal(decision.executionAllowedNow, true)
+  assert.equal(decision.chosenManualAction, QWEN_NEXT_PROMPT)
+  assert.equal(decision.chosenNextCommand, undefined)
   assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.manualActionReason, undefined)
   assert.equal(decision.manualActionBlocksRuntime, undefined)
   assert.equal(decision.rerunAfterManualAction, undefined)
+} else {
+  assert.equal(decision.executionAllowedNow, false)
+  assert.equal(
+    decision.chosenNextCommand,
+    decision.qwenAuthRefreshPassed
+      ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
+      : spec.nextCommandRules.whenQwenAuthRefreshFails,
+  )
+}
+if (decision.gcloudDiagnosticRun) {
+  assert.equal(decision.chosenManualAction, QWEN_AUTH_NEXT_PROMPT)
+  assert.equal(decision.manualActionRequired, true)
+  assert.equal(decision.manualActionReason, spec.manualActionRules.whenQwenAuthRefreshFails.reason)
+  assert.equal(decision.manualActionBlocksRuntime, true)
+  assert.equal(
+    decision.rerunAfterManualAction,
+    spec.manualActionRules.whenQwenAuthRefreshFails.rerunAfterManualAction,
+  )
   assert.equal(typeof decision.gcloudDiagnosticSummary, 'object')
   assert.equal(typeof decision.gcloudDiagnosticSummary.path, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.installationSdkRoot, 'string')
@@ -139,6 +165,10 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(decision.liveBlockerSummary.qwen.downstreamProbeSkipped, true)
   assert.equal(decision.liveBlockerSummary.broll.blocker, 'quota_probe_skipped_auth_refresh_failed')
   assert.equal(decision.liveBlockerSummary.broll.quotaProbeSkipped, true)
+} else if (!decision.qwenLivePreflightPassed) {
+  assert.equal(decision.manualActionRequired, false)
+  assert.equal(decision.qwenAuthRefreshPassed, true)
+  assert.equal(decision.qwenServiceDescribePassed && decision.qwenJobDescribePassed, false)
 }
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {

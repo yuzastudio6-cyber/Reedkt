@@ -48,6 +48,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
     whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+    whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
     whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',

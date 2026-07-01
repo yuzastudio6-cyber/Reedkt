@@ -138,8 +138,18 @@ function main() {
   const executionGate = runProbe(executionGateProbe.id, executionGateProbe.script)
   const liveBlocker = runProbe(liveBlockerProbe.id, liveBlockerProbe.script)
   const qwenAuthRefreshPassed = nestedBoolean(liveBlocker.json, ['qwen', 'accessTokenRefreshPassed'])
+  const qwenServiceDescribePassed = nestedBoolean(liveBlocker.json, ['qwen', 'serviceDescribePassed'])
+  const qwenJobDescribePassed = nestedBoolean(liveBlocker.json, ['qwen', 'jobDescribePassed'])
+  const qwenDownstreamProbeSkipped = nestedUnknown(liveBlocker.json, ['qwen', 'downstreamProbeSkipped']) === true
+  const qwenLivePreflightPassed =
+    qwenAuthRefreshPassed &&
+    qwenServiceDescribePassed &&
+    qwenJobDescribePassed &&
+    !qwenDownstreamProbeSkipped &&
+    nestedString(liveBlocker.json, ['qwen', 'blocker']) === 'cleared'
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
-  const executionAllowedNow = nestedBoolean(executionGate.json, ['executionAllowedNow'])
+  const staticExecutionGateAllowed = nestedBoolean(executionGate.json, ['executionAllowedNow'])
+  const executionAllowedNow = staticExecutionGateAllowed && qwenLivePreflightPassed
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
   const gcloudDiagnostic = shouldRunGcloudDiagnostic
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
@@ -154,14 +164,16 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
-      : !brollQuotaSufficient
-        ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
-        : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
+      : !qwenLivePreflightPassed
+        ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
+        : !brollQuotaSufficient
+          ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
+          : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
     : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
-  const manualActionRequired = !executionAllowedNow && !qwenAuthRefreshPassed && authManualActionRule.required
+  const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required
   const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined
   const manualActionBlocksRuntime = manualActionRequired ? authManualActionRule.blocksRuntime : undefined
   const rerunAfterManualAction = manualActionRequired ? authManualActionRule.rerunAfterManualAction : undefined
@@ -187,6 +199,11 @@ function main() {
         paidProductionInScope: spec.paidProductionInScope,
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
+        staticExecutionGateAllowed,
+        qwenLivePreflightPassed,
+        qwenServiceDescribePassed,
+        qwenJobDescribePassed,
+        qwenDownstreamProbeSkipped,
         executionAllowedNow,
         readyForAnyExternalAgentExecutionNow: executionAllowedNow,
         qwenAuthRefreshPassed,

@@ -176,7 +176,10 @@ assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(broll?.primaryBlocker, 'gpus_all_regions_quota_zero')
+assert.equal(
+  broll?.primaryBlocker,
+  'prior_gpus_all_regions_quota_zero_pending_auth_readable_live_verification',
+)
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md'),
   true,

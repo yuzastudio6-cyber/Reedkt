@@ -171,7 +171,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'gpus_all_regions_quota_zero',
+      primaryBlocker: 'prior_gpus_all_regions_quota_zero_pending_auth_readable_live_verification',
       evidence: [
         'docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md',
         'docs/ai-video-broll-generation-gpu-global-quota-fix-result.md',

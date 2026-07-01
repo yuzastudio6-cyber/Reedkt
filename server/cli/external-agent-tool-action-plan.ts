@@ -21,7 +21,10 @@ const forbiddenRuntimeActions = [
 function actionForTool(toolId: string) {
   if (toolId === 'qwen2_5_vl_7b_instruct') {
     return {
-      immediateSafeActions: ['npm run external-agent-tool-blockers:preflight'],
+      immediateSafeActions: [
+        'npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-gcloud-session:diagnostic',
+      ],
       externalManualBlocker: 'refresh local gcloud auth interactively outside Codex',
       afterBlockerClears:
         'record refreshed read-only auth/service/job visibility before any bounded private inference retry',

@@ -63,6 +63,16 @@ export const EXTERNAL_AGENT_GCLOUD_SESSION_DIAGNOSTIC = {
       runsInference: false,
     },
     {
+      id: 'gcloud_info',
+      command: 'gcloud',
+      args: ['info', '--format=json'],
+      purpose:
+        'read local SDK root, config paths, release channel, and active configuration fingerprint with account values redacted',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      runsInference: false,
+    },
+    {
       id: 'gcloud_project',
       command: 'gcloud',
       args: ['config', 'get-value', 'project'],

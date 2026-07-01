@@ -6,6 +6,8 @@ Status: `external_agent_execution_gate_fail_closed_runtime_blocked`
 
 This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, and controlled on-demand status bridge evidence, then returns a clear no-go for direct execution until a later route, worker, and private runtime proof explicitly opens execution.
 
+The current block is intentional and temporary. It does not mean the 21 tools are rejected. It means the agent may plan with the tools, but actual execution stays blocked until the next required private queue, worker, and tool-specific proofs pass.
+
 ## Scope
 
 - AI graphics tools covered: `21`
@@ -20,6 +22,12 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`
 - controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: `21`
 - controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence: `21`
+- CPU/static live-adapter queue-service proof accepted: `true`
+- cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools: `5`
+- cpuStaticMockQueueServiceValidationPassedTools: `5`
+- cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: `1`
+- cpuStaticNonCpuStaticDeferredTools: `15`
+- nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`
 - Representative disabled route blocked-detail cases covered: `21`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
@@ -38,6 +46,7 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - Verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata.
 - Read route-mount readiness evidence while preserving `apiRouteMountedNow=false`.
 - Read controlled on-demand external-beta status while preserving that direct agent execution remains blocked.
+- Read the CPU/static live-adapter queue-service proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; these five are closest to direct agent execution, but actual execution still blocked until non-production service-role queue write, worker claim, worker dispatch, and tool-specific result proof pass.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
@@ -75,6 +84,8 @@ Blocked now:
 7. `npm run ai-graphics:external-beta-worker-enqueue-adapter`
 8. `npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics`
 9. `npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics`
+10. `npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics`
+11. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -85,6 +96,7 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `sourceExternalBetaCallableRequestAdmissionAccepted=true`
 - `sourceExternalBetaApiRouteMountReadinessAccepted=true`
 - `sourceExternalBetaControlledOnDemandStatusBridgeAccepted=true`
+- `sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted=true`
 - `properInstallAuditAccepted=true`
 - `all21ToolsProperlyInstalledForPlannedSurface=true`
 - `installAuditSeparatesPlannedSurfaceFromRuntimeCallable=true`
@@ -98,6 +110,12 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `externalBetaCallableRequestAdmissionReadyWithProvidedEvidence=true`
 - `routeMountReadyWithProvidedEvidence=true`
 - `routeMountPreparedButNotMounted=true`
+- `cpuStaticLiveAdapterQueueServiceProofAccepted=true`
+- `allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence=true`
+- `allFiveCpuStaticMockQueueServiceValidationsPassed=true`
+- `satoriRemainsBlockedPendingApprovedFontFixture=true`
+- `fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes=true`
+- `nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution=true`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
 - `externalAgentExecutionAllowedNow=false`
@@ -116,4 +134,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, and controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools. The disabled route now returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, and no direct route/worker/tool runtime execution is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have live-adapter queue-service proof in mock-only mode. The disabled route now returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need non-production service-role queue write and worker claim/dispatch proof, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is the non-production service-role queue write smoke for the five CPU/static tools, while keeping private queue/worker/tool execution blocked until each following proof passes.

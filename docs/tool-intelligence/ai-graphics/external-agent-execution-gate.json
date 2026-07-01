@@ -12,7 +12,8 @@
     "externalBetaCallableScope": "ai_graphics_external_beta_callable_scope_prepared_with_runtime_blocks",
     "externalBetaToolCallGateway": "ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks",
     "externalBetaRuntimeAdmission": "ai_graphics_external_beta_runtime_admission_contract_prepared_with_runtime_blocks",
-    "externalBetaWorkerEnqueueAdapter": "ai_graphics_external_beta_worker_enqueue_adapter_prepared_with_runtime_blocks"
+    "externalBetaWorkerEnqueueAdapter": "ai_graphics_external_beta_worker_enqueue_adapter_prepared_with_runtime_blocks",
+    "externalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProof": "ai_graphics_external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_passed_with_runtime_blocks"
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -32,6 +33,11 @@
     "controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence": 21,
     "controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence": 21,
     "controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence": 21,
+    "cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools": 5,
+    "cpuStaticMockQueueServiceValidationPassedTools": 5,
+    "cpuStaticSatoriBlockedPendingApprovedFontFixtureTools": 1,
+    "cpuStaticNonCpuStaticDeferredTools": 15,
+    "nonProductionServiceRoleQueueWriteSmokeRequiredTools": 5,
     "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21,
     "externalBetaCallableCandidateToolsWithProvidedEvidence": 21,
     "externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence": 1,
@@ -303,7 +309,9 @@
     "npm run ai-graphics:external-beta-runtime-admission",
     "npm run ai-graphics:external-beta-worker-enqueue-adapter",
     "npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics",
-    "npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics"
+    "npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics",
+    "npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics",
+    "npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics"
   ],
   "allowedPreExecutionActions": [
     "read sanitized callable-scope and request-admission evidence",
@@ -311,6 +319,7 @@
     "explain missing proof before execution",
     "verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata",
     "distinguish controlled on-demand worker-path readiness from direct agent execution",
+    "read CPU/static live-adapter queue-service proof for d3, vega_lite, vega, svgdotjs_svg_js, and viz_js while preserving execution blocks",
     "return per-request disabled route details for all 21 tools with selected planning tools, missing proof, missing execution gates, and GPU on-demand status",
     "return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job"
@@ -340,6 +349,7 @@
     "sourceExternalBetaCallableRequestAdmissionAccepted": true,
     "sourceExternalBetaApiRouteMountReadinessAccepted": true,
     "sourceExternalBetaControlledOnDemandStatusBridgeAccepted": true,
+    "sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted": true,
     "properInstallAuditAccepted": true,
     "all21ToolsProperlyInstalledForPlannedSurface": true,
     "installAuditSeparatesPlannedSurfaceFromRuntimeCallable": true,
@@ -353,6 +363,12 @@
     "externalBetaCallableRequestAdmissionReadyWithProvidedEvidence": true,
     "routeMountReadyWithProvidedEvidence": true,
     "routeMountPreparedButNotMounted": true,
+    "cpuStaticLiveAdapterQueueServiceProofAccepted": true,
+    "allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence": true,
+    "allFiveCpuStaticMockQueueServiceValidationsPassed": true,
+    "satoriRemainsBlockedPendingApprovedFontFixture": true,
+    "fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes": true,
+    "nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution": true,
     "approvedPlanSnapshotRequired": true,
     "creditReservationRequired": true,
     "privateArtifactManifestRequired": true,

@@ -14,6 +14,11 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION,
   type AiGraphicsExternalBetaControlledOnDemandStatusBridge,
 } from './ai-graphics-external-beta-controlled-on-demand-status-bridge'
+import {
+  AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport,
+  type AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow,
+} from './ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
@@ -29,6 +34,8 @@ export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'external_beta_api_route_mount_readiness_rejected'
   | 'missing_external_beta_controlled_on_demand_status_bridge'
   | 'external_beta_controlled_on_demand_status_bridge_rejected'
+  | 'missing_external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof'
+  | 'external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_rejected'
   | 'external_agent_execution_gate_fail_closed_runtime_blocked'
 
 export interface AiGraphics21ToolProperInstallAudit {
@@ -79,6 +86,8 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
   sourceExternalBetaCallableRequestAdmissionPacket?: Partial<AiGraphicsExternalBetaCallableRequestAdmission>
   sourceExternalBetaApiRouteMountReadinessPacket?: Partial<AiGraphicsExternalBetaApiRouteMountReadiness>
   sourceExternalBetaControlledOnDemandStatusBridgePacket?: Partial<AiGraphicsExternalBetaControlledOnDemandStatusBridge>
+  sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofPacket?:
+    Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport>
 }
 
 export interface AiGraphicsExternalAgentExecutionGateToolRow {
@@ -93,6 +102,9 @@ export interface AiGraphicsExternalAgentExecutionGateToolRow {
   gpuRequiredForRuntime: boolean
   externalBetaCallableCandidateWithProvidedEvidence: boolean
   requestAdmissionCandidateWithProvidedEvidence: boolean
+  cpuStaticLiveAdapterQueueWriteProofStatus: string | null
+  cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidence: boolean
+  nonProductionServiceRoleQueueWriteSmokeRequired: boolean
   executionAllowedNow: false
   gpuRuntimeShouldStartNow: false
   currentBlocker: string
@@ -112,10 +124,13 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION | null
   sourceExternalBetaControlledOnDemandStatusBridgeDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION | null
+  sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION | null
   source21ToolProperInstallAuditAccepted: boolean
   sourceExternalBetaCallableRequestAdmissionAccepted: boolean
   sourceExternalBetaApiRouteMountReadinessAccepted: boolean
   sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
+  sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted: boolean
   readyForAnyExternalAgentExecutionNow: false
   executionAllowedNow: false
   requireGoExitCodeWhenBlocked: 2
@@ -130,6 +145,11 @@ export interface AiGraphicsExternalAgentExecutionGate {
   controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: 0 | 21
   controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: 0 | 21
   controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence: 0 | 21
+  cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools: 0 | 5
+  cpuStaticMockQueueServiceValidationPassedTools: 0 | 5
+  cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: 0 | 1
+  cpuStaticNonCpuStaticDeferredTools: 0 | 15
+  nonProductionServiceRoleQueueWriteSmokeRequiredTools: 0 | 5
   externalBetaCallableCandidateToolsWithProvidedEvidence: number
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: number
   externalAgentExecutableNowTools: 0
@@ -148,6 +168,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalBetaCallableRequestAdmissionAccepted: boolean
     sourceExternalBetaApiRouteMountReadinessAccepted: boolean
     sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
+    sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted: boolean
     properInstallAuditAccepted: boolean
     all21ToolsProperlyInstalledForPlannedSurface: boolean
     installAuditSeparatesPlannedSurfaceFromRuntimeCallable: boolean
@@ -161,6 +182,12 @@ export interface AiGraphicsExternalAgentExecutionGate {
     externalBetaCallableRequestAdmissionReadyWithProvidedEvidence: boolean
     routeMountReadyWithProvidedEvidence: boolean
     routeMountPreparedButNotMounted: boolean
+    cpuStaticLiveAdapterQueueServiceProofAccepted: boolean
+    allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence: boolean
+    allFiveCpuStaticMockQueueServiceValidationsPassed: boolean
+    satoriRemainsBlockedPendingApprovedFontFixture: boolean
+    fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes: boolean
+    nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution: boolean
     approvedPlanSnapshotRequired: true
     creditReservationRequired: true
     privateArtifactManifestRequired: true
@@ -215,6 +242,8 @@ const safeCommandsBeforeExecution = [
   'npm run ai-graphics:external-beta-worker-enqueue-adapter',
   'npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics',
   'npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics',
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics',
+  'npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics',
 ]
 
 const allowedPreExecutionActions = [
@@ -224,6 +253,7 @@ const allowedPreExecutionActions = [
   'verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata',
   'return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call',
   'distinguish controlled on-demand worker-path readiness from direct agent execution',
+  'read CPU/static live-adapter queue-service proof for the five closest tools while preserving execution blocks',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
@@ -388,6 +418,62 @@ function sourceControlledOnDemandStatusBridgeAccepted(
     packetBoolean(packet, 'productionReadyNow') === false
 }
 
+function sourceCpuStaticLiveAdapterQueueWriteProofAccepted(
+  packet?:
+    Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofReport>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION &&
+    packet.status ===
+      'external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_passed_five_mock_queue_validated_execution_blocked' &&
+    packet.counts?.totalAiGraphicsTools === 21 &&
+    packet.counts?.localAdapterInvocationProofPassedTools === 5 &&
+    packet.counts?.queueServiceAdapterValidationPassedTools === 5 &&
+    packet.counts?.mockQueueWriteValidationPassedTools === 5 &&
+    packet.counts?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidenceTools === 5 &&
+    packet.counts?.satoriBlockedPendingApprovedFontFixtureTools === 1 &&
+    packet.counts?.nonCpuStaticDeferredTools === 15 &&
+    packet.counts?.externalAgentCanInvokeAdapterNowTools === 0 &&
+    packet.counts?.externalAgentCanSubmitPrivateWorkerQueueNowTools === 0 &&
+    packet.counts?.backendQueueSubmissionApprovedNowTools === 0 &&
+    packet.counts?.liveQueueWriteApprovedNowTools === 0 &&
+    packet.counts?.workerEnqueueApprovedNowTools === 0 &&
+    packet.counts?.workerDispatchApprovedNowTools === 0 &&
+    packet.counts?.workerExecutionApprovedNowTools === 0 &&
+    packet.counts?.toolExecutionApprovedNowTools === 0 &&
+    packet.counts?.externalAgentExecutableNowTools === 0 &&
+    packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
+    packet.booleans?.allFiveLocalAdapterInvocationProofsPassed === true &&
+    packet.booleans?.allFiveQueueServiceAdapterValidationsPassed === true &&
+    packet.booleans?.allFiveMockQueueWriteValidationsPassed === true &&
+    packet.booleans?.queueServiceMockOnlyRuntimeAccepted === true &&
+    packet.booleans?.satoriBlockedPendingApprovedFontFixture === true &&
+    packet.booleans?.fifteenRuntimeDeferredToolsPreserved === true &&
+    packet.booleans?.runtimeQueueServiceValidationAccepted === true &&
+    packet.booleans?.nextGateRequiresNonProductionServiceRoleQueueWriteSmoke === true &&
+    packet.booleans?.noSupabaseQueueWriteByProof === true &&
+    packet.booleans?.noLiveQueueWriteByProof === true &&
+    packet.booleans?.noWorkerEnqueueByProof === true &&
+    packet.booleans?.noWorkerDispatchByProof === true &&
+    packet.booleans?.noToolExecutionByProof === true &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.externalAgentCanInvokeAdapterNow === false &&
+    packet.booleans?.externalAgentCanSubmitPrivateWorkerQueueNow === false &&
+    packet.booleans?.backendQueueSubmissionApprovedNow === false &&
+    packet.booleans?.liveQueueWriteApprovedNow === false &&
+    packet.booleans?.workerEnqueueApprovedNow === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.workerExecutionApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.runtimeReadyNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false &&
+    Array.isArray(packet.rows) &&
+    packet.rows.length === 21
+}
+
 function statusFromInput(input: {
   hasProperInstallAudit: boolean
   properInstallAuditAccepted: boolean
@@ -397,6 +483,8 @@ function statusFromInput(input: {
   sourceRouteMountReadinessAccepted: boolean
   hasControlledOnDemandStatusBridge: boolean
   controlledOnDemandStatusBridgeAccepted: boolean
+  hasCpuStaticLiveAdapterQueueWriteProof: boolean
+  cpuStaticLiveAdapterQueueWriteProofAccepted: boolean
 }): AiGraphicsExternalAgentExecutionGateStatus {
   if (!input.hasProperInstallAudit) {
     return 'missing_21_tool_proper_install_audit'
@@ -422,17 +510,31 @@ function statusFromInput(input: {
   if (!input.controlledOnDemandStatusBridgeAccepted) {
     return 'external_beta_controlled_on_demand_status_bridge_rejected'
   }
+  if (!input.hasCpuStaticLiveAdapterQueueWriteProof) {
+    return 'missing_external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof'
+  }
+  if (!input.cpuStaticLiveAdapterQueueWriteProofAccepted) {
+    return 'external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_rejected'
+  }
   return 'external_agent_execution_gate_fail_closed_runtime_blocked'
 }
 
-function requiredBeforeExecution(gpuRequiredForRuntime: boolean): string[] {
+function requiredBeforeExecution(input: {
+  gpuRequiredForRuntime: boolean
+  cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
+}): string[] {
+  const cpuStaticProofPassed =
+    input.cpuStaticProofRow?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidence ===
+    true
   return [
     'explicit external-agent execution approval must pass this gate in require-go mode',
     'real external-beta API route handler mount must be approved; current route-mount readiness evidence is accepted but still unmounted',
     'approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present',
-    'private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass',
+    cpuStaticProofPassed
+      ? 'non-production service-role queue write smoke must pass next; current proof only validates the runtime queue service adapter in mock-only mode'
+      : 'private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass',
     'Tool Route and Worker execution must remain private and explicitly approved before any tool call',
-    gpuRequiredForRuntime
+    input.gpuRequiredForRuntime
       ? 'GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion'
       : 'CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects',
   ]
@@ -447,12 +549,18 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalBetaApiRouteMountReadinessPacket
   const sourceControlledOnDemandStatusBridge =
     input.sourceExternalBetaControlledOnDemandStatusBridgePacket
+  const sourceCpuStaticLiveAdapterQueueWriteProof =
+    input.sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofPacket
   const installAccepted = sourceProperInstallAuditAccepted(sourceProperInstallAudit)
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
   const routeMountAccepted =
     sourceRouteMountReadinessAccepted(sourceRouteMountReadiness)
   const controlledOnDemandAccepted =
     sourceControlledOnDemandStatusBridgeAccepted(sourceControlledOnDemandStatusBridge)
+  const cpuStaticLiveAdapterQueueWriteProofAccepted =
+    sourceCpuStaticLiveAdapterQueueWriteProofAccepted(
+      sourceCpuStaticLiveAdapterQueueWriteProof,
+    )
   const tools = listAiGraphicsToolCallHandoffTools()
   const gpuRuntimeTargetedTools =
     tools.filter((tool) => tool.gpuRequiredForRuntime).length
@@ -468,8 +576,19 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const installRows = new Map(
     (sourceProperInstallAudit?.toolRows ?? []).map((row) => [row.toolId, row]),
   )
+  const cpuStaticProofRows = new Map(
+    (sourceCpuStaticLiveAdapterQueueWriteProof?.rows ?? []).map((row) => [
+      row.toolId,
+      row,
+    ]),
+  )
   const toolRows = tools.map((tool): AiGraphicsExternalAgentExecutionGateToolRow => {
     const installRow = installRows.get(tool.toolId)
+    const cpuStaticProofRow = cpuStaticProofRows.get(tool.toolId)
+    const cpuStaticProofPassed =
+      cpuStaticLiveAdapterQueueWriteProofAccepted &&
+      cpuStaticProofRow?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidence ===
+        true
     return {
       toolId: tool.toolId,
       productionToolId: tool.productionToolId,
@@ -484,10 +603,20 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       externalBetaCallableCandidateWithProvidedEvidence: sourceAccepted,
       requestAdmissionCandidateWithProvidedEvidence:
         sourceAccepted && requestedToolId === tool.toolId,
+      cpuStaticLiveAdapterQueueWriteProofStatus:
+        cpuStaticProofRow?.liveAdapterInvocationQueueWriteProofStatus ?? null,
+      cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidence:
+        cpuStaticProofPassed,
+      nonProductionServiceRoleQueueWriteSmokeRequired:
+        cpuStaticProofPassed &&
+        cpuStaticProofRow?.serviceRoleQueueWriteSmokeRequired === true,
       executionAllowedNow: false,
       gpuRuntimeShouldStartNow: false,
       currentBlocker: 'external_agent_execution_gate_fail_closed_runtime_blocked',
-      requiredBeforeExecution: requiredBeforeExecution(tool.gpuRequiredForRuntime),
+      requiredBeforeExecution: requiredBeforeExecution({
+        gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
+        cpuStaticProofRow,
+      }),
       safeNextCommand: 'npm run ai-graphics:external-agent-execution-gate',
     }
   })
@@ -503,6 +632,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       sourceRouteMountReadinessAccepted: routeMountAccepted,
       hasControlledOnDemandStatusBridge: Boolean(sourceControlledOnDemandStatusBridge),
       controlledOnDemandStatusBridgeAccepted: controlledOnDemandAccepted,
+      hasCpuStaticLiveAdapterQueueWriteProof:
+        Boolean(sourceCpuStaticLiveAdapterQueueWriteProof),
+      cpuStaticLiveAdapterQueueWriteProofAccepted:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
     }),
     mode: 'fail_closed_ai_graphics_external_agent_execution_gate',
     source21ToolProperInstallAuditDecision:
@@ -521,11 +654,18 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       sourceControlledOnDemandStatusBridge?.decision === AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION
         ? sourceControlledOnDemandStatusBridge.decision
         : null,
+    sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofDecision:
+      sourceCpuStaticLiveAdapterQueueWriteProof?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION
+        ? sourceCpuStaticLiveAdapterQueueWriteProof.decision
+        : null,
     source21ToolProperInstallAuditAccepted: installAccepted,
     sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
     sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
     sourceExternalBetaControlledOnDemandStatusBridgeAccepted:
       controlledOnDemandAccepted,
+    sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted:
+      cpuStaticLiveAdapterQueueWriteProofAccepted,
     readyForAnyExternalAgentExecutionNow: false,
     executionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
@@ -543,6 +683,16 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       controlledOnDemandAccepted ? 21 : 0,
     controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence:
       controlledOnDemandAccepted ? 21 : 0,
+    cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools:
+      cpuStaticLiveAdapterQueueWriteProofAccepted ? 5 : 0,
+    cpuStaticMockQueueServiceValidationPassedTools:
+      cpuStaticLiveAdapterQueueWriteProofAccepted ? 5 : 0,
+    cpuStaticSatoriBlockedPendingApprovedFontFixtureTools:
+      cpuStaticLiveAdapterQueueWriteProofAccepted ? 1 : 0,
+    cpuStaticNonCpuStaticDeferredTools:
+      cpuStaticLiveAdapterQueueWriteProofAccepted ? 15 : 0,
+    nonProductionServiceRoleQueueWriteSmokeRequiredTools:
+      cpuStaticLiveAdapterQueueWriteProofAccepted ? 5 : 0,
     externalBetaCallableCandidateToolsWithProvidedEvidence:
       candidateTools,
     externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
@@ -566,6 +716,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
       sourceExternalBetaControlledOnDemandStatusBridgeAccepted:
         controlledOnDemandAccepted,
+      sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
       properInstallAuditAccepted: installAccepted,
       all21ToolsProperlyInstalledForPlannedSurface: installAccepted,
       installAuditSeparatesPlannedSurfaceFromRuntimeCallable: installAccepted,
@@ -582,6 +734,18 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         requestAdmissionReadyTools >= 1,
       routeMountReadyWithProvidedEvidence: routeMountAccepted,
       routeMountPreparedButNotMounted: routeMountAccepted,
+      cpuStaticLiveAdapterQueueServiceProofAccepted:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
+      allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
+      allFiveCpuStaticMockQueueServiceValidationsPassed:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
+      satoriRemainsBlockedPendingApprovedFontFixture:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
+      fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
+      nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution:
+        cpuStaticLiveAdapterQueueWriteProofAccepted,
       approvedPlanSnapshotRequired: true,
       creditReservationRequired: true,
       privateArtifactManifestRequired: true,

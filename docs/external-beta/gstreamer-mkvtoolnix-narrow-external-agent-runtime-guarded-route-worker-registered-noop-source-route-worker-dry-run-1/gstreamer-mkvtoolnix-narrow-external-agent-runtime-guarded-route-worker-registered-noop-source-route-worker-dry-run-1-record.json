@@ -1,0 +1,89 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-ROUTE-WORKER-DRY-RUN-1",
+  "integrationBase": "399e2e6692b9cc097aff0e44082b4f64d56e6ffe",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_route_worker_dry_run",
+  "execution": "completed_confirmation_gated_registered_noop_source_route_worker_contract_dry_run_no_route_worker_tool_or_media_execution",
+  "runId": "2026-07-01T13-38-39-805Z-d8448f0f",
+  "sourceChain": {
+    "registeredNoopSourceRouteWorkerDryRunQaRollupPr": 1993,
+    "registeredNoopSourceRouteWorkerDryRunQaRollupMergeSha": "399e2e6692b9cc097aff0e44082b4f64d56e6ffe",
+    "registeredNoopSourceRouteWorkerDryRunQaDecision": "qa_passed_gstreamer_mkvtoolnix_narrow_registered_noop_source_dry_run_evidence",
+    "registeredNoopSourceRouteWorkerDryRunQaExecution": "completed_docs_only_registered_noop_source_dry_run_qa_rollup_no_route_worker_tool_or_media_execution",
+    "registeredNoopSourceRouteWorkerDryRunQaReadiness": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "confirmation": {
+    "gate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_REGISTERED_NOOP_SOURCE_ROUTE_WORKER_DRY_RUN",
+    "value": "true"
+  },
+  "dryRun": {
+    "result": "passed",
+    "mode": "registered_noop_route_worker_contract_only",
+    "acceptedSourceStatus": "accepted_registered_noop_source_contract",
+    "positiveEnvelopeValidation": "passed",
+    "negativeFailClosedMatrix": "passed",
+    "routeRegisteredAtRuntime": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "workerLeaseClaim": false,
+    "persistentQueueWrite": false
+  },
+  "artifacts": {
+    "envelope": {
+      "fileName": "registered-noop-source-route-worker-dry-run-envelope.json",
+      "bytes": 4688,
+      "sha256": "16adee99db3f53e24a0d40cc10513260356e24954cff0d0daff9ea38128b2c2e"
+    },
+    "report": {
+      "fileName": "registered-noop-source-route-worker-dry-run-report.json",
+      "bytes": 5620,
+      "sha256": "cf7522a6e2ee48cd129db062bee2ad32685733d0f175e4698caa952d5872001e"
+    },
+    "manifest": {
+      "fileName": "registered-noop-source-route-worker-dry-run-manifest.json",
+      "bytes": 1237,
+      "sha256": "9e12c1b4c751738e52d328719ff71f95f4fb1ef3097e8fd8f26e9419090f4a65"
+    }
+  },
+  "readiness": {
+    "gstreamer": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run_qa_rollup",
+    "mkvtoolnix": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run_qa_rollup",
+    "externalAgentBoundary": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run_qa_rollup"
+  },
+  "safety": {
+    "productionRouteFileCreatedInThisRouteWorkerDryRunPhase": false,
+    "routeRegisteredAtRuntimeInThisRouteWorkerDryRunPhase": false,
+    "routeExecutionInThisRouteWorkerDryRunPhase": false,
+    "workerDispatchInThisRouteWorkerDryRunPhase": false,
+    "workerExecutionInThisRouteWorkerDryRunPhase": false,
+    "workerProcessStartInThisRouteWorkerDryRunPhase": false,
+    "workerLeaseClaimInThisRouteWorkerDryRunPhase": false,
+    "persistentJobQueueWriteInThisRouteWorkerDryRunPhase": false,
+    "serviceRoleSecretPayloadAccessInThisRouteWorkerDryRunPhase": false,
+    "frontendCredentialExposureInThisRouteWorkerDryRunPhase": false,
+    "broadServiceRoleHandlerInThisRouteWorkerDryRunPhase": false,
+    "gstreamerExecutionInThisRouteWorkerDryRunPhase": false,
+    "mkvtoolnixExecutionInThisRouteWorkerDryRunPhase": false,
+    "dockerExecutionInThisRouteWorkerDryRunPhase": false,
+    "ffmpegFfprobeExecutionInThisRouteWorkerDryRunPhase": false,
+    "remotionExecutionInThisRouteWorkerDryRunPhase": false,
+    "privateMediaProcessingInThisRouteWorkerDryRunPhase": false,
+    "userMediaProcessingInThisRouteWorkerDryRunPhase": false,
+    "mediaProcessingInThisRouteWorkerDryRunPhase": false,
+    "supabaseMutationInThisRouteWorkerDryRunPhase": false,
+    "sqlExecutionInThisRouteWorkerDryRunPhase": false,
+    "signedUrlCreationInThisRouteWorkerDryRunPhase": false,
+    "publicArtifactCreationInThisRouteWorkerDryRunPhase": false,
+    "finalRenderExportInThisRouteWorkerDryRunPhase": false,
+    "broadExternalBetaUnlockInThisRouteWorkerDryRunPhase": false,
+    "paidProductionUnlockInThisRouteWorkerDryRunPhase": false,
+    "productionUnlockInThisRouteWorkerDryRunPhase": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-ROUTE-WORKER-DRY-RUN-QA-ROLLUP-1"
+}

@@ -1,5 +1,20 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
+type ExternalAgentManualBlockerAction = {
+  id: string
+  label: string
+  runInsideCodex: false
+  mutatesRuntime: false
+  runsModel: false
+  createsAssets: false
+  mutatesCloud: boolean
+  mutatesLocalGcloudAuth: boolean
+  mutatesLocalGcloudConfig: boolean
+  changesQuotaRequest: boolean
+  purpose: string
+  afterCompletionCommand: string
+}
+
 const forbiddenRuntimeActions = [
   'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
   'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
@@ -22,6 +37,65 @@ const externalAgentPreExecutionActions = [
   'npm run external-agent-tool-next-command',
   'npm run external-agent-tool-execution-gate',
 ] as const
+
+function manualBlockerActionsForTool(toolId: string): ExternalAgentManualBlockerAction[] {
+  if (toolId === 'qwen2_5_vl_7b_instruct') {
+    return [
+      {
+        id: 'refresh_active_gcloud_login',
+        label: 'Refresh the active local gcloud login outside Codex',
+        runInsideCodex: false,
+        mutatesRuntime: false,
+        runsModel: false,
+        createsAssets: false,
+        mutatesCloud: false,
+        mutatesLocalGcloudAuth: true,
+        mutatesLocalGcloudConfig: false,
+        changesQuotaRequest: false,
+        purpose:
+          'Make the same local gcloud account/configuration used by this shell able to refresh tokens before any Qwen service/job preflight can be trusted.',
+        afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
+      },
+      {
+        id: 'select_authenticated_gcloud_account_if_needed',
+        label: 'Select an already-authenticated gcloud account outside Codex if needed',
+        runInsideCodex: false,
+        mutatesRuntime: false,
+        runsModel: false,
+        createsAssets: false,
+        mutatesCloud: false,
+        mutatesLocalGcloudAuth: false,
+        mutatesLocalGcloudConfig: true,
+        changesQuotaRequest: false,
+        purpose:
+          'Align the local gcloud active account with the refreshed credentials when auth succeeded under a different local account.',
+        afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
+      },
+    ]
+  }
+
+  if (toolId === 'ai_video_broll_generation_wan') {
+    return [
+      {
+        id: 'request_gpus_all_regions_quota_in_console',
+        label: 'Request GPUS_ALL_REGIONS quota increase outside Codex',
+        runInsideCodex: false,
+        mutatesRuntime: false,
+        runsModel: false,
+        createsAssets: false,
+        mutatesCloud: true,
+        mutatesLocalGcloudAuth: false,
+        mutatesLocalGcloudConfig: false,
+        changesQuotaRequest: true,
+        purpose:
+          'Raise GPUS_ALL_REGIONS to at least 1 through the cloud owner/user path before any bounded no-idle L4 VM proof can be planned.',
+        afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
+      },
+    ]
+  }
+
+  return []
+}
 
 function actionForTool(toolId: string) {
   if (toolId === 'qwen2_5_vl_7b_instruct') {
@@ -114,6 +188,7 @@ function main() {
       noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
       primaryBlocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
+      manualBlockerActions: manualBlockerActionsForTool(tool.toolId),
       ...actionForTool(tool.toolId),
       forbiddenRuntimeActions,
     })),
@@ -121,6 +196,7 @@ function main() {
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
+      manualBlockerActions: manualBlockerActionsForTool(tool.toolId),
     })),
     sourceRules: rollup.sourceRules,
     runtimeSideEffects: rollup.runtimeSideEffects,

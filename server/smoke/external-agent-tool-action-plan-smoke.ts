@@ -112,6 +112,18 @@ const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
 }
 assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
@@ -124,11 +136,40 @@ assert.equal(
   ),
   true,
 )
+assert.equal(qwen.manualBlockerActions.length, 2)
+assert.equal(qwen.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
+assert.equal(qwen.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
+assert.equal(qwen.manualBlockerActions.every((action) => action.runsModel === false), true)
+assert.equal(qwen.manualBlockerActions.every((action) => action.createsAssets === false), true)
+assert.equal(qwen.manualBlockerActions.some((action) => action.id === 'refresh_active_gcloud_login'), true)
+assert.equal(
+  qwen.manualBlockerActions.some(
+    (action) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
 
 const broll = toolActions.get('ai_video_broll_generation_wan') as {
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
   noIdleLifecycleGate: {
     proofVmName: string
     machineType: string
@@ -152,6 +193,15 @@ assert.equal(broll.externalManualBlocker.includes('GPUS_ALL_REGIONS'), true)
 assert.equal(broll.externalManualBlocker.includes('Google Cloud Console'), true)
 assert.equal(broll.externalManualBlocker.includes('do not create VMs'), true)
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
+assert.equal(broll.manualBlockerActions.length, 1)
+assert.equal(broll.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(broll.manualBlockerActions[0].runInsideCodex, false)
+assert.equal(broll.manualBlockerActions[0].mutatesRuntime, false)
+assert.equal(broll.manualBlockerActions[0].runsModel, false)
+assert.equal(broll.manualBlockerActions[0].createsAssets, false)
+assert.equal(broll.manualBlockerActions[0].mutatesCloud, true)
+assert.equal(broll.manualBlockerActions[0].changesQuotaRequest, true)
+assert.equal(broll.manualBlockerActions[0].afterCompletionCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(broll.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-4')
 assert.equal(broll.noIdleLifecycleGate.targetRegion, 'us-central1')
@@ -182,6 +232,22 @@ for (const command of plan.safeCommandQueue as Array<{ mutatesRuntime: boolean; 
   assert.equal(command.mutatesRuntime, false)
   assert.equal(command.runsModel, false)
   assert.equal(command.createsAssets, false)
+}
+for (const manualBlocker of plan.manualBlockers as Array<{
+  toolId: string
+  manualBlockerActions: Array<{
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+  }>
+}>) {
+  for (const action of manualBlocker.manualBlockerActions) {
+    assert.equal(action.runInsideCodex, false, `${manualBlocker.toolId} manual action must stay outside Codex`)
+    assert.equal(action.mutatesRuntime, false, `${manualBlocker.toolId} manual action must not run runtime`)
+    assert.equal(action.runsModel, false, `${manualBlocker.toolId} manual action must not run models`)
+    assert.equal(action.createsAssets, false, `${manualBlocker.toolId} manual action must not create assets`)
+  }
 }
 for (const [flag, value] of Object.entries(plan.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime flag must remain false: ${flag}`)

@@ -1,0 +1,82 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-DISPATCH-EXECUTION-PACKET-1",
+  "integrationBase": "c4228c3939f30fae3646d7f477207d64d566309c",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_route_worker_controlled_dispatch_execution_packet",
+  "execution": "completed_confirmation_gated_controlled_dispatch_contract_no_route_worker_tool_or_media_execution",
+  "sourceChain": {
+    "controlledDispatchPlanningPr": 2014,
+    "controlledDispatchPlanningMergeSha": "c4228c3939f30fae3646d7f477207d64d566309c",
+    "controlledDispatchPlanningDecision": "completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_route_worker_controlled_dispatch_planning",
+    "controlledDispatchPlanningExecution": "completed_docs_only_controlled_dispatch_planning_no_route_worker_tool_or_media_execution",
+    "controlledDispatchPlanningReadiness": "ready_for_guarded_registered_noop_source_route_worker_controlled_dispatch_execution_packet",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "runId": "2026-07-01T18-17-14-399Z-aac75a2e",
+  "outputDirectory": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-narrow-route-worker-controlled-dispatch-execution-packet-1/2026-07-01T18-17-14-399Z-aac75a2e",
+  "confirmation": {
+    "gate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_CONTROLLED_DISPATCH_EXECUTION",
+    "value": "true"
+  },
+  "executionPacket": {
+    "failClosedNoGateCheck": "passed",
+    "confirmedExecution": "passed",
+    "mode": "registered_noop_source_route_worker_controlled_dispatch_contract_only",
+    "dispatchMode": "confirmation_gated_controlled_dispatch_contract_without_tool_or_media_execution",
+    "dispatchId": "controlled-dispatch-contract-gstreamer-mkvtoolnix-narrow-1",
+    "routeSourceId": "externalBeta.gstreamerMkvtoolnix.narrowExternalAgentRuntimeRegisteredNoopSource",
+    "routeSourcePath": "/api/external-beta/gstreamer-mkvtoolnix/narrow-agent/registered-noop-boundary",
+    "acceptedSourceStatus": "accepted_registered_noop_source_contract",
+    "positiveEnvelopeValidation": "passed",
+    "negativeFailClosedMatrix": "passed"
+  },
+  "artifacts": {
+    "envelope": {
+      "fileName": "controlled-dispatch-execution-packet-envelope.json",
+      "bytes": 5838,
+      "sha256": "9d4adf6219f2c1cada965264899c5b50116640a964934f3bede6b95be8335fa4"
+    },
+    "report": {
+      "fileName": "controlled-dispatch-execution-packet-report.json",
+      "bytes": 6020,
+      "sha256": "0bfd227e8a59ffc729d43ceadf8f7b387a3a5c87e7b751c81d0d805b521cb7f5"
+    },
+    "manifest": {
+      "fileName": "controlled-dispatch-execution-packet-manifest.json",
+      "bytes": 1181,
+      "sha256": "ec29c9ed135ec29ff39c8d3094c9cae1cf459abec187d28fb6ad4c9507526542"
+    }
+  },
+  "readiness": {
+    "gstreamer": "ready_for_controlled_dispatch_execution_packet_qa_rollup",
+    "mkvtoolnix": "ready_for_controlled_dispatch_execution_packet_qa_rollup",
+    "externalAgentBoundary": "ready_for_controlled_dispatch_execution_packet_qa_rollup",
+    "controlledDispatchExecutionPacket": "ready_for_source_evidence_qa_rollup"
+  },
+  "safety": {
+    "productionRouteFileCreatedInThisExecutionPacketPhase": false,
+    "routeRegisteredAtRuntimeInThisExecutionPacketPhase": false,
+    "routeExecutionInThisExecutionPacketPhase": false,
+    "workerDispatchInThisExecutionPacketPhase": false,
+    "workerExecutionInThisExecutionPacketPhase": false,
+    "workerProcessStartInThisExecutionPacketPhase": false,
+    "workerLeaseClaimInThisExecutionPacketPhase": false,
+    "persistentJobQueueWriteInThisExecutionPacketPhase": false,
+    "gstreamerExecutionInThisExecutionPacketPhase": false,
+    "mkvtoolnixExecutionInThisExecutionPacketPhase": false,
+    "dockerExecutionInThisExecutionPacketPhase": false,
+    "ffmpegFfprobeExecutionInThisExecutionPacketPhase": false,
+    "supabaseMutationInThisExecutionPacketPhase": false,
+    "sqlExecutionInThisExecutionPacketPhase": false,
+    "signedUrlCreationInThisExecutionPacketPhase": false,
+    "publicArtifactCreationInThisExecutionPacketPhase": false,
+    "finalRenderExportInThisExecutionPacketPhase": false,
+    "broadExternalBetaUnlockInThisExecutionPacketPhase": false,
+    "paidProductionUnlockInThisExecutionPacketPhase": false,
+    "productionUnlockInThisExecutionPacketPhase": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-DISPATCH-EXECUTION-PACKET-QA-ROLLUP-1"
+}

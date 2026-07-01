@@ -11,10 +11,10 @@ const CLI_PATH = 'server/cli/external-agent-tool-next-command.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-next-command-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-next-command'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-next-command'
-const QWEN_FIX_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
 const QWEN_RETRY_2_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+const QWEN_RESULT_REVIEW_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 const QWEN_AUTH_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
 
@@ -89,7 +89,7 @@ assert.equal(
 )
 assert.equal(
   spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
-  QWEN_FIX_PROMPT,
+  QWEN_RESULT_REVIEW_PROMPT,
 )
 assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_RETRY_2_PROMPT)
 
@@ -155,39 +155,11 @@ const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
     afterCompletionCommand: string
   }>
 }
-assert.equal(qwenGateSummary.executionAllowedNow, true)
-assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
-assert.equal(qwenGateSummary.currentBlocker, 'explicit_58dw_retry_2_prompt_required_before_runtime')
-assert.equal(qwenGateSummary.safeNextCommand, QWEN_RETRY_2_PROMPT)
-assert.equal(qwenGateSummary.manualBlockerActions.length, 2)
-assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
-assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
-assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.runsModel === false), true)
-assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.createsAssets === false), true)
-assert.equal(
-  qwenGateSummary.manualBlockerActions.some(
-    (action) =>
-      action.id === 'refresh_active_gcloud_login' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === true &&
-      action.mutatesLocalGcloudConfig === false &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
-assert.equal(
-  qwenGateSummary.manualBlockerActions.some(
-    (action) =>
-      action.id === 'select_authenticated_gcloud_account_if_needed' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === false &&
-      action.mutatesLocalGcloudConfig === true &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
+assert.equal(qwenGateSummary.executionAllowedNow, false)
+assert.equal(qwenGateSummary.staticExplicitToolGateReady, false)
+assert.equal(qwenGateSummary.currentBlocker, 'qwen_58dw_retry_2_result_review_required')
+assert.equal(qwenGateSummary.safeNextCommand, QWEN_RESULT_REVIEW_PROMPT)
+assert.equal(qwenGateSummary.manualBlockerActions.length, 0)
 const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') as {
   executionAllowedNow: boolean
   staticExplicitToolGateReady: boolean
@@ -294,7 +266,7 @@ if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
   )
   assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
   assert.equal(decision.codexRunnableNextCommandNow, decision.chosenNextCommand)
-  assert.equal(decision.chosenManualAction, QWEN_FIX_PROMPT)
+  assert.equal(decision.chosenManualAction, QWEN_RESULT_REVIEW_PROMPT)
   assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else {

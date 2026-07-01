@@ -1,13 +1,13 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
-  'do not invoke Cloud Run except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
-  'do not execute Cloud Run jobs except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+  'do not invoke Cloud Run again before the 58DW retry-2 result review is accepted',
+  'do not execute Cloud Run jobs again before the 58DW retry-2 result review is accepted',
   'do not create Compute Engine VMs',
   'do not request quota',
   'do not run Docker',
-  'do not import models except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
-  'do not run inference except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+  'do not import models again before the 58DW retry-2 result review is accepted',
+  'do not run inference again before the 58DW retry-2 result review is accepted',
   'do not create generated assets',
   'do not call providers',
   'do not dispatch workers',
@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'Qwen completed the bounded 58DW retry but failed the required structured fixture schema; the 58DW-FIX strict structured-output source fix is recorded and only the explicit 58DW-RETRY-2 bounded fixture prompt may run after live preflight passes',
+        'Qwen completed the bounded 58DW retry-2 after the strict output fix; no further runtime retry is allowed until the retry-2 metadata result review is accepted',
       afterBlockerClears:
-        'run the read-only next-command selector; if live Qwen preflight passes, it may surface only the explicit 58DW-RETRY-2 bounded fixture prompt',
+        'complete the 58DX private inference result review before any further Qwen runtime posture is proposed',
     }
   }
 

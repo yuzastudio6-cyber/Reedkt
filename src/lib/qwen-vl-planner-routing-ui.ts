@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready'
+  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_2_passed_result_review_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -220,14 +220,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
       currentStatus:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready',
+        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_2_passed_result_review_required',
       currentBlocker:
-        'Controlled private invoke, structured-output, persistence, active migration, persisted worker dispatch, private invoke, and private inference planning evidence are recorded through the 58DW bounded retry result and the strict output fix. The retry loaded Qwen and returned parseable JSON, but the fixture metadata failed the required schema; the source now rejects that top-level object-row shape and is ready only for an explicit bounded retry-2 prompt. Generated assets, signed URLs, beta, and production remain blocked.',
+        'Controlled private invoke, structured-output, persistence, active migration, persisted worker dispatch, private invoke, and private inference planning evidence are recorded through the 58DW bounded retry result, the strict output fix, and the 58DW-RETRY-2 passed result. Retry-2 loaded Qwen, returned accepted metadata evidence, and restored fail-closed; result review is required before any further Qwen runtime posture. Generated assets, signed URLs, beta, and production remain blocked.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The live next-command guard may surface only the 58DW-RETRY-2 bounded fixture prompt after live preflight passes. Generated assets, published artifacts, signed URLs, beta, and production remain blocked now.',
+        'The live next-command guard now routes to 58DX result review instead of another runtime retry. Generated assets, published artifacts, signed URLs, beta, and production remain blocked now.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -263,6 +263,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
     nextPrompt:
-      'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation',
+      'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta',
   }
 }

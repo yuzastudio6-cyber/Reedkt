@@ -18,7 +18,7 @@ import { createJobRoutes } from './routes/job-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
-import { createStripeBillingRoutes } from './routes/stripe-billing-routes'
+import { createStripeBillingRawWebhookRoutes, createStripeBillingRoutes } from './routes/stripe-billing-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createTrackBAgentToolRoutes } from './routes/trackb-agent-tool-routes'
 import { createUploadRoutes } from './routes/upload-routes'
@@ -37,12 +37,13 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   const app = express()
   app.disable('x-powered-by')
   app.use(cors({ origin: true, credentials: true }))
-  app.use(express.json({ limit: '1mb' }))
   app.use((request, _response, next) => {
     ;(request as RuntimeRequest).runtime = runtime
     next()
   })
   app.use(requestIdMiddleware)
+  app.use(createStripeBillingRawWebhookRoutes())
+  app.use(express.json({ limit: '1mb' }))
 
   app.use(createHealthRoutes())
   app.use(createBetaReadinessRoutes())

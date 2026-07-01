@@ -82,6 +82,8 @@ Purchased credits are bought separately and should be tracked separately from we
 
 Business credits should be tracked as production/business usage and may require stronger reporting later.
 
+RP-STRIPE-TESTMODE-01 can create Stripe test-mode credit-pack Checkout Sessions and grant purchased credits to the local mock wallet only after a verified test webhook. It does not enable live billing, production wallet persistence, production ledger entries, export unlock, or automatic retry.
+
 ## Timing Complexity Credits
 
 Timing complexity affects Reedit Credits when a plan includes frame-accurate caption animation, visual cue timing, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.

@@ -38,12 +38,34 @@ export const createStripeSetupIntentSchema = z.object({
   metadata: secretSafeJsonObjectSchema.default({}),
 }).strict().superRefine(rejectStripeSecrets)
 
+export const createStripeTestSetupIntentSchema = z.object({
+  workspaceId: idSchema,
+  userId: idSchema,
+  stripeMode: z.literal('test'),
+  returnUrl: safeUrlSchema.nullish(),
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema.default({}),
+}).strict().superRefine(rejectStripeSecrets)
+
 export const createStripeCreditCheckoutSessionSchema = z.object({
   workspaceId: idSchema,
   userId: idSchema,
   creditWalletId: idSchema,
   creditPackId: idSchema,
   stripeMode: stripeOperationalModeSchema,
+  successUrl: safeUrlSchema,
+  cancelUrl: safeUrlSchema,
+  idempotencyKey: idSchema,
+  ...optionalRelatedIds,
+  metadata: secretSafeJsonObjectSchema.default({}),
+}).strict().superRefine(rejectStripeSecrets)
+
+export const createStripeTestCreditCheckoutSessionSchema = z.object({
+  workspaceId: idSchema,
+  userId: idSchema,
+  creditWalletId: idSchema,
+  creditPackId: idSchema,
+  stripeMode: z.literal('test'),
   successUrl: safeUrlSchema,
   cancelUrl: safeUrlSchema,
   idempotencyKey: idSchema,

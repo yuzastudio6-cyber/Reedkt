@@ -27,3 +27,7 @@ This is mock-only: no live billing, no Stripe/payment, no real checkout, no prov
 ## Stripe Foundation Handoff
 
 RP-STRIPE-FOUNDATION-01 adds the mock/config-only Stripe billing foundation that future real top-up checkout will use. It defines test/live mode separation, Secret Manager reference validation, Checkout Session stubs, webhook idempotency, and live-readiness gates, but it still does not create real Stripe checkout sessions, grant credits from webhooks, mutate production wallets, or unlock exports. See `docs/stripe-billing-foundation.md` and `smoke:stripe-foundation`.
+
+## Stripe Test-Mode Handoff
+
+RP-STRIPE-TESTMODE-01 adds real Stripe test-mode customer, SetupIntent, Checkout Session, and verified webhook processing. Test checkout grants purchased credits into the same local mock wallet/grant store only after a verified test webhook. Live Stripe, production wallet persistence, production ledger writes, export unlock, and automatic retry remain future work. See `docs/stripe-testmode-billing-path.md` and `smoke:stripe-testmode`.

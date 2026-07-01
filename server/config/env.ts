@@ -112,6 +112,7 @@ interface ParsedRuntimeEnvSource {
   REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME?: string
   REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME?: string
   REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED?: string
+  REEDITPRO_STRIPE_TEST_MODE_REAL_CALLS_ALLOWED?: string
   REEDITPRO_STRIPE_LIVE_MODE_ALLOWED?: string
   REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL?: string
   REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE: StripeWebhookEndpointMode
@@ -249,6 +250,7 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       publishableKeySecretNameConfigured: Boolean(env.stripeBilling.publishableKeySecretName),
       webhookSigningSecretNameConfigured: Boolean(env.stripeBilling.webhookSigningSecretName),
       restrictedKeyPreferred: env.stripeBilling.restrictedKeyPreferred,
+      testModeRealCallsAllowed: env.stripeBilling.testModeRealCallsAllowed,
       liveModeAllowed: env.stripeBilling.liveModeAllowed,
       liveModeRequiresManualApproval: env.stripeBilling.liveModeRequiresManualApproval,
       webhookEndpointMode: env.stripeBilling.webhookEndpointMode,
@@ -322,6 +324,7 @@ function parseRuntimeEnvSource(source: NodeJS.ProcessEnv): ParsedRuntimeEnvSourc
     REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_LIVE_PUBLISHABLE_KEY_SECRET_NAME),
     REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME: optionalString(source.REEDITPRO_STRIPE_LIVE_WEBHOOK_SECRET_NAME),
     REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED: optionalString(source.REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED),
+    REEDITPRO_STRIPE_TEST_MODE_REAL_CALLS_ALLOWED: optionalString(source.REEDITPRO_STRIPE_TEST_MODE_REAL_CALLS_ALLOWED),
     REEDITPRO_STRIPE_LIVE_MODE_ALLOWED: optionalString(source.REEDITPRO_STRIPE_LIVE_MODE_ALLOWED),
     REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL: optionalString(source.REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL),
     REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE: enumValue(source.REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE, 'REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE', ['disabled', 'test', 'live'], 'disabled'),
@@ -422,13 +425,16 @@ function createStripeBillingRuntimeConfig(parsed: ParsedRuntimeEnvSource): Strip
     webhookSigningSecretName,
     secretReferences,
     restrictedKeyPreferred: parseBoolean(parsed.REEDITPRO_STRIPE_RESTRICTED_KEY_PREFERRED),
+    testModeRealCallsAllowed: parseBoolean(parsed.REEDITPRO_STRIPE_TEST_MODE_REAL_CALLS_ALLOWED),
     liveModeAllowed: parseBoolean(parsed.REEDITPRO_STRIPE_LIVE_MODE_ALLOWED),
     liveModeRequiresManualApproval: parseBoolean(parsed.REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL),
     webhookEndpointMode: parsed.REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE,
     environment: parsed.NODE_ENV,
     mockOnly: true,
     warnings: [
-      'RP-STRIPE-FOUNDATION-01 is config/mock only; no Stripe SDK call, checkout session, setup intent, payment intent, webhook credit grant, wallet mutation, or ledger write is enabled.',
+      parseBoolean(parsed.REEDITPRO_STRIPE_TEST_MODE_REAL_CALLS_ALLOWED)
+        ? 'RP-STRIPE-TESTMODE-01 allows real Stripe test-mode calls only when test config and server-side secret references pass readiness.'
+        : 'RP-STRIPE-FOUNDATION-01 is config/mock only; no Stripe SDK call, checkout session, setup intent, payment intent, webhook credit grant, wallet mutation, or ledger write is enabled.',
     ],
   }
 }

@@ -24,6 +24,10 @@ The mock SetupIntent endpoint can create a local mock setup-intent record for an
 
 The mock Checkout endpoint validates an existing mock credit wallet and an active credit pack, then creates a local mock checkout-session record. It does not create a real Checkout Session, PaymentIntent, or SetupIntent, and it does not grant credits or mutate the wallet. Webhook-driven credit grants remain future work.
 
+## Test-Mode Real Path
+
+RP-STRIPE-TESTMODE-01 adds explicit `/test` routes for Stripe test customers, SetupIntents, Checkout Sessions, and raw-body webhook processing. Test checkout grants local mock purchased credits only after a verified test webhook and matching pack/wallet metadata. The mock `/mock` routes remain config-only stubs. See `docs/stripe-testmode-billing-path.md` and `smoke:stripe-testmode`.
+
 ## Webhook foundation
 
 The mock webhook endpoint records verified mock events idempotently by Stripe event ID. Signature verification is a contract boundary only: future live Stripe verification requires the raw request body before JSON parsing, a `Stripe-Signature` header, and a mode-matched webhook signing secret reference. Parsed JSON body alone is not accepted for live verification.
@@ -36,9 +40,13 @@ RP-STRIPE-FOUNDATION-01 adds authenticated mock/config routes:
 
 - `GET /v1/billing/stripe/config/status`
 - `GET /v1/billing/stripe/live-readiness`
+- `GET /v1/billing/stripe/test-readiness`
 - `POST /v1/billing/stripe/setup-intents/mock`
+- `POST /v1/billing/stripe/setup-intents/test`
 - `POST /v1/billing/stripe/checkout-sessions/mock`
+- `POST /v1/billing/stripe/checkout-sessions/test`
 - `POST /v1/billing/stripe/webhooks/mock`
+- `POST /v1/billing/stripe/webhooks/test`
 
 The older `/api/stripe/*` route registry entries remain disabled future live metadata.
 

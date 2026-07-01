@@ -90,6 +90,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Always estimate credits before generation.
 - Deduct credits only after user approval.
 - Do not imply subscriptions provide open-ended AI editing.
+- Stripe test-mode billing routes may create test customers, SetupIntents, Checkout Sessions, and verified test webhook grants, but live Stripe, production wallet mutation, production ledger writes, Supabase writes, export unlock, and provider/render/export execution remain blocked unless a later milestone explicitly enables them.
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
 - RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.

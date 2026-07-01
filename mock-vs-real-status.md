@@ -90,3 +90,9 @@
 - Real: disabled/test/live Stripe config contracts, Secret Manager reference validation, customer/payment method link contracts, mock SetupIntent/Checkout records, webhook idempotency records, and live-readiness checks exist.
 - Mock-only: `/v1/billing/stripe/*` routes are config/mock endpoints and expose no raw secret values.
 - Not implemented: live Stripe SDK calls, real Checkout Sessions, real SetupIntents, real PaymentIntents, card charges, webhook credit grants, Supabase writes, production wallet mutation, production ledger writes, provider/render/export execution, export unlock, and live checkout/top-up behavior.
+
+## RP-STRIPE-TESTMODE-01 Stripe Test-Mode Status
+
+- Real: `/v1/billing/stripe/*/test` routes can create Stripe test customers, SetupIntents, Checkout Sessions, and verify test webhooks with raw request bodies.
+- Real: verified test checkout completion can grant purchased credits into the local mock wallet/grant store idempotently.
+- Mock/test-only: no live Stripe, production wallet mutation, production ledger write, Supabase write, provider call, render/export execution, export unlock, or production persistence is wired.

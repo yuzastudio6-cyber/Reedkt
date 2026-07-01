@@ -81,6 +81,11 @@ assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
 assert.deepEqual(summary.readyToolIds, [])
 assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length)
 assert.deepEqual(summary.missingEvidence, [])
+assert.deepEqual(summary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
+assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(summary.preferredNextSafeCommand.mutatesRuntime, false)
+assert.equal(summary.preferredNextSafeCommand.runsModel, false)
+assert.equal(summary.preferredNextSafeCommand.createsAssets, false)
 assert.equal(
   summary.recommendedNextPrompt,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt,
@@ -118,6 +123,7 @@ console.log(
       mode: summary.mode,
       evidenceChecked: summary.evidenceChecked,
       blockedToolCount: summary.blockedToolCount,
+      preferredNextSafeCommand: summary.preferredNextSafeCommand.command,
       liveChecksRun: summary.liveChecksRun,
       runtimeGatesAllFalse: summary.runtimeGatesAllFalse,
       recommendedNextPrompt: summary.recommendedNextPrompt,

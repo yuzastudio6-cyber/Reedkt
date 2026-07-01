@@ -71,6 +71,9 @@ function main() {
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
+  const safeNextCommands = rollup.safeNextCommands
+  const preferredNextSafeCommand =
+    safeNextCommands.find((command) => command.id === 'live_blocker_preflight') ?? safeNextCommands[0]
 
   const summary = {
     ok: missingEvidence.length === 0 && runtimeGatesAllFalse,
@@ -99,6 +102,8 @@ function main() {
       blocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
     })),
+    safeNextCommands,
+    preferredNextSafeCommand,
     evidenceChecked: evidence.length,
     missingEvidence,
     recommendedNextPrompt: rollup.recommendedNextPrompt,

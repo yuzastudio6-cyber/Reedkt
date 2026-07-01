@@ -106,6 +106,8 @@
     "ai-graphics:external-agent-cpu-static-private-worker-dispatch-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-dispatch-smoke-proof-diagnostics.mjs",
     "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts",
     "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof-diagnostics.mjs",
+    "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof.ts",
+    "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof-diagnostics.mjs",
     "ai-graphics:external-beta-route-mount-feature-flag:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs",
     "ai-graphics:external-beta-api-route-boundary": "tsx server/cli/ai-graphics-external-beta-api-route-boundary.ts",
     "ai-graphics:external-beta-api-route-boundary:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-boundary-diagnostics.mjs",

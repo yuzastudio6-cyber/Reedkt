@@ -174,6 +174,8 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =

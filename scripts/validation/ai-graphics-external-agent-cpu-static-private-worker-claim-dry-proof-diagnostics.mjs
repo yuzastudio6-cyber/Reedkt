@@ -184,7 +184,9 @@ const allowedPackageDiffLines = new Set([
   '+    "ai-graphics:external-agent-cpu-static-private-worker-dispatch-smoke-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-dispatch-smoke-proof.ts",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-dispatch-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-dispatch-smoke-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof.ts",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =

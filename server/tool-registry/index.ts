@@ -43,6 +43,7 @@ export * from './ai-graphics-external-agent-cpu-static-private-worker-claim-dry-
 export * from './ai-graphics-external-agent-cpu-static-private-worker-dispatch-dry-proof'
 export * from './ai-graphics-external-agent-cpu-static-private-worker-dispatch-smoke-proof'
 export * from './ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof'
+export * from './ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof'
 export * from './ai-graphics-external-beta-api-route-boundary'
 export * from './ai-graphics-external-beta-api-route-queue-insertion-proof'
 export * from './ai-graphics-external-beta-api-route-queue-smoke-authorization'

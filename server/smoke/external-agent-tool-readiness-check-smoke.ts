@@ -77,11 +77,11 @@ assert.equal(summary.supabaseTouched, false)
 assert.equal(summary.sqlExecuted, false)
 assert.equal(summary.modelInferenceRun, false)
 assert.equal(summary.generatedAssetsCreated, false)
-assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
-assert.deepEqual(summary.readyToolIds, [])
+assert.equal(summary.readyForAnyExternalAgentExecutionNow, true)
+assert.deepEqual(summary.readyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.deepEqual(summary.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.equal(summary.livePreflightRequiredBeforeRuntime, true)
-assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length)
+assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length - 1)
 assert.deepEqual(summary.missingEvidence, [])
 assert.deepEqual(summary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
 assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
@@ -94,7 +94,7 @@ assert.equal(
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('qwen2_5_vl_7b_instruct'),
-  true,
+  false,
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('ai_video_broll_generation_wan'),
@@ -114,56 +114,13 @@ assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
 assert.deepEqual(summary.manualBlockerActionToolIds, [
-  'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
 
 const blockersByTool = new Map(
   summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),
 )
-const qwenBlocker = blockersByTool.get('qwen2_5_vl_7b_instruct') as {
-  manualBlockerActions: Array<{
-    id: string
-    runInsideCodex: boolean
-    mutatesRuntime: boolean
-    runsModel: boolean
-    createsAssets: boolean
-    mutatesCloud: boolean
-    mutatesLocalGcloudAuth: boolean
-    mutatesLocalGcloudConfig: boolean
-    changesQuotaRequest: boolean
-    afterCompletionCommand: string
-  }>
-}
-assert.equal(qwenBlocker.manualBlockerActions.length, 2)
-assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
-assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
-assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.runsModel === false), true)
-assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.createsAssets === false), true)
-assert.equal(
-  qwenBlocker.manualBlockerActions.some(
-    (action) =>
-      action.id === 'refresh_active_gcloud_login' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === true &&
-      action.mutatesLocalGcloudConfig === false &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
-assert.equal(
-  qwenBlocker.manualBlockerActions.some(
-    (action) =>
-      action.id === 'select_authenticated_gcloud_account_if_needed' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === false &&
-      action.mutatesLocalGcloudConfig === true &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
+assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), false)
 
 const brollBlocker = blockersByTool.get('ai_video_broll_generation_wan') as {
   manualBlockerActions: Array<{

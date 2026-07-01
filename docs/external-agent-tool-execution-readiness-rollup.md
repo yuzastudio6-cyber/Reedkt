@@ -1,6 +1,6 @@
 # External Agent Tool Execution Readiness Rollup
 
-Decision: `external_agent_tool_execution_readiness_live_preflight_required_qwen_auth_blocked_broll_quota`.
+Decision: `external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked`.
 
 This rollup is a coordination artifact for external AI-agent execution readiness. It does not install packages, start GPU runtime, call providers, dispatch workers, mutate Supabase, run SQL, create generated assets, create public artifacts, create signed URLs, spend credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
@@ -15,7 +15,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 | Tool lane | Current stage | External-agent execution readiness | Primary blocker | Next action |
 | --- | --- | --- | --- | --- |
-| `qwen2_5_vl_7b_instruct` | controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference gate alignment accepted explicit tool prompt required | explicit tool gate prepared, live runtime blocked | bounded private inference retry planning, the 58DS retry gate, the 58DT retry attempt approval, the historical 58DU blocked retry result, the 58DV gate alignment, and the 58DW live-preflight blocked result are recorded; current live preflight reports `local_gcloud_reauthentication_required` before service/job visibility can be trusted | `QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight` |
+| `qwen2_5_vl_7b_instruct` | controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference live preflight verified, explicit 58DW prompt required | ready for explicit tool gate only | bounded private inference retry planning, the 58DS retry gate, the 58DT retry attempt approval, the historical 58DU blocked retry result, the 58DV gate alignment, the historical 58DW blocked result, and current live read-only auth/service/job preflight are recorded; the only permitted runtime path is the exact bounded 58DW prompt after a fresh live preflight | `QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation` |
 | `ai_video_broll_generation_wan` | controlled L4 private proof, Wan/Wan2.1 selected, private cache/proof-runner/fast cache readiness evidence present | blocked | auth-readable live preflight now reads GPU quota and `GPUS_ALL_REGIONS` remains insufficient for one L4 proof VM | `AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes` |
 | `sound_music_audio` | mock/dry-run/local-fixture evidence and handoff planning | metadata-only | real provider gateway, worker runtime, Supabase/storage, Track A/B, QA, billing, and export paths are still not execution-accepted here | continue only after owner evidence and runtime paths are accepted |
 | `supabase_local_fixture_harness` | supporting local harness/config evidence in related branches | supporting evidence only | current branch is not a Supabase execution branch and must not mutate live data | use only as source-of-truth/private-path evidence, not runtime execution |
@@ -32,7 +32,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 ## Current Manual Blockers
 
-1. Qwen: the bounded approved-fixture private inference retry plan/gate/approval are recorded, the historical 58DU blocked retry result is preserved, the 58DV gate alignment is accepted, and the 58DW live-preflight result is blocked by local gcloud reauthentication; refresh the active local gcloud account/configuration visible to this shell before any runtime action.
+1. Qwen: current read-only live preflight verifies local gcloud token refresh, Cloud Run service describe, and caller job describe. External agents may proceed only through `npm run external-agent-tool-next-command`, which must rerun live preflight and return the exact 58DW bounded retry prompt before any runtime action.
 2. B-roll: Google Cloud `GPUS_ALL_REGIONS` quota must be increased to at least `1` before a controlled L4 proof VM can be created.
 
 ## Safe Agent Commands
@@ -59,7 +59,7 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 - `npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight for Qwen local gcloud auth/service/job visibility and B-roll `GPUS_ALL_REGIONS`/regional L4 quota. It also reports the resolved `gcloud` path and all visible `gcloud` candidates before auth-dependent probes. It runs without Cloud Run invocation, VM creation, quota requests, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation.
 - `npm run external-agent-gcloud-session:diagnostic` provides a read-only local gcloud session/config diagnostic when user-refreshed auth is not visible to the Codex shell, including the resolved `gcloud` path, all `gcloud` candidates on `PATH`, whether `/opt/homebrew/bin/gcloud` is present, and path-specific manual repair command strings for the resolved binary. It runs without token logging, Cloud Run invocation, configuration mutation, VM creation, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation. Its structured repair actions are manual-only, outside-Codex instructions and are checked separately from the executable read-only probe list.
 - `npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight without cache hashing, GPU work, model imports, inference, provider calls, workers, Docker, Supabase, SQL, or mutations.
-- Qwen is the closest lane to controlled private model inference; the bounded private inference retry plan/gate/approval/historical result, 58DV gate alignment, and 58DW live-preflight blocked result are recorded. Runtime remains blocked until local gcloud auth is refreshed in this shell, refreshed live auth/service/job readiness is recorded, and `npm run external-agent-tool-next-command` returns the explicit 58DW bounded retry prompt from the actual execution gate.
+- Qwen is the closest lane to controlled private model inference; the bounded private inference retry plan/gate/approval/historical result, 58DV gate alignment, historical 58DW blocked result, and current read-only live auth/service/job preflight are recorded. Runtime remains limited to the exact 58DW bounded retry prompt returned by `npm run external-agent-tool-next-command` after a fresh live preflight; raw chat, direct Cloud Run invocation, unbounded inference, generated assets, Supabase mutation, signed URLs, credits, beta, and production remain blocked.
 - B-roll has Wan/Wan2.1 planning, private cache evidence, proof-runner evidence, and fast stat-only cache readiness evidence, but remains quota-blocked for cloud GPU proof.
 - B-roll external-agent execution must not leave an idle GPU running; the accepted proof posture is bounded, private, no-public-IP, cleanup-verified execution only.
 - SOUND and Supabase are supporting readiness lanes here, not currently executable media/model tools.
@@ -73,4 +73,4 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 
 ## Recommended Next Prompt
 
-`QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight`
+`QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation`

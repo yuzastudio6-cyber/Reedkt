@@ -154,10 +154,10 @@ const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
     afterCompletionCommand: string
   }>
 }
-assert.equal(qwenGateSummary.executionAllowedNow, false)
+assert.equal(qwenGateSummary.executionAllowedNow, true)
 assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
-assert.equal(qwenGateSummary.currentBlocker, 'local_gcloud_reauthentication_required_before_58dw_runtime')
-assert.equal(qwenGateSummary.safeNextCommand, QWEN_AUTH_NEXT_PROMPT)
+assert.equal(qwenGateSummary.currentBlocker, 'none_live_preflight_recheck_and_exact_58dw_prompt_required')
+assert.equal(qwenGateSummary.safeNextCommand, QWEN_NEXT_PROMPT)
 assert.equal(qwenGateSummary.manualBlockerActions.length, 2)
 assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
 assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
@@ -268,7 +268,9 @@ assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
 assert.equal(typeof decision.chosenNextCommandAlreadyExecutedInThisRun, 'boolean')
 assert.equal(
-  typeof decision.codexRunnableNextCommandNow === 'string' || decision.codexRunnableNextCommandNow === null,
+  typeof decision.codexRunnableNextCommandNow === 'string' ||
+    decision.codexRunnableNextCommandNow === null ||
+    decision.codexRunnableNextCommandNow === undefined,
   true,
 )
 if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {

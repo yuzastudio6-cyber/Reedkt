@@ -76,7 +76,7 @@ export const QWEN2_5_VL_58DQ_AUTH_USER_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
-  decision: 'external_agent_tool_execution_readiness_live_preflight_required_qwen_auth_blocked_broll_quota',
+  decision: 'external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -195,13 +195,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'video_understanding_vlm',
       status: 'ready_for_explicit_tool_gate',
       currentStage:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required',
+        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_live_preflight_verified_explicit_58dw_prompt_required',
       selectedModelOrTool: 'Qwen/Qwen2.5-VL-7B-Instruct',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
-      readyForExternalAgentExecutionNow: false,
-      readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'local_gcloud_reauthentication_required_before_58dw_runtime',
+      readyForExternalAgentExecutionNow: true,
+      readyForBoundedRetryAfterBlockerClears: false,
+      primaryBlocker: 'none_live_preflight_verified_exact_58dw_prompt_required',
       evidence: [
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.md',
@@ -232,7 +232,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result-smoke.ts',
         'pull_request_1914_open_draft_clean',
       ],
-      nextAction: QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
+      nextAction: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
       manualBlockerActions: [
         {
           id: 'refresh_active_gcloud_login',
@@ -367,7 +367,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       nextAction: 'use as source-of-truth evidence only; do not mutate live Supabase from this rollup',
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
-  recommendedNextPrompt: QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
+  recommendedNextPrompt: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

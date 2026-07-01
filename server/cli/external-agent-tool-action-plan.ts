@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'live Qwen auth/service/job preflight must clear before the bounded 58DW execution prompt; no direct or unbounded inference is allowed from this action plan',
+        'Qwen is ready only for the exact bounded 58DW prompt after live auth/service/job preflight rechecks; no direct or unbounded inference is allowed from this action plan',
       afterBlockerClears:
-        'run npm run external-agent-tool-next-command again and only use the approved 58DW bounded retry prompt if that live selector returns it',
+        'run npm run external-agent-tool-next-command and only use the approved 58DW bounded retry prompt if that live selector returns it',
     }
   }
 

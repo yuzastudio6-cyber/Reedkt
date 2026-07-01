@@ -226,7 +226,13 @@ const rollupBrollActions = rollupToolsById.get(BROLL_TOOL_ID)?.manualBlockerActi
 assertQwenManualActions(rollupQwenActions, 'rollup.qwen')
 assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
-assert.equal(rollup.tools.every((tool) => tool.readyForExternalAgentExecutionNow === false), true)
+for (const tool of rollup.tools) {
+  assert.equal(
+    tool.readyForExternalAgentExecutionNow,
+    tool.toolId === QWEN_TOOL_ID,
+    `${tool.toolId} readiness must match the explicit Qwen gate-only decision`,
+  )
+}
 
 const actionPlan = runJsonCli('server/cli/external-agent-tool-action-plan.ts')
 const readiness = runJsonCli('server/cli/external-agent-tool-readiness-check.ts')
@@ -236,8 +242,6 @@ const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
 
 const qwenSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, QWEN_TOOL_ID, 'actionPlan.toolActions')],
-  ['actionPlan.manualBlockers', manualActionsFromRows(actionPlan.manualBlockers, QWEN_TOOL_ID, 'actionPlan.manualBlockers')],
-  ['readiness.blockers', manualActionsFromRows(readiness.blockers, QWEN_TOOL_ID, 'readiness.blockers')],
   ['executionGate.toolRows', manualActionsFromRows(executionGate.toolRows, QWEN_TOOL_ID, 'executionGate.toolRows')],
   [
     'blockerPreflight.qwen',
@@ -279,17 +283,31 @@ for (const [label, actions] of qwenSurfaceActions) {
   assertSameManualActions(actions, rollupQwenActions, `${label}.qwen`)
   assertQwenManualActions(actions, `${label}.qwen`)
 }
+assert.equal(
+  asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
+    (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === QWEN_TOOL_ID,
+  ),
+  false,
+  'actionPlan.manualBlockers must not include ready Qwen',
+)
+assert.equal(
+  asArray(readiness.blockers, 'readiness.blockers').some(
+    (row) => asRecord(row, 'readiness.blockers row').toolId === QWEN_TOOL_ID,
+  ),
+  false,
+  'readiness.blockers must not include ready Qwen',
+)
 
 for (const [label, actions] of brollSurfaceActions) {
   assertSameManualActions(actions, rollupBrollActions, `${label}.broll`)
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',
@@ -305,8 +323,8 @@ for (const readinessFlag of [
   assert.equal(readiness[readinessFlag], false, `readiness.${readinessFlag} must remain false`)
 }
 
-assert.equal(executionGate.executionAllowedNow, false)
-assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(executionGate.executionAllowedNow, true)
+assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(executionGate.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(executionGate.runtimeSideEffects, 'executionGate.runtimeSideEffects')
 
@@ -314,8 +332,11 @@ assert.equal(blockerPreflight.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(blockerPreflight.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(blockerPreflight.runtimeSideEffects, 'blockerPreflight.runtimeSideEffects')
 
-assert.equal(nextCommand.executionAllowedNow, false)
-assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(
+  nextCommand.executionAllowedNow,
+  nextCommand.executionGateAllowsRuntime === true && nextCommand.qwenLivePreflightPassed === true,
+)
+assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, nextCommand.executionAllowedNow)
 assert.equal(nextCommand.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(nextCommand.runtimeSideEffects, 'nextCommand.runtimeSideEffects')
 
@@ -351,8 +372,10 @@ console.log(
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),
       runtimeGatesAllFalse: true,
-      executionAllowedNow: false,
-      readyForAnyExternalAgentExecutionNow: false,
+      staticQwenReadyForExplicitGate: true,
+      liveQwenPreflightPassed: nextCommand.qwenLivePreflightPassed,
+      executionAllowedNow: nextCommand.executionAllowedNow,
+      readyForAnyExternalAgentExecutionNow: nextCommand.readyForAnyExternalAgentExecutionNow,
     },
     null,
     2,

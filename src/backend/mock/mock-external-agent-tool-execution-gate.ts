@@ -1,7 +1,7 @@
 import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
-  QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
+  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
@@ -25,7 +25,7 @@ const BROLL_NO_IDLE_LIFECYCLE_GATE = ROLLUP.tools.find(
 )?.noIdleLifecycleGate as ExternalAgentToolNoIdleLifecycleGate
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_no_go_live_preflight_required' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_go_after_explicit_tool_gate' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -34,7 +34,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresApprovedSnapshotBeforeExecution: true,
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
-  readyForAnyExternalAgentExecutionNow: false,
+  readyForAnyExternalAgentExecutionNow: true,
   staticExplicitToolGateReady: true,
   requiresLivePreflightBeforeRuntime: true,
   requireGoExitCodeWhenBlocked: 2,
@@ -50,7 +50,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   toolRows: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',
-      executionAllowedNow: false,
+      executionAllowedNow: true,
       staticExplicitToolGateReady: true,
       requiredBeforeExecution: [
         'non-interactive gcloud token refresh must pass in this shell',
@@ -65,8 +65,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '58DW must use approved fixture, persisted job, lease bridge, and private source-of-truth refs',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'local_gcloud_reauthentication_required_before_58dw_runtime',
-      safeNextCommand: QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
+      currentBlocker: 'none_live_preflight_recheck_and_exact_58dw_prompt_required',
+      safeNextCommand: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
     },
     {
       toolId: 'ai_video_broll_generation_wan',

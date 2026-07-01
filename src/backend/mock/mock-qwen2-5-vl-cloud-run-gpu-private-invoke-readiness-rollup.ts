@@ -276,7 +276,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_blocked_live_gcloud_reauthentication_required_before_58dw_runtime',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_live_preflight_verified_exact_58dw_prompt_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -2096,7 +2096,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt',
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt',
-      status: 'blocked_auth_reverify_required',
+      status: 'ready',
       evidence: [
         'The 58DP attempt approval is recorded for one future bounded approved-fixture private Qwen inference attempt.',
         'The 58DQ private inference attempt result is recorded and stopped during safety preflight because local gcloud required reauthentication before Cloud Run service/job inspection.',
@@ -2106,11 +2106,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'The 58DT retry attempt approval accepts one future bounded approved-fixture private inference retry attempt and keeps generated assets, Supabase mutation, storage writes, signed URLs, credits, beta, and production blocked.',
         'The 58DU retry attempt result records that the runtime retry was not executed because the active external-agent execution gate remains fail-closed.',
         'The 58DV gate alignment records that Qwen may be marked ready for the explicit external-agent tool gate while still requiring the exact 58DW bounded retry prompt before runtime.',
-        'The 58DW bounded retry prompt result records the current live next-command guard as blocked by local gcloud reauthentication before any runtime action.',
+        'The current live next-command guard verifies token refresh, Cloud Run service describe, and caller job describe before surfacing the exact 58DW bounded retry prompt.',
         'No service update, CPU caller job execution, identity-token fetch for the service, private request, model import, model load, vLLM initialization, forward pass, or inference was attempted.',
       ],
       missingEvidence: [
-        'Refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight before 58DW can be attempted.',
+        'Run npm run external-agent-tool-next-command and use only the exact 58DW bounded retry prompt if the live selector returns it.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2931,12 +2931,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'local_gcloud_reauthentication_required_before_58dw_runtime',
-    'live_qwen_auth_service_job_preflight_required',
+    'exact_58dw_bounded_retry_prompt_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
+    'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

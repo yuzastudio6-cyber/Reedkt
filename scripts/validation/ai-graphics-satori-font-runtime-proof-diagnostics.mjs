@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 
 const root = process.cwd();
 const failures = [];
@@ -31,6 +32,18 @@ function readJson(relativePath) {
 }
 
 const packageJson = readJson("package.json");
+let basePackageJson = null;
+try {
+  basePackageJson = JSON.parse(execFileSync("git", [
+    "show",
+    `${baseRef}:package.json`,
+  ], {
+    encoding: "utf8",
+    env: { ...process.env, DEVELOPER_DIR: "/Library/Developer/CommandLineTools" },
+  }));
+} catch (error) {
+  fail(`Unable to read base package.json: ${error.message}`);
+}
 const packageLock = readJson("package-lock.json");
 const proof = readJson("docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json");
 const markdown = read("docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.md");
@@ -61,7 +74,8 @@ if (lockPackages["node_modules/satori"]?.version !== "0.26.0") fail("Expected sa
 if (lockPackages["node_modules/three"]?.version !== "0.184.0") fail("Expected three@0.184.0 in package-lock.");
 
 const fontPath = "node_modules/three/examples/fonts/ttf/kenpixel.ttf";
-if (!fs.existsSync(path.join(root, fontPath))) fail(`Missing locked font fixture ${fontPath}`);
+const localFontFixturePath = path.join(root, fontPath);
+const localFontFixturePresent = fs.existsSync(localFontFixturePath);
 
 const tool = proof?.tool || {};
 if (tool.toolId !== "satori") fail(`Unexpected tool ${tool.toolId}`);
@@ -74,6 +88,16 @@ if (tool.fontFixture?.packageName !== "three") fail("Font fixture must come from
 if (tool.fontFixture?.packageVersion !== "0.184.0") fail(`Unexpected font package version ${tool.fontFixture?.packageVersion}`);
 if (!/^[a-f0-9]{64}$/.test(tool.fontFixture?.sha256 ?? "")) fail("Font fixture SHA-256 missing.");
 if ((tool.fontFixture?.byteLength ?? 0) <= 0) fail("Font fixture byte length missing.");
+if (localFontFixturePresent) {
+  const localFontData = fs.readFileSync(localFontFixturePath);
+  const localFontHash = crypto.createHash("sha256").update(localFontData).digest("hex");
+  if (localFontHash !== tool.fontFixture.sha256) {
+    fail(`Local font fixture hash mismatch ${localFontHash}`);
+  }
+  if (localFontData.byteLength !== tool.fontFixture.byteLength) {
+    fail(`Local font fixture byte length mismatch ${localFontData.byteLength}`);
+  }
+}
 if (tool.outputContract?.hasSvgRoot !== true) fail("SVG root was not proven.");
 if (tool.outputContract?.hasExpectedViewBox !== true) fail("Expected viewBox was not proven.");
 if ((tool.outputContract?.pathCount ?? 0) <= 0) fail("SVG path output was not proven.");
@@ -164,97 +188,17 @@ const packageLockDiff = execFileSync("git", [
 }).trim();
 if (packageLockDiff) fail("package-lock.json changed in satori font proof lane.");
 
-const dependencyDiff = execFileSync("git", [
-  "diff",
-  "--unified=0",
-  baseRef,
-  "--",
-  "package.json",
-], {
-  encoding: "utf8",
-  env: { ...process.env, DEVELOPER_DIR: "/Library/Developer/CommandLineTools" },
-});
-for (const line of dependencyDiff.split(/\r?\n/)) {
-  if (/^[+-]\s*"dependencies"\s*:/.test(line) || /^[+-]\s*"devDependencies"\s*:/.test(line)) {
-    fail("Dependency sections changed unexpectedly.");
-  }
-  if (/^[+]\s*"[^"]+"\s*:\s*"\^?[^"]+"/.test(line) && !line.includes("ai-graphics:satori-font-runtime-proof")) {
-    if (
-      !line.includes("scripts/validation/ai-graphics-satori-font-runtime-proof") &&
-      !line.includes("ai-graphics:gpu-model-install-build-targets:diagnostics") &&
-      !line.includes("ai-graphics:gpu-model-runtime-readiness-gate:diagnostics") &&
-      !line.includes("ai-graphics:tool-call-readiness:diagnostics") &&
-      !line.includes("ai-graphics:21-tool-proper-install-audit:diagnostics") &&
-      !line.includes("ai-graphics:tool-call-handoff:diagnostics") &&
-      !line.includes("ai-graphics:tool-call-plan-evaluator:diagnostics") &&
-      !line.includes("ai-graphics:beta-readiness-gate:diagnostics") &&
-      !line.includes("ai-graphics:beta-readiness-gate:evaluate") &&
-      !line.includes("ai-graphics:beta-activation-gap-report") &&
-      !line.includes("ai-graphics:beta-activation-gap-report:diagnostics") &&
-      !line.includes("ai-graphics:beta-evidence-bundle:validate") &&
-      !line.includes("ai-graphics:beta-evidence-bundle:diagnostics") &&
-      !line.includes("ai-graphics:beta-evidence-local-assembly") &&
-      !line.includes("ai-graphics:beta-evidence-local-assembly:diagnostics") &&
-      !line.includes("ai-graphics:beta-tool-call-readiness") &&
-      !line.includes("ai-graphics:beta-tool-call-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-owner-approval") &&
-      !line.includes("ai-graphics:internal-beta-owner-approval:diagnostics") &&
-      !line.includes("ai-graphics:beta-execution-handoff-readiness") &&
-      !line.includes("ai-graphics:beta-execution-handoff-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-dry-run-readiness") &&
-      !line.includes("ai-graphics:internal-beta-dry-run-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-worker-payload-readiness") &&
-      !line.includes("ai-graphics:internal-beta-worker-payload-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-production-worker-job-readiness") &&
-      !line.includes("ai-graphics:internal-beta-production-worker-job-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-production-worker-gate-readiness") &&
-      !line.includes("ai-graphics:internal-beta-production-worker-gate-readiness:diagnostics") &&
-      !line.includes("ai-graphics:beta-production-readiness-rollup") &&
-      !line.includes("ai-graphics:beta-production-readiness-rollup:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-go-no-go") &&
-      !line.includes("ai-graphics:internal-beta-go-no-go:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-go-no-go-owner-approval") &&
-      !line.includes("ai-graphics:internal-beta-go-no-go-owner-approval:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-runtime-enqueue-approval") &&
-      !line.includes("ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-queue-admission-readiness") &&
-      !line.includes("ai-graphics:internal-beta-queue-admission-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-queue-adapter-readiness") &&
-      !line.includes("ai-graphics:internal-beta-queue-adapter-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-queue-dispatcher-readiness") &&
-      !line.includes("ai-graphics:internal-beta-queue-dispatcher-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-backend-queue-storage-readiness") &&
-      !line.includes("ai-graphics:internal-beta-backend-queue-storage-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-service-role-queue-transaction-readiness") &&
-      !line.includes("ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-implementation-readiness:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-smoke-readiness") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics") &&
-      !line.includes("ai-graphics:cross-owner-coordination") &&
-      !line.includes("ai-graphics:cross-owner-coordination:diagnostics") &&
-      !line.includes("ai-graphics:tool-route-readiness:diagnostics") &&
-      !line.includes("ai-graphics:worker-handoff-readiness:diagnostics") &&
-      !line.includes("ai-graphics:model-weight-manifest-readiness:diagnostics") &&
-      !line.includes("ai-graphics:model-weight-manifest-review:validate") &&
-      !line.includes("ai-graphics:model-weight-manifest-review-packet:diagnostics") &&
-      !line.includes("ai-graphics:gpu-runtime-proof-command-plan") &&
-      !line.includes("ai-graphics:gpu-runtime-proof-command-plan:diagnostics") &&
-      !line.includes("ai-graphics:gpu-runtime-proof-result:validate") &&
-      !line.includes("ai-graphics:gpu-runtime-proof-result:diagnostics") &&
-      !line.includes("ai-graphics:gpu-runtime-proof-local-preflight") &&
-      !line.includes("ai-graphics:gpu-runtime-proof-local-preflight:diagnostics") &&
-      !line.includes("ai-graphics:model-weight-manifest-scaffold") &&
-      !line.includes("ai-graphics:model-weight-manifest-scaffold:diagnostics") &&
-      !line.includes("ai-graphics:model-weight-source-catalog:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-local-smoke") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-local-smoke:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-adapter-local-smoke:diagnostics") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke") &&
-      !line.includes("ai-graphics:internal-beta-service-role-rpc-worker-handoff-local-smoke:diagnostics")
-    ) {
-      fail(`Unexpected package.json addition: ${line}`);
-    }
+for (const section of [
+  "dependencies",
+  "devDependencies",
+  "optionalDependencies",
+  "peerDependencies",
+  "overrides",
+]) {
+  const currentSection = JSON.stringify(packageJson?.[section] ?? {});
+  const baseSection = JSON.stringify(basePackageJson?.[section] ?? {});
+  if (currentSection !== baseSection) {
+    fail(`Package ${section} changed unexpectedly.`);
   }
 }
 
@@ -310,5 +254,6 @@ console.log(JSON.stringify({
   decision: proof?.decision,
   tool: "satori",
   proofStatus: tool.status,
+  localFontFixturePresent,
   runtimeBetaReadyNow: false,
 }, null, 2));

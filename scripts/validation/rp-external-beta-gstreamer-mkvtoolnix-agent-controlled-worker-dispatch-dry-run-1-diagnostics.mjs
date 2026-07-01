@@ -43,7 +43,23 @@ const sourceFiles = [
   'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-queue-integration-1.ts',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const followOnRuntimePacketFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/worker-runtime-execution-packet-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/runtime-packet-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-qa-rollup-1.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...followOnRuntimePacketFiles])
 
 const requiredText = [
   packet,
@@ -90,7 +106,7 @@ const requiredText = [
 const forbiddenChangedPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-smoke\.ts$)/,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-dispatch-dry-run-1-smoke\.ts$|services\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-agent-controlled-worker-runtime-execution-packet-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

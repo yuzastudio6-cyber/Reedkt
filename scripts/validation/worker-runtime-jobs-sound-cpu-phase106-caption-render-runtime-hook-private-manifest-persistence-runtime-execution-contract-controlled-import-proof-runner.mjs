@@ -89,6 +89,7 @@ function summarizeGateInspection(gateInspection) {
   return Object.values(gateInspection).every((value) => value === true)
 }
 
+async function main() {
 try {
   const targetPath = path.join(process.cwd(), targetSourcePath)
   const importedModule = await import(pathToFileURL(targetPath).href)
@@ -134,6 +135,9 @@ try {
   )
   process.exitCode = 1
 }
+}
+
+main()
 `
 
 function resolveTsxCommand() {

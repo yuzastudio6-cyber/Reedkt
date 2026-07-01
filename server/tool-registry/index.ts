@@ -48,6 +48,7 @@ export * from './ai-graphics-external-agent-cpu-static-private-worker-exact-exec
 export * from './ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'
 export * from './ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof'
 export * from './ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight'
+export * from './ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
 export * from './ai-graphics-external-beta-api-route-boundary'
 export * from './ai-graphics-external-beta-api-route-queue-insertion-proof'
 export * from './ai-graphics-external-beta-api-route-queue-smoke-authorization'

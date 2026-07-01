@@ -17,6 +17,7 @@ The validator itself does not mount or execute an API route, write queue rows, r
 ## Required Saved Evidence
 
 - Accepted `external-beta-api-route-queue-smoke-authorization` packet.
+- Accepted source service-role queue smoke preflight evidence carried by the authorization packet.
 - Private non-production saved smoke result.
 - Private evidence, telemetry, and cleanup proof refs.
 - Exactly one API route invocation represented in the saved result.

@@ -83,6 +83,7 @@ export interface AiGraphicsExternalBetaApiRouteQueueSmokeProof {
   capabilityId: string | null
   apiRouteQueueSmokeProofAcceptedRequestsWithProvidedEvidence: 0 | 1
   sourceAuthorizationAcceptedRequestsWithProvidedEvidence: 0 | 1
+  sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 0 | 1
   liveApiRouteQueueSmokeAcceptedWithProvidedEvidence: 0 | 1
   liveQueueRowsAcceptedWithProvidedEvidence: 0 | 1
   liveQueueRowsPersistedAfterCleanup: 0
@@ -125,6 +126,7 @@ export interface AiGraphicsExternalBetaApiRouteQueueSmokeProof {
   booleans: {
     externalBetaApiRouteQueueSmokeProofPrepared: true
     sourceExternalBetaApiRouteQueueSmokeAuthorizationAccepted: boolean
+    sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence: boolean
     apiRouteQueueSmokeProofAcceptedWithProvidedEvidence: boolean
     savedApiRouteQueueSmokeResultAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
@@ -218,6 +220,7 @@ function authorizationAccepted(
     packet.status ===
       'external_beta_api_route_queue_smoke_authorization_recorded_execution_still_blocked' &&
     packet.apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence === 1 &&
+    packet.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests === 1 &&
     packet.apiRouteQueueSmokeAuthorizationCandidate !== null &&
     packet.apiRouteQueueSmokeAuthorizationCandidate?.queueJobStatus === 'prepared_not_submitted' &&
     packet.apiRouteQueueSmokeAuthorizationCandidate?.apiRouteExecutionPerformed === false &&
@@ -231,6 +234,7 @@ function authorizationAccepted(
     packet.productionReadyNowTools === 0 &&
     packet.booleans.all21ToolsCovered === true &&
     packet.booleans.all12CapabilitiesCovered === true &&
+    packet.booleans.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.gpuHeavyToolsTargetGpuRuntime === true &&
     packet.booleans.gpuRuntimeOnDemandOnly === true &&
     packet.booleans.noIdleGpuRuntimeApproved === true &&
@@ -389,12 +393,15 @@ function evidenceRefsMissing(
 function buildBooleans(input: {
   accepted: boolean
   authorizationAccepted: boolean
+  sourceServiceRoleQueueSmokePreflightAccepted: boolean
   result?: AiGraphicsExternalBetaApiRouteQueueSmokeResult
 }) {
   return {
     externalBetaApiRouteQueueSmokeProofPrepared: true,
     sourceExternalBetaApiRouteQueueSmokeAuthorizationAccepted:
       input.authorizationAccepted,
+    sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence:
+      input.sourceServiceRoleQueueSmokePreflightAccepted,
     apiRouteQueueSmokeProofAcceptedWithProvidedEvidence: input.accepted,
     savedApiRouteQueueSmokeResultAcceptedWithProvidedEvidence: input.accepted,
     all21ToolsCovered: true,
@@ -469,6 +476,10 @@ export function evaluateAiGraphicsExternalBetaApiRouteQueueSmokeProof(
   const sourceAuthorizationAccepted = authorizationAccepted(
     input.sourceExternalBetaApiRouteQueueSmokeAuthorizationPacket,
   )
+  const sourceServiceRoleQueueSmokePreflightAccepted =
+    sourceAuthorizationAccepted &&
+    sourceAuthorization?.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests === 1 &&
+    sourceAuthorization.booleans.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence === true
   const sourceCandidate =
     sourceAuthorization?.apiRouteQueueSmokeAuthorizationCandidate ?? null
   const authorizationReasons = sourceAuthorization
@@ -511,6 +522,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteQueueSmokeProof(
     apiRouteQueueSmokeProofAcceptedRequestsWithProvidedEvidence: accepted ? 1 : 0,
     sourceAuthorizationAcceptedRequestsWithProvidedEvidence:
       sourceAuthorizationAccepted ? 1 : 0,
+    sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests:
+      sourceServiceRoleQueueSmokePreflightAccepted ? 1 : 0,
     liveApiRouteQueueSmokeAcceptedWithProvidedEvidence: accepted ? 1 : 0,
     liveQueueRowsAcceptedWithProvidedEvidence: accepted ? 1 : 0,
     liveQueueRowsPersistedAfterCleanup: 0,
@@ -558,6 +571,7 @@ export function evaluateAiGraphicsExternalBetaApiRouteQueueSmokeProof(
     booleans: buildBooleans({
       accepted,
       authorizationAccepted: sourceAuthorizationAccepted,
+      sourceServiceRoleQueueSmokePreflightAccepted,
       result: input.apiRouteQueueSmokeResult,
     }),
   }

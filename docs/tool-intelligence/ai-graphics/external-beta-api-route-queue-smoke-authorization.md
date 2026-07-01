@@ -15,6 +15,7 @@ This does not execute the smoke. It does not mount or execute an API route, writ
 - `docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json`
 - `docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json`
 - `docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json`
+- `docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json`
 
 ## Tools Covered
 
@@ -27,6 +28,7 @@ The eight heavy/model tools remain GPU-targeted: `torch_torchvision`, `transform
 - Operator role: `AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_QUEUE_SMOKE_OPERATOR`
 - Accepted route-to-queue insertion proof required
 - Accepted service-role queue smoke authorization required
+- Accepted service-role queue smoke preflight evidence required
 - Non-production external-beta environment required
 - Route execution window required
 - Queue write window required
@@ -49,6 +51,7 @@ The eight heavy/model tools remain GPU-targeted: `torch_torchvision`, `transform
 - Product-facing capabilities: `12`
 - Source route-to-queue insertion proof requests accepted: `1`
 - Source service-role queue smoke authorization scopes recorded: `21`
+- Source service-role queue smoke preflight requests accepted: `1`
 - API route queue smoke authorization candidate requests: `1`
 - API route queue smoke authorization requests recorded: `1`
 - GPU runtime targeted tools: `8`
@@ -68,7 +71,7 @@ The eight heavy/model tools remain GPU-targeted: `torch_torchvision`, `transform
 ## Allowed Actions
 
 - Accept one side-effect-free API-route-to-queue insertion proof candidate.
-- Accept all-21 service-role queue smoke authorization evidence.
+- Accept all-21 service-role queue smoke authorization evidence with accepted preflight evidence.
 - Record private non-production API route queue smoke authorization metadata.
 - Keep API route execution, live queue writes, worker dispatch, tool execution, and GPU startup blocked in this evaluator.
 

@@ -95,6 +95,7 @@ export interface AiGraphicsExternalBetaApiRouteQueueSmokeAuthorization {
   totalProductFacingCapabilities: 12
   sourceApiRouteQueueInsertionProofReadyRequestsWithProvidedEvidence: 0 | 1
   sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence: number
+  sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 0 | 1
   apiRouteQueueSmokeAuthorizationCandidateRequestsWithProvidedEvidence: 0 | 1
   apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence: 0 | 1
   gpuRuntimeTargetedTools: number
@@ -147,6 +148,7 @@ export interface AiGraphicsExternalBetaApiRouteQueueSmokeAuthorization {
     externalBetaApiRouteQueueSmokeAuthorizationPrepared: true
     sourceExternalBetaApiRouteQueueInsertionProofAccepted: boolean
     sourceExternalBetaServiceRoleQueueSmokeAuthorizationAccepted: boolean
+    sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence: boolean
     apiRouteQueueSmokeAuthorizationRecordAccepted: boolean
     all21ToolsCovered: boolean
     all12CapabilitiesCovered: boolean
@@ -337,6 +339,7 @@ function serviceRoleQueueSmokeAuthorizationAccepted(
       'external_beta_service_role_queue_smoke_authorization_recorded_execution_still_blocked' &&
     packet.totalAiGraphicsTools === 21 &&
     packet.totalProductFacingCapabilities === 12 &&
+    packet.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests === 1 &&
     packet.serviceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence === 21 &&
     packet.gpuRuntimeTargetedTools === 8 &&
     packet.heavyToolsIncorrectlyTargetingCpu === 0 &&
@@ -349,6 +352,7 @@ function serviceRoleQueueSmokeAuthorizationAccepted(
     packet.productionReadyNowTools === 0 &&
     packet.booleans.all21ToolsCovered === true &&
     packet.booleans.all12CapabilitiesCovered === true &&
+    packet.booleans.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted === true &&
     packet.booleans.gpuHeavyToolsTargetGpuRuntime === true &&
     packet.booleans.gpuRuntimeOnDemandOnly === true &&
     packet.booleans.gpuRuntimeShouldStartNow === false &&
@@ -497,6 +501,10 @@ export function buildAiGraphicsExternalBetaApiRouteQueueSmokeAuthorization(
   const candidateReady = Boolean(candidate)
   const gpuRuntimeTargetedTools =
     serviceRoleAuthorization?.gpuRuntimeTargetedTools ?? 0
+  const sourceServiceRoleQueueSmokePreflightAccepted =
+    serviceRoleAccepted &&
+    serviceRoleAuthorization?.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests === 1 &&
+    serviceRoleAuthorization.booleans.sourceExternalBetaServiceRoleQueueSmokePreflightAccepted === true
   const gpuRuntimeStartAllowedForAcceptedExternalBetaJob =
     candidate?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true
 
@@ -513,6 +521,8 @@ export function buildAiGraphicsExternalBetaApiRouteQueueSmokeAuthorization(
       routeProofAccepted ? 1 : 0,
     sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence:
       serviceRoleAuthorization?.serviceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence ?? 0,
+    sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests:
+      sourceServiceRoleQueueSmokePreflightAccepted ? 1 : 0,
     apiRouteQueueSmokeAuthorizationCandidateRequestsWithProvidedEvidence:
       candidateReady ? 1 : 0,
     apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence:
@@ -573,6 +583,8 @@ export function buildAiGraphicsExternalBetaApiRouteQueueSmokeAuthorization(
       sourceExternalBetaApiRouteQueueInsertionProofAccepted: routeProofAccepted,
       sourceExternalBetaServiceRoleQueueSmokeAuthorizationAccepted:
         serviceRoleAccepted,
+      sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence:
+        sourceServiceRoleQueueSmokePreflightAccepted,
       apiRouteQueueSmokeAuthorizationRecordAccepted: recordAccepted,
       all21ToolsCovered:
         routeQueueProof?.booleans.all21ToolsCovered === true &&

@@ -215,6 +215,7 @@ function authorizationFixture(toolId, capabilityId, overrides = {}) {
     totalProductFacingCapabilities: 12,
     sourceApiRouteQueueInsertionProofReadyRequestsWithProvidedEvidence: 1,
     sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence: 21,
+    sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 1,
     apiRouteQueueSmokeAuthorizationCandidateRequestsWithProvidedEvidence: 1,
     apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence: 1,
     gpuRuntimeTargetedTools: 8,
@@ -226,6 +227,7 @@ function authorizationFixture(toolId, capabilityId, overrides = {}) {
     booleans: {
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
+      sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence: true,
       gpuHeavyToolsTargetGpuRuntime: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
@@ -344,6 +346,18 @@ if (!index.includes("export * from './ai-graphics-external-beta-api-route-queue-
 }
 if (docs.decision !== decision) fail(`docs_decision_mismatch:${docs.decision}`)
 if (docs.status !== acceptedStatus) fail(`docs_status_mismatch:${docs.status}`)
+if (docs.acceptanceCriteria?.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+  fail('docs_source_service_role_preflight_count_not_1')
+}
+if (docs.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== true) {
+  fail('docs_source_service_role_preflight_not_true')
+}
+if (!docs.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight) {
+  fail('docs_missing_service_role_preflight_source')
+}
+if (!docsMd.includes('Accepted source service-role queue smoke preflight evidence carried by the authorization packet')) {
+  fail('docs_md_missing_service_role_preflight_requirement')
+}
 
 for (const tool of tools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
@@ -363,6 +377,8 @@ for (const phrase of [
   'inserted_then_cleaned_up_private_non_production_smoke',
   'liveQueueRowsPersistedAfterCleanup',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJobRequests',
+  'sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests',
+  'sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence',
   'API route queue smoke execution by this validator',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
@@ -441,6 +457,12 @@ try {
   if (acceptedD3.apiRouteQueueSmokeProofAcceptedRequestsWithProvidedEvidence !== 1) {
     fail('accepted_d3_proof_count_not_1')
   }
+  if (acceptedD3.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+    fail('accepted_d3_source_service_role_preflight_count_not_1')
+  }
+  if (acceptedD3.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== true) {
+    fail('accepted_d3_source_service_role_preflight_not_true')
+  }
   if (acceptedD3.liveQueueRowsAcceptedWithProvidedEvidence !== 1) {
     fail('accepted_d3_queue_rows_not_1')
   }
@@ -461,6 +483,9 @@ try {
   if (acceptedSam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJobRequests !== 1) {
     fail('accepted_sam2_gpu_start_allowed_not_1')
   }
+  if (acceptedSam2.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+    fail('accepted_sam2_source_service_role_preflight_count_not_1')
+  }
   if (acceptedSam2.booleans?.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
     fail('accepted_sam2_gpu_start_allowed_boolean_not_true')
   }
@@ -468,6 +493,37 @@ try {
     fail('accepted_sam2_gpu_should_start_not_false')
   }
   assertFalseBooleans('accepted_sam2', acceptedSam2.booleans)
+
+  const staleAuthorization = authorizationFixture('d3', 'chart_overlay', {
+    sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 0,
+    booleans: {
+      ...authorizationFixture('d3', 'chart_overlay').booleans,
+      sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence: false,
+    },
+  })
+  const staleAuthorizationPath = path.join(tmpRoot, 'stale-preflight-authorization.json')
+  writeJson(staleAuthorizationPath, staleAuthorization)
+  const stalePreflightAuthorization = runJson(proofArgs(staleAuthorizationPath, d3ResultPath))
+  if (
+    stalePreflightAuthorization.status !==
+    'external_beta_api_route_queue_smoke_authorization_rejected'
+  ) {
+    fail(`stale_preflight_authorization_wrong_status:${stalePreflightAuthorization.status}`)
+  }
+  if (
+    stalePreflightAuthorization.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 0
+  ) {
+    fail('stale_preflight_authorization_count_not_0')
+  }
+  if (
+    stalePreflightAuthorization.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== false
+  ) {
+    fail('stale_preflight_authorization_boolean_not_false')
+  }
+  if (stalePreflightAuthorization.apiRouteQueueSmokeProofAcceptedRequestsWithProvidedEvidence !== 0) {
+    fail('stale_preflight_authorization_proof_count_not_0')
+  }
+  assertFalseBooleans('stale_preflight_authorization', stalePreflightAuthorization.booleans)
 
   const badResult = runJson(proofArgs(d3AuthorizationPath, badResultPath))
   if (badResult.status !== 'external_beta_api_route_queue_smoke_result_rejected') {

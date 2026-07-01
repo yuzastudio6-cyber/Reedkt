@@ -13,7 +13,8 @@
   "sourceEvidence": {
     "externalBetaApiRouteQueueSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-authorization.json",
     "externalBetaApiRouteQueueInsertionProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-insertion-proof.json",
-    "externalBetaServiceRoleQueueSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json"
+    "externalBetaServiceRoleQueueSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json",
+    "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -73,6 +74,7 @@
     "liveWorkerDispatchesNow": 0,
     "liveToolExecutionsNow": 0,
     "sourceAuthorizationAcceptedRequestsWithProvidedEvidence": 1,
+    "sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests": 1,
     "apiRouteQueueSmokeProofAcceptedRequestsWithProvidedEvidence": 1,
     "gpuRuntimeStartAllowedForAcceptedExternalBetaJobRequests": "0 for CPU tools, 1 for GPU tools",
     "gpuRuntimeShouldStartNow": false,
@@ -113,6 +115,7 @@
   "booleans": {
     "externalBetaApiRouteQueueSmokeProofPrepared": true,
     "sourceExternalBetaApiRouteQueueSmokeAuthorizationAccepted": true,
+    "sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence": true,
     "apiRouteQueueSmokeProofAcceptedWithProvidedEvidence": true,
     "savedApiRouteQueueSmokeResultAcceptedWithProvidedEvidence": true,
     "all21ToolsCovered": true,

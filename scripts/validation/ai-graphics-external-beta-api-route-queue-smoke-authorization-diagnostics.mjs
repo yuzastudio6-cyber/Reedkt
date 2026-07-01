@@ -522,6 +522,8 @@ for (const required of [
   'workerDispatchPerformed: false',
   'toolExecutionPerformed: false',
   'gpuRuntimeShouldStartNow: false',
+  'sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests',
+  'sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence',
 ]) {
   if (!source.includes(required)) fail(`source_missing:${required}`)
 }
@@ -551,8 +553,20 @@ if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
 if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_tools_not_21')
 if (docs.counts?.totalProductFacingCapabilities !== 12) fail('docs_capabilities_not_12')
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_tools_not_8')
+if (docs.counts?.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+  fail('docs_source_service_role_preflight_count_not_1')
+}
 if (docs.counts?.apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence !== 1) {
   fail('docs_recorded_request_count_not_1')
+}
+if (docs.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== true) {
+  fail('docs_source_service_role_preflight_not_true')
+}
+if (!docs.sourceEvidence?.externalBetaServiceRoleQueueSmokePreflight) {
+  fail('docs_missing_service_role_preflight_source')
+}
+if (!docsMd.includes('Accepted service-role queue smoke preflight evidence required')) {
+  fail('docs_md_missing_service_role_preflight_requirement')
 }
 for (const tool of tools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
@@ -649,6 +663,12 @@ try {
   if (acceptedD3.apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence !== 1) {
     fail('accepted_d3_recorded_count_not_1')
   }
+  if (acceptedD3.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+    fail('accepted_d3_source_service_role_preflight_count_not_1')
+  }
+  if (acceptedD3.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== true) {
+    fail('accepted_d3_source_service_role_preflight_not_true')
+  }
   if (acceptedD3.apiRouteQueueSmokeAuthorizationCandidate?.queueJobStatus !== 'prepared_not_submitted') {
     fail('accepted_d3_queue_status_mismatch')
   }
@@ -671,10 +691,43 @@ try {
   if (acceptedSam2.gpuRuntimeStartAllowedForAcceptedExternalBetaJobRequests !== 1) {
     fail('accepted_sam2_gpu_start_allowed_count_not_1')
   }
+  if (acceptedSam2.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 1) {
+    fail('accepted_sam2_source_service_role_preflight_count_not_1')
+  }
   if (acceptedSam2.apiRouteQueueSmokeAuthorizationCandidate?.gpuRuntimeShouldStartNow !== false) {
     fail('accepted_sam2_gpu_should_start_not_false')
   }
   assertFalseBooleans('accepted_sam2', acceptedSam2.booleans)
+
+  const staleServiceRolePreflightPath = path.join(tmpRoot, 'stale-service-role-preflight-auth.json')
+  const staleServiceRolePreflight = serviceRoleSmokeAuthorizationFixture({
+    sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests: 0,
+    booleans: {
+      ...serviceRoleSmokeAuthorizationFixture().booleans,
+      sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: false,
+    },
+  })
+  writeJson(staleServiceRolePreflightPath, staleServiceRolePreflight)
+  const stalePreflight = runJson([
+    '--external-beta-api-route-queue-insertion-proof-packet',
+    d3ProofPath,
+    '--external-beta-service-role-queue-smoke-authorization-packet',
+    staleServiceRolePreflightPath,
+    ...authorizationArgs(),
+  ])
+  if (stalePreflight.status !== 'external_beta_service_role_queue_smoke_authorization_rejected') {
+    fail(`stale_preflight_case_wrong_status:${stalePreflight.status}`)
+  }
+  if (stalePreflight.sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests !== 0) {
+    fail('stale_preflight_count_not_0')
+  }
+  if (stalePreflight.booleans?.sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence !== false) {
+    fail('stale_preflight_boolean_not_false')
+  }
+  if (stalePreflight.apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence !== 0) {
+    fail('stale_preflight_recorded_count_not_0')
+  }
+  assertFalseBooleans('stale_preflight', stalePreflight.booleans)
 } finally {
   fs.rmSync(tmpRoot, { recursive: true, force: true })
 }

@@ -15,7 +15,8 @@
     "externalBetaApiRouteBoundary": "docs/tool-intelligence/ai-graphics/external-beta-api-route-boundary.json",
     "externalBetaBackendQueueSubmission": "docs/tool-intelligence/ai-graphics/external-beta-backend-queue-submission.json",
     "externalBetaServiceRoleQueueSmokeAuthorization": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json",
-    "externalBetaServiceRoleQueueSmokeReadiness": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json"
+    "externalBetaServiceRoleQueueSmokeReadiness": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-readiness.json",
+    "externalBetaServiceRoleQueueSmokePreflight": "docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-preflight.json"
   },
   "tools": [
     "torch_torchvision",
@@ -89,6 +90,7 @@
     "totalProductFacingCapabilities": 12,
     "sourceApiRouteQueueInsertionProofReadyRequestsWithProvidedEvidence": 1,
     "sourceServiceRoleQueueSmokeAuthorizationRecordedToolsWithProvidedEvidence": 21,
+    "sourceServiceRoleQueueSmokePreflightReadyWithProvidedEvidenceRequests": 1,
     "apiRouteQueueSmokeAuthorizationCandidateRequestsWithProvidedEvidence": 1,
     "apiRouteQueueSmokeAuthorizationRecordedRequestsWithProvidedEvidence": 1,
     "gpuRuntimeTargetedTools": 8,
@@ -142,6 +144,7 @@
     "externalBetaApiRouteQueueSmokeAuthorizationPrepared": true,
     "sourceExternalBetaApiRouteQueueInsertionProofAccepted": true,
     "sourceExternalBetaServiceRoleQueueSmokeAuthorizationAccepted": true,
+    "sourceServiceRoleQueueSmokePreflightAcceptedWithProvidedEvidence": true,
     "apiRouteQueueSmokeAuthorizationRecordAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,

@@ -6,6 +6,7 @@ type CommandResult = {
   id: string
   ok: boolean
   exitCode: number | null
+  rawStdout?: string
   stdout?: string
   stderrSummary?: string
 }
@@ -54,12 +55,14 @@ function runReadOnlyCommand(
     maxBuffer: 1024 * 1024 * 4,
     stdio: ['ignore', options.suppressStdout ? 'ignore' : 'pipe', 'pipe'],
   })
+  const rawStdout = options.captureStdout && !options.suppressStdout ? String(result.stdout ?? '') : undefined
 
   return {
     id,
     ok: result.status === 0,
     exitCode: result.status,
-    stdout: options.captureStdout && !options.suppressStdout ? sanitize(String(result.stdout ?? '')) : undefined,
+    rawStdout,
+    stdout: sanitize(rawStdout),
     stderrSummary: sanitize(String(result.stderr ?? '')),
   }
 }
@@ -79,10 +82,14 @@ function findQuota(document: QuotaDocument | undefined, metric: string): QuotaEn
 }
 
 function activeAccountDomain(account: string | undefined): string | undefined {
-  const sanitized = sanitize(account)
-  if (!sanitized || sanitized.includes('<redacted email>')) return undefined
-  const [, domain] = sanitized.split('@')
-  return domain
+  const candidate = account
+    ?.split(/\s+/)
+    .map((part) => part.trim())
+    .find((part) => part.includes('@'))
+  if (!candidate) return undefined
+
+  const [, domain] = candidate.split('@')
+  return sanitize(domain?.toLowerCase())
 }
 
 function main() {
@@ -181,7 +188,7 @@ function main() {
           versionChecked: Boolean(gcloudVersion?.ok),
           configuredProject: project?.stdout,
           projectMatches: project?.stdout === spec.projectId,
-          activeAccountDomain: activeAccountDomain(activeAccount?.stdout),
+          activeAccountDomain: activeAccountDomain(activeAccount?.rawStdout),
         },
         qwen: {
           toolId: spec.qwen.toolId,

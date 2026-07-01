@@ -106,6 +106,11 @@ for (const forbiddenPattern of [
 }
 
 const cliSource = read(CLI_PATH)
+assert.equal(
+  cliSource.includes('activeAccountDomain(activeAccount?.rawStdout)'),
+  true,
+  'CLI must derive active account domain before sanitizing account output',
+)
 assert.equal(cliSource.includes('spawnSync'), true)
 for (const forbiddenSource of [
   'execSync',
@@ -148,6 +153,10 @@ assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(live.commandSummaries.length > 0, true)
 assert.equal(typeof live.recommendedNextPrompt, 'string')
+if (live.gcloud.activeAccountDomain) {
+  assert.equal(live.gcloud.activeAccountDomain.includes('@'), false)
+  assert.equal(live.gcloud.activeAccountDomain.includes('<redacted'), false)
+}
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)
@@ -165,6 +174,7 @@ console.log(
       liveReadOnlyChecksRun: live.liveReadOnlyChecksRun,
       qwenBlocker: live.qwen.blocker,
       brollBlocker: live.broll.blocker,
+      activeAccountDomainPresent: Boolean(live.gcloud.activeAccountDomain),
       runtimeGatesAllFalse: live.runtimeGatesAllFalse,
       readyForAnyExternalAgentExecutionNow: live.readyForAnyExternalAgentExecutionNow,
       recommendedNextPrompt: live.recommendedNextPrompt,

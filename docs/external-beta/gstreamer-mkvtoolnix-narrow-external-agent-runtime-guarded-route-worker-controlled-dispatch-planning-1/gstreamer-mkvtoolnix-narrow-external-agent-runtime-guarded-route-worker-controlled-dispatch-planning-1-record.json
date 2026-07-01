@@ -1,0 +1,57 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-DISPATCH-PLANNING-1",
+  "integrationBase": "2d9efe1d7cc0d31b8d2588ec398c7688134918b2",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_route_worker_controlled_dispatch_planning",
+  "execution": "completed_docs_only_controlled_dispatch_planning_no_route_worker_tool_or_media_execution",
+  "sourceChain": {
+    "registeredNoopSourceRouteWorkerExecutionPacketQaRollupPr": 2011,
+    "registeredNoopSourceRouteWorkerExecutionPacketQaRollupMergeSha": "2d9efe1d7cc0d31b8d2588ec398c7688134918b2",
+    "registeredNoopSourceRouteWorkerExecutionPacketQaRollupDecision": "qa_passed_gstreamer_mkvtoolnix_narrow_registered_noop_source_route_worker_execution_packet_evidence",
+    "registeredNoopSourceRouteWorkerExecutionPacketQaRollupExecution": "completed_docs_only_registered_noop_source_route_worker_execution_packet_qa_rollup_no_route_worker_tool_or_media_execution",
+    "registeredNoopSourceRouteWorkerExecutionPacketQaRollupReadiness": "ready_for_guarded_registered_noop_source_route_worker_controlled_dispatch_planning",
+    "registeredNoopSourceRouteWorkerExecutionPacketPr": 2006,
+    "registeredNoopSourceRouteWorkerExecutionPacketMergeSha": "565124cf4fc62295c1788df51de0bc951f459413",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "plannedFutureExecution": {
+    "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_CONTROLLED_DISPATCH_EXECUTION",
+    "confirmationValue": "true",
+    "sourceRouteId": "externalBeta.gstreamerMkvtoolnix.narrowExternalAgentRuntimeRegisteredNoopSource",
+    "sourceRoutePath": "/api/external-beta/gstreamer-mkvtoolnix/narrow-agent/registered-noop-boundary",
+    "fixtureClass": "registered_noop_source_route_worker_controlled_dispatch_contract_only",
+    "dispatchMode": "confirmation_gated_controlled_dispatch_contract_without_tool_or_media_execution"
+  },
+  "readiness": {
+    "gstreamer": "ready_for_guarded_registered_noop_source_route_worker_controlled_dispatch_execution_packet",
+    "mkvtoolnix": "ready_for_guarded_registered_noop_source_route_worker_controlled_dispatch_execution_packet",
+    "externalAgentBoundary": "ready_for_guarded_registered_noop_source_route_worker_controlled_dispatch_execution_packet",
+    "controlledDispatchPlanning": "ready_for_future_confirmation_gated_controlled_dispatch_execution_packet"
+  },
+  "safety": {
+    "productionRouteFileCreatedInThisPlanningPhase": false,
+    "routeRegisteredAtRuntimeInThisPlanningPhase": false,
+    "routeExecutionInThisPlanningPhase": false,
+    "workerDispatchInThisPlanningPhase": false,
+    "workerExecutionInThisPlanningPhase": false,
+    "workerProcessStartInThisPlanningPhase": false,
+    "workerLeaseClaimInThisPlanningPhase": false,
+    "persistentJobQueueWriteInThisPlanningPhase": false,
+    "gstreamerExecutionInThisPlanningPhase": false,
+    "mkvtoolnixExecutionInThisPlanningPhase": false,
+    "dockerExecutionInThisPlanningPhase": false,
+    "ffmpegFfprobeExecutionInThisPlanningPhase": false,
+    "supabaseMutationInThisPlanningPhase": false,
+    "sqlExecutionInThisPlanningPhase": false,
+    "signedUrlCreationInThisPlanningPhase": false,
+    "publicArtifactCreationInThisPlanningPhase": false,
+    "finalRenderExportInThisPlanningPhase": false,
+    "broadExternalBetaUnlockInThisPlanningPhase": false,
+    "paidProductionUnlockInThisPlanningPhase": false,
+    "productionUnlockInThisPlanningPhase": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-DISPATCH-EXECUTION-PACKET-1"
+}

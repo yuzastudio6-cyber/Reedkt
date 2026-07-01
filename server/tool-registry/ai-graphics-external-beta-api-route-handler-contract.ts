@@ -110,6 +110,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerContract {
   requestedToolId: string | null
   requestedCapabilityId: string | null
   sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+    boolean
   sourceExternalBetaApiRouteWorkerDispatchHandoffProofAccepted: boolean
   requestedToolPresentInCanonical21: boolean
   requestedCapabilityAcceptedForTool: boolean
@@ -120,6 +122,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerContract {
   gpuRuntimeTargetedTools: 8
   externalBetaControlledOnDemandReadyTools: 0 | 21
   externalBetaCallableNowTools: 0 | 21
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+    0 | 21
   apiRouteHandlerContractReadyToolsWithProvidedEvidence: 0 | 21
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
@@ -151,6 +155,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerContract {
   booleans: {
     externalBetaApiRouteHandlerContractPrepared: true
     sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
     sourceExternalBetaApiRouteWorkerDispatchHandoffProofAccepted: boolean
     requestedToolPresentInCanonical21: boolean
     requestedCapabilityAcceptedForTool: boolean
@@ -328,11 +334,19 @@ function statusBridgeAccepted(
     numberFrom(source, 'externalBetaControlledOnDemandReadyTools') === 21 &&
     numberFrom(source, 'externalBetaCallableNowTools') === 21 &&
     numberFrom(source, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 21 &&
+    numberFrom(
+      source,
+      'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+    ) === 21 &&
     numberFrom(source, 'productionReadyNowTools') === 0 &&
     packet.booleans.all21ToolsCovered === true &&
     packet.booleans.all12CapabilitiesCovered === true &&
     packet.booleans.all8GpuToolsTargetGpuRuntime === true &&
     packet.booleans.all21ToolsReadyForControlledOnDemandExternalBetaToolCalls === true &&
+    booleanFrom(
+      source,
+      'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+    ) === true &&
     booleanFrom(source, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(source, 'routeExecutionApprovedNow') === false &&
     booleanFrom(source, 'workerExecutionApprovedNow') === false &&
@@ -605,6 +619,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerContract(
     requestedToolId: request?.toolId ?? null,
     requestedCapabilityId: request?.capabilityId ?? null,
     sourceExternalBetaControlledOnDemandStatusBridgeAccepted: bridgeAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      bridgeAccepted,
     sourceExternalBetaApiRouteWorkerDispatchHandoffProofAccepted: handoffAccepted,
     requestedToolPresentInCanonical21:
       requestValidation.requestedToolPresentInCanonical21,
@@ -617,6 +633,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerContract(
     gpuRuntimeTargetedTools: listAiGraphicsGpuRuntimeRequiredTools().length as 8,
     externalBetaControlledOnDemandReadyTools: bridgeAccepted ? 21 : 0,
     externalBetaCallableNowTools: bridgeAccepted ? 21 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      bridgeAccepted ? 21 : 0,
     apiRouteHandlerContractReadyToolsWithProvidedEvidence: accepted ? 21 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
@@ -631,6 +649,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerContract(
     booleans: {
       externalBetaApiRouteHandlerContractPrepared: true,
       sourceExternalBetaControlledOnDemandStatusBridgeAccepted: bridgeAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        bridgeAccepted,
       sourceExternalBetaApiRouteWorkerDispatchHandoffProofAccepted: handoffAccepted,
       requestedToolPresentInCanonical21:
         requestValidation.requestedToolPresentInCanonical21,

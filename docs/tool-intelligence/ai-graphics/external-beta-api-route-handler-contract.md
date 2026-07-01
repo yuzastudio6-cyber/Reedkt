@@ -9,11 +9,12 @@ Status:
 This record adds the source-controlled handler contract for the future external-beta AI graphics tool-call route:
 `POST /api/ai-graphics/external-beta/tool-call`.
 
-The contract validates a canonical 21-tool request shape, approved plan snapshot evidence, credit reservation evidence, private artifact manifest references, idempotency, audit, rate-limit, cost guardrail, and kill-switch refs. It is not a mounted Express route and it does not create a public route surface.
+The contract validates a canonical 21-tool request shape, approved plan snapshot evidence, credit reservation evidence, private artifact manifest references, idempotency, audit, rate-limit, cost guardrail, kill-switch refs, and 21/21 route-bound service-role queue-smoke operator-preflight evidence inherited through the controlled on-demand bridge. It is not a mounted Express route and it does not create a public route surface.
 
 ## Source Evidence
 
 - `external-beta-controlled-on-demand-status-bridge.json`
+- `external-beta-route-bound-service-role-queue-smoke-operator-preflight.json`
 - `external-beta-api-route-worker-dispatch-handoff-proof.json`
 - `external-beta-api-route-queue-smoke-proof.json`
 - `external-beta-worker-dispatch-smoke-proof.json`
@@ -42,6 +43,7 @@ The 8 GPU/model tools remain targeted to native NVIDIA L4 worker runtimes and st
 
 - `externalBetaControlledOnDemandReadyTools`: 21
 - `externalBetaCallableNowTools`: 21
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21
 - `apiRouteHandlerContractReadyToolsWithProvidedEvidence`: 21
 - `apiRouteMountedNowTools`: 0
 - `routeExecutionsApprovedNow`: 0
@@ -81,6 +83,7 @@ The 8 GPU/model tools remain targeted to native NVIDIA L4 worker runtimes and st
 ## Gate Booleans
 
 - `agentCanSelectForPlanning`: true
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence`: true
 - `agentCanExecuteToolsNow`: false
 - `directAgentToolExecutionApprovedNow`: false
 - `apiRouteMountedNow`: false

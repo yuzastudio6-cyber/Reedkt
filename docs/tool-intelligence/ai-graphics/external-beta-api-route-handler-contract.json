@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-handler-contract",
   "decision": "ai_graphics_external_beta_api_route_handler_contract_prepared_with_runtime_blocks",
   "status": "external_beta_api_route_handler_contract_ready_runtime_still_blocked",
-  "summary": "Source-controlled external-beta AI graphics tool-call route-handler contract. The contract validates canonical 21-tool request shape, approved snapshot and credit reservation refs, private artifact refs, idempotency, audit, rate-limit, cost guardrail, and kill-switch refs. It does not mount or execute an API route, write a queue row, enqueue a worker, dispatch a worker, execute a tool, start GPU runtime, create signed URLs, create public artifacts, or unlock production.",
+  "summary": "Source-controlled external-beta AI graphics tool-call route-handler contract. The contract validates canonical 21-tool request shape, approved snapshot and credit reservation refs, private artifact refs, idempotency, audit, rate-limit, cost guardrail, kill-switch refs, and 21/21 route-bound service-role queue-smoke operator-preflight evidence inherited through the controlled on-demand bridge. It does not mount or execute an API route, write a queue row, enqueue a worker, dispatch a worker, execute a tool, start GPU runtime, create signed URLs, create public artifacts, or unlock production.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-handler-contract.ts",
     "cli": "server/cli/ai-graphics-external-beta-api-route-handler-contract.ts",
@@ -12,6 +12,7 @@
   },
   "sourceEvidence": {
     "controlledOnDemandStatusBridge": "docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json",
+    "routeBoundServiceRoleQueueSmokeOperatorPreflight": "docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json",
     "apiRouteWorkerDispatchHandoffProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.json",
     "apiRouteQueueSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json",
     "workerDispatchSmokeProof": "docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json",
@@ -94,6 +95,7 @@
     "gpuRuntimeTargetedTools": 8,
     "externalBetaControlledOnDemandReadyTools": 21,
     "externalBetaCallableNowTools": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "apiRouteHandlerContractReadyToolsWithProvidedEvidence": 21,
     "apiRouteMountedNowTools": 0,
     "routeExecutionsApprovedNow": 0,
@@ -132,6 +134,7 @@
   "booleans": {
     "externalBetaApiRouteHandlerContractPrepared": true,
     "sourceExternalBetaControlledOnDemandStatusBridgeAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "sourceExternalBetaApiRouteWorkerDispatchHandoffProofAccepted": true,
     "requestedToolPresentInCanonical21": true,
     "requestedCapabilityAcceptedForTool": true,

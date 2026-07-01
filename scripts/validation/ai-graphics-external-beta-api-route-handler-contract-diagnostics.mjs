@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -21,6 +22,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-contract.json',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-contract.md',
   'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-queue-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-beta-worker-dispatch-smoke-proof.json',
@@ -74,6 +76,7 @@ const capabilities = [
 const trueKeys = [
   'externalBetaApiRouteHandlerContractPrepared',
   'sourceExternalBetaControlledOnDemandStatusBridgeAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'sourceExternalBetaApiRouteWorkerDispatchHandoffProofAccepted',
   'requestedToolPresentInCanonical21',
   'requestedCapabilityAcceptedForTool',
@@ -289,6 +292,11 @@ function verifyDocs() {
   requireEqual(doc.counts?.gpuRuntimeTargetedTools, 8, 'doc_gpu_count')
   requireEqual(doc.counts?.externalBetaControlledOnDemandReadyTools, 21, 'doc_controlled_ready_count')
   requireEqual(doc.counts?.externalBetaCallableNowTools, 21, 'doc_callable_count')
+  requireEqual(
+    doc.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_route_bound_operator_preflight_count',
+  )
   requireEqual(doc.counts?.apiRouteHandlerContractReadyToolsWithProvidedEvidence, 21, 'doc_handler_ready_count')
   requireEqual(doc.counts?.apiRouteMountedNowTools, 0, 'doc_route_mounted_count')
   requireEqual(doc.counts?.routeExecutionsApprovedNow, 0, 'doc_route_approved_count')
@@ -318,6 +326,12 @@ function verifyDocs() {
   if (!source.includes('apiRouteMountedNow: false')) {
     fail('source_missing_route_mounted_false')
   }
+  if (!source.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence')) {
+    fail('source_missing_route_bound_operator_preflight_count_gate')
+  }
+  if (!source.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence')) {
+    fail('source_missing_route_bound_operator_preflight_boolean_gate')
+  }
   if (!cli.includes('evaluateAiGraphicsExternalBetaApiRouteHandlerContract')) {
     fail('cli_missing_evaluator_call')
   }
@@ -331,8 +345,10 @@ function verifyDocs() {
 
 function verifySourceEvidence() {
   const bridge = json('docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json')
+  const operatorPreflight = json('docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json')
   const handoff = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.json')
   const bridgeCoverage = bridge.coverage ?? {}
+  const operatorCounts = operatorPreflight.counts ?? {}
   const handoffScope = handoff.scope ?? {}
   requireEqual(
     bridge.decision,
@@ -346,10 +362,43 @@ function verifySourceEvidence() {
   )
   requireEqual(bridgeCoverage.externalBetaControlledOnDemandReadyTools, 21, 'source_bridge_ready_count')
   requireEqual(bridgeCoverage.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'source_bridge_runtime_count')
+  requireEqual(
+    bridgeCoverage.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'source_bridge_route_bound_operator_preflight_count',
+  )
+  requireTruthy(
+    bridge.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'source_bridge_route_bound_operator_preflight_boolean',
+  )
   requireFalse(bridge.booleans?.routeExecutionApprovedNow, 'source_bridge_route_false')
   requireFalse(bridge.booleans?.workerExecutionApprovedNow, 'source_bridge_worker_false')
   requireFalse(bridge.booleans?.toolExecutionApprovedNow, 'source_bridge_tool_false')
   requireFalse(bridge.booleans?.gpuRuntimeShouldStartNow, 'source_bridge_gpu_start_false')
+
+  requireEqual(
+    operatorPreflight.decision,
+    'ai_graphics_external_beta_route_bound_service_role_queue_smoke_operator_preflight_prepared_with_runtime_blocks',
+    'source_route_bound_operator_preflight_decision',
+  )
+  requireEqual(
+    operatorPreflight.status,
+    'route_bound_service_role_queue_smoke_operator_preflight_ready_execution_still_blocked',
+    'source_route_bound_operator_preflight_status',
+  )
+  requireEqual(
+    operatorCounts.routeBoundServiceRoleQueueSmokeOperatorPreflightReadyToolsWithProvidedEvidence,
+    21,
+    'source_route_bound_operator_preflight_ready_count',
+  )
+  requireTruthy(
+    operatorPreflight.booleans?.routeBoundServiceRoleQueueSmokeOperatorPreflightReadyWithProvidedEvidence,
+    'source_route_bound_operator_preflight_ready_boolean',
+  )
+  requireFalse(
+    operatorPreflight.booleans?.routeBoundServiceRoleQueueSmokeRunApprovedNow,
+    'source_route_bound_operator_preflight_run_false',
+  )
 
   requireEqual(
     handoff.decision,
@@ -408,6 +457,11 @@ function verifyCliForAllTools() {
     requireEqual(output.status, acceptedStatus, `cli_status:${toolId}`)
     requireEqual(output.requestedToolId, toolId, `cli_tool:${toolId}`)
     requireEqual(output.requestedCapabilityId, capabilityId, `cli_capability:${toolId}`)
+    requireEqual(
+      output.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      21,
+      `cli_route_bound_operator_preflight_count:${toolId}`,
+    )
     requireEqual(output.apiRouteHandlerContractReadyToolsWithProvidedEvidence, 21, `cli_ready_count:${toolId}`)
     requireEqual(output.apiRouteMountedNowTools, 0, `cli_mounted_count:${toolId}`)
     requireEqual(output.routeExecutionsApprovedNow, 0, `cli_route_count:${toolId}`)
@@ -424,6 +478,63 @@ function verifyCliForAllTools() {
   }
 }
 
+function verifyStaleOperatorPreflightBridgeRejected() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-route-handler-'))
+  try {
+    const bridge = json('docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json')
+    bridge.coverage = {
+      ...(bridge.coverage ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+    }
+    bridge.booleans = {
+      ...(bridge.booleans ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    }
+    const staleBridgePath = path.join(tmpDir, 'stale-controlled-on-demand-status-bridge.json')
+    fs.writeFileSync(staleBridgePath, JSON.stringify(bridge, null, 2))
+
+    const output = npmJson(runScriptName, [
+      '--controlled-on-demand-status-bridge-packet',
+      staleBridgePath,
+      '--api-route-worker-dispatch-handoff-proof-packet',
+      'docs/tool-intelligence/ai-graphics/external-beta-api-route-worker-dispatch-handoff-proof.json',
+      '--requested-tool-id',
+      'sam2',
+      '--capability-id',
+      'subject_segmentation',
+    ])
+
+    requireEqual(
+      output.status,
+      'external_beta_controlled_on_demand_status_bridge_rejected',
+      'stale_operator_preflight_bridge_status',
+    )
+    requireEqual(
+      output.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_operator_preflight_bridge_count',
+    )
+    requireFalse(
+      output.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+      'stale_operator_preflight_bridge_boolean',
+    )
+    requireEqual(
+      output.apiRouteHandlerContractReadyToolsWithProvidedEvidence,
+      0,
+      'stale_operator_preflight_handler_ready_count',
+    )
+    requireFalse(
+      output.booleans?.externalBetaApiRouteHandlerContractReadyWithProvidedEvidence,
+      'stale_operator_preflight_handler_ready_boolean',
+    )
+    requireFalse(output.booleans?.routeExecutionApprovedNow, 'stale_operator_preflight_route_false')
+    requireFalse(output.booleans?.workerExecutionApprovedNow, 'stale_operator_preflight_worker_false')
+    requireFalse(output.booleans?.toolExecutionApprovedNow, 'stale_operator_preflight_tool_false')
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true })
+  }
+}
+
 for (const file of requiredFiles) read(file)
 verifyPackageJson()
 verifyPackageLockUnchanged()
@@ -431,6 +542,7 @@ verifyTrackedArtifacts()
 verifyDocs()
 verifySourceEvidence()
 verifyCliForAllTools()
+verifyStaleOperatorPreflightBridgeRejected()
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))

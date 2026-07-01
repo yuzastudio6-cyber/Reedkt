@@ -75,6 +75,7 @@ for (const required of [
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
+  '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
   NEXT_PROMPT,
 ]) {
   assert.equal(doc.includes(required), true, `Rollup doc missing ${required}`)
@@ -120,6 +121,14 @@ assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(broll?.primaryBlocker, 'gpus_all_regions_quota_zero')
+assert.equal(
+  broll?.evidence.includes('server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts'),
+  true,
+)
 
 for (const tool of rollup.tools) {
   assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)

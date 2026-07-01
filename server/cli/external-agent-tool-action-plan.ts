@@ -1,13 +1,13 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
-  'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
-  'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
+  'do not invoke Cloud Run until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+  'do not execute Cloud Run jobs until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
   'do not create Compute Engine VMs',
   'do not request quota',
   'do not run Docker',
-  'do not import models outside the approved 58DW bounded Qwen retry prompt',
-  'do not run inference outside the approved 58DW bounded Qwen retry prompt',
+  'do not import models until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+  'do not run inference until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
   'do not create generated assets',
   'do not call providers',
   'do not dispatch workers',
@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'Qwen is ready only for the exact bounded 58DW prompt after live auth/service/job preflight rechecks; no direct or unbounded inference is allowed from this action plan',
+        'Qwen completed the bounded 58DW retry but failed the required structured fixture schema; no further runtime retry is allowed before the 58DW-FIX prompt tightens structured output generation',
       afterBlockerClears:
-        'run npm run external-agent-tool-next-command and only use the approved 58DW bounded retry prompt if that live selector returns it',
+        'implement the 58DW-FIX structured-output prompt, then re-run read-only gates before any new bounded retry is proposed',
     }
   }
 
@@ -70,7 +70,7 @@ function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const explicitToolGateReadyTools = rollup.tools.filter(
-    (tool) => tool.status === 'ready_for_explicit_tool_gate',
+    (tool) => String(tool.status) === 'ready_for_explicit_tool_gate',
   )
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)

@@ -276,7 +276,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_live_preflight_verified_exact_58dw_prompt_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_schema_invalid_fix_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -2096,7 +2096,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt',
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt',
-      status: 'ready',
+      status: 'blocked_approved_fixture_structured_output_fix_required',
       evidence: [
         'The 58DP attempt approval is recorded for one future bounded approved-fixture private Qwen inference attempt.',
         'The 58DQ private inference attempt result is recorded and stopped during safety preflight because local gcloud required reauthentication before Cloud Run service/job inspection.',
@@ -2105,12 +2105,12 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'The 58DS retry gate records the read-only auth/service/job recheck, accepts the retry plan for future attempt approval, and keeps runtime execution blocked.',
         'The 58DT retry attempt approval accepts one future bounded approved-fixture private inference retry attempt and keeps generated assets, Supabase mutation, storage writes, signed URLs, credits, beta, and production blocked.',
         'The 58DU retry attempt result records that the runtime retry was not executed because the active external-agent execution gate remains fail-closed.',
-        'The 58DV gate alignment records that Qwen may be marked ready for the explicit external-agent tool gate while still requiring the exact 58DW bounded retry prompt before runtime.',
-        'The current live next-command guard verifies token refresh, Cloud Run service describe, and caller job describe before surfacing the exact 58DW bounded retry prompt.',
-        'No service update, CPU caller job execution, identity-token fetch for the service, private request, model import, model load, vLLM initialization, forward pass, or inference was attempted.',
+        'The 58DV gate alignment historically allowed Qwen to be marked ready for the explicit external-agent tool gate; the 58DW retry result now supersedes that state with a structured-output schema blocker.',
+        'The 58DW bounded retry executed one approved-fixture private inference path, restored the GPU service and caller job fail-closed, and returned parseable JSON that failed the required structured fixture schema.',
+        'Another runtime retry is blocked until the 58DW-FIX prompt tightens schema-constrained structured output generation.',
       ],
       missingEvidence: [
-        'Run npm run external-agent-tool-next-command and use only the exact 58DW bounded retry prompt if the live selector returns it.',
+        'Implement QWEN2_5_VL_STACK_TOOL_58DW-FIX before any new bounded runtime retry is proposed.',
       ],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
@@ -2931,11 +2931,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'exact_58dw_bounded_retry_prompt_required',
+    'structured_metadata_schema_invalid_after_bounded_58dw_retry',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation',
+    'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

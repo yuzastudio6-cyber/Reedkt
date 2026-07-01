@@ -12,11 +12,9 @@ const SMOKE_PATH = 'server/smoke/external-agent-tool-next-command-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-next-command'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-next-command'
 const QWEN_NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
 const QWEN_AUTH_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
-const QWEN_AUTH_REFRESH_VERIFY_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH-VERIFY: record refreshed read-only gcloud auth/service/job readiness, no inference/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -89,7 +87,7 @@ assert.equal(
 )
 assert.equal(
   spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
-  'npm run external-agent-tool-execution-gate',
+  QWEN_NEXT_PROMPT,
 )
 
 for (const probe of spec.allowedProbeScripts) {
@@ -154,9 +152,9 @@ const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
     afterCompletionCommand: string
   }>
 }
-assert.equal(qwenGateSummary.executionAllowedNow, true)
-assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
-assert.equal(qwenGateSummary.currentBlocker, 'none_live_preflight_recheck_and_exact_58dw_prompt_required')
+assert.equal(qwenGateSummary.executionAllowedNow, false)
+assert.equal(qwenGateSummary.staticExplicitToolGateReady, false)
+assert.equal(qwenGateSummary.currentBlocker, 'structured_metadata_schema_invalid_after_bounded_58dw_retry')
 assert.equal(qwenGateSummary.safeNextCommand, QWEN_NEXT_PROMPT)
 assert.equal(qwenGateSummary.manualBlockerActions.length, 2)
 assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
@@ -293,7 +291,7 @@ if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
   )
   assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
   assert.equal(decision.codexRunnableNextCommandNow, decision.chosenNextCommand)
-  assert.equal(decision.chosenManualAction, QWEN_AUTH_REFRESH_VERIFY_PROMPT)
+  assert.equal(decision.chosenManualAction, QWEN_NEXT_PROMPT)
   assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else {

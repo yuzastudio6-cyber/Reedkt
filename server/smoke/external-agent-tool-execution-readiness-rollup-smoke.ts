@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,12 +65,12 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_structured_output_fix_required_broll_quota_blocked',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'ready for explicit tool gate only',
+  'structured schema invalid',
   'auth-readable live preflight now reads GPU quota',
   '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
@@ -82,8 +82,8 @@ for (const required of [
   'machine `g2-standard-4`',
   'minimum `GPUS_ALL_REGIONS` quota `1`',
   '## Safe Agent Commands',
-  'current read-only live preflight verifies local gcloud token refresh',
-  'the only permitted runtime path is the exact bounded 58DW prompt after a fresh live preflight',
+  '58DW bounded retry result is recorded as schema-invalid runtime evidence',
+  'external agents must not run another Qwen runtime retry until the 58DW-FIX structured-output prompt',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static gate',
   'a static gate is not runtime permission',
@@ -117,7 +117,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_structured_output_fix_required_broll_quota_blocked',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -184,12 +184,12 @@ for (const requiredTool of [
 }
 
 const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
-assert.equal(qwen?.status, 'ready_for_explicit_tool_gate')
+assert.equal(qwen?.status, 'blocked_external_state')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
-assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
+assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, false)
-assert.equal(qwen?.primaryBlocker, 'none_live_preflight_verified_exact_58dw_prompt_required')
+assert.equal(qwen?.primaryBlocker, 'structured_metadata_schema_invalid_after_bounded_58dw_retry')
 assert.equal(qwen?.nextAction, NEXT_PROMPT)
 assert.equal(qwen?.manualBlockerActions?.length, 2)
 assert.equal(qwen?.manualBlockerActions?.every((action) => action.runInsideCodex === false), true)
@@ -405,8 +405,8 @@ assert.equal(
 for (const tool of rollup.tools) {
   assert.equal(
     tool.readyForExternalAgentExecutionNow,
-    tool.toolId === 'qwen2_5_vl_7b_instruct',
-    `${tool.toolId} readiness must match the explicit Qwen gate-only decision`,
+    false,
+    `${tool.toolId} must not be execution-ready after the schema-invalid Qwen retry`,
   )
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)
 }

@@ -77,11 +77,11 @@ assert.equal(summary.supabaseTouched, false)
 assert.equal(summary.sqlExecuted, false)
 assert.equal(summary.modelInferenceRun, false)
 assert.equal(summary.generatedAssetsCreated, false)
-assert.equal(summary.readyForAnyExternalAgentExecutionNow, true)
-assert.deepEqual(summary.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.deepEqual(summary.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.equal(summary.livePreflightRequiredBeforeRuntime, true)
-assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length - 1)
+assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
+assert.deepEqual(summary.readyToolIds, [])
+assert.deepEqual(summary.staticExplicitToolGateReadyToolIds, [])
+assert.equal(summary.livePreflightRequiredBeforeRuntime, false)
+assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length)
 assert.deepEqual(summary.missingEvidence, [])
 assert.deepEqual(summary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
 assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
@@ -114,13 +114,38 @@ assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
 assert.deepEqual(summary.manualBlockerActionToolIds, [
+  'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
 
 const blockersByTool = new Map(
   summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),
 )
-assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), false)
+assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), true)
+
+const qwenBlocker = blockersByTool.get('qwen2_5_vl_7b_instruct') as {
+  blocker: string
+  nextAction: string
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
+}
+assert.equal(qwenBlocker.blocker, 'structured_metadata_schema_invalid_after_bounded_58dw_retry')
+assert.equal(qwenBlocker.nextAction, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt)
+assert.equal(qwenBlocker.manualBlockerActions.length, 2)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.runsModel === false), true)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.createsAssets === false), true)
 
 const brollBlocker = blockersByTool.get('ai_video_broll_generation_wan') as {
   manualBlockerActions: Array<{

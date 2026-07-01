@@ -53,8 +53,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
       toolId: 'ai_video_broll_generation_wan',
       executionAllowedNow: false,
       requiredBeforeExecution: [
-        'GPUS_ALL_REGIONS quota must be verified at or above 1',
-        'regional NVIDIA_L4 quota must be verified at or above 1',
+        'auth-readable live preflight must verify GPUS_ALL_REGIONS quota at or above 1',
+        'auth-readable live preflight must verify regional NVIDIA_L4 quota at or above 1',
         'Wan private cache readiness must pass without model import or inference',
         'controlled GPU proof must use a future bounded execution gate',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',

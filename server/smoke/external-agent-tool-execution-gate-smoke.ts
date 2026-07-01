@@ -89,6 +89,18 @@ for (const row of gate.toolRows) {
 }
 const brollGateRow = gate.toolRows.find((row) => row.toolId === 'ai_video_broll_generation_wan')
 assert.equal(
+  brollGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('auth-readable live preflight must verify GPUS_ALL_REGIONS'),
+  ),
+  true,
+)
+assert.equal(
+  brollGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('auth-readable live preflight must verify regional NVIDIA_L4'),
+  ),
+  true,
+)
+assert.equal(
   brollGateRow?.requiredBeforeExecution.some((requirement) => requirement.includes('no-idle')),
   true,
 )

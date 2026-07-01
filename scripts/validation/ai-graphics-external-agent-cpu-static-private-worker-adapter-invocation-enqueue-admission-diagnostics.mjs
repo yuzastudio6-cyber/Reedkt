@@ -198,6 +198,8 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =

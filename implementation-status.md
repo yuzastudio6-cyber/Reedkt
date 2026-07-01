@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-STRIPE-TESTMODE-01
+
+Status: test-mode billing path.
+
+The repository now includes real Stripe test-mode customer, SetupIntent, Checkout Session, and verified raw-body webhook services/routes using native `fetch` plus Node crypto. Verified test checkout webhooks can add purchased credits to the local mock wallet/grant store idempotently.
+
+It does not enable live Stripe, live billing, production wallet mutation, production ledger writes, Supabase writes, provider calls, render/export execution, export unlock, or package-lock changes.
+
 ## RP-STRIPE-FOUNDATION-01
 
 Status: mock/config foundation.

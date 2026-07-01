@@ -64,6 +64,16 @@ export class MockSecretValueProvider implements SecretValueProvider {
   }
 }
 
+export class EnvironmentSecretValueProvider implements SecretValueProvider {
+  constructor(private readonly values: NodeJS.ProcessEnv = process.env) {}
+
+  async getSecretValue(secretName: string): Promise<string> {
+    const value = this.values[secretName]
+    if (!value?.trim()) throw new Error(`Environment secret reference ${secretName} was not found.`)
+    return value
+  }
+}
+
 export const sharedMockStripeBillingStore = createMockStripeBillingStore()
 
 export function createMockStripeBillingStore(): MockStripeBillingStore {
@@ -79,6 +89,7 @@ export function createMockStripeBillingStore(): MockStripeBillingStore {
 export function createStripeBillingSafetyFlags(): StripeBillingSafetyFlags {
   return {
     mockOnly: true,
+    testModeOnly: false,
     stripeCallAttempted: false,
     liveStripeCallAttempted: false,
     checkoutSessionCreated: false,

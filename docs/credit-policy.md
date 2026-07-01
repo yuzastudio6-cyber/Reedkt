@@ -110,3 +110,7 @@ RP-EXPORTLOCK-01 evaluates export readiness after settlement. Export is allowed 
 ## RP-CREDITPURCHASE-01 Mock Credit Top-Up
 
 RP-CREDITPURCHASE-01 adds fixed mock purchased credit packs and purchased credit grants. Top-up completion adds available credits to the local mock wallet only, keeps purchased credits separate from weekly bonus/promotional/admin credits, and requires the user to retry reservation, revised-credit approval, or export gate explicitly. It remains mock-only: no live billing, no Stripe/payment, no real checkout, no Supabase write, no production wallet or ledger mutation, no render/export, and no export unlock.
+
+## RP-STRIPE-TESTMODE-01 Stripe Test Checkout
+
+RP-STRIPE-TESTMODE-01 adds real Stripe test-mode customer, SetupIntent, Checkout Session, and verified webhook handling for credit packs. Verified test checkout grants purchased credits to the same local mock wallet/grant store idempotently. It remains test-only: no live Stripe, no production wallet mutation, no production ledger write, no Supabase write, no provider call, no render/export, and no export unlock.

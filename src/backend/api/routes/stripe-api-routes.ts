@@ -18,6 +18,7 @@ export const STRIPE_API_ROUTES: ApiRouteDefinition[] = [
     notes: [
       'Metadata-only skeleton; no payment SDK is imported or called.',
       'RP-STRIPE-FOUNDATION-01 adds /v1/billing/stripe/checkout-sessions/mock for config/mock contract checks only.',
+      'RP-STRIPE-TESTMODE-01 adds /v1/billing/stripe/checkout-sessions/test for Stripe test-mode credit-pack checkout only.',
     ],
   },
   {
@@ -37,6 +38,7 @@ export const STRIPE_API_ROUTES: ApiRouteDefinition[] = [
     notes: [
       'Webhook validation is backend-only and disabled here.',
       'Future live Stripe webhooks must mount before JSON parsing so raw request body is available for signature verification.',
+      'RP-STRIPE-TESTMODE-01 mounts /v1/billing/stripe/webhooks/test before JSON parsing for test-mode webhook verification only.',
     ],
   },
   {

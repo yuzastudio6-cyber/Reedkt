@@ -1,4 +1,4 @@
-import type { CurrencyCode, ID, ISODateString, JSONObject } from './shared'
+import type { CreditAmount, CurrencyCode, ID, ISODateString, JSONObject } from './shared'
 
 export const STRIPE_BILLING_MODES = ['disabled', 'test', 'live'] as const
 export type StripeBillingMode = typeof STRIPE_BILLING_MODES[number]
@@ -22,8 +22,11 @@ export type StripePaymentMethodLinkStatus = typeof STRIPE_PAYMENT_METHOD_LINK_ST
 export const STRIPE_SETUP_INTENT_RESPONSE_STATUSES = [
   'created',
   'billing_disabled',
+  'test_mode_not_allowed',
   'live_mode_not_allowed',
   'stripe_config_invalid',
+  'stripe_secret_unavailable',
+  'stripe_api_error',
   'customer_not_found',
   'invalid_request',
 ] as const
@@ -32,8 +35,11 @@ export type CreateStripeSetupIntentStatus = typeof STRIPE_SETUP_INTENT_RESPONSE_
 export const STRIPE_CHECKOUT_SESSION_RESPONSE_STATUSES = [
   'created',
   'billing_disabled',
+  'test_mode_not_allowed',
   'live_mode_not_allowed',
   'stripe_config_invalid',
+  'stripe_secret_unavailable',
+  'stripe_api_error',
   'credit_pack_not_found',
   'wallet_not_found',
   'invalid_request',
@@ -50,6 +56,22 @@ export const STRIPE_WEBHOOK_EVENT_STATUSES = [
   'duplicate',
 ] as const
 export type StripeWebhookEventStatus = typeof STRIPE_WEBHOOK_EVENT_STATUSES[number]
+
+export const STRIPE_TEST_READINESS_STATUSES = ['ready', 'blocked'] as const
+export type StripeTestReadinessStatus = typeof STRIPE_TEST_READINESS_STATUSES[number]
+
+export const STRIPE_TEST_WEBHOOK_RESPONSE_STATUSES = [
+  'processed',
+  'duplicate',
+  'ignored',
+  'billing_disabled',
+  'test_mode_not_allowed',
+  'stripe_config_invalid',
+  'stripe_secret_unavailable',
+  'invalid_signature',
+  'invalid_request',
+] as const
+export type CreateStripeWebhookTestStatus = typeof STRIPE_TEST_WEBHOOK_RESPONSE_STATUSES[number]
 
 export const STRIPE_WEBHOOK_SIGNATURE_STATUSES = [
   'verified',
@@ -89,6 +111,7 @@ export interface StripeBillingRuntimeConfig {
   webhookSigningSecretName?: string | null
   secretReferences: StripeBillingSecretReferences
   restrictedKeyPreferred: boolean
+  testModeRealCallsAllowed: boolean
   liveModeAllowed: boolean
   liveModeRequiresManualApproval: boolean
   webhookEndpointMode: StripeWebhookEndpointMode
@@ -110,15 +133,23 @@ export interface StripeLiveReadinessCheck {
   message: string
 }
 
+export interface StripeTestReadinessCheck {
+  id: string
+  label: string
+  passed: boolean
+  message: string
+}
+
 export interface StripeBillingSafetyFlags {
-  mockOnly: true
-  stripeCallAttempted: false
+  mockOnly: boolean
+  testModeOnly?: boolean
+  stripeCallAttempted: boolean
   liveStripeCallAttempted: false
-  checkoutSessionCreated: false
-  setupIntentCreated: false
+  checkoutSessionCreated: boolean
+  setupIntentCreated: boolean
   paymentIntentCreated: false
-  creditsGranted: false
-  walletMutated: false
+  creditsGranted: boolean
+  walletMutated: boolean
   ledgerWritten: false
   supabaseWritten: false
   providerCalled: false
@@ -144,6 +175,16 @@ export interface StripeLiveReadinessResponse {
   warnings: string[]
 }
 
+export interface StripeTestReadinessResponse {
+  status: StripeTestReadinessStatus
+  stripeMode: StripeBillingMode
+  canRunTestMode: boolean
+  checks: StripeTestReadinessCheck[]
+  config: StripeBillingRuntimeConfig
+  safetyFlags: StripeBillingSafetyFlags
+  warnings: string[]
+}
+
 export interface StripeSecretValueResult {
   status: StripeSecretValueResultStatus
   secretName: string
@@ -160,6 +201,71 @@ export interface StripeSecretValueResult {
 
 export interface SecretValueProvider {
   getSecretValue(secretName: string): Promise<string>
+}
+
+export interface StripeClientCreateCustomerInput {
+  workspaceId: ID
+  userId: ID
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface StripeClientCustomerResult {
+  stripeCustomerId: string
+}
+
+export interface StripeClientCreateSetupIntentInput {
+  stripeCustomerId: string
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface StripeClientSetupIntentResult {
+  setupIntentId: string
+  clientSecret: string | null
+}
+
+export interface StripeClientCreateCheckoutSessionInput {
+  stripeCustomerId: string
+  creditPackId: ID
+  credits: CreditAmount
+  priceCents: number
+  currency: CurrencyCode
+  successUrl: string
+  cancelUrl: string
+  clientReferenceId: string
+  idempotencyKey: string
+  metadata: JSONObject
+}
+
+export interface StripeClientCheckoutSessionResult {
+  checkoutSessionId: string
+  checkoutUrl: string | null
+}
+
+export interface StripeClientVerifyWebhookInput {
+  rawBody: Uint8Array | string
+  stripeSignatureHeader: string
+  webhookSecret: string
+}
+
+export interface StripeClientVerifiedWebhookEvent {
+  id: string
+  type: string
+  livemode: boolean
+  data: JSONObject
+}
+
+export interface StripeClientVerifyWebhookResult {
+  event: StripeClientVerifiedWebhookEvent
+}
+
+export interface ReEditProStripeClient {
+  readonly runtimeSource: 'mock_stripe_client' | 'fetch_stripe_test_client'
+  createCustomer(input: StripeClientCreateCustomerInput): Promise<StripeClientCustomerResult>
+  createSetupIntent(input: StripeClientCreateSetupIntentInput): Promise<StripeClientSetupIntentResult>
+  createCheckoutSession(input: StripeClientCreateCheckoutSessionInput): Promise<StripeClientCheckoutSessionResult>
+  verifyWebhookSignature(input: StripeClientVerifyWebhookInput): Promise<StripeClientVerifyWebhookResult>
 }
 
 export interface StripeCustomerLinkRecord {
@@ -210,11 +316,12 @@ export interface MockStripeSetupIntentRecord {
   stripeMode: StripeOperationalMode
   stripeCustomerId: string
   setupIntentId: string
-  clientSecret: null
+  clientSecret: string | null
   returnUrl?: string | null
   status: 'created'
   idempotencyKey: string
-  mockOnly: true
+  mockOnly: boolean
+  runtimeSource?: ReEditProStripeClient['runtimeSource']
   metadata: JSONObject
   createdAt: ISODateString
   updatedAt: ISODateString
@@ -229,7 +336,7 @@ export interface CreateStripeSetupIntentResponse {
   publishableKey?: string | null
   setupIntent?: MockStripeSetupIntentRecord | null
   idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
-  mockOnly: true
+  mockOnly: boolean
   safetyFlags: StripeBillingSafetyFlags
   warnings: string[]
 }
@@ -259,7 +366,7 @@ export interface MockStripeCheckoutSessionRecord {
   creditPackId: ID
   stripeMode: StripeOperationalMode
   checkoutSessionId: string
-  checkoutUrl: null
+  checkoutUrl: string | null
   currency: CurrencyCode
   credits: number
   priceCents: number
@@ -271,7 +378,8 @@ export interface MockStripeCheckoutSessionRecord {
   relatedCreditSettlementId?: ID | null
   relatedCreditRevisionActionId?: ID | null
   idempotencyKey: string
-  mockOnly: true
+  mockOnly: boolean
+  runtimeSource?: ReEditProStripeClient['runtimeSource']
   metadata: JSONObject
   createdAt: ISODateString
   updatedAt: ISODateString
@@ -284,7 +392,7 @@ export interface CreateStripeCreditCheckoutSessionResponse {
   checkoutUrl?: string | null
   checkoutSession?: MockStripeCheckoutSessionRecord | null
   idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
-  mockOnly: true
+  mockOnly: boolean
   safetyFlags: StripeBillingSafetyFlags
   warnings: string[]
 }
@@ -352,7 +460,20 @@ export interface CreateStripeWebhookMockResponse {
   verification: VerifyStripeWebhookSignatureResult
   webhookEvent?: StripeWebhookEventRecord | null
   idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
-  mockOnly: true
+  mockOnly: boolean
+  safetyFlags: StripeBillingSafetyFlags
+  warnings: string[]
+}
+
+export interface CreateStripeWebhookTestResponse {
+  status: CreateStripeWebhookTestStatus
+  stripeMode: 'test'
+  verification: VerifyStripeWebhookSignatureResult
+  webhookEvent?: StripeWebhookEventRecord | null
+  creditGrantId?: ID | null
+  creditWalletId?: ID | null
+  creditsGranted: CreditAmount
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
   safetyFlags: StripeBillingSafetyFlags
   warnings: string[]
 }

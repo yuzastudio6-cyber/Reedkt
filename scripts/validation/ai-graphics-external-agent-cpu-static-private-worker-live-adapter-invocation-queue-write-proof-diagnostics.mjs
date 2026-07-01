@@ -179,6 +179,8 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight-diagnostics.mjs",',
 ])
 
 const forbiddenPatterns = [
@@ -371,25 +373,25 @@ if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-stati
 }
 if (!scorecard.includes(decision)) fail('scorecard_missing_decision')
 
-for (const token of [
+for (const requiredText of [
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
   'mock-only mode',
   'non-production service-role queue write',
   'agentCanExecuteToolsNow=false',
   'gpuRuntimeShouldStartNow=false',
 ]) {
-  if (!docsMd.includes(token) && !promptResult.includes(token) && !implementationPrompt.includes(token)) {
-    fail(`missing_doc_token:${token}`)
+  if (!docsMd.includes(requiredText) && !promptResult.includes(requiredText) && !implementationPrompt.includes(requiredText)) {
+    fail(`missing_doc_text:${requiredText}`)
   }
 }
-for (const token of [
+for (const requiredText of [
   'createAiGraphicsToolRuntimeQueueService',
   'E2E_RUNTIME_MODE',
   'mock',
   'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_LIVE_ADAPTER_INVOCATION_QUEUE_WRITE_PROOF_DECISION',
 ]) {
-  if (!cliSource.includes(token) && !moduleSource.includes(token)) {
-    fail(`missing_source_token:${token}`)
+  if (!cliSource.includes(requiredText) && !moduleSource.includes(requiredText)) {
+    fail(`missing_source_text:${requiredText}`)
   }
 }
 

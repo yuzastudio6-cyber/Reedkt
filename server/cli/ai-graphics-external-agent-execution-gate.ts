@@ -22,6 +22,9 @@ import type {
 import type {
   AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionReport,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'
+import type {
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport,
+} from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight'
 
 function valueAfterFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -63,6 +66,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionReport>>(
       '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
     ),
+  sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport>>(
+      '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -87,6 +94,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-agent-cpu-static-exact-execution-admission-packet')),
     externalAgentCpuStaticAdapterInvocationEnqueueAdmissionPacketRead:
       Boolean(valueAfterFlag('--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet')),
+    externalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightPacketRead:
+      Boolean(valueAfterFlag('--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

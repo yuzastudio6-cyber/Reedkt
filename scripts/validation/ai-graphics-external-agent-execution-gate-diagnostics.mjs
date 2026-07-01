@@ -94,6 +94,7 @@ const trueBooleanKeys = [
   'sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted',
   'sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted',
   'sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted',
+  'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted',
   'properInstallAuditAccepted',
   'all21ToolsProperlyInstalledForPlannedSurface',
   'installAuditSeparatesPlannedSurfaceFromRuntimeCallable',
@@ -122,6 +123,9 @@ const trueBooleanKeys = [
   'allFiveCpuStaticWorkerEnqueuePayloadsPrepared',
   'allFiveCpuStaticProductionWorkerJobPayloadsAccepted',
   'allFiveCpuStaticExternalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence',
+  'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady',
+  'allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence',
   'satoriRemainsBlockedPendingApprovedFontFixture',
   'fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes',
   'nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution',
@@ -148,6 +152,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -368,6 +373,12 @@ if (docs.counts?.cpuStaticProductionWorkerJobPayloadAcceptedTools !== 5) {
 if (docs.counts?.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools !== 5) {
   fail('docs_external_agent_adapter_invocation_enqueue_admitted_not_5')
 }
+if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools !== 5) {
+  fail('docs_cpu_static_service_role_queue_write_smoke_preflight_ready_not_5')
+}
+if (docs.counts?.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
+  fail('docs_external_agent_service_role_queue_write_smoke_preflight_evidence_not_5')
+}
 if (docs.counts?.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
   fail('docs_cpu_static_satori_blocked_not_1')
 }
@@ -411,6 +422,9 @@ for (const phrase of [
   'CPU/static adapter/enqueue admission accepted: `true`',
   'cpuStaticAdapterInvocationEnqueueAdmissionReadyTools: `5`',
   'externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools: `5`',
+  'CPU/static service-role queue-write smoke preflight accepted: `true`',
+  'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`',
+  'externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`',
   'adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`',
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
@@ -571,6 +585,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
   '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -644,6 +660,12 @@ if (acceptedSourceReport.cpuStaticProductionWorkerJobPayloadAcceptedTools !== 5)
 if (acceptedSourceReport.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools !== 5) {
   fail('accepted_report_adapter_invocation_enqueue_admitted_not_5')
 }
+if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools !== 5) {
+  fail('accepted_report_service_role_queue_write_smoke_preflight_ready_not_5')
+}
+if (acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
+  fail('accepted_report_service_role_queue_write_smoke_preflight_evidence_not_5')
+}
 if (acceptedSourceReport.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
   fail('accepted_report_cpu_static_satori_blocked_not_1')
 }
@@ -691,6 +713,8 @@ const requireGo = spawnSync(
     'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
     '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
     'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+    '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
     '--require-go',
   ],
   {
@@ -747,6 +771,10 @@ console.log(JSON.stringify({
     acceptedSourceReport.cpuStaticAdapterInvocationEnqueueAdmissionReadyTools,
   externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools:
     acceptedSourceReport.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools,
+  cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools:
+    acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools,
+  externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools:
+    acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools,
   nonProductionServiceRoleQueueWriteSmokeRequiredTools:
     acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools,
   adapterInvocationAndWorkerEnqueueAdmissionRequiredTools:

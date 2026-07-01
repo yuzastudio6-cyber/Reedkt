@@ -15,7 +15,8 @@
     "externalBetaWorkerEnqueueAdapter": "ai_graphics_external_beta_worker_enqueue_adapter_prepared_with_runtime_blocks",
     "externalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProof": "ai_graphics_external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_passed_with_runtime_blocks",
     "externalAgentCpuStaticPrivateWorkerExactExecutionAdmission": "ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks",
-    "externalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmission": "ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks"
+    "externalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmission": "ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks",
+    "externalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflight": "ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_prepared_with_runtime_blocks"
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -59,7 +60,9 @@
     "apiRouteMountReadyToolsWithProvidedEvidence": 21,
     "apiRouteMountedNowTools": 0,
     "externalBetaReadyNowTools": 0,
-    "productionReadyNowTools": 0
+    "productionReadyNowTools": 0,
+    "cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools": 5,
+    "externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools": 5
   },
   "tools": [
     {
@@ -325,10 +328,12 @@
     "npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics",
     "npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics",
+    "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics",
     "npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics"
   ],
   "allowedPreExecutionActions": [
+    "read CPU/static non-production service-role queue-write smoke preflight evidence for the same five tools while preserving actual queue write, worker, and tool execution blocks",
     "read sanitized callable-scope and request-admission evidence",
     "select, rank, and eliminate planning tools from the 21-tool AI graphics set",
     "explain missing proof before execution",
@@ -441,7 +446,11 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
-    "signedUrlCreated": false
+    "signedUrlCreated": false,
+    "sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted": true,
+    "cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted": true,
+    "allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady": true,
+    "allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence": true
   },
-  "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE"
+  "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF"
 }

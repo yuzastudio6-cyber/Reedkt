@@ -265,6 +265,15 @@ function main() {
         ].join(' ')}`,
       }
     : null
+  const brollWanExternalAgentProofCommand = {
+    ...spec.brollWanExternalAgentProofCommand,
+    executionAllowedNow: false,
+    blocker: nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_preflight_not_cleared',
+    shellExample: `${spec.brollWanExternalAgentProofCommand.confirmationEnv}=${spec.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue} ${[
+      spec.brollWanExternalAgentProofCommand.command,
+      ...spec.brollWanExternalAgentProofCommand.args,
+    ].join(' ')}`,
+  }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
@@ -312,6 +321,7 @@ function main() {
         codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
         qwenExternalAgentExecutionCommand,
         qwenBoundedExecutionCommand,
+        brollWanExternalAgentProofCommand,
         chosenManualAction,
         manualActionRequired,
         manualActionReason,

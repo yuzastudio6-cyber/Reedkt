@@ -108,6 +108,28 @@ assert.equal(spec.qwenBoundedExecutionCommand.createsGeneratedAssets, false)
 assert.equal(spec.qwenBoundedExecutionCommand.touchesSupabase, false)
 assert.equal(spec.qwenBoundedExecutionCommand.touchesSql, false)
 assert.equal(spec.qwenBoundedExecutionCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.brollWanExternalAgentProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.brollWanExternalAgentProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+)
+assert.equal(spec.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeAnyVmAction, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.createsComputeVm, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.runsModel, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -254,6 +276,34 @@ assert.equal(decision.probeSummaries.length >= 2, true)
 assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
+assert.equal(typeof decision.brollWanExternalAgentProofCommand, 'object')
+assert.deepEqual(decision.brollWanExternalAgentProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.brollWanExternalAgentProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+)
+assert.equal(decision.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeAnyVmAction, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.executionAllowedNow, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.runsModel, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.touchesSupabase, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.touchesSql, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.brollWanExternalAgentProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
+)
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
 assert.equal(typeof decision.chosenNextCommandAlreadyExecutedInThisRun, 'boolean')

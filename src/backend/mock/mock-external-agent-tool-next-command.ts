@@ -49,6 +49,24 @@ export type ExternalAgentToolQwenExternalAgentExecutionCommand = {
   unlocksBetaOrProduction: false
 }
 
+export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
+  toolId: 'ai_video_broll_generation_wan'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-broll-wan', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
+  confirmationEnvRequiredValue: 'true'
+  verifiesLiveQuotaBeforeAnyVmAction: true
+  verifiesPrivateCacheBeforeAnyVmAction: true
+  requiresNoIdleLifecycleGate: true
+  blocksWhenGpusAllRegionsQuotaInsufficient: true
+  createsComputeVm: false
+  runsModel: false
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
 export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   decision: 'external_agent_live_next_command_read_only_decision_defined',
   mode: 'read_only_external_agent_tool_next_command_decision',
@@ -136,6 +154,23 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     touchesSql: false,
     unlocksBetaOrProduction: false,
   } satisfies ExternalAgentToolQwenExternalAgentExecutionCommand,
+  brollWanExternalAgentProofCommand: {
+    toolId: 'ai_video_broll_generation_wan',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-broll-wan', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+    confirmationEnvRequiredValue: 'true',
+    verifiesLiveQuotaBeforeAnyVmAction: true,
+    verifiesPrivateCacheBeforeAnyVmAction: true,
+    requiresNoIdleLifecycleGate: true,
+    blocksWhenGpusAllRegionsQuotaInsufficient: true,
+    createsComputeVm: false,
+    runsModel: false,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolBrollWanExternalAgentProofCommand,
   forbiddenRuntimeActions: [
     'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
     'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',

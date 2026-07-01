@@ -91,6 +91,7 @@ assert.equal(
 )
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-broll-wan'), true)
 
 for (const row of gate.toolRows) {
   if (row.toolId === 'qwen2_5_vl_7b_instruct') {

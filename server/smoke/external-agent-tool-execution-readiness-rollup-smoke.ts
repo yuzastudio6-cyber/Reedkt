@@ -118,6 +118,9 @@ for (const required of [
   '`npm run external-agent-gcloud-session:diagnostic`',
   'read-only local gcloud session/config diagnostic',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
+  '`npm run external-agent-tool-execute-broll-wan`',
+  '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
+  '`broll_gpus_all_regions_quota_not_sufficient`',
   'B-roll external-agent execution must not leave an idle GPU running',
   NEXT_PROMPT,
 ]) {
@@ -138,7 +141,7 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 8)
+assert.equal(rollup.safeNextCommands.length, 9)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -171,6 +174,10 @@ assert.equal(
   rollup.safeNextCommands.some(
     (command) => command.command === 'npm run ai-video-broll-wan-fast-cache-readiness:check',
   ),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-execute-broll-wan'),
   true,
 )
 for (const command of rollup.safeNextCommands) {

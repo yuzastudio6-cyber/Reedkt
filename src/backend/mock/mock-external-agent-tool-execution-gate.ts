@@ -46,6 +46,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'npm run external-agent-tool-blockers:preflight',
     'npm run external-agent-gcloud-session:diagnostic',
     'npm run ai-video-broll-wan-fast-cache-readiness:check',
+    'npm run external-agent-tool-execute-broll-wan',
   ],
   toolRows: [
     {

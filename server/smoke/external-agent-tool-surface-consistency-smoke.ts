@@ -210,6 +210,7 @@ const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
 const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
+const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
 
 const qwenSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, QWEN_TOOL_ID, 'actionPlan.toolActions')],
@@ -351,6 +352,62 @@ for (const key of qwenExecutionCommandKeys) {
   }
 }
 
+const brollWrapperCanonicalCommand = asRecord(
+  brollExecutionWrapper.canonicalCommand,
+  'brollExecutionWrapper.canonicalCommand',
+)
+assert.equal(brollExecutionWrapper.mode, 'external_agent_broll_wan_execution_static_guard')
+assert.equal(brollExecutionWrapper.executeRequired, true)
+assert.equal(brollExecutionWrapper.runtimeRunNow, false)
+assert.equal(brollExecutionWrapper.computeVmCreated, false)
+assert.equal(brollExecutionWrapper.dockerRun, false)
+assert.equal(brollExecutionWrapper.modelImportRun, false)
+assert.equal(brollExecutionWrapper.modelInferenceRun, false)
+assert.equal(brollExecutionWrapper.generatedVideoCreated, false)
+assert.equal(brollExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(brollExecutionWrapper.supabaseTouched, false)
+assert.equal(brollExecutionWrapper.sqlExecuted, false)
+assert.equal(brollExecutionWrapper.creditMutationCreated, false)
+assert.equal(brollExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const brollExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesLiveQuotaBeforeAnyVmAction',
+  'verifiesPrivateCacheBeforeAnyVmAction',
+  'requiresNoIdleLifecycleGate',
+  'blocksWhenGpusAllRegionsQuotaInsufficient',
+  'createsComputeVm',
+  'runsModel',
+  'createsGeneratedAssets',
+  'touchesSupabase',
+  'touchesSql',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of brollExecutionCommandKeys) {
+  assert.deepEqual(
+    brollWrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand[key],
+    `B-roll wrapper command drifted from spec at ${key}`,
+  )
+  const nextBrollCommand = asRecord(
+    nextCommand.brollWanExternalAgentProofCommand,
+    'nextCommand.brollWanExternalAgentProofCommand',
+  )
+  assert.deepEqual(
+    brollWrapperCanonicalCommand[key],
+    nextBrollCommand[key],
+    `B-roll wrapper command drifted at ${key}`,
+  )
+}
+assert.equal(
+  asRecord(nextCommand.brollWanExternalAgentProofCommand, 'nextCommand.brollWanExternalAgentProofCommand')
+    .executionAllowedNow,
+  false,
+)
+
 const normalizedSurfaceData = {
   rollupQwenActions: normalizeManualActions(rollupQwenActions),
   rollupBrollActions: normalizeManualActions(rollupBrollActions),
@@ -370,6 +427,14 @@ const normalizedSurfaceData = {
     generatedAssetsCreated: qwenExecutionWrapper.generatedAssetsCreated,
     generatedLocalFixturePassedClaimed: qwenExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
+  brollExecutionWrapper: {
+    canonicalCommand: brollExecutionWrapper.canonicalCommand,
+    runtimeRunNow: brollExecutionWrapper.runtimeRunNow,
+    computeVmCreated: brollExecutionWrapper.computeVmCreated,
+    modelInferenceRun: brollExecutionWrapper.modelInferenceRun,
+    generatedAssetsCreated: brollExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: brollExecutionWrapper.generatedLocalFixturePassedClaimed,
+  },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
 assert.equal(forbiddenFindings.length, 0, `Forbidden values in surface data: ${forbiddenFindings.join('; ')}`)
@@ -387,6 +452,7 @@ console.log(
         'external-agent-tool-blockers:preflight',
         'external-agent-tool-next-command',
         'external-agent-tool-execute-qwen',
+        'external-agent-tool-execute-broll-wan',
       ],
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),

@@ -196,6 +196,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       purpose:
         'Stat-only Wan private cache layout check that avoids 29GB hashing, model imports, GPU work, and inference.',
     },
+    {
+      id: 'broll_wan_external_agent_wrapper_static_guard',
+      command: 'npm run external-agent-tool-execute-broll-wan',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Fail-closed B-roll Wan wrapper static guard; execution mode only runs read-only quota/cache checks and blocks before VM or model work.',
+    },
   ] satisfies ExternalAgentToolSafeNextCommand[],
   tools: [
     {

@@ -45,7 +45,23 @@ const implementationFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const qaRollupDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-qa-rollup-1'
+const qaRollupFiles = [
+  `${qaRollupDir}/source-audit.md`,
+  `${qaRollupDir}/evidence-matrix.md`,
+  `${qaRollupDir}/qa-decision.md`,
+  `${qaRollupDir}/artifact-manifest-summary.md`,
+  `${qaRollupDir}/readiness.md`,
+  `${qaRollupDir}/safety-boundary.md`,
+  `${qaRollupDir}/validation-results.md`,
+  `${qaRollupDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-qa-rollup-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-planning-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-qa-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...qaRollupFiles])
 
 const requiredText = [
   packet,

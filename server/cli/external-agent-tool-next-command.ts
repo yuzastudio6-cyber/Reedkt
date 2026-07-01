@@ -256,6 +256,15 @@ function main() {
         ].join(' ')}`,
       }
     : null
+  const qwenExternalAgentExecutionCommand = executionAllowedNow
+    ? {
+        ...spec.qwenExternalAgentExecutionCommand,
+        shellExample: `${spec.qwenExternalAgentExecutionCommand.confirmationEnv}=${spec.qwenExternalAgentExecutionCommand.confirmationEnvRequiredValue} ${[
+          spec.qwenExternalAgentExecutionCommand.command,
+          ...spec.qwenExternalAgentExecutionCommand.args,
+        ].join(' ')}`,
+      }
+    : null
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
@@ -301,6 +310,7 @@ function main() {
         chosenNextCommand,
         chosenNextCommandAlreadyExecutedInThisRun,
         codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
+        qwenExternalAgentExecutionCommand,
         qwenBoundedExecutionCommand,
         chosenManualAction,
         manualActionRequired,

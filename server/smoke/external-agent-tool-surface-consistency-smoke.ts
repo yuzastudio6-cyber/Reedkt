@@ -5,6 +5,7 @@ import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentManualBlockerAction,
 } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
+import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 type JsonObject = Record<string, unknown>
 
@@ -208,6 +209,7 @@ const readiness = runJsonCli('server/cli/external-agent-tool-readiness-check.ts'
 const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.ts')
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
+const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
 
 const qwenSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, QWEN_TOOL_ID, 'actionPlan.toolActions')],
@@ -311,6 +313,44 @@ assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, nextCommand.execu
 assert.equal(nextCommand.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(nextCommand.runtimeSideEffects, 'nextCommand.runtimeSideEffects')
 
+const wrapperCanonicalCommand = asRecord(qwenExecutionWrapper.canonicalCommand, 'qwenExecutionWrapper.canonicalCommand')
+assert.equal(qwenExecutionWrapper.mode, 'external_agent_qwen_execution_static_guard')
+assert.equal(qwenExecutionWrapper.executeRequired, true)
+assert.equal(qwenExecutionWrapper.runtimeRunNow, false)
+assert.equal(qwenExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(qwenExecutionWrapper.supabaseTouched, false)
+assert.equal(qwenExecutionWrapper.sqlExecuted, false)
+assert.equal(qwenExecutionWrapper.creditMutationCreated, false)
+assert.equal(qwenExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const qwenExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesLiveNextCommandBeforeDelegating',
+  'delegatesToBoundedCommand',
+  'boundedApprovedFixtureOnly',
+  'createsGeneratedAssets',
+  'touchesSupabase',
+  'touchesSql',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of qwenExecutionCommandKeys) {
+  assert.deepEqual(
+    wrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand[key],
+    `Qwen wrapper command drifted from spec at ${key}`,
+  )
+  if (nextCommand.qwenExternalAgentExecutionCommand) {
+    const nextCanonicalCommand = asRecord(
+      nextCommand.qwenExternalAgentExecutionCommand,
+      'nextCommand.qwenExternalAgentExecutionCommand',
+    )
+    assert.deepEqual(wrapperCanonicalCommand[key], nextCanonicalCommand[key], `Qwen wrapper command drifted at ${key}`)
+  }
+}
+
 const normalizedSurfaceData = {
   rollupQwenActions: normalizeManualActions(rollupQwenActions),
   rollupBrollActions: normalizeManualActions(rollupBrollActions),
@@ -322,6 +362,13 @@ const normalizedSurfaceData = {
     executionGate: executionGate.runtimeSideEffects,
     blockerPreflight: blockerPreflight.runtimeSideEffects,
     nextCommand: nextCommand.runtimeSideEffects,
+  },
+  qwenExecutionWrapper: {
+    canonicalCommand: qwenExecutionWrapper.canonicalCommand,
+    delegatedBoundedCommand: qwenExecutionWrapper.delegatedBoundedCommand,
+    runtimeRunNow: qwenExecutionWrapper.runtimeRunNow,
+    generatedAssetsCreated: qwenExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: qwenExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
@@ -339,6 +386,7 @@ console.log(
         'external-agent-tool-execution-gate',
         'external-agent-tool-blockers:preflight',
         'external-agent-tool-next-command',
+        'external-agent-tool-execute-qwen',
       ],
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),

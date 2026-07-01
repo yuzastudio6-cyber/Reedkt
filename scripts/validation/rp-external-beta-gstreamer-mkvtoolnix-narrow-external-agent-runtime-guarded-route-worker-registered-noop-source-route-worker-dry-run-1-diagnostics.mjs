@@ -62,13 +62,31 @@ const qaRollupFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-qa-rollup-1-diagnostics.mjs',
 ]
 
+const executionPacketDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1'
+const executionPacketFiles = [
+  `${executionPacketDir}/source-audit.md`,
+  `${executionPacketDir}/execution-result.md`,
+  `${executionPacketDir}/command-matrix.md`,
+  `${executionPacketDir}/artifact-manifest.md`,
+  `${executionPacketDir}/negative-cases.md`,
+  `${executionPacketDir}/readiness.md`,
+  `${executionPacketDir}/safety-boundary.md`,
+  `${executionPacketDir}/validation-results.md`,
+  `${executionPacketDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-qa-rollup-1.md',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1-diagnostics.mjs',
+]
+
 const sourceFiles = [
   sourceRecordPath,
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-1.md',
   'server/services/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-implementation-1.ts',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...qaRollupFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...qaRollupFiles, ...executionPacketFiles])
 
 const requiredText = [
   packet,
@@ -137,7 +155,7 @@ const requiredRunnerText = [
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-1\.ts$)/,
+  /^server\/(?!smoke\/(?:rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-1|rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1)\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

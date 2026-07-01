@@ -28,6 +28,20 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.md',
 ]
 
+const followOnRuntimeExecutionPacket2Files = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/runtime-execution-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/runtime-packet-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-diagnostics.mjs',
+]
+
 const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1-diagnostics.mjs',
@@ -40,7 +54,7 @@ const sourceFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...followOnRuntimeExecutionPacket2Files, ...implementationFiles])
 
 const requiredText = [
   packet,

@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
+  "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
+  "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
+  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts sanitized request-admission evidence but does not allow route, worker, provider, browser, GPU, artifact, beta, or production execution.",
+  "sourceEvidence": {
+    "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",
+    "externalBetaCallableScope": "ai_graphics_external_beta_callable_scope_prepared_with_runtime_blocks",
+    "externalBetaToolCallGateway": "ai_graphics_external_beta_tool_call_gateway_contract_prepared_with_runtime_blocks",
+    "externalBetaRuntimeAdmission": "ai_graphics_external_beta_runtime_admission_contract_prepared_with_runtime_blocks",
+    "externalBetaWorkerEnqueueAdapter": "ai_graphics_external_beta_worker_enqueue_adapter_prepared_with_runtime_blocks"
+  },
+  "interfaces": {
+    "packageScript": "ai-graphics:external-agent-execution-gate",
+    "diagnosticScript": "ai-graphics:external-agent-execution-gate:diagnostics",
+    "cli": "server/cli/ai-graphics-external-agent-execution-gate.ts",
+    "module": "server/tool-registry/ai-graphics-external-agent-execution-gate.ts"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "totalProductFacingCapabilities": 12,
+    "gpuRuntimeTargetedTools": 8,
+    "externalBetaCallableCandidateToolsWithProvidedEvidence": 21,
+    "externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence": 1,
+    "externalAgentExecutableNowTools": 0,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "tools": [
+    {
+      "toolId": "torch_torchvision",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "transformers",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "sam2",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "birefnet",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "real_esrgan",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "kornia",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "rembg",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "transparent_background",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "gpuRequiredForRuntime": true,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "d3",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "echarts",
+      "runtimeTarget": "browser_chart_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "vega_lite",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "vega",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "satori",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "viz_js",
+      "runtimeTarget": "node_cpu_static",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "lottie_web",
+      "runtimeTarget": "browser_animation_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "animejs",
+      "runtimeTarget": "browser_animation_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "three_js",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "pixi_js",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "konva",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    },
+    {
+      "toolId": "babylonjs",
+      "runtimeTarget": "browser_canvas_webgl_runtime_later",
+      "gpuRequiredForRuntime": false,
+      "executionAllowedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked"
+    }
+  ],
+  "safeCommandsBeforeExecution": [
+    "npm run ai-graphics:external-agent-execution-gate",
+    "npm run ai-graphics:external-beta-callable-request-admission",
+    "npm run ai-graphics:external-beta-callable-scope",
+    "npm run ai-graphics:external-beta-tool-call-gateway",
+    "npm run ai-graphics:external-beta-runtime-admission",
+    "npm run ai-graphics:external-beta-worker-enqueue-adapter",
+    "npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics"
+  ],
+  "allowedPreExecutionActions": [
+    "read sanitized callable-scope and request-admission evidence",
+    "select, rank, and eliminate planning tools from the 21-tool AI graphics set",
+    "explain missing proof before execution",
+    "verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata",
+    "return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call",
+    "preserve GPU startup as on-demand only for a later accepted worker/tool job"
+  ],
+  "forbiddenRuntimeActions": [
+    "agent/tool execution",
+    "Tool Route execution",
+    "API route execution",
+    "live queue write",
+    "Worker queue enqueue",
+    "Worker execution",
+    "provider/model execution",
+    "browser/WebGL/canvas runtime execution",
+    "GPU/model runtime execution now",
+    "idle or always-on GPU runtime",
+    "model weight download or load",
+    "media processing",
+    "Supabase/GCS mutation",
+    "signed URL creation",
+    "public artifact creation",
+    "external beta traffic enablement",
+    "production unlock"
+  ],
+  "booleans": {
+    "externalAgentExecutionGatePrepared": true,
+    "sourceExternalBetaCallableRequestAdmissionAccepted": true,
+    "all21ToolsCovered": true,
+    "all12CapabilitiesCovered": true,
+    "all8GpuToolsTargetGpuRuntime": true,
+    "externalBetaCallableCandidatesWithProvidedEvidence": true,
+    "externalBetaCallableRequestAdmissionReadyWithProvidedEvidence": true,
+    "approvedPlanSnapshotRequired": true,
+    "creditReservationRequired": true,
+    "privateArtifactManifestRequired": true,
+    "structuredToolEnvelopeRequired": true,
+    "rawChatExecutionAllowed": false,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "externalAgentExecutionAllowedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "workerQueueApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "toolExecutionPerformed": false,
+    "workerExecutionPerformed": false,
+    "workerEnqueuePerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "gpuRuntimePerformed": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_QA_REVIEW_OR_ROUTE_MOUNT_PROOF"
+}

@@ -34,6 +34,7 @@ export * from './ai-graphics-external-beta-controlled-runtime-execution-approval
 export * from './ai-graphics-external-beta-live-enqueue-authorization'
 export * from './ai-graphics-external-beta-callable-scope'
 export * from './ai-graphics-external-beta-callable-request-admission'
+export * from './ai-graphics-external-agent-execution-gate'
 export * from './ai-graphics-external-beta-api-route-boundary'
 export * from './ai-graphics-external-beta-api-route-queue-insertion-proof'
 export * from './ai-graphics-external-beta-api-route-queue-smoke-authorization'

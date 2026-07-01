@@ -664,6 +664,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-api-route-queue-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-queue-smoke-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-callable-request-admission": "tsx server/cli/ai-graphics-external-beta-callable-request-admission.ts",',
   '+    "ai-graphics:external-beta-callable-request-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-callable-request-admission-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-execution-gate": "tsx server/cli/ai-graphics-external-agent-execution-gate.ts",',
+  '+    "ai-graphics:external-agent-execution-gate:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs",',
 ])
 for (const rawLine of packageDiff.split('\n')) {
   const line = rawLine.trimEnd()

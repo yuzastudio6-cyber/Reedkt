@@ -26,6 +26,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 - Qwen Cloud Run minimum instances: `0`.
 - B-roll selected proof GPU: `nvidia_l4`.
 - B-roll proof path remains quota-blocked before VM creation.
+- B-roll no-idle GPU lifecycle is required: any future controlled L4 proof VM must be created only for the bounded prompt, use no external IP, and be deleted with cleanup verification before the prompt can be considered complete.
 - No always-on GPU runtime is approved by this rollup.
 
 ## Current Manual Blockers
@@ -52,6 +53,7 @@ For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-
 - `npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight without cache hashing, GPU work, model imports, inference, provider calls, workers, Docker, Supabase, SQL, or mutations.
 - Qwen is the closest lane to controlled private model inference, but remains auth-blocked.
 - B-roll has Wan/Wan2.1 planning, private cache evidence, proof-runner evidence, and fast stat-only cache readiness evidence, but remains quota-blocked for cloud GPU proof.
+- B-roll external-agent execution must not leave an idle GPU running; the accepted proof posture is bounded, private, no-public-IP, cleanup-verified execution only.
 - SOUND and Supabase are supporting readiness lanes here, not currently executable media/model tools.
 
 ## What This Does Not Prove

@@ -1,0 +1,94 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-DRY-RUN-1",
+  "integrationBase": "8e93c0275e25ba703ddfa7c63c9a6f0403a2ffe7",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_external_agent_runtime_dry_run_reference_validation_only",
+  "execution": "completed_confirmation_gated_narrow_external_agent_runtime_dry_run_no_route_worker_tool_or_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_EXTERNAL_AGENT_RUNTIME_DRY_RUN=true",
+  "failClosedNoGateBlocker": "blocked_pending_narrow_external_agent_runtime_dry_run_confirmation",
+  "runId": "2026-07-01T07-13-36-296Z-7ebd9826",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-dry-run-1/2026-07-01T07-13-36-296Z-7ebd9826",
+  "sourceChain": {
+    "handoffPr": 1959,
+    "handoffMergeSha": "8e93c0275e25ba703ddfa7c63c9a6f0403a2ffe7",
+    "handoffDecision": "completed_gstreamer_mkvtoolnix_narrow_external_agent_runtime_handoff_contract_ready_for_confirmation_gated_dry_run",
+    "handoffExecution": "completed_docs_only_narrow_external_agent_runtime_handoff_no_route_worker_or_tool_execution",
+    "handoffStatus": "ready_for_confirmation_gated_narrow_external_agent_runtime_dry_run",
+    "runtimeQaRollupPr": 1958,
+    "runtimeQaRollupMergeSha": "91d5ae8c23ffe9972957574df641cf999df2eb67",
+    "packet2Pr": 1954,
+    "packet2RunId": "2026-07-01T04-29-30-784Z-d39bdd98",
+    "guardedRuntimeRunId": "2026-07-01T04-29-30-842Z-7cc784a7",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "dryRun": {
+    "mode": "reference_validation_only",
+    "positiveEnvelopeValidation": "passed",
+    "negativeEnvelopeValidation": "passed",
+    "rejectedCases": [
+      "reject_raw_command",
+      "reject_arbitrary_private_media",
+      "reject_route_execution",
+      "reject_worker_dispatch",
+      "reject_persistent_queue_write",
+      "reject_supabase_sql",
+      "reject_signed_public_artifact",
+      "reject_final_export_production"
+    ]
+  },
+  "artifacts": [
+    {
+      "fileName": "narrow-external-agent-runtime-handoff-envelope-validation.json",
+      "bytes": 4036,
+      "sha256": "f1a2713af52f01fdbe40dec86183c45e1f1f76a8d0c0a75569a67741b57179fe"
+    },
+    {
+      "fileName": "narrow-external-agent-runtime-dry-run-report.json",
+      "bytes": 4202,
+      "sha256": "cf6c1343ec83567edb9b129c8949e0d6a327c4b7957468ee0bdaee979eda31ef"
+    },
+    {
+      "fileName": "narrow-external-agent-runtime-dry-run-manifest.json",
+      "bytes": 695,
+      "sha256": "307e6f735676f3fb092f03dcf660dc7f71182ea5bf4812fb5bb0271dd8383d82"
+    }
+  ],
+  "readiness": {
+    "gstreamer": "ready_for_narrow_external_agent_runtime_bridge_implementation_planning",
+    "mkvtoolnix": "ready_for_narrow_external_agent_runtime_bridge_implementation_planning",
+    "externalAgentRuntimeDryRun": "passed_reference_validation_only"
+  },
+  "safety": {
+    "liveHttpRouteExecutionInThisDryRunPhase": false,
+    "externalAgentRuntimeExecutionInThisDryRunPhase": false,
+    "realWorkerDispatchInThisDryRunPhase": false,
+    "workerProcessStartedInThisDryRunPhase": false,
+    "workerExecutionInThisDryRunPhase": false,
+    "workerLeaseClaimInThisDryRunPhase": false,
+    "persistentJobQueueWriteInThisDryRunPhase": false,
+    "gstreamerExecutionInThisDryRunPhase": false,
+    "mkvtoolnixExecutionInThisDryRunPhase": false,
+    "dockerExecutionInThisDryRunPhase": false,
+    "ffmpegFfprobeExecutionInThisDryRunPhase": false,
+    "remotionExecutionInThisDryRunPhase": false,
+    "privateMediaProcessingInThisDryRunPhase": false,
+    "userMediaProcessingInThisDryRunPhase": false,
+    "supabaseMutationInThisDryRunPhase": false,
+    "sqlExecutionInThisDryRunPhase": false,
+    "secretPayloadAccessInThisDryRunPhase": false,
+    "serviceRoleSecretPayloadAccessInThisDryRunPhase": false,
+    "providerModelCallInThisDryRunPhase": false,
+    "signedUrlCreationInThisDryRunPhase": false,
+    "publicArtifactCreationInThisDryRunPhase": false,
+    "finalRenderExportInThisDryRunPhase": false,
+    "broadExternalBetaUnlockInThisDryRunPhase": false,
+    "paidProductionUnlockInThisDryRunPhase": false,
+    "productionUnlockInThisDryRunPhase": false,
+    "packageLockMutation": false,
+    "dependencyMutation": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-BRIDGE-IMPLEMENTATION-1"
+}

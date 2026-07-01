@@ -14,6 +14,7 @@ import {
   createMockStripeWebhookEvent,
   evaluateStripeLiveReadiness,
   getStripeConfigStatus,
+  runStripeLiveNoChargeDryRun,
   sharedMockStripeBillingStore,
   STRIPE_FOUNDATION_WARNINGS,
 } from '../services/stripe-billing-foundation-service'
@@ -49,6 +50,12 @@ export function createStripeBillingRoutes(): Router {
     const context = getServiceContext(request)
     const result = evaluateStripeLiveReadiness(context.env.stripeBilling)
     sendOk(response, { stripeLiveReadiness: result }, [...STRIPE_FOUNDATION_WARNINGS, ...result.warnings])
+  }))
+
+  router.post('/v1/billing/stripe/live-readiness/no-charge-dry-run', requireAuth, asyncRoute(async (request, response) => {
+    const context = getServiceContext(request)
+    const result = await runStripeLiveNoChargeDryRun(context.env.stripeBilling)
+    sendOk(response, { stripeLiveNoChargeDryRun: result }, [...STRIPE_FOUNDATION_WARNINGS, ...result.warnings])
   }))
 
   router.get('/v1/billing/stripe/test-readiness', requireAuth, asyncRoute(async (request, response) => {

@@ -96,3 +96,9 @@
 - Real: `/v1/billing/stripe/*/test` routes can create Stripe test customers, SetupIntents, Checkout Sessions, and verify test webhooks with raw request bodies.
 - Real: verified test checkout completion can grant purchased credits into the local mock wallet/grant store idempotently.
 - Mock/test-only: no live Stripe, production wallet mutation, production ledger write, Supabase write, provider call, render/export execution, export unlock, or production persistence is wired.
+
+## RP-STRIPE-LIVE-READINESS-01 Stripe Live Readiness Status
+
+- Real: `/v1/billing/stripe/live-readiness` and `/v1/billing/stripe/live-readiness/no-charge-dry-run` report live config readiness and secret-reference audit details.
+- Real: complete production live config can reach `ready_no_charge`.
+- Blocked by design: live Checkout Sessions, live SetupIntents, live PaymentIntents, live webhooks, live credit grants, production wallet mutation, production ledger writes, Supabase writes, provider/render/export execution, export unlock, and production persistence.

@@ -28,6 +28,10 @@ The mock Checkout endpoint validates an existing mock credit wallet and an activ
 
 RP-STRIPE-TESTMODE-01 adds explicit `/test` routes for Stripe test customers, SetupIntents, Checkout Sessions, and raw-body webhook processing. Test checkout grants local mock purchased credits only after a verified test webhook and matching pack/wallet metadata. The mock `/mock` routes remain config-only stubs. See `docs/stripe-testmode-billing-path.md` and `smoke:stripe-testmode`.
 
+## Live Readiness Gate
+
+RP-STRIPE-LIVE-READINESS-01 strengthens live readiness as a no-charge dry run. `ready_no_charge` means production live references and owner approval gates are structurally ready, while live Checkout Sessions, live SetupIntents, live PaymentIntents, live webhooks, live credit grants, production wallet mutation, production ledger writes, Supabase writes, provider calls, and render/export execution remain disabled. See `docs/stripe-live-readiness.md` and `smoke:stripe-live-readiness`.
+
 ## Webhook foundation
 
 The mock webhook endpoint records verified mock events idempotently by Stripe event ID. Signature verification is a contract boundary only: future live Stripe verification requires the raw request body before JSON parsing, a `Stripe-Signature` header, and a mode-matched webhook signing secret reference. Parsed JSON body alone is not accepted for live verification.
@@ -40,6 +44,7 @@ RP-STRIPE-FOUNDATION-01 adds authenticated mock/config routes:
 
 - `GET /v1/billing/stripe/config/status`
 - `GET /v1/billing/stripe/live-readiness`
+- `POST /v1/billing/stripe/live-readiness/no-charge-dry-run`
 - `GET /v1/billing/stripe/test-readiness`
 - `POST /v1/billing/stripe/setup-intents/mock`
 - `POST /v1/billing/stripe/setup-intents/test`

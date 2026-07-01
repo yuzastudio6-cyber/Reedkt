@@ -82,7 +82,7 @@ const liveDevEnv = loadRuntimeEnv({
   REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL: 'true',
   REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE: 'live',
 })
-assert.equal(evaluateStripeLiveReadiness(liveDevEnv.stripeBilling).status, 'blocked')
+assert.equal(evaluateStripeLiveReadiness(liveDevEnv.stripeBilling).status, 'invalid_config')
 
 const liveProdEnv = loadRuntimeEnv({
   NODE_ENV: 'production',
@@ -95,7 +95,7 @@ const liveProdEnv = loadRuntimeEnv({
   REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL: 'true',
   REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE: 'live',
 })
-assert.equal(evaluateStripeLiveReadiness(liveProdEnv.stripeBilling).status, 'ready')
+assert.equal(evaluateStripeLiveReadiness(liveProdEnv.stripeBilling).status, 'ready_no_charge')
 
 const rawSecretEnv = loadRuntimeEnv({
   REEDITPRO_STRIPE_BILLING_MODE: 'test',

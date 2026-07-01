@@ -93,6 +93,22 @@ export const STRIPE_SECRET_VALUE_RESULT_STATUSES = [
 ] as const
 export type StripeSecretValueResultStatus = typeof STRIPE_SECRET_VALUE_RESULT_STATUSES[number]
 
+export const STRIPE_LIVE_READINESS_STATUSES = [
+  'ready_no_charge',
+  'not_ready',
+  'blocked',
+  'invalid_config',
+] as const
+export type StripeLiveReadinessStatus = typeof STRIPE_LIVE_READINESS_STATUSES[number]
+
+export const STRIPE_LIVE_READINESS_CHECK_STATUSES = [
+  'passed',
+  'failed',
+  'blocked',
+  'warning',
+] as const
+export type StripeLiveReadinessCheckStatus = typeof STRIPE_LIVE_READINESS_CHECK_STATUSES[number]
+
 export interface StripeBillingSecretReferences {
   testSecretKeySecretName?: string | null
   testPublishableKeySecretName?: string | null
@@ -129,8 +145,10 @@ export interface StripeBillingConfigValidationResult {
 export interface StripeLiveReadinessCheck {
   id: string
   label: string
+  status: StripeLiveReadinessCheckStatus
   passed: boolean
   message: string
+  remediation?: string
 }
 
 export interface StripeTestReadinessCheck {
@@ -166,9 +184,22 @@ export interface StripeConfigStatusResponse {
 }
 
 export interface StripeLiveReadinessResponse {
-  status: 'ready' | 'blocked'
+  status: StripeLiveReadinessStatus
   stripeMode: StripeBillingMode
+  appEnvironment: string
+  liveModeAllowed: boolean
+  liveModeRequiresManualApproval: boolean
+  manualApprovalPresent: boolean
+  secretSource: StripeSecretSource
+  webhookEndpointMode: StripeWebhookEndpointMode
   canEnableLiveMode: boolean
+  canCreateLiveCheckoutSessions: false
+  canCreateLiveSetupIntents: false
+  canCreateLivePaymentIntents: false
+  canProcessLiveWebhooks: false
+  canGrantLiveCredits: false
+  noChargeDryRun: true
+  safeConfigSummary: Record<string, unknown>
   checks: StripeLiveReadinessCheck[]
   config: StripeBillingRuntimeConfig
   safetyFlags: StripeBillingSafetyFlags

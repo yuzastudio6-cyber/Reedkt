@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-STRIPE-LIVE-READINESS-01
+
+Status: no-charge live readiness gate.
+
+The repository now includes a live secret-reference audit and no-charge Stripe live readiness dry run. Complete production live config can report `ready_no_charge`, while all live money movement remains disabled.
+
+It does not enable live billing, live Checkout Sessions, live SetupIntents, live PaymentIntents, live webhooks, live credit grants, production wallet mutation, production ledger writes, Supabase writes, provider calls, render/export execution, export unlock, or package-lock changes.
+
 ## RP-STRIPE-TESTMODE-01
 
 Status: test-mode billing path.

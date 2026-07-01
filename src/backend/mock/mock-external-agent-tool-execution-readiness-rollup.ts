@@ -92,6 +92,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'Fail-closed static go/no-go gate for external agents before any runtime execution attempt.',
     },
     {
+      id: 'live_next_command_decision',
+      command: 'npm run external-agent-tool-next-command',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Read-only live decision that combines the fail-closed gate and blocker probes into the next safe command.',
+    },
+    {
       id: 'live_blocker_preflight',
       command: 'npm run external-agent-tool-blockers:preflight',
       liveReadOnly: true,

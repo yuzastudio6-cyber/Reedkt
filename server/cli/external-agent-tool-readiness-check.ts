@@ -73,7 +73,7 @@ function main() {
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
   const safeNextCommands = rollup.safeNextCommands
   const preferredNextSafeCommand =
-    safeNextCommands.find((command) => command.id === 'live_blocker_preflight') ?? safeNextCommands[0]
+    safeNextCommands.find((command) => command.id === 'live_next_command_decision') ?? safeNextCommands[0]
 
   const summary = {
     ok: missingEvidence.length === 0 && runtimeGatesAllFalse,

@@ -623,6 +623,8 @@
     "smoke:external-agent-tool-action-plan": "tsx server/smoke/external-agent-tool-action-plan-smoke.ts",
     "external-agent-tool-execution-gate": "tsx server/cli/external-agent-tool-execution-gate.ts",
     "smoke:external-agent-tool-execution-gate": "tsx server/smoke/external-agent-tool-execution-gate-smoke.ts",
+    "external-agent-tool-next-command": "tsx server/cli/external-agent-tool-next-command.ts",
+    "smoke:external-agent-tool-next-command": "tsx server/smoke/external-agent-tool-next-command-smoke.ts",
     "external-agent-tool-readiness:check": "tsx server/cli/external-agent-tool-readiness-check.ts",
     "smoke:external-agent-tool-readiness-check": "tsx server/smoke/external-agent-tool-readiness-check-smoke.ts",
     "external-agent-tool-blockers:preflight": "tsx server/cli/external-agent-tool-blocker-preflight.ts",

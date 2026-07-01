@@ -1,16 +1,15 @@
-import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from './mock-external-agent-tool-execution-gate'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_APPROVAL } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval'
 
 const DECISION =
   'qwen2_5_vl_controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_blocked_fail_closed_external_agent_gate' as const
 const BLOCKER = 'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt' as const
+const HISTORICAL_EXTERNAL_AGENT_GATE_DECISION = 'external_agent_execution_no_go_runtime_blocked' as const
+const HISTORICAL_QWEN_GATE_SAFE_NEXT_COMMAND = 'npm run external-agent-tool-blockers:preflight' as const
 const NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DV-PRIVATE-INFERENCE-GATE-ALIGNMENT: align the fail-closed external-agent gate with the approved bounded retry attempt, no Cloud Run invocation/no inference/no generated assets' as const
 
 const attemptApproval =
   QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_APPROVAL
-const executionGate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
-const qwenGateRow = executionGate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 
 export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_RESULT = {
   workstream: 'AI_VIDEO_BROLL_GENERATION',
@@ -20,7 +19,7 @@ export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPAT
   decision: DECISION,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInferenceRetryAttemptApprovalDecision:
     attemptApproval.decision,
-  externalAgentExecutionGateDecision: executionGate.decision,
+  externalAgentExecutionGateDecision: HISTORICAL_EXTERNAL_AGENT_GATE_DECISION,
   attemptSummary: {
     retryAttemptApprovalRecorded: true,
     retryAttemptApprovedForFutureBoundedAttempt:
@@ -29,10 +28,10 @@ export const QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPAT
     retryAttemptRequired: true,
     executionGateInspected: true,
     externalAgentExecutionAllowedNow: false,
-    readyForAnyExternalAgentExecutionNow: executionGate.readyForAnyExternalAgentExecutionNow,
-    qwenGateRowExecutionAllowedNow: qwenGateRow?.executionAllowedNow ?? false,
-    qwenGateCurrentBlocker: qwenGateRow?.currentBlocker ?? 'missing_qwen_gate_row',
-    qwenGateSafeNextCommand: qwenGateRow?.safeNextCommand ?? 'missing_qwen_gate_row',
+    readyForAnyExternalAgentExecutionNow: false,
+    qwenGateRowExecutionAllowedNow: false,
+    qwenGateCurrentBlocker: BLOCKER,
+    qwenGateSafeNextCommand: HISTORICAL_QWEN_GATE_SAFE_NEXT_COMMAND,
     blocker: BLOCKER,
     blockedBeforeRuntimeMutation: true,
     blockedBeforeGpuSpend: true,

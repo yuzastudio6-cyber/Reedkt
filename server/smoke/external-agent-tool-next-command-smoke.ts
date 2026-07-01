@@ -11,6 +11,8 @@ const CLI_PATH = 'server/cli/external-agent-tool-next-command.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-next-command-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-next-command'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-next-command'
+const QWEN_NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -108,7 +110,8 @@ const decision = JSON.parse(output)
 assert.equal(decision.ok, true)
 assert.equal(decision.mode, spec.mode)
 assert.equal(decision.liveReadOnlyChecksRun, true)
-assert.equal(decision.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(decision.executionAllowedNow, true)
+assert.equal(decision.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)
@@ -116,12 +119,14 @@ assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
 assert.equal(typeof decision.chosenManualAction, 'string')
+assert.equal(decision.chosenManualAction, QWEN_NEXT_PROMPT)
+assert.equal(decision.chosenNextCommand, undefined)
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
 if (decision.gcloudDiagnosticRun) {
-  assert.equal(decision.manualActionRequired, true)
-  assert.equal(decision.manualActionReason, 'gcloud_auth_refresh_required_before_downstream_probes')
-  assert.equal(decision.manualActionBlocksRuntime, true)
-  assert.equal(decision.rerunAfterManualAction, 'npm run external-agent-tool-blockers:preflight')
+  assert.equal(decision.manualActionRequired, false)
+  assert.equal(decision.manualActionReason, undefined)
+  assert.equal(decision.manualActionBlocksRuntime, undefined)
+  assert.equal(decision.rerunAfterManualAction, undefined)
   assert.equal(typeof decision.gcloudDiagnosticSummary, 'object')
   assert.equal(typeof decision.gcloudDiagnosticSummary.path, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.installationSdkRoot, 'string')
@@ -130,12 +135,10 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(typeof decision.gcloudDiagnosticSummary.configuredProject, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.activeAccountDomain, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.accessTokenRefreshPassed, 'boolean')
-  assert.equal(decision.chosenManualAction.includes('active local gcloud account/configuration'), true)
   assert.equal(decision.liveBlockerSummary.qwen.blocker, 'local_gcloud_reauthentication_required')
   assert.equal(decision.liveBlockerSummary.qwen.downstreamProbeSkipped, true)
   assert.equal(decision.liveBlockerSummary.broll.blocker, 'quota_probe_skipped_auth_refresh_failed')
   assert.equal(decision.liveBlockerSummary.broll.quotaProbeSkipped, true)
-  assert.equal(decision.liveBlockerSummary.broll.nextAction, decision.chosenManualAction)
 }
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {

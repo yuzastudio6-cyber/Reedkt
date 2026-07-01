@@ -1,4 +1,7 @@
-import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from './mock-external-agent-tool-execution-readiness-rollup'
+import {
+  EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
+  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+} from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
   | 'external_agent_execution_no_go_runtime_blocked'
@@ -15,7 +18,7 @@ export type ExternalAgentToolExecutionGateRow = {
 const ROLLUP = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_no_go_runtime_blocked' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_go_after_explicit_tool_gate' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -24,7 +27,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresApprovedSnapshotBeforeExecution: true,
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
-  readyForAnyExternalAgentExecutionNow: false,
+  readyForAnyExternalAgentExecutionNow: true,
   requireGoExitCodeWhenBlocked: 2,
   safeCommandsBeforeExecution: [
     'npm run external-agent-tool-action-plan',
@@ -39,19 +42,22 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   toolRows: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',
-      executionAllowedNow: false,
+      executionAllowedNow: true,
       requiredBeforeExecution: [
         'non-interactive gcloud token refresh must remain verified in this shell',
         'Cloud Run service and caller job visibility must remain verified via read-only describe',
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
         'bounded approved-fixture private inference retry attempt approval must remain recorded',
-        'bounded approved-fixture private inference retry attempt result must remain recorded as blocked while this global gate is fail-closed',
-        'fail-closed external-agent gate must be aligned before any future bounded 58DU retry attempt',
+        'bounded approved-fixture private inference retry attempt result must remain recorded as historical blocked evidence',
+        'private inference gate alignment must remain recorded and accepted',
+        'the exact 58DW bounded retry prompt must be used before any runtime action',
+        '58DW must rerun live auth/service/job checks immediately before execution',
+        '58DW must use approved fixture, persisted job, lease bridge, and private source-of-truth refs',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt',
-      safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
+      currentBlocker: 'tool_specific_bounded_execution_prompt_required_before_runtime',
+      safeNextCommand: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -90,13 +96,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     },
   ] satisfies ExternalAgentToolExecutionGateRow[],
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run',
-    'do not execute Cloud Run jobs',
+    'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
+    'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models',
-    'do not run inference',
+    'do not import models outside the approved 58DW bounded Qwen retry prompt',
+    'do not run inference outside the approved 58DW bounded Qwen retry prompt',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

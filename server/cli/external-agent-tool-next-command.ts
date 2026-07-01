@@ -188,7 +188,7 @@ function main() {
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
         executionAllowedNow,
-        readyForAnyExternalAgentExecutionNow: false,
+        readyForAnyExternalAgentExecutionNow: executionAllowedNow,
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
         liveBlockerSummary: blockerSummary,

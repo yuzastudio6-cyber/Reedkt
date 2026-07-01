@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_result_blocked_by_fail_closed_external_agent_gate',
-  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference retry-attempt result blocker.',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required',
+  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference gate alignment.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -208,8 +208,11 @@ check(
     docText.includes(
       'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_result_blocked_by_fail_closed_external_agent_gate',
     ) ||
+    docText.includes(
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required',
+    ) ||
     data.privateInvokeClient.currentStatus ===
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_result_blocked_by_fail_closed_external_agent_gate',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -374,10 +377,11 @@ check(
     docText.includes('58DS retry gate') &&
     docText.includes('58DT retry attempt approval') &&
     docText.includes('58DU retry attempt result') &&
+    docText.includes('58DV gate alignment') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DV-PRIVATE-INFERENCE-GATE-ALIGNMENT',
+      'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh/retry-plan/retry-gate/retry-approval/retry-result evidence, and the 58DV gate-alignment next prompt.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh/retry-plan/retry-gate/retry-approval/retry-result/gate-alignment evidence, and the 58DW bounded retry next prompt.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

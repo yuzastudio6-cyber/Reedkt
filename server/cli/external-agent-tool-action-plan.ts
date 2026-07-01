@@ -1,13 +1,13 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
-  'do not invoke Cloud Run',
-  'do not execute Cloud Run jobs',
+  'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
+  'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
   'do not create Compute Engine VMs',
   'do not request quota',
   'do not run Docker',
-  'do not import models',
-  'do not run inference',
+  'do not import models outside the approved 58DW bounded Qwen retry prompt',
+  'do not run inference outside the approved 58DW bounded Qwen retry prompt',
   'do not create generated assets',
   'do not call providers',
   'do not dispatch workers',
@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'bounded approved-fixture private inference retry attempt is blocked by the fail-closed external-agent execution gate; no direct or unbounded inference is allowed from this action plan',
+        'tool-specific bounded 58DW execution prompt is required before runtime; no direct or unbounded inference is allowed from this action plan',
       afterBlockerClears:
-        'align the fail-closed external-agent gate with the approved bounded retry envelope before any future 58DU attempt; generated assets, Supabase mutation, and credits remain blocked',
+        'run only the approved 58DW bounded retry prompt through the persisted job and lease bridge; generated assets, Supabase mutation, and credits remain blocked',
     }
   }
 

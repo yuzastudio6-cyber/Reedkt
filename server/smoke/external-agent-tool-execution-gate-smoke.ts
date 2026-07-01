@@ -6,6 +6,8 @@ import path from 'node:path'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 
 const ROOT = process.cwd()
+const QWEN_NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
 const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-gate.ts'
 const CLI_PATH = 'server/cli/external-agent-tool-execution-gate.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-gate-smoke.ts'
@@ -71,9 +73,9 @@ assert.equal(
 )
 
 const gate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
-assert.equal(gate.decision, 'external_agent_execution_no_go_runtime_blocked')
+assert.equal(gate.decision, 'external_agent_execution_go_after_explicit_tool_gate')
 assert.equal(gate.mode, 'fail_closed_external_agent_tool_execution_gate')
-assert.equal(gate.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(gate.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(gate.requiresApprovedSnapshotBeforeExecution, true)
 assert.equal(gate.requiresStructuredToolEnvelopeBeforeExecution, true)
 assert.equal(gate.rawChatExecutionAllowed, false)
@@ -84,13 +86,21 @@ assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-t
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
 
 for (const row of gate.toolRows) {
-  assert.equal(row.executionAllowedNow, false, `${row.toolId} must be blocked`)
+  if (row.toolId === 'qwen2_5_vl_7b_instruct') {
+    assert.equal(row.executionAllowedNow, true, `${row.toolId} must be ready for explicit tool gate`)
+  } else {
+    assert.equal(row.executionAllowedNow, false, `${row.toolId} must be blocked`)
+  }
   assert.equal(row.requiredBeforeExecution.length > 0, true, `${row.toolId} needs required-before-execution rows`)
 }
 const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 assert.equal(
   qwenGateRow?.currentBlocker,
-  'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt',
+  'tool_specific_bounded_execution_prompt_required_before_runtime',
+)
+assert.equal(
+  qwenGateRow?.safeNextCommand,
+  QWEN_NEXT_PROMPT,
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
@@ -118,13 +128,19 @@ assert.equal(
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('retry attempt result must remain recorded as blocked'),
+    requirement.includes('retry attempt result must remain recorded as historical blocked evidence'),
   ),
   true,
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('gate must be aligned'),
+    requirement.includes('58DW bounded retry prompt'),
+  ),
+  true,
+)
+assert.equal(
+  qwenGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('rerun live auth/service/job checks'),
   ),
   true,
 )
@@ -167,22 +183,22 @@ const report = JSON.parse(output)
 assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
-assert.equal(report.executionAllowedNow, false)
-assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(report.executionAllowedNow, true)
+assert.equal(report.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, [])
-assert.equal(report.blockedToolIds.length, 4)
+assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(report.blockedToolIds.length, 3)
 
 const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
   cwd: ROOT,
   encoding: 'utf8',
   maxBuffer: 1024 * 1024,
 })
-assert.equal(requireGo.status, gate.requireGoExitCodeWhenBlocked)
+assert.equal(requireGo.status, 0)
 const requireGoReport = JSON.parse(String(requireGo.stdout))
 assert.equal(requireGoReport.requireGoMode, true)
-assert.equal(requireGoReport.executionAllowedNow, false)
+assert.equal(requireGoReport.executionAllowedNow, true)
 
 const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
@@ -194,7 +210,7 @@ console.log(
       decision: report.decision,
       mode: report.mode,
       executionAllowedNow: report.executionAllowedNow,
-      requireGoBlockedExitCode: requireGo.status,
+      requireGoExitCode: requireGo.status,
       blockedToolIds: report.blockedToolIds,
       runtimeGatesAllFalse: report.runtimeGatesAllFalse,
       recommendedNextPrompt: report.recommendedNextPrompt,

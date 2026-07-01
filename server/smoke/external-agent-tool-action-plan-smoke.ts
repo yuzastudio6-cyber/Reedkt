@@ -93,14 +93,14 @@ assert.equal(plan.decision, rollup.decision)
 assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
-assert.equal(plan.readyForAnyExternalAgentExecutionNow, false)
-assert.deepEqual(plan.readyToolIds, [])
-assert.equal(plan.blockedToolCount, rollup.tools.length)
+assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
+assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
-assert.equal(plan.manualBlockers.length, rollup.tools.length)
+assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
 assert.equal(plan.sourceRules.approvedSnapshotRequired, true)
 assert.equal(plan.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
@@ -114,10 +114,14 @@ const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
 assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate -- --require-go')
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
-assert.equal(qwen.externalManualBlocker.includes('bounded approved-fixture private inference retry attempt'), true)
-assert.equal(qwen.externalManualBlocker.includes('fail-closed external-agent execution gate'), true)
+assert.equal(qwen.externalManualBlocker.includes('tool-specific bounded 58DW execution prompt'), true)
 assert.equal(qwen.externalManualBlocker.includes('no direct or unbounded inference'), true)
-assert.equal(qwen.forbiddenRuntimeActions.includes('do not run inference'), true)
+assert.equal(
+  qwen.forbiddenRuntimeActions.some((action) =>
+    action.includes('do not run inference outside the approved 58DW bounded Qwen retry prompt'),
+  ),
+  true,
+)
 
 const broll = toolActions.get('ai_video_broll_generation_wan') as {
   immediateSafeActions: string[]

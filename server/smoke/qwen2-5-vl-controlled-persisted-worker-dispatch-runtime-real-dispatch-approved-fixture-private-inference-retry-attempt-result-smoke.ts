@@ -2,7 +2,6 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_APPROVAL } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_RESULT } from '../../src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result'
 
@@ -75,7 +74,6 @@ for (const file of [
   'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.md',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.ts',
   'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.ts',
-  'src/backend/mock/mock-external-agent-tool-execution-gate.ts',
   'package.json',
 ]) {
   check(fs.existsSync(path.join(ROOT, file)), `Missing required file: ${file}`)
@@ -128,18 +126,18 @@ assert.equal(
   result.upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInferenceRetryAttemptApprovalDecision,
   QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_APPROVAL.decision,
 )
-assert.equal(result.externalAgentExecutionGateDecision, EXTERNAL_AGENT_TOOL_EXECUTION_GATE.decision)
-assert.equal(EXTERNAL_AGENT_TOOL_EXECUTION_GATE.readyForAnyExternalAgentExecutionNow, false)
-const qwenGateRow = EXTERNAL_AGENT_TOOL_EXECUTION_GATE.toolRows.find(
-  (row) => row.toolId === 'qwen2_5_vl_7b_instruct',
+assert.equal(
+  result.externalAgentExecutionGateDecision,
+  'external_agent_execution_no_go_runtime_blocked',
 )
-assert.equal(qwenGateRow?.executionAllowedNow, false)
 assert.equal(result.attemptSummary.retryAttemptApprovalRecorded, true)
 assert.equal(result.attemptSummary.retryAttemptApprovedForFutureBoundedAttempt, true)
 assert.equal(result.attemptSummary.executionGateInspected, true)
 assert.equal(result.attemptSummary.externalAgentExecutionAllowedNow, false)
 assert.equal(result.attemptSummary.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(result.attemptSummary.qwenGateRowExecutionAllowedNow, false)
+assert.equal(result.attemptSummary.qwenGateCurrentBlocker, BLOCKER)
+assert.equal(result.attemptSummary.qwenGateSafeNextCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(result.attemptSummary.blockedBeforeRuntimeMutation, true)
 assert.equal(result.attemptSummary.blockedBeforeGpuSpend, true)
 assert.equal(result.attemptSummary.blockedBeforeCloudRunInvocation, true)

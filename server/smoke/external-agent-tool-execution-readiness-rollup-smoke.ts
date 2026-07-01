@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
+  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -70,7 +70,7 @@ for (const required of [
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'auth verified, runtime blocked',
+  'ready for explicit tool gate',
   'auth-readable live preflight now reads GPU quota',
   '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
@@ -79,11 +79,11 @@ for (const required of [
   'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
   'auth/service/job visibility is now verified',
-  'bounded private inference retry planning, the 58DS retry gate, the 58DT retry attempt approval, and the 58DU retry attempt result are recorded',
-  '58DU was not executed because the active external-agent execution gate remains fail-closed',
+  'the historical 58DU blocked retry result, and the 58DV gate alignment are recorded',
+  'Qwen may proceed only to the explicit 58DW bounded retry prompt',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
-  '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',
+  '`npm run external-agent-tool-execution-gate -- --require-go` exits zero only because Qwen is ready for the explicit 58DW tool prompt',
   'the preferred next safe command is `npm run external-agent-tool-next-command`',
   'combines the fail-closed gate and live read-only blocker probes',
   '`npm run external-agent-tool-execution-gate` provides a fail-closed static go/no-go report',
@@ -161,15 +161,28 @@ for (const requiredTool of [
 }
 
 const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
-assert.equal(qwen?.status, 'auth_verified_runtime_blocked')
+assert.equal(qwen?.status, 'ready_for_explicit_tool_gate')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
-assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
-assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(qwen?.primaryBlocker, 'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt')
+assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
+assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, false)
+assert.equal(qwen?.primaryBlocker, 'tool_specific_bounded_execution_prompt_required_before_runtime')
+assert.equal(qwen?.nextAction, NEXT_PROMPT)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.md',
+  ),
+  true,
+)
 assert.equal(
   qwen?.evidence.includes(
     'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.ts',
   ),
   true,
 )
@@ -212,6 +225,12 @@ assert.equal(
 assert.equal(
   qwen?.evidence.includes(
     'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment-smoke.ts',
   ),
   true,
 )
@@ -274,7 +293,11 @@ assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-pr
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 
 for (const tool of rollup.tools) {
-  assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)
+  if (tool.toolId === 'qwen2_5_vl_7b_instruct') {
+    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be explicit-gate ready`)
+  } else {
+    assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)
+  }
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)
 }
 

@@ -77,9 +77,9 @@ assert.equal(summary.supabaseTouched, false)
 assert.equal(summary.sqlExecuted, false)
 assert.equal(summary.modelInferenceRun, false)
 assert.equal(summary.generatedAssetsCreated, false)
-assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
-assert.deepEqual(summary.readyToolIds, [])
-assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length)
+assert.equal(summary.readyForAnyExternalAgentExecutionNow, true)
+assert.deepEqual(summary.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length - 1)
 assert.deepEqual(summary.missingEvidence, [])
 assert.deepEqual(summary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
 assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
@@ -92,7 +92,7 @@ assert.equal(
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('qwen2_5_vl_7b_instruct'),
-  true,
+  false,
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('ai_video_broll_generation_wan'),

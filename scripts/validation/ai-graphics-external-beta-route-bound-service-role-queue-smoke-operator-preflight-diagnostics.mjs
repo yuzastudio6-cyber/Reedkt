@@ -198,6 +198,8 @@ const changedGeneratedArtifactPattern =
 const allowedPackageDiffLines = [
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-agent-mounted-blocked-route-smoke": "tsx server/cli/ai-graphics-external-agent-mounted-blocked-route-smoke.ts",',
+  '+    "ai-graphics:external-agent-mounted-blocked-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-mounted-blocked-route-smoke-diagnostics.mjs",',
 ]
 
 const failures = []

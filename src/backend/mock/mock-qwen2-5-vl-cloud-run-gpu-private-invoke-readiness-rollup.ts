@@ -132,6 +132,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_GATE_ALIGNMENT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result'
 import { QWEN2_5_VL_58DW_STRUCTURED_OUTPUT_FIX } from './mock-qwen2-5-vl-58dw-structured-output-fix'
+import { QWEN2_5_VL_58DW_RETRY_2_RESULT } from './mock-qwen2-5-vl-58dw-retry-2-result'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -277,7 +278,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_58dw_retry_2_ready',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_58dw_retry_2_result_review_required',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -548,6 +549,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT_RESULT.decision,
   upstream58dwStructuredOutputFixDecision:
     QWEN2_5_VL_58DW_STRUCTURED_OUTPUT_FIX.decision,
+  upstream58dwRetry2ResultDecision:
+    QWEN2_5_VL_58DW_RETRY_2_RESULT.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -2111,7 +2114,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'The 58DV gate alignment historically allowed Qwen to be marked ready for the explicit external-agent tool gate; the 58DW retry result now supersedes that state with a structured-output schema blocker.',
         'The 58DW bounded retry executed one approved-fixture private inference path, restored the GPU service and caller job fail-closed, and returned parseable JSON that failed the required structured fixture schema.',
         'The 58DW-FIX strict structured-output source fix is recorded and locally validates rejection of the failed top-level object-row shape.',
-        'A second bounded runtime retry is ready only through the explicit 58DW-RETRY-2 prompt after live preflight passes.',
+        'The 58DW-RETRY-2 bounded private fixture retry passed and restored the service fail-closed.',
+        'Result review is required before any further Qwen runtime posture is proposed.',
       ],
       missingEvidence: [],
     },
@@ -2933,11 +2937,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'explicit_58dw_retry_2_result_review_required_before_broad_qwen_runtime',
+    'qwen_58dw_retry_2_result_review_required',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation',
+    'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

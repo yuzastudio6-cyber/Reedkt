@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,12 +65,12 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_58dw_retry_2_ready_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_58dw_retry_2_result_review_required_broll_quota_blocked',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'strict output fix ready',
+  'bounded retry-2 passed, result review required',
   'auth-readable live preflight now reads GPU quota',
   '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
@@ -83,8 +83,8 @@ for (const required of [
   'minimum `GPUS_ALL_REGIONS` quota `1`',
   '## Safe Agent Commands',
   '58DW bounded retry result remains recorded as schema-invalid runtime evidence',
-  '58DW-FIX strict structured-output source fix is now recorded and locally validated',
-  'explicit 58DW-RETRY-2 bounded fixture prompt after read-only live auth/service/job preflight passes',
+  '58DW-FIX strict structured-output source fix is recorded and locally validated',
+  '58DW-RETRY-2 bounded private fixture retry passed with fail-closed restoration',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static gate',
   'a static gate is not runtime permission',
@@ -118,7 +118,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_58dw_retry_2_ready_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_58dw_retry_2_result_review_required_broll_quota_blocked',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -185,42 +185,17 @@ for (const requiredTool of [
 }
 
 const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
-assert.equal(qwen?.status, 'ready_for_explicit_tool_gate')
+assert.equal(qwen?.status, 'auth_verified_runtime_blocked')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
-assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
-assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(qwen?.primaryBlocker, 'explicit_58dw_retry_2_prompt_required_before_runtime')
+assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
+assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, false)
+assert.equal(qwen?.primaryBlocker, 'qwen_58dw_retry_2_result_review_required')
 assert.equal(qwen?.nextAction, NEXT_PROMPT)
-assert.equal(qwen?.manualBlockerActions?.length, 2)
-assert.equal(qwen?.manualBlockerActions?.every((action) => action.runInsideCodex === false), true)
-assert.equal(qwen?.manualBlockerActions?.every((action) => action.mutatesRuntime === false), true)
-assert.equal(qwen?.manualBlockerActions?.every((action) => action.runsModel === false), true)
-assert.equal(qwen?.manualBlockerActions?.every((action) => action.createsAssets === false), true)
-assert.equal(
-  qwen?.manualBlockerActions?.some(
-    (action) =>
-      action.id === 'refresh_active_gcloud_login' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === true &&
-      action.mutatesLocalGcloudConfig === false &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
-assert.equal(
-  qwen?.manualBlockerActions?.some(
-    (action) =>
-      action.id === 'select_authenticated_gcloud_account_if_needed' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === false &&
-      action.mutatesLocalGcloudConfig === true &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
+assert.equal(qwen?.manualBlockerActions?.length, 0)
+assert.equal(qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dw-retry-2-result.md'), true)
+assert.equal(qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dw-retry-2-result.ts'), true)
+assert.equal(qwen?.evidence.includes('server/smoke/qwen2-5-vl-58dw-retry-2-result-smoke.ts'), true)
 assert.equal(qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dw-structured-output-fix.md'), true)
 assert.equal(
   qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dw-structured-output-fix.ts'),
@@ -411,7 +386,7 @@ assert.equal(
 
 for (const tool of rollup.tools) {
   if (tool.toolId === 'qwen2_5_vl_7b_instruct') {
-    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for explicit retry-2`)
+    assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must wait for retry-2 result review`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,

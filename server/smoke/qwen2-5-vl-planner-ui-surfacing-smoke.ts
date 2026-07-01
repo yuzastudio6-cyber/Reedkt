@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready',
-  'Private invoke client status must record the strict-output fix and retry-2 gate.',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_2_passed_result_review_required',
+  'Private invoke client status must record retry-2 pass and result-review gate.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -213,7 +213,7 @@ check(
       'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required',
     ) ||
     data.privateInvokeClient.currentStatus ===
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_2_passed_result_review_required',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -381,10 +381,11 @@ check(
     docText.includes('58DV gate alignment') &&
     docText.includes('58DW bounded retry prompt result') &&
     docText.includes('58DW-FIX strict structured-output source fix') &&
+    docText.includes('58DW-RETRY-2 passed result') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2',
+      'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh/retry-plan/retry-gate/retry-approval/retry-result/gate-alignment evidence, the 58DW schema-invalid result, the 58DW-FIX source fix, and the 58DW-RETRY-2 next prompt.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh/retry-plan/retry-gate/retry-approval/retry-result/gate-alignment evidence, the 58DW schema-invalid result, the 58DW-FIX source fix, the 58DW-RETRY-2 result, and the 58DX result-review next prompt.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

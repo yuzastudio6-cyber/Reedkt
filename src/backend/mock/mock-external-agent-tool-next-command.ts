@@ -1,6 +1,6 @@
 import {
-  QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
   QWEN2_5_VL_58DW_RETRY_2_PROMPT,
+  QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolNextCommandAllowedProbe = {
@@ -53,7 +53,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_RETRY_2_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
-    whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
+    whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
     whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
@@ -67,13 +67,13 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   },
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
-    'do not execute Cloud Run jobs except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+    'do not invoke Cloud Run again before the 58DW retry-2 result review is accepted',
+    'do not execute Cloud Run jobs again before the 58DW retry-2 result review is accepted',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
-    'do not run inference except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+    'do not import models again before the 58DW retry-2 result review is accepted',
+    'do not run inference again before the 58DW retry-2 result review is accepted',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

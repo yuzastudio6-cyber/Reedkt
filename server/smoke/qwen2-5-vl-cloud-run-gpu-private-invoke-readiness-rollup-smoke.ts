@@ -153,9 +153,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_58dw_retry_2_ready'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_58dw_retry_2_result_review_required'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 
 type JsonRecord = Record<string, unknown>
 
@@ -1914,7 +1914,7 @@ for (const phrase of [
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference approval: ready, approval recorded',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference preflight: ready, preflight passed',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval: ready, attempt approval recorded',
-  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt: ready for explicit 58DW-RETRY-2 after strict output fix',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt: 58DW-RETRY-2 passed, result review required',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement implementation | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement execution plan | ready',
@@ -1949,7 +1949,7 @@ for (const phrase of [
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference approval | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval | ready',
-  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt | ready for explicit 58DW-RETRY-2 after strict output fix',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt | 58DW-RETRY-2 passed, result review required',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
@@ -2670,7 +2670,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_2_passed_result_review_required',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -4520,7 +4520,7 @@ assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferenceAttemptA
 assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferenceAttempt, false)
 assert.equal(
   rollup.blockedUntil[0],
-  'explicit_58dw_retry_2_result_review_required_before_broad_qwen_runtime',
+  'qwen_58dw_retry_2_result_review_required',
 )
 assert.equal(rollup.blockedUntil[1], 'beta_and_production_approval_required')
 assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopeReadinessAccepted, true)

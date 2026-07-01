@@ -11,10 +11,7 @@ type JsonObject = Record<string, unknown>
 const ROOT = process.cwd()
 const QWEN_TOOL_ID = 'qwen2_5_vl_7b_instruct'
 const BROLL_TOOL_ID = 'ai_video_broll_generation_wan'
-const EXPECTED_QWEN_MANUAL_ACTION_IDS = [
-  'refresh_active_gcloud_login',
-  'select_authenticated_gcloud_account_if_needed',
-]
+const EXPECTED_QWEN_MANUAL_ACTION_IDS: string[] = []
 const EXPECTED_BROLL_MANUAL_ACTION_IDS = ['request_gpus_all_regions_quota_in_console']
 
 function runJsonCli(script: string): JsonObject {
@@ -129,38 +126,6 @@ function assertExpectedManualActionIds(
 function assertQwenManualActions(actions: ExternalAgentManualBlockerAction[], label: string): void {
   assertExpectedManualActionIds(actions, EXPECTED_QWEN_MANUAL_ACTION_IDS, label)
   assertManualActionSafety(actions, label)
-
-  const refreshLogin = actions.find((action) => action.id === 'refresh_active_gcloud_login')
-  assert.equal(refreshLogin?.mutatesCloud, false, `${label}.refresh_active_gcloud_login must not mutate cloud`)
-  assert.equal(
-    refreshLogin?.mutatesLocalGcloudAuth,
-    true,
-    `${label}.refresh_active_gcloud_login must identify local auth repair`,
-  )
-  assert.equal(
-    refreshLogin?.mutatesLocalGcloudConfig,
-    false,
-    `${label}.refresh_active_gcloud_login must not change local config`,
-  )
-  assert.equal(refreshLogin?.changesQuotaRequest, false, `${label}.refresh_active_gcloud_login must not request quota`)
-
-  const selectAccount = actions.find((action) => action.id === 'select_authenticated_gcloud_account_if_needed')
-  assert.equal(selectAccount?.mutatesCloud, false, `${label}.select_authenticated_gcloud_account_if_needed must not mutate cloud`)
-  assert.equal(
-    selectAccount?.mutatesLocalGcloudAuth,
-    false,
-    `${label}.select_authenticated_gcloud_account_if_needed must not refresh auth`,
-  )
-  assert.equal(
-    selectAccount?.mutatesLocalGcloudConfig,
-    true,
-    `${label}.select_authenticated_gcloud_account_if_needed must identify local config selection`,
-  )
-  assert.equal(
-    selectAccount?.changesQuotaRequest,
-    false,
-    `${label}.select_authenticated_gcloud_account_if_needed must not request quota`,
-  )
 }
 
 function assertBrollManualActions(actions: ExternalAgentManualBlockerAction[], label: string): void {
@@ -228,7 +193,7 @@ assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
 for (const tool of rollup.tools) {
   if (tool.toolId === QWEN_TOOL_ID) {
-    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for explicit retry-2`)
+    assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must wait for retry-2 result review`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,
@@ -291,15 +256,15 @@ assert.equal(
   asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
     (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === QWEN_TOOL_ID,
   ),
-  false,
-  'actionPlan.manualBlockers must not include retry-2-ready Qwen',
+  true,
+  'actionPlan.manualBlockers must include result-review-blocked Qwen',
 )
 assert.equal(
   asArray(readiness.blockers, 'readiness.blockers').some(
     (row) => asRecord(row, 'readiness.blockers row').toolId === QWEN_TOOL_ID,
   ),
-  false,
-  'readiness.blockers must not include retry-2-ready Qwen',
+  true,
+  'readiness.blockers must include result-review-blocked Qwen',
 )
 
 for (const [label, actions] of brollSurfaceActions) {
@@ -307,11 +272,11 @@ for (const [label, actions] of brollSurfaceActions) {
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',
@@ -327,8 +292,8 @@ for (const readinessFlag of [
   assert.equal(readiness[readinessFlag], false, `readiness.${readinessFlag} must remain false`)
 }
 
-assert.equal(executionGate.executionAllowedNow, true)
-assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(executionGate.executionAllowedNow, false)
+assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(executionGate.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(executionGate.runtimeSideEffects, 'executionGate.runtimeSideEffects')
 
@@ -376,7 +341,7 @@ console.log(
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),
       runtimeGatesAllFalse: true,
-      staticQwenReadyForExplicitGate: true,
+      staticQwenReadyForExplicitGate: false,
       liveQwenPreflightPassed: nextCommand.qwenLivePreflightPassed,
       executionAllowedNow: nextCommand.executionAllowedNow,
       readyForAnyExternalAgentExecutionNow: nextCommand.readyForAnyExternalAgentExecutionNow,

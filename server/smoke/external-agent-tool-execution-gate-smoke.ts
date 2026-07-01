@@ -6,8 +6,8 @@ import path from 'node:path'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 
 const ROOT = process.cwd()
-const QWEN_RETRY_2_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+const QWEN_RESULT_REVIEW_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-gate.ts'
 const CLI_PATH = 'server/cli/external-agent-tool-execution-gate.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-gate-smoke.ts'
@@ -73,10 +73,10 @@ assert.equal(
 )
 
 const gate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
-assert.equal(gate.decision, 'external_agent_execution_go_after_explicit_tool_gate')
+assert.equal(gate.decision, 'external_agent_execution_no_go_runtime_blocked')
 assert.equal(gate.mode, 'fail_closed_external_agent_tool_execution_gate')
-assert.equal(gate.readyForAnyExternalAgentExecutionNow, true)
-assert.equal(gate.staticExplicitToolGateReady, true)
+assert.equal(gate.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(gate.staticExplicitToolGateReady, false)
 assert.equal(gate.requiresLivePreflightBeforeRuntime, true)
 assert.equal(gate.requiresApprovedSnapshotBeforeExecution, true)
 assert.equal(gate.requiresStructuredToolEnvelopeBeforeExecution, true)
@@ -94,8 +94,8 @@ assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-g
 
 for (const row of gate.toolRows) {
   if (row.toolId === 'qwen2_5_vl_7b_instruct') {
-    assert.equal(row.staticExplicitToolGateReady, true, `${row.toolId} must be ready for explicit 58DW-RETRY-2 gate`)
-    assert.equal(row.executionAllowedNow, true, `${row.toolId} must allow only the explicit 58DW-RETRY-2 gate`)
+    assert.equal(row.staticExplicitToolGateReady, false, `${row.toolId} must wait for retry-2 result review`)
+    assert.equal(row.executionAllowedNow, false, `${row.toolId} must not rerun retry-2 before result review`)
   } else {
     assert.equal(row.executionAllowedNow, false, `${row.toolId} must be blocked`)
   }
@@ -104,11 +104,11 @@ for (const row of gate.toolRows) {
 const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 assert.equal(
   qwenGateRow?.currentBlocker,
-  'explicit_58dw_retry_2_prompt_required_before_runtime',
+  'qwen_58dw_retry_2_result_review_required',
 )
 assert.equal(
   qwenGateRow?.safeNextCommand,
-  QWEN_RETRY_2_PROMPT,
+  QWEN_RESULT_REVIEW_PROMPT,
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
@@ -142,13 +142,13 @@ assert.equal(
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('58DW structured-output fix'),
+    requirement.includes('58DW-RETRY-2 result review'),
   ),
   true,
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('58DW-RETRY-2'),
+    requirement.includes('passed evidence'),
   ),
   true,
 )
@@ -202,64 +202,22 @@ const report = JSON.parse(output)
 assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
-assert.equal(report.staticExplicitToolGateReady, true)
-assert.deepEqual(report.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(report.staticExplicitToolGateReady, false)
+assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [])
 assert.equal(report.requiresLivePreflightBeforeRuntime, true)
-assert.equal(report.executionAllowedNow, true)
-assert.equal(report.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(report.executionAllowedNow, false)
+assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.equal(report.blockedToolIds.length, 3)
+assert.deepEqual(report.readyToolIds, [])
+assert.equal(report.blockedToolIds.length, 4)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
 const reportQwenGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'qwen2_5_vl_7b_instruct',
 )
-assert.equal(reportQwenGateRow.manualBlockerActions.length, 2)
-assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
-assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { mutatesRuntime: boolean }) => action.mutatesRuntime === false), true)
-assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { runsModel: boolean }) => action.runsModel === false), true)
-assert.equal(reportQwenGateRow.manualBlockerActions.every((action: { createsAssets: boolean }) => action.createsAssets === false), true)
-assert.equal(
-  reportQwenGateRow.manualBlockerActions.some(
-    (action: {
-      id: string
-      mutatesCloud: boolean
-      mutatesLocalGcloudAuth: boolean
-      mutatesLocalGcloudConfig: boolean
-      changesQuotaRequest: boolean
-      afterCompletionCommand: string
-    }) =>
-      action.id === 'refresh_active_gcloud_login' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === true &&
-      action.mutatesLocalGcloudConfig === false &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
-assert.equal(
-  reportQwenGateRow.manualBlockerActions.some(
-    (action: {
-      id: string
-      mutatesCloud: boolean
-      mutatesLocalGcloudAuth: boolean
-      mutatesLocalGcloudConfig: boolean
-      changesQuotaRequest: boolean
-      afterCompletionCommand: string
-    }) =>
-      action.id === 'select_authenticated_gcloud_account_if_needed' &&
-      action.mutatesCloud === false &&
-      action.mutatesLocalGcloudAuth === false &&
-      action.mutatesLocalGcloudConfig === true &&
-      action.changesQuotaRequest === false &&
-      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
-  ),
-  true,
-)
+assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 1)
 assert.equal(reportBrollGateRow.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
 assert.equal(reportBrollGateRow.manualBlockerActions[0].runInsideCodex, false)
@@ -282,9 +240,9 @@ const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
 })
 const requireGoReport = JSON.parse(String(requireGo.stdout))
 assert.equal(requireGoReport.requireGoMode, true)
-assert.equal(requireGoReport.staticExplicitToolGateReady, true)
-assert.equal(requireGoReport.executionAllowedNow, true)
-assert.equal(requireGo.status, 0)
+assert.equal(requireGoReport.staticExplicitToolGateReady, false)
+assert.equal(requireGoReport.executionAllowedNow, false)
+assert.equal(requireGo.status, 2)
 
 const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

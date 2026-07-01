@@ -18,6 +18,16 @@ export type ExternalAgentToolReadinessEntry = {
   nextAction: string
 }
 
+export type ExternalAgentToolSafeNextCommand = {
+  id: string
+  command: string
+  liveReadOnly: boolean
+  mutatesRuntime: false
+  runsModel: false
+  createsAssets: false
+  purpose: string
+}
+
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision: 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
@@ -51,6 +61,37 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     remotionOwnsFinalComposition: true,
     paidProductionReady: false,
   },
+  safeNextCommands: [
+    {
+      id: 'static_readiness_check',
+      command: 'npm run external-agent-tool-readiness:check',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose: 'Fast static readiness and evidence presence check for all tracked external-agent tool lanes.',
+    },
+    {
+      id: 'live_blocker_preflight',
+      command: 'npm run external-agent-tool-blockers:preflight',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Read-only live preflight to see whether Qwen gcloud auth/service/job visibility and B-roll GPU quota blockers have cleared.',
+    },
+    {
+      id: 'broll_fast_cache_readiness',
+      command: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Stat-only Wan private cache layout check that avoids 29GB hashing, model imports, GPU work, and inference.',
+    },
+  ] satisfies ExternalAgentToolSafeNextCommand[],
   tools: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',

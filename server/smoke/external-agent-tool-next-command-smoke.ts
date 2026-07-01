@@ -122,8 +122,14 @@ const decision = JSON.parse(output)
 assert.equal(decision.ok, true)
 assert.equal(decision.mode, spec.mode)
 assert.equal(decision.liveReadOnlyChecksRun, true)
-assert.equal(decision.staticExecutionGateAllowed, true)
+assert.equal(decision.staticExecutionGateAllowed, decision.executionGateAllowsRuntime)
 assert.equal(typeof decision.staticExplicitToolGateReady, 'boolean')
+assert.equal(decision.staticExplicitToolGatePrepared, decision.staticExplicitToolGateReady)
+assert.equal(
+  decision.staticGatePlanningOnly,
+  decision.staticExplicitToolGateReady && !decision.executionGateAllowsRuntime,
+)
+assert.equal(decision.staticGateDoesNotAuthorizeRuntime, !decision.executionGateAllowsRuntime)
 assert.equal(typeof decision.executionGateAllowsRuntime, 'boolean')
 assert.equal(
   decision.executionAllowedNow,

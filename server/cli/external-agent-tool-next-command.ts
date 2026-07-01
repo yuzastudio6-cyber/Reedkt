@@ -174,7 +174,10 @@ function main() {
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
   const executionGateAllowsRuntime = nestedBoolean(executionGate.json, ['executionAllowedNow'])
   const staticExplicitToolGateReady = nestedBoolean(executionGate.json, ['staticExplicitToolGateReady'])
-  const staticExecutionGateAllowed = staticExplicitToolGateReady || executionGateAllowsRuntime
+  const staticExplicitToolGatePrepared = staticExplicitToolGateReady
+  const staticExecutionGateAllowed = executionGateAllowsRuntime
+  const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
+  const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
   const executionAllowedNow = executionGateAllowsRuntime && qwenLivePreflightPassed
   const qwenLivePreflightVerificationRequired = qwenLivePreflightPassed && !executionGateAllowsRuntime
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
@@ -232,6 +235,9 @@ function main() {
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
         staticExecutionGateAllowed,
         staticExplicitToolGateReady,
+        staticExplicitToolGatePrepared,
+        staticGatePlanningOnly,
+        staticGateDoesNotAuthorizeRuntime,
         executionGateAllowsRuntime,
         qwenLivePreflightPassed,
         qwenLivePreflightVerificationRequired,

@@ -259,9 +259,9 @@ function handlerBridgeAccepted(packet?: Record<string, unknown>): boolean {
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_HANDLER_BRIDGE_DECISION &&
     packet.status === 'disabled_handler_bridge_ready_runtime_still_blocked' &&
     countFrom(packet, 'handlerBridgeReadyToolsWithProvidedEvidence') === 21 &&
-    countFrom(packet, 'handlerBridgeRequestsAcceptedWithProvidedEvidence') === 2 &&
-    countFrom(packet, 'cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence') === 1 &&
-    countFrom(packet, 'gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence') === 1 &&
+    countFrom(packet, 'handlerBridgeRequestsAcceptedWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence') === 13 &&
+    countFrom(packet, 'gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence') === 8 &&
     countFrom(packet, 'apiRouteMountedNowTools') === 0 &&
     countFrom(packet, 'routeExecutionsApprovedNow') === 0 &&
     countFrom(packet, 'workerEnqueueApprovedNowTools') === 0 &&

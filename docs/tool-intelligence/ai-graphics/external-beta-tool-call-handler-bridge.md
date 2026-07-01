@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_tool_call_handler_bridge_prepared_with_runt
 
 Status: `disabled_handler_bridge_ready_runtime_still_blocked`
 
-This packet adds a disabled Express handler bridge for the future AI graphics external-beta tool-call route. It consumes the accepted route-to-backend-adapter smoke packet, validates representative route-shaped requests through the disabled route schema, and prepares the handler-to-adapter call site without mounting the app route or performing any side effects.
+This packet adds a disabled Express handler bridge for the future AI graphics external-beta tool-call route. It consumes the accepted all-21 route-to-backend-adapter smoke packet, validates route-shaped requests through the disabled route schema, and prepares all 21 handler-to-adapter call sites without mounting the app route or performing any side effects.
 
 ## Scope
 
@@ -13,9 +13,9 @@ This packet adds a disabled Express handler bridge for the future AI graphics ex
 - GPU/model runtime targeted tools: `8`
 - Handler bridge ready tools with provided evidence: `21`
 - Backend adapter smoke ready tools with provided evidence: `21`
-- Handler bridge requests accepted with provided evidence: `2`
-- CPU/static handler bridge cases accepted with provided evidence: `1`
-- GPU/model handler bridge cases accepted with provided evidence: `1`
+- Handler bridge requests accepted with provided evidence: `21`
+- CPU/static handler bridge cases accepted with provided evidence: `13`
+- GPU/model handler bridge cases accepted with provided evidence: `8`
 - API route mounted now: `0`
 - Route executions approved now: `0`
 - Live queue writes approved now: `0`
@@ -42,7 +42,9 @@ Covered tools:
 
 ## Handler Bridge Cases
 
-### CPU/static representative
+All 21 canonical AI graphics tools now have disabled handler bridge cases. The representative cases below show the two runtime classes while the JSON packet carries the full case list.
+
+### CPU/static example
 
 - Tool: `d3`
 - Capability: `chart_overlay`
@@ -56,7 +58,7 @@ Covered tools:
 - GPU runtime start allowed for accepted external-beta job: `false`
 - GPU runtime should start now: `false`
 
-### GPU/model representative
+### GPU/model example
 
 - Tool: `sam2`
 - Capability: `subject_segmentation`
@@ -92,7 +94,7 @@ Allowed bridge actions:
 
 - read accepted route-to-backend-adapter smoke metadata
 - validate route-shaped requests with the disabled Express route schema
-- prepare the disabled Express handler bridge call site to the backend adapter preflight
+- prepare disabled Express handler bridge call sites for all 21 tools to the backend adapter preflight
 - return a blocked handler response candidate while the app route remains unmounted
 - preserve GPU startup as on-demand only for a later accepted worker/tool job
 

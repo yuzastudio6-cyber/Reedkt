@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_backend_adapter_smoke_prepared_wi
 
 Status: `route_to_backend_adapter_smoke_ready_runtime_still_blocked`
 
-This packet adds a private, side-effect-free route-to-backend-adapter smoke for the future AI graphics external-beta tool-call route. It validates route-shaped requests against the disabled route schema, binds them to the accepted backend adapter preflight with route-bound service-role queue smoke operator-preflight evidence for all 21 tools, and returns smoke candidates only.
+This packet adds a private, side-effect-free route-to-backend-adapter smoke for the future AI graphics external-beta tool-call route. It validates route-shaped requests for all 21 AI graphics tools against the disabled route schema, binds them to the accepted backend adapter preflight with route-bound service-role queue smoke operator-preflight evidence, and returns smoke candidates only.
 
 ## Scope
 
@@ -14,9 +14,9 @@ This packet adds a private, side-effect-free route-to-backend-adapter smoke for 
 - Backend adapter smoke ready tools with provided evidence: `21`
 - Backend adapter preflight ready tools with provided evidence: `21`
 - Route-bound service-role queue smoke operator-preflight accepted: `21`
-- Route smoke requests accepted with provided evidence: `2`
-- CPU/static route smoke cases accepted with provided evidence: `1`
-- GPU/model route smoke cases accepted with provided evidence: `1`
+- Route smoke requests accepted with provided evidence: `21`
+- CPU/static route smoke cases accepted with provided evidence: `13`
+- GPU/model route smoke cases accepted with provided evidence: `8`
 - API route mounted now: `0`
 - Route executions approved now: `0`
 - Live queue writes approved now: `0`
@@ -42,7 +42,9 @@ Covered tools:
 
 ## Smoke Cases
 
-### CPU/static representative
+All 21 canonical AI graphics tools now have route-shaped smoke cases. The representative cases below show the two runtime classes while the JSON packet carries the full case list.
+
+### CPU/static example
 
 - Tool: `d3`
 - Capability: `chart_overlay`
@@ -55,7 +57,7 @@ Covered tools:
 - Future response if mounted: `202`
 - Future response mode: `accepted_for_backend_adapter_preflight_only_route_not_mounted`
 
-### GPU/model representative
+### GPU/model example
 
 - Tool: `sam2`
 - Capability: `subject_segmentation`
@@ -73,8 +75,7 @@ Covered tools:
 - `privateRouteToBackendAdapterSmokeOnly`: `true`
 - `routeSchemaValidationOnly`: `true`
 - `sourceBackendAdapterPreflightRequired`: `true`
-- `cpuStaticRepresentativeRequest`: `d3`
-- `gpuModelRepresentativeRequest`: `sam2`
+- `all21CanonicalToolRequestsRequired`: `true`
 - `appRouteMountDeferred`: `true`
 - `noApiRouteExecution`: `true`
 - `noBackendQueueSubmission`: `true`

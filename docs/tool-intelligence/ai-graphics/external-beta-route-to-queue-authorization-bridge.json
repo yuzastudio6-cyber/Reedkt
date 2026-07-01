@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-route-to-queue-authorization-bridge",
   "decision": "ai_graphics_external_beta_route_to_queue_authorization_bridge_prepared_with_runtime_blocks",
   "status": "route_to_queue_authorization_bridge_ready_runtime_still_blocked",
-  "summary": "Private route-to-queue authorization bridge evidence for the future AI graphics external-beta tool-call route. It consumes the disabled handler bridge packet and backend queue-submission packet, prepares d3 and sam2 route-to-queue authorization candidates, and keeps every route, queue, worker, tool, GPU, storage, artifact, beta, and production side effect blocked.",
+  "summary": "Private route-to-queue authorization bridge evidence for the future AI graphics external-beta tool-call route. It consumes the all-21 disabled handler bridge packet and backend queue-submission packet, prepares d3 and sam2 route-to-queue authorization candidates, and keeps every route, queue, worker, tool, GPU, storage, artifact, beta, and production side effect blocked. The next implementation gap is widening backend queue-submission examples so this bridge can authorize all 21 tool candidates without weakening runtime gates.",
   "interfaces": {
     "serverModule": "server/routes/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts",
     "cli": "server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts",
@@ -21,7 +21,7 @@
   "routeToQueueAuthorizationCandidates": [
     {
       "authorizationId": "route-to-queue-authorization-d3",
-      "requestId": "handler-bridge-d3-cpu-static",
+      "requestId": "handler-bridge-d3",
       "toolId": "d3",
       "capabilityId": "chart_overlay",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
@@ -61,7 +61,7 @@
     },
     {
       "authorizationId": "route-to-queue-authorization-sam2",
-      "requestId": "handler-bridge-sam2-gpu-model",
+      "requestId": "handler-bridge-sam2",
       "toolId": "sam2",
       "capabilityId": "subject_segmentation",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
@@ -209,7 +209,8 @@
   "nextMilestones": [
     "QA the private route-to-queue authorization bridge while queue writes remain blocked.",
     "Add a private route-to-queue smoke authorization gate before any live queue write is attempted.",
-    "Run a single private non-production route-to-queue smoke only after explicit operator authorization."
+    "Run a single private non-production route-to-queue smoke only after explicit operator authorization.",
+    "Widen backend queue-submission envelope examples from d3/sam2 representatives to all 21 AI graphics tools."
   ],
   "booleans": {
     "externalBetaRouteToQueueAuthorizationBridgePrepared": true,

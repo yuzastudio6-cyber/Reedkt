@@ -246,13 +246,13 @@ if (
 ) {
   fail('route_bound_operator_preflight_count_mismatch')
 }
-if (countFrom(docs, 'routeSmokeRequestsAcceptedWithProvidedEvidence') !== 2) {
+if (countFrom(docs, 'routeSmokeRequestsAcceptedWithProvidedEvidence') !== 21) {
   fail('route_smoke_request_count_mismatch')
 }
-if (countFrom(docs, 'cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence') !== 13) {
   fail('cpu_static_smoke_count_mismatch')
 }
-if (countFrom(docs, 'gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence') !== 8) {
   fail('gpu_model_smoke_count_mismatch')
 }
 for (const zeroKey of [
@@ -287,11 +287,16 @@ if (sourcePacket.booleans?.agentCanExecuteToolsNow !== false) {
 }
 
 const cases = docs.routeSmokeCases ?? []
-if (cases.length !== 2) fail('route_smoke_cases_length_mismatch')
+if (cases.length !== 21) fail('route_smoke_cases_length_mismatch')
 const d3Case = cases.find((item) => item.toolId === 'd3')
 const sam2Case = cases.find((item) => item.toolId === 'sam2')
 if (!d3Case) fail('missing_d3_smoke_case')
 if (!sam2Case) fail('missing_sam2_smoke_case')
+for (const tool of tools) {
+  if (!cases.some((item) => item.toolId === tool)) {
+    fail(`missing_route_smoke_case:${tool}`)
+  }
+}
 if (d3Case) {
   if (d3Case.capabilityId !== 'chart_overlay') fail('d3_capability_mismatch')
   if (d3Case.runtimeTarget !== 'node_cpu_static') fail('d3_runtime_target_mismatch')
@@ -377,8 +382,9 @@ for (const required of [
   'evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke',
   'buildAiGraphicsExternalBetaApiRouteBackendAdapterSmokeInput',
   'aiGraphicsExternalBetaToolCallRequestSchema.safeParse',
-  'route-backend-adapter-smoke-d3-cpu-static',
-  'route-backend-adapter-smoke-sam2-gpu-model',
+  'routeSmokeRequestCoverageReasons',
+  'route-backend-adapter-smoke-${toolId}',
+  'all21CanonicalToolRequestsRequired',
   'backendQueueSubmissionApprovedNow: false',
   'workerEnqueueApprovedNow: false',
   'toolExecutionPerformed: false',
@@ -591,9 +597,9 @@ console.log(JSON.stringify({
   acceptedStatus,
   tools: tools.length,
   capabilities: capabilities.length,
-  routeSmokeRequestsAcceptedWithProvidedEvidence: 2,
-  cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: 1,
-  gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: 1,
+  routeSmokeRequestsAcceptedWithProvidedEvidence: 21,
+  cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: 13,
+  gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: 8,
   sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   packageLockUnchanged: true,
   runtimeReadyNow: false,

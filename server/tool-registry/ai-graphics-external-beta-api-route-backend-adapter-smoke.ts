@@ -7,8 +7,10 @@ import {
   type AiGraphicsExternalBetaApiRouteBackendAdapter,
 } from './ai-graphics-external-beta-api-route-backend-adapter'
 import {
+  AI_GRAPHICS_CANONICAL_TOOL_IDS,
   getAiGraphicsMappedProductionProfile,
   getAiGraphicsToolCallReadiness,
+  type AiGraphicsCanonicalToolId,
 } from './ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_BACKEND_ADAPTER_SMOKE_DECISION =
@@ -77,7 +79,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
   sourceBackendAdapterAccepted: boolean
   sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
   routeSmokeRequestsAccepted: boolean
-  routeSmokeRequestCount: 0 | 2
+  routeSmokeRequestCount: 0 | 21
   routeSmokeCases: AiGraphicsExternalBetaApiRouteBackendAdapterSmokeCase[]
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -85,9 +87,9 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
   backendAdapterSmokeReadyToolsWithProvidedEvidence: 0 | 21
   backendAdapterPreflightReadyToolsWithProvidedEvidence: 0 | 21
   sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
-  routeSmokeRequestsAcceptedWithProvidedEvidence: 0 | 2
-  cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: 0 | 1
-  gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: 0 | 1
+  routeSmokeRequestsAcceptedWithProvidedEvidence: 0 | 21
+  cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: 0 | 13
+  gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: 0 | 8
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
   liveQueueWriteApprovedNowTools: 0
@@ -102,8 +104,7 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
     privateRouteToBackendAdapterSmokeOnly: true
     routeSchemaValidationOnly: true
     sourceBackendAdapterPreflightRequired: true
-    cpuStaticRepresentativeRequest: 'd3'
-    gpuModelRepresentativeRequest: 'sam2'
+    all21CanonicalToolRequestsRequired: true
     appRouteMountDeferred: true
     noApiRouteExecution: true
     noBackendQueueSubmission: true
@@ -183,8 +184,8 @@ export interface AiGraphicsExternalBetaApiRouteBackendAdapterSmoke {
 const allowedSmokeActions = [
   'read accepted backend adapter preflight metadata',
   'validate route-shaped external-beta tool-call requests with the disabled route schema',
-  'bind route-shaped CPU/static and GPU/model requests to backend adapter preflight metadata',
-  'return private smoke candidates for future route-to-backend-adapter integration',
+  'bind route-shaped requests for all 21 AI graphics tools to backend adapter preflight metadata',
+  'return private smoke candidates for future all-tool route-to-backend-adapter integration',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
@@ -221,8 +222,7 @@ const smokePolicy = {
   privateRouteToBackendAdapterSmokeOnly: true,
   routeSchemaValidationOnly: true,
   sourceBackendAdapterPreflightRequired: true,
-  cpuStaticRepresentativeRequest: 'd3',
-  gpuModelRepresentativeRequest: 'sam2',
+  all21CanonicalToolRequestsRequired: true,
   appRouteMountDeferred: true,
   noApiRouteExecution: true,
   noBackendQueueSubmission: true,
@@ -303,6 +303,26 @@ function requestRejectionReasons(
   ].filter((reason): reason is string => Boolean(reason))
 }
 
+function routeSmokeRequestCoverageReasons(
+  requests: AiGraphicsExternalBetaApiRouteBackendAdapterSmokeRequest[],
+): string[] {
+  if (requests.length === 0) return []
+
+  const requestToolIds = requests.map((request) => request.toolId)
+  const uniqueRequestToolIds = new Set(requestToolIds)
+  return [
+    requests.length !== AI_GRAPHICS_CANONICAL_TOOL_IDS.length
+      ? `route smoke requires all ${AI_GRAPHICS_CANONICAL_TOOL_IDS.length} canonical tool requests`
+      : undefined,
+    uniqueRequestToolIds.size !== requests.length
+      ? 'route smoke includes duplicate tool requests'
+      : undefined,
+    ...AI_GRAPHICS_CANONICAL_TOOL_IDS
+      .filter((toolId) => !uniqueRequestToolIds.has(toolId))
+      .map((toolId) => `route smoke is missing canonical tool request for ${toolId}`),
+  ].filter((reason): reason is string => Boolean(reason))
+}
+
 function buildSmokeCase(
   request: AiGraphicsExternalBetaApiRouteBackendAdapterSmokeRequest,
 ): AiGraphicsExternalBetaApiRouteBackendAdapterSmokeCase {
@@ -361,15 +381,7 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
     sourceAccepted
   const requests = input.routeSmokeRequests ?? []
   const requestReasons = [
-    requests.length > 0 && requests.length !== 2
-      ? 'route smoke requires exactly two representative requests'
-      : undefined,
-    requests.length === 2 && !requests.some((request) => request.toolId === 'd3')
-      ? 'route smoke is missing the d3 CPU/static representative request'
-      : undefined,
-    requests.length === 2 && !requests.some((request) => request.toolId === 'sam2')
-      ? 'route smoke is missing the sam2 GPU/model representative request'
-      : undefined,
+    ...routeSmokeRequestCoverageReasons(requests),
     ...requests.flatMap(requestRejectionReasons),
   ].filter((reason): reason is string => Boolean(reason))
   const status = statusFromInput({
@@ -380,11 +392,13 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
   })
   const ready = status === 'route_to_backend_adapter_smoke_ready_runtime_still_blocked'
   const routeSmokeCases = ready ? requests.map(buildSmokeCase) : []
-  const cpuStaticAccepted =
-    routeSmokeCases.some((item) => item.toolId === 'd3' && !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
-  const gpuModelAccepted =
-    routeSmokeCases.some((item) => item.toolId === 'sam2' && item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
-  const acceptedRequestCount = ready ? 2 : 0
+  const cpuStaticAcceptedCount = routeSmokeCases
+    .filter((item) => !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
+    .length
+  const gpuModelAcceptedCount = routeSmokeCases
+    .filter((item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
+    .length
+  const acceptedRequestCount = ready ? 21 : 0
 
   const rejectionReasons = [
     !input.sourceBackendAdapterPacket
@@ -404,12 +418,14 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
     status,
     rejectionReasons,
     sourceBackendAdapterDecision:
-      input.sourceBackendAdapterPacket?.decision ?? null,
+      typeof input.sourceBackendAdapterPacket?.decision === 'string'
+        ? input.sourceBackendAdapterPacket.decision
+        : null,
     sourceBackendAdapterAccepted: sourceAccepted,
     sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
       sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     routeSmokeRequestsAccepted: ready,
-    routeSmokeRequestCount: ready ? 2 : 0,
+    routeSmokeRequestCount: ready ? 21 : 0,
     routeSmokeCases,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -419,8 +435,10 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
     sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
       sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted ? 21 : 0,
     routeSmokeRequestsAcceptedWithProvidedEvidence: acceptedRequestCount,
-    cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence: cpuStaticAccepted ? 1 : 0,
-    gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence: gpuModelAccepted ? 1 : 0,
+    cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence:
+      ready ? cpuStaticAcceptedCount as 13 : 0,
+    gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence:
+      ready ? gpuModelAcceptedCount as 8 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     liveQueueWriteApprovedNowTools: 0,
@@ -442,8 +460,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
         sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
       routeSmokeRequestsAccepted: ready,
       backendAdapterSmokeReadyWithProvidedEvidence: ready,
-      cpuStaticRouteSmokeAccepted: cpuStaticAccepted,
-      gpuModelRouteSmokeAccepted: gpuModelAccepted,
+      cpuStaticRouteSmokeAccepted: cpuStaticAcceptedCount === 13,
+      gpuModelRouteSmokeAccepted: gpuModelAcceptedCount === 8,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
@@ -503,55 +521,43 @@ export function evaluateAiGraphicsExternalBetaApiRouteBackendAdapterSmoke(
 export function buildAiGraphicsExternalBetaApiRouteBackendAdapterSmokeInput(
   sourceBackendAdapterPacket: AiGraphicsExternalBetaApiRouteBackendAdapter | Record<string, unknown>,
 ): AiGraphicsExternalBetaApiRouteBackendAdapterSmokeInput {
+  const requestForTool = (toolId: AiGraphicsCanonicalToolId) => {
+    const readiness = getAiGraphicsToolCallReadiness(toolId)
+    const capabilityId = readiness?.capabilities.find(
+      (capability) => capability !== 'planning_metadata_only' &&
+        capability !== 'blocked_or_deferred',
+    )
+    if (!readiness || !capabilityId) {
+      throw new Error(`Cannot build route smoke request for ${toolId}`)
+    }
+
+    return {
+      workspaceId: 'workspace_ai_graphics_external_beta_smoke',
+      requestId: `route-backend-adapter-smoke-${toolId}`,
+      toolId,
+      capabilityId,
+      approvedPlanSnapshotId: `approved-snapshot-ai-graphics-smoke-${toolId}`,
+      creditReservationId: `credit-reservation-ai-graphics-smoke-${toolId}`,
+      privateArtifactManifestRef:
+        `private://ai-graphics/external-beta/smoke/${toolId}/artifact-manifest`,
+      toolRouteApprovalRef:
+        `private://ai-graphics/external-beta/smoke/${toolId}/tool-route-approval`,
+      workerApprovalRef:
+        `private://ai-graphics/external-beta/smoke/${toolId}/worker-approval`,
+      runtimeEnqueueApprovalRef:
+        `private://ai-graphics/external-beta/smoke/${toolId}/runtime-enqueue-approval`,
+      ownerRuntimeApprovalRef:
+        `private://ai-graphics/external-beta/smoke/${toolId}/owner-runtime-approval`,
+      traceId: `trace-ai-graphics-smoke-${toolId}`,
+      payload: {
+        smokeOnly: true,
+        expectedRuntimeTarget: readiness.runtimeTarget,
+      },
+    }
+  }
+
   return {
     sourceBackendAdapterPacket,
-    routeSmokeRequests: [
-      {
-        workspaceId: 'workspace_ai_graphics_external_beta_smoke',
-        requestId: 'route-backend-adapter-smoke-d3-cpu-static',
-        toolId: 'd3',
-        capabilityId: 'chart_overlay',
-        approvedPlanSnapshotId: 'approved-snapshot-ai-graphics-smoke-d3',
-        creditReservationId: 'credit-reservation-ai-graphics-smoke-d3',
-        privateArtifactManifestRef:
-          'private://ai-graphics/external-beta/smoke/d3/artifact-manifest',
-        toolRouteApprovalRef:
-          'private://ai-graphics/external-beta/smoke/d3/tool-route-approval',
-        workerApprovalRef:
-          'private://ai-graphics/external-beta/smoke/d3/worker-approval',
-        runtimeEnqueueApprovalRef:
-          'private://ai-graphics/external-beta/smoke/d3/runtime-enqueue-approval',
-        ownerRuntimeApprovalRef:
-          'private://ai-graphics/external-beta/smoke/d3/owner-runtime-approval',
-        traceId: 'trace-ai-graphics-smoke-d3',
-        payload: {
-          smokeOnly: true,
-          expectedRuntimeTarget: 'node_cpu_static',
-        },
-      },
-      {
-        workspaceId: 'workspace_ai_graphics_external_beta_smoke',
-        requestId: 'route-backend-adapter-smoke-sam2-gpu-model',
-        toolId: 'sam2',
-        capabilityId: 'subject_segmentation',
-        approvedPlanSnapshotId: 'approved-snapshot-ai-graphics-smoke-sam2',
-        creditReservationId: 'credit-reservation-ai-graphics-smoke-sam2',
-        privateArtifactManifestRef:
-          'private://ai-graphics/external-beta/smoke/sam2/artifact-manifest',
-        toolRouteApprovalRef:
-          'private://ai-graphics/external-beta/smoke/sam2/tool-route-approval',
-        workerApprovalRef:
-          'private://ai-graphics/external-beta/smoke/sam2/worker-approval',
-        runtimeEnqueueApprovalRef:
-          'private://ai-graphics/external-beta/smoke/sam2/runtime-enqueue-approval',
-        ownerRuntimeApprovalRef:
-          'private://ai-graphics/external-beta/smoke/sam2/owner-runtime-approval',
-        traceId: 'trace-ai-graphics-smoke-sam2',
-        payload: {
-          smokeOnly: true,
-          expectedRuntimeTarget: 'native_linux_amd64_nvidia_l4_sam2_runtime',
-        },
-      },
-    ],
+    routeSmokeRequests: AI_GRAPHICS_CANONICAL_TOOL_IDS.map(requestForTool),
   }
 }

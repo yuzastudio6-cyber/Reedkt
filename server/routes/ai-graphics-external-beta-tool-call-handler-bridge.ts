@@ -5,6 +5,7 @@ import {
 import {
   AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_BACKEND_ADAPTER_SMOKE_DECISION,
 } from '../tool-registry/ai-graphics-external-beta-api-route-backend-adapter-smoke'
+import { AI_GRAPHICS_CANONICAL_TOOL_IDS } from '../tool-registry/ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_HANDLER_BRIDGE_DECISION =
   'ai_graphics_external_beta_tool_call_handler_bridge_prepared_with_runtime_blocks'
@@ -41,6 +42,7 @@ export interface AiGraphicsExternalBetaToolCallHandlerBridgeCase {
   requestId: string
   toolId: string
   capabilityId: string
+  runtimeTarget: string
   routePath: typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH
   method: 'POST'
   requestSchemaAccepted: true
@@ -76,16 +78,16 @@ export interface AiGraphicsExternalBetaToolCallHandlerBridge {
   sourceBackendAdapterSmokeDecision: string | null
   sourceBackendAdapterSmokeAccepted: boolean
   handlerBridgeRequestsAccepted: boolean
-  handlerBridgeRequestCount: 0 | 2
+  handlerBridgeRequestCount: 0 | 21
   handlerBridgeCases: AiGraphicsExternalBetaToolCallHandlerBridgeCase[]
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
   handlerBridgeReadyToolsWithProvidedEvidence: 0 | 21
   backendAdapterSmokeReadyToolsWithProvidedEvidence: 0 | 21
-  handlerBridgeRequestsAcceptedWithProvidedEvidence: 0 | 2
-  cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence: 0 | 1
-  gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence: 0 | 1
+  handlerBridgeRequestsAcceptedWithProvidedEvidence: 0 | 21
+  cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence: 0 | 13
+  gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence: 0 | 8
   apiRouteMountedNowTools: 0
   routeExecutionsApprovedNow: 0
   liveQueueWriteApprovedNowTools: 0
@@ -198,7 +200,7 @@ const handlerBridgePolicy = {
 const allowedBridgeActions = [
   'read accepted route-to-backend-adapter smoke metadata',
   'validate route-shaped requests with the disabled Express route schema',
-  'prepare the disabled Express handler bridge call site to the backend adapter preflight',
+  'prepare disabled Express handler bridge call sites for all 21 tools to the backend adapter preflight',
   'return a blocked handler response candidate while the app route remains unmounted',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
@@ -251,9 +253,9 @@ function smokeAccepted(packet?: Record<string, unknown>): boolean {
     packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_BACKEND_ADAPTER_SMOKE_DECISION &&
     packet.status === 'route_to_backend_adapter_smoke_ready_runtime_still_blocked' &&
     countFrom(packet, 'backendAdapterSmokeReadyToolsWithProvidedEvidence') === 21 &&
-    countFrom(packet, 'routeSmokeRequestsAcceptedWithProvidedEvidence') === 2 &&
-    countFrom(packet, 'cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence') === 1 &&
-    countFrom(packet, 'gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence') === 1 &&
+    countFrom(packet, 'routeSmokeRequestsAcceptedWithProvidedEvidence') === 21 &&
+    countFrom(packet, 'cpuStaticRouteSmokeCasesAcceptedWithProvidedEvidence') === 13 &&
+    countFrom(packet, 'gpuModelRouteSmokeCasesAcceptedWithProvidedEvidence') === 8 &&
     countFrom(packet, 'apiRouteMountedNowTools') === 0 &&
     countFrom(packet, 'routeExecutionsApprovedNow') === 0 &&
     countFrom(packet, 'workerEnqueueApprovedNowTools') === 0 &&
@@ -285,6 +287,26 @@ function requestReasons(
   ].filter((reason): reason is string => Boolean(reason))
 }
 
+function handlerBridgeRequestCoverageReasons(
+  requests: AiGraphicsExternalBetaToolCallHandlerBridgeRequest[],
+): string[] {
+  if (requests.length === 0) return []
+
+  const requestToolIds = requests.map((request) => request.toolId)
+  const uniqueRequestToolIds = new Set(requestToolIds)
+  return [
+    requests.length !== AI_GRAPHICS_CANONICAL_TOOL_IDS.length
+      ? `handler bridge requires all ${AI_GRAPHICS_CANONICAL_TOOL_IDS.length} canonical tool requests`
+      : undefined,
+    uniqueRequestToolIds.size !== requests.length
+      ? 'handler bridge includes duplicate tool requests'
+      : undefined,
+    ...AI_GRAPHICS_CANONICAL_TOOL_IDS
+      .filter((toolId) => !uniqueRequestToolIds.has(toolId))
+      .map((toolId) => `handler bridge is missing canonical tool request for ${toolId}`),
+  ].filter((reason): reason is string => Boolean(reason))
+}
+
 function statusFromInput(input: {
   hasSource: boolean
   sourceAccepted: boolean
@@ -309,6 +331,7 @@ function buildBridgeCase(
     requestId: request.requestId,
     toolId: request.toolId,
     capabilityId: request.capabilityId,
+    runtimeTarget: sourceCase.runtimeTarget as string,
     routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
     method: 'POST',
     requestSchemaAccepted: true,
@@ -345,15 +368,7 @@ export function evaluateAiGraphicsExternalBetaToolCallHandlerBridge(
   const sourceAccepted = smokeAccepted(input.sourceBackendAdapterSmokePacket)
   const requests = input.handlerBridgeRequests ?? []
   const bridgeRequestReasons = [
-    requests.length > 0 && requests.length !== 2
-      ? 'handler bridge requires exactly two representative requests'
-      : undefined,
-    requests.length === 2 && !requests.some((request) => request.toolId === 'd3')
-      ? 'handler bridge is missing the d3 CPU/static representative request'
-      : undefined,
-    requests.length === 2 && !requests.some((request) => request.toolId === 'sam2')
-      ? 'handler bridge is missing the sam2 GPU/model representative request'
-      : undefined,
+    ...handlerBridgeRequestCoverageReasons(requests),
     ...requests.flatMap((request) => requestReasons(
       request,
       input.sourceBackendAdapterSmokePacket,
@@ -369,10 +384,12 @@ export function evaluateAiGraphicsExternalBetaToolCallHandlerBridge(
   const handlerBridgeCases = ready && input.sourceBackendAdapterSmokePacket
     ? requests.map((request) => buildBridgeCase(request, input.sourceBackendAdapterSmokePacket!))
     : []
-  const cpuStaticAccepted =
-    handlerBridgeCases.some((item) => item.toolId === 'd3' && !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
-  const gpuModelAccepted =
-    handlerBridgeCases.some((item) => item.toolId === 'sam2' && item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
+  const cpuStaticAcceptedCount = handlerBridgeCases
+    .filter((item) => !item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
+    .length
+  const gpuModelAcceptedCount = handlerBridgeCases
+    .filter((item) => item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob)
+    .length
 
   const rejectionReasons = [
     !input.sourceBackendAdapterSmokePacket
@@ -397,16 +414,18 @@ export function evaluateAiGraphicsExternalBetaToolCallHandlerBridge(
         : null,
     sourceBackendAdapterSmokeAccepted: sourceAccepted,
     handlerBridgeRequestsAccepted: ready,
-    handlerBridgeRequestCount: ready ? 2 : 0,
+    handlerBridgeRequestCount: ready ? 21 : 0,
     handlerBridgeCases,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     handlerBridgeReadyToolsWithProvidedEvidence: ready ? 21 : 0,
     backendAdapterSmokeReadyToolsWithProvidedEvidence: sourceAccepted ? 21 : 0,
-    handlerBridgeRequestsAcceptedWithProvidedEvidence: ready ? 2 : 0,
-    cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence: cpuStaticAccepted ? 1 : 0,
-    gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence: gpuModelAccepted ? 1 : 0,
+    handlerBridgeRequestsAcceptedWithProvidedEvidence: ready ? 21 : 0,
+    cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence:
+      ready ? cpuStaticAcceptedCount as 13 : 0,
+    gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence:
+      ready ? gpuModelAcceptedCount as 8 : 0,
     apiRouteMountedNowTools: 0,
     routeExecutionsApprovedNow: 0,
     liveQueueWriteApprovedNowTools: 0,
@@ -426,8 +445,8 @@ export function evaluateAiGraphicsExternalBetaToolCallHandlerBridge(
       sourceBackendAdapterSmokeAccepted: sourceAccepted,
       handlerBridgeRequestsAccepted: ready,
       handlerBridgeReadyWithProvidedEvidence: ready,
-      cpuStaticHandlerBridgeAccepted: cpuStaticAccepted,
-      gpuModelHandlerBridgeAccepted: gpuModelAccepted,
+      cpuStaticHandlerBridgeAccepted: cpuStaticAcceptedCount === 13,
+      gpuModelHandlerBridgeAccepted: gpuModelAcceptedCount === 8,
       disabledExpressHandlerBridgeOnly: true,
       backendAdapterPreflightCallSitePrepared: ready,
       all21ToolsCovered: true,
@@ -490,55 +509,36 @@ export function evaluateAiGraphicsExternalBetaToolCallHandlerBridge(
 export function buildAiGraphicsExternalBetaToolCallHandlerBridgeInput(
   sourceBackendAdapterSmokePacket: Record<string, unknown>,
 ): AiGraphicsExternalBetaToolCallHandlerBridgeInput {
+  const sourceCases = (sourceBackendAdapterSmokePacket.routeSmokeCases ?? []) as Array<Record<string, unknown>>
+  const requestForCase = (sourceCase: Record<string, unknown>) => {
+    const toolId = sourceCase.toolId as string
+    return {
+      workspaceId: 'workspace_ai_graphics_external_beta_handler_bridge',
+      requestId: `handler-bridge-${toolId}`,
+      toolId,
+      capabilityId: sourceCase.capabilityId as string,
+      approvedPlanSnapshotId: `approved-snapshot-handler-bridge-${toolId}`,
+      creditReservationId: `credit-reservation-handler-bridge-${toolId}`,
+      privateArtifactManifestRef:
+        `private://ai-graphics/external-beta/handler-bridge/${toolId}/artifact-manifest`,
+      toolRouteApprovalRef:
+        `private://ai-graphics/external-beta/handler-bridge/${toolId}/tool-route-approval`,
+      workerApprovalRef:
+        `private://ai-graphics/external-beta/handler-bridge/${toolId}/worker-approval`,
+      runtimeEnqueueApprovalRef:
+        `private://ai-graphics/external-beta/handler-bridge/${toolId}/runtime-enqueue-approval`,
+      ownerRuntimeApprovalRef:
+        `private://ai-graphics/external-beta/handler-bridge/${toolId}/owner-runtime-approval`,
+      traceId: `trace-ai-graphics-handler-bridge-${toolId}`,
+      payload: {
+        handlerBridgeOnly: true,
+        expectedRuntimeTarget: sourceCase.runtimeTarget,
+      },
+    }
+  }
+
   return {
     sourceBackendAdapterSmokePacket,
-    handlerBridgeRequests: [
-      {
-        workspaceId: 'workspace_ai_graphics_external_beta_handler_bridge',
-        requestId: 'handler-bridge-d3-cpu-static',
-        toolId: 'd3',
-        capabilityId: 'chart_overlay',
-        approvedPlanSnapshotId: 'approved-snapshot-handler-bridge-d3',
-        creditReservationId: 'credit-reservation-handler-bridge-d3',
-        privateArtifactManifestRef:
-          'private://ai-graphics/external-beta/handler-bridge/d3/artifact-manifest',
-        toolRouteApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/d3/tool-route-approval',
-        workerApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/d3/worker-approval',
-        runtimeEnqueueApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/d3/runtime-enqueue-approval',
-        ownerRuntimeApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/d3/owner-runtime-approval',
-        traceId: 'trace-ai-graphics-handler-bridge-d3',
-        payload: {
-          handlerBridgeOnly: true,
-          expectedRuntimeTarget: 'node_cpu_static',
-        },
-      },
-      {
-        workspaceId: 'workspace_ai_graphics_external_beta_handler_bridge',
-        requestId: 'handler-bridge-sam2-gpu-model',
-        toolId: 'sam2',
-        capabilityId: 'subject_segmentation',
-        approvedPlanSnapshotId: 'approved-snapshot-handler-bridge-sam2',
-        creditReservationId: 'credit-reservation-handler-bridge-sam2',
-        privateArtifactManifestRef:
-          'private://ai-graphics/external-beta/handler-bridge/sam2/artifact-manifest',
-        toolRouteApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/sam2/tool-route-approval',
-        workerApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/sam2/worker-approval',
-        runtimeEnqueueApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/sam2/runtime-enqueue-approval',
-        ownerRuntimeApprovalRef:
-          'private://ai-graphics/external-beta/handler-bridge/sam2/owner-runtime-approval',
-        traceId: 'trace-ai-graphics-handler-bridge-sam2',
-        payload: {
-          handlerBridgeOnly: true,
-          expectedRuntimeTarget: 'native_linux_amd64_nvidia_l4_sam2_runtime',
-        },
-      },
-    ],
+    handlerBridgeRequests: sourceCases.map(requestForCase),
   }
 }

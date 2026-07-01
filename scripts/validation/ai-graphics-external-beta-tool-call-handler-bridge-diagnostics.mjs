@@ -253,13 +253,13 @@ if (countFrom(docs, 'handlerBridgeReadyToolsWithProvidedEvidence') !== 21) {
 if (countFrom(docs, 'backendAdapterSmokeReadyToolsWithProvidedEvidence') !== 21) {
   fail('source_smoke_ready_count_mismatch')
 }
-if (countFrom(docs, 'handlerBridgeRequestsAcceptedWithProvidedEvidence') !== 2) {
+if (countFrom(docs, 'handlerBridgeRequestsAcceptedWithProvidedEvidence') !== 21) {
   fail('handler_bridge_request_count_mismatch')
 }
-if (countFrom(docs, 'cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence') !== 13) {
   fail('cpu_static_bridge_count_mismatch')
 }
-if (countFrom(docs, 'gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence') !== 1) {
+if (countFrom(docs, 'gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence') !== 8) {
   fail('gpu_model_bridge_count_mismatch')
 }
 for (const zeroKey of [
@@ -279,11 +279,16 @@ for (const zeroKey of [
 checkBooleans(docs)
 
 const cases = docs.handlerBridgeCases ?? []
-if (cases.length !== 2) fail('handler_bridge_cases_length_mismatch')
+if (cases.length !== 21) fail('handler_bridge_cases_length_mismatch')
 const d3Case = cases.find((item) => item.toolId === 'd3')
 const sam2Case = cases.find((item) => item.toolId === 'sam2')
 if (!d3Case) fail('missing_d3_bridge_case')
 if (!sam2Case) fail('missing_sam2_bridge_case')
+for (const tool of tools) {
+  if (!cases.some((item) => item.toolId === tool)) {
+    fail(`missing_handler_bridge_case:${tool}`)
+  }
+}
 if (d3Case) {
   if (d3Case.capabilityId !== 'chart_overlay') fail('d3_capability_mismatch')
   if (d3Case.runtimeTarget !== 'node_cpu_static') fail('d3_runtime_target_mismatch')
@@ -381,8 +386,8 @@ for (const required of [
   'evaluateAiGraphicsExternalBetaToolCallHandlerBridge',
   'buildAiGraphicsExternalBetaToolCallHandlerBridgeInput',
   'aiGraphicsExternalBetaToolCallRequestSchema.safeParse',
-  'handler-bridge-d3-cpu-static',
-  'handler-bridge-sam2-gpu-model',
+  'handlerBridgeRequestCoverageReasons',
+  'handler-bridge-${toolId}',
   'backendQueueSubmissionApprovedNow: false',
   'workerEnqueueApprovedNow: false',
   'toolExecutionPerformed: false',
@@ -527,9 +532,9 @@ console.log(JSON.stringify({
   acceptedStatus,
   tools: tools.length,
   capabilities: capabilities.length,
-  handlerBridgeRequestsAcceptedWithProvidedEvidence: 2,
-  cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence: 1,
-  gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence: 1,
+  handlerBridgeRequestsAcceptedWithProvidedEvidence: 21,
+  cpuStaticHandlerBridgeCasesAcceptedWithProvidedEvidence: 13,
+  gpuModelHandlerBridgeCasesAcceptedWithProvidedEvidence: 8,
   packageLockUnchanged: true,
   runtimeReadyNow: false,
   externalBetaReadyNow: false,

@@ -1,0 +1,73 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-AGENT-CONTROLLED-WORKER-RUNTIME-QA-ROLLUP-1",
+  "integrationBase": "f7e2b76235d9b66a56cae7a6df74e0bc29045b3a",
+  "decision": "completed_gstreamer_mkvtoolnix_agent_controlled_worker_runtime_qa_rollup_generated_fixture_only",
+  "execution": "completed_docs_only_runtime_qa_rollup_no_runtime_execution",
+  "qaDisposition": "accepted_runtime_packet_evidence_for_guarded_worker_route_dispatch_readiness_planning",
+  "sourceChain": {
+    "runtimePacketPr": 1918,
+    "runtimePacketMergeSha": "f7e2b76235d9b66a56cae7a6df74e0bc29045b3a",
+    "runtimePacketRunId": "2026-07-01T00-16-10-927Z-8b7402d8",
+    "runtimePacketDecision": "completed_gstreamer_mkvtoolnix_agent_controlled_worker_runtime_execution_packet_generated_fixture_only",
+    "guardedRuntimeRunId": "2026-07-01T00-16-10-989Z-a9752eae",
+    "dispatchDryRunPr": 1905,
+    "dispatchDryRunMergeSha": "6cc86d71f383a64254ce2324e02e5d83e70bc031",
+    "dispatchDryRunRunId": "2026-06-30T20-56-18-927Z-8e5d25d9",
+    "queueIntegrationPr": 1902,
+    "queueIntegrationMergeSha": "cc18a07622a3107c589d2d2957432026da27b8cd",
+    "queueIntegrationRunId": "2026-06-30T19-45-59-915Z-af80c9f8",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_guarded_worker_route_dispatch_readiness_planning",
+    "mkvtoolnix_container_validation": "ready_for_guarded_worker_route_dispatch_readiness_planning"
+  },
+  "evidence": {
+    "approvedSnapshotReference": "approved-snapshot-agent-controlled-dispatch-1",
+    "approvalRecordReference": "approval-record-agent-controlled-dispatch-1",
+    "creditPolicyReference": "no-spend-fixture-policy-agent-controlled-dispatch-1",
+    "jobReference": "job-agent-controlled-dispatch-1",
+    "workerLeaseReference": "worker-lease-agent-controlled-dispatch-1",
+    "routeIdempotencyKey": "gstreamer-mkvtoolnix:agent-controlled-dispatch-1:approved-snapshot:job:template",
+    "acceptedCommandTemplates": [
+      "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+      "gst_controlled_generated_fixture_pipeline_v1",
+      "mkvmerge_generated_subtitle_only_package_v1",
+      "mkvmerge_identify_generated_subtitle_only_v1"
+    ],
+    "artifactChecksums": [
+      "f61416714a8ac4333448e7f1d6e3f2351c7bb29faab4473fc920e1bb94c7b45a",
+      "b3cf94090b250dc1fb5e4ebbd7cb56cbe4d6bdbd070d28243f2756c2a98e16d9",
+      "1a9321f9272b184f5003cac99c338bc8d011f33e87e79e07612dca0a7e8aab3e",
+      "af90e2292be7af0f72cbec78fe512cb63ff4b5ea4d10c995d6c7500d6ad9f332",
+      "a3942b2e55ca80c4ea954db1164d1117cdb238761225bcfc1a3d7edf1fccda93"
+    ]
+  },
+  "safety": {
+    "gstreamerExecutionInThisQaRollupPhase": false,
+    "mkvtoolnixExecutionInThisQaRollupPhase": false,
+    "dockerExecutionInThisQaRollupPhase": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "persistentJobQueueWrite": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-ROUTE-DISPATCH-READINESS-1"
+}

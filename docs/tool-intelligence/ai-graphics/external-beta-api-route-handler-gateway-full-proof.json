@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-30.ai-graphics.external-beta-api-route-handler-gateway-full-proof",
   "decision": "ai_graphics_external_beta_api_route_handler_gateway_full_21_proof_prepared_with_runtime_blocks",
   "status": "api_route_handler_gateway_full_21_proof_ready_runtime_still_blocked",
-  "summary": "Full 21-tool route-handler-to-gateway proof for AI graphics external-beta tool calls. The proof consumes the accepted route-handler gateway binding packet, builds accepted runtime-admission packets and gateway enqueue candidates for each of the 21 tools, proves continuity across approved snapshot, credit reservation, private artifact manifest, trace, and idempotency metadata, and keeps all live execution, route, worker, GPU-start, public artifact, external-beta traffic, and production gates false.",
+  "summary": "Full 21-tool route-handler-to-gateway proof for AI graphics external-beta tool calls. The proof consumes the accepted route-handler gateway binding packet, requires that binding to preserve 21/21 route-bound service-role queue-smoke operator-preflight evidence, builds accepted runtime-admission packets and gateway enqueue candidates for each of the 21 tools, proves continuity across approved snapshot, credit reservation, private artifact manifest, trace, and idempotency metadata, and keeps all live execution, route, worker, GPU-start, public artifact, external-beta traffic, and production gates false.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-external-beta-api-route-handler-gateway-full-proof.ts",
     "cli": "server/cli/ai-graphics-external-beta-api-route-handler-gateway-full-proof.ts",
@@ -23,6 +23,7 @@
     "totalAiGraphicsTools": 21,
     "totalProductFacingCapabilities": 12,
     "gpuRuntimeTargetedTools": 8,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "routeHandlerGatewayFullProofToolsWithProvidedEvidence": 21,
     "runtimeAdmissionAcceptedToolsWithProvidedEvidence": 21,
     "gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence": 21,
@@ -223,6 +224,7 @@
   "booleans": {
     "externalBetaApiRouteHandlerGatewayFull21ProofPrepared": true,
     "sourceRouteHandlerGatewayBindingAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all8GpuToolsTargetGpuRuntime": true,

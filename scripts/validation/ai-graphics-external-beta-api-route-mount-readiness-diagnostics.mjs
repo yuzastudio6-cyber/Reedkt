@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -103,6 +104,7 @@ const requiredControlKeys = [
 const trueKeys = [
   'externalBetaApiRouteMountReadinessPrepared',
   'sourceRouteHandlerGatewayFullProofAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'routeMountControlsSatisfied',
   'apiRouteMountReadyWithProvidedEvidence',
   'all21ToolsCovered',
@@ -337,6 +339,11 @@ function verifySourceEvidence() {
   requireEqual(countFrom(source, 'totalProductFacingCapabilities'), 12, 'source_capability_count')
   requireEqual(countFrom(source, 'gpuRuntimeTargetedTools'), 8, 'source_gpu_count')
   requireEqual(countFrom(source, 'routeHandlerGatewayFullProofToolsWithProvidedEvidence'), 21, 'source_full_proof_count')
+  requireEqual(
+    countFrom(source, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence'),
+    21,
+    'source_route_bound_operator_preflight_count',
+  )
   requireEqual(countFrom(source, 'runtimeAdmissionAcceptedToolsWithProvidedEvidence'), 21, 'source_runtime_admission_count')
   requireEqual(countFrom(source, 'gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence'), 21, 'source_gateway_candidate_count')
   requireEqual(countFrom(source, 'routeHandlerToGatewayContinuityAcceptedTools'), 21, 'source_continuity_count')
@@ -345,6 +352,10 @@ function verifySourceEvidence() {
   requireEqual(countFrom(source, 'externalBetaReadyNowTools'), 0, 'source_external_beta_count')
   requireEqual(countFrom(source, 'productionReadyNowTools'), 0, 'source_production_count')
   requireTruthy(source.booleans?.full21RouteHandlerGatewayProofReadyWithProvidedEvidence, 'source_full_proof_boolean')
+  requireTruthy(
+    source.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'source_route_bound_operator_preflight_boolean',
+  )
   requireFalse(source.booleans?.agentCanExecuteToolsNow, 'source_agent_execute_false')
   requireFalse(source.booleans?.gpuRuntimeShouldStartNow, 'source_gpu_start_now_false')
 }
@@ -357,6 +368,11 @@ function verifyDoc(doc, markdown) {
   requireEqual(doc.counts?.gpuRuntimeTargetedTools, 8, 'doc_gpu_count')
   requireEqual(doc.counts?.apiRouteMountReadyToolsWithProvidedEvidence, 21, 'doc_route_mount_ready_count')
   requireEqual(doc.counts?.routeHandlerGatewayFullProofToolsWithProvidedEvidence, 21, 'doc_source_full_proof_count')
+  requireEqual(
+    doc.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_route_bound_operator_preflight_count',
+  )
   requireEqual(doc.counts?.runtimeAdmissionAcceptedToolsWithProvidedEvidence, 21, 'doc_runtime_admission_count')
   requireEqual(doc.counts?.gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence, 21, 'doc_gateway_candidate_count')
   requireEqual(doc.counts?.routeHandlerToGatewayContinuityAcceptedTools, 21, 'doc_continuity_count')
@@ -420,6 +436,16 @@ function verifySourceFiles() {
 
   requireIncludes(source, 'evaluateAiGraphicsExternalBetaApiRouteMountReadiness', 'source_evaluator')
   requireIncludes(source, 'buildAiGraphicsExternalBetaApiRouteMountReadinessInput', 'source_input_builder')
+  requireIncludes(
+    source,
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+    'source_route_bound_operator_preflight_count',
+  )
+  requireIncludes(
+    source,
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+    'source_route_bound_operator_preflight_boolean',
+  )
   requireIncludes(source, "routePath: '/api/ai-graphics/external-beta/tool-call'", 'source_route_path')
   requireIncludes(source, 'apiRouteMountedNow: false', 'source_route_mounted_false')
   requireIncludes(source, 'gpuRuntimeShouldStartNow: false', 'source_gpu_start_false')
@@ -428,6 +454,11 @@ function verifySourceFiles() {
   requireIncludes(index, "export * from './ai-graphics-external-beta-api-route-mount-readiness'", 'index_export')
   requireIncludes(scorecard, decision, 'scorecard_decision')
   requireIncludes(scorecard, 'apiRouteMountReadyToolsWithProvidedEvidence=21', 'scorecard_route_mount_count')
+  requireIncludes(
+    markdown,
+    'Route-bound service-role queue smoke operator-preflight accepted: `21`',
+    'markdown_route_bound_operator_preflight_count',
+  )
   requireIncludes(scorecard, 'apiRouteMountedNowTools=0', 'scorecard_route_mounted_zero')
 }
 
@@ -439,6 +470,11 @@ function verifyRuntimeReport(report) {
   requireEqual(report.gpuRuntimeTargetedTools, 8, 'runtime_gpu_count')
   requireEqual(report.apiRouteMountReadyToolsWithProvidedEvidence, 21, 'runtime_route_mount_ready_count')
   requireEqual(report.routeHandlerGatewayFullProofToolsWithProvidedEvidence, 21, 'runtime_full_proof_count')
+  requireEqual(
+    report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'runtime_route_bound_operator_preflight_count',
+  )
   requireEqual(report.runtimeAdmissionAcceptedToolsWithProvidedEvidence, 21, 'runtime_admission_count')
   requireEqual(report.gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence, 21, 'runtime_gateway_candidate_count')
   requireEqual(report.routeHandlerToGatewayContinuityAcceptedTools, 21, 'runtime_continuity_count')
@@ -456,6 +492,50 @@ function verifyRuntimeReport(report) {
   for (const key of falseKeys) requireFalse(report.booleans?.[key], `runtime_boolean_false:${key}`)
   requireFalse(report.input?.routeExecutionPerformed, 'runtime_input_route_execution_false')
   requireFalse(report.input?.gpuRuntimePerformed, 'runtime_input_gpu_false')
+}
+
+function verifyStaleFullProofOperatorPreflightRejected() {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-route-mount-stale-full-proof-'))
+  const stalePacketPath = path.join(tempDir, 'stale-full-proof.json')
+  try {
+    const source = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-gateway-full-proof.json')
+    const stale = JSON.parse(JSON.stringify(source))
+    stale.counts = {
+      ...(stale.counts ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+    }
+    stale.booleans = {
+      ...(stale.booleans ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    }
+    fs.writeFileSync(stalePacketPath, JSON.stringify(stale, null, 2))
+
+    const report = parseJson(runNpm(runScriptName, [
+      '--route-handler-gateway-full-proof-packet',
+      stalePacketPath,
+    ]), 'stale_route_mount_readiness_cli')
+
+    requireEqual(report.status, 'full_21_route_handler_gateway_proof_rejected', 'stale_status')
+    requireFalse(report.sourceRouteHandlerGatewayFullProofAccepted, 'stale_source_full_proof_rejected')
+    requireFalse(
+      report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+      'stale_route_bound_operator_preflight_rejected',
+    )
+    requireEqual(
+      report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_route_bound_operator_preflight_count_zero',
+    )
+    requireEqual(report.apiRouteMountReadyToolsWithProvidedEvidence, 0, 'stale_route_mount_ready_zero')
+    requireFalse(report.booleans?.apiRouteMountReadyWithProvidedEvidence, 'stale_route_mount_ready_false')
+    requireFalse(report.booleans?.agentCanExecuteToolsNow, 'stale_agent_execute_false')
+    requireFalse(report.booleans?.apiRouteExecutionApprovedNow, 'stale_route_execute_false')
+    requireFalse(report.booleans?.workerExecutionApprovedNow, 'stale_worker_execute_false')
+    requireFalse(report.booleans?.toolExecutionApprovedNow, 'stale_tool_execute_false')
+    requireFalse(report.booleans?.gpuRuntimeShouldStartNow, 'stale_gpu_start_false')
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true })
+  }
 }
 
 function verifyTextSafety(files) {
@@ -490,6 +570,7 @@ const runtimeReport = parseJson(runNpm(runScriptName, [
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-gateway-full-proof.json',
 ]), 'route_mount_readiness_cli')
 verifyRuntimeReport(runtimeReport)
+verifyStaleFullProofOperatorPreflightRejected()
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))
@@ -502,6 +583,7 @@ console.log(JSON.stringify({
   status: acceptedStatus,
   apiRouteMountReadyToolsWithProvidedEvidence: 21,
   routeHandlerGatewayFullProofToolsWithProvidedEvidence: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   runtimeAdmissionAcceptedToolsWithProvidedEvidence: 21,
   gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence: 21,
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,

@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_beta_api_route_mount_readiness_prepared_with_run
 
 Status: `api_route_mount_ready_with_provided_evidence_runtime_still_blocked`
 
-This packet records source-controlled route mount readiness for the future `POST /api/ai-graphics/external-beta/tool-call` endpoint. It consumes the accepted full 21-tool route-handler gateway proof and verifies private/backend refs for the route policy, schema, authorization middleware, request validation, approved snapshot resolver, credit reservation resolver, private artifact policy, asset manifest binding, dependency readiness, async checkback, queue submission authorization, service-role boundary, rate limit, cost guardrail, idempotency, audit, telemetry, rollback, incident response, kill switch, and private network controls.
+This packet records source-controlled route mount readiness for the future `POST /api/ai-graphics/external-beta/tool-call` endpoint. It consumes the accepted full 21-tool route-handler gateway proof, including route-bound service-role queue smoke operator-preflight evidence for all 21 tools, and verifies private/backend refs for the route policy, schema, authorization middleware, request validation, approved snapshot resolver, credit reservation resolver, private artifact policy, asset manifest binding, dependency readiness, async checkback, queue submission authorization, service-role boundary, rate limit, cost guardrail, idempotency, audit, telemetry, rollback, incident response, kill switch, and private network controls.
 
 ## Result
 
@@ -13,6 +13,7 @@ This packet records source-controlled route mount readiness for the future `POST
 - GPU runtime targeted tools: `8`
 - API route mount ready with provided evidence: `21`
 - Route-handler gateway full proof tools with provided evidence: `21`
+- Route-bound service-role queue smoke operator-preflight accepted: `21`
 - Runtime admissions accepted with provided evidence: `21`
 - Gateway worker-enqueue candidates ready with provided evidence: `21`
 - Route-handler-to-gateway continuity accepted: `21`

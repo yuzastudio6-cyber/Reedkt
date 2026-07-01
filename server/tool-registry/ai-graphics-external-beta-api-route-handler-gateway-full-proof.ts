@@ -62,10 +62,14 @@ export interface AiGraphicsExternalBetaApiRouteHandlerGatewayFullProof {
   rejectionReasons: string[]
   sourceRouteHandlerGatewayBindingDecision: string | null
   sourceRouteHandlerGatewayBindingAccepted: boolean
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+    boolean
   sourceRouteHandlerGatewayBinding: AiGraphicsExternalBetaApiRouteHandlerGatewayBinding
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+    0 | 21
   routeHandlerGatewayFullProofToolsWithProvidedEvidence: number
   runtimeAdmissionAcceptedToolsWithProvidedEvidence: number
   gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence: number
@@ -98,6 +102,8 @@ export interface AiGraphicsExternalBetaApiRouteHandlerGatewayFullProof {
   booleans: {
     externalBetaApiRouteHandlerGatewayFull21ProofPrepared: true
     sourceRouteHandlerGatewayBindingAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+      boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     all8GpuToolsTargetGpuRuntime: true
@@ -286,8 +292,10 @@ function acceptedSourceBindingFromPacket(packet?: Record<string, unknown>): bool
     'ai_graphics_external_beta_api_route_handler_gateway_binding_prepared_with_runtime_blocks' &&
     packet.status === 'api_route_handler_gateway_binding_ready_runtime_still_blocked' &&
     counts.routeHandlerGatewayBindingCoveredToolsWithProvidedEvidence === 21 &&
+    counts.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence === 21 &&
     counts.fullPerToolGatewayBindingProofToolsNow === 0 &&
     booleans.routeHandlerGatewayBindingReadyWithProvidedEvidence === true &&
+    booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     booleans.agentCanExecuteToolsNow === false &&
     booleans.gpuRuntimeShouldStartNow === false
 }
@@ -467,6 +475,8 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayFullProof(
 ): AiGraphicsExternalBetaApiRouteHandlerGatewayFullProof {
   const sourceRouteHandlerGatewayBindingAccepted =
     acceptedSourceBindingFromPacket(input.sourceRouteHandlerGatewayBindingPacket)
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence =
+    sourceRouteHandlerGatewayBindingAccepted
   const sourceRouteHandlerGatewayBinding =
     input.sourceRouteHandlerGatewayBindingPacket as unknown as AiGraphicsExternalBetaApiRouteHandlerGatewayBinding ??
     acceptedRouteHandlerGatewayBinding()
@@ -517,10 +527,13 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayFullProof(
         ? input.sourceRouteHandlerGatewayBindingPacket.decision
         : null,
     sourceRouteHandlerGatewayBindingAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
     sourceRouteHandlerGatewayBinding,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence ? 21 : 0,
     routeHandlerGatewayFullProofToolsWithProvidedEvidence: fullReady ? 21 : 0,
     runtimeAdmissionAcceptedToolsWithProvidedEvidence,
     gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence,
@@ -540,6 +553,7 @@ export function evaluateAiGraphicsExternalBetaApiRouteHandlerGatewayFullProof(
     booleans: {
       externalBetaApiRouteHandlerGatewayFull21ProofPrepared: true,
       sourceRouteHandlerGatewayBindingAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,

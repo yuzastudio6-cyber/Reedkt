@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const decision =
@@ -86,6 +87,7 @@ const capabilities = [
 const trueKeys = [
   'externalBetaApiRouteHandlerGatewayFull21ProofPrepared',
   'sourceRouteHandlerGatewayBindingAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -299,6 +301,11 @@ function verifyDoc(doc, md) {
   requireEqual(doc.counts?.totalProductFacingCapabilities, 12, 'doc_total_capabilities')
   requireEqual(doc.counts?.gpuRuntimeTargetedTools, 8, 'doc_gpu_tools')
   requireEqual(
+    doc.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_route_bound_operator_preflight_count',
+  )
+  requireEqual(
     doc.counts?.routeHandlerGatewayFullProofToolsWithProvidedEvidence,
     21,
     'doc_full_proof_tools',
@@ -372,6 +379,11 @@ function verifyRuntimeReport(report) {
     'report_source_binding_accepted',
   )
   requireEqual(report.routeHandlerGatewayFullProofToolsWithProvidedEvidence, 21, 'report_full_proof')
+  requireEqual(
+    report.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'report_route_bound_operator_preflight_count',
+  )
   requireEqual(report.runtimeAdmissionAcceptedToolsWithProvidedEvidence, 21, 'report_admission')
   requireEqual(
     report.gatewayWorkerEnqueueCandidateReadyToolsWithProvidedEvidence,
@@ -460,6 +472,12 @@ if (!source.includes('evaluateAiGraphicsExternalBetaToolCallGateway')) {
 if (!source.includes('sourceRouteHandlerGatewayBindingAccepted')) {
   fail('source_missing_binding_acceptance')
 }
+if (!source.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence')) {
+  fail('source_missing_route_bound_operator_preflight_count_gate')
+}
+if (!source.includes('sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence')) {
+  fail('source_missing_route_bound_operator_preflight_boolean_gate')
+}
 if (!cli.includes('--route-handler-gateway-binding-packet')) {
   fail('cli_missing_source_packet_flag')
 }
@@ -474,6 +492,59 @@ const runtimeReport = parseJson(runNpm(runScriptName, [
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-gateway-binding.json',
 ]), 'full_proof_cli')
 verifyRuntimeReport(runtimeReport)
+
+function verifyStaleGatewayBindingOperatorPreflightRejected() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-full-proof-'))
+  try {
+    const binding = json('docs/tool-intelligence/ai-graphics/external-beta-api-route-handler-gateway-binding.json')
+    binding.counts = {
+      ...(binding.counts ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 20,
+    }
+    binding.booleans = {
+      ...(binding.booleans ?? {}),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: false,
+    }
+    const staleBindingPath = path.join(tmpDir, 'stale-route-handler-gateway-binding.json')
+    fs.writeFileSync(staleBindingPath, JSON.stringify(binding, null, 2))
+
+    const output = parseJson(runNpm(runScriptName, [
+      '--route-handler-gateway-binding-packet',
+      staleBindingPath,
+    ]), 'stale_gateway_binding_operator_preflight_full_proof_cli')
+
+    requireEqual(
+      output.status,
+      'route_handler_gateway_binding_rejected',
+      'stale_gateway_binding_operator_preflight_status',
+    )
+    requireEqual(
+      output.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+      0,
+      'stale_gateway_binding_operator_preflight_count',
+    )
+    requireFalse(
+      output.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+      'stale_gateway_binding_operator_preflight_boolean',
+    )
+    requireEqual(
+      output.routeHandlerGatewayFullProofToolsWithProvidedEvidence,
+      0,
+      'stale_gateway_binding_operator_preflight_full_proof_count',
+    )
+    requireFalse(
+      output.booleans?.full21RouteHandlerGatewayProofReadyWithProvidedEvidence,
+      'stale_gateway_binding_operator_preflight_ready_boolean',
+    )
+    requireFalse(output.booleans?.routeExecutionApprovedNow, 'stale_gateway_binding_operator_preflight_route_false')
+    requireFalse(output.booleans?.workerEnqueuePerformed, 'stale_gateway_binding_operator_preflight_enqueue_false')
+    requireFalse(output.booleans?.toolExecutionApprovedNow, 'stale_gateway_binding_operator_preflight_tool_false')
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true })
+  }
+}
+
+verifyStaleGatewayBindingOperatorPreflightRejected()
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))

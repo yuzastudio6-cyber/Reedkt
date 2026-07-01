@@ -4,13 +4,14 @@ Decision: `ai_graphics_external_beta_api_route_handler_gateway_full_21_proof_pre
 
 Status: `api_route_handler_gateway_full_21_proof_ready_runtime_still_blocked`
 
-This packet closes the previous route-handler-to-gateway proof gap at the metadata-contract level. It consumes the accepted route-handler gateway binding packet and verifies that all 21 AI graphics tools can form accepted external-beta runtime-admission packets and gateway worker-enqueue candidates with provided private evidence.
+This packet closes the previous route-handler-to-gateway proof gap at the metadata-contract level. It consumes the accepted route-handler gateway binding packet, requires that binding to preserve 21/21 route-bound service-role queue-smoke operator-preflight evidence, and verifies that all 21 AI graphics tools can form accepted external-beta runtime-admission packets and gateway worker-enqueue candidates with provided private evidence.
 
 ## Result
 
 - Total AI graphics tools: `21`
 - Product-facing capabilities: `12`
 - GPU runtime targeted tools: `8`
+- Route-bound service-role queue-smoke operator-preflight accepted: `21`
 - Runtime admissions accepted with provided evidence: `21`
 - Gateway worker-enqueue candidates ready with provided evidence: `21`
 - Route-handler-to-gateway continuity accepted: `21`

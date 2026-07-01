@@ -402,9 +402,14 @@ for (const required of [
 if (!routeSource.includes('aiGraphicsExternalBetaToolCallRequestSchema')) {
   fail('route_schema_missing')
 }
-if (routeSource.includes('createAiGraphicsExternalBetaToolCallRoutes()') &&
-    read('server/app.ts').includes('createAiGraphicsExternalBetaToolCallRoutes')) {
-  fail('route_is_mounted_in_app')
+const appSource = read('server/app.ts')
+for (const phrase of [
+  'createAiGraphicsExternalBetaToolCallRoutes',
+  'ai-graphics-external-beta-tool-call-routes',
+  'env.aiGraphicsExternalBetaToolCallRouteMountEnabled',
+  'app.use(createAiGraphicsExternalBetaToolCallRoutes())',
+]) {
+  if (!appSource.includes(phrase)) fail(`app_missing_gated_mount:${phrase}`)
 }
 
 if (!index.includes("export * from './ai-graphics-external-beta-api-route-backend-adapter-smoke'")) {

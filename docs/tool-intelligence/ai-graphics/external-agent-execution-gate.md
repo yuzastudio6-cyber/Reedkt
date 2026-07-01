@@ -93,4 +93,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, request-admission evidence has reached the fail-closed gate, and route-mount readiness evidence is accepted. Actual execution is still blocked because the app route is not mounted and no worker/tool runtime is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.
+The 21 tools are organized for external-agent planning, request-admission evidence has reached the fail-closed gate, and route-mount readiness evidence is accepted. Actual execution is still blocked because the default route-mount flag is off and no worker/tool runtime is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.

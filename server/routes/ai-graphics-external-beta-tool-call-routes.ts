@@ -92,7 +92,8 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
       'AI graphics external-beta tool-call route is source-controlled but not approved for runtime execution.',
       409,
       {
-        routeMountedByAppNow: false,
+        routeMountedByAppNow: true,
+        routeMountFeatureFlagEnabled: true,
         routeExecutionApprovedNow: false,
         queueWriteApprovedNow: false,
         workerEnqueueApprovedNow: false,

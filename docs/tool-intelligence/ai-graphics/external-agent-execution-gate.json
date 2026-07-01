@@ -3,7 +3,7 @@
   "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
   "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
   "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
-  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts sanitized request-admission evidence and route-mount readiness evidence, but the route remains unmounted and no route, worker, provider, browser, GPU, artifact, beta, or production execution is allowed.",
+  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts sanitized request-admission evidence and route-mount readiness evidence, but the default route mount remains off and no route, worker, provider, browser, GPU, artifact, beta, or production execution is allowed.",
   "sourceEvidence": {
     "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",
     "externalBetaApiRouteMountReadiness": "ai_graphics_external_beta_api_route_mount_readiness_prepared_with_runtime_blocks",

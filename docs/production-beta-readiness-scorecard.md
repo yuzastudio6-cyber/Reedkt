@@ -1797,5 +1797,12 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings`.
 - Scope: fail-closed external-agent go/no-go gate after sanitized external-beta callable request-admission evidence and route-mount readiness evidence.
-- Result: all 21 AI graphics tools and all 12 product-facing capabilities are visible to the external agent as planning/select/rank/eliminate candidates, with 21 callable-scope candidates, one request-admission candidate, and 21 route-mount-ready tools accepted as evidence. The app route remains unmounted with `apiRouteMountedNow=false` and `apiRouteMountedNowTools=0`; the gate still returns `executionAllowedNow=false` and exits `2` in `--require-go` mode.
+- Result: all 21 AI graphics tools and all 12 product-facing capabilities are visible to the external agent as planning/select/rank/eliminate candidates, with 21 callable-scope candidates, one request-admission candidate, and 21 route-mount-ready tools accepted as evidence. The default route-mount flag remains off with `apiRouteMountedNow=false` and `apiRouteMountedNowTools=0`; the gate still returns `executionAllowedNow=false` and exits `2` in `--require-go` mode.
 - Runtime/beta/production: no unlock; this packet does not execute tools, mount or execute routes, enqueue workers, dispatch workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download/load model weights, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta traffic, or unlock production. GPU remains on-demand only for a later accepted worker/tool job and `gpuRuntimeShouldStartNow=false`.
+
+## AI Graphics External-Beta Route Mount Feature Flag
+
+- Decision: `ai_graphics_external_beta_route_mount_feature_flag_prepared_closed_by_default`.
+- Scope: default-closed runtime flag and source-controlled app mount for the future AI graphics external-beta tool-call route.
+- Result: `AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED` is parsed into `RuntimeEnv.aiGraphicsExternalBetaToolCallRouteMountEnabled`, exposed in the safe runtime summary, and used to gate `createAiGraphicsExternalBetaToolCallRoutes()` in `server/app.ts`. Default state remains `apiRouteMountedNow=false`, `apiRouteMountedNowTools=0`, and `agentCanExecuteToolsNow=false`.
+- Runtime/beta/production: no unlock; enabling the route flag in a later approved environment would only expose the fail-closed `409 TOOL_NOT_READY` handler until route execution, queue write, worker enqueue, worker dispatch, tool execution, GPU runtime, artifacts, external beta traffic, and production gates are separately approved.

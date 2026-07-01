@@ -1,19 +1,22 @@
 {
   "schemaVersion": 1,
   "decision": "ai_graphics_external_beta_route_mount_feature_flag_prepared_closed_by_default",
-  "status": "route_mount_feature_flag_defined_route_unmounted_runtime_blocked",
-  "summary": "Defines the off-by-default runtime env flag that a later approved route-mount patch can use for the AI graphics external-beta tool-call route. This packet does not mount the route or approve execution.",
+  "status": "route_mount_feature_flag_defined_gated_app_mount_prepared_runtime_blocked",
+  "summary": "Defines the off-by-default runtime env flag and gated app mount for the AI graphics external-beta tool-call route. The default runtime keeps the route unmounted, and the mounted handler remains fail-closed with no worker/tool execution approval.",
   "flag": {
     "envName": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
     "runtimeEnvField": "aiGraphicsExternalBetaToolCallRouteMountEnabled",
     "defaultEnabled": false,
     "safeRuntimeSummaryExposesFlag": true,
-    "appRouteMountedNow": false
+    "sourceControlledAppMountWired": true,
+    "appRouteMountedByDefaultNow": false,
+    "appRouteMountedWhenFlagEnabled": true
   },
   "counts": {
     "totalAiGraphicsTools": 21,
     "totalProductFacingCapabilities": 12,
     "routeMountFeatureFlagDefinedTools": 21,
+    "routeMountCodeWiredTools": 21,
     "apiRouteMountedNowTools": 0,
     "routeExecutionsApprovedNow": 0,
     "workerEnqueueApprovedNowTools": 0,
@@ -21,6 +24,7 @@
   },
   "booleans": {
     "routeMountFeatureFlagPrepared": true,
+    "routeMountGatedAppMountPrepared": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "routeMountFlagDefaultClosed": true,

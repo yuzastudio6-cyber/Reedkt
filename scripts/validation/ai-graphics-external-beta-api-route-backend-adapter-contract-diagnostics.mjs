@@ -421,12 +421,10 @@ function verifySourceFiles() {
 
   requireIncludes(route, '/api/ai-graphics/external-beta/tool-call', 'route_path')
   requireIncludes(route, 'TOOL_NOT_READY', 'route_disabled_error')
-  if (app.includes('createAiGraphicsExternalBetaToolCallRoutes')) {
-    fail('app_mount_imported_route_factory')
-  }
-  if (app.includes('ai-graphics-external-beta-tool-call-routes')) {
-    fail('app_imported_route_file')
-  }
+  requireIncludes(app, 'createAiGraphicsExternalBetaToolCallRoutes', 'app_imported_route_factory')
+  requireIncludes(app, 'ai-graphics-external-beta-tool-call-routes', 'app_imported_route_file')
+  requireIncludes(app, 'env.aiGraphicsExternalBetaToolCallRouteMountEnabled', 'app_feature_flag_gate')
+  requireIncludes(app, 'app.use(createAiGraphicsExternalBetaToolCallRoutes())', 'app_gated_route_mount')
   requireIncludes(source, 'evaluateAiGraphicsExternalBetaApiRouteBackendAdapterContract', 'source_evaluator')
   requireIncludes(
     source,

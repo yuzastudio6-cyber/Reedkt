@@ -6,7 +6,7 @@ const root = process.cwd()
 const decision =
   'ai_graphics_external_beta_route_mount_feature_flag_prepared_closed_by_default'
 const status =
-  'route_mount_feature_flag_defined_route_unmounted_runtime_blocked'
+  'route_mount_feature_flag_defined_gated_app_mount_prepared_runtime_blocked'
 const scriptName = 'ai-graphics:external-beta-route-mount-feature-flag:diagnostics'
 const scriptCommand =
   'node scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs'
@@ -16,6 +16,7 @@ const runtimeField = 'aiGraphicsExternalBetaToolCallRouteMountEnabled'
 const requiredFiles = [
   'server/config/env.ts',
   'server/app.ts',
+  'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'docs/tool-intelligence/ai-graphics/external-beta-route-mount-feature-flag.json',
   'docs/tool-intelligence/ai-graphics/external-beta-route-mount-feature-flag.md',
   'scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs',
@@ -107,8 +108,24 @@ if (!envSource.includes(`${runtimeField}:`) ||
 }
 
 const appSource = read('server/app.ts')
-if (appSource.includes('createAiGraphicsExternalBetaToolCallRoutes')) {
-  fail('app_route_mounted_before_feature_flag_review')
+for (const phrase of [
+  "import { createAiGraphicsExternalBetaToolCallRoutes }",
+  `env.${runtimeField}`,
+  'app.use(createAiGraphicsExternalBetaToolCallRoutes())',
+]) {
+  if (!appSource.includes(phrase)) fail(`app_missing_gated_mount:${phrase}`)
+}
+
+const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
+for (const phrase of [
+  'routeMountedByAppNow: true',
+  'routeMountFeatureFlagEnabled: true',
+  'routeExecutionApprovedNow: false',
+  'workerEnqueueApprovedNow: false',
+  'toolExecutionApprovedNow: false',
+  'gpuRuntimeShouldStartNow: false',
+]) {
+  if (!routeSource.includes(phrase)) fail(`route_missing_fail_closed_detail:${phrase}`)
 }
 
 const packet = json(
@@ -124,7 +141,15 @@ if (packet.flag?.runtimeEnvField !== runtimeField) {
   fail('packet_runtime_field_mismatch')
 }
 if (packet.flag?.defaultEnabled !== false) fail('packet_default_not_false')
-if (packet.flag?.appRouteMountedNow !== false) fail('packet_route_mounted_not_false')
+if (packet.flag?.sourceControlledAppMountWired !== true) {
+  fail('packet_app_mount_wired_not_true')
+}
+if (packet.flag?.appRouteMountedByDefaultNow !== false) {
+  fail('packet_default_route_mounted_not_false')
+}
+if (packet.flag?.appRouteMountedWhenFlagEnabled !== true) {
+  fail('packet_flag_enabled_route_mounted_not_true')
+}
 if (packet.counts?.totalAiGraphicsTools !== 21) fail('packet_tools_not_21')
 if (packet.counts?.totalProductFacingCapabilities !== 12) {
   fail('packet_capabilities_not_12')
@@ -132,12 +157,18 @@ if (packet.counts?.totalProductFacingCapabilities !== 12) {
 if (packet.counts?.routeMountFeatureFlagDefinedTools !== 21) {
   fail('packet_flag_tools_not_21')
 }
+if (packet.counts?.routeMountCodeWiredTools !== 21) {
+  fail('packet_mount_code_wired_tools_not_21')
+}
 if (packet.counts?.apiRouteMountedNowTools !== 0) {
   fail('packet_route_mounted_now_tools_not_0')
 }
 
 if (packet.booleans?.routeMountFeatureFlagPrepared !== true) {
   fail('packet_feature_flag_prepared_not_true')
+}
+if (packet.booleans?.routeMountGatedAppMountPrepared !== true) {
+  fail('packet_gated_app_mount_not_true')
 }
 if (packet.booleans?.routeMountFlagDefaultClosed !== true) {
   fail('packet_default_closed_not_true')
@@ -155,7 +186,8 @@ for (const key of falseKeys) {
 for (const phrase of [
   flagName,
   runtimeField,
-  'current app route remains unmounted',
+  'gated mount',
+  'default flag value keeps the current app route unmounted',
   'apiRouteMountedNow=false',
   'agentCanExecuteToolsNow=false',
 ]) {
@@ -178,6 +210,7 @@ for (const forbidden of [
   for (const file of [
     'server/config/env.ts',
     'server/app.ts',
+    'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
     'docs/tool-intelligence/ai-graphics/external-beta-route-mount-feature-flag.json',
     'docs/tool-intelligence/ai-graphics/external-beta-route-mount-feature-flag.md',
     'package.json',
@@ -211,6 +244,7 @@ console.log(JSON.stringify({
   runtimeField,
   toolsCovered: 21,
   apiRouteMountedNow: false,
+  routeMountGatedAppMountPrepared: true,
   agentCanExecuteToolsNow: false,
   packageLockChanged: false,
 }, null, 2))

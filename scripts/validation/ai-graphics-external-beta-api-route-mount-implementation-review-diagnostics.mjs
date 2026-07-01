@@ -395,15 +395,14 @@ function verifySourceFiles() {
   requireIncludes(route, '/api/ai-graphics/external-beta/tool-call', 'route_path')
   requireIncludes(route, 'aiGraphicsExternalBetaToolCallRequestSchema', 'route_schema')
   requireIncludes(route, 'TOOL_NOT_READY', 'route_disabled_error')
-  requireIncludes(route, 'routeMountedByAppNow: false', 'route_detail_mounted_false')
+  requireIncludes(route, 'routeMountedByAppNow: true', 'route_detail_mounted_true_when_handler_runs')
+  requireIncludes(route, 'routeMountFeatureFlagEnabled: true', 'route_detail_feature_flag_true_when_handler_runs')
   requireIncludes(route, 'gpuRuntimeShouldStartNow: false', 'route_detail_gpu_false')
   requireIncludes(route, 'externalBetaReadyNow: false', 'route_detail_external_false')
-  if (app.includes('createAiGraphicsExternalBetaToolCallRoutes')) {
-    fail('app_mount_imported_route_factory')
-  }
-  if (app.includes('ai-graphics-external-beta-tool-call-routes')) {
-    fail('app_imported_route_file')
-  }
+  requireIncludes(app, 'createAiGraphicsExternalBetaToolCallRoutes', 'app_imported_route_factory')
+  requireIncludes(app, 'ai-graphics-external-beta-tool-call-routes', 'app_imported_route_file')
+  requireIncludes(app, 'env.aiGraphicsExternalBetaToolCallRouteMountEnabled', 'app_feature_flag_gate')
+  requireIncludes(app, 'app.use(createAiGraphicsExternalBetaToolCallRoutes())', 'app_gated_route_mount')
   requireIncludes(source, 'evaluateAiGraphicsExternalBetaApiRouteMountImplementationReview', 'source_evaluator')
   requireIncludes(
     source,

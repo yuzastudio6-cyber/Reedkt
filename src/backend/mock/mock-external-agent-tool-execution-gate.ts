@@ -46,10 +46,11 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
         'bounded approved-fixture private inference retry attempt approval must remain recorded',
-        'bounded approved-fixture private inference retry attempt must run only through the approved 58DU gate',
+        'bounded approved-fixture private inference retry attempt result must remain recorded as blocked while this global gate is fail-closed',
+        'fail-closed external-agent gate must be aligned before any future bounded 58DU retry attempt',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'bounded_private_inference_retry_attempt_required_after_approval',
+      currentBlocker: 'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt',
       safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
     },
     {

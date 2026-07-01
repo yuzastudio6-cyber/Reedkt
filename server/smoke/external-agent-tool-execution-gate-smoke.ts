@@ -90,7 +90,7 @@ for (const row of gate.toolRows) {
 const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 assert.equal(
   qwenGateRow?.currentBlocker,
-  'bounded_private_inference_retry_attempt_required_after_approval',
+  'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt',
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
@@ -118,7 +118,13 @@ assert.equal(
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('58DU gate'),
+    requirement.includes('retry attempt result must remain recorded as blocked'),
+  ),
+  true,
+)
+assert.equal(
+  qwenGateRow?.requiredBeforeExecution.some((requirement) =>
+    requirement.includes('gate must be aligned'),
   ),
   true,
 )

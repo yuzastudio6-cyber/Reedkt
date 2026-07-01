@@ -79,8 +79,8 @@ for (const required of [
   'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
   'auth/service/job visibility is now verified',
-  'bounded private inference retry planning, the 58DS retry gate, and the 58DT retry attempt approval are recorded',
-  'bounded 58DU retry attempt remains required',
+  'bounded private inference retry planning, the 58DS retry gate, the 58DT retry attempt approval, and the 58DU retry attempt result are recorded',
+  '58DU was not executed because the active external-agent execution gate remains fail-closed',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
   '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',
@@ -166,7 +166,13 @@ assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
 assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(qwen?.primaryBlocker, 'bounded_private_inference_retry_attempt_required_after_approval')
+assert.equal(qwen?.primaryBlocker, 'fail_closed_external_agent_execution_gate_blocks_58du_retry_attempt')
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.md',
+  ),
+  true,
+)
 assert.equal(
   qwen?.evidence.includes(
     'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.md',
@@ -193,6 +199,12 @@ assert.equal(
 )
 assert.equal(
   qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
     'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.ts',
   ),
   true,
@@ -206,6 +218,12 @@ assert.equal(
 assert.equal(
   qwen?.evidence.includes(
     'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result-smoke.ts',
   ),
   true,
 )

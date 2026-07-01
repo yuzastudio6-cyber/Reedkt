@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'bounded approved-fixture private inference retry attempt is required after approval; no direct or unbounded inference is allowed from this action plan',
+        'bounded approved-fixture private inference retry attempt is blocked by the fail-closed external-agent execution gate; no direct or unbounded inference is allowed from this action plan',
       afterBlockerClears:
-        'run only the approved 58DU bounded retry attempt path, with generated assets, Supabase mutation, and credits still blocked',
+        'align the fail-closed external-agent gate with the approved bounded retry envelope before any future 58DU attempt; generated assets, Supabase mutation, and credits remain blocked',
     }
   }
 

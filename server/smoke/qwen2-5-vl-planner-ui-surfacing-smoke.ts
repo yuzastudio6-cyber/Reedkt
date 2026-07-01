@@ -92,8 +92,8 @@ check(
 )
 check(
   data.privateInvokeClient.currentStatus ===
-    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_approval_recorded_attempt_required',
-  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference retry-attempt blocker.',
+    'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_result_blocked_by_fail_closed_external_agent_gate',
+  'Private invoke client status must record the controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference retry-attempt result blocker.',
 )
 check(
   Object.values(data.privateInvokeClient.runtimeFlags).every((value) => value === false || value === true) &&
@@ -206,10 +206,10 @@ check(
       'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_reauthentication_required',
     ) ||
     docText.includes(
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_approval_recorded_attempt_required',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_result_blocked_by_fail_closed_external_agent_gate',
     ) ||
     data.privateInvokeClient.currentStatus ===
-      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_approval_recorded_attempt_required',
+      'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_retry_attempt_result_blocked_by_fail_closed_external_agent_gate',
   'Doc/data must record backend runtime persistence active-migration blocker status.',
 )
 check(
@@ -373,10 +373,11 @@ check(
     docText.includes('58DQ auth-refresh result') &&
     docText.includes('58DS retry gate') &&
     docText.includes('58DT retry attempt approval') &&
+    docText.includes('58DU retry attempt result') &&
     docText.includes(
-      'QWEN2_5_VL_STACK_TOOL_58DU-PRIVATE-INFERENCE-RETRY-ATTEMPT',
+      'QWEN2_5_VL_STACK_TOOL_58DV-PRIVATE-INFERENCE-GATE-ALIGNMENT',
     ),
-  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh/retry-plan/retry-gate/retry-approval evidence, and the 58DU retry-attempt next prompt.',
+  'Doc must record retry-14 evidence, the storage upload pipeline policy-comment fix, retry-15 pass, controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt/auth-refresh/retry-plan/retry-gate/retry-approval/retry-result evidence, and the 58DV gate-alignment next prompt.',
 )
 check(
   docText.includes('Backend runtime persistence local harness validation was attempted and stopped before SQL because port `54322` is already allocated'),

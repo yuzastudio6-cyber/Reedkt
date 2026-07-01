@@ -1,0 +1,226 @@
+.wallet-page-stack,
+.credit-lifecycle-demo,
+.credit-lifecycle-grid,
+.credit-ui-card,
+.credit-ui-copy-list,
+.credit-ui-warning-list,
+.credit-ui-action {
+  display: grid;
+  gap: 16px;
+}
+
+.credit-lifecycle-demo {
+  margin-top: 28px;
+}
+
+.credit-lifecycle-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.credit-ui-card {
+  align-content: start;
+  min-width: 0;
+}
+
+.credit-wallet-balance-card,
+.credit-estimate-lifecycle-card,
+.stripe-billing-status-card {
+  grid-column: 1 / -1;
+}
+
+.credit-card-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.credit-card-heading h2 {
+  font-size: 1.22rem;
+}
+
+.credit-ui-icon-copy {
+  align-items: flex-start;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.24);
+  border-radius: var(--rp-radius-md);
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+
+.credit-ui-icon-copy svg {
+  color: var(--rp-brand-cyan);
+  flex: 0 0 auto;
+}
+
+.credit-ui-metric-grid,
+.credit-ui-summary-strip,
+.credit-pack-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.credit-ui-metric,
+.credit-ui-summary-strip span,
+.credit-ui-line,
+.credit-pack-grid article {
+  background: rgba(21, 31, 50, 0.62);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.credit-ui-metric span,
+.credit-ui-summary-strip small,
+.credit-ui-line span,
+.credit-pack-grid small,
+.credit-ui-muted {
+  color: var(--rp-text-muted);
+  font-size: 0.82rem;
+}
+
+.credit-ui-metric strong,
+.credit-ui-summary-strip strong,
+.credit-ui-line strong,
+.credit-pack-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.credit-ui-line-list {
+  display: grid;
+  gap: 10px;
+}
+
+.credit-ui-line {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.credit-ui-line small {
+  color: var(--rp-text-muted);
+  grid-column: 1 / -1;
+}
+
+.credit-ui-actions {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.credit-ui-action {
+  background: rgba(5, 7, 13, 0.22);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  min-width: min(100%, 220px);
+  padding: 12px;
+}
+
+.credit-ui-action .rp-button {
+  width: 100%;
+}
+
+.credit-ui-action small,
+.credit-ui-warning-list span,
+.credit-ui-copy-list p {
+  color: var(--rp-text-secondary);
+  font-size: 0.88rem;
+}
+
+.credit-ui-copy-list {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: var(--rp-radius-md);
+  padding: 14px;
+}
+
+.credit-ui-warning-list {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  border-radius: var(--rp-radius-md);
+  padding: 14px;
+}
+
+.credit-ui-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.credit-ui-pill-row span,
+.credit-ui-pill-row strong {
+  background: rgba(11, 18, 32, 0.72);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  font-size: 0.84rem;
+  padding: 7px 11px;
+}
+
+.credit-ui-pill-row strong {
+  border-color: rgba(245, 158, 11, 0.42);
+  color: #fde4ae;
+}
+
+.credit-pack-grid article.recommended {
+  border-color: rgba(16, 185, 129, 0.58);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.18);
+}
+
+.credit-pack-grid article div {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.credit-ui-tone-success {
+  border-color: rgba(16, 185, 129, 0.36);
+}
+
+.credit-ui-tone-warning {
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.credit-ui-tone-danger {
+  border-color: rgba(239, 68, 68, 0.36);
+}
+
+.credit-ui-tone-violet {
+  border-color: rgba(139, 92, 246, 0.36);
+}
+
+.credit-ui-tone-cyan,
+.credit-ui-tone-info {
+  border-color: rgba(0, 229, 255, 0.32);
+}
+
+@media (max-width: 1180px) {
+  .credit-ui-metric-grid,
+  .credit-ui-summary-strip,
+  .credit-pack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .credit-lifecycle-grid,
+  .credit-ui-metric-grid,
+  .credit-ui-summary-strip,
+  .credit-pack-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .credit-card-heading,
+  .credit-ui-line,
+  .credit-pack-grid article div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

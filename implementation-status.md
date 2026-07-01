@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-CREDITUI-01
+
+Status: mock-safe user-facing credit lifecycle UI.
+
+The wallet page now includes fixture-driven cards for wallet balance, estimate, max hold, reservation, runtime pause, revised-credit actions, final settlement, export lock, mock top-up packs, and Stripe readiness. The adapter is browser-safe and uses existing credit/Stripe payload shapes.
+
+It does not call credit routes, reserve/spend/release/refund credits, call Stripe, enable live billing, create Checkout/SetupIntent/PaymentIntent objects, process live webhooks, unlock export, write Supabase data, mutate production wallets, write ledgers, call providers, run workers, run render/export, expose raw secrets, or change package-lock.
+
 ## RP-STRIPE-LIVE-READINESS-01
 
 Status: no-charge live readiness gate.

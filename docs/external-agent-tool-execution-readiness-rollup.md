@@ -36,6 +36,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 ## What This Proves
 
 - There is a single status surface for external agents to choose the next tool-readiness action.
+- `npm run external-agent-tool-readiness:check` provides a fast static JSON check for this status surface without live auth checks, cache hashing, GPU work, model imports, or mutations.
 - Qwen is the closest lane to controlled private model inference, but remains auth-blocked.
 - B-roll has Wan/Wan2.1 planning, private cache evidence, and proof-runner evidence, but remains quota-blocked for cloud GPU proof.
 - SOUND and Supabase are supporting readiness lanes here, not currently executable media/model tools.

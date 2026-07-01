@@ -41,10 +41,28 @@ const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1.ts',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-queue-integration-1-diagnostics.mjs',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-diagnostics.mjs',
   'package.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const runtimePacketDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1'
+const runtimePacketFiles = [
+  `${runtimePacketDir}/source-audit.md`,
+  `${runtimePacketDir}/worker-runtime-execution-packet-result.md`,
+  `${runtimePacketDir}/runtime-packet-envelope.md`,
+  `${runtimePacketDir}/artifact-manifest-summary.md`,
+  `${runtimePacketDir}/safety-boundary.md`,
+  `${runtimePacketDir}/validation-results.md`,
+  `${runtimePacketDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-qa-rollup-1.md',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...runtimePacketFiles, ...implementationFiles])
 
 const requiredText = [
   packet,
@@ -105,7 +123,7 @@ const requiredText = [
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1-smoke\.ts$)/,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-dispatch-dry-run-1-smoke\.ts$|services\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-execution-packet-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,
@@ -280,6 +298,7 @@ for (const file of ['package-lock.json']) {
 const changedFiles = [
   ...gitLines(['diff', '--name-only']),
   ...gitLines(['diff', '--cached', '--name-only']),
+  ...gitLines(['ls-files', '--others', '--exclude-standard']),
 ]
 const uniqueChanged = [...new Set(changedFiles)].sort()
 for (const file of uniqueChanged) {

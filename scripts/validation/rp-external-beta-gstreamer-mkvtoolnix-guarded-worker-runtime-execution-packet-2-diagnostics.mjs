@@ -31,6 +31,18 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2.md',
 ]
 
+const followOnRuntimeQaRollup2Files = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2/qa-rollup.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2/readiness.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2/gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-handoff-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2-diagnostics.mjs',
+]
+
 const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.mjs',
@@ -44,7 +56,7 @@ const sourceFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...followOnRuntimeQaRollup2Files, ...implementationFiles])
 
 const requiredText = [
   packet,

@@ -1,0 +1,84 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-NOOP-SOURCE-DRY-RUN-1",
+  "integrationBase": "27d558b1868b24a14f076e9aa381bc8e3cae7e22",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_route_worker_noop_source_dry_run",
+  "execution": "completed_confirmation_gated_noop_source_contract_dry_run_no_route_worker_tool_or_media_execution",
+  "runId": "2026-07-01T11-13-12-564Z-e4d8f28a",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-narrow-route-worker-noop-source-dry-run-1/2026-07-01T11-13-12-564Z-e4d8f28a",
+  "sourceChain": {
+    "noopSourceQaRollupPr": 1977,
+    "noopSourceQaRollupMergeSha": "27d558b1868b24a14f076e9aa381bc8e3cae7e22",
+    "noopSourceQaDecision": "qa_passed_gstreamer_mkvtoolnix_narrow_route_worker_noop_source_implementation_evidence",
+    "noopSourceQaExecution": "completed_docs_only_narrow_route_worker_noop_source_qa_rollup_no_route_worker_tool_or_media_execution",
+    "noopSourceQaReadiness": "ready_for_guarded_narrow_route_worker_noop_source_dry_run",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "confirmation": {
+    "gate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_NOOP_SOURCE_DRY_RUN",
+    "value": "true"
+  },
+  "dryRun": {
+    "result": "passed",
+    "responseShapeStatus": "accepted_noop_source_contract",
+    "runtimeEnabled": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "toolExecution": false,
+    "negativeFailClosedMatrix": "passed"
+  },
+  "artifacts": {
+    "report": {
+      "fileName": "noop-source-dry-run-report.json",
+      "bytes": 4333,
+      "sha256": "c1ed4582c6592ef9772000e10a172aaefdb4616857b36b4c1c48a5e6d191e771"
+    },
+    "manifest": {
+      "fileName": "noop-source-dry-run-manifest.json",
+      "bytes": 693,
+      "sha256": "11eee63a59a4213b6e6eea9ccdb170e0fa181d4dd41f1c996c5dca18102b6aab"
+    }
+  },
+  "readiness": {
+    "gstreamer": "ready_for_guarded_narrow_route_worker_noop_source_dry_run_qa_rollup",
+    "mkvtoolnix": "ready_for_guarded_narrow_route_worker_noop_source_dry_run_qa_rollup",
+    "externalAgentBoundary": "ready_for_guarded_narrow_route_worker_noop_source_dry_run_qa_rollup"
+  },
+  "safety": {
+    "productionRouteFileCreatedInThisDryRunPhase": false,
+    "routeRegisteredInThisDryRunPhase": false,
+    "routeEnabledInThisDryRunPhase": false,
+    "routeExecutionInThisDryRunPhase": false,
+    "workerDispatchInThisDryRunPhase": false,
+    "workerExecutionInThisDryRunPhase": false,
+    "workerProcessStartInThisDryRunPhase": false,
+    "workerLeaseClaimInThisDryRunPhase": false,
+    "persistentJobQueueWriteInThisDryRunPhase": false,
+    "serviceRoleSecretPayloadAccessInThisDryRunPhase": false,
+    "frontendCredentialExposureInThisDryRunPhase": false,
+    "broadServiceRoleHandlerInThisDryRunPhase": false,
+    "gstreamerExecutionInThisDryRunPhase": false,
+    "mkvtoolnixExecutionInThisDryRunPhase": false,
+    "dockerExecutionInThisDryRunPhase": false,
+    "ffmpegFfprobeExecutionInThisDryRunPhase": false,
+    "remotionExecutionInThisDryRunPhase": false,
+    "privateMediaProcessingInThisDryRunPhase": false,
+    "userMediaProcessingInThisDryRunPhase": false,
+    "mediaProcessingInThisDryRunPhase": false,
+    "supabaseMutationInThisDryRunPhase": false,
+    "sqlExecutionInThisDryRunPhase": false,
+    "signedUrlCreationInThisDryRunPhase": false,
+    "publicArtifactCreationInThisDryRunPhase": false,
+    "finalRenderExportInThisDryRunPhase": false,
+    "broadExternalBetaUnlockInThisDryRunPhase": false,
+    "paidProductionUnlockInThisDryRunPhase": false,
+    "productionUnlockInThisDryRunPhase": false,
+    "packageLockMutation": false,
+    "dependencyMutation": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-NOOP-SOURCE-DRY-RUN-QA-ROLLUP-1"
+}

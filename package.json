@@ -646,6 +646,7 @@
     "smoke:sound-music-audio-external-agent-wrapper-blocked-result": "tsx server/smoke/sound-music-audio-external-agent-wrapper-blocked-result-smoke.ts",
     "external-agent-tool-execute-supabase-harness": "tsx server/cli/external-agent-tool-execute-supabase-harness.ts",
     "smoke:external-agent-tool-execute-supabase-harness": "tsx server/smoke/external-agent-tool-execute-supabase-harness-smoke.ts",
+    "smoke:supabase-local-harness-external-agent-wrapper-blocked-result": "tsx server/smoke/supabase-local-harness-external-agent-wrapper-blocked-result-smoke.ts",
     "external-agent-tool-next-command": "tsx server/cli/external-agent-tool-next-command.ts",
     "smoke:external-agent-tool-next-command": "tsx server/smoke/external-agent-tool-next-command-smoke.ts",
     "external-agent-tool-readiness:check": "tsx server/cli/external-agent-tool-readiness-check.ts",

@@ -132,6 +132,7 @@ for (const required of [
   '`npm run external-agent-tool-execute-supabase-harness`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true`',
   '`supabase_local_harness_supporting_evidence_only`',
+  'docs/supabase-local-harness-external-agent-wrapper-blocked-result.md',
   'B-roll external-agent execution must not leave an idle GPU running',
   NEXT_PROMPT,
 ]) {
@@ -496,6 +497,10 @@ assert.equal(sound?.evidence.includes('server/smoke/external-agent-tool-execute-
 
 const supabaseHarness = toolsById.get('supabase_local_fixture_harness')
 assert.equal(supabaseHarness?.status, 'supporting_evidence_only')
+assert.equal(
+  supabaseHarness?.currentStage,
+  'supporting_local_fixture_harness_evidence_external_agent_wrapper_blocked_result_recorded',
+)
 assert.equal(supabaseHarness?.readyForExternalAgentExecutionNow, false)
 assert.equal(supabaseHarness?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(supabaseHarness?.primaryBlocker, 'not_a_model_or_media_execution_lane_on_this_branch')
@@ -509,6 +514,22 @@ assert.equal(
 assert.equal(
   supabaseHarness?.evidence.includes(
     'docs/qwen2-5-vl-7b-backend-runtime-persistence-local-harness-validation-retry-15-result.md',
+  ),
+  true,
+)
+assert.equal(
+  supabaseHarness?.evidence.includes('docs/supabase-local-harness-external-agent-wrapper-blocked-result.md'),
+  true,
+)
+assert.equal(
+  supabaseHarness?.evidence.includes(
+    'src/backend/mock/mock-supabase-local-harness-external-agent-wrapper-blocked-result.ts',
+  ),
+  true,
+)
+assert.equal(
+  supabaseHarness?.evidence.includes(
+    'server/smoke/supabase-local-harness-external-agent-wrapper-blocked-result-smoke.ts',
   ),
   true,
 )

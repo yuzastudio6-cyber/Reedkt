@@ -173,6 +173,11 @@ function main() {
   const activeAuthAccount = authAccounts?.find((authAccount) => authAccount.status === 'ACTIVE')
   const accountValue = account?.rawStdout?.trim() || config?.core?.account || activeAuthAccount?.account
   const tokenRefreshPassed = Boolean(accessTokenRefresh?.ok)
+  const tokenRefreshStderr = accessTokenRefresh?.stderrSummary
+  const reauthenticationRequired = /reauthentication failed|gcloud auth login|cannot prompt/i.test(
+    tokenRefreshStderr ?? '',
+  )
+  const accountSelectionSuggested = /gcloud config set account/i.test(tokenRefreshStderr ?? '')
   const projectMatches = project?.stdout === spec.projectId || config?.core?.project === spec.projectId
   const accountIsPresent = accountPresent(accountValue)
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
@@ -218,6 +223,17 @@ function main() {
           activeAccountDomain: accountDomain(accountValue),
           authListActiveAccountPresent: accountPresent(activeAuthAccount?.account),
           accessTokenRefreshPassed: tokenRefreshPassed,
+          authFailure: tokenRefreshPassed
+            ? undefined
+            : {
+                accessTokenRefreshExitCode: accessTokenRefresh?.exitCode,
+                reauthenticationRequired,
+                nonInteractivePromptBlocked: /cannot prompt during non-interactive execution/i.test(
+                  tokenRefreshStderr ?? '',
+                ),
+                accountSelectionSuggested,
+                stderrSummary: tokenRefreshStderr,
+              },
           likelyMismatch,
         },
         qwen: {
@@ -235,6 +251,8 @@ function main() {
           'refresh the active account/configuration that this Codex shell reports, outside Codex',
           'rerun npm run external-agent-tool-blockers:preflight after auth refresh succeeds',
         ],
+        manualOnlyRepairActions: tokenRefreshPassed ? [] : spec.qwen.manualOnlyRepairActions,
+        postRepairCodexVerificationCommand: spec.qwen.postRepairCodexVerificationCommand,
         runtimeSideEffects: spec.runtimeSideEffects,
         runtimeGatesAllFalse,
         readyForAnyExternalAgentExecutionNow: false,

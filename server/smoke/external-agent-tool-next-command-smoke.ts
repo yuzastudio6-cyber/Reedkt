@@ -161,6 +161,19 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(typeof decision.gcloudDiagnosticSummary.configuredProject, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.activeAccountDomain, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.accessTokenRefreshPassed, 'boolean')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.authFailure, 'object')
+  assert.equal(Array.isArray(decision.gcloudDiagnosticSummary.manualOnlyRepairActions), true)
+  assert.equal(
+    decision.gcloudDiagnosticSummary.manualOnlyRepairActions.every(
+      (action: { runInsideCodex: boolean; mutatesCloud: boolean; runsRuntime: boolean }) =>
+        action.runInsideCodex === false && action.mutatesCloud === false && action.runsRuntime === false,
+    ),
+    true,
+  )
+  assert.equal(
+    decision.gcloudDiagnosticSummary.postRepairCodexVerificationCommand,
+    spec.manualActionRules.whenQwenAuthRefreshFails.rerunAfterManualAction,
+  )
   assert.equal(decision.liveBlockerSummary.qwen.blocker, 'local_gcloud_reauthentication_required')
   assert.equal(decision.liveBlockerSummary.qwen.downstreamProbeSkipped, true)
   assert.equal(decision.liveBlockerSummary.broll.blocker, 'quota_probe_skipped_auth_refresh_failed')

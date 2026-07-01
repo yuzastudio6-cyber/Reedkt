@@ -74,7 +74,15 @@ assert.equal(spec.decision, 'external_agent_gcloud_session_diagnostic_read_only_
 assert.equal(spec.mode, 'read_only_external_agent_gcloud_session_diagnostic')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
+assert.equal(spec.qwen.manualOnlyRepairActions.length, 3)
+assert.equal(spec.qwen.postRepairCodexVerificationCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(spec.allowedReadOnlyCommands.length >= 9, true)
+
+for (const action of spec.qwen.manualOnlyRepairActions) {
+  assert.equal(action.runInsideCodex, false, `${action.id} must be manual-only outside Codex`)
+  assert.equal(action.mutatesCloud, false, `${action.id} must not mutate cloud resources`)
+  assert.equal(action.runsRuntime, false, `${action.id} must not run runtime actions`)
+}
 
 for (const command of spec.allowedReadOnlyCommands) {
   assert.equal(command.capturesTokenValue, false, `${command.id} must not capture token values`)
@@ -84,6 +92,9 @@ for (const command of spec.allowedReadOnlyCommands) {
 
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
 assert.equal(renderedCommands.includes('gcloud info --format=json'), true)
+assert.equal(renderedCommands.includes('gcloud auth login'), false)
+assert.equal(renderedCommands.includes('gcloud config set account ACCOUNT'), false)
+assert.equal(renderedCommands.includes('gcloud config set project reeditpro'), false)
 for (const forbiddenPattern of [
   /\bgcloud\s+auth\s+login\b/i,
   /\bgcloud\s+config\s+set\b/i,
@@ -109,8 +120,6 @@ assert.equal(cliSource.includes('spawnSync'), true)
 for (const forbiddenSource of [
   'execSync',
   'execFileSync',
-  'auth login',
-  'config set',
   'run deploy',
   'jobs execute',
   'instances create',
@@ -151,8 +160,15 @@ assert.equal(typeof live.gcloud.globalConfigDir, 'string')
 assert.equal(typeof live.gcloud.activeConfigPath, 'string')
 assert.equal(typeof live.gcloud.universeDomain, 'string')
 assert.equal(typeof live.recommendedNextPrompt, 'string')
+assert.equal(Array.isArray(live.manualOnlyRepairActions), true)
+assert.equal(live.postRepairCodexVerificationCommand, spec.qwen.postRepairCodexVerificationCommand)
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(live.commandSummaries.length > 0, true)
+if (!live.gcloud.accessTokenRefreshPassed) {
+  assert.equal(typeof live.gcloud.authFailure, 'object')
+  assert.equal(live.manualOnlyRepairActions.length, spec.qwen.manualOnlyRepairActions.length)
+  assert.equal(live.manualOnlyRepairActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
+}
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)

@@ -8,6 +8,17 @@ export type ExternalAgentGcloudSessionDiagnosticCommand = {
   runsInference: false
 }
 
+export type ExternalAgentGcloudSessionManualRepairAction = {
+  id: string
+  command: string
+  runInsideCodex: false
+  mutatesLocalGcloudAuth: boolean
+  mutatesLocalGcloudConfig: boolean
+  mutatesCloud: false
+  runsRuntime: false
+  purpose: string
+}
+
 export const EXTERNAL_AGENT_GCLOUD_SESSION_DIAGNOSTIC = {
   decision: 'external_agent_gcloud_session_diagnostic_read_only_probe_defined',
   mode: 'read_only_external_agent_gcloud_session_diagnostic',
@@ -24,6 +35,42 @@ export const EXTERNAL_AGENT_GCLOUD_SESSION_DIAGNOSTIC = {
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfCleared:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH-VERIFY: record refreshed read-only gcloud auth/service/job readiness, no inference/no mutation',
+    manualOnlyRepairActions: [
+      {
+        id: 'refresh_active_gcloud_login',
+        command: 'gcloud auth login',
+        runInsideCodex: false,
+        mutatesLocalGcloudAuth: true,
+        mutatesLocalGcloudConfig: false,
+        mutatesCloud: false,
+        runsRuntime: false,
+        purpose:
+          'refresh the local interactive user credential for the same gcloud binary/configuration visible to this Codex shell',
+      },
+      {
+        id: 'select_authenticated_account_if_needed',
+        command: 'gcloud config set account ACCOUNT',
+        runInsideCodex: false,
+        mutatesLocalGcloudAuth: false,
+        mutatesLocalGcloudConfig: true,
+        mutatesCloud: false,
+        runsRuntime: false,
+        purpose:
+          'select an already-authenticated local account if the refresh happened under a different gcloud account',
+      },
+      {
+        id: 'confirm_reeditpro_project_if_needed',
+        command: 'gcloud config set project reeditpro',
+        runInsideCodex: false,
+        mutatesLocalGcloudAuth: false,
+        mutatesLocalGcloudConfig: true,
+        mutatesCloud: false,
+        runsRuntime: false,
+        purpose:
+          'restore the local active project only if the interactive auth flow changed it away from reeditpro',
+      },
+    ] satisfies ExternalAgentGcloudSessionManualRepairAction[],
+    postRepairCodexVerificationCommand: 'npm run external-agent-tool-blockers:preflight',
   },
   allowedReadOnlyCommands: [
     {

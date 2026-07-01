@@ -80,6 +80,11 @@ function nestedUnknown(document: Record<string, unknown> | undefined, keys: stri
   return value
 }
 
+function nestedArray(document: Record<string, unknown> | undefined, keys: string[]): unknown[] | undefined {
+  const value = nestedUnknown(document, keys)
+  return Array.isArray(value) ? value : undefined
+}
+
 function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) {
   if (!document) return undefined
 
@@ -97,7 +102,10 @@ function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) 
     projectMatches: nestedUnknown(document, ['gcloud', 'projectMatches']),
     activeAccountDomain: nestedString(document, ['gcloud', 'activeAccountDomain']),
     accessTokenRefreshPassed: nestedUnknown(document, ['gcloud', 'accessTokenRefreshPassed']),
+    authFailure: nestedUnknown(document, ['gcloud', 'authFailure']),
     likelyMismatch: nestedString(document, ['gcloud', 'likelyMismatch']),
+    manualOnlyRepairActions: nestedArray(document, ['manualOnlyRepairActions']),
+    postRepairCodexVerificationCommand: nestedString(document, ['postRepairCodexVerificationCommand']),
   }
 }
 

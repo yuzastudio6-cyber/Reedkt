@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_w
 
 Status: `external_agent_execution_gate_fail_closed_runtime_blocked`
 
-This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, and route-mount readiness evidence, then returns a clear no-go until a later route, worker, and private runtime proof explicitly opens execution.
+This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, and controlled on-demand status bridge evidence, then returns a clear no-go for direct execution until a later route, worker, and private runtime proof explicitly opens execution.
 
 ## Scope
 
@@ -17,6 +17,9 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - nativeGpuRuntimeProofPendingTools: `8`
 - modelWeightManifestPendingTools: `5`
 - externalBetaCallableInstallReadyNowTools: `0`
+- controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`
+- controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: `21`
+- controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence: `21`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
 - Route-mount-ready tools with provided evidence: `21`
@@ -33,6 +36,7 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - Explain missing proof before execution.
 - Verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata.
 - Read route-mount readiness evidence while preserving `apiRouteMountedNow=false`.
+- Read controlled on-demand external-beta status while preserving that direct agent execution remains blocked.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
 
@@ -68,6 +72,7 @@ Blocked now:
 6. `npm run ai-graphics:external-beta-runtime-admission`
 7. `npm run ai-graphics:external-beta-worker-enqueue-adapter`
 8. `npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics`
+9. `npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -77,10 +82,13 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `source21ToolProperInstallAuditAccepted=true`
 - `sourceExternalBetaCallableRequestAdmissionAccepted=true`
 - `sourceExternalBetaApiRouteMountReadinessAccepted=true`
+- `sourceExternalBetaControlledOnDemandStatusBridgeAccepted=true`
 - `properInstallAuditAccepted=true`
 - `all21ToolsProperlyInstalledForPlannedSurface=true`
 - `installAuditSeparatesPlannedSurfaceFromRuntimeCallable=true`
 - `externalBetaCallableInstallReadyNow=false`
+- `controlledOnDemandExternalBetaReadyWithProvidedEvidence=true`
+- `controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked=true`
 - `all21ToolsCovered=true`
 - `all12CapabilitiesCovered=true`
 - `all8GpuToolsTargetGpuRuntime=true`
@@ -106,4 +114,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, and route-mount readiness evidence is accepted. Actual execution is still blocked because install readiness is not external-beta callability, the default route-mount flag is off, and no worker/tool runtime is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, and controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, and no direct route/worker/tool runtime execution is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.

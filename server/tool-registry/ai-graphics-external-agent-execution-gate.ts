@@ -10,6 +10,10 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION,
   type AiGraphicsExternalBetaApiRouteMountReadiness,
 } from './ai-graphics-external-beta-api-route-mount-readiness'
+import {
+  AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION,
+  type AiGraphicsExternalBetaControlledOnDemandStatusBridge,
+} from './ai-graphics-external-beta-controlled-on-demand-status-bridge'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
@@ -23,6 +27,8 @@ export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'external_beta_callable_request_admission_rejected'
   | 'missing_external_beta_api_route_mount_readiness'
   | 'external_beta_api_route_mount_readiness_rejected'
+  | 'missing_external_beta_controlled_on_demand_status_bridge'
+  | 'external_beta_controlled_on_demand_status_bridge_rejected'
   | 'external_agent_execution_gate_fail_closed_runtime_blocked'
 
 export interface AiGraphics21ToolProperInstallAudit {
@@ -72,6 +78,7 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
   source21ToolProperInstallAuditPacket?: Partial<AiGraphics21ToolProperInstallAudit>
   sourceExternalBetaCallableRequestAdmissionPacket?: Partial<AiGraphicsExternalBetaCallableRequestAdmission>
   sourceExternalBetaApiRouteMountReadinessPacket?: Partial<AiGraphicsExternalBetaApiRouteMountReadiness>
+  sourceExternalBetaControlledOnDemandStatusBridgePacket?: Partial<AiGraphicsExternalBetaControlledOnDemandStatusBridge>
 }
 
 export interface AiGraphicsExternalAgentExecutionGateToolRow {
@@ -103,9 +110,12 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_CALLABLE_REQUEST_ADMISSION_DECISION | null
   sourceExternalBetaApiRouteMountReadinessDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION | null
+  sourceExternalBetaControlledOnDemandStatusBridgeDecision:
+    typeof AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION | null
   source21ToolProperInstallAuditAccepted: boolean
   sourceExternalBetaCallableRequestAdmissionAccepted: boolean
   sourceExternalBetaApiRouteMountReadinessAccepted: boolean
+  sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
   readyForAnyExternalAgentExecutionNow: false
   executionAllowedNow: false
   requireGoExitCodeWhenBlocked: 2
@@ -117,6 +127,9 @@ export interface AiGraphicsExternalAgentExecutionGate {
   nativeGpuRuntimeProofPendingTools: 0 | 8
   modelWeightManifestPendingTools: 0 | 5
   externalBetaCallableInstallReadyNowTools: 0
+  controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: 0 | 21
+  controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: 0 | 21
+  controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence: 0 | 21
   externalBetaCallableCandidateToolsWithProvidedEvidence: number
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: number
   externalAgentExecutableNowTools: 0
@@ -134,10 +147,13 @@ export interface AiGraphicsExternalAgentExecutionGate {
     source21ToolProperInstallAuditAccepted: boolean
     sourceExternalBetaCallableRequestAdmissionAccepted: boolean
     sourceExternalBetaApiRouteMountReadinessAccepted: boolean
+    sourceExternalBetaControlledOnDemandStatusBridgeAccepted: boolean
     properInstallAuditAccepted: boolean
     all21ToolsProperlyInstalledForPlannedSurface: boolean
     installAuditSeparatesPlannedSurfaceFromRuntimeCallable: boolean
     externalBetaCallableInstallReadyNow: false
+    controlledOnDemandExternalBetaReadyWithProvidedEvidence: boolean
+    controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked: boolean
     all21ToolsCovered: boolean
     all12CapabilitiesCovered: boolean
     all8GpuToolsTargetGpuRuntime: boolean
@@ -198,6 +214,7 @@ const safeCommandsBeforeExecution = [
   'npm run ai-graphics:external-beta-runtime-admission',
   'npm run ai-graphics:external-beta-worker-enqueue-adapter',
   'npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics',
+  'npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics',
 ]
 
 const allowedPreExecutionActions = [
@@ -206,6 +223,7 @@ const allowedPreExecutionActions = [
   'explain missing proof before execution',
   'verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata',
   'return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call',
+  'distinguish controlled on-demand worker-path readiness from direct agent execution',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
@@ -309,6 +327,67 @@ function sourceRouteMountReadinessAccepted(
     packet.booleans?.productionReadyNow === false
 }
 
+function packetNumber(packet: unknown, key: string): number | undefined {
+  if (!packet || typeof packet !== 'object') return undefined
+  const record = packet as Record<string, unknown>
+  const direct = record[key]
+  if (typeof direct === 'number') return direct
+  const coverage = record.coverage
+  if (coverage && typeof coverage === 'object') {
+    const nested = (coverage as Record<string, unknown>)[key]
+    if (typeof nested === 'number') return nested
+  }
+  return undefined
+}
+
+function packetBoolean(packet: unknown, key: string): boolean | undefined {
+  if (!packet || typeof packet !== 'object') return undefined
+  const record = packet as Record<string, unknown>
+  const direct = record[key]
+  if (typeof direct === 'boolean') return direct
+  const booleans = record.booleans
+  if (booleans && typeof booleans === 'object') {
+    const nested = (booleans as Record<string, unknown>)[key]
+    if (typeof nested === 'boolean') return nested
+  }
+  return undefined
+}
+
+function sourceControlledOnDemandStatusBridgeAccepted(
+  packet?: Partial<AiGraphicsExternalBetaControlledOnDemandStatusBridge>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision === AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION &&
+    packet.status === 'external_beta_controlled_on_demand_status_bridge_ready_with_warnings' &&
+    packetNumber(packet, 'totalAiGraphicsTools') === 21 &&
+    packetNumber(packet, 'totalProductFacingCapabilities') === 12 &&
+    packetNumber(packet, 'gpuRuntimeTargetedTools') === 8 &&
+    packetNumber(packet, 'externalBetaControlledOnDemandReadyTools') === 21 &&
+    packetNumber(packet, 'externalBetaCallableNowTools') === 21 &&
+    packetNumber(packet, 'externalBetaReadyNowTools') === 21 &&
+    packetNumber(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 21 &&
+    packetNumber(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
+    packetNumber(packet, 'productionReadyNowTools') === 0 &&
+    packet.readinessInterpretation ===
+      'external_beta_ready_means_controlled_on_demand_worker_path_not_direct_agent_execution' &&
+    packet.gpuPolicy?.gpuRuntimeOnDemandOnly === true &&
+    packet.gpuPolicy?.noIdleGpuRuntimeApproved === true &&
+    packet.gpuPolicy?.gpuStartsOnlyForApprovedWorkerOrToolCall === true &&
+    packet.gpuPolicy?.gpuRuntimeShouldStartNow === false &&
+    packetBoolean(packet, 'all21ToolsReadyForControlledOnDemandExternalBetaToolCalls') === true &&
+    packetBoolean(packet, 'controlledExternalBetaToolCallReadinessClarified') === true &&
+    packetBoolean(packet, 'externalBetaReadyNow') === true &&
+    packetBoolean(packet, 'externalBetaCallableNow') === true &&
+    packetBoolean(packet, 'agentCanExecuteToolsNow') === false &&
+    packetBoolean(packet, 'directAgentToolExecutionApprovedNow') === false &&
+    packetBoolean(packet, 'routeExecutionApprovedNow') === false &&
+    packetBoolean(packet, 'workerExecutionApprovedNow') === false &&
+    packetBoolean(packet, 'toolExecutionApprovedNow') === false &&
+    packetBoolean(packet, 'gpuRuntimeApprovedNow') === false &&
+    packetBoolean(packet, 'gpuRuntimeShouldStartNow') === false &&
+    packetBoolean(packet, 'productionReadyNow') === false
+}
+
 function statusFromInput(input: {
   hasProperInstallAudit: boolean
   properInstallAuditAccepted: boolean
@@ -316,6 +395,8 @@ function statusFromInput(input: {
   sourceAdmissionAccepted: boolean
   hasSourceRouteMountReadiness: boolean
   sourceRouteMountReadinessAccepted: boolean
+  hasControlledOnDemandStatusBridge: boolean
+  controlledOnDemandStatusBridgeAccepted: boolean
 }): AiGraphicsExternalAgentExecutionGateStatus {
   if (!input.hasProperInstallAudit) {
     return 'missing_21_tool_proper_install_audit'
@@ -334,6 +415,12 @@ function statusFromInput(input: {
   }
   if (!input.sourceRouteMountReadinessAccepted) {
     return 'external_beta_api_route_mount_readiness_rejected'
+  }
+  if (!input.hasControlledOnDemandStatusBridge) {
+    return 'missing_external_beta_controlled_on_demand_status_bridge'
+  }
+  if (!input.controlledOnDemandStatusBridgeAccepted) {
+    return 'external_beta_controlled_on_demand_status_bridge_rejected'
   }
   return 'external_agent_execution_gate_fail_closed_runtime_blocked'
 }
@@ -358,10 +445,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const sourceAdmission = input.sourceExternalBetaCallableRequestAdmissionPacket
   const sourceRouteMountReadiness =
     input.sourceExternalBetaApiRouteMountReadinessPacket
+  const sourceControlledOnDemandStatusBridge =
+    input.sourceExternalBetaControlledOnDemandStatusBridgePacket
   const installAccepted = sourceProperInstallAuditAccepted(sourceProperInstallAudit)
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
   const routeMountAccepted =
     sourceRouteMountReadinessAccepted(sourceRouteMountReadiness)
+  const controlledOnDemandAccepted =
+    sourceControlledOnDemandStatusBridgeAccepted(sourceControlledOnDemandStatusBridge)
   const tools = listAiGraphicsToolCallHandoffTools()
   const gpuRuntimeTargetedTools =
     tools.filter((tool) => tool.gpuRequiredForRuntime).length
@@ -410,6 +501,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       sourceAdmissionAccepted: sourceAccepted,
       hasSourceRouteMountReadiness: Boolean(sourceRouteMountReadiness),
       sourceRouteMountReadinessAccepted: routeMountAccepted,
+      hasControlledOnDemandStatusBridge: Boolean(sourceControlledOnDemandStatusBridge),
+      controlledOnDemandStatusBridgeAccepted: controlledOnDemandAccepted,
     }),
     mode: 'fail_closed_ai_graphics_external_agent_execution_gate',
     source21ToolProperInstallAuditDecision:
@@ -424,9 +517,15 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       sourceRouteMountReadiness?.decision === AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION
         ? sourceRouteMountReadiness.decision
         : null,
+    sourceExternalBetaControlledOnDemandStatusBridgeDecision:
+      sourceControlledOnDemandStatusBridge?.decision === AI_GRAPHICS_EXTERNAL_BETA_CONTROLLED_ON_DEMAND_STATUS_BRIDGE_DECISION
+        ? sourceControlledOnDemandStatusBridge.decision
+        : null,
     source21ToolProperInstallAuditAccepted: installAccepted,
     sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
     sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
+    sourceExternalBetaControlledOnDemandStatusBridgeAccepted:
+      controlledOnDemandAccepted,
     readyForAnyExternalAgentExecutionNow: false,
     executionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
@@ -438,6 +537,12 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     nativeGpuRuntimeProofPendingTools: installAccepted ? 8 : 0,
     modelWeightManifestPendingTools: installAccepted ? 5 : 0,
     externalBetaCallableInstallReadyNowTools: 0,
+    controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence:
+      controlledOnDemandAccepted ? 21 : 0,
+    controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence:
+      controlledOnDemandAccepted ? 21 : 0,
+    controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence:
+      controlledOnDemandAccepted ? 21 : 0,
     externalBetaCallableCandidateToolsWithProvidedEvidence:
       candidateTools,
     externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
@@ -459,10 +564,16 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       source21ToolProperInstallAuditAccepted: installAccepted,
       sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
       sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
+      sourceExternalBetaControlledOnDemandStatusBridgeAccepted:
+        controlledOnDemandAccepted,
       properInstallAuditAccepted: installAccepted,
       all21ToolsProperlyInstalledForPlannedSurface: installAccepted,
       installAuditSeparatesPlannedSurfaceFromRuntimeCallable: installAccepted,
       externalBetaCallableInstallReadyNow: false,
+      controlledOnDemandExternalBetaReadyWithProvidedEvidence:
+        controlledOnDemandAccepted,
+      controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked:
+        controlledOnDemandAccepted,
       all21ToolsCovered: toolRows.length === 21,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,

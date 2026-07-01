@@ -120,6 +120,11 @@ const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-rout
 for (const phrase of [
   'routeMountedByAppNow: true',
   'routeMountFeatureFlagEnabled: true',
+  'externalAgentExecutionGateRequired: true',
+  'properInstallAuditAcceptedToolsWithProvidedEvidence: 21',
+  'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: 21',
+  'controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked: true',
+  'directAgentToolExecutionApprovedNow: false',
   'routeExecutionApprovedNow: false',
   'workerEnqueueApprovedNow: false',
   'toolExecutionApprovedNow: false',

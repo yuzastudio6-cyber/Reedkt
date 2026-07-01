@@ -10,6 +10,9 @@ import type {
 import type {
   AiGraphicsExternalBetaApiRouteMountReadiness,
 } from '../tool-registry/ai-graphics-external-beta-api-route-mount-readiness'
+import type {
+  AiGraphicsExternalBetaControlledOnDemandStatusBridge,
+} from '../tool-registry/ai-graphics-external-beta-controlled-on-demand-status-bridge'
 
 function valueAfterFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -35,6 +38,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalBetaApiRouteMountReadiness>>(
       '--external-beta-api-route-mount-readiness-packet',
     ),
+  sourceExternalBetaControlledOnDemandStatusBridgePacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaControlledOnDemandStatusBridge>>(
+      '--external-beta-controlled-on-demand-status-bridge-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -51,6 +58,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-callable-request-admission-packet')),
     apiRouteMountReadinessPacketRead:
       Boolean(valueAfterFlag('--external-beta-api-route-mount-readiness-packet')),
+    controlledOnDemandStatusBridgePacketRead:
+      Boolean(valueAfterFlag('--external-beta-controlled-on-demand-status-bridge-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

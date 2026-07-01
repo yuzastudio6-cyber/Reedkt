@@ -89,9 +89,12 @@ const trueBooleanKeys = [
   'source21ToolProperInstallAuditAccepted',
   'sourceExternalBetaCallableRequestAdmissionAccepted',
   'sourceExternalBetaApiRouteMountReadinessAccepted',
+  'sourceExternalBetaControlledOnDemandStatusBridgeAccepted',
   'properInstallAuditAccepted',
   'all21ToolsProperlyInstalledForPlannedSurface',
   'installAuditSeparatesPlannedSurfaceFromRuntimeCallable',
+  'controlledOnDemandExternalBetaReadyWithProvidedEvidence',
+  'controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -118,6 +121,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
   'server/tool-registry/index.ts',
   'package.json',
 ]
@@ -267,6 +271,15 @@ if (docs.counts?.modelWeightManifestPendingTools !== 5) {
 if (docs.counts?.externalBetaCallableInstallReadyNowTools !== 0) {
   fail('docs_external_beta_callable_install_ready_not_0')
 }
+if (docs.counts?.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence !== 21) {
+  fail('docs_controlled_on_demand_ready_not_21')
+}
+if (docs.counts?.controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence !== 21) {
+  fail('docs_controlled_on_demand_callable_not_21')
+}
+if (docs.counts?.controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence !== 21) {
+  fail('docs_controlled_on_demand_runtime_ready_not_21')
+}
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_0')
 if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
   fail('docs_route_mount_ready_tools_not_21')
@@ -287,6 +300,8 @@ for (const phrase of [
   'proper-install audit',
   'properlyInstalledForPlannedSurfaceTools: `21`',
   'externalBetaCallableInstallReadyNowTools: `0`',
+  'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`',
+  'direct agent execution remains blocked',
   'apiRouteMountedNow=false',
   'exit code `2`',
   'agentCanExecuteToolsNow=false',
@@ -336,6 +351,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
   '--external-beta-api-route-mount-readiness-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -360,6 +377,15 @@ if (acceptedSourceReport.modelWeightManifestPendingTools !== 5) {
 }
 if (acceptedSourceReport.externalBetaCallableInstallReadyNowTools !== 0) {
   fail('accepted_report_external_beta_callable_install_not_0')
+}
+if (acceptedSourceReport.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_controlled_ready_tools_not_21')
+}
+if (acceptedSourceReport.controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_controlled_callable_tools_not_21')
+}
+if (acceptedSourceReport.controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_controlled_runtime_tools_not_21')
 }
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')
@@ -388,6 +414,8 @@ const requireGo = spawnSync(
     'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
     '--external-beta-api-route-mount-readiness-packet',
     'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+    '--external-beta-controlled-on-demand-status-bridge-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
     '--require-go',
   ],
   {
@@ -430,6 +458,8 @@ console.log(JSON.stringify({
     acceptedSourceReport.properlyInstalledForPlannedSurfaceTools,
   externalBetaCallableInstallReadyNowTools:
     acceptedSourceReport.externalBetaCallableInstallReadyNowTools,
+  controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence:
+    acceptedSourceReport.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence,
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
     acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence,
   apiRouteMountReadyToolsWithProvidedEvidence:

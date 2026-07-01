@@ -94,6 +94,11 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
       {
         routeMountedByAppNow: true,
         routeMountFeatureFlagEnabled: true,
+        externalAgentExecutionGateRequired: true,
+        properInstallAuditAcceptedToolsWithProvidedEvidence: 21,
+        controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: 21,
+        controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked: true,
+        directAgentToolExecutionApprovedNow: false,
         routeExecutionApprovedNow: false,
         queueWriteApprovedNow: false,
         workerEnqueueApprovedNow: false,

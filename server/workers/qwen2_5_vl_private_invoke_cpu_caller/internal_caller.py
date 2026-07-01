@@ -279,15 +279,24 @@ def main() -> int:
     model_inference_enabled = response_body.get("modelInferenceEnabled") is True
     runtime_contract_executes_now = response_body.get("runtimeContractExecutesNow") is True
     metadata_output = response_body.get("metadataOutput") if isinstance(response_body.get("metadataOutput"), dict) else {}
+    schema_validation_reasons = metadata_output.get("schemaValidationReasons")
     structured_metadata_output_ok = (
         metadata_output.get("parsedJson") is True
         and metadata_output.get("schemaValid") is True
+        and metadata_output.get("schemaCompletenessValid") is True
+        and metadata_output.get("topLevelObjectRowRejected") is False
+        and isinstance(schema_validation_reasons, list)
+        and len(schema_validation_reasons) == 0
         and isinstance(metadata_output.get("schemaKeys"), list)
         and not metadata_output.get("missingSchemaKeys")
         and isinstance(metadata_output.get("objectCount"), int)
-        and metadata_output.get("objectCount", 0) > 0
+        and metadata_output.get("objectCount", 0) >= metadata_output.get("minimumObjectCount", 2)
         and isinstance(metadata_output.get("textLikeRegionCount"), int)
-        and metadata_output.get("textLikeRegionCount", 0) > 0
+        and metadata_output.get("textLikeRegionCount", 0) >= metadata_output.get("minimumTextLikeRegionCount", 1)
+        and isinstance(metadata_output.get("spatialRelationCount"), int)
+        and metadata_output.get("spatialRelationCount", 0) >= metadata_output.get("minimumSpatialRelationCount", 1)
+        and isinstance(metadata_output.get("blockedActionCount"), int)
+        and metadata_output.get("blockedActionCount", 0) >= metadata_output.get("minimumBlockedActionCount", 4)
         and metadata_output.get("rawOutputStoredInRepo") is False
     )
     if fixture_inference_expected:

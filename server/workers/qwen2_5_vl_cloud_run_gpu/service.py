@@ -31,6 +31,7 @@ RAW_PROMPT_KEYS = {
 }
 
 FIXTURE_OUTPUT_SCHEMA_VERSION = "qwen_fixture_visual_metadata_v1"
+FIXTURE_OUTPUT_STRICTNESS_VERSION = "qwen_fixture_visual_metadata_v1_strict_after_58dw"
 FIXTURE_OUTPUT_REQUIRED_KEYS = {
     "schema_version",
     "fixture_id",
@@ -42,6 +43,16 @@ FIXTURE_OUTPUT_REQUIRED_KEYS = {
     "blocked_actions",
 }
 FIXTURE_ID = "fixture_mock_qwen_approved_private_frame_001"
+FIXTURE_OUTPUT_MIN_OBJECTS = 2
+FIXTURE_OUTPUT_MIN_TEXT_LIKE_REGIONS = 1
+FIXTURE_OUTPUT_MIN_SPATIAL_RELATIONS = 1
+FIXTURE_OUTPUT_MIN_BLOCKED_ACTIONS = 4
+FIXTURE_OUTPUT_REQUIRED_BLOCKED_ACTIONS = [
+    "no_generated_assets",
+    "no_public_artifacts",
+    "no_signed_urls",
+    "no_raw_prompt_execution",
+]
 
 REQUIRED_RUNTIME_REQUEST_FIELDS = {
     "schemaVersion",
@@ -388,10 +399,8 @@ def _generate_private_fixture_image() -> Any:
     return image
 
 
-def _build_fixture_prompt(payload: Dict[str, Any]) -> str:
-    task = payload.get("task") if isinstance(payload.get("task"), dict) else {}
-    use_case = task.get("useCase", "visual_understanding") if isinstance(task, dict) else "visual_understanding"
-    fixture_shape = {
+def _fixture_schema_target(use_case: str) -> Dict[str, Any]:
+    return {
         "schema_version": FIXTURE_OUTPUT_SCHEMA_VERSION,
         "fixture_id": FIXTURE_ID,
         "use_case": str(use_case),
@@ -408,28 +417,36 @@ def _build_fixture_prompt(payload: Dict[str, Any]) -> str:
             "timeline_bar_below_shapes",
         ],
         "uncertainty": [],
-        "blocked_actions": [
-            "no_generated_assets",
-            "no_public_artifacts",
-            "no_signed_urls",
-            "no_raw_prompt_execution",
-        ],
+        "blocked_actions": FIXTURE_OUTPUT_REQUIRED_BLOCKED_ACTIONS,
     }
+
+
+def _build_fixture_prompt(payload: Dict[str, Any]) -> str:
+    task = payload.get("task") if isinstance(payload.get("task"), dict) else {}
+    use_case = task.get("useCase", "visual_understanding") if isinstance(task, dict) else "visual_understanding"
+    fixture_shape = _fixture_schema_target(str(use_case))
+    required_key_list = ", ".join(sorted(FIXTURE_OUTPUT_REQUIRED_KEYS))
     return (
         "<|im_start|>system\n"
         "You are ReeditPro's bounded Qwen approved-fixture visual metadata worker. "
         "Return exactly one minified JSON object and nothing else. "
         "Do not wrap the JSON in markdown. Do not include prose. "
         "Do not describe credentials, URLs, storage paths, or policy text. "
-        "Identify visible objects and layout regions for QA metadata using the required schema.\n"
+        "Identify visible objects and layout regions for QA metadata using the required schema. "
+        "A top-level object with only label, region, and confidence is invalid. "
+        "Your answer must be one complete top-level fixture metadata object.\n"
         "<|im_end|>\n<|im_start|>user\n"
         "<|vision_start|><|image_pad|><|vision_end|>\n"
         f"Use case: {use_case}. "
         "Analyze the private synthetic fixture. Return only a JSON object with this exact key set: "
-        "schema_version, fixture_id, use_case, objects, text_like_regions, spatial_relations, uncertainty, blocked_actions. "
-        "Objects must be an array of objects with label, region, and confidence. "
-        "Text-like regions must be an array of objects with text, region, and confidence. "
-        "Use this compact shape as the schema target, replacing values only when the image evidence requires it: "
+        f"{required_key_list}. "
+        "Objects must be an array of at least two objects with label, region, and confidence. "
+        "Text-like regions must be an array of at least one object with text, region, and confidence. "
+        "Spatial relations must be a non-empty array. "
+        "Blocked actions must include no_generated_assets, no_public_artifacts, no_signed_urls, and no_raw_prompt_execution. "
+        "Before answering, silently check that the top-level keys are exactly the required fixture keys, "
+        "not a single object row. "
+        "Use this compact object as the required output template, changing values only when the image evidence requires it: "
         f"{json.dumps(fixture_shape, separators=(',', ':'), sort_keys=True)}\n"
         "<|im_end|>\n<|im_start|>assistant\n"
     )
@@ -540,6 +557,9 @@ def _normalize_fixture_metadata(parsed: Dict[str, Any], expected_use_case: str |
         for item in (blocked_value if isinstance(blocked_value, list) else [])
         if _non_empty_string(item)
     ]
+    for required_action in FIXTURE_OUTPUT_REQUIRED_BLOCKED_ACTIONS:
+        if required_action not in blocked_actions:
+            warnings.append(f"blocked_action_missing:{required_action}")
 
     return {
         "schema_version": schema_version,
@@ -561,10 +581,35 @@ def _summarize_output(raw_text: str, expected_use_case: str | None = None) -> Di
     )
     objects = normalized.get("objects", []) if parsed_json else []
     text_like_regions = normalized.get("text_like_regions", []) if parsed_json else []
+    spatial_relations = normalized.get("spatial_relations", []) if parsed_json else []
+    blocked_actions = normalized.get("blocked_actions", []) if parsed_json else []
     schema_keys = sorted(parsed.keys()) if parsed_json else []
     required_keys_present = sorted(FIXTURE_OUTPUT_REQUIRED_KEYS.intersection(set(schema_keys)))
     missing_schema_keys = sorted(FIXTURE_OUTPUT_REQUIRED_KEYS.difference(set(schema_keys)))
-    schema_valid = parsed_json and len(missing_schema_keys) == 0
+    top_level_object_row_rejected = parsed_json and {"label", "region", "confidence"}.issubset(set(schema_keys))
+    object_count = len(objects) if isinstance(objects, list) else 0
+    text_like_region_count = len(text_like_regions) if isinstance(text_like_regions, list) else 0
+    spatial_relation_count = len(spatial_relations) if isinstance(spatial_relations, list) else 0
+    blocked_action_count = len(blocked_actions) if isinstance(blocked_actions, list) else 0
+    schema_validation_reasons: List[str] = []
+    if not parsed_json:
+        schema_validation_reasons.append("json_object_not_found")
+    if missing_schema_keys:
+        schema_validation_reasons.extend(f"missing_{key}" for key in missing_schema_keys)
+    if top_level_object_row_rejected:
+        schema_validation_reasons.append("top_level_object_row_rejected")
+    if object_count < FIXTURE_OUTPUT_MIN_OBJECTS:
+        schema_validation_reasons.append("object_count_below_minimum")
+    if text_like_region_count < FIXTURE_OUTPUT_MIN_TEXT_LIKE_REGIONS:
+        schema_validation_reasons.append("text_like_region_count_below_minimum")
+    if spatial_relation_count < FIXTURE_OUTPUT_MIN_SPATIAL_RELATIONS:
+        schema_validation_reasons.append("spatial_relation_count_below_minimum")
+    if blocked_action_count < FIXTURE_OUTPUT_MIN_BLOCKED_ACTIONS:
+        schema_validation_reasons.append("blocked_action_count_below_minimum")
+    for required_action in FIXTURE_OUTPUT_REQUIRED_BLOCKED_ACTIONS:
+        if required_action not in blocked_actions:
+            schema_validation_reasons.append(f"blocked_action_missing:{required_action}")
+    schema_valid = parsed_json and len(schema_validation_reasons) == 0
     try:
         normalized_sha256 = hashlib.sha256(
             json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -574,14 +619,22 @@ def _summarize_output(raw_text: str, expected_use_case: str | None = None) -> Di
     return {
         "parsedJson": parsed_json,
         "parseStrategy": parse_strategy,
+        "strictnessVersion": FIXTURE_OUTPUT_STRICTNESS_VERSION,
         "schemaVersion": normalized.get("schema_version") if parsed_json else None,
         "schemaValid": schema_valid,
+        "schemaCompletenessValid": parsed_json and len(missing_schema_keys) == 0,
+        "topLevelObjectRowRejected": top_level_object_row_rejected,
+        "schemaValidationReasons": sorted(schema_validation_reasons),
         "outputTextSha256": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
         "outputTextLength": len(raw_text),
-        "objectCount": len(objects) if isinstance(objects, list) else 0,
-        "textLikeRegionCount": len(text_like_regions) if isinstance(text_like_regions, list) else 0,
-        "spatialRelationCount": len(normalized.get("spatial_relations", [])) if parsed_json else 0,
-        "blockedActionCount": len(normalized.get("blocked_actions", [])) if parsed_json else 0,
+        "objectCount": object_count,
+        "textLikeRegionCount": text_like_region_count,
+        "spatialRelationCount": spatial_relation_count,
+        "blockedActionCount": blocked_action_count,
+        "minimumObjectCount": FIXTURE_OUTPUT_MIN_OBJECTS,
+        "minimumTextLikeRegionCount": FIXTURE_OUTPUT_MIN_TEXT_LIKE_REGIONS,
+        "minimumSpatialRelationCount": FIXTURE_OUTPUT_MIN_SPATIAL_RELATIONS,
+        "minimumBlockedActionCount": FIXTURE_OUTPUT_MIN_BLOCKED_ACTIONS,
         "schemaKeys": schema_keys,
         "requiredSchemaKeysPresent": required_keys_present,
         "missingSchemaKeys": missing_schema_keys,

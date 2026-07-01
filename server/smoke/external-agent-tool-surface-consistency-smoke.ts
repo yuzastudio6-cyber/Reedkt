@@ -227,11 +227,15 @@ assertQwenManualActions(rollupQwenActions, 'rollup.qwen')
 assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
 for (const tool of rollup.tools) {
-  assert.equal(
-    tool.readyForExternalAgentExecutionNow,
-    false,
-    `${tool.toolId} must not be execution-ready while Qwen 58DW-FIX is required`,
-  )
+  if (tool.toolId === QWEN_TOOL_ID) {
+    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for explicit retry-2`)
+  } else {
+    assert.equal(
+      tool.readyForExternalAgentExecutionNow,
+      false,
+      `${tool.toolId} must not be execution-ready on the Qwen retry-2 branch`,
+    )
+  }
 }
 
 const actionPlan = runJsonCli('server/cli/external-agent-tool-action-plan.ts')
@@ -287,15 +291,15 @@ assert.equal(
   asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
     (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === QWEN_TOOL_ID,
   ),
-  true,
-  'actionPlan.manualBlockers must include schema-blocked Qwen',
+  false,
+  'actionPlan.manualBlockers must not include retry-2-ready Qwen',
 )
 assert.equal(
   asArray(readiness.blockers, 'readiness.blockers').some(
     (row) => asRecord(row, 'readiness.blockers row').toolId === QWEN_TOOL_ID,
   ),
-  true,
-  'readiness.blockers must include schema-blocked Qwen',
+  false,
+  'readiness.blockers must not include retry-2-ready Qwen',
 )
 
 for (const [label, actions] of brollSurfaceActions) {
@@ -303,11 +307,11 @@ for (const [label, actions] of brollSurfaceActions) {
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',
@@ -323,8 +327,8 @@ for (const readinessFlag of [
   assert.equal(readiness[readinessFlag], false, `readiness.${readinessFlag} must remain false`)
 }
 
-assert.equal(executionGate.executionAllowedNow, false)
-assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(executionGate.executionAllowedNow, true)
+assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(executionGate.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(executionGate.runtimeSideEffects, 'executionGate.runtimeSideEffects')
 
@@ -372,7 +376,7 @@ console.log(
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),
       runtimeGatesAllFalse: true,
-      staticQwenReadyForExplicitGate: false,
+      staticQwenReadyForExplicitGate: true,
       liveQwenPreflightPassed: nextCommand.qwenLivePreflightPassed,
       executionAllowedNow: nextCommand.executionAllowedNow,
       readyForAnyExternalAgentExecutionNow: nextCommand.readyForAnyExternalAgentExecutionNow,

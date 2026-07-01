@@ -153,9 +153,9 @@ import { getQwenVlPlannerRoutingUiData } from '../../src/lib/qwen-vl-planner-rou
 
 const ROOT = process.cwd()
 const DECISION =
-  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_schema_invalid_fix_required'
+  'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_58dw_retry_2_ready'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
 
 type JsonRecord = Record<string, unknown>
 
@@ -1914,7 +1914,7 @@ for (const phrase of [
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference approval: ready, approval recorded',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference preflight: ready, preflight passed',
   'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval: ready, attempt approval recorded',
-  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt: blocked on 58DW-FIX structured output schema',
+  'controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt: ready for explicit 58DW-RETRY-2 after strict output fix',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement implementation | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch transport dependency enablement execution plan | ready',
@@ -1949,7 +1949,7 @@ for (const phrase of [
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference approval | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference preflight | ready',
   'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt approval | ready',
-  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt | blocked on 58DW-FIX structured output schema',
+  'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt | ready for explicit 58DW-RETRY-2 after strict output fix',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRequired=false`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceApprovalRecorded=true`',
   '`controlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixtureInferenceAcceptedForPreflight=true`',
@@ -2670,7 +2670,7 @@ assert.equal(status.mayDispatchWorker, false)
 const ui = getQwenVlPlannerRoutingUiData()
 assert.equal(
   ui.privateInvokeClient.currentStatus,
-  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_schema_invalid_fix_required',
+  'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready',
 )
 assert.equal(ui.privateInvokeClient.routeId, 'jobs.qwen2_5_vl.privateInvoke.dryRun')
 assert.equal(ui.executionGates.plannerMayInvokeCloudRun, false)
@@ -2820,7 +2820,7 @@ assert.deepEqual(gateIds, [
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt_approval',
   'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt',
 ])
-assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 127)
+assert.equal(rollup.readinessGates.filter((gate) => gate.status === 'ready').length, 128)
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_inference_service_deploy_required').length,
   0,
@@ -2839,7 +2839,7 @@ assert.equal(
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_structured_output_fix_required').length,
-  1,
+  0,
 )
 assert.equal(
   rollup.readinessGates.filter((gate) => String(gate.status) === 'blocked_approved_fixture_structured_output_smoke_retry_required').length,
@@ -4520,7 +4520,7 @@ assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferenceAttemptA
 assert.equal(rollup.runtimeFlags.readyForApprovedFixturePrivateInferenceAttempt, false)
 assert.equal(
   rollup.blockedUntil[0],
-  'structured_metadata_schema_invalid_after_bounded_58dw_retry',
+  'explicit_58dw_retry_2_result_review_required_before_broad_qwen_runtime',
 )
 assert.equal(rollup.blockedUntil[1], 'beta_and_production_approval_required')
 assert.equal(rollup.runtimeFlags.approvedSnapshotAndFixtureScopeReadinessAccepted, true)

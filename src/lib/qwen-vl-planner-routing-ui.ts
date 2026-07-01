@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_schema_invalid_fix_required'
+  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -220,14 +220,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
       currentStatus:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_schema_invalid_fix_required',
+        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_strict_output_fix_ready',
       currentBlocker:
-        'Controlled private invoke, structured-output, persistence, active migration, persisted worker dispatch, private invoke, and private inference planning evidence are recorded through the 58DW bounded retry result. The retry loaded Qwen and returned parseable JSON, but the fixture metadata failed the required schema, so another runtime retry is blocked until 58DW-FIX tightens structured output generation. Generated assets, signed URLs, beta, and production remain blocked.',
+        'Controlled private invoke, structured-output, persistence, active migration, persisted worker dispatch, private invoke, and private inference planning evidence are recorded through the 58DW bounded retry result and the strict output fix. The retry loaded Qwen and returned parseable JSON, but the fixture metadata failed the required schema; the source now rejects that top-level object-row shape and is ready only for an explicit bounded retry-2 prompt. Generated assets, signed URLs, beta, and production remain blocked.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The live next-command guard now routes Qwen to the 58DW-FIX structured-output prompt instead of surfacing another bounded retry. Generated assets, published artifacts, signed URLs, beta, and production remain blocked now.',
+        'The live next-command guard may surface only the 58DW-RETRY-2 bounded fixture prompt after live preflight passes. Generated assets, published artifacts, signed URLs, beta, and production remain blocked now.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -263,6 +263,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
     nextPrompt:
-      'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation',
+      'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation',
   }
 }

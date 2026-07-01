@@ -1,7 +1,7 @@
 import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
-  QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
+  QWEN2_5_VL_58DW_RETRY_2_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
@@ -25,7 +25,7 @@ const BROLL_NO_IDLE_LIFECYCLE_GATE = ROLLUP.tools.find(
 )?.noIdleLifecycleGate as ExternalAgentToolNoIdleLifecycleGate
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_no_go_runtime_blocked' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_go_after_explicit_tool_gate' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -34,8 +34,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresApprovedSnapshotBeforeExecution: true,
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
-  readyForAnyExternalAgentExecutionNow: false,
-  staticExplicitToolGateReady: false,
+  readyForAnyExternalAgentExecutionNow: true,
+  staticExplicitToolGateReady: true,
   requiresLivePreflightBeforeRuntime: true,
   requireGoExitCodeWhenBlocked: 2,
   safeCommandsBeforeExecution: [
@@ -50,12 +50,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   toolRows: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',
-      executionAllowedNow: false,
-      staticExplicitToolGateReady: false,
+      executionAllowedNow: true,
+      staticExplicitToolGateReady: true,
       requiredBeforeExecution: [
         '58DW bounded retry result must remain recorded as schema-invalid runtime evidence',
-        'Qwen structured-output generation must be tightened before another runtime attempt',
-        'no second bounded runtime retry may run until the 58DW-FIX prompt updates and validates schema constraints',
+        '58DW structured-output fix must remain recorded and locally validated',
+        'second bounded runtime retry may run only through the explicit 58DW-RETRY-2 prompt',
+        'live qwen auth/service/job preflight must pass immediately before retry-2',
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
         'bounded approved-fixture private inference retry attempt approval must remain recorded',
@@ -63,8 +64,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'private inference gate alignment must remain recorded and accepted',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'structured_metadata_schema_invalid_after_bounded_58dw_retry',
-      safeNextCommand: QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
+      currentBlocker: 'explicit_58dw_retry_2_prompt_required_before_runtime',
+      safeNextCommand: QWEN2_5_VL_58DW_RETRY_2_PROMPT,
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -104,13 +105,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     },
   ] satisfies ExternalAgentToolExecutionGateRow[],
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
-    'do not execute Cloud Run jobs until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not invoke Cloud Run except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+    'do not execute Cloud Run jobs except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
-    'do not run inference until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not import models except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+    'do not run inference except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

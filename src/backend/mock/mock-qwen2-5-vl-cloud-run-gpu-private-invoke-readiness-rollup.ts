@@ -131,6 +131,7 @@ import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_A
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_RETRY_ATTEMPT_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_GATE_ALIGNMENT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment'
 import { QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT_RESULT } from './mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result'
+import { QWEN2_5_VL_58DW_STRUCTURED_OUTPUT_FIX } from './mock-qwen2-5-vl-58dw-structured-output-fix'
 import { QWEN2_5_VL_RUNTIME_PERSISTENCE_TO_WORKER_DISPATCH_READINESS_REVIEW } from './mock-qwen2-5-vl-runtime-persistence-to-worker-dispatch-readiness-review'
 
 export type Qwen25VlPrivateInvokeReadinessStatus =
@@ -276,7 +277,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
   registryToolId: 'qwen_vl',
   mode: 'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_mock_only',
   decision:
-    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_schema_invalid_fix_required',
+    'qwen2_5_vl_cloud_run_gpu_private_invoke_readiness_rollup_58dw_retry_2_ready',
   upstreamCpuCallerSourceDecision:
     QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_CPU_CALLER_SOURCE.decision,
   upstreamCpuCallerDeployDecision:
@@ -545,6 +546,8 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_GATE_ALIGNMENT.decision,
   upstreamControlledPersistedWorkerDispatchRuntimeRealDispatchApprovedFixturePrivateInferenceBoundedRetryPromptResultDecision:
     QWEN2_5_VL_CONTROLLED_PERSISTED_WORKER_DISPATCH_RUNTIME_REAL_DISPATCH_APPROVED_FIXTURE_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT_RESULT.decision,
+  upstream58dwStructuredOutputFixDecision:
+    QWEN2_5_VL_58DW_STRUCTURED_OUTPUT_FIX.decision,
   selectedRuntime: {
     platform: 'google_cloud_run_gpu',
     gpu: 'nvidia_l4',
@@ -2096,7 +2099,7 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
       id: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_attempt',
       label:
         'Controlled persisted worker dispatch runtime real-dispatch approved-fixture private inference attempt',
-      status: 'blocked_approved_fixture_structured_output_fix_required',
+      status: 'ready',
       evidence: [
         'The 58DP attempt approval is recorded for one future bounded approved-fixture private Qwen inference attempt.',
         'The 58DQ private inference attempt result is recorded and stopped during safety preflight because local gcloud required reauthentication before Cloud Run service/job inspection.',
@@ -2107,11 +2110,10 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
         'The 58DU retry attempt result records that the runtime retry was not executed because the active external-agent execution gate remains fail-closed.',
         'The 58DV gate alignment historically allowed Qwen to be marked ready for the explicit external-agent tool gate; the 58DW retry result now supersedes that state with a structured-output schema blocker.',
         'The 58DW bounded retry executed one approved-fixture private inference path, restored the GPU service and caller job fail-closed, and returned parseable JSON that failed the required structured fixture schema.',
-        'Another runtime retry is blocked until the 58DW-FIX prompt tightens schema-constrained structured output generation.',
+        'The 58DW-FIX strict structured-output source fix is recorded and locally validates rejection of the failed top-level object-row shape.',
+        'A second bounded runtime retry is ready only through the explicit 58DW-RETRY-2 prompt after live preflight passes.',
       ],
-      missingEvidence: [
-        'Implement QWEN2_5_VL_STACK_TOOL_58DW-FIX before any new bounded runtime retry is proposed.',
-      ],
+      missingEvidence: [],
     },
   ] satisfies Qwen25VlPrivateInvokeReadinessGate[],
   runtimeFlags: {
@@ -2931,11 +2933,11 @@ export const QWEN2_5_VL_CLOUD_RUN_GPU_PRIVATE_INVOKE_READINESS_ROLLUP = {
     generatedLocalFixturePassedClaimed: false,
   },
   blockedUntil: [
-    'structured_metadata_schema_invalid_after_bounded_58dw_retry',
+    'explicit_58dw_retry_2_result_review_required_before_broad_qwen_runtime',
     'beta_and_production_approval_required',
   ],
   nextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation',
+    'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation',
 } as const
 
 export type Qwen25VlCloudRunGpuPrivateInvokeReadinessRollup =

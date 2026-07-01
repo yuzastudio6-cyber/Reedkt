@@ -172,6 +172,27 @@ function runGate(args = []) {
   return JSON.parse(output)
 }
 
+function runBlockedReadinessCases() {
+  const output = execFileSync(
+    'npx',
+    [
+      'tsx',
+      '-e',
+      [
+        "import { listAiGraphicsExternalBetaToolCallBlockedReadinessCases } from './server/routes/ai-graphics-external-beta-tool-call-routes.ts'",
+        'console.log(JSON.stringify(listAiGraphicsExternalBetaToolCallBlockedReadinessCases()))',
+      ].join('; '),
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  return JSON.parse(output)
+}
+
 function assertFalseBooleans(label, booleans) {
   for (const key of falseBooleanKeys) {
     if (booleans?.[key] !== false) {
@@ -282,6 +303,9 @@ if (docs.counts?.controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence
 if (docs.counts?.controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence !== 21) {
   fail('docs_controlled_on_demand_runtime_ready_not_21')
 }
+if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
+  fail('docs_disabled_route_blocked_detail_cases_not_21')
+}
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_0')
 if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
   fail('docs_route_mount_ready_tools_not_21')
@@ -303,6 +327,7 @@ for (const phrase of [
   'properlyInstalledForPlannedSurfaceTools: `21`',
   'externalBetaCallableInstallReadyNowTools: `0`',
   'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`',
+  'Representative disabled route blocked-detail cases covered: `21`',
   'direct agent execution remains blocked',
   'tool/capability-specific blocked details',
   'apiRouteMountedNow=false',
@@ -315,6 +340,7 @@ for (const phrase of [
 for (const phrase of [
   'evaluateAiGraphicsToolCallPlan',
   'buildAiGraphicsExternalBetaToolCallBlockedDetails',
+  'listAiGraphicsExternalBetaToolCallBlockedReadinessCases',
   'requestAcceptedForPlanningMetadata',
   'planEvaluationDecision',
   'requestedToolsAcceptedForPlanning',
@@ -325,6 +351,84 @@ for (const phrase of [
   'gpuRuntimeShouldStartNow: false',
 ]) {
   if (!routeSource.includes(phrase)) fail(`route_source_missing:${phrase}`)
+}
+
+const blockedReadinessCases = runBlockedReadinessCases()
+if (!Array.isArray(blockedReadinessCases)) {
+  fail('blocked_readiness_cases_not_array')
+} else {
+  if (blockedReadinessCases.length !== 21) {
+    fail(`blocked_readiness_cases_count_not_21:${blockedReadinessCases.length}`)
+  }
+  const seenTools = new Set()
+  let gpuStartAllowedCases = 0
+  for (const item of blockedReadinessCases) {
+    const request = item.request ?? {}
+    const details = item.blockedDetails ?? {}
+    seenTools.add(request.toolId)
+    if (details.requestAcceptedForPlanningMetadata !== true) {
+      fail(`blocked_case_not_planning_accepted:${request.toolId}`)
+    }
+    if (details.toolId !== request.toolId) {
+      fail(`blocked_case_tool_mismatch:${request.toolId}`)
+    }
+    if (details.capabilityId !== request.capabilityId) {
+      fail(`blocked_case_capability_mismatch:${request.toolId}`)
+    }
+    if (details.planEvaluationDecision !== 'execution_request_blocked') {
+      fail(`blocked_case_decision_not_blocked:${request.toolId}`)
+    }
+    if (!Array.isArray(details.selectedPlanningTools) ||
+        !details.selectedPlanningTools.some((tool) => tool.toolId === request.toolId)) {
+      fail(`blocked_case_missing_selected_tool:${request.toolId}`)
+    }
+    if (!Array.isArray(details.requestedToolsAcceptedForPlanning) ||
+        !details.requestedToolsAcceptedForPlanning.includes(request.toolId)) {
+      fail(`blocked_case_missing_accepted_tool:${request.toolId}`)
+    }
+    if (!Array.isArray(details.missingExecutionGates) ||
+        !details.missingExecutionGates.includes('Tool Route execution approval is required') ||
+        !details.missingExecutionGates.includes('Worker execution approval is required') ||
+        !details.missingExecutionGates.includes('runtime-specific proof must be complete before execution')) {
+      fail(`blocked_case_missing_execution_gates:${request.toolId}`)
+    }
+    if (!Array.isArray(details.missingProofBeforeExecution) ||
+        details.missingProofBeforeExecution.length === 0) {
+      fail(`blocked_case_missing_proof_empty:${request.toolId}`)
+    }
+    if (details.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence !== 21) {
+      fail(`blocked_case_controlled_ready_not_21:${request.toolId}`)
+    }
+    if (details.controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked !== true) {
+      fail(`blocked_case_direct_block_not_true:${request.toolId}`)
+    }
+    for (const key of [
+      'directAgentToolExecutionApprovedNow',
+      'routeExecutionApprovedNow',
+      'queueWriteApprovedNow',
+      'workerEnqueueApprovedNow',
+      'workerDispatchApprovedNow',
+      'toolExecutionApprovedNow',
+      'gpuRuntimeShouldStartNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ]) {
+      if (details[key] !== false) {
+        fail(`blocked_case_${key}_not_false:${request.toolId}`)
+      }
+    }
+    const expectedGpuStartAllowed = gpuTools.has(request.toolId)
+    if (details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== expectedGpuStartAllowed) {
+      fail(`blocked_case_gpu_start_allowed_mismatch:${request.toolId}`)
+    }
+    if (expectedGpuStartAllowed) gpuStartAllowedCases += 1
+  }
+  for (const toolId of allTools) {
+    if (!seenTools.has(toolId)) fail(`blocked_case_missing_tool:${toolId}`)
+  }
+  if (gpuStartAllowedCases !== 8) {
+    fail(`blocked_case_gpu_start_allowed_count_not_8:${gpuStartAllowedCases}`)
+  }
 }
 
 for (const forbidden of [

@@ -20,6 +20,7 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`
 - controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: `21`
 - controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence: `21`
+- Representative disabled route blocked-detail cases covered: `21`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
 - Route-mount-ready tools with provided evidence: `21`
@@ -37,7 +38,7 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - Verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata.
 - Read route-mount readiness evidence while preserving `apiRouteMountedNow=false`.
 - Read controlled on-demand external-beta status while preserving that direct agent execution remains blocked.
-- Return per-request disabled route details that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
+- Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
 

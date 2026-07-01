@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
+import { listAiGraphicsToolCallHandoffTools } from '../tool-registry/ai-graphics-tool-call-handoff'
 import { evaluateAiGraphicsToolCallPlan } from '../tool-registry/ai-graphics-tool-call-plan-evaluator'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute } from './route-helpers'
@@ -144,6 +145,52 @@ export function buildAiGraphicsExternalBetaToolCallBlockedDetails(
     externalBetaReadyNow: false,
     productionReadyNow: false,
   }
+}
+
+function buildRepresentativeToolCallRequest(
+  toolId: string,
+  capabilityId: string,
+): AiGraphicsExternalBetaToolCallRequest {
+  return {
+    workspaceId: 'workspace_ai_graphics_external_beta_all_tool_blocked_details',
+    requestId: `blocked-details-${toolId}`,
+    toolId: aiGraphicsToolIdSchema.parse(toolId),
+    capabilityId: aiGraphicsCapabilitySchema.parse(capabilityId),
+    approvedPlanSnapshotId: `approved-snapshot-${toolId}`,
+    creditReservationId: `credit-reservation-${toolId}`,
+    privateArtifactManifestRef:
+      `private://ai-graphics/external-beta/blocked-details/${toolId}/artifact-manifest`,
+    toolRouteApprovalRef:
+      `private://ai-graphics/external-beta/blocked-details/${toolId}/tool-route-approval`,
+    workerApprovalRef:
+      `private://ai-graphics/external-beta/blocked-details/${toolId}/worker-approval`,
+    runtimeEnqueueApprovalRef:
+      `private://ai-graphics/external-beta/blocked-details/${toolId}/runtime-enqueue-approval`,
+    ownerRuntimeApprovalRef:
+      `private://ai-graphics/external-beta/blocked-details/${toolId}/owner-runtime-approval`,
+    traceId: `trace-ai-graphics-blocked-details-${toolId}`,
+    payload: {
+      blockedDetailsOnly: true,
+      externalAgentExecutionGateRequired: true,
+    },
+  }
+}
+
+export function listAiGraphicsExternalBetaToolCallBlockedReadinessCases() {
+  return listAiGraphicsToolCallHandoffTools().map((tool) => {
+    const routeCapability = tool.capabilities.find(
+      (capabilityId) => aiGraphicsCapabilitySchema.safeParse(capabilityId).success,
+    )
+    if (!routeCapability) {
+      throw new Error(`AI graphics route capability is missing for ${tool.toolId}`)
+    }
+
+    const request = buildRepresentativeToolCallRequest(tool.toolId, routeCapability)
+    return {
+      request,
+      blockedDetails: buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    }
+  })
 }
 
 export function createAiGraphicsExternalBetaToolCallRoutes(): Router {

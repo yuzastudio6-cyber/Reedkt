@@ -32,6 +32,7 @@
     "controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence": 21,
     "controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence": 21,
     "controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence": 21,
+    "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21,
     "externalBetaCallableCandidateToolsWithProvidedEvidence": 21,
     "externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence": 1,
     "externalAgentExecutableNowTools": 0,
@@ -310,7 +311,7 @@
     "explain missing proof before execution",
     "verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata",
     "distinguish controlled on-demand worker-path readiness from direct agent execution",
-    "return per-request disabled route details with selected planning tools, missing proof, missing execution gates, and GPU on-demand status",
+    "return per-request disabled route details for all 21 tools with selected planning tools, missing proof, missing execution gates, and GPU on-demand status",
     "return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job"
   ],

@@ -11,6 +11,8 @@ const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs'
 const serviceRoleQueueWriteSmokeProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
+const workerClaimAndDispatchSmokeProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
 const decision =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
 const acceptedStatus = 'external_agent_execution_gate_fail_closed_runtime_blocked'
@@ -80,6 +82,12 @@ const falseBooleanKeys = [
   'allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence',
   'nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence',
   'workerClaimAndDispatchSmokeProofRequiredBeforeExecution',
+  'sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted',
+  'allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence',
+  'toolExecutionDryRunProofRequiredBeforeExecution',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
@@ -162,6 +170,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -278,6 +287,76 @@ function buildAcceptedServiceRoleQueueWriteSmokeProofPacket() {
   return proofPath
 }
 
+function buildAcceptedWorkerClaimAndDispatchSmokeProofPacket(sourceQueueProofPath) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-agent-gate-claim-dispatch-'))
+  const smokeResultPath = path.join(tempDir, 'accepted-worker-claim-dispatch-smoke-result.json')
+  const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
+  fs.writeFileSync(smokeResultPath, `${JSON.stringify({
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_passed_with_cleanup',
+    status:
+      'non_production_worker_claim_and_dispatch_smoke_passed_with_cleanup_no_tool_execution',
+    queueName: 'ai_graphics_external_agent_cpu_static_private_worker_queue',
+    toolsClaimed: 5,
+    toolsClaimedIds: proofTools,
+    queueRowsRead: 5,
+    workerClaimsCreated: 5,
+    workerDispatchHandoffsCreated: 5,
+    workerDispatchLeasesReleased: 5,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-claim-dispatch-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/telemetry.json',
+    leaseAuditRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/lease-audit.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/rollback.md',
+    sourceQueueWriteSmokeProofDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_validator_prepared_with_runtime_blocks',
+    sourceQueueWriteSmokeProofAccepted: true,
+    liveWorkerClaimAndDispatchSmokeExecutedNow: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }, null, 2)}\n`)
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      workerClaimAndDispatchSmokeProofScriptName,
+      '--',
+      '--source-service-role-queue-write-smoke-proof-packet',
+      sourceQueueProofPath,
+      '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-result',
+      smokeResultPath,
+      '--print-only',
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  const proofPath = path.join(tempDir, 'accepted-worker-claim-dispatch-smoke-proof.json')
+  fs.writeFileSync(proofPath, output)
+  return proofPath
+}
+
 function runBlockedReadinessCases() {
   const output = execFileSync(
     'npx',
@@ -376,6 +455,12 @@ if (
   'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts'
 ) {
   fail('service_role_queue_write_smoke_proof_script_mismatch')
+}
+if (
+  packageJson.scripts?.[workerClaimAndDispatchSmokeProofScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts'
+) {
+  fail('worker_claim_dispatch_smoke_proof_script_mismatch')
 }
 
 const indexSource = read('server/tool-registry/index.ts')
@@ -487,6 +572,21 @@ if (docs.counts?.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 0) 
 if (docs.counts?.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
   fail('docs_worker_claim_dispatch_smoke_required_not_0')
 }
+if (docs.counts?.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_claim_dispatch_smoke_proof_not_0')
+}
+if (docs.counts?.cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_claims_accepted_not_0')
+}
+if (docs.counts?.cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_dispatch_handoffs_not_0')
+}
+if (docs.counts?.cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_dispatch_leases_not_0')
+}
+if (docs.counts?.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('docs_tool_execution_dry_run_required_not_0')
+}
 if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
   fail('docs_disabled_route_blocked_detail_cases_not_21')
 }
@@ -528,6 +628,9 @@ for (const phrase of [
   'adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`',
   'nonProductionServiceRoleQueueWriteSmokeResultRequiredTools: `5`',
   'workerClaimAndDispatchSmokeProofRequiredTools: `0`',
+  'CPU/static worker claim/dispatch smoke proof accepted: `false`',
+  'cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
+  'toolExecutionDryRunProofRequiredTools: `0`',
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
   'CPU/static live-adapter queue-service proof accepted: `true`',
@@ -796,6 +899,21 @@ if (acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools
 if (acceptedSourceReport.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
   fail('accepted_report_worker_claim_dispatch_smoke_required_not_0')
 }
+if (acceptedSourceReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_claim_dispatch_smoke_proof_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_claims_accepted_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_dispatch_handoffs_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_dispatch_leases_not_0')
+}
+if (acceptedSourceReport.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('accepted_report_tool_execution_dry_run_required_not_0')
+}
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')
 }
@@ -855,6 +973,12 @@ if (acceptedProofReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredToo
 if (acceptedProofReport.workerClaimAndDispatchSmokeProofRequiredTools !== 5) {
   fail('accepted_proof_report_worker_claim_dispatch_required_not_5')
 }
+if (acceptedProofReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_proof_report_worker_claim_dispatch_smoke_proof_not_0')
+}
+if (acceptedProofReport.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('accepted_proof_report_tool_execution_dry_run_required_not_0')
+}
 if (acceptedProofReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF') {
   fail('accepted_proof_report_next_prompt_mismatch')
 }
@@ -901,11 +1025,124 @@ if (!Array.isArray(acceptedProofRows) || acceptedProofRows.length !== 5) {
     if (row.workerClaimAndDispatchSmokeProofRequired !== true) {
       fail(`accepted_proof_report_${row.toolId}_worker_claim_dispatch_not_true`)
     }
+    if (row.toolExecutionDryRunProofRequired !== false) {
+      fail(`accepted_proof_report_${row.toolId}_tool_execution_dry_run_not_false`)
+    }
     if (!row.requiredBeforeExecution?.some((item) => item.includes('worker claim and dispatch smoke proof must pass next'))) {
       fail(`accepted_proof_report_${row.toolId}_missing_worker_claim_dispatch_requirement`)
     }
     if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
       fail(`accepted_proof_report_${row.toolId}_runtime_gate_not_false`)
+    }
+  }
+}
+
+const acceptedClaimDispatchProofPath =
+  buildAcceptedWorkerClaimAndDispatchSmokeProofPacket(acceptedSmokeProofPath)
+const acceptedClaimDispatchReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
+  acceptedSmokeProofPath,
+  '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-proof-packet',
+  acceptedClaimDispatchProofPath,
+])
+if (acceptedClaimDispatchReport.status !== acceptedStatus) {
+  fail('accepted_claim_dispatch_report_status_mismatch')
+}
+if (acceptedClaimDispatchReport.executionAllowedNow !== false) {
+  fail('accepted_claim_dispatch_report_execution_not_false')
+}
+if (acceptedClaimDispatchReport.sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted !== true) {
+  fail('accepted_claim_dispatch_report_source_claim_dispatch_not_true')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_claim_dispatch_tools_not_5')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_worker_claims_not_5')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_dispatch_handoffs_not_5')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_leases_released_not_5')
+}
+if (acceptedClaimDispatchReport.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
+  fail('accepted_claim_dispatch_report_worker_claim_dispatch_required_not_0')
+}
+if (acceptedClaimDispatchReport.toolExecutionDryRunProofRequiredTools !== 5) {
+  fail('accepted_claim_dispatch_report_tool_execution_dry_run_required_not_5')
+}
+if (acceptedClaimDispatchReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_TOOL_EXECUTION_DRY_RUN_PROOF') {
+  fail('accepted_claim_dispatch_report_next_prompt_mismatch')
+}
+for (const key of [
+  'sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted',
+  'allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence',
+  'toolExecutionDryRunProofRequiredBeforeExecution',
+]) {
+  if (acceptedClaimDispatchReport.booleans?.[key] !== true) {
+    fail(`accepted_claim_dispatch_report_${key}_not_true`)
+  }
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'apiRouteExecutionApprovedNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'supabaseMutationPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]) {
+  if (acceptedClaimDispatchReport.booleans?.[key] !== false) {
+    fail(`accepted_claim_dispatch_report_${key}_not_false`)
+  }
+}
+const acceptedClaimDispatchRows = acceptedClaimDispatchReport.toolRows
+  ?.filter((row) => row.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence)
+if (!Array.isArray(acceptedClaimDispatchRows) || acceptedClaimDispatchRows.length !== 5) {
+  fail('accepted_claim_dispatch_report_rows_not_5')
+} else {
+  for (const row of acceptedClaimDispatchRows) {
+    if (row.workerClaimAndDispatchSmokeProofRequired !== false) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_worker_claim_dispatch_required_not_false`)
+    }
+    if (row.toolExecutionDryRunProofRequired !== true) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_tool_execution_dry_run_not_true`)
+    }
+    if (!row.requiredBeforeExecution?.some((item) => item.includes('tool execution dry-run proof must pass next'))) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_missing_tool_execution_dry_run_requirement`)
+    }
+    if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_runtime_gate_not_false`)
     }
   }
 }
@@ -999,6 +1236,10 @@ console.log(JSON.stringify({
     acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools,
   acceptedProofFixtureWorkerClaimAndDispatchSmokeProofRequiredTools:
     acceptedProofReport.workerClaimAndDispatchSmokeProofRequiredTools,
+  acceptedClaimDispatchFixtureWorkerClaimAndDispatchSmokeProofTools:
+    acceptedClaimDispatchReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools,
+  acceptedClaimDispatchFixtureToolExecutionDryRunProofRequiredTools:
+    acceptedClaimDispatchReport.toolExecutionDryRunProofRequiredTools,
   nonProductionServiceRoleQueueWriteSmokeRequiredTools:
     acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools,
   nonProductionServiceRoleQueueWriteSmokeResultRequiredTools:

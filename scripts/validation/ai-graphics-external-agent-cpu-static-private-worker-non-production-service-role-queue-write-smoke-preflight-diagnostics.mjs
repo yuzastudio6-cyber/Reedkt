@@ -178,6 +178,8 @@ const allowedPackageDiffLines = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof-diagnostics.mjs",',
 ])
 
 const forbiddenPatterns = [

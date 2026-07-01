@@ -18,7 +18,10 @@
     "externalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmission": "ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks",
     "externalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflight": "ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_prepared_with_runtime_blocks",
     "sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofDecision": null,
-    "sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted": false
+    "sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted": false,
+    "externalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProof": "ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_validator_prepared_with_runtime_blocks",
+    "sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofDecision": null,
+    "sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted": false
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -69,7 +72,12 @@
     "apiRouteMountedNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0,
-    "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21
+    "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21,
+    "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools": 0,
+    "cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools": 0,
+    "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools": 0,
+    "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools": 0,
+    "toolExecutionDryRunProofRequiredTools": 0
   },
   "tools": [
     {
@@ -111,7 +119,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "transformers",
@@ -152,7 +166,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "sam2",
@@ -193,7 +213,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "birefnet",
@@ -234,7 +260,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "real_esrgan",
@@ -275,7 +307,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "kornia",
@@ -316,7 +354,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "rembg",
@@ -357,7 +401,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "transparent_background",
@@ -398,7 +448,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "d3",
@@ -439,7 +495,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "echarts",
@@ -480,7 +542,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "vega_lite",
@@ -521,7 +589,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "vega",
@@ -562,7 +636,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "satori",
@@ -603,7 +683,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "svgdotjs_svg_js",
@@ -644,7 +730,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "viz_js",
@@ -685,7 +777,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "lottie_web",
@@ -726,7 +824,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "animejs",
@@ -767,7 +871,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "three_js",
@@ -808,7 +918,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "pixi_js",
@@ -849,7 +965,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "konva",
@@ -890,7 +1012,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     },
     {
       "toolId": "babylonjs",
@@ -931,7 +1059,13 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate"
+      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
+      "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
+      "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
+      "toolExecutionDryRunProofRequired": false
     }
   ],
   "safeCommandsBeforeExecution": [
@@ -949,6 +1083,7 @@
     "npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics",
+    "npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics",
     "npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics"
   ],
   "allowedPreExecutionActions": [
@@ -963,7 +1098,8 @@
     "read CPU/static adapter-invocation and worker-enqueue admission evidence for the same five tools while preserving live queue, worker, and tool execution blocks",
     "read CPU/static non-production service-role queue-write smoke preflight evidence for the same five tools while preserving actual queue write, worker, and tool execution blocks",
     "read saved CPU/static non-production service-role queue-write smoke proof when provided, then keep worker claim, dispatch, and tool execution blocked until the next proof gate passes",
-    "preserve GPU startup as on-demand only for a later accepted worker/tool job"
+    "preserve GPU startup as on-demand only for a later accepted worker/tool job",
+    "read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes"
   ],
   "forbiddenRuntimeActions": [
     "agent/tool execution",
@@ -1076,7 +1212,13 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
-    "signedUrlCreated": false
+    "signedUrlCreated": false,
+    "sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted": false,
+    "allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence": false,
+    "allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence": false,
+    "allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": false,
+    "allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": false,
+    "toolExecutionDryRunProofRequiredBeforeExecution": false
   },
   "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF"
 }

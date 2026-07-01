@@ -31,3 +31,7 @@ RP-STRIPE-FOUNDATION-01 adds the mock/config-only Stripe billing foundation that
 ## Stripe Test-Mode Handoff
 
 RP-STRIPE-TESTMODE-01 adds real Stripe test-mode customer, SetupIntent, Checkout Session, and verified webhook processing. Test checkout grants purchased credits into the same local mock wallet/grant store only after a verified test webhook. Live Stripe, production wallet persistence, production ledger writes, export unlock, and automatic retry remain future work. See `docs/stripe-testmode-billing-path.md` and `smoke:stripe-testmode`.
+
+## Stripe Live Readiness Handoff
+
+RP-STRIPE-LIVE-READINESS-01 can report `ready_no_charge` for complete live configuration, but purchased credit grants still come only from mock/test flows. Live checkout, live webhook credit grants, production wallet mutation, production ledger writes, and export unlock remain future activation work. See `docs/stripe-live-readiness.md` and `smoke:stripe-live-readiness`.

@@ -27,6 +27,10 @@ Real test calls require:
 
 Local smoke coverage uses a mock Stripe client and deterministic signature checks, so no external Stripe API call is made in CI/default validation.
 
+## Live Readiness Separation
+
+RP-STRIPE-LIVE-READINESS-01 keeps live readiness separate from this test-mode path. The `/test` routes reject live mode, and live readiness remains a no-charge report that does not create live Stripe objects, process live webhooks, or grant credits. See `docs/stripe-live-readiness.md`.
+
 ## Boundaries
 
 This milestone is test-mode only: no live Stripe call, no live billing, no card charge outside Stripe test mode, no Supabase write, no production wallet mutation, no production ledger write, no provider call, no render/export execution, no export unlock, and no production persistence. See `smoke:stripe-testmode`.

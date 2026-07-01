@@ -126,33 +126,109 @@ export function getStripeConfigStatus(config: StripeBillingRuntimeConfig): Strip
 
 export function evaluateStripeLiveReadiness(config: StripeBillingRuntimeConfig): StripeLiveReadinessResponse {
   const validation = validateStripeBillingRuntimeConfig(config)
+  const liveRefs = config.secretReferences
   const checks: StripeLiveReadinessCheck[] = [
-    check('environment_production', 'Production environment', config.environment === 'production', 'Live Stripe mode requires NODE_ENV=production.'),
-    check('mode_live', 'Stripe mode live', config.mode === 'live', 'Stripe billing mode must be live.'),
-    check('live_mode_allowed', 'Live mode owner allowed', config.liveModeAllowed, 'REEDITPRO_STRIPE_LIVE_MODE_ALLOWED must be true.'),
-    check('manual_approval', 'Manual live approval present', config.liveModeRequiresManualApproval, 'REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL must be true.'),
-    check('secret_source', 'Secret source enabled', config.secretSource !== 'disabled', 'Live mode requires an approved secret source.'),
-    check('live_secret_key_ref', 'Live secret key reference present', Boolean(config.secretReferences.liveSecretKeySecretName), 'Live secret key Secret Manager reference is required.'),
-    check('live_publishable_key_ref', 'Live publishable key reference present', Boolean(config.secretReferences.livePublishableKeySecretName), 'Live publishable key reference is required.'),
-    check('live_webhook_ref', 'Live webhook secret reference present', Boolean(config.secretReferences.liveWebhookSigningSecretName), 'Live webhook signing secret reference is required.'),
-    check('webhook_endpoint_live', 'Webhook endpoint live', config.webhookEndpointMode === 'live', 'Live mode requires webhook endpoint mode live.'),
-    check('no_test_refs_in_live', 'No test refs in live config', !hasAnyModeMarker(config, 'test'), 'Live mode must not use test Stripe secret references.'),
-    check('no_raw_secret_values', 'No raw Stripe secrets', !containsRawStripeSecretValue(config.secretReferences), 'Config must contain reference names, not raw Stripe keys or webhook secrets.'),
+    check('environment_production', 'Production environment', config.environment === 'production', 'Live Stripe mode requires NODE_ENV=production.', 'Deploy the API with NODE_ENV=production before live activation.'),
+    check('mode_live', 'Stripe mode live', config.mode === 'live', 'Stripe billing mode must be live.', 'Set REEDITPRO_STRIPE_BILLING_MODE=live only during live-readiness review.'),
+    check('live_mode_allowed', 'Live mode owner allowed', config.liveModeAllowed, 'REEDITPRO_STRIPE_LIVE_MODE_ALLOWED must be true.', 'Set the owner-controlled live allow flag only after approval.'),
+    check('manual_approval', 'Manual live approval present', config.liveModeRequiresManualApproval, 'REEDITPRO_STRIPE_LIVE_MODE_MANUAL_APPROVAL must be true.', 'Record manual owner approval before live readiness can pass.'),
+    check('secret_source', 'Secret source enabled', config.secretSource === 'google_secret_manager' || config.secretSource === 'environment_variable', 'Live mode requires an approved secret source.', 'Use Google Secret Manager for production live references.'),
+    check('live_secret_key_ref', 'Live secret key reference present', Boolean(liveRefs.liveSecretKeySecretName), 'Live secret key Secret Manager reference is required.', 'Configure a live Stripe secret-key reference name, not a raw key.'),
+    check('live_publishable_key_ref', 'Live publishable key reference present', Boolean(liveRefs.livePublishableKeySecretName), 'Live publishable key reference is required.', 'Configure a live Stripe publishable-key reference name, not a raw value.'),
+    check('live_webhook_ref', 'Live webhook secret reference present', Boolean(liveRefs.liveWebhookSigningSecretName), 'Live webhook signing secret reference is required.', 'Configure a live Stripe webhook signing secret reference name.'),
+    check('webhook_endpoint_live', 'Webhook endpoint live', config.webhookEndpointMode === 'live', 'Live mode requires webhook endpoint mode live.', 'Set REEDITPRO_STRIPE_WEBHOOK_ENDPOINT_MODE=live only for live readiness.'),
+    check('no_test_refs_in_live', 'No test refs in live config', !hasAnyModeMarker(config, 'test'), 'Live mode must not use test Stripe secret references.', 'Remove every test Stripe reference from the active live config.'),
+    check('no_raw_secret_values', 'No raw Stripe secrets', !containsRawStripeSecretValue(config.secretReferences), 'Config must contain reference names, not raw Stripe keys or webhook secrets.', 'Move raw values into the approved secret provider and keep only references in env.'),
+    check('live_secret_distinct_from_webhook', 'Live secret key separate from webhook secret', distinctRefs(liveRefs.liveSecretKeySecretName, liveRefs.liveWebhookSigningSecretName), 'Live API key and webhook signing secret references must be separate.', 'Use separate secret references for the API key and webhook signing secret.'),
+    check('live_publishable_distinct_from_secret', 'Live publishable key separate from secret key', distinctRefs(liveRefs.liveSecretKeySecretName, liveRefs.livePublishableKeySecretName), 'Live publishable key and live secret key references must be separate.', 'Use separate secret references for publishable and secret keys.'),
+    check('test_real_calls_not_live_gate', 'Test real-call flag not used for live', !config.testModeRealCallsAllowed, 'The test-mode real-call flag must not be used to justify live readiness.', 'Unset REEDITPRO_STRIPE_TEST_MODE_REAL_CALLS_ALLOWED for live readiness.'),
+    warningCheck('secret_source_preferred', 'Google Secret Manager preferred', config.secretSource === 'google_secret_manager', 'Environment variable secret source is typed but Google Secret Manager is preferred for production live readiness.'),
+    blockedCheck('live_checkout_disabled', 'Live Checkout Sessions disabled', 'This milestone never enables live Checkout Session creation.'),
+    blockedCheck('live_setup_disabled', 'Live SetupIntents disabled', 'This milestone never enables live SetupIntent creation.'),
+    blockedCheck('live_webhooks_disabled', 'Live webhook processing disabled', 'This milestone never enables live webhook processing.'),
+    blockedCheck('live_credit_grants_disabled', 'Live credit grants disabled', 'This milestone never grants credits from live Stripe events.'),
   ]
   if (!validation.ok) {
-    checks.push(check('config_validation', 'Stripe config validation', false, validation.errors.join(' ')))
+    checks.push(check('config_validation', 'Stripe config validation', false, validation.errors.join(' '), 'Fix Stripe billing config validation errors.'))
   }
 
-  const canEnableLiveMode = checks.every((item) => item.passed)
+  const canEnableLiveMode = checks.every((item) => item.status === 'passed' || item.status === 'warning' || item.status === 'blocked')
+  const status = !validation.ok
+    ? 'invalid_config'
+    : config.mode !== 'live'
+      ? 'not_ready'
+      : canEnableLiveMode
+        ? 'ready_no_charge'
+        : 'blocked'
 
   return {
-    status: canEnableLiveMode ? 'ready' : 'blocked',
+    status,
     stripeMode: config.mode,
+    appEnvironment: config.environment,
+    liveModeAllowed: config.liveModeAllowed,
+    liveModeRequiresManualApproval: config.liveModeRequiresManualApproval,
+    manualApprovalPresent: config.liveModeRequiresManualApproval,
+    secretSource: config.secretSource,
+    webhookEndpointMode: config.webhookEndpointMode,
     canEnableLiveMode,
+    canCreateLiveCheckoutSessions: false,
+    canCreateLiveSetupIntents: false,
+    canCreateLivePaymentIntents: false,
+    canProcessLiveWebhooks: false,
+    canGrantLiveCredits: false,
+    noChargeDryRun: true,
+    safeConfigSummary: createStripeLiveSafeConfigSummary(config),
     checks,
     config: cloneSafeConfig(config),
     safetyFlags: createStripeBillingSafetyFlags(),
     warnings: [...STRIPE_FOUNDATION_WARNINGS, ...config.warnings, ...validation.warnings],
+  }
+}
+
+export async function runStripeLiveNoChargeDryRun(
+  config: StripeBillingRuntimeConfig,
+  options: {
+    secretProvider?: SecretValueProvider
+    auditSecretResolution?: boolean
+  } = {},
+): Promise<StripeLiveReadinessResponse> {
+  const result = evaluateStripeLiveReadiness(config)
+  const checks = [...result.checks]
+  const warnings = [...result.warnings]
+
+  if (options.auditSecretResolution && options.secretProvider && config.mode === 'live') {
+    const [secretKey, publishableKey, webhookSecret] = await Promise.all([
+      inspectResolvedLiveSecret(options.secretProvider, config.secretReferences.liveSecretKeySecretName, ['sk', 'live', ''].join('_'), ['rk', 'live', ''].join('_'), 'live_secret_key_value'),
+      inspectResolvedLiveSecret(options.secretProvider, config.secretReferences.livePublishableKeySecretName, ['pk', 'live', ''].join('_'), undefined, 'live_publishable_key_value'),
+      inspectResolvedLiveSecret(options.secretProvider, config.secretReferences.liveWebhookSigningSecretName, ['wh', 'sec', ''].join(''), undefined, 'live_webhook_secret_value'),
+    ])
+    checks.push(secretKey, publishableKey, webhookSecret)
+  } else {
+    checks.push(warningCheck('secret_resolution_skipped', 'Live secret value resolution skipped', false, 'No-charge dry run checked reference safety only; it did not fetch live secret values.'))
+  }
+
+  checks.push(
+    blockedCheck('no_live_stripe_api_call', 'No live Stripe API call attempted', 'No-charge dry run does not call Stripe.'),
+    blockedCheck('no_wallet_mutation', 'No wallet mutation', 'No-charge dry run does not mutate wallet balances.'),
+    blockedCheck('no_credit_grant', 'No credit grant', 'No-charge dry run does not grant credits.'),
+    blockedCheck('no_supabase_write', 'No Supabase write', 'No-charge dry run does not write Supabase data.'),
+  )
+
+  const canEnableLiveMode = checks.every((item) => item.status === 'passed' || item.status === 'warning' || item.status === 'blocked')
+  const status = result.status === 'invalid_config'
+    ? 'invalid_config'
+    : result.status === 'not_ready'
+      ? 'not_ready'
+      : canEnableLiveMode
+        ? 'ready_no_charge'
+        : 'blocked'
+
+  return {
+    ...result,
+    status,
+    canEnableLiveMode,
+    checks,
+    warnings,
   }
 }
 
@@ -495,8 +571,11 @@ function commonBillingBlock(config: StripeBillingRuntimeConfig, requestedMode: S
   if (config.mode === 'disabled') {
     return { status: 'billing_disabled', warnings: ['Stripe billing is disabled.'] }
   }
-  if (requestedMode === 'live' && !evaluateStripeLiveReadiness(config).canEnableLiveMode) {
-    return { status: 'live_mode_not_allowed', warnings: ['Live Stripe mode is blocked by the readiness gate.'] }
+  if (requestedMode === 'live') {
+    return {
+      status: 'live_mode_not_allowed',
+      warnings: ['Live Stripe actions are blocked in RP-STRIPE-LIVE-READINESS-01; readiness is no-charge and read-only.'],
+    }
   }
   if (config.mode !== requestedMode) {
     return {
@@ -633,12 +712,92 @@ function containsForbiddenPaymentCredential(value: unknown): boolean {
     containsForbiddenPaymentCredential(nested))
 }
 
-function check(id: string, label: string, passed: boolean, message: string): StripeLiveReadinessCheck {
+async function inspectResolvedLiveSecret(
+  provider: SecretValueProvider,
+  secretName: string | null | undefined,
+  expectedPrefix: string,
+  alternateExpectedPrefix: string | undefined,
+  id: string,
+): Promise<StripeLiveReadinessCheck> {
+  if (!secretName?.trim()) {
+    return check(id, 'Live secret value resolution', false, 'Live secret reference is missing.', 'Configure the missing live secret reference.')
+  }
+  try {
+    const value = await provider.getSecretValue(secretName)
+    const matches = value.startsWith(expectedPrefix) || Boolean(alternateExpectedPrefix && value.startsWith(alternateExpectedPrefix))
+    return check(
+      id,
+      `Resolved ${secretName}`,
+      matches,
+      `Resolved live secret reference ${secretName} did not match the expected live-mode prefix.`,
+      'Verify the referenced live Stripe secret value in the approved secret provider.',
+    )
+  } catch {
+    return check(
+      id,
+      `Resolved ${secretName}`,
+      false,
+      `Live secret reference ${secretName} was not resolved by the configured mock provider.`,
+      'Add the live reference to the mock secret provider for dry-run smoke coverage.',
+    )
+  }
+}
+
+function createStripeLiveSafeConfigSummary(config: StripeBillingRuntimeConfig): Record<string, unknown> {
+  return {
+    stripeMode: config.mode,
+    appEnvironment: config.environment,
+    secretSource: config.secretSource,
+    webhookEndpointMode: config.webhookEndpointMode,
+    liveModeAllowed: config.liveModeAllowed,
+    manualApprovalPresent: config.liveModeRequiresManualApproval,
+    liveSecretKeyReferenceConfigured: Boolean(config.secretReferences.liveSecretKeySecretName),
+    livePublishableKeyReferenceConfigured: Boolean(config.secretReferences.livePublishableKeySecretName),
+    liveWebhookSigningSecretReferenceConfigured: Boolean(config.secretReferences.liveWebhookSigningSecretName),
+    testReferencesPresent: hasAnyModeMarker(config, 'test'),
+    rawSecretValuesPresent: containsRawStripeSecretValue(config.secretReferences),
+    canCreateLiveCheckoutSessions: false,
+    canCreateLiveSetupIntents: false,
+    canCreateLivePaymentIntents: false,
+    canProcessLiveWebhooks: false,
+    canGrantLiveCredits: false,
+    noChargeDryRun: true,
+  }
+}
+
+function distinctRefs(first: string | null | undefined, second: string | null | undefined): boolean {
+  if (!first || !second) return false
+  return first !== second
+}
+
+function warningCheck(id: string, label: string, preferred: boolean, message: string): StripeLiveReadinessCheck {
   return {
     id,
     label,
+    status: preferred ? 'passed' : 'warning',
+    passed: true,
+    message: preferred ? `${label} passed.` : message,
+  }
+}
+
+function blockedCheck(id: string, label: string, message: string): StripeLiveReadinessCheck {
+  return {
+    id,
+    label,
+    status: 'blocked',
+    passed: true,
+    message,
+  }
+}
+
+function check(id: string, label: string, passed: boolean, message: string, remediation?: string): StripeLiveReadinessCheck {
+  return {
+    id,
+    label,
+    status: passed ? 'passed' : 'failed',
     passed,
     message: passed ? `${label} passed.` : message,
+    remediation,
   }
 }
 

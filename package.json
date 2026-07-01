@@ -189,6 +189,7 @@
     "smoke:credit-purchase": "tsx server/smoke/credit-purchase-smoke.ts",
     "smoke:stripe-foundation": "tsx server/smoke/stripe-foundation-smoke.ts",
     "smoke:stripe-testmode": "tsx server/smoke/stripe-testmode-smoke.ts",
+    "smoke:stripe-live-readiness": "tsx server/smoke/stripe-live-readiness-smoke.ts",
     "smoke:edit-level-surface-audit": "tsx server/smoke/edit-level-surface-audit-smoke.ts",
     "smoke:edit-level-architecture": "tsx server/smoke/edit-level-architecture-smoke.ts",
     "smoke:edit-level-types": "tsx server/smoke/edit-level-types-smoke.ts",

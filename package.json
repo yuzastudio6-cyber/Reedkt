@@ -462,6 +462,7 @@
     "worker-runtime-jobs:sound-cpu-phase80-caption-render-runtime-hook-limited-fixture-instance-creation-planning:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase80-caption-render-runtime-hook-limited-fixture-instance-creation-planning-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase80-caption-render-runtime-hook-limited-fixture-instance-creation-planning-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase80-caption-render-runtime-hook-limited-fixture-instance-creation-planning-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase81-caption-render-runtime-hook-fixture-instance-creation-static-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase81-caption-render-runtime-hook-fixture-instance-creation-static-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase81-caption-render-runtime-hook-fixture-instance-creation-static-plan-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase81-caption-render-runtime-hook-fixture-instance-creation-static-plan-owner-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

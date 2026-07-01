@@ -93,16 +93,16 @@ assert.equal(plan.decision, rollup.decision)
 assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
-assert.equal(plan.readyForAnyExternalAgentExecutionNow, false)
-assert.deepEqual(plan.readyToolIds, [])
-assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [])
-assert.equal(plan.livePreflightRequiredBeforeRuntime, false)
-assert.equal(plan.blockedToolCount, rollup.tools.length)
+assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
+assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
+assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
-assert.equal(plan.manualBlockers.length, rollup.tools.length)
+assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
 assert.equal(plan.sourceRules.approvedSnapshotRequired, true)
 assert.equal(plan.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
@@ -130,10 +130,10 @@ assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-executio
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(qwen.externalManualBlocker.includes('failed the required structured fixture schema'), true)
 assert.equal(qwen.externalManualBlocker.includes('58DW-FIX'), true)
-assert.equal(qwen.externalManualBlocker.includes('no further runtime retry'), true)
+assert.equal(qwen.externalManualBlocker.includes('58DW-RETRY-2'), true)
 assert.equal(
   qwen.forbiddenRuntimeActions.some((action) =>
-    action.includes('do not run inference until the 58DW-FIX structured-output prompt'),
+    action.includes('do not run inference except through the explicit 58DW retry-2 bounded fixture runner'),
   ),
   true,
 )

@@ -17,7 +17,7 @@ const SERVICE = 'reeditpro-qwen2-5-vl-l4-worker'
 const JOB = 'reeditpro-qwen2-5-vl-private-caller'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY'
 const EXACT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
 
 const SERVICE_ENABLE_ENV: Record<string, string> = {
   QWEN_APPROVED_FIXTURE_INFERENCE_ENABLED: 'true',
@@ -27,8 +27,8 @@ const SERVICE_ENABLE_ENV: Record<string, string> = {
   QWEN_VLLM_MAX_NUM_SEQS: '1',
   QWEN_VLLM_MAX_NUM_BATCHED_TOKENS: '512',
   QWEN_VLLM_GPU_MEMORY_UTILIZATION: '0.92',
-  QWEN_FIXTURE_MAX_TOKENS: '64',
-  QWEN_FIXTURE_IMAGE_SIZE_PX: '224',
+  QWEN_FIXTURE_MAX_TOKENS: '256',
+  QWEN_FIXTURE_IMAGE_SIZE_PX: '384',
   QWEN_VLLM_ENFORCE_EAGER: 'true',
   QWEN_VLLM_DTYPE: 'bfloat16',
   QWEN_VLLM_MM_PROCESSOR_CACHE_GB: '0',
@@ -430,7 +430,7 @@ function buildResult(input: {
     nextPrompt:
       input.status === 'passed'
         ? 'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
-        : 'QWEN2_5_VL_STACK_TOOL_58DW-FIX: fix bounded Qwen private inference retry blocker, no generated assets/no mutation',
+        : 'QWEN2_5_VL_STACK_TOOL_58DW-FIX-2: fix bounded Qwen private inference retry-2 blocker, no generated assets/no mutation',
   } as const
 }
 

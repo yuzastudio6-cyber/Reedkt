@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-FIX: tighten Qwen fixture structured-output generation after schema-invalid bounded retry, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,12 +65,12 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_structured_output_fix_required_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_58dw_retry_2_ready_broll_quota_blocked',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'structured schema invalid',
+  'strict output fix ready',
   'auth-readable live preflight now reads GPU quota',
   '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
@@ -82,8 +82,9 @@ for (const required of [
   'machine `g2-standard-4`',
   'minimum `GPUS_ALL_REGIONS` quota `1`',
   '## Safe Agent Commands',
-  '58DW bounded retry result is recorded as schema-invalid runtime evidence',
-  'external agents must not run another Qwen runtime retry until the 58DW-FIX structured-output prompt',
+  '58DW bounded retry result remains recorded as schema-invalid runtime evidence',
+  '58DW-FIX strict structured-output source fix is now recorded and locally validated',
+  'explicit 58DW-RETRY-2 bounded fixture prompt after read-only live auth/service/job preflight passes',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static gate',
   'a static gate is not runtime permission',
@@ -117,7 +118,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_structured_output_fix_required_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_58dw_retry_2_ready_broll_quota_blocked',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -184,12 +185,12 @@ for (const requiredTool of [
 }
 
 const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
-assert.equal(qwen?.status, 'blocked_external_state')
+assert.equal(qwen?.status, 'ready_for_explicit_tool_gate')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
-assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
-assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, false)
-assert.equal(qwen?.primaryBlocker, 'structured_metadata_schema_invalid_after_bounded_58dw_retry')
+assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
+assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
+assert.equal(qwen?.primaryBlocker, 'explicit_58dw_retry_2_prompt_required_before_runtime')
 assert.equal(qwen?.nextAction, NEXT_PROMPT)
 assert.equal(qwen?.manualBlockerActions?.length, 2)
 assert.equal(qwen?.manualBlockerActions?.every((action) => action.runInsideCodex === false), true)
@@ -220,6 +221,12 @@ assert.equal(
   ),
   true,
 )
+assert.equal(qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dw-structured-output-fix.md'), true)
+assert.equal(
+  qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dw-structured-output-fix.ts'),
+  true,
+)
+assert.equal(qwen?.evidence.includes('server/smoke/qwen2-5-vl-58dw-structured-output-fix-smoke.ts'), true)
 assert.equal(
   qwen?.evidence.includes(
     'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
@@ -403,11 +410,15 @@ assert.equal(
 )
 
 for (const tool of rollup.tools) {
-  assert.equal(
-    tool.readyForExternalAgentExecutionNow,
-    false,
-    `${tool.toolId} must not be execution-ready after the schema-invalid Qwen retry`,
-  )
+  if (tool.toolId === 'qwen2_5_vl_7b_instruct') {
+    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for explicit retry-2`)
+  } else {
+    assert.equal(
+      tool.readyForExternalAgentExecutionNow,
+      false,
+      `${tool.toolId} must not be execution-ready on the Qwen retry-2 branch`,
+    )
+  }
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)
 }
 

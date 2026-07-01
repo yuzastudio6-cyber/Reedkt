@@ -113,11 +113,15 @@ valid = {
   "schema_version": "qwen_fixture_visual_metadata_v1",
   "fixture_id": "fixture_mock_qwen_approved_private_frame_001",
   "use_case": "visual_understanding",
-  "objects": [{"label": "red_rectangle", "region": "left", "confidence": "high"}],
+  "objects": [
+    {"label": "red_rectangle", "region": "left", "confidence": "high"},
+    {"label": "blue_circle", "region": "right", "confidence": "high"},
+    {"label": "timeline_bar", "region": "bottom", "confidence": "medium"}
+  ],
   "text_like_regions": [{"text": "TIMELINE", "region": "bottom_center", "confidence": "medium"}],
-  "spatial_relations": ["red_rectangle_left_of_blue_circle"],
+  "spatial_relations": ["red_rectangle_left_of_blue_circle", "timeline_bar_below_shapes"],
   "uncertainty": [],
-  "blocked_actions": ["no_generated_assets"]
+  "blocked_actions": ["no_generated_assets", "no_public_artifacts", "no_signed_urls", "no_raw_prompt_execution"]
 }
 direct = module._summarize_output(json.dumps(valid, separators=(",", ":"), sort_keys=True), "visual_understanding")
 fence = chr(96) * 3
@@ -201,8 +205,12 @@ for (const phrase of [
   'structured_metadata_output_ok',
   'metadata_output.get("parsedJson") is True',
   'metadata_output.get("schemaValid") is True',
-  'metadata_output.get("objectCount", 0) > 0',
-  'metadata_output.get("textLikeRegionCount", 0) > 0',
+  'metadata_output.get("schemaCompletenessValid") is True',
+  'metadata_output.get("topLevelObjectRowRejected") is False',
+  'metadata_output.get("objectCount", 0) >= metadata_output.get("minimumObjectCount", 2)',
+  'metadata_output.get("textLikeRegionCount", 0) >= metadata_output.get("minimumTextLikeRegionCount", 1)',
+  'metadata_output.get("spatialRelationCount", 0) >= metadata_output.get("minimumSpatialRelationCount", 1)',
+  'metadata_output.get("blockedActionCount", 0) >= metadata_output.get("minimumBlockedActionCount", 4)',
   'structuredMetadataOutputAccepted',
 ]) {
   assert.ok(callerText.includes(phrase), `CPU caller source missing phrase: ${phrase}`)
@@ -212,9 +220,12 @@ const parserResults = runParserValidation()
 for (const key of ['direct', 'fenced', 'wrapped']) {
   assert.equal(parserResults[key]?.parsedJson, true, `${key} JSON must parse`)
   assert.equal(parserResults[key]?.schemaValid, true, `${key} schema must be valid`)
-  assert.equal(parserResults[key]?.objectCount, 1, `${key} object count must be preserved`)
+  assert.equal(parserResults[key]?.objectCount, 3, `${key} object count must be preserved`)
   assert.equal(parserResults[key]?.textLikeRegionCount, 1, `${key} text-like region count must be preserved`)
+  assert.equal(parserResults[key]?.spatialRelationCount, 2, `${key} spatial relation count must be preserved`)
+  assert.equal(parserResults[key]?.blockedActionCount, 4, `${key} blocked action count must be preserved`)
   assert.deepEqual(parserResults[key]?.missingSchemaKeys, [], `${key} must not miss schema keys`)
+  assert.deepEqual(parserResults[key]?.schemaValidationReasons, [], `${key} must not have schema validation reasons`)
   assert.equal(parserResults[key]?.rawOutputStoredInRepo, false, `${key} raw output must stay unstored`)
 }
 assert.equal(parserResults.invalid?.parsedJson, false, 'invalid prose must not parse as JSON')

@@ -1,13 +1,13 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
-  'do not invoke Cloud Run until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
-  'do not execute Cloud Run jobs until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+  'do not invoke Cloud Run except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+  'do not execute Cloud Run jobs except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
   'do not create Compute Engine VMs',
   'do not request quota',
   'do not run Docker',
-  'do not import models until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
-  'do not run inference until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+  'do not import models except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+  'do not run inference except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
   'do not create generated assets',
   'do not call providers',
   'do not dispatch workers',
@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'Qwen completed the bounded 58DW retry but failed the required structured fixture schema; no further runtime retry is allowed before the 58DW-FIX prompt tightens structured output generation',
+        'Qwen completed the bounded 58DW retry but failed the required structured fixture schema; the 58DW-FIX strict structured-output source fix is recorded and only the explicit 58DW-RETRY-2 bounded fixture prompt may run after live preflight passes',
       afterBlockerClears:
-        'implement the 58DW-FIX structured-output prompt, then re-run read-only gates before any new bounded retry is proposed',
+        'run the read-only next-command selector; if live Qwen preflight passes, it may surface only the explicit 58DW-RETRY-2 bounded fixture prompt',
     }
   }
 

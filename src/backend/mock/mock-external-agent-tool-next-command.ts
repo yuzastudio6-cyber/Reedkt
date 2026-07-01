@@ -1,6 +1,6 @@
 import {
   QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
-  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+  QWEN2_5_VL_58DW_RETRY_2_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolNextCommandAllowedProbe = {
@@ -50,7 +50,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
-    whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+    whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_RETRY_2_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DW_FIX_STRUCTURED_OUTPUT_PROMPT,
@@ -67,13 +67,13 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   },
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
-    'do not execute Cloud Run jobs until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not invoke Cloud Run except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+    'do not execute Cloud Run jobs except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
-    'do not run inference until the 58DW-FIX structured-output prompt has been implemented and approved for a new bounded retry',
+    'do not import models except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
+    'do not run inference except through the explicit 58DW retry-2 bounded fixture runner after live preflight passes',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

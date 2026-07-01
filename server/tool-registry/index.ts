@@ -41,6 +41,7 @@ export * from './ai-graphics-external-agent-cpu-static-private-worker-handoff-ad
 export * from './ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission'
 export * from './ai-graphics-external-agent-cpu-static-private-worker-claim-dry-proof'
 export * from './ai-graphics-external-agent-cpu-static-private-worker-dispatch-dry-proof'
+export * from './ai-graphics-external-agent-cpu-static-private-worker-dispatch-smoke-proof'
 export * from './ai-graphics-external-beta-api-route-boundary'
 export * from './ai-graphics-external-beta-api-route-queue-insertion-proof'
 export * from './ai-graphics-external-beta-api-route-queue-smoke-authorization'

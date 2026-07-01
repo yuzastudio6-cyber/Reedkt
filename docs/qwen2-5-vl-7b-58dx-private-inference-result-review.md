@@ -62,6 +62,7 @@ Raw chat execution and arbitrary user media execution remain blocked.
 The review accepts Qwen for the explicit external-agent gate only when all of these remain true:
 
 - live read-only preflight must pass before runtime;
+- the bounded private inference runner accepts the external-agent-ready prompt as the current authorization signal and preserves the 58DW retry prompt only as historical compatibility;
 - approved snapshot or approved fixture reference is required;
 - structured tool envelope is required;
 - raw chat execution is blocked;

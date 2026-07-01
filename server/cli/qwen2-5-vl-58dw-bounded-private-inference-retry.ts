@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
+
 type JsonRecord = Record<string, unknown>
 
 type CommandResult = {
@@ -41,6 +43,7 @@ const SERVICE_RESTORE_ENV: Record<string, string> = {
 }
 
 const SERVICE_TEMP_ENV_KEYS = Object.keys(SERVICE_ENABLE_ENV).filter((key) => !(key in SERVICE_RESTORE_ENV))
+const ACCEPTED_EXECUTION_PROMPTS = [EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT, EXACT_PROMPT] as const
 
 const FORBIDDEN_OUTPUT_PATTERNS: Array<[string, RegExp]> = [
   ['run app url', /\brun\.app\b/i],
@@ -61,6 +64,8 @@ function main() {
       ok: false,
       mode: 'qwen2_5_vl_58dw_bounded_private_inference_retry_static_guard',
       exactPrompt: EXACT_PROMPT,
+      externalAgentReadyPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
+      acceptedExecutionPrompts: ACCEPTED_EXECUTION_PROMPTS,
       executeRequired: true,
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
@@ -101,8 +106,12 @@ function runBoundedRetry() {
   ])
   commands.push(selector)
   const selectorJson = selector.json
+  const selectedManualAction =
+    typeof selectorJson.chosenManualAction === 'string' ? selectorJson.chosenManualAction : undefined
 
-  if (selectorJson.chosenManualAction !== EXACT_PROMPT) blockers.push('exact_58dw_prompt_not_selected')
+  if (!ACCEPTED_EXECUTION_PROMPTS.some((prompt) => prompt === selectedManualAction)) {
+    blockers.push('accepted_qwen_execution_prompt_not_selected')
+  }
   if (selectorJson.executionAllowedNow !== true) blockers.push('external_agent_execution_not_allowed_now')
   if (selectorJson.qwenLivePreflightPassed !== true) blockers.push('qwen_live_preflight_not_passed')
   if (selectorJson.qwenAuthRefreshPassed !== true) blockers.push('qwen_auth_refresh_not_passed')
@@ -378,6 +387,8 @@ function buildResult(input: {
         ? 'qwen2_5_vl_58dw_bounded_private_inference_retry_passed_result_review_required'
         : 'qwen2_5_vl_58dw_bounded_private_inference_retry_blocked_or_failed_result_review_required',
     exactPrompt: EXACT_PROMPT,
+    externalAgentReadyPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
+    acceptedExecutionPrompts: ACCEPTED_EXECUTION_PROMPTS,
     runId: input.runId,
     status: input.status,
     blockers: Array.from(new Set(input.blockers)),

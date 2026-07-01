@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
@@ -8,6 +9,7 @@ const ROOT = process.cwd()
 const DOC_PATH = 'docs/qwen2-5-vl-7b-58dx-private-inference-result-review.md'
 const SPEC_PATH = 'src/backend/mock/mock-qwen2-5-vl-58dx-private-inference-result-review.ts'
 const SMOKE_PATH = 'server/smoke/qwen2-5-vl-58dx-private-inference-result-review-smoke.ts'
+const RUNNER_PATH = 'server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts'
 const PACKAGE_SCRIPT = 'smoke:qwen2-5-vl-58dx-private-inference-result-review'
 const DECISION =
   'qwen2_5_vl_58dx_private_inference_result_review_accepted_for_explicit_external_agent_gate'
@@ -68,6 +70,7 @@ for (const file of [
   DOC_PATH,
   SPEC_PATH,
   SMOKE_PATH,
+  RUNNER_PATH,
   'docs/qwen2-5-vl-7b-58dw-retry-2-result.md',
   'src/backend/mock/mock-qwen2-5-vl-58dw-retry-2-result.ts',
   'model-routing-policy.md',
@@ -103,10 +106,47 @@ for (const required of [
   '`creditMutationCreated=false`',
   '`generatedLocalFixturePassedClaimed=false`',
   '`GPUS_ALL_REGIONS` quota',
+  'the bounded private inference runner accepts the external-agent-ready prompt',
   NEXT_PROMPT,
 ]) {
   assert.equal(doc.includes(required), true, `Review doc missing ${required}`)
 }
+
+const runnerText = read(RUNNER_PATH)
+for (const required of [
+  'ACCEPTED_EXECUTION_PROMPTS',
+  'EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT',
+  'accepted_qwen_execution_prompt_not_selected',
+]) {
+  assert.equal(runnerText.includes(required), true, `Runner missing ${required}`)
+}
+assert.equal(
+  runnerText.includes('exact_58dw_prompt_not_selected'),
+  false,
+  'Runner must not require only the historical 58DW prompt after 58DX readiness acceptance.',
+)
+
+const staticRunnerReport = JSON.parse(
+  execFileSync('npx', ['tsx', RUNNER_PATH, '--json'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 4,
+  }),
+) as Record<string, unknown>
+assert.equal(staticRunnerReport.mode, 'qwen2_5_vl_58dw_bounded_private_inference_retry_static_guard')
+assert.equal(staticRunnerReport.executeRequired, true)
+assert.equal(staticRunnerReport.runtimeRunNow, false)
+assert.equal(staticRunnerReport.generatedAssetsCreated, false)
+assert.equal(staticRunnerReport.supabaseTouched, false)
+assert.equal(staticRunnerReport.creditMutationCreated, false)
+assert.equal(staticRunnerReport.generatedLocalFixturePassedClaimed, false)
+assert.deepEqual(
+  staticRunnerReport.acceptedExecutionPrompts,
+  [
+    NEXT_PROMPT,
+    'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation',
+  ],
+)
 
 const review = QWEN2_5_VL_58DX_PRIVATE_INFERENCE_RESULT_REVIEW
 assert.equal(review.decision, DECISION)

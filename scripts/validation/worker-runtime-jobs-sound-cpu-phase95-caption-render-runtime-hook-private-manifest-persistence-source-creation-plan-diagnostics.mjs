@@ -11,6 +11,8 @@ const sourceHead = 'ff6ea80b75ae352085c5ae3aed664b32cc5b6558'
 const sourceMergeCommit = 'aa986cc56a6c40dc1a88e4caf7f4a6b639d9395c'
 const plannedSourcePath = 'server/workers/sound-cpu/runtime/privateManifestPersistence.ts'
 const existingManifestSourcePath = 'server/workers/sound-cpu/runtime/privateManifest.ts'
+const laterPhase96ResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-phase96-caption-render-runtime-hook-private-manifest-persistence-source-creation-result.md'
 
 const docs = {
   sourcePrompt:
@@ -169,8 +171,13 @@ const parsed = {
 }
 
 for (const file of Object.values(docs)) assertNoUnsafeClaims(file)
+const sourceCreatedInLaterApprovedGate = exists(laterPhase96ResultPath)
 assert(exists(existingManifestSourcePath), 'existing privateManifest.ts source context must exist')
-assert(!exists(plannedSourcePath), `${plannedSourcePath} must not exist in the source-creation planning gate`)
+if (sourceCreatedInLaterApprovedGate) {
+  assert(exists(plannedSourcePath), `${plannedSourcePath} must exist after the approved Phase 96 source-creation gate`)
+} else {
+  assert(!exists(plannedSourcePath), `${plannedSourcePath} must not exist in the source-creation planning gate`)
+}
 assert(read(existingManifestSourcePath).includes('SOUND_CPU_PRIVATE_MANIFEST_RUNTIME_DEFAULTS'), 'existing manifest source context missing runtime defaults')
 assert(read('server/workers/sound-cpu/runtime/soundCpuSupabaseGuards.ts').includes('assertSoundCpuSupabaseMutationBlocked'), 'Supabase guard source must remain available')
 
@@ -290,9 +297,9 @@ console.log(
       sourceHead,
       sourceMergeCommit,
       plannedSourcePath,
-      plannedSourcePathExistsToday: false,
+      plannedSourcePathExistsToday: sourceCreatedInLaterApprovedGate,
       existingManifestSourceContext: existingManifestSourcePath,
-      sourceFileCreatedToday: false,
+      sourceFileCreatedToday: sourceCreatedInLaterApprovedGate,
       soundCpuToolsCovered: 15,
       readyForRealExecutionToday: 0,
       supabaseEnvironmentTouched: false,

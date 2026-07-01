@@ -27,6 +27,7 @@
     "externalBetaCallableNowTools": 21,
     "externalBetaReadyNowTools": 21,
     "runtimeReadyForOnDemandExternalBetaToolCallTools": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "productionReadyNowTools": 0
   },
   "tools": [
@@ -101,6 +102,7 @@
     "sourceExternalBetaEndToEndReadinessAccepted": true,
     "sourceBetaProductionReadinessRollupAccepted": true,
     "sourceExternalBetaActivatedLaunchReadinessAccepted": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all8GpuToolsTargetGpuRuntime": true,

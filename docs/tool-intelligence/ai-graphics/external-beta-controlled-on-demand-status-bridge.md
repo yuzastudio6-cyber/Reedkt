@@ -22,9 +22,11 @@ All 21 AI graphics tools are covered: `torch_torchvision`, `transformers`, `sam2
 - `externalBetaCallableNowTools`: 21
 - `externalBetaReadyNowTools`: 21
 - `runtimeReadyForOnDemandExternalBetaToolCallTools`: 21
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21
 - `productionReadyNowTools`: 0
 
 External-beta ready means controlled on-demand worker-path tool-call readiness. It does not mean Codex/direct-agent execution, diagnostic-time route execution, worker dispatch by this bridge, or production traffic.
+The bridge rejects stale source packets unless the route-bound service-role queue-smoke operator-preflight evidence is preserved across all 21 tools.
 
 ## GPU Policy
 

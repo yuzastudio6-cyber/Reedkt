@@ -87,6 +87,7 @@ const trueKeys = [
   'sourceExternalBetaEndToEndReadinessAccepted',
   'sourceBetaProductionReadinessRollupAccepted',
   'sourceExternalBetaActivatedLaunchReadinessAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -265,6 +266,11 @@ function verifyDocs() {
   requireEqual(docs.coverage?.externalBetaCallableNowTools, 21, 'docs_callable_now')
   requireEqual(docs.coverage?.externalBetaReadyNowTools, 21, 'docs_external_beta_ready')
   requireEqual(docs.coverage?.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'docs_runtime_on_demand')
+  requireEqual(
+    docs.coverage?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'docs_operator_preflight',
+  )
   requireEqual(docs.coverage?.productionReadyNowTools, 0, 'docs_production_ready')
   requireEqual(
     docs.readinessInterpretation,
@@ -288,6 +294,8 @@ function verifyDocs() {
     decision,
     acceptedStatus,
     'controlled on-demand external-beta tool calls',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21',
+    'route-bound service-role queue-smoke operator-preflight evidence',
     '`agentCanExecuteToolsNow=false`',
     '`gpuRuntimeShouldStartNow=false`',
     '`productionReadyNow=false`',
@@ -314,8 +322,17 @@ function verifySourceDocs() {
   requireEqual(e2e.status, 'external_beta_ready_for_controlled_on_demand_tool_calls_runtime_still_blocked', 'e2e_status')
   requireEqual(e2e.counts?.totalAiGraphicsTools, 21, 'e2e_total_tools')
   requireEqual(e2e.counts?.externalBetaReadyNowTools, 21, 'e2e_external_beta_ready')
+  requireEqual(
+    e2e.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'e2e_operator_preflight',
+  )
   requireEqual(e2e.counts?.productionReadyNowTools, 0, 'e2e_production_ready')
   requireTruthy(e2e.booleans?.externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence, 'e2e_activated_launch')
+  requireTruthy(
+    e2e.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'e2e_operator_preflight_boolean',
+  )
   requireTruthy(e2e.booleans?.externalBetaReadyNow, 'e2e_ready_boolean')
   requireFalse(e2e.booleans?.agentCanExecuteToolsNow, 'e2e_agent_false')
   requireFalse(e2e.booleans?.gpuRuntimeShouldStartNow, 'e2e_gpu_false')
@@ -324,9 +341,18 @@ function verifySourceDocs() {
   requireEqual(rollup.decision, 'ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks', 'rollup_decision')
   requireEqual(rollup.status, 'owner_approved_worker_gates_ready_runtime_still_blocked', 'rollup_status')
   requireEqual(rollup.counts?.properlyInstalledForPlannedSurface, 21, 'rollup_install_count')
+  requireEqual(
+    rollup.counts?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'rollup_operator_preflight',
+  )
   requireEqual(rollup.counts?.externalBetaReadyNowTools, 21, 'rollup_external_beta_ready')
   requireEqual(rollup.counts?.productionReadyNowTools, 0, 'rollup_production_ready')
   requireTruthy(rollup.booleans?.externalBetaActivatedLaunchReadyWithProvidedEvidence, 'rollup_activated')
+  requireTruthy(
+    rollup.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'rollup_operator_preflight_boolean',
+  )
   requireTruthy(rollup.booleans?.externalBetaReadyNow, 'rollup_ready')
   requireFalse(rollup.booleans?.agentCanExecuteToolsNow, 'rollup_agent_false')
   requireFalse(rollup.booleans?.routeExecutionApprovedNow, 'rollup_route_false')
@@ -339,9 +365,18 @@ function verifySourceDocs() {
   requireEqual(activated.scope?.externalBetaReadyNowTools, 21, 'activated_external_beta_ready')
   requireEqual(activated.scope?.externalBetaToolCallReadyNowTools, 21, 'activated_tool_call_ready')
   requireEqual(activated.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'activated_runtime_ready')
+  requireEqual(
+    activated.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'activated_operator_preflight',
+  )
   requireEqual(activated.scope?.productionReadyNowTools, 0, 'activated_production_ready')
   requireTruthy(activated.booleans?.sourceExternalBetaLaunchGoNoGoAccepted, 'activated_launch_source')
   requireTruthy(activated.booleans?.sourceExternalBetaAll21ActivationRollupAccepted, 'activated_rollup_source')
+  requireTruthy(
+    activated.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'activated_operator_preflight_boolean',
+  )
   requireFalse(activated.booleans?.agentCanExecuteToolsNow, 'activated_agent_false')
   requireFalse(activated.booleans?.gpuRuntimeShouldStartNow, 'activated_gpu_false')
 }
@@ -357,6 +392,7 @@ function verifySourceWiring() {
     decision,
     'external_beta_ready_means_controlled_on_demand_worker_path_not_direct_agent_execution',
     'production_requires_separate_operator_traffic_cutover_and_live_runtime_evidence',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
     'gpuRuntimeShouldStartNow: false',
     'agentCanExecuteToolsNow: false',
     'productionReadyNow: false',
@@ -387,6 +423,11 @@ function verifyCliBehavior() {
   requireEqual(accepted.externalBetaCallableNowTools, 21, 'accepted_callable_now')
   requireEqual(accepted.externalBetaReadyNowTools, 21, 'accepted_external_beta_ready')
   requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'accepted_runtime_ready')
+  requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'accepted_operator_preflight',
+  )
   requireEqual(accepted.productionReadyNowTools, 0, 'accepted_production')
   requireEqual(
     accepted.readinessInterpretation,
@@ -399,6 +440,71 @@ function verifyCliBehavior() {
   requireFalse(accepted.input?.workerExecutionPerformed, 'accepted_no_worker_execution')
   requireFalse(accepted.input?.routeExecutionPerformed, 'accepted_no_route_execution')
   requireFalse(accepted.input?.gpuRuntimePerformedByThisCommand, 'accepted_no_gpu_runtime')
+
+  const tempDir = fs.mkdtempSync(path.join(process.cwd(), '.tmp-ai-graphics-controlled-on-demand-'))
+  const writePacket = (name, packet) => {
+    const packetPath = path.join(tempDir, name)
+    fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+    return packetPath
+  }
+  const e2e = json('docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json')
+  const rollup = json('docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json')
+  const activated = json('docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json')
+
+  const staleE2e = JSON.parse(JSON.stringify(e2e))
+  staleE2e.counts.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence = 20
+  staleE2e.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+  const staleE2eOutput = npmJson(runScriptName, [
+    '--external-beta-end-to-end-readiness-packet',
+    writePacket('stale-e2e.json', staleE2e),
+    '--beta-production-readiness-rollup-packet',
+    'docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json',
+    '--external-beta-activated-launch-readiness-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+  ])
+  requireEqual(
+    staleE2eOutput.status,
+    'external_beta_end_to_end_readiness_rejected',
+    'stale_e2e_status',
+  )
+  requireEqual(staleE2eOutput.externalBetaReadyNowTools, 0, 'stale_e2e_ready')
+
+  const staleRollup = JSON.parse(JSON.stringify(rollup))
+  staleRollup.counts.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence = 20
+  staleRollup.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+  const staleRollupOutput = npmJson(runScriptName, [
+    '--external-beta-end-to-end-readiness-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
+    '--beta-production-readiness-rollup-packet',
+    writePacket('stale-rollup.json', staleRollup),
+    '--external-beta-activated-launch-readiness-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+  ])
+  requireEqual(
+    staleRollupOutput.status,
+    'beta_production_readiness_rollup_rejected',
+    'stale_rollup_status',
+  )
+  requireEqual(staleRollupOutput.externalBetaReadyNowTools, 0, 'stale_rollup_ready')
+
+  const staleActivated = JSON.parse(JSON.stringify(activated))
+  staleActivated.scope.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence = 20
+  staleActivated.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+  const staleActivatedOutput = npmJson(runScriptName, [
+    '--external-beta-end-to-end-readiness-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json',
+    '--beta-production-readiness-rollup-packet',
+    'docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json',
+    '--external-beta-activated-launch-readiness-packet',
+    writePacket('stale-activated.json', staleActivated),
+  ])
+  requireEqual(
+    staleActivatedOutput.status,
+    'external_beta_activated_launch_readiness_rejected',
+    'stale_activated_status',
+  )
+  requireEqual(staleActivatedOutput.externalBetaReadyNowTools, 0, 'stale_activated_ready')
+  fs.rmSync(tempDir, { recursive: true, force: true })
 }
 
 verifyPackageJson()
@@ -430,6 +536,7 @@ console.log(JSON.stringify({
   externalBetaCallableNowTools: 21,
   externalBetaReadyNowTools: 21,
   runtimeReadyForOnDemandExternalBetaToolCallTools: 21,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   agentCanExecuteToolsNow: false,
   routeExecutionApprovedNow: false,
   workerExecutionApprovedNow: false,

@@ -51,6 +51,7 @@
     "fullEvidenceWorkerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence": 21,
     "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": 1,
     "activatedLaunchReadinessExternalBetaReadyNowTools": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "externalBetaReadyNowTools": 21,
     "productionReadyNowTools": 0
   },
@@ -115,6 +116,7 @@
     "fullEvidenceWorkerDispatchSmokeProofAcceptedWithProvidedEvidence": true,
     "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": true,
     "externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "defaultExternalBetaCandidateReadyWithProvidedEvidence": false,
     "fullEvidenceExternalBetaCandidateReadyWithProvidedEvidence": true,
     "externalBetaReadyNow": true,

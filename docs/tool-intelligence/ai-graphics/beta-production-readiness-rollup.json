@@ -26,6 +26,7 @@
     "sourceNativeGpuProofCollectionPacketMustAcceptAll8GpuRuntimeToolsWithProvidedEvidence": true,
     "sourceNativeGpuProofCollectionPacketMustKeepGpuRuntimeExecutionFalse": true,
     "sourceExternalBetaActivatedLaunchReadinessPacketMustReportAll21ExternalBetaReady": true,
+    "sourceExternalBetaActivatedLaunchReadinessPacketMustPreserveRouteBoundServiceRoleQueueSmokeOperatorPreflight": true,
     "sourceExternalBetaActivatedLaunchReadinessPacketMustKeepDirectExecutionGpuAndProductionFalse": true,
     "rollupStillDoesNotApproveExecutionOrRuntime": true
   },
@@ -80,6 +81,7 @@
     "nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence": 8,
     "nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence": 6,
     "modelWeightManifestReviewAcceptedWithProvidedEvidence": 5,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "internalBetaReadyNowTools": 0,
     "externalBetaReadyNowTools": 21,
     "productionReadyNowTools": 0
@@ -89,6 +91,7 @@
     "sourcePacketFlag": "--external-beta-activated-launch-readiness-packet",
     "externalBetaReadyNowTools": 21,
     "runtimeReadyForOnDemandExternalBetaToolCallTools": 21,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "agentCanExecuteToolsNow": false,
     "gpuRuntimeShouldStartNow": false,
     "productionReadyNow": false
@@ -180,6 +183,7 @@
     "internalBetaGoNoGoReadyWithProvidedEvidence": true,
     "externalBetaGoNoGoReadyWithProvidedEvidence": true,
     "externalBetaActivatedLaunchReadyWithProvidedEvidence": true,
+    "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "productionGoNoGoReadyWithProvidedEvidence": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,

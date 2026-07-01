@@ -37,6 +37,7 @@ export interface AiGraphicsExternalBetaControlledOnDemandStatusBridge {
   externalBetaCallableNowTools: 0 | 21
   externalBetaReadyNowTools: 0 | 21
   runtimeReadyForOnDemandExternalBetaToolCallTools: 0 | 21
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
   productionReadyNowTools: 0
   readinessInterpretation:
     'external_beta_ready_means_controlled_on_demand_worker_path_not_direct_agent_execution'
@@ -58,6 +59,7 @@ export interface AiGraphicsExternalBetaControlledOnDemandStatusBridge {
     sourceExternalBetaEndToEndReadinessAccepted: boolean
     sourceBetaProductionReadinessRollupAccepted: boolean
     sourceExternalBetaActivatedLaunchReadinessAccepted: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
     all8GpuToolsTargetGpuRuntime: true
@@ -137,8 +139,10 @@ function externalBetaEndToEndAccepted(
     countFrom(packet, 'totalProductFacingCapabilities') === 12 &&
     countFrom(packet, 'gpuRuntimeTargetedTools') === 8 &&
     countFrom(packet, 'externalBetaReadyNowTools') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'externalBetaReadyNow') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
@@ -160,9 +164,11 @@ function betaProductionRollupAccepted(
     countFrom(packet, 'totalProductFacingCapabilities') === 12 &&
     countFrom(packet, 'gpuRuntimeTargetedTools') === 8 &&
     countFrom(packet, 'properlyInstalledForPlannedSurface') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'externalBetaReadyNowTools') === 21 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'externalBetaActivatedLaunchReadyWithProvidedEvidence') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'externalBetaReadyNow') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
@@ -187,9 +193,11 @@ function activatedLaunchAccepted(
     countFrom(packet, 'externalBetaReadyNowTools') === 21 &&
     countFrom(packet, 'externalBetaToolCallReadyNowTools') === 21 &&
     countFrom(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 21 &&
+    countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'sourceExternalBetaLaunchGoNoGoAccepted') === true &&
     booleanFrom(packet, 'sourceExternalBetaAll21ActivationRollupAccepted') === true &&
+    booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'externalBetaReadyNow') === true &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'directAgentToolExecutionApprovedNow') === false &&
@@ -275,6 +283,8 @@ export function evaluateAiGraphicsExternalBetaControlledOnDemandStatusBridge(
     externalBetaCallableNowTools: accepted ? 21 : 0,
     externalBetaReadyNowTools: accepted ? 21 : 0,
     runtimeReadyForOnDemandExternalBetaToolCallTools: accepted ? 21 : 0,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      accepted ? 21 : 0,
     productionReadyNowTools: 0,
     readinessInterpretation:
       'external_beta_ready_means_controlled_on_demand_worker_path_not_direct_agent_execution',
@@ -297,6 +307,8 @@ export function evaluateAiGraphicsExternalBetaControlledOnDemandStatusBridge(
       sourceExternalBetaEndToEndReadinessAccepted,
       sourceBetaProductionReadinessRollupAccepted,
       sourceExternalBetaActivatedLaunchReadinessAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
+        accepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,

@@ -67,6 +67,7 @@ export interface AiGraphicsBetaProductionReadinessRollup {
   nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence: number
   nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence: number
   modelWeightManifestReviewAcceptedWithProvidedEvidence: number
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
   internalBetaReadyNowTools: 0
   externalBetaReadyNowTools: 0 | 21
   productionReadyNowTools: 0
@@ -96,6 +97,7 @@ export interface AiGraphicsBetaProductionReadinessRollup {
     internalBetaGoNoGoReadyWithProvidedEvidence: boolean
     externalBetaGoNoGoReadyWithProvidedEvidence: boolean
     externalBetaActivatedLaunchReadyWithProvidedEvidence: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     productionGoNoGoReadyWithProvidedEvidence: false
     agentCanSelectForPlanning: true
     agentCanExecuteToolsNow: false
@@ -228,6 +230,7 @@ function externalBetaActivatedLaunchReadinessAccepted(
       externalBetaToolCallReadyNowTools?: number
       externalBetaReadyNowTools?: number
       runtimeReadyForOnDemandExternalBetaToolCallTools?: number
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence?: number
       productionReadyNowTools?: number
     }
   } | undefined)?.scope
@@ -246,6 +249,9 @@ function externalBetaActivatedLaunchReadinessAccepted(
   const runtimeReadyForOnDemandExternalBetaToolCallTools =
     packet?.runtimeReadyForOnDemandExternalBetaToolCallTools ??
     scope?.runtimeReadyForOnDemandExternalBetaToolCallTools
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence =
+    packet?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence ??
+    scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence
   const productionReadyNowTools =
     packet?.productionReadyNowTools ?? scope?.productionReadyNowTools
   const gpuRuntimeShouldStartNow =
@@ -262,10 +268,12 @@ function externalBetaActivatedLaunchReadinessAccepted(
     externalBetaToolCallReadyNowTools === 21 &&
     externalBetaReadyNowTools === 21 &&
     runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence === 21 &&
     productionReadyNowTools === 0 &&
     gpuRuntimeShouldStartNow === false &&
     packet.booleans.sourceExternalBetaLaunchGoNoGoAccepted === true &&
     packet.booleans.sourceExternalBetaAll21ActivationRollupAccepted === true &&
+    packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
     packet.booleans.externalBetaReadyNow === true &&
     packet.booleans.agentCanExecuteToolsNow === false &&
@@ -373,6 +381,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
     nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence,
     nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence,
     modelWeightManifestReviewAcceptedWithProvidedEvidence,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+      sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence ? 21 : 0,
     internalBetaReadyNowTools: 0,
     externalBetaReadyNowTools:
       sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence ? 21 : 0,
@@ -413,6 +423,8 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       externalBetaGoNoGoReadyWithProvidedEvidence:
         sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
       externalBetaActivatedLaunchReadyWithProvidedEvidence:
+        sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
         sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
       productionGoNoGoReadyWithProvidedEvidence: false,
       agentCanSelectForPlanning: true,

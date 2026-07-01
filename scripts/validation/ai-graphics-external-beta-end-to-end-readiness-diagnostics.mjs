@@ -440,6 +440,7 @@ function serviceRoleQueueSmokeResultFixture() {
     serviceRoleQueueSmokeAuthorizationRef:
       'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,
@@ -459,6 +460,7 @@ function workerDispatchReadinessFixture() {
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
     sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
@@ -466,6 +468,7 @@ function workerDispatchReadinessFixture() {
     acceptedSourceEvidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
       serviceRoleQueueSmokeAuthorizationRef:
         'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
@@ -473,6 +476,7 @@ function workerDispatchReadinessFixture() {
       toolId,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
@@ -480,6 +484,7 @@ function workerDispatchReadinessFixture() {
     booleans: {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -518,6 +523,12 @@ assertCount(docsJson, 'gpuRuntimeTargetedTools', 8, 'docs')
 assertCount(docsJson, 'heavyToolsIncorrectlyTargetingCpu', 0, 'docs')
 assertCount(docsJson, 'duplicateAiGraphicsProductionToolIds', 0, 'docs')
 assertCount(docsJson, 'activatedLaunchReadinessExternalBetaReadyNowTools', 21, 'docs')
+assertCount(
+  docsJson,
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+  21,
+  'docs',
+)
 assertCount(docsJson, 'externalBetaReadyNowTools', 21, 'docs')
 assertCount(docsJson, 'productionReadyNowTools', 0, 'docs')
 if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightPayloadsPrepared !== 21) {
@@ -610,6 +621,12 @@ if (docsJson.booleans?.fullEvidenceLaunchControlsAcceptedWithProvidedEvidence !=
 if (docsJson.booleans?.externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence !== true) {
   fail('docs_activated_launch_readiness_not_true')
 }
+if (
+  docsJson.booleans
+    ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('docs_operator_preflight_not_true')
+}
 assertBooleanMap(docsJson, 'docs', undefined, undefined, undefined, true)
 
 const defaultReport = runCli()
@@ -660,11 +677,43 @@ assertCount(
   21,
   'activated_launch',
 )
+assertCount(
+  activatedLaunchReadinessReport,
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
+  21,
+  'activated_launch',
+)
 assertCount(activatedLaunchReadinessReport, 'productionReadyNowTools', 0, 'activated_launch')
 assertBooleanMap(activatedLaunchReadinessReport, 'activated_launch', false, false, false, true)
 assertTools(activatedLaunchReadinessReport, 'activated_launch', true)
 if (activatedLaunchReadinessReport.globalBlockers?.length !== 0) {
   fail('activated_launch_global_blockers_not_empty')
+}
+
+const staleActivatedLaunchPacket = readJson(
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+)
+staleActivatedLaunchPacket.scope.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence = 20
+staleActivatedLaunchPacket.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+const staleActivatedLaunchPath = path.join(
+  os.tmpdir(),
+  `ai-graphics-stale-activated-launch-${process.pid}.json`,
+)
+fs.writeFileSync(staleActivatedLaunchPath, `${JSON.stringify(staleActivatedLaunchPacket, null, 2)}\n`)
+const staleActivatedLaunchReport = runCli([
+  '--external-beta-activated-launch-readiness-packet',
+  staleActivatedLaunchPath,
+])
+fs.rmSync(staleActivatedLaunchPath, { force: true })
+if (staleActivatedLaunchReport.status !== 'installed_and_mapped_runtime_blocked') {
+  fail(`stale_activated_launch_status:${staleActivatedLaunchReport.status}`)
+}
+assertCount(staleActivatedLaunchReport, 'externalBetaReadyNowTools', 0, 'stale_activated_launch')
+if (
+  staleActivatedLaunchReport.booleans
+    ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true
+) {
+  fail('stale_activated_launch_operator_preflight_true')
 }
 
 const serviceRoleKeyEnvName = 'SUPABASE_' + 'SERVICE_ROLE_KEY'
@@ -996,6 +1045,9 @@ console.log(JSON.stringify({
     fullEvidenceReport.counts.externalBetaCandidateReadyWithProvidedEvidenceTools,
   activatedLaunchReadinessExternalBetaReadyNowTools:
     activatedLaunchReadinessReport.counts.externalBetaReadyNowTools,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+    activatedLaunchReadinessReport.counts
+      .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
   fullEvidenceWorkerDispatchSmokeProofAcceptedToolsWithProvidedEvidence:
     fullEvidenceReport.counts.workerDispatchSmokeProofAcceptedToolsWithProvidedEvidence,
   externalBetaReadyNowTools: defaultReport.counts.externalBetaReadyNowTools,

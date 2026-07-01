@@ -99,6 +99,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     workerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence: number
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: number
     externalBetaLaunchControlsAcceptedWithProvidedEvidence: 0 | 1
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 0 | 21
     externalBetaReadyNowTools: 0 | 21
     productionReadyNowTools: 0
   }
@@ -144,6 +145,7 @@ export interface AiGraphicsExternalBetaEndToEndReadiness {
     workerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence: boolean
     externalBetaLaunchControlsAcceptedWithProvidedEvidence: boolean
     externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence: boolean
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: boolean
     externalBetaCandidateReadyWithProvidedEvidence: boolean
     externalBetaReadyNow: boolean
     productionReadyNow: false
@@ -312,6 +314,7 @@ function externalBetaActivatedLaunchReadinessAccepted(
       externalBetaToolCallReadyNowTools?: number
       externalBetaReadyNowTools?: number
       runtimeReadyForOnDemandExternalBetaToolCallTools?: number
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence?: number
       productionReadyNowTools?: number
     }
   } | undefined)?.scope
@@ -330,6 +333,9 @@ function externalBetaActivatedLaunchReadinessAccepted(
   const runtimeReadyForOnDemandExternalBetaToolCallTools =
     packet?.runtimeReadyForOnDemandExternalBetaToolCallTools ??
     scope?.runtimeReadyForOnDemandExternalBetaToolCallTools
+  const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence =
+    packet?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence ??
+    scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence
   const productionReadyNowTools =
     packet?.productionReadyNowTools ?? scope?.productionReadyNowTools
   const gpuRuntimeShouldStartNow =
@@ -347,10 +353,12 @@ function externalBetaActivatedLaunchReadinessAccepted(
       externalBetaToolCallReadyNowTools === 21 &&
       externalBetaReadyNowTools === 21 &&
       runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence === 21 &&
       productionReadyNowTools === 0 &&
       gpuRuntimeShouldStartNow === false &&
       packet.booleans.sourceExternalBetaLaunchGoNoGoAccepted === true &&
       packet.booleans.sourceExternalBetaAll21ActivationRollupAccepted === true &&
+      packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
       packet.booleans.all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
       packet.booleans.externalBetaReadyNow === true &&
       packet.booleans.agentCanExecuteToolsNow === false &&
@@ -533,6 +541,8 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
           : 0,
       externalBetaLaunchControlsAcceptedWithProvidedEvidence:
         sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted ? 1 : 0,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
+        sourceExternalBetaActivatedLaunchReadinessAccepted ? 21 : 0,
       externalBetaReadyNowTools: sourceExternalBetaActivatedLaunchReadinessAccepted ? 21 : 0,
       productionReadyNowTools: 0,
     },
@@ -599,6 +609,8 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       externalBetaLaunchControlsAcceptedWithProvidedEvidence:
         sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted,
       externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence:
+        sourceExternalBetaActivatedLaunchReadinessAccepted,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
         sourceExternalBetaActivatedLaunchReadinessAccepted,
       externalBetaCandidateReadyWithProvidedEvidence,
       externalBetaReadyNow: sourceExternalBetaActivatedLaunchReadinessAccepted,

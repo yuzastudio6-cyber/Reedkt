@@ -32,6 +32,7 @@ all execution/runtime/beta/production gates still false.
 The rollup can also ingest
 `--external-beta-activated-launch-readiness-packet` when that packet already
 reports all 21 tools ready for controlled on-demand external-beta tool calls,
+preserves route-bound service-role queue-smoke operator-preflight evidence,
 preserves on-demand-only GPU runtime, keeps direct agent execution false, and
 keeps production false. This source updates the rollup's external-beta-ready
 answer without executing queue writes, worker dispatch, tools, GPU runtime, or
@@ -60,6 +61,7 @@ and the rollup does not approve live queue writes from those records.
 - Native GPU runtime proof accepted tools with provided evidence: 8
 - Native GPU runtime proof profiles accepted with provided evidence: 6
 - Model-weight manifest review accepted with provided evidence: 5
+- Route-bound service-role queue-smoke operator-preflight evidence preserved: 21
 - Internal beta ready now: 0
 - External beta ready now: 21, controlled on-demand tool-call readiness only
 - Production ready now: 0
@@ -136,6 +138,7 @@ the GPU runtime may start now. The accepted source packet must preserve
 Accepted activated-launch readiness means the external-beta go/no-go and all-21
 activation rollup have already been accepted. It marks all 21 tools ready for
 controlled on-demand external-beta tool calls while preserving
+`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence=21`,
 `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`,
 `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`,
 `gpuRuntimeShouldStartNow=false`, and `productionReadyNow=false`.

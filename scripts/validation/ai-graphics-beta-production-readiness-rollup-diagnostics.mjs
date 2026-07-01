@@ -572,6 +572,7 @@ for (const [key, expected] of Object.entries({
   nativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence: 8,
   nativeGpuRuntimeProofProfilesAcceptedWithProvidedEvidence: 6,
   modelWeightManifestReviewAcceptedWithProvidedEvidence: 5,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   internalBetaReadyNowTools: 0,
   externalBetaReadyNowTools: 21,
   productionReadyNowTools: 0,
@@ -597,6 +598,12 @@ if (docs.externalBetaActivatedLaunchReadiness?.acceptedWithProvidedEvidence !== 
 }
 if (docs.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 21) {
   fail('docs_external_beta_activated_launch_ready_tools_not_21')
+}
+if (
+  docs.externalBetaActivatedLaunchReadiness
+    ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence !== 21
+) {
+  fail('docs_external_beta_activated_launch_operator_preflight_not_21')
 }
 if (docs.externalBetaActivatedLaunchReadiness?.gpuRuntimeShouldStartNow !== false) {
   fail('docs_external_beta_activated_launch_gpu_should_start_not_false')
@@ -647,6 +654,7 @@ for (const key of [
   'internalBetaGoNoGoReadyWithProvidedEvidence',
   'externalBetaGoNoGoReadyWithProvidedEvidence',
   'externalBetaActivatedLaunchReadyWithProvidedEvidence',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
   'externalBetaReadyNow',
   'agentCanSelectForPlanning',
 ]) {
@@ -870,6 +878,12 @@ if (activatedPacketFedOutput.input?.sourceExternalBetaActivatedLaunchReadinessPa
 if (activatedPacketFedOutput.externalBetaReadyNowTools !== 21) {
   fail('activated_packet_fed_external_beta_ready_tools_not_21')
 }
+if (
+  activatedPacketFedOutput
+    .sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence !== 21
+) {
+  fail('activated_packet_fed_operator_preflight_not_21')
+}
 if (activatedPacketFedOutput.productionReadyNowTools !== 0) {
   fail('activated_packet_fed_production_ready_tools_not_0')
 }
@@ -879,11 +893,49 @@ if (activatedPacketFedOutput.booleans?.externalBetaGoNoGoReadyWithProvidedEviden
 if (activatedPacketFedOutput.booleans?.externalBetaActivatedLaunchReadyWithProvidedEvidence !== true) {
   fail('activated_packet_fed_activated_launch_not_true')
 }
+if (
+  activatedPacketFedOutput.booleans
+    ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence !== true
+) {
+  fail('activated_packet_fed_operator_preflight_not_true')
+}
 if (activatedPacketFedOutput.booleans?.externalBetaReadyNow !== true) {
   fail('activated_packet_fed_external_beta_ready_not_true')
 }
 if (activatedPacketFedOutput.booleans?.productionReadyNow !== false) {
   fail('activated_packet_fed_production_ready_not_false')
+}
+
+const staleActivatedLaunchPacket = json(
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+)
+staleActivatedLaunchPacket.scope.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence = 20
+staleActivatedLaunchPacket.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+const staleActivatedLaunchPacketPath = writeJsonPacket(
+  packetRoot,
+  'stale-external-beta-activated-launch-readiness.json',
+  staleActivatedLaunchPacket,
+)
+const staleActivatedPacketFedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-production-worker-gate-readiness-packet',
+  sourceGatePacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
+  '--external-beta-activated-launch-readiness-packet',
+  staleActivatedLaunchPacketPath,
+  '--require-internal-beta-go-no-go-ready',
+]), 'stale_activated_packet_fed_rollup')
+if (staleActivatedPacketFedOutput.externalBetaReadyNowTools !== 0) {
+  fail('stale_activated_packet_fed_external_beta_ready_not_0')
+}
+if (
+  staleActivatedPacketFedOutput.booleans
+    ?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true
+) {
+  fail('stale_activated_packet_fed_operator_preflight_true')
+}
+if (staleActivatedPacketFedOutput.booleans?.externalBetaReadyNow !== false) {
+  fail('stale_activated_packet_fed_external_beta_ready_not_false')
 }
 
 expectSourceGatePacketRejected('missing_tool_coverage', packetRoot, sourceGatePacket, (packet) =>

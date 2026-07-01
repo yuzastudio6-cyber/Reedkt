@@ -26,6 +26,7 @@ This packet is the single end-to-end checkpoint for the 21 AI graphics tools. It
 - Saved worker-dispatch smoke proof accepted in this committed/default environment: false.
 - External-beta launch controls accepted in this committed/default environment: false.
 - Activated-launch readiness accepted: true, from `docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json`.
+- Route-bound service-role queue-smoke operator-preflight evidence preserved through activated launch: 21 / 21.
 
 ## Runtime Split
 
@@ -57,6 +58,7 @@ Default legacy evidence, without the activated-launch packet:
 Current activated-launch evidence:
 
 - External-beta activated-launch readiness accepted with provided evidence: true.
+- Route-bound service-role queue-smoke operator-preflight evidence preserved: 21 / 21.
 - External-beta ready now for controlled on-demand tool calls: 21 / 21.
 - GPU runtime still starts only for a future accepted worker/tool-call job: true.
 - Direct agent execution remains blocked: true.

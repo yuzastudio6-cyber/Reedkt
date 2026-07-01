@@ -141,16 +141,69 @@ const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
   staticExplicitToolGateReady: boolean
   currentBlocker: string
   safeNextCommand: string
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
 }
 assert.equal(qwenGateSummary.executionAllowedNow, false)
 assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
 assert.equal(qwenGateSummary.currentBlocker, 'local_gcloud_reauthentication_required_before_58dw_runtime')
 assert.equal(qwenGateSummary.safeNextCommand, QWEN_AUTH_NEXT_PROMPT)
+assert.equal(qwenGateSummary.manualBlockerActions.length, 2)
+assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
+assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
+assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.runsModel === false), true)
+assert.equal(qwenGateSummary.manualBlockerActions.every((action) => action.createsAssets === false), true)
+assert.equal(
+  qwenGateSummary.manualBlockerActions.some(
+    (action) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.mutatesLocalGcloudConfig === false &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  qwenGateSummary.manualBlockerActions.some(
+    (action) =>
+      action.id === 'select_authenticated_gcloud_account_if_needed' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === false &&
+      action.mutatesLocalGcloudConfig === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
 const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') as {
   executionAllowedNow: boolean
   staticExplicitToolGateReady: boolean
   currentBlocker: string
   safeNextCommand: string
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
   noIdleLifecycleGate: {
     proofVmName: string
     noPublicIpRequired: boolean
@@ -164,6 +217,20 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
 assert.equal(brollGateSummary.currentBlocker, 'gpus_all_regions_quota_zero_or_unverified')
 assert.equal(brollGateSummary.safeNextCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(brollGateSummary.manualBlockerActions.length, 1)
+assert.equal(brollGateSummary.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(brollGateSummary.manualBlockerActions[0].runInsideCodex, false)
+assert.equal(brollGateSummary.manualBlockerActions[0].mutatesRuntime, false)
+assert.equal(brollGateSummary.manualBlockerActions[0].runsModel, false)
+assert.equal(brollGateSummary.manualBlockerActions[0].createsAssets, false)
+assert.equal(brollGateSummary.manualBlockerActions[0].mutatesCloud, true)
+assert.equal(brollGateSummary.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
+assert.equal(brollGateSummary.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
+assert.equal(brollGateSummary.manualBlockerActions[0].changesQuotaRequest, true)
+assert.equal(
+  brollGateSummary.manualBlockerActions[0].afterCompletionCommand,
+  'npm run external-agent-tool-blockers:preflight',
+)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateSummary.noIdleLifecycleGate.noPublicIpRequired, true)
 assert.equal(brollGateSummary.noIdleLifecycleGate.externalIpAllowed, false)
@@ -174,6 +241,22 @@ assert.equal(
   decision.executionAllowedNow,
   decision.executionGateAllowsRuntime && decision.qwenLivePreflightPassed,
 )
+for (const summary of decision.executionGateToolSummaries as Array<{
+  toolId: string
+  manualBlockerActions: Array<{
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+  }>
+}>) {
+  for (const action of summary.manualBlockerActions) {
+    assert.equal(action.runInsideCodex, false, `${summary.toolId} live-selector manual action must stay outside Codex`)
+    assert.equal(action.mutatesRuntime, false, `${summary.toolId} live-selector manual action must not run runtime`)
+    assert.equal(action.runsModel, false, `${summary.toolId} live-selector manual action must not run models`)
+    assert.equal(action.createsAssets, false, `${summary.toolId} live-selector manual action must not create assets`)
+  }
+}
 assert.equal(decision.readyForAnyExternalAgentExecutionNow, decision.executionAllowedNow)
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)

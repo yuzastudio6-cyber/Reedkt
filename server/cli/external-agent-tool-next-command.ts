@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 type ProbeResult = {
@@ -92,20 +93,27 @@ function objectString(row: Record<string, unknown>, key: string): string | undef
 
 function executionGateToolSummaries(document: Record<string, unknown> | undefined) {
   const rows = nestedArray(document, ['toolRows']) ?? []
+  const toolsById = new Map(EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.map((tool) => [tool.toolId, tool]))
 
   return rows
     .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object' && !Array.isArray(row))
-    .map((row) => ({
-      toolId: objectString(row, 'toolId'),
-      executionAllowedNow: row.executionAllowedNow === true,
-      staticExplicitToolGateReady: row.staticExplicitToolGateReady === true,
-      currentBlocker: objectString(row, 'currentBlocker'),
-      safeNextCommand: objectString(row, 'safeNextCommand'),
-      noIdleLifecycleGate:
-        row.noIdleLifecycleGate && typeof row.noIdleLifecycleGate === 'object' && !Array.isArray(row.noIdleLifecycleGate)
-          ? row.noIdleLifecycleGate
-          : undefined,
-    }))
+    .map((row) => {
+      const toolId = objectString(row, 'toolId')
+      const rollupTool = toolId ? toolsById.get(toolId) : undefined
+
+      return {
+        toolId,
+        executionAllowedNow: row.executionAllowedNow === true,
+        staticExplicitToolGateReady: row.staticExplicitToolGateReady === true,
+        currentBlocker: objectString(row, 'currentBlocker'),
+        safeNextCommand: objectString(row, 'safeNextCommand'),
+        manualBlockerActions: rollupTool?.manualBlockerActions ?? [],
+        noIdleLifecycleGate:
+          row.noIdleLifecycleGate && typeof row.noIdleLifecycleGate === 'object' && !Array.isArray(row.noIdleLifecycleGate)
+            ? row.noIdleLifecycleGate
+            : undefined,
+      }
+    })
 }
 
 function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) {

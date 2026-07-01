@@ -303,6 +303,8 @@ function acceptedWorkerDispatchSmokeProofFixture() {
       sourceInMemoryLeaseRecordsCreated: 21,
       sourceInMemoryLeaseRecordsReleased: 21,
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
       sourceLiveWorkerLeasesCreatedNow: 0,
       sourceLiveWorkerDispatchesNow: 0,
       sourceLiveToolExecutionsNow: 0,
@@ -311,9 +313,15 @@ function acceptedWorkerDispatchSmokeProofFixture() {
     },
     evidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: true,
+      sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+      serviceRoleQueueSmokeAuthorizationRef:
+        'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
     booleans: {
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,
@@ -458,6 +466,7 @@ function serviceRoleQueueSmokeResultFixture() {
     serviceRoleQueueSmokeAuthorizationRef:
       'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
     liveServiceRoleQueueSmokeExecutedNow: true,

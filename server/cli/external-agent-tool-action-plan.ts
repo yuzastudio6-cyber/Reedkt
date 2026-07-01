@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'bounded approved-fixture private inference retry gate is required after the retry plan; no direct inference is allowed from this action plan',
+        'bounded approved-fixture private inference retry attempt approval is required after the retry gate; no direct inference is allowed from this action plan',
       afterBlockerClears:
-        'rerun read-only blocker preflight immediately before any future bounded private inference retry gate',
+        'record one bounded approved-fixture private inference retry attempt approval before any future private request or inference retry',
     }
   }
 

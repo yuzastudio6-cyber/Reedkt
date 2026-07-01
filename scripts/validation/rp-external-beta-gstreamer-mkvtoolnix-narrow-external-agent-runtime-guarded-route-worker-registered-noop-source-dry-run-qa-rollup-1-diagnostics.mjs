@@ -3,85 +3,57 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
 const packet =
-  'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-QA-ROLLUP-1'
+  'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-DRY-RUN-QA-ROLLUP-1'
 const dir =
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1'
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1'
 const recordPath =
-  `${dir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1-record.json`
+  `${dir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-record.json`
 const sourceRecordPath =
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-implementation-1/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-implementation-1-record.json'
-const integrationBase = '0af8a8f72ee38a0d930153afccd97f70ddc73949'
-const decision = 'qa_passed_gstreamer_mkvtoolnix_narrow_registered_noop_source_implementation_evidence'
-const execution = 'completed_docs_only_registered_noop_source_qa_rollup_no_route_worker_tool_or_media_execution'
-const sourceDecision =
-  'completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_implementation_ready_for_source_qa_rollup'
-const sourceExecution = 'completed_backend_source_guarded_registered_noop_source_validation_no_route_worker_tool_or_media_execution'
-const sourceReadiness = 'ready_for_guarded_narrow_route_worker_registered_noop_source_qa_rollup'
-const readiness = 'ready_for_guarded_narrow_route_worker_registered_noop_source_dry_run'
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1-record.json'
+const integrationBase = 'af748afe4992b7326f9952bc5a3c09ff5ffbbf75'
+const decision = 'qa_passed_gstreamer_mkvtoolnix_narrow_registered_noop_source_dry_run_evidence'
+const execution =
+  'completed_docs_only_registered_noop_source_dry_run_qa_rollup_no_route_worker_tool_or_media_execution'
+const sourceDecision = 'completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_dry_run'
+const sourceExecution =
+  'completed_confirmation_gated_registered_noop_source_contract_dry_run_no_route_worker_tool_or_media_execution'
+const sourceReadiness = 'ready_for_guarded_narrow_route_worker_registered_noop_source_dry_run_qa_rollup'
+const readiness = 'ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run'
+const runId = '2026-07-01T13-04-23-510Z-0e78b3a6'
 const nextMilestone =
-  'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-DRY-RUN-1'
-const gate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_REGISTERED_NOOP_SOURCE_DRY_RUN'
+  'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-ROUTE-WORKER-DRY-RUN-1'
+const gate = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_REGISTERED_NOOP_SOURCE_DRY_RUN=true'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${dir}/source-audit.md`,
   `${dir}/evidence-matrix.md`,
   `${dir}/qa-decision.md`,
+  `${dir}/artifact-manifest-summary.md`,
   `${dir}/readiness.md`,
   `${dir}/safety-boundary.md`,
   `${dir}/validation-results.md`,
   recordPath,
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1.md',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-1.md',
 ]
 
 const implementationFiles = [
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-implementation-1-diagnostics.mjs',
   'package.json',
 ]
 
 const sourceFiles = [
   sourceRecordPath,
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1.md',
-]
-
-const nextRegisteredNoopSourceDryRunFiles = [
-  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1.ts',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1-diagnostics.mjs',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/source-audit.md',
   'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/dry-run-result.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/command-matrix.md',
   'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/artifact-manifest.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/negative-cases.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/readiness.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/safety-boundary.md',
   'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/validation-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1-record.json',
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1.md',
 ]
 
-const nextRegisteredNoopSourceDryRunQaRollupFiles = [
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/source-audit.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/evidence-matrix.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/qa-decision.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/artifact-manifest-summary.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/readiness.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/safety-boundary.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/validation-results.md',
-  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-record.json',
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-1.md',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-diagnostics.mjs',
-]
-
-const allowedChangedFiles = new Set([
-  ...packetFiles,
-  ...implementationFiles,
-  ...nextRegisteredNoopSourceDryRunFiles,
-  ...nextRegisteredNoopSourceDryRunQaRollupFiles,
-])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
 
 const requiredText = [
   packet,
@@ -92,37 +64,33 @@ const requiredText = [
   sourceExecution,
   sourceReadiness,
   readiness,
-  'Source implementation PR: `#1987`',
-  'Source implementation merge SHA: `0af8a8f72ee38a0d930153afccd97f70ddc73949`',
-  'Source implementation head SHA: `591968f7a8fad31cee3955e8632fb18d4ff53af6`',
-  'source-gstreamer-mkvtoolnix-narrow-route-worker-registered-noop-1',
-  'externalBeta.gstreamerMkvtoolnix.narrowExternalAgentRuntimeRegisteredNoopSource',
-  '/api/external-beta/gstreamer-mkvtoolnix/narrow-agent/registered-noop-boundary',
-  'backend_service_role_only',
-  'source_declared_registered_but_runtime_disabled',
-  'disabled_registered_noop_source_contract_only',
-  'source_declared_not_dispatched',
-  `${gate}=true`,
+  'Source dry-run PR: `#1991`',
+  'Source dry-run merge SHA: `af748afe4992b7326f9952bc5a3c09ff5ffbbf75`',
+  'Run ID: `2026-07-01T13-04-23-510Z-0e78b3a6`',
+  gate,
   'accepted_registered_noop_source_contract',
-  'Runtime enablement drift blocker',
-  'blocked_registered_noop_source_runtime_enabled_without_future_packet',
-  'blocked_registered_noop_route_worker_queue_or_runtime_execution_not_enabled',
-  'Runtime enabled | `false`',
-  'Route registered at runtime | `false`',
-  'Route execution | `false`',
-  'Worker dispatch | `false`',
-  'Worker execution | `false`',
-  'Tool execution | `false`',
+  'Negative fail-closed blocker matrix',
+  'registered-noop-source-dry-run-report.json',
+  'registered-noop-source-dry-run-manifest.json',
+  '4869290dc0df43e7198cd08dc195dccc566dd20278fc220705b4af1a2c890ad5',
+  'a3e83d794526cf99e29340549406b0e47118bfcc83b611af4c8418177b17ae59',
   'Production route file created in this QA rollup phase: `false`',
   'Route registered in this QA rollup phase: `false`',
   'Route enabled in this QA rollup phase: `false`',
   'Route execution in this QA rollup phase: `false`',
   'Worker dispatch in this QA rollup phase: `false`',
   'Worker execution in this QA rollup phase: `false`',
+  'Worker process start in this QA rollup phase: `false`',
+  'Worker lease claim in this QA rollup phase: `false`',
+  'Persistent job queue write in this QA rollup phase: `false`',
   'GStreamer execution in this QA rollup phase: `false`',
   'MKVToolNix execution in this QA rollup phase: `false`',
+  'Docker execution in this QA rollup phase: `false`',
+  'FFmpeg/FFprobe execution in this QA rollup phase: `false`',
   'Supabase mutation in this QA rollup phase: `false`',
   'SQL execution in this QA rollup phase: `false`',
+  'Public artifact creation in this QA rollup phase: `false`',
+  'Final render/export in this QA rollup phase: `false`',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -132,7 +100,7 @@ const requiredText = [
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1\.ts$)/,
+  /^server\//,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,
@@ -160,6 +128,9 @@ const forbiddenClaimPatterns = [
   /"routeExecutionInThisQaRollupPhase"\s*:\s*true/i,
   /"workerDispatchInThisQaRollupPhase"\s*:\s*true/i,
   /"workerExecutionInThisQaRollupPhase"\s*:\s*true/i,
+  /"workerProcessStartInThisQaRollupPhase"\s*:\s*true/i,
+  /"workerLeaseClaimInThisQaRollupPhase"\s*:\s*true/i,
+  /"persistentJobQueueWriteInThisQaRollupPhase"\s*:\s*true/i,
   /"gstreamerExecutionInThisQaRollupPhase"\s*:\s*true/i,
   /"mkvtoolnixExecutionInThisQaRollupPhase"\s*:\s*true/i,
   /"dockerExecutionInThisQaRollupPhase"\s*:\s*true/i,
@@ -208,11 +179,11 @@ for (const file of [...packetFiles, ...implementationFiles, ...sourceFiles]) rea
 const packageJson = json('package.json')
 if (
   packageJson.scripts?.[
-    'rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1:diagnostics'
+    'rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1:diagnostics'
   ] !==
-  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-qa-rollup-1-diagnostics.mjs'
+  'node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1-diagnostics.mjs'
 ) {
-  fail('missing registered no-op source QA rollup diagnostics package script')
+  fail('missing registered no-op source dry-run QA rollup diagnostics package script')
 }
 
 const corpus = packetFiles.map((file) => read(file)).join('\n')
@@ -228,30 +199,21 @@ if (record.packet !== packet) fail('packet mismatch')
 if (record.integrationBase !== integrationBase) fail('integration base mismatch')
 if (record.decision !== decision) fail('decision mismatch')
 if (record.execution !== execution) fail('execution mismatch')
-if (record.sourceChain?.registeredNoopSourceImplementationPr !== 1987) fail('source PR mismatch')
-if (record.sourceChain?.registeredNoopSourceImplementationMergeSha !== integrationBase) fail('source merge SHA mismatch')
-if (record.sourceChain?.registeredNoopSourceImplementationHeadSha !== '591968f7a8fad31cee3955e8632fb18d4ff53af6') {
-  fail('source head SHA mismatch')
-}
-if (record.sourceChain?.registeredNoopSourceImplementationDecision !== sourceDecision) fail('source decision mismatch')
-if (record.sourceChain?.registeredNoopSourceImplementationExecution !== sourceExecution) fail('source execution mismatch')
-if (record.sourceChain?.registeredNoopSourceImplementationReadiness !== sourceReadiness) fail('source readiness mismatch')
+if (record.sourceChain?.registeredNoopSourceDryRunPr !== 1991) fail('dry-run PR mismatch')
+if (record.sourceChain?.registeredNoopSourceDryRunMergeSha !== integrationBase) fail('dry-run merge SHA mismatch')
+if (record.sourceChain?.registeredNoopSourceDryRunDecision !== sourceDecision) fail('dry-run decision mismatch')
+if (record.sourceChain?.registeredNoopSourceDryRunExecution !== sourceExecution) fail('dry-run execution mismatch')
+if (record.sourceChain?.registeredNoopSourceDryRunReadiness !== sourceReadiness) fail('dry-run readiness mismatch')
 if (record.sourceChain?.excludedRemotionPr !== '#577 open_draft_blocked_excluded') fail('#577 exclusion mismatch')
-if (record.qa?.scope !== 'registered_noop_source_implementation_evidence_review_only') fail('QA scope mismatch')
-if (record.qa?.sourceSmoke !== 'passed') fail('source smoke mismatch')
-if (record.qa?.sourceDiagnostics !== 'passed') fail('source diagnostics mismatch')
-if (record.qa?.sourceValidation !== 'passed') fail('source validation mismatch')
-if (record.qa?.sourceImplementationId !== 'source-gstreamer-mkvtoolnix-narrow-route-worker-registered-noop-1') {
-  fail('source implementation ID mismatch')
-}
-if (record.qa?.routeSourceId !== 'externalBeta.gstreamerMkvtoolnix.narrowExternalAgentRuntimeRegisteredNoopSource') {
-  fail('route source ID mismatch')
-}
-if (record.qa?.futureDryRunConfirmationGate !== `${gate}=true`) fail('future dry-run gate mismatch')
+if (record.qa?.scope !== 'dry_run_evidence_review_only') fail('QA scope mismatch')
+if (record.qa?.dryRunEvidence !== 'passed') fail('dry-run evidence mismatch')
+if (record.qa?.dryRunDiagnostics !== 'passed') fail('dry-run diagnostics mismatch')
+if (record.qa?.priorRegisteredNoopSourceQaDiagnostics !== 'passed') fail('prior QA diagnostics mismatch')
+if (record.qa?.runId !== runId) fail('run ID mismatch')
+if (record.qa?.confirmationGate !== gate) fail('confirmation gate mismatch')
 if (record.qa?.responseShapeStatus !== 'accepted_registered_noop_source_contract') fail('response shape mismatch')
+if (record.qa?.negativeFailClosedMatrix !== 'passed') fail('negative matrix mismatch')
 for (const flag of [
-  'runtimeEnabled',
-  'routeRegisteredAtRuntime',
   'productionRouteFileCreated',
   'routeRegistered',
   'routeEnabled',
@@ -263,6 +225,14 @@ for (const flag of [
   'persistentQueueWrite',
 ]) {
   if (record.qa?.[flag] !== false) fail(`QA flag must be false: ${flag}`)
+}
+if (record.artifacts?.report?.bytes !== 4809) fail('report bytes mismatch')
+if (record.artifacts?.report?.sha256 !== '4869290dc0df43e7198cd08dc195dccc566dd20278fc220705b4af1a2c890ad5') {
+  fail('report checksum mismatch')
+}
+if (record.artifacts?.manifest?.bytes !== 748) fail('manifest bytes mismatch')
+if (record.artifacts?.manifest?.sha256 !== 'a3e83d794526cf99e29340549406b0e47118bfcc83b611af4c8418177b17ae59') {
+  fail('manifest checksum mismatch')
 }
 if (record.readiness?.gstreamer !== readiness) fail('GStreamer readiness mismatch')
 if (record.readiness?.mkvtoolnix !== readiness) fail('MKVToolNix readiness mismatch')
@@ -280,8 +250,8 @@ const sourceRecord = json(sourceRecordPath)
 if (sourceRecord.decision !== sourceDecision) fail('source record decision mismatch')
 if (sourceRecord.execution !== sourceExecution) fail('source record execution mismatch')
 if (sourceRecord.nextMilestone !== packet) fail('source record next milestone mismatch')
+if (sourceRecord.readiness?.gstreamer !== sourceReadiness) fail('source record readiness mismatch')
 if (sourceRecord.productReadyEndToEndLocalOssTools !== 0) fail('source record product-ready count mismatch')
-if (sourceRecord.validation !== 'passed') fail('source validation must be passed')
 
 gitQuiet(['diff', '--check'], 'git diff --check failed')
 gitQuiet(['diff', '--cached', '--check'], 'git diff --cached --check failed')
@@ -313,6 +283,7 @@ console.log(
       packet,
       decision,
       execution,
+      runId,
       changedFiles,
       nextMilestone,
     },

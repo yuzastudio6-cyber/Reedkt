@@ -183,14 +183,22 @@ assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
+assert.equal(typeof decision.chosenNextCommandAlreadyExecutedInThisRun, 'boolean')
+assert.equal(
+  typeof decision.codexRunnableNextCommandNow === 'string' || decision.codexRunnableNextCommandNow === null,
+  true,
+)
 if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
   assert.equal(decision.executionAllowedNow, true)
   assert.equal(decision.chosenManualAction, QWEN_NEXT_PROMPT)
   assert.equal(decision.chosenNextCommand, undefined)
+  assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
+  assert.equal(decision.codexRunnableNextCommandNow, null)
   assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.manualActionReason, undefined)
   assert.equal(decision.manualActionBlocksRuntime, undefined)
   assert.equal(decision.rerunAfterManualAction, undefined)
+  assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else if (decision.qwenLivePreflightPassed) {
   assert.equal(decision.executionAllowedNow, false)
   assert.equal(decision.qwenLivePreflightVerificationRequired, true)
@@ -198,8 +206,11 @@ if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
     decision.chosenNextCommand,
     spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
   )
+  assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
+  assert.equal(decision.codexRunnableNextCommandNow, decision.chosenNextCommand)
   assert.equal(decision.chosenManualAction, QWEN_AUTH_REFRESH_VERIFY_PROMPT)
   assert.equal(decision.manualActionRequired, false)
+  assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else {
   assert.equal(decision.executionAllowedNow, false)
   assert.equal(
@@ -214,8 +225,14 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(decision.manualActionRequired, true)
   assert.equal(decision.manualActionReason, spec.manualActionRules.whenQwenAuthRefreshFails.reason)
   assert.equal(decision.manualActionBlocksRuntime, true)
+  assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, true)
+  assert.equal(decision.codexRunnableNextCommandNow, null)
   assert.equal(
     decision.rerunAfterManualAction,
+    spec.manualActionRules.whenQwenAuthRefreshFails.rerunAfterManualAction,
+  )
+  assert.equal(
+    decision.nextCodexCommandAfterManualAction,
     spec.manualActionRules.whenQwenAuthRefreshFails.rerunAfterManualAction,
   )
   assert.equal(typeof decision.gcloudDiagnosticSummary, 'object')

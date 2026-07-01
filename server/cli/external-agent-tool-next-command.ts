@@ -235,6 +235,11 @@ function main() {
   const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined
   const manualActionBlocksRuntime = manualActionRequired ? authManualActionRule.blocksRuntime : undefined
   const rerunAfterManualAction = manualActionRequired ? authManualActionRule.rerunAfterManualAction : undefined
+  const chosenNextCommandAlreadyExecutedInThisRun =
+    chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
+  const codexRunnableNextCommandNow =
+    manualActionRequired || chosenNextCommandAlreadyExecutedInThisRun ? undefined : chosenNextCommand
+  const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
     .filter((probe): probe is ProbeResult => Boolean(probe))
@@ -277,11 +282,14 @@ function main() {
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
         gcloudDiagnosticSummary: diagnosticSummary,
         chosenNextCommand,
+        chosenNextCommandAlreadyExecutedInThisRun,
+        codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
         chosenManualAction,
         manualActionRequired,
         manualActionReason,
         manualActionBlocksRuntime,
         rerunAfterManualAction,
+        nextCodexCommandAfterManualAction,
         probeSummaries,
         forbiddenRuntimeActions: spec.forbiddenRuntimeActions,
         runtimeSideEffects: spec.runtimeSideEffects,

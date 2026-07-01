@@ -38,8 +38,8 @@ The upstream 58DU result proved that the retry attempt should not be run while t
 ## External-Agent Gate Alignment Rules
 
 - Qwen can become the only ready external-agent tool lane when the static gate is evaluated.
-- A `--require-go` pass means only that the next prompt may be the tool-specific bounded 58DW execution prompt.
-- A `--require-go` pass does not itself run Cloud Run, a job, a model import, model load, prompt processing, forward pass, or inference.
+- A `--require-go` pass is not granted by this static gate-alignment evidence alone; the external-agent execution gate must also see current ready-tool evidence and live preflight satisfaction.
+- If `--require-go` ever passes in a later prompt, that pass means only that the next prompt may be the tool-specific bounded 58DW execution prompt; it still does not itself run Cloud Run, a job, a model import, model load, prompt processing, forward pass, or inference.
 - The 58DW prompt must repeat live auth/service/job checks before runtime.
 - The 58DW prompt must execute at most one approved-fixture private retry through the persisted job and lease bridge.
 - The 58DW prompt must keep generated assets, storage writes, signed URLs, public artifacts, Supabase mutation, credit mutation, beta, and production blocked.

@@ -33,6 +33,7 @@ export interface RuntimeEnv {
   workerInstanceId: string
   workerHeartbeatIntervalSeconds: number
   workerClaimLeaseSeconds: number
+  aiGraphicsExternalBetaToolCallRouteMountEnabled: boolean
   strictToolReadiness: boolean
   toolCheckTimeoutMs: number
   ffmpegBin: string
@@ -76,6 +77,7 @@ const envSchema = z.object({
   WORKER_INSTANCE_ID: z.string().default('local-worker-1'),
   WORKER_HEARTBEAT_INTERVAL_SECONDS: z.coerce.number().int().positive().max(3600).default(30),
   WORKER_CLAIM_LEASE_SECONDS: z.coerce.number().int().positive().max(86400).default(300),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
   STRICT_TOOL_READINESS: z.string().optional(),
   TOOL_CHECK_TIMEOUT_MS: z.coerce.number().int().positive().max(120000).default(10000),
   FFMPEG_BIN: z.string().default('ffmpeg'),
@@ -145,6 +147,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     workerInstanceId: parsed.WORKER_INSTANCE_ID,
     workerHeartbeatIntervalSeconds: parsed.WORKER_HEARTBEAT_INTERVAL_SECONDS,
     workerClaimLeaseSeconds: parsed.WORKER_CLAIM_LEASE_SECONDS,
+    aiGraphicsExternalBetaToolCallRouteMountEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED),
     strictToolReadiness: parseBoolean(parsed.STRICT_TOOL_READINESS),
     toolCheckTimeoutMs: parsed.TOOL_CHECK_TIMEOUT_MS,
     ffmpegBin: parsed.FFMPEG_BIN,
@@ -203,6 +207,8 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       workerInstanceIdConfigured: Boolean(env.workerInstanceId),
       heartbeatIntervalSeconds: env.workerHeartbeatIntervalSeconds,
       claimLeaseSeconds: env.workerClaimLeaseSeconds,
+      aiGraphicsExternalBetaToolCallRouteMountEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
       strictToolReadiness: env.strictToolReadiness,
       toolCheckTimeoutMs: env.toolCheckTimeoutMs,
       ffmpegBinConfigured: Boolean(env.ffmpegBin),

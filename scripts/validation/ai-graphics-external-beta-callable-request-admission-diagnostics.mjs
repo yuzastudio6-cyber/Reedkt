@@ -666,6 +666,7 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-callable-request-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-callable-request-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-execution-gate": "tsx server/cli/ai-graphics-external-agent-execution-gate.ts",',
   '+    "ai-graphics:external-agent-execution-gate:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-mount-feature-flag:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs",',
 ])
 for (const rawLine of packageDiff.split('\n')) {
   const line = rawLine.trimEnd()

@@ -4,18 +4,17 @@ import path from 'node:path'
 
 const root = process.cwd()
 const decision =
-  'ai_graphics_external_agent_mock_queue_insertion_proof_passed_with_runtime_blocks'
-const acceptedStatus =
-  'mock_queue_insertion_validated_all_21_live_queue_still_blocked'
+  'ai_graphics_external_agent_mock_worker_claim_proof_passed_with_runtime_blocks'
+const acceptedStatus = 'mock_worker_claim_validated_all_21_dispatch_still_blocked'
 const sourceDecision =
-  'ai_graphics_external_agent_route_to_queue_blocked_admission_prepared_with_runtime_blocks'
-const runScriptName = 'ai-graphics:external-agent-mock-queue-insertion-proof'
+  'ai_graphics_external_agent_mock_queue_insertion_proof_passed_with_runtime_blocks'
+const runScriptName = 'ai-graphics:external-agent-mock-worker-claim-proof'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-agent-mock-queue-insertion-proof.ts'
+  'tsx server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-agent-mock-queue-insertion-proof:diagnostics'
+  'ai-graphics:external-agent-mock-worker-claim-proof:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-agent-mock-queue-insertion-proof-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-agent-mock-worker-claim-proof-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -44,10 +43,11 @@ const tools = [
 const expectedCounts = {
   totalAiGraphicsTools: 21,
   totalProductFacingCapabilities: 12,
-  sourceRouteToQueueBlockedAdmissionMappedTools: 21,
-  mockQueueInsertionAttemptedTools: 21,
-  mockQueueInsertedJobCount: 21,
-  mockQueueReturnedJobIds: 21,
+  sourceMockQueueInsertedJobCount: 21,
+  mockQueuePreludeInsertedJobCount: 21,
+  mockWorkerClaimAttemptedTools: 21,
+  mockWorkerClaimsCreated: 21,
+  mockWorkerLeaseSeconds: 900,
   queueValidationAcceptedTools: 21,
   gpuRuntimeTargetedTools: 8,
   gpuRuntimeShouldStartNowTools: 0,
@@ -61,22 +61,21 @@ const expectedCounts = {
 }
 
 const trueKeys = [
-  'externalAgentMockQueueInsertionProofPassed',
-  'sourceRouteToQueueBlockedAdmissionAccepted',
-  'mockQueueServiceValidationAccepted',
+  'externalAgentMockWorkerClaimProofPassed',
+  'sourceMockQueueInsertionProofAccepted',
+  'mockQueueServiceClaimAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'all21QueueJobsValidatedByService',
-  'mockQueueInsertionProofPerformed',
+  'all21MockWorkerClaimsCreated',
+  'mockWorkerClaimProofPerformed',
   'mockOnlyRuntimeModeEnforced',
-  'privateArtifactManifestRefsOnly',
+  'privateWorkerClaimLeaseOnly',
   'agentCanSelectForPlanning',
 ]
 
 const falseKeys = [
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
-  'routeToQueueAuthorizationApprovedNow',
   'backendQueueSubmissionApprovedNow',
   'liveQueueWriteApprovedNow',
   'workerExecutionApprovedNow',
@@ -142,11 +141,11 @@ const forbiddenDocPatterns = [
 ]
 
 const requiredFiles = [
-  'server/cli/ai-graphics-external-agent-mock-queue-insertion-proof.ts',
-  'scripts/validation/ai-graphics-external-agent-mock-queue-insertion-proof-diagnostics.mjs',
+  'server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts',
+  'scripts/validation/ai-graphics-external-agent-mock-worker-claim-proof-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.md',
   'docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.md',
-  'docs/tool-intelligence/ai-graphics/external-agent-route-to-queue-blocked-admission.json',
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
   'server/tool-registry/ai-graphics-tool-call-readiness.ts',
   'docs/production-beta-readiness-scorecard.md',
@@ -213,35 +212,32 @@ function checkBooleans(label, booleans) {
   }
 }
 
-function checkJobs(label, jobs) {
-  if (!Array.isArray(jobs)) {
-    fail(`${label}_jobs_not_array`)
+function checkClaims(label, claims) {
+  if (!Array.isArray(claims)) {
+    fail(`${label}_claims_not_array`)
     return
   }
-  if (jobs.length !== 21) fail(`${label}_job_count_not_21`)
+  if (claims.length !== 21) fail(`${label}_claim_count_not_21`)
   for (const toolId of tools) {
-    const job = jobs.find((item) => item.toolId === toolId)
-    if (!job) {
-      fail(`${label}_missing_job:${toolId}`)
+    const claim = claims.find((item) => item.toolId === toolId)
+    if (!claim) {
+      fail(`${label}_missing_claim:${toolId}`)
       continue
     }
-    if (!job.productionToolId) fail(`${label}_missing_production_tool_id:${toolId}`)
-    if (!job.workerType) fail(`${label}_missing_worker_type:${toolId}`)
-    if (!job.runtimeTarget) fail(`${label}_missing_runtime_target:${toolId}`)
-    if (job.mockQueueInsertionValidated !== true) {
-      fail(`${label}_mock_queue_validation_not_true:${toolId}`)
-    }
+    if (!claim.productionToolId) fail(`${label}_missing_production_tool_id:${toolId}`)
+    if (!claim.workerType) fail(`${label}_missing_worker_type:${toolId}`)
+    if (!claim.runtimeTarget) fail(`${label}_missing_runtime_target:${toolId}`)
+    if (claim.mockWorkerClaimCreated !== true) fail(`${label}_claim_not_created:${toolId}`)
+    if (claim.mockWorkerLeaseSeconds !== 900) fail(`${label}_lease_seconds_mismatch:${toolId}`)
+    if (claim.leaseExpiresAtPresent !== true) fail(`${label}_lease_expiry_not_present:${toolId}`)
+    if (claim.privateWorkerClaimLeaseOnly !== true) fail(`${label}_private_claim_not_true:${toolId}`)
     for (const key of [
       'liveQueueWritePerformed',
-      'workerEnqueuePerformed',
       'workerDispatchPerformed',
       'toolExecutionPerformed',
       'gpuRuntimeShouldStartNow',
     ]) {
-      if (job[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
-    }
-    if (job.privateArtifactManifestRef && !String(job.privateArtifactManifestRef).startsWith('private://')) {
-      fail(`${label}_${toolId}_private_artifact_ref_not_private`)
+      if (claim[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
     }
   }
 }
@@ -250,31 +246,35 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(absolute(file))) fail(`missing_file:${file}`)
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.md')
-const source = json('docs/tool-intelligence/ai-graphics/external-agent-route-to-queue-blocked-admission.json')
+const docs = json('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.md')
+const source = json('docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.json')
 const packageJson = json('package.json')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
-const cliSource = read('server/cli/ai-graphics-external-agent-mock-queue-insertion-proof.ts')
+const cliSource = read('server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
 if (source.decision !== sourceDecision) fail('source_decision_mismatch')
 if (source.booleans?.agentCanExecuteToolsNow !== false) fail('source_agent_execution_not_false')
 if (source.booleans?.liveQueueWritePerformed !== false) fail('source_live_queue_not_false')
+if (source.booleans?.workerDispatchPerformed !== false) fail('source_worker_dispatch_not_false')
+if (source.booleans?.toolExecutionPerformed !== false) fail('source_tool_execution_not_false')
 
 checkCounts('docs', docs.counts)
 checkBooleans('docs', docs.booleans)
-checkJobs('docs', docs.jobs)
+checkClaims('docs', docs.claims)
 
 for (const toolId of tools) {
   if (!docsMd.includes(toolId)) fail(`markdown_missing_tool:${toolId}`)
 }
 for (const required of [
-  'external-agent-route-to-queue-blocked-admission.json',
+  'external-agent-mock-queue-insertion-proof.json',
   'createAiGraphicsToolRuntimeQueueService',
+  'claimToolRuntimeJob',
   'mock mode',
-  'no live queue write',
+  'private worker claim lease',
+  'no worker dispatch',
   'no tool execution',
 ]) {
   if (!JSON.stringify(docs).includes(required) && !docsMd.includes(required)) {
@@ -282,13 +282,13 @@ for (const required of [
   }
 }
 for (const required of [
-  'createAiGraphicsToolRuntimeQueueService',
+  'claimToolRuntimeJob',
   'E2E_RUNTIME_MODE',
   'mock',
-  'private://ai-graphics/external-agent/mock-queue-insertion-proof',
-  'liveQueueWritePerformed: false',
+  'private://ai-graphics/external-agent/mock-worker-claim-proof',
   'workerDispatchPerformed: false',
   'toolExecutionPerformed: false',
+  'gpuRuntimeShouldStartNow: false',
 ]) {
   if (!cliSource.includes(required)) fail(`cli_missing:${required}`)
 }
@@ -306,8 +306,8 @@ if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
 }
 
 if (!scorecard.includes(decision) ||
-    !scorecard.includes('External Agent Mock Queue Insertion Proof')) {
-  fail('scorecard_missing_mock_queue_insertion_section')
+    !scorecard.includes('External Agent Mock Worker Claim Proof')) {
+  fail('scorecard_missing_mock_worker_claim_section')
 }
 if (/runtimeReadyNow["`:\s=]+true/i.test(scorecard) ||
     /productionReadyNow["`:\s=]+true/i.test(scorecard)) {
@@ -325,11 +325,12 @@ if (cliReport.decision !== decision) fail('cli_decision_mismatch')
 if (cliReport.status !== acceptedStatus) fail('cli_status_mismatch')
 checkCounts('cli', cliReport.counts)
 checkBooleans('cli', cliReport.booleans)
-checkJobs('cli', cliReport.jobs)
-if (cliReport.queueResult?.mockOnly !== true) fail('cli_queue_result_not_mock_only')
-if (cliReport.queueResult?.insertedJobCount !== 21) fail('cli_inserted_count_not_21')
-if (cliReport.queueResult?.liveToolExecutionPerformed !== false) {
-  fail('cli_live_tool_execution_not_false')
+checkClaims('cli', cliReport.claims)
+if (cliReport.queuePreludeResult?.mockOnly !== true) fail('cli_queue_prelude_not_mock_only')
+if (cliReport.queuePreludeResult?.insertedJobCount !== 21) fail('cli_queue_prelude_inserted_count_not_21')
+if (cliReport.queuePreludeResult?.returnedJobIds !== 21) fail('cli_queue_prelude_returned_job_ids_not_21')
+if (cliReport.queuePreludeResult?.liveToolExecutionPerformed !== false) {
+  fail('cli_queue_prelude_live_tool_execution_not_false')
 }
 
 const packageDiff = [
@@ -339,8 +340,6 @@ const packageDiff = [
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-agent-mock-worker-claim-proof": "tsx server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts",',
-  '+    "ai-graphics:external-agent-mock-worker-claim-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-mock-worker-claim-proof-diagnostics.mjs",',
 ])
 const unexpectedPackageAdditions = packageDiff
   .split('\n')
@@ -383,8 +382,8 @@ console.log(JSON.stringify({
   ok: true,
   decision,
   acceptedStatus,
-  mockQueueInsertedJobCount: 21,
-  queueValidationAcceptedTools: 21,
+  mockWorkerClaimsCreated: 21,
+  mockWorkerLeaseSeconds: 900,
   gpuRuntimeShouldStartNowTools: 0,
   liveQueueWritePerformed: false,
   workerDispatchPerformed: false,

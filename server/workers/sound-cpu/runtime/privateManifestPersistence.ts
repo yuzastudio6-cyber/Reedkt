@@ -33,11 +33,34 @@ export const SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_BLOCKED_REASONS = [
   'signed_url_policy_required',
 ] as const
 
+export const SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_STATIC_INTEGRATION_SOURCE_GATE =
+  {
+    gate:
+      'worker_runtime_jobs_sound_cpu_phase98_caption_render_runtime_hook_private_manifest_persistence_static_integration_source_gate',
+    targetPath: 'server/workers/sound-cpu/runtime/privateManifestPersistence.ts',
+    plannedIntegrationKind: 'fail_closed_static_source_surface',
+    requiredExports: [
+      'createSoundCpuPrivateManifestPersistenceBlockedResult',
+      'assertSoundCpuPrivateManifestPersistenceMutationBlocked',
+    ],
+    acceptedForRuntimeExecutionToday: false,
+    acceptedForPersistenceToday: false,
+    acceptedForStorageObjectCreationToday: false,
+    acceptedForSignedUrlCreationToday: false,
+    acceptedForWorkerDispatchToday: false,
+    acceptedForMediaOpenToday: false,
+    acceptedForBetaUnlockToday: false,
+    acceptedForProductionUnlockToday: false,
+  } as const
+
 export type SoundCpuPrivateManifestPersistenceBlockedReason =
   (typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_BLOCKED_REASONS)[number]
 
 export type SoundCpuPrivateManifestPersistenceRejectedInputField =
   (typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_REJECTED_INPUT_FIELDS)[number]
+
+export type SoundCpuPrivateManifestPersistenceStaticIntegrationSourceGate =
+  typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_STATIC_INTEGRATION_SOURCE_GATE
 
 export type SoundCpuPrivateManifestPersistenceContract = Readonly<{
   schemaVersion: typeof SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_SCHEMA_VERSION
@@ -123,6 +146,17 @@ export function createSoundCpuPrivateManifestPersistenceBlockedResult(
     acceptedForBetaUnlockToday: false,
     acceptedForProductionUnlockToday: false,
   }
+}
+
+export function getSoundCpuPrivateManifestPersistenceStaticIntegrationSourceGate(): SoundCpuPrivateManifestPersistenceStaticIntegrationSourceGate {
+  return SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_STATIC_INTEGRATION_SOURCE_GATE
+}
+
+export function createSoundCpuPrivateManifestPersistenceStaticIntegrationBlockedResult(
+  input: SoundCpuPrivateManifestPersistenceInput,
+  blockedReason: SoundCpuPrivateManifestPersistenceBlockedReason = 'supabase_owner_gate_required',
+): SoundCpuPrivateManifestPersistenceResult {
+  return createSoundCpuPrivateManifestPersistenceBlockedResult(input, blockedReason)
 }
 
 export function assertSoundCpuPrivateManifestPersistenceMutationBlocked(): never {

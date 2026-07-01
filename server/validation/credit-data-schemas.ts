@@ -3,6 +3,10 @@ import {
   CREDIT_SETTLEMENT_MODES,
   CREDIT_REVISION_ACTION_STATUSES,
   CREDIT_REVISION_PAUSE_REASONS,
+  CREDIT_EXPORT_LOCK_REASONS,
+  CREDIT_EXPORT_LOCK_STATUSES,
+  EXPORT_CREDIT_GATE_REQUIRED_ACTIONS,
+  EXPORT_CREDIT_GATE_STATUSES,
   CREDIT_SETTLEMENT_REASONS,
   CREDIT_SETTLEMENT_STATUSES,
   SETTLE_CREDIT_RESERVATION_STATUSES,
@@ -24,6 +28,10 @@ export const creditSettlementModeSchema = z.enum(CREDIT_SETTLEMENT_MODES)
 export const settleCreditReservationStatusSchema = z.enum(SETTLE_CREDIT_RESERVATION_STATUSES)
 export const creditRevisionActionStatusSchema = z.enum(CREDIT_REVISION_ACTION_STATUSES)
 export const creditRevisionPauseReasonSchema = z.enum(CREDIT_REVISION_PAUSE_REASONS)
+export const exportCreditGateStatusSchema = z.enum(EXPORT_CREDIT_GATE_STATUSES)
+export const exportCreditGateRequiredActionSchema = z.enum(EXPORT_CREDIT_GATE_REQUIRED_ACTIONS)
+export const creditExportLockStatusSchema = z.enum(CREDIT_EXPORT_LOCK_STATUSES)
+export const creditExportLockReasonSchema = z.enum(CREDIT_EXPORT_LOCK_REASONS)
 
 export const secretSafeJsonObjectSchema = z.record(z.string(), z.unknown()).superRefine((value, context) => {
   const secretLikePaths = findApprovedSnapshotSecretLikePaths(value)
@@ -61,6 +69,19 @@ export const settleCreditReservationSchema = z.object({
   finalVideoDurationSeconds: positiveDurationSecondsSchema,
   settlementMode: creditSettlementModeSchema,
   toolCostEventIds: z.array(idSchema).optional(),
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema.default({}),
+})
+
+export const evaluateExportCreditGateSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  editPlanId: idSchema.nullish(),
+  renderId: idSchema.nullish(),
+  exportId: idSchema.nullish(),
+  creditReservationId: idSchema,
+  creditSettlementId: idSchema.nullish(),
+  requestedByUserId: idSchema.nullish(),
   idempotencyKey: idSchema,
   metadata: secretSafeJsonObjectSchema.default({}),
 })
@@ -132,6 +153,29 @@ export const creditSettlementRecordSchema = z.object({
       path: ['releasedCredits'],
     })
   }
+})
+
+export const creditExportLockRecordSchema = z.object({
+  id: idSchema,
+  workspaceId: idSchema,
+  projectId: idSchema,
+  editPlanId: idSchema.nullish(),
+  renderId: idSchema.nullish(),
+  exportId: idSchema.nullish(),
+  creditReservationId: idSchema,
+  creditSettlementId: idSchema,
+  status: creditExportLockStatusSchema,
+  lockReason: creditExportLockReasonSchema,
+  outstandingCredits: nonNegativeIntegerCreditSchema,
+  finalChargeCredits: nonNegativeIntegerCreditSchema,
+  reservedCredits: nonNegativeIntegerCreditSchema,
+  actionRequiredTitle: z.string().min(1),
+  actionRequiredMessage: z.string().min(1),
+  idempotencyKey: idSchema,
+  metadata: secretSafeJsonObjectSchema,
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1),
+  resolvedAt: z.string().min(1).nullish(),
 })
 
 export const createCreditRevisionActionSchema = z.object({

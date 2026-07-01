@@ -7,13 +7,18 @@ import type {
   CreditRevisionActionRecord,
   CreditRevisionPauseReason,
   CreditRevisionUserOption,
+  CreditExportLockRecord,
   CreditReservationLineItemRecord,
   CreditReservationRecord,
   CreditReservationWalletBalance,
   CreditSettlementRecord,
   CreditSettlementMode,
+  EvaluateExportCreditGateRequest,
   EditCreditCostSummary,
   EditCreditCostSummaryLine,
+  ExportCreditGateResult,
+  ExportCreditGateStatus,
+  ExportCreditGateRequiredAction,
   PreviewCreditSettlementRequest,
   PreviewCreditSettlementResponse,
   JSONObject,
@@ -28,7 +33,7 @@ import {
   REEDITPRO_REVISED_ESTIMATE_ACTION_REQUIRED_COPY,
   REEDITPRO_SERVICE_FEE_POLICY_VERSION,
 } from '../../src/types/credit-policy'
-import { creditRevisionActionRecordSchema, creditSettlementRecordSchema } from '../validation/credit-data-schemas'
+import { creditExportLockRecordSchema, creditRevisionActionRecordSchema, creditSettlementRecordSchema } from '../validation/credit-data-schemas'
 import { createMockId, nowIso } from './service-helpers'
 import { TOOL_COST_RATE_CARD_VERSION } from '../tool-cost-metering/rate-card'
 import { summarizeMockToolCostEvents } from '../tool-cost-metering/cost-math'
@@ -55,6 +60,7 @@ import type { MockToolCostEvent } from '../tool-cost-metering/types'
 export interface MockCreditDataStore {
   creditSettlements: CreditSettlementRecord[]
   creditRevisionActions: CreditRevisionActionRecord[]
+  creditExportLocks: CreditExportLockRecord[]
   toolCostStore: MockToolCostStore
   walletMutationRecords: unknown[]
   reservationMutationRecords: unknown[]
@@ -98,6 +104,7 @@ export function createMockCreditDataStore(
   return {
     creditSettlements: [],
     creditRevisionActions: [],
+    creditExportLocks: [],
     toolCostStore: createMockToolCostStore(toolCostEvents),
     walletMutationRecords: [],
     reservationMutationRecords: [],
@@ -148,6 +155,41 @@ export function upsertCreditSettlementByIdempotencyKey(
     record.idempotencyKey === settlement.idempotencyKey)
   if (existing) return existing
   return insertCreditSettlement(store, settlement)
+}
+
+export function insertCreditExportLock(
+  store: MockCreditDataStore,
+  lock: CreditExportLockRecord,
+): CreditExportLockRecord {
+  const validated = creditExportLockRecordSchema.parse(lock) as CreditExportLockRecord
+  store.creditExportLocks.push(validated)
+  return validated
+}
+
+export function getCreditExportLock(
+  store: MockCreditDataStore,
+  id: string,
+): CreditExportLockRecord | undefined {
+  return store.creditExportLocks.find((lock) => lock.id === id)
+}
+
+export function getCreditExportLockByIdempotencyKey(
+  store: MockCreditDataStore,
+  workspaceId: string,
+  idempotencyKey: string,
+): CreditExportLockRecord | undefined {
+  return store.creditExportLocks.find((lock) =>
+    lock.workspaceId === workspaceId &&
+    lock.idempotencyKey === idempotencyKey)
+}
+
+export function getCreditExportLockForSettlement(
+  store: MockCreditDataStore,
+  creditSettlementId: string,
+): CreditExportLockRecord | undefined {
+  return store.creditExportLocks.find((lock) =>
+    lock.creditSettlementId === creditSettlementId &&
+    lock.status === 'locked')
 }
 
 export function insertCreditRevisionAction(
@@ -773,6 +815,190 @@ export function settleCreditReservation(
   )
 }
 
+export function evaluateExportCreditGate(
+  store: MockCreditDataStore,
+  reservationStore: MockCreditReservationStore,
+  request: EvaluateExportCreditGateRequest,
+  options: { createLock?: boolean } = {},
+): ExportCreditGateResult {
+  const createLock = options.createLock !== false
+  const reservation = getCreditReservation(reservationStore, request.creditReservationId) ?? null
+  if (!reservation) {
+    return exportGateResult({
+      status: 'reservation_not_found',
+      request,
+      reservation: null,
+      settlement: null,
+      title: 'Settlement required before export',
+      message: 'ReEditPro needs an active mock credit reservation before export credit readiness can be evaluated.',
+      requiredAction: 'settle_edit_first',
+      warnings: [
+        'Credit reservation was not found.',
+        'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+      ],
+    })
+  }
+
+  if (!reservationMatchesExportGateRequest(reservation, request)) {
+    return exportGateResult({
+      status: 'invalid_request',
+      request,
+      reservation,
+      settlement: null,
+      title: 'Settlement required before export',
+      message: 'The export credit gate request does not match the mock reservation scope.',
+      requiredAction: 'settle_edit_first',
+      warnings: [
+        'Reservation must match workspace, project, and optional edit plan.',
+        'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+      ],
+    })
+  }
+
+  const settlement = request.creditSettlementId
+    ? getCreditSettlement(store, request.creditSettlementId) ?? null
+    : getCreditSettlementForReservation(store, request.creditReservationId) ?? null
+
+  if (!settlement) {
+    return exportGateResult({
+      status: request.creditSettlementId ? 'settlement_not_found' : 'settlement_required',
+      request,
+      reservation,
+      settlement: null,
+      title: 'Settlement required before export',
+      message: 'ReEditPro needs to calculate and settle the final credit charge before export can continue.',
+      requiredAction: 'settle_edit_first',
+      warnings: [
+        request.creditSettlementId ? 'Credit settlement was not found.' : 'No final credit settlement exists for this reservation.',
+        'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+      ],
+    })
+  }
+
+  if (!settlementMatchesExportGateRequest(settlement, request)) {
+    return exportGateResult({
+      status: 'invalid_request',
+      request,
+      reservation,
+      settlement,
+      title: 'Settlement required before export',
+      message: 'The export credit gate request does not match the mock settlement scope.',
+      requiredAction: 'settle_edit_first',
+      warnings: [
+        'Settlement must match workspace, project, reservation, and optional edit plan.',
+        'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+      ],
+    })
+  }
+
+  if (settlement.status === 'settled') {
+    return exportGateResult({
+      status: 'export_allowed',
+      request,
+      reservation,
+      settlement,
+      title: 'Export ready',
+      message: 'Your final credit charge is settled. You can export this edit.',
+      requiredAction: 'none',
+      canExport: true,
+      warnings: [
+        'Export credit gate is read-only for settled mock settlements.',
+        'No export unlock, render/export execution, checkout, top-up, provider call, ledger write, Supabase write, or production persistence occurred.',
+      ],
+    })
+  }
+
+  if (settlement.status === 'settled_with_absorbed_overage') {
+    return exportGateResult({
+      status: 'export_allowed',
+      request,
+      reservation,
+      settlement,
+      title: 'Export ready',
+      message: 'Your edit cost more to process than your approved maximum, but you were not charged above your approved hold. ReEditPro absorbed the extra credits, and you can export this edit.',
+      requiredAction: 'none',
+      canExport: true,
+      warnings: [
+        'Absorbed unapproved overage does not block export in RP-EXPORTLOCK-01.',
+        'No export unlock, render/export execution, checkout, top-up, provider call, ledger write, Supabase write, or production persistence occurred.',
+      ],
+    })
+  }
+
+  if (settlement.status === 'requires_top_up_before_export') {
+    const duplicateLock = createLock
+      ? getCreditExportLockByIdempotencyKey(store, request.workspaceId, request.idempotencyKey)
+      : undefined
+    const lock = duplicateLock ?? (createLock ? insertCreditExportLock(store, createCreditExportLockRecord(request, settlement)) : null)
+    return exportGateResult({
+      status: 'export_locked_top_up_required',
+      request,
+      reservation,
+      settlement,
+      title: REEDITPRO_EXPORT_LOCK_ACTION_REQUIRED_COPY.title,
+      message: `Your edit is ready, but ${settlement.outstandingCredits} approved credits are still needed before export. Add credits to unlock export.`,
+      requiredAction: 'add_credits_to_export',
+      exportLock: lock,
+      idempotencyStatus: duplicateLock ? 'duplicate_returned' : lock ? 'created' : 'not_created',
+      mockExportLockWritten: Boolean(lock && !duplicateLock),
+      warnings: [
+        duplicateLock
+          ? 'Duplicate export lock idempotency key returned the existing mock export lock.'
+          : createLock
+            ? 'Created a local mock export lock record for approved-but-unfunded settlement state.'
+            : 'Read-only export gate lookup did not create a mock export lock record.',
+        'No checkout/top-up flow, export unlock, render/export execution, provider call, ledger write, Supabase write, wallet mutation, reservation mutation, or production persistence occurred.',
+      ],
+    })
+  }
+
+  if (settlement.status === 'requires_revised_estimate') {
+    return exportGateResult({
+      status: 'revised_estimate_required',
+      request,
+      reservation,
+      settlement,
+      title: REEDITPRO_REVISED_ESTIMATE_ACTION_REQUIRED_COPY.title,
+      message: 'This edit still has an unresolved revised-credit action. Resolve it before export can continue.',
+      requiredAction: 'resolve_revised_estimate',
+      warnings: [
+        'Revised credit action must be resolved before export readiness can be allowed.',
+        'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+      ],
+    })
+  }
+
+  if (settlement.status === 'failed' || settlement.status === 'cancelled') {
+    return exportGateResult({
+      status: 'settlement_failed',
+      request,
+      reservation,
+      settlement,
+      title: 'Settlement failed',
+      message: 'The final credit settlement is not available for export. Contact support before export can continue.',
+      requiredAction: 'contact_support',
+      warnings: [
+        `Settlement status ${settlement.status} blocks export readiness.`,
+        'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+      ],
+    })
+  }
+
+  return exportGateResult({
+    status: 'settlement_required',
+    request,
+    reservation,
+    settlement,
+    title: 'Settlement required before export',
+    message: 'ReEditPro needs to calculate and settle the final credit charge before export can continue.',
+    requiredAction: 'settle_edit_first',
+    warnings: [
+      `Settlement status ${settlement.status} is not export-ready.`,
+      'No wallet, reservation, ledger, export, provider, render, checkout, top-up, or Supabase mutation occurred.',
+    ],
+  })
+}
+
 export function buildEditCreditCostSummary(
   settlement: CreditSettlementRecord,
   events: readonly MockToolCostEvent[],
@@ -859,6 +1085,131 @@ function reservationMatchesRequest(
     reservation.creditEstimateId === request.creditEstimateId &&
     reservation.id === request.creditReservationId &&
     (!request.editPlanId || reservation.editPlanId === request.editPlanId)
+}
+
+function reservationMatchesExportGateRequest(
+  reservation: CreditReservationRecord,
+  request: EvaluateExportCreditGateRequest,
+): boolean {
+  return reservation.workspaceId === request.workspaceId &&
+    reservation.projectId === request.projectId &&
+    reservation.id === request.creditReservationId &&
+    (!request.editPlanId || reservation.editPlanId === request.editPlanId)
+}
+
+function settlementMatchesExportGateRequest(
+  settlement: CreditSettlementRecord,
+  request: EvaluateExportCreditGateRequest,
+): boolean {
+  return settlement.workspaceId === request.workspaceId &&
+    settlement.projectId === request.projectId &&
+    settlement.creditReservationId === request.creditReservationId &&
+    (!request.creditSettlementId || settlement.id === request.creditSettlementId) &&
+    (!request.editPlanId || settlement.editPlanId === request.editPlanId)
+}
+
+function createCreditExportLockRecord(
+  request: EvaluateExportCreditGateRequest,
+  settlement: CreditSettlementRecord,
+): CreditExportLockRecord {
+  const createdAt = nowIso()
+  return {
+    id: createMockId('credit_export_lock'),
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editPlanId: request.editPlanId ?? settlement.editPlanId ?? null,
+    renderId: request.renderId ?? null,
+    exportId: request.exportId ?? null,
+    creditReservationId: settlement.creditReservationId,
+    creditSettlementId: settlement.id,
+    status: 'locked',
+    lockReason: 'approved_but_unfunded',
+    outstandingCredits: settlement.outstandingCredits,
+    finalChargeCredits: settlement.finalChargeCredits,
+    reservedCredits: settlement.reservedCredits,
+    actionRequiredTitle: REEDITPRO_EXPORT_LOCK_ACTION_REQUIRED_COPY.title,
+    actionRequiredMessage: `Your edit is ready, but ${settlement.outstandingCredits} approved credits are still needed before export. Add credits to unlock export.`,
+    idempotencyKey: request.idempotencyKey,
+    metadata: asJsonObject({
+      ...(request.metadata ?? {}),
+      mockOnly: true,
+      milestone: 'RP-EXPORTLOCK-01',
+      noCheckoutOrTopUp: true,
+      noExportUnlock: true,
+      noRenderOrExportExecution: true,
+      productionPersistence: false,
+    }),
+    createdAt,
+    updatedAt: createdAt,
+    resolvedAt: null,
+  }
+}
+
+interface ExportGateResultInput {
+  status: ExportCreditGateStatus
+  request: EvaluateExportCreditGateRequest
+  reservation: CreditReservationRecord | null
+  settlement: CreditSettlementRecord | null
+  title: string
+  message: string
+  requiredAction: ExportCreditGateRequiredAction
+  canExport?: boolean
+  exportLock?: CreditExportLockRecord | null
+  idempotencyStatus?: ExportCreditGateResult['idempotencyStatus']
+  mockExportLockWritten?: boolean
+  warnings: string[]
+}
+
+function exportGateResult(input: ExportGateResultInput): ExportCreditGateResult {
+  const readOnly = !input.mockExportLockWritten
+  return {
+    status: input.status,
+    canExport: input.canExport ?? false,
+    creditReservationId: input.reservation?.id ?? input.request.creditReservationId ?? null,
+    creditSettlementId: input.settlement?.id ?? input.request.creditSettlementId ?? null,
+    settlementStatus: input.settlement?.status ?? null,
+    reservedCredits: input.settlement?.reservedCredits ?? input.reservation?.reservedCredits ?? 0,
+    finalChargeCredits: input.settlement?.finalChargeCredits ?? 0,
+    outstandingCredits: input.settlement?.outstandingCredits ?? 0,
+    absorbedOverageCredits: input.settlement?.absorbedOverageCredits ?? 0,
+    releasedCredits: input.settlement?.releasedCredits ?? 0,
+    userFacingTitle: input.title,
+    userFacingMessage: input.message,
+    requiredAction: input.requiredAction,
+    exportLock: input.exportLock ?? null,
+    idempotencyStatus: input.idempotencyStatus ?? 'not_created',
+    metadata: asJsonObject({
+      ...(input.request.metadata ?? {}),
+      mockOnly: true,
+      milestone: 'RP-EXPORTLOCK-01',
+      createLockOnlyForApprovedButUnfunded: true,
+      renderExportBoundaryDeferred: true,
+    }),
+    safetyFlags: {
+      mockOnly: true,
+      readOnly,
+      mockExportLockWritten: Boolean(input.mockExportLockWritten),
+      walletMutated: false,
+      reservationMutated: false,
+      creditsSpent: false,
+      creditsReleased: false,
+      creditsRefunded: false,
+      ledgerWritten: false,
+      productionWalletMutated: false,
+      productionPersistenceWritten: false,
+      providerCalled: false,
+      workerRun: false,
+      renderOrExportStarted: false,
+      exportUnlocked: false,
+      checkoutOrTopUpStarted: false,
+      supabaseWritten: false,
+      serviceFeeIncludedInToolCosts: false,
+    },
+    warnings: [
+      ...input.warnings,
+      'RP-EXPORTLOCK-01 is mock-only; it does not run checkout/top-up, unlock export, execute render/export, call providers, write Supabase, mutate production wallet state, or write production ledger entries.',
+    ],
+  }
 }
 
 function settlementOutcome(

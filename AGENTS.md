@@ -568,3 +568,11 @@ Do not implement these without explicit user request:
 - Release unused mock hold, record absorbed overage when unapproved cost exceeds the hold, and keep approved-but-unfunded top-up informational.
 - Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, checkout/top-up, or export unlock.
 - Use `docs/credit-settlement-finalization.md` and `smoke:credit-settlement` when changing this surface.
+
+## RP-EXPORTLOCK-01 Export Credit Gate Boundary
+
+- Export credit readiness is based only on final settlement state.
+- Allow export for `settled` and `settled_with_absorbed_overage`; block only approved-but-unfunded `requires_top_up_before_export` with "Action required: add credits to export".
+- The mock export lock record is local in-memory state only and must not run checkout/top-up or unlock export.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, checkout/top-up, production persistence, or export unlock.
+- Use `docs/credit-export-lock.md` and `smoke:credit-export-lock` when changing this surface.

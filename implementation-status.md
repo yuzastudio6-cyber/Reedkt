@@ -209,3 +209,11 @@ Status: mock-safe final credit settlement implemented.
 Completed edits can now settle against a local mock reservation by aggregating billable tool-cost events, adding the separate ReEditPro service/edit fee, spending the final mock charge, and releasing unused reserved credits. Unapproved overage is absorbed by ReEditPro, while approved-but-unfunded export top-up is recorded without mutating the wallet/reservation.
 
 It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, checkout/top-up, or UI. See `docs/credit-settlement-finalization.md` and `smoke:credit-settlement`.
+
+## RP-EXPORTLOCK-01
+
+Status: mock-safe export credit gate implemented.
+
+Completed edits can now evaluate export credit readiness from local mock settlement state. `settled` and `settled_with_absorbed_overage` allow export readiness, while `requires_top_up_before_export` creates an idempotent local mock export lock with "Action required: add credits to export".
+
+It does not add live billing, Stripe/payment, checkout/top-up, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, production persistence, or UI. See `docs/credit-export-lock.md` and `smoke:credit-export-lock`.

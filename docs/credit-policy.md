@@ -16,6 +16,8 @@ RP-CREDITREVISION-01 resolves projected-overage pauses through Approve & Continu
 
 RP-SETTLEMENT-01 adds final credit settlement in mock state. It charges actual billable tool cost plus the separate ReEditPro service/edit fee, releases unused reserved credits, records absorbed overage when ReEditPro failed to pause, and records approved-but-unfunded export top-up state without wiring checkout/top-up or export unlock. See `docs/credit-settlement-finalization.md` and `smoke:credit-settlement`.
 
+RP-EXPORTLOCK-01 turns the approved-but-unfunded settlement state into a mock-safe export credit gate. It allows `settled` and `settled_with_absorbed_overage`, blocks only `requires_top_up_before_export` with "Action required: add credits to export", and still wires no checkout/top-up, export unlock, render/export execution, live billing, or production persistence. See `docs/credit-export-lock.md` and `smoke:credit-export-lock`.
+
 ## Credit Value
 
 - 1 credit = $0.10 retail value.
@@ -100,3 +102,7 @@ RP-CREDITREVISION-01 resolves the mock pause. Approve & Continue reserves only t
 ## RP-SETTLEMENT-01 Final Settlement
 
 RP-SETTLEMENT-01 settles completed edits in local mock state only. The final user charge is actual billable tool credits plus the ReEditPro service/edit fee; unused hold is released back to the mock wallet, and unapproved overage is absorbed by ReEditPro. Approved-but-unfunded settlement remains an informational state for a later export/top-up milestone.
+
+## RP-EXPORTLOCK-01 Export Credit Gate
+
+RP-EXPORTLOCK-01 evaluates export readiness after settlement. Export is allowed when settlement is `settled` or `settled_with_absorbed_overage`; export is locked only for `requires_top_up_before_export` with "Action required: add credits to export". The lock is local/mock only and does not start checkout/top-up or unlock export.

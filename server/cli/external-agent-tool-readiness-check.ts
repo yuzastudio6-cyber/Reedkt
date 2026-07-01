@@ -68,7 +68,11 @@ function main() {
   const evidence = checkEvidence()
   const missingEvidence = evidence.filter((item) => !item.present)
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const explicitToolGateReadyTools = rollup.tools.filter(
+    (tool) => tool.status === 'ready_for_explicit_tool_gate',
+  )
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
+  const noIdleLifecycleGateTools = rollup.tools.filter((tool) => tool.noIdleLifecycleGate)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
   const safeNextCommands = rollup.safeNextCommands
@@ -95,12 +99,23 @@ function main() {
     generatedAssetsCreated: false,
     readyForAnyExternalAgentExecutionNow: readyTools.length > 0,
     readyToolIds: readyTools.map((tool) => tool.toolId),
+    staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
+    livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     retryReadyAfterBlockerClearsToolIds: retryReadyAfterBlockerClears.map((tool) => tool.toolId),
+    noIdleLifecycleGateToolIds: noIdleLifecycleGateTools.map((tool) => tool.toolId),
+    noIdleLifecycleGates: noIdleLifecycleGateTools.map((tool) => ({
+      toolId: tool.toolId,
+      gate: tool.noIdleLifecycleGate,
+    })),
+    manualBlockerActionToolIds: blockedTools
+      .filter((tool) => (tool.manualBlockerActions ?? []).length > 0)
+      .map((tool) => tool.toolId),
     blockers: blockedTools.map((tool) => ({
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
+      manualBlockerActions: tool.manualBlockerActions ?? [],
     })),
     safeNextCommands,
     preferredNextSafeCommand,

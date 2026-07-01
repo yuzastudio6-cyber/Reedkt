@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta'
+  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,23 +65,43 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota',
+  'external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'local `gcloud` reauthentication',
-  '`GPUS_ALL_REGIONS` quota is `0`',
+  'ready for explicit tool gate only',
+  'auth-readable live preflight now reads GPU quota',
+  '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
   'B-roll no-idle GPU lifecycle is required',
+  'B-roll structured no-idle lifecycle gate',
+  'proof VM `reeditpro-ai-broll-wan-l4-proof`',
+  'machine `g2-standard-4`',
+  'minimum `GPUS_ALL_REGIONS` quota `1`',
   '## Safe Agent Commands',
+  'current read-only live preflight verifies local gcloud token refresh',
+  'the only permitted runtime path is the exact bounded 58DW prompt after a fresh live preflight',
   'External agents should start with `npm run external-agent-tool-action-plan`',
-  '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
-  '`npm run external-agent-tool-execution-gate -- --require-go` exits nonzero while execution remains blocked',
-  'the preferred next safe command is `npm run external-agent-tool-next-command`',
-  'combines the fail-closed gate and live read-only blocker probes',
+  '`npm run external-agent-tool-execution-gate` as a fail-closed static gate',
+  'a static gate is not runtime permission',
+  'The preferred next safe command is `npm run external-agent-tool-next-command`',
+  'combines the static gate and live read-only blocker probes',
+  'The shared rollup, readiness check, execution gate, live blocker preflight, live next-command selector, and static action plan include `manualBlockerActions`',
+  '`npm run smoke:external-agent-tool-surface-consistency` compares those surfaces',
+  '`runInsideCodex=false`',
+  '`mutatesRuntime=false`',
+  'B-roll `GPUS_ALL_REGIONS` quota request is explicitly outside Codex',
+  'distinguishes `staticExplicitToolGatePrepared` from `staticExecutionGateAllowed`',
+  'prepared static evidence can be true while runtime execution remains false',
+  'includes `executionGateToolSummaries`',
+  'B-roll no-idle lifecycle gate',
+  'When `staticGatePlanningOnly=true` or `staticGateDoesNotAuthorizeRuntime=true`',
+  '`chosenNextCommandAlreadyExecutedInThisRun=true`',
+  '`codexRunnableNextCommandNow`',
+  '`nextCodexCommandAfterManualAction`',
   '`npm run external-agent-tool-execution-gate` provides a fail-closed static go/no-go report',
   '`npm run external-agent-tool-next-command` provides a read-only live next-command decision',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
@@ -95,7 +115,10 @@ for (const required of [
 }
 
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
-assert.equal(rollup.decision, 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota')
+assert.equal(
+  rollup.decision,
+  'external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked',
+)
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
 assert.equal(rollup.dryRunPassedClaimed, false)
@@ -105,13 +128,17 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 7)
+assert.equal(rollup.safeNextCommands.length, 8)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-readiness:check'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run smoke:external-agent-tool-surface-consistency'),
   true,
 )
 assert.equal(
@@ -157,12 +184,150 @@ for (const requiredTool of [
 }
 
 const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
-assert.equal(qwen?.status, 'blocked_external_state')
+assert.equal(qwen?.status, 'ready_for_explicit_tool_gate')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
-assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
-assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(qwen?.primaryBlocker, 'local_gcloud_reauthentication_required')
+assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
+assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, false)
+assert.equal(qwen?.primaryBlocker, 'none_live_preflight_verified_exact_58dw_prompt_required')
+assert.equal(qwen?.nextAction, NEXT_PROMPT)
+assert.equal(qwen?.manualBlockerActions?.length, 2)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.runInsideCodex === false), true)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.mutatesRuntime === false), true)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.runsModel === false), true)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.createsAssets === false), true)
+assert.equal(
+  qwen?.manualBlockerActions?.some(
+    (action) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.mutatesLocalGcloudConfig === false &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.manualBlockerActions?.some(
+    (action) =>
+      action.id === 'select_authenticated_gcloud_account_if_needed' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === false &&
+      action.mutatesLocalGcloudConfig === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan-smoke.ts',
+  ),
+  true,
+)
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-diagnostic.ts'), true)
@@ -174,7 +339,10 @@ assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
-assert.equal(broll?.primaryBlocker, 'gpus_all_regions_quota_zero')
+assert.equal(
+  broll?.primaryBlocker,
+  'gpus_all_regions_quota_zero_or_unverified',
+)
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md'),
   true,
@@ -193,9 +361,53 @@ assert.equal(
 )
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
+assert.equal(broll?.manualBlockerActions?.length, 1)
+assert.equal(broll?.manualBlockerActions?.[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(broll?.manualBlockerActions?.[0].runInsideCodex, false)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesRuntime, false)
+assert.equal(broll?.manualBlockerActions?.[0].runsModel, false)
+assert.equal(broll?.manualBlockerActions?.[0].createsAssets, false)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesCloud, true)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesLocalGcloudAuth, false)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesLocalGcloudConfig, false)
+assert.equal(broll?.manualBlockerActions?.[0].changesQuotaRequest, true)
+assert.equal(
+  broll?.manualBlockerActions?.[0].afterCompletionCommand,
+  'npm run external-agent-tool-blockers:preflight',
+)
+assert.equal(broll?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(broll?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
+assert.equal(broll?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
+assert.equal(broll?.noIdleLifecycleGate?.targetRegion, 'us-central1')
+assert.equal(broll?.noIdleLifecycleGate?.targetZone, 'us-central1-b')
+assert.equal(broll?.noIdleLifecycleGate?.minimumGlobalGpusAllRegionsQuota, 1)
+assert.equal(broll?.noIdleLifecycleGate?.minimumRegionalL4Quota, 1)
+assert.equal(broll?.noIdleLifecycleGate?.noPublicIpRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.externalIpAllowed, false)
+assert.equal(broll?.noIdleLifecycleGate?.bootDiskAutoDeleteRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.preExistingResourceCheckRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.deleteOnlyResourcesCreatedByPrompt, true)
+assert.equal(broll?.noIdleLifecycleGate?.cleanupVerificationRequired, true)
+assert.equal(broll?.noIdleLifecycleGate?.idleGpuAllowed, false)
+assert.equal(broll?.noIdleLifecycleGate?.vmCreateAllowedNow, false)
+assert.equal(broll?.noIdleLifecycleGate?.modelInferenceAllowedNow, false)
+assert.equal(broll?.noIdleLifecycleGate?.runtimePromptRequiredBeforeVmCreate, true)
+assert.equal(
+  broll?.noIdleLifecycleGate?.cacheReadinessCommand,
+  'npm run ai-video-broll-wan-fast-cache-readiness:check',
+)
+assert.equal(broll?.noIdleLifecycleGate?.quotaVerificationCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(
+  broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears.includes('GPU-GLOBAL-QUOTA-VERIFY'),
+  true,
+)
 
 for (const tool of rollup.tools) {
-  assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)
+  assert.equal(
+    tool.readyForExternalAgentExecutionNow,
+    tool.toolId === 'qwen2_5_vl_7b_instruct',
+    `${tool.toolId} readiness must match the explicit Qwen gate-only decision`,
+  )
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)
 }
 

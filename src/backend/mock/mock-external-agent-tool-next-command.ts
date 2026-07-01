@@ -1,3 +1,5 @@
+import { QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT } from './mock-external-agent-tool-execution-readiness-rollup'
+
 export type ExternalAgentToolNextCommandAllowedProbe = {
   id: string
   script: string
@@ -45,21 +47,30 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
-    whenExecutionGateAllowsRuntime:
-      'stop and require a tool-specific bounded execution prompt before any runtime action',
+    whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+    whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
+    whenQwenLivePreflightPassesButExecutionGateBlocked: 'npm run external-agent-tool-execution-gate',
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
     whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
   },
+  manualActionRules: {
+    whenQwenAuthRefreshFails: {
+      required: true,
+      reason: 'gcloud_auth_refresh_required_before_downstream_probes',
+      blocksRuntime: true,
+      rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
+    },
+  },
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run',
-    'do not execute Cloud Run jobs',
+    'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
+    'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models',
-    'do not run inference',
+    'do not import models outside the approved 58DW bounded Qwen retry prompt',
+    'do not run inference outside the approved 58DW bounded Qwen retry prompt',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

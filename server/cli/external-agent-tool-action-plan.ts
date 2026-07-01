@@ -1,13 +1,13 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
-  'do not invoke Cloud Run',
-  'do not execute Cloud Run jobs',
+  'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
+  'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
   'do not create Compute Engine VMs',
   'do not request quota',
   'do not run Docker',
-  'do not import models',
-  'do not run inference',
+  'do not import models outside the approved 58DW bounded Qwen retry prompt',
+  'do not run inference outside the approved 58DW bounded Qwen retry prompt',
   'do not create generated assets',
   'do not call providers',
   'do not dispatch workers',
@@ -20,7 +20,7 @@ const forbiddenRuntimeActions = [
 
 const externalAgentPreExecutionActions = [
   'npm run external-agent-tool-next-command',
-  'npm run external-agent-tool-execution-gate -- --require-go',
+  'npm run external-agent-tool-execution-gate',
 ] as const
 
 function actionForTool(toolId: string) {
@@ -29,11 +29,11 @@ function actionForTool(toolId: string) {
       immediateSafeActions: [
         ...externalAgentPreExecutionActions,
         'npm run external-agent-tool-blockers:preflight',
-        'npm run external-agent-gcloud-session:diagnostic',
       ],
-      externalManualBlocker: 'refresh local gcloud auth interactively outside Codex',
+      externalManualBlocker:
+        'Qwen is ready only for the exact bounded 58DW prompt after live auth/service/job preflight rechecks; no direct or unbounded inference is allowed from this action plan',
       afterBlockerClears:
-        'record refreshed read-only auth/service/job visibility before any bounded private inference retry',
+        'run npm run external-agent-tool-next-command and only use the approved 58DW bounded retry prompt if that live selector returns it',
     }
   }
 
@@ -44,7 +44,8 @@ function actionForTool(toolId: string) {
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run external-agent-tool-blockers:preflight',
       ],
-      externalManualBlocker: 'request GPUS_ALL_REGIONS quota increase to 1 if live quota remains insufficient',
+      externalManualBlocker:
+        'request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console; do not create VMs or request quota from this repo',
       afterBlockerClears:
         'verify quota increase, then require bounded no-idle L4 proof cleanup before any inference path',
     }
@@ -68,6 +69,9 @@ function actionForTool(toolId: string) {
 function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const explicitToolGateReadyTools = rollup.tools.filter(
+    (tool) => tool.status === 'ready_for_explicit_tool_gate',
+  )
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)
   const preferredNextSafeCommand =
@@ -83,6 +87,8 @@ function main() {
     generatedLocalFixturePassedClaimed: rollup.generatedLocalFixturePassedClaimed,
     readyForAnyExternalAgentExecutionNow: readyTools.length > 0,
     readyToolIds: readyTools.map((tool) => tool.toolId),
+    staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
+    livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     runtimeGatesAllFalse,
     safeCommandQueue: rollup.safeNextCommands.map((command) => ({
@@ -105,8 +111,10 @@ function main() {
       scaleToZeroRequired: tool.scaleToZeroRequired,
       readyForExternalAgentExecutionNow: tool.readyForExternalAgentExecutionNow,
       readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+      noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
       primaryBlocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
+      manualBlockerActions: tool.manualBlockerActions ?? [],
       ...actionForTool(tool.toolId),
       forbiddenRuntimeActions,
     })),
@@ -114,6 +122,7 @@ function main() {
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
+      manualBlockerActions: tool.manualBlockerActions ?? [],
     })),
     sourceRules: rollup.sourceRules,
     runtimeSideEffects: rollup.runtimeSideEffects,

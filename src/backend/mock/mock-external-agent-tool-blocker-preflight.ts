@@ -20,7 +20,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     region: 'us-central1',
     blockerIfFailed: 'local_gcloud_reauthentication_required',
     nextActionIfBlocked:
-      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta',
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfCleared:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH-VERIFY: record refreshed read-only gcloud auth/service/job readiness, no inference/no mutation',
   },
@@ -31,7 +31,10 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     selectedGpu: 'nvidia_l4',
     minimumGlobalGpusAllRegionsQuota: 1,
     minimumRegionalL4Quota: 1,
+    blockerIfSkippedForAuth: 'quota_probe_skipped_auth_refresh_failed',
     blockerIfFailed: 'gpus_all_regions_quota_zero_or_unverified',
+    nextActionIfSkippedForAuth:
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfCleared:
@@ -44,6 +47,16 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
       command: 'which',
       args: ['gcloud'],
       purpose: 'locate local gcloud binary',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      runsInference: false,
+    },
+    {
+      id: 'gcloud_all_paths',
+      toolId: 'qwen2_5_vl_7b_instruct',
+      command: 'which',
+      args: ['-a', 'gcloud'],
+      purpose: 'list every visible gcloud binary candidate before auth-dependent probes',
       capturesTokenValue: false,
       mutatesCloud: false,
       runsInference: false,

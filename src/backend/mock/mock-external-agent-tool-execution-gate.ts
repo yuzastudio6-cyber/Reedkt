@@ -1,21 +1,31 @@
-import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from './mock-external-agent-tool-execution-readiness-rollup'
+import {
+  EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
+  type ExternalAgentToolNoIdleLifecycleGate,
+  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+} from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
   | 'external_agent_execution_no_go_runtime_blocked'
+  | 'external_agent_execution_no_go_live_preflight_required'
   | 'external_agent_execution_go_after_explicit_tool_gate'
 
 export type ExternalAgentToolExecutionGateRow = {
   toolId: string
   executionAllowedNow: boolean
+  staticExplicitToolGateReady?: boolean
   requiredBeforeExecution: string[]
   currentBlocker: string
   safeNextCommand: string
+  noIdleLifecycleGate?: ExternalAgentToolNoIdleLifecycleGate
 }
 
 const ROLLUP = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
+const BROLL_NO_IDLE_LIFECYCLE_GATE = ROLLUP.tools.find(
+  (tool) => tool.toolId === 'ai_video_broll_generation_wan',
+)?.noIdleLifecycleGate as ExternalAgentToolNoIdleLifecycleGate
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_no_go_runtime_blocked' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_go_after_explicit_tool_gate' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -24,13 +34,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresApprovedSnapshotBeforeExecution: true,
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
-  readyForAnyExternalAgentExecutionNow: false,
+  readyForAnyExternalAgentExecutionNow: true,
+  staticExplicitToolGateReady: true,
+  requiresLivePreflightBeforeRuntime: true,
   requireGoExitCodeWhenBlocked: 2,
   safeCommandsBeforeExecution: [
     'npm run external-agent-tool-action-plan',
     'npm run external-agent-tool-readiness:check',
     'npm run external-agent-tool-execution-gate',
-    'npm run external-agent-tool-execution-gate -- --require-go',
     'npm run external-agent-tool-next-command',
     'npm run external-agent-tool-blockers:preflight',
     'npm run external-agent-gcloud-session:diagnostic',
@@ -39,28 +50,37 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   toolRows: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',
-      executionAllowedNow: false,
+      executionAllowedNow: true,
+      staticExplicitToolGateReady: true,
       requiredBeforeExecution: [
         'non-interactive gcloud token refresh must pass in this shell',
-        'Cloud Run service and caller job must be visible via read-only describe',
+        'Cloud Run service and caller job visibility must remain verified via read-only describe',
+        'bounded approved-fixture private inference retry plan must remain recorded',
+        'bounded approved-fixture private inference retry gate must remain recorded and passed',
+        'bounded approved-fixture private inference retry attempt approval must remain recorded',
+        'bounded approved-fixture private inference retry attempt result must remain recorded as historical blocked evidence',
+        'private inference gate alignment must remain recorded and accepted',
+        'the exact 58DW bounded retry prompt must be used before any runtime action',
+        '58DW must rerun live auth/service/job checks immediately before execution',
+        '58DW must use approved fixture, persisted job, lease bridge, and private source-of-truth refs',
         'approved fixture private inference attempt must remain bounded and fail-closed',
-        'runtime gate must be explicitly rechecked after auth clears',
       ],
-      currentBlocker: 'local_gcloud_reauthentication_required',
-      safeNextCommand: 'npm run external-agent-gcloud-session:diagnostic',
+      currentBlocker: 'none_live_preflight_recheck_and_exact_58dw_prompt_required',
+      safeNextCommand: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
     },
     {
       toolId: 'ai_video_broll_generation_wan',
       executionAllowedNow: false,
       requiredBeforeExecution: [
-        'GPUS_ALL_REGIONS quota must be verified at or above 1',
-        'regional NVIDIA_L4 quota must be verified at or above 1',
+        'auth-readable live preflight must verify GPUS_ALL_REGIONS quota at or above 1',
+        'auth-readable live preflight must verify regional NVIDIA_L4 quota at or above 1',
         'Wan private cache readiness must pass without model import or inference',
         'controlled GPU proof must use a future bounded execution gate',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
       currentBlocker: 'gpus_all_regions_quota_zero_or_unverified',
       safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
+      noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
       toolId: 'sound_music_audio',
@@ -86,13 +106,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     },
   ] satisfies ExternalAgentToolExecutionGateRow[],
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run',
-    'do not execute Cloud Run jobs',
+    'do not invoke Cloud Run outside the approved 58DW bounded Qwen retry prompt',
+    'do not execute Cloud Run jobs outside the approved 58DW bounded Qwen retry prompt',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models',
-    'do not run inference',
+    'do not import models outside the approved 58DW bounded Qwen retry prompt',
+    'do not run inference outside the approved 58DW bounded Qwen retry prompt',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

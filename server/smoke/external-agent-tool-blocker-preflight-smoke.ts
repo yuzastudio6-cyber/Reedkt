@@ -74,10 +74,13 @@ assert.equal(spec.decision, 'external_agent_tool_blocker_preflight_read_only_pro
 assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
+assert.equal(spec.qwen.nextActionIfCleared.includes('58DQ-AUTH-REFRESH-VERIFY'), true)
+assert.equal(spec.qwen.nextActionIfCleared.includes('58DW-PRIVATE'), false)
+assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
-assert.equal(spec.allowedReadOnlyCommands.length >= 9, true)
+assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
 
 for (const command of spec.allowedReadOnlyCommands) {
   assert.equal(command.capturesTokenValue, false, `${command.id} must not capture token values`)
@@ -86,6 +89,7 @@ for (const command of spec.allowedReadOnlyCommands) {
 }
 
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
+assert.equal(renderedCommands.includes('which -a gcloud'), true)
 for (const forbiddenPattern of [
   /\bgcloud\s+run\s+deploy\b/i,
   /\bgcloud\s+run\s+jobs\s+execute\b/i,
@@ -136,6 +140,10 @@ const plan = JSON.parse(planOutput)
 assert.equal(plan.ok, true)
 assert.equal(plan.liveReadOnlyChecksRun, false)
 assert.equal(plan.allowedReadOnlyCommands.length, spec.allowedReadOnlyCommands.length)
+assert.deepEqual(plan.manualBlockerActionToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
 
 const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -150,12 +158,116 @@ assert.equal(live.runtimeGatesAllFalse, true)
 assert.equal(live.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
 assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
+assert.deepEqual(live.manualBlockerActionToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.equal(live.qwen.manualBlockerActions.length, 2)
+assert.equal(live.qwen.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
+assert.equal(live.qwen.manualBlockerActions.every((action: { mutatesRuntime: boolean }) => action.mutatesRuntime === false), true)
+assert.equal(live.qwen.manualBlockerActions.every((action: { runsModel: boolean }) => action.runsModel === false), true)
+assert.equal(live.qwen.manualBlockerActions.every((action: { createsAssets: boolean }) => action.createsAssets === false), true)
+assert.equal(
+  live.qwen.manualBlockerActions.some(
+    (action: {
+      id: string
+      mutatesCloud: boolean
+      mutatesLocalGcloudAuth: boolean
+      mutatesLocalGcloudConfig: boolean
+      changesQuotaRequest: boolean
+      afterCompletionCommand: string
+    }) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.mutatesLocalGcloudConfig === false &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  live.qwen.manualBlockerActions.some(
+    (action: {
+      id: string
+      mutatesCloud: boolean
+      mutatesLocalGcloudAuth: boolean
+      mutatesLocalGcloudConfig: boolean
+      changesQuotaRequest: boolean
+      afterCompletionCommand: string
+    }) =>
+      action.id === 'select_authenticated_gcloud_account_if_needed' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === false &&
+      action.mutatesLocalGcloudConfig === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(live.broll.manualBlockerActions.length, 1)
+assert.equal(live.broll.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(live.broll.manualBlockerActions[0].runInsideCodex, false)
+assert.equal(live.broll.manualBlockerActions[0].mutatesRuntime, false)
+assert.equal(live.broll.manualBlockerActions[0].runsModel, false)
+assert.equal(live.broll.manualBlockerActions[0].createsAssets, false)
+assert.equal(live.broll.manualBlockerActions[0].mutatesCloud, true)
+assert.equal(live.broll.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
+assert.equal(live.broll.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
+assert.equal(live.broll.manualBlockerActions[0].changesQuotaRequest, true)
+assert.equal(live.broll.manualBlockerActions[0].afterCompletionCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(live.commandSummaries.length > 0, true)
+assert.equal(Array.isArray(live.skippedCommandSummaries), true)
 assert.equal(typeof live.recommendedNextPrompt, 'string')
 if (live.gcloud.activeAccountDomain) {
   assert.equal(live.gcloud.activeAccountDomain.includes('@'), false)
   assert.equal(live.gcloud.activeAccountDomain.includes('<redacted'), false)
+}
+assert.equal(Array.isArray(live.gcloud.pathCandidates), true)
+assert.equal(typeof live.gcloud.pathCandidateCount, 'number')
+assert.equal(live.gcloud.pathCandidateCount >= 1, true)
+assert.equal(Array.isArray(live.gcloud.pathToolSearchEntries), true)
+assert.equal(typeof live.gcloud.appleSiliconHomebrewPrecedesUsrLocal, 'boolean')
+assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewPath, 'string')
+assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewGcloudPresent, 'boolean')
+assert.equal(typeof live.gcloud.usrLocalGcloudPath, 'string')
+assert.equal(typeof live.gcloud.usrLocalGcloudPresent, 'boolean')
+
+const downstreamCommandIds = [
+  'qwen_cloud_run_service_describe',
+  'qwen_cloud_run_job_describe',
+  'broll_project_quota_describe',
+  'broll_region_quota_describe',
+]
+
+if (!live.qwen.accessTokenRefreshPassed) {
+  assert.equal(live.qwen.downstreamProbeSkipped, true)
+  assert.equal(live.broll.quotaProbeSkipped, true)
+  assert.equal(live.broll.blocker, spec.broll.blockerIfSkippedForAuth)
+  assert.equal(live.broll.nextAction, spec.broll.nextActionIfSkippedForAuth)
+  assert.equal(live.skippedCommandSummaries.length, downstreamCommandIds.length)
+
+  for (const id of downstreamCommandIds) {
+    assert.equal(
+      live.commandSummaries.some((summary: { id: string }) => summary.id === id),
+      false,
+      `${id} must not run after token refresh fails`,
+    )
+    const skipped = live.skippedCommandSummaries.find((summary: { id: string }) => summary.id === id)
+    assert.ok(skipped, `${id} must be reported as skipped`)
+    assert.equal(skipped.reason, 'auth_refresh_failed_before_downstream_probe')
+  }
+
+  assert.equal(
+    live.recommendedNextPrompt,
+    spec.qwen.nextActionIfBlocked,
+    'auth failure must recommend refreshing the active local gcloud account/configuration',
+  )
+} else {
+  assert.equal(live.qwen.blocker, 'cleared')
+  assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfCleared)
+  assert.equal(live.qwen.downstreamProbeSkipped, false)
 }
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {

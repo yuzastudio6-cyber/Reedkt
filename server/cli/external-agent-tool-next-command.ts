@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 type ProbeResult = {
@@ -80,11 +81,62 @@ function nestedUnknown(document: Record<string, unknown> | undefined, keys: stri
   return value
 }
 
+function nestedArray(document: Record<string, unknown> | undefined, keys: string[]): unknown[] | undefined {
+  const value = nestedUnknown(document, keys)
+  return Array.isArray(value) ? value : undefined
+}
+
+function objectString(row: Record<string, unknown>, key: string): string | undefined {
+  const value = row[key]
+  return typeof value === 'string' ? value : undefined
+}
+
+function executionGateToolSummaries(document: Record<string, unknown> | undefined) {
+  const rows = nestedArray(document, ['toolRows']) ?? []
+  const toolsById = new Map(EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.map((tool) => [tool.toolId, tool]))
+
+  return rows
+    .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object' && !Array.isArray(row))
+    .map((row) => {
+      const toolId = objectString(row, 'toolId')
+      const rollupTool = toolId ? toolsById.get(toolId) : undefined
+
+      return {
+        toolId,
+        executionAllowedNow: row.executionAllowedNow === true,
+        staticExplicitToolGateReady: row.staticExplicitToolGateReady === true,
+        currentBlocker: objectString(row, 'currentBlocker'),
+        safeNextCommand: objectString(row, 'safeNextCommand'),
+        manualBlockerActions: rollupTool?.manualBlockerActions ?? [],
+        noIdleLifecycleGate:
+          row.noIdleLifecycleGate && typeof row.noIdleLifecycleGate === 'object' && !Array.isArray(row.noIdleLifecycleGate)
+            ? row.noIdleLifecycleGate
+            : undefined,
+      }
+    })
+}
+
 function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) {
   if (!document) return undefined
 
   return {
     path: nestedString(document, ['gcloud', 'path']),
+    pathCandidates: nestedArray(document, ['gcloud', 'pathCandidates']),
+    pathCandidateCount: nestedUnknown(document, ['gcloud', 'pathCandidateCount']),
+    pathToolSearchEntries: nestedArray(document, ['gcloud', 'pathToolSearchEntries']),
+    pathPrefersAppleSiliconHomebrew: nestedUnknown(document, ['gcloud', 'pathPrefersAppleSiliconHomebrew']),
+    appleSiliconHomebrewPrecedesUsrLocal: nestedUnknown(document, [
+      'gcloud',
+      'appleSiliconHomebrewPrecedesUsrLocal',
+    ]),
+    expectedAppleSiliconHomebrewPath: nestedString(document, ['gcloud', 'expectedAppleSiliconHomebrewPath']),
+    expectedAppleSiliconHomebrewGcloudPresent: nestedUnknown(document, [
+      'gcloud',
+      'expectedAppleSiliconHomebrewGcloudPresent',
+    ]),
+    usrLocalGcloudPath: nestedString(document, ['gcloud', 'usrLocalGcloudPath']),
+    usrLocalGcloudPresent: nestedUnknown(document, ['gcloud', 'usrLocalGcloudPresent']),
+    pathDiagnosticHint: nestedString(document, ['gcloud', 'pathDiagnosticHint']),
     installationSdkRoot: nestedString(document, ['gcloud', 'installationSdkRoot']),
     installationOnPath: nestedUnknown(document, ['gcloud', 'installationOnPath']),
     releaseChannel: nestedString(document, ['gcloud', 'releaseChannel']),
@@ -97,7 +149,33 @@ function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) 
     projectMatches: nestedUnknown(document, ['gcloud', 'projectMatches']),
     activeAccountDomain: nestedString(document, ['gcloud', 'activeAccountDomain']),
     accessTokenRefreshPassed: nestedUnknown(document, ['gcloud', 'accessTokenRefreshPassed']),
+    authFailure: nestedUnknown(document, ['gcloud', 'authFailure']),
     likelyMismatch: nestedString(document, ['gcloud', 'likelyMismatch']),
+    manualOnlyRepairActions: nestedArray(document, ['manualOnlyRepairActions']),
+    postRepairCodexVerificationCommand: nestedString(document, ['postRepairCodexVerificationCommand']),
+  }
+}
+
+function liveBlockerSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    qwen: {
+      blocker: nestedString(document, ['qwen', 'blocker']),
+      nextAction: nestedString(document, ['qwen', 'nextAction']),
+      accessTokenRefreshPassed: nestedUnknown(document, ['qwen', 'accessTokenRefreshPassed']),
+      downstreamProbeSkipped: nestedUnknown(document, ['qwen', 'downstreamProbeSkipped']),
+      downstreamProbeSkipReason: nestedString(document, ['qwen', 'downstreamProbeSkipReason']),
+      readyForExternalAgentExecutionNow: nestedUnknown(document, ['qwen', 'readyForExternalAgentExecutionNow']),
+    },
+    broll: {
+      blocker: nestedString(document, ['broll', 'blocker']),
+      nextAction: nestedString(document, ['broll', 'nextAction']),
+      quotaProbeSkipped: nestedUnknown(document, ['broll', 'quotaProbeSkipped']),
+      quotaProbeSkipReason: nestedString(document, ['broll', 'quotaProbeSkipReason']),
+      quotaSufficientForOneL4Vm: nestedUnknown(document, ['broll', 'quotaSufficientForOneL4Vm']),
+      readyForExternalAgentExecutionNow: nestedUnknown(document, ['broll', 'readyForExternalAgentExecutionNow']),
+    },
   }
 }
 
@@ -115,13 +193,31 @@ function main() {
   const executionGate = runProbe(executionGateProbe.id, executionGateProbe.script)
   const liveBlocker = runProbe(liveBlockerProbe.id, liveBlockerProbe.script)
   const qwenAuthRefreshPassed = nestedBoolean(liveBlocker.json, ['qwen', 'accessTokenRefreshPassed'])
+  const qwenServiceDescribePassed = nestedBoolean(liveBlocker.json, ['qwen', 'serviceDescribePassed'])
+  const qwenJobDescribePassed = nestedBoolean(liveBlocker.json, ['qwen', 'jobDescribePassed'])
+  const qwenDownstreamProbeSkipped = nestedUnknown(liveBlocker.json, ['qwen', 'downstreamProbeSkipped']) === true
+  const qwenLivePreflightPassed =
+    qwenAuthRefreshPassed &&
+    qwenServiceDescribePassed &&
+    qwenJobDescribePassed &&
+    !qwenDownstreamProbeSkipped &&
+    nestedString(liveBlocker.json, ['qwen', 'blocker']) === 'cleared'
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
-  const executionAllowedNow = nestedBoolean(executionGate.json, ['executionAllowedNow'])
+  const executionGateAllowsRuntime = nestedBoolean(executionGate.json, ['executionAllowedNow'])
+  const staticExplicitToolGateReady = nestedBoolean(executionGate.json, ['staticExplicitToolGateReady'])
+  const staticExplicitToolGatePrepared = staticExplicitToolGateReady
+  const staticExecutionGateAllowed = executionGateAllowsRuntime
+  const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
+  const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
+  const gateToolSummaries = executionGateToolSummaries(executionGate.json)
+  const executionAllowedNow = executionGateAllowsRuntime && qwenLivePreflightPassed
+  const qwenLivePreflightVerificationRequired = qwenLivePreflightPassed && !executionGateAllowsRuntime
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
   const gcloudDiagnostic = shouldRunGcloudDiagnostic
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
     : undefined
   const diagnosticSummary = shouldRunGcloudDiagnostic ? gcloudDiagnosticSummary(gcloudDiagnostic?.json) : undefined
+  const blockerSummary = liveBlockerSummary(liveBlocker.json)
   const diagnosticRecommendedNextPrompt = shouldRunGcloudDiagnostic
     ? nestedString(gcloudDiagnostic?.json, ['recommendedNextPrompt'])
     : undefined
@@ -130,12 +226,28 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
-      : !brollQuotaSufficient
-        ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
-        : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
+      : qwenLivePreflightVerificationRequired
+        ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
+      : !qwenLivePreflightPassed
+        ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
+        : !brollQuotaSufficient
+          ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
+          : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
+    : qwenLivePreflightVerificationRequired
+      ? nestedString(liveBlocker.json, ['qwen', 'nextAction'])
     : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
+  const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
+  const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required
+  const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined
+  const manualActionBlocksRuntime = manualActionRequired ? authManualActionRule.blocksRuntime : undefined
+  const rerunAfterManualAction = manualActionRequired ? authManualActionRule.rerunAfterManualAction : undefined
+  const chosenNextCommandAlreadyExecutedInThisRun =
+    chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
+  const codexRunnableNextCommandNow =
+    manualActionRequired || chosenNextCommandAlreadyExecutedInThisRun ? undefined : chosenNextCommand
+  const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
     .filter((probe): probe is ProbeResult => Boolean(probe))
@@ -158,14 +270,34 @@ function main() {
         paidProductionInScope: spec.paidProductionInScope,
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
+        staticExecutionGateAllowed,
+        staticExplicitToolGateReady,
+        staticExplicitToolGatePrepared,
+        staticGatePlanningOnly,
+        staticGateDoesNotAuthorizeRuntime,
+        executionGateAllowsRuntime,
+        executionGateToolSummaries: gateToolSummaries,
+        qwenLivePreflightPassed,
+        qwenLivePreflightVerificationRequired,
+        qwenServiceDescribePassed,
+        qwenJobDescribePassed,
+        qwenDownstreamProbeSkipped,
         executionAllowedNow,
-        readyForAnyExternalAgentExecutionNow: false,
+        readyForAnyExternalAgentExecutionNow: executionAllowedNow,
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
+        liveBlockerSummary: blockerSummary,
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
         gcloudDiagnosticSummary: diagnosticSummary,
         chosenNextCommand,
+        chosenNextCommandAlreadyExecutedInThisRun,
+        codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
         chosenManualAction,
+        manualActionRequired,
+        manualActionReason,
+        manualActionBlocksRuntime,
+        rerunAfterManualAction,
+        nextCodexCommandAfterManualAction,
         probeSummaries,
         forbiddenRuntimeActions: spec.forbiddenRuntimeActions,
         runtimeSideEffects: spec.runtimeSideEffects,

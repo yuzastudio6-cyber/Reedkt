@@ -75,8 +75,32 @@ function accountPresent(value: string | undefined): boolean {
   return Boolean(value && value.trim() && value.trim() !== '(unset)')
 }
 
+function outputLines(value: string | undefined): string[] {
+  if (!value) return []
+
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)]
+}
+
 function commandLabel(command: string, args: readonly string[]): string {
   return [command, ...args].join(' ')
+}
+
+function manualRepairActionsForResolvedGcloud(resolvedGcloudPath: string | undefined) {
+  return EXTERNAL_AGENT_GCLOUD_SESSION_DIAGNOSTIC.qwen.manualOnlyRepairActions.map((action) => ({
+    ...action,
+    pathSpecificCommand:
+      resolvedGcloudPath && action.command.startsWith('gcloud ')
+        ? action.command.replace(/^gcloud\b/, resolvedGcloudPath)
+        : action.command,
+    usesResolvedGcloudPath: Boolean(resolvedGcloudPath),
+  }))
 }
 
 function runReadOnlyCommand(
@@ -153,6 +177,7 @@ function main() {
   }
 
   const gcloudPath = run('gcloud_path', { captureStdout: true })
+  const gcloudAllPaths = gcloudPath.ok ? run('gcloud_all_paths', { captureStdout: true }) : undefined
   const gcloudVersion = gcloudPath.ok ? run('gcloud_version', { captureStdout: true }) : undefined
   const configurations = gcloudPath.ok ? run('gcloud_configurations_list', { captureStdout: true }) : undefined
   const configList = gcloudPath.ok ? run('gcloud_config_list', { captureStdout: true }) : undefined
@@ -172,7 +197,34 @@ function main() {
   const authAccounts = parseJson<GcloudAuthAccount[]>(activeAuth)
   const activeAuthAccount = authAccounts?.find((authAccount) => authAccount.status === 'ACTIVE')
   const accountValue = account?.rawStdout?.trim() || config?.core?.account || activeAuthAccount?.account
+  const gcloudPathCandidates = uniqueStrings(outputLines(gcloudAllPaths?.rawStdout))
+  const expectedAppleSiliconHomebrewPath = '/opt/homebrew/bin/gcloud'
+  const usrLocalGcloudPath = '/usr/local/bin/gcloud'
+  const pathEntries = uniqueStrings(outputLines(process.env.PATH?.split(':').join('\n')))
+  const pathToolSearchEntries = pathEntries
+    .filter((entry) => !entry.endsWith('/node_modules/.bin'))
+    .slice(0, 8)
+  const appleSiliconHomebrewPathIndex = pathEntries.indexOf('/opt/homebrew/bin')
+  const usrLocalPathIndex = pathEntries.indexOf('/usr/local/bin')
+  const pathPrefersAppleSiliconHomebrew = pathToolSearchEntries[0] === '/opt/homebrew/bin'
+  const appleSiliconHomebrewPrecedesUsrLocal =
+    appleSiliconHomebrewPathIndex >= 0 && usrLocalPathIndex >= 0
+      ? appleSiliconHomebrewPathIndex < usrLocalPathIndex
+      : false
+  const expectedAppleSiliconHomebrewGcloudPresent = gcloudPathCandidates.includes(expectedAppleSiliconHomebrewPath)
+  const usrLocalGcloudPresent = gcloudPathCandidates.includes(usrLocalGcloudPath)
+  const gcloudPathDiagnosticHint =
+    (pathPrefersAppleSiliconHomebrew || appleSiliconHomebrewPrecedesUsrLocal) &&
+    !expectedAppleSiliconHomebrewGcloudPresent &&
+    usrLocalGcloudPresent
+      ? 'PATH includes /opt/homebrew/bin before /usr/local/bin, but no /opt/homebrew/bin/gcloud is visible; this shell resolves gcloud from /usr/local/bin'
+      : undefined
   const tokenRefreshPassed = Boolean(accessTokenRefresh?.ok)
+  const tokenRefreshStderr = accessTokenRefresh?.stderrSummary
+  const reauthenticationRequired = /reauthentication failed|gcloud auth login|cannot prompt/i.test(
+    tokenRefreshStderr ?? '',
+  )
+  const accountSelectionSuggested = /gcloud config set account/i.test(tokenRefreshStderr ?? '')
   const projectMatches = project?.stdout === spec.projectId || config?.core?.project === spec.projectId
   const accountIsPresent = accountPresent(accountValue)
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
@@ -201,6 +253,16 @@ function main() {
         gcloud: {
           available: gcloudPath.ok,
           path: gcloudPath.stdout,
+          pathCandidates: gcloudPathCandidates.map((candidate) => sanitize(candidate)).filter(Boolean),
+          pathCandidateCount: gcloudPathCandidates.length,
+          pathToolSearchEntries,
+          pathPrefersAppleSiliconHomebrew,
+          appleSiliconHomebrewPrecedesUsrLocal,
+          expectedAppleSiliconHomebrewPath,
+          expectedAppleSiliconHomebrewGcloudPresent,
+          usrLocalGcloudPath,
+          usrLocalGcloudPresent,
+          pathDiagnosticHint: gcloudPathDiagnosticHint,
           versionChecked: Boolean(gcloudVersion?.ok),
           installationSdkRoot: sanitize(gcloudInfo?.installation?.sdk_root),
           installationOnPath: gcloudInfo?.installation?.on_path,
@@ -218,6 +280,17 @@ function main() {
           activeAccountDomain: accountDomain(accountValue),
           authListActiveAccountPresent: accountPresent(activeAuthAccount?.account),
           accessTokenRefreshPassed: tokenRefreshPassed,
+          authFailure: tokenRefreshPassed
+            ? undefined
+            : {
+                accessTokenRefreshExitCode: accessTokenRefresh?.exitCode,
+                reauthenticationRequired,
+                nonInteractivePromptBlocked: /cannot prompt during non-interactive execution/i.test(
+                  tokenRefreshStderr ?? '',
+                ),
+                accountSelectionSuggested,
+                stderrSummary: tokenRefreshStderr,
+              },
           likelyMismatch,
         },
         qwen: {
@@ -235,6 +308,10 @@ function main() {
           'refresh the active account/configuration that this Codex shell reports, outside Codex',
           'rerun npm run external-agent-tool-blockers:preflight after auth refresh succeeds',
         ],
+        manualOnlyRepairActions: tokenRefreshPassed
+          ? []
+          : manualRepairActionsForResolvedGcloud(gcloudPath.stdout),
+        postRepairCodexVerificationCommand: spec.qwen.postRepairCodexVerificationCommand,
         runtimeSideEffects: spec.runtimeSideEffects,
         runtimeGatesAllFalse,
         readyForAnyExternalAgentExecutionNow: false,

@@ -1,5 +1,7 @@
 export type ExternalAgentToolReadinessStatus =
   | 'blocked_external_state'
+  | 'auth_verified_runtime_blocked'
+  | 'ready_for_explicit_tool_gate'
   | 'metadata_only'
   | 'supporting_evidence_only'
 
@@ -16,6 +18,46 @@ export type ExternalAgentToolReadinessEntry = {
   primaryBlocker: string
   evidence: string[]
   nextAction: string
+  manualBlockerActions?: ExternalAgentManualBlockerAction[]
+  noIdleLifecycleGate?: ExternalAgentToolNoIdleLifecycleGate
+}
+
+export type ExternalAgentManualBlockerAction = {
+  id: string
+  label: string
+  runInsideCodex: false
+  mutatesRuntime: false
+  runsModel: false
+  createsAssets: false
+  mutatesCloud: boolean
+  mutatesLocalGcloudAuth: boolean
+  mutatesLocalGcloudConfig: boolean
+  changesQuotaRequest: boolean
+  purpose: string
+  afterCompletionCommand: string
+}
+
+export type ExternalAgentToolNoIdleLifecycleGate = {
+  proofVmName: string
+  selectedGpu: 'nvidia_l4'
+  machineType: 'g2-standard-4'
+  targetRegion: 'us-central1'
+  targetZone: 'us-central1-b'
+  minimumGlobalGpusAllRegionsQuota: 1
+  minimumRegionalL4Quota: 1
+  noPublicIpRequired: true
+  externalIpAllowed: false
+  bootDiskAutoDeleteRequired: true
+  preExistingResourceCheckRequired: true
+  deleteOnlyResourcesCreatedByPrompt: true
+  cleanupVerificationRequired: true
+  idleGpuAllowed: false
+  vmCreateAllowedNow: false
+  modelInferenceAllowedNow: false
+  runtimePromptRequiredBeforeVmCreate: true
+  cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check'
+  quotaVerificationCommand: 'npm run external-agent-tool-blockers:preflight'
+  nextActionAfterQuotaClears: string
 }
 
 export type ExternalAgentToolSafeNextCommand = {
@@ -28,8 +70,13 @@ export type ExternalAgentToolSafeNextCommand = {
   purpose: string
 }
 
+export const QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation' as const
+export const QWEN2_5_VL_58DQ_AUTH_USER_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight' as const
+
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
-  decision: 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_and_broll_quota',
+  decision: 'external_agent_tool_execution_readiness_qwen_live_preflight_verified_broll_quota_blocked',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -80,6 +127,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       runsModel: false,
       createsAssets: false,
       purpose: 'Fast static readiness and evidence presence check for all tracked external-agent tool lanes.',
+    },
+    {
+      id: 'surface_consistency_smoke',
+      command: 'npm run smoke:external-agent-tool-surface-consistency',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Read-only smoke that compares external-agent readiness surfaces for shared manual blockers, fail-closed gates, and drift.',
     },
     {
       id: 'fail_closed_execution_gate',
@@ -136,17 +193,29 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'qwen2_5_vl_7b_instruct',
       lane: 'video_understanding_vlm',
-      status: 'blocked_external_state',
+      status: 'ready_for_explicit_tool_gate',
       currentStage:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_auth_refresh_result',
+        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_live_preflight_verified_explicit_58dw_prompt_required',
       selectedModelOrTool: 'Qwen/Qwen2.5-VL-7B-Instruct',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
-      readyForExternalAgentExecutionNow: false,
-      readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'local_gcloud_reauthentication_required',
+      readyForExternalAgentExecutionNow: true,
+      readyForBoundedRetryAfterBlockerClears: false,
+      primaryBlocker: 'none_live_preflight_verified_exact_58dw_prompt_required',
       evidence: [
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.md',
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.md',
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.md',
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate.md',
+        'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.md',
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.ts',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.ts',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval.ts',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate.ts',
+        'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.ts',
         'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
         'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
         'src/backend/mock/mock-external-agent-gcloud-session-diagnostic.ts',
@@ -154,11 +223,48 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/cli/external-agent-gcloud-session-diagnostic.ts',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-approval-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-gate-smoke.ts',
+        'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan-smoke.ts',
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result-smoke.ts',
         'pull_request_1914_open_draft_clean',
       ],
-      nextAction:
-        'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta',
+      nextAction: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+      manualBlockerActions: [
+        {
+          id: 'refresh_active_gcloud_login',
+          label: 'Refresh the active local gcloud login outside Codex',
+          runInsideCodex: false,
+          mutatesRuntime: false,
+          runsModel: false,
+          createsAssets: false,
+          mutatesCloud: false,
+          mutatesLocalGcloudAuth: true,
+          mutatesLocalGcloudConfig: false,
+          changesQuotaRequest: false,
+          purpose:
+            'Make the same local gcloud account/configuration used by this shell able to refresh tokens before any Qwen service/job preflight can be trusted.',
+          afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
+        },
+        {
+          id: 'select_authenticated_gcloud_account_if_needed',
+          label: 'Select an already-authenticated gcloud account outside Codex if needed',
+          runInsideCodex: false,
+          mutatesRuntime: false,
+          runsModel: false,
+          createsAssets: false,
+          mutatesCloud: false,
+          mutatesLocalGcloudAuth: false,
+          mutatesLocalGcloudConfig: true,
+          changesQuotaRequest: false,
+          purpose:
+            'Align the local gcloud active account with the refreshed credentials when auth succeeded under a different local account.',
+          afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
+        },
+      ],
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -171,7 +277,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'gpus_all_regions_quota_zero',
+      primaryBlocker: 'gpus_all_regions_quota_zero_or_unverified',
       evidence: [
         'docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md',
         'docs/ai-video-broll-generation-gpu-global-quota-fix-result.md',
@@ -188,6 +294,46 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       ],
       nextAction:
         'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
+      manualBlockerActions: [
+        {
+          id: 'request_gpus_all_regions_quota_in_console',
+          label: 'Request GPUS_ALL_REGIONS quota increase outside Codex',
+          runInsideCodex: false,
+          mutatesRuntime: false,
+          runsModel: false,
+          createsAssets: false,
+          mutatesCloud: true,
+          mutatesLocalGcloudAuth: false,
+          mutatesLocalGcloudConfig: false,
+          changesQuotaRequest: true,
+          purpose:
+            'Raise GPUS_ALL_REGIONS to at least 1 through the cloud owner/user path before any bounded no-idle L4 VM proof can be planned.',
+          afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
+        },
+      ],
+      noIdleLifecycleGate: {
+        proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
+        selectedGpu: 'nvidia_l4',
+        machineType: 'g2-standard-4',
+        targetRegion: 'us-central1',
+        targetZone: 'us-central1-b',
+        minimumGlobalGpusAllRegionsQuota: 1,
+        minimumRegionalL4Quota: 1,
+        noPublicIpRequired: true,
+        externalIpAllowed: false,
+        bootDiskAutoDeleteRequired: true,
+        preExistingResourceCheckRequired: true,
+        deleteOnlyResourcesCreatedByPrompt: true,
+        cleanupVerificationRequired: true,
+        idleGpuAllowed: false,
+        vmCreateAllowedNow: false,
+        modelInferenceAllowedNow: false,
+        runtimePromptRequiredBeforeVmCreate: true,
+        cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
+        quotaVerificationCommand: 'npm run external-agent-tool-blockers:preflight',
+        nextActionAfterQuotaClears:
+          'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-VERIFY: verify GPUS_ALL_REGIONS quota increase and regional L4 quota before any bounded no-idle VM prompt',
+      },
     },
     {
       toolId: 'sound_music_audio',
@@ -221,8 +367,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       nextAction: 'use as source-of-truth evidence only; do not mutate live Supabase from this rollup',
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
-  recommendedNextPrompt:
-    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh local gcloud auth interactively outside Codex, no repo changes/no Cloud Run mutation/no inference/no generated assets/no beta',
+  recommendedNextPrompt: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

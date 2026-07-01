@@ -189,3 +189,7 @@ RP-CREDITREVISION-01 resolves those mock revised-credit actions. Approve & Conti
 ## RP-SETTLEMENT-01 Final Credit Settlement
 
 RP-SETTLEMENT-01 performs final settlement in local mock state only. It aggregates billable tool-cost events, adds the ReEditPro service/edit fee separately, updates mock wallet/reservation balances, releases unused hold, and records absorbed overage or approved-but-unfunded state without creating production ledger entries. Live billing, Stripe/payment, Supabase writes, provider calls, render/export, checkout/top-up, and export unlock remain future work.
+
+## RP-EXPORTLOCK-01 Export Credit Gate
+
+RP-EXPORTLOCK-01 adds a local/mock export readiness gate over settlement state. It allows `settled` and `settled_with_absorbed_overage`, and creates only an idempotent mock export lock for `requires_top_up_before_export`. It does not create ledger entries, mutate production wallets, run checkout/top-up, execute render/export, unlock export, write Supabase, or wire live billing.

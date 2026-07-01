@@ -72,3 +72,9 @@
 - Real: local/mock completed edits can settle against reserved credits, release unused hold, and mark the mock reservation `spent`.
 - Real: final charge uses billable tool-cost events plus the separate ReEditPro service/edit fee; non-billable costs are shown as absorbed internal cost.
 - Mock-only: absorbed overage and approved-but-unfunded top-up states are recorded without live billing, Stripe/payment, provider call, render/export, checkout/top-up, export unlock, Supabase write, production wallet mutation, or ledger write.
+
+## RP-EXPORTLOCK-01 Mock Export Gate Status
+
+- Real: local/mock export readiness can be evaluated from settlement state.
+- Real: `requires_top_up_before_export` creates an idempotent mock export lock with "Action required: add credits to export".
+- Mock-only: `settled_with_absorbed_overage` allows export readiness, and no live billing, Stripe/payment, checkout/top-up, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, production persistence, or ledger write is wired.

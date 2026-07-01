@@ -19,3 +19,5 @@ RP-RUNTIME-GUARD-01 consumes this max-hold reservation at paid runtime boundarie
 RP-CREDITREVISION-01 may increase an existing `reserved` mock reservation only when the user chooses Approve & Continue for a projected-overage action and enough mock credits are available. The added reservation line is marked `revised_credit_additional_hold`; lower-cost and cancel resolutions leave reservation totals unchanged. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
 
 RP-SETTLEMENT-01 is the first mock-safe terminal consumer of this hold. It settles completed edits by spending only local mock reserved credits, returning unused hold to the mock wallet, and marking the reservation `spent`; approved-but-unfunded top-up remains informational and does not unlock export.
+
+RP-EXPORTLOCK-01 reads the post-settlement state. It allows export readiness for `settled` and `settled_with_absorbed_overage`, and blocks only `requires_top_up_before_export` with a local mock export lock. It does not mutate reservations, run checkout/top-up, or unlock export.

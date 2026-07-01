@@ -3,6 +3,7 @@ import type {
   CancelCreditRevisionActionRequest,
   ChooseLowerCostCreditRevisionOptionRequest,
   CreditApprovalRecord,
+  CreditExportLockRecord,
   CreditEstimateLineItemRecord,
   CreditEstimateRecord,
   CreditRevisionActionResolutionResponse,
@@ -11,6 +12,8 @@ import type {
   CreditSettlementRecord,
   CreditWalletRecord,
   EditCreditCostSummary,
+  EvaluateExportCreditGateRequest,
+  ExportCreditGateResult,
   PreviewCreditSettlementRequest,
   PreviewCreditSettlementResponse,
   ReserveMaxEstimateCreditsRequest,
@@ -63,6 +66,7 @@ export type {
   ApproveCreditRevisionActionRequest,
   CancelCreditRevisionActionRequest,
   ChooseLowerCostCreditRevisionOptionRequest,
+  CreditExportLockRecord,
   CreditRevisionActionResolutionResponse,
   PreviewCreditSettlementRequest,
   PreviewCreditSettlementResponse,
@@ -70,6 +74,8 @@ export type {
   ReserveMaxEstimateCreditsResponse,
   SettleCreditReservationRequest,
   SettleCreditReservationResponse,
+  EvaluateExportCreditGateRequest,
+  ExportCreditGateResult,
 }
 
 export interface ListCreditSettlementsResponse {

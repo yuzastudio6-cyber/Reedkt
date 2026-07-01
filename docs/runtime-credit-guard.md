@@ -13,3 +13,5 @@ Tool-cost events remain owner/internal-cost only with `serviceFeeIncluded = fals
 Boundaries: no live billing, no Stripe/payment, no Supabase migrations or writes, no provider call, no worker run after a failed guard, no render/export execution, no production wallet mutation, no reservation spend/release/refund, no production ledger write, no settlement execution, no export unlock, and no checkout/top-up. `smoke:runtime-credit-guard` covers the guard contract and boundary integrations.
 
 RP-SETTLEMENT-01 runs after paid work is complete. Runtime guard still blocks new paid work unless the reservation is `reserved`; final settlement marks a reservation `spent`, releases unused mock hold, and does not call providers or render/export.
+
+RP-EXPORTLOCK-01 runs after settlement and does not affect runtime start. It allows export readiness for `settled` and absorbed-overage settlements, and blocks only approved-but-unfunded `requires_top_up_before_export` without starting checkout/top-up or export unlock.

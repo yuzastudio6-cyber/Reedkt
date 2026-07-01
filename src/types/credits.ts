@@ -190,6 +190,49 @@ export const SETTLE_CREDIT_RESERVATION_STATUSES = [
 
 export type SettleCreditReservationStatus = typeof SETTLE_CREDIT_RESERVATION_STATUSES[number]
 
+export const EXPORT_CREDIT_GATE_STATUSES = [
+  'export_allowed',
+  'export_locked_top_up_required',
+  'settlement_required',
+  'revised_estimate_required',
+  'settlement_failed',
+  'invalid_request',
+  'settlement_not_found',
+  'reservation_not_found',
+] as const
+
+export type ExportCreditGateStatus = typeof EXPORT_CREDIT_GATE_STATUSES[number]
+
+export const EXPORT_CREDIT_GATE_REQUIRED_ACTIONS = [
+  'none',
+  'add_credits_to_export',
+  'settle_edit_first',
+  'resolve_revised_estimate',
+  'contact_support',
+] as const
+
+export type ExportCreditGateRequiredAction = typeof EXPORT_CREDIT_GATE_REQUIRED_ACTIONS[number]
+
+export const CREDIT_EXPORT_LOCK_STATUSES = [
+  'locked',
+  'unlocked',
+  'not_required',
+  'resolved',
+  'cancelled',
+] as const
+
+export type CreditExportLockStatus = typeof CREDIT_EXPORT_LOCK_STATUSES[number]
+
+export const CREDIT_EXPORT_LOCK_REASONS = [
+  'approved_but_unfunded',
+  'settlement_required',
+  'revised_estimate_required',
+  'settlement_failed',
+  'unknown',
+] as const
+
+export type CreditExportLockReason = typeof CREDIT_EXPORT_LOCK_REASONS[number]
+
 export interface CreditSettlementRecord {
   id: ID
   workspaceId: ID
@@ -373,6 +416,82 @@ export interface SettleCreditReservationResponse {
   userFacingTitle: string
   userFacingMessage: string
   safetyFlags: CreditSettlementSafetyFlags
+  warnings: string[]
+}
+
+export interface EvaluateExportCreditGateRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  renderId?: ID | null
+  exportId?: ID | null
+  creditReservationId: ID
+  creditSettlementId?: ID | null
+  requestedByUserId?: ID | null
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CreditExportLockRecord extends BaseRecord {
+  id: ID
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  renderId?: ID | null
+  exportId?: ID | null
+  creditReservationId: ID
+  creditSettlementId: ID
+  status: CreditExportLockStatus
+  lockReason: CreditExportLockReason
+  outstandingCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  reservedCredits: CreditAmount
+  actionRequiredTitle: string
+  actionRequiredMessage: string
+  idempotencyKey: string
+  metadata: JSONObject
+  resolvedAt?: ISODateString | null
+}
+
+export interface ExportCreditGateSafetyFlags {
+  mockOnly: true
+  readOnly: boolean
+  mockExportLockWritten: boolean
+  walletMutated: false
+  reservationMutated: false
+  creditsSpent: false
+  creditsReleased: false
+  creditsRefunded: false
+  ledgerWritten: false
+  productionWalletMutated: false
+  productionPersistenceWritten: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface ExportCreditGateResult {
+  status: ExportCreditGateStatus
+  canExport: boolean
+  creditReservationId: ID | null
+  creditSettlementId?: ID | null
+  settlementStatus?: CreditSettlementStatus | null
+  reservedCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  outstandingCredits: CreditAmount
+  absorbedOverageCredits: CreditAmount
+  releasedCredits: CreditAmount
+  userFacingTitle: string
+  userFacingMessage: string
+  requiredAction: ExportCreditGateRequiredAction
+  exportLock: CreditExportLockRecord | null
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  metadata: JSONObject
+  safetyFlags: ExportCreditGateSafetyFlags
   warnings: string[]
 }
 

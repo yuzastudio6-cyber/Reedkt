@@ -200,6 +200,8 @@ const allowedPackageDiffLines = [
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:external-agent-mounted-blocked-route-smoke": "tsx server/cli/ai-graphics-external-agent-mounted-blocked-route-smoke.ts",',
   '+    "ai-graphics:external-agent-mounted-blocked-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-mounted-blocked-route-smoke-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-route-to-queue-blocked-admission": "tsx server/cli/ai-graphics-external-agent-route-to-queue-blocked-admission.ts",',
+  '+    "ai-graphics:external-agent-route-to-queue-blocked-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-route-to-queue-blocked-admission-diagnostics.mjs",',
 ]
 
 const failures = []

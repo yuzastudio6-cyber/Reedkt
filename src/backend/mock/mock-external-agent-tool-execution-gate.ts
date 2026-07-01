@@ -1,7 +1,7 @@
 import {
+  EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
-  QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
@@ -25,7 +25,7 @@ const BROLL_NO_IDLE_LIFECYCLE_GATE = ROLLUP.tools.find(
 )?.noIdleLifecycleGate as ExternalAgentToolNoIdleLifecycleGate
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_no_go_runtime_blocked' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_no_go_live_preflight_required' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -35,7 +35,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
   readyForAnyExternalAgentExecutionNow: false,
-  staticExplicitToolGateReady: false,
+  staticExplicitToolGateReady: true,
   requiresLivePreflightBeforeRuntime: true,
   requireGoExitCodeWhenBlocked: 2,
   safeCommandsBeforeExecution: [
@@ -51,21 +51,22 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     {
       toolId: 'qwen2_5_vl_7b_instruct',
       executionAllowedNow: false,
-      staticExplicitToolGateReady: false,
+      staticExplicitToolGateReady: true,
       requiredBeforeExecution: [
         '58DW bounded retry result must remain recorded as schema-invalid runtime evidence',
         '58DW structured-output fix must remain recorded and locally validated',
         '58DW-RETRY-2 bounded runtime result must remain recorded as passed evidence',
-        '58DW-RETRY-2 result review must be completed before any further Qwen runtime is considered',
+        '58DX result review must remain recorded and accepted for the explicit external-agent gate',
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
         'bounded approved-fixture private inference retry attempt approval must remain recorded',
         'bounded approved-fixture private inference retry attempt result must remain recorded as historical blocked evidence',
         'private inference gate alignment must remain recorded and accepted',
         'approved fixture private inference attempt must remain bounded and fail-closed',
+        'live read-only auth/service/job preflight must pass immediately before any bounded runtime attempt',
       ],
-      currentBlocker: 'qwen_58dw_retry_2_result_review_required',
-      safeNextCommand: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
+      currentBlocker: 'live_preflight_required_before_runtime',
+      safeNextCommand: 'npm run external-agent-tool-next-command',
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -105,13 +106,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     },
   ] satisfies ExternalAgentToolExecutionGateRow[],
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run again before the 58DW retry-2 result review is accepted',
-    'do not execute Cloud Run jobs again before the 58DW retry-2 result review is accepted',
+    'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
+    'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models again before the 58DW retry-2 result review is accepted',
-    'do not run inference again before the 58DW retry-2 result review is accepted',
+    'do not import models outside the bounded approved-fixture Qwen gate',
+    'do not run inference outside the bounded approved-fixture Qwen gate',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',
@@ -124,7 +125,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'do not unlock production',
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
-  recommendedNextPrompt: ROLLUP.recommendedNextPrompt,
+  recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

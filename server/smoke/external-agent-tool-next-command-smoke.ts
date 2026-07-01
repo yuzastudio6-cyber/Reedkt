@@ -11,8 +11,8 @@ const CLI_PATH = 'server/cli/external-agent-tool-next-command.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-next-command-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-next-command'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-next-command'
-const QWEN_RETRY_2_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+const QWEN_READY_PROMPT =
+  'EXTERNAL-AGENT-TOOL-EXECUTION-READY-QWEN: Qwen controlled approved-fixture private inference is ready for the explicit external-agent gate; keep beta/production blocked'
 const QWEN_RESULT_REVIEW_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 const QWEN_AUTH_NEXT_PROMPT =
@@ -91,7 +91,7 @@ assert.equal(
   spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
   QWEN_RESULT_REVIEW_PROMPT,
 )
-assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_RETRY_2_PROMPT)
+assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_READY_PROMPT)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -156,9 +156,9 @@ const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
   }>
 }
 assert.equal(qwenGateSummary.executionAllowedNow, false)
-assert.equal(qwenGateSummary.staticExplicitToolGateReady, false)
-assert.equal(qwenGateSummary.currentBlocker, 'qwen_58dw_retry_2_result_review_required')
-assert.equal(qwenGateSummary.safeNextCommand, QWEN_RESULT_REVIEW_PROMPT)
+assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
+assert.equal(qwenGateSummary.currentBlocker, 'live_preflight_required_before_runtime')
+assert.equal(qwenGateSummary.safeNextCommand, 'npm run external-agent-tool-next-command')
 assert.equal(qwenGateSummary.manualBlockerActions.length, 0)
 const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') as {
   executionAllowedNow: boolean
@@ -212,7 +212,8 @@ assert.equal(brollGateSummary.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 assert.equal(
   decision.executionAllowedNow,
-  decision.executionGateAllowsRuntime && decision.qwenLivePreflightPassed,
+  (decision.executionGateAllowsRuntime || decision.staticExplicitToolGateReady) &&
+    decision.qwenLivePreflightPassed,
 )
 for (const summary of decision.executionGateToolSummaries as Array<{
   toolId: string
@@ -246,9 +247,9 @@ assert.equal(
     decision.codexRunnableNextCommandNow === undefined,
   true,
 )
-if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
+if (decision.qwenLivePreflightPassed && decision.staticExplicitToolGateReady) {
   assert.equal(decision.executionAllowedNow, true)
-  assert.equal(decision.chosenManualAction, QWEN_RETRY_2_PROMPT)
+  assert.equal(decision.chosenManualAction, QWEN_READY_PROMPT)
   assert.equal(decision.chosenNextCommand, undefined)
   assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
   assert.equal(decision.codexRunnableNextCommandNow, null)

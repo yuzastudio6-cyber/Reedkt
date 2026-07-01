@@ -193,7 +193,7 @@ assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
 for (const tool of rollup.tools) {
   if (tool.toolId === QWEN_TOOL_ID) {
-    assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must wait for retry-2 result review`)
+    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for the explicit gate`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,
@@ -256,15 +256,15 @@ assert.equal(
   asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
     (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === QWEN_TOOL_ID,
   ),
-  true,
-  'actionPlan.manualBlockers must include result-review-blocked Qwen',
+  false,
+  'actionPlan.manualBlockers must not include explicit-gate-ready Qwen',
 )
 assert.equal(
   asArray(readiness.blockers, 'readiness.blockers').some(
     (row) => asRecord(row, 'readiness.blockers row').toolId === QWEN_TOOL_ID,
   ),
-  true,
-  'readiness.blockers must include result-review-blocked Qwen',
+  false,
+  'readiness.blockers must not include explicit-gate-ready Qwen',
 )
 
 for (const [label, actions] of brollSurfaceActions) {
@@ -272,11 +272,11 @@ for (const [label, actions] of brollSurfaceActions) {
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',
@@ -303,7 +303,9 @@ assertAllRuntimeFlagsFalse(blockerPreflight.runtimeSideEffects, 'blockerPrefligh
 
 assert.equal(
   nextCommand.executionAllowedNow,
-  nextCommand.executionGateAllowsRuntime === true && nextCommand.qwenLivePreflightPassed === true,
+  (nextCommand.executionGateAllowsRuntime === true ||
+    nextCommand.staticExplicitToolGateReady === true) &&
+    nextCommand.qwenLivePreflightPassed === true,
 )
 assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, nextCommand.executionAllowedNow)
 assert.equal(nextCommand.runtimeGatesAllFalse, true)
@@ -341,7 +343,7 @@ console.log(
       qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
       brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),
       runtimeGatesAllFalse: true,
-      staticQwenReadyForExplicitGate: false,
+      staticQwenReadyForExplicitGate: nextCommand.staticExplicitToolGateReady === true,
       liveQwenPreflightPassed: nextCommand.qwenLivePreflightPassed,
       executionAllowedNow: nextCommand.executionAllowedNow,
       readyForAnyExternalAgentExecutionNow: nextCommand.readyForAnyExternalAgentExecutionNow,

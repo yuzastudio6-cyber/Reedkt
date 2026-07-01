@@ -1,5 +1,5 @@
 import {
-  QWEN2_5_VL_58DW_RETRY_2_PROMPT,
+  EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
@@ -50,7 +50,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
-    whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_RETRY_2_PROMPT,
+    whenExecutionGateAllowsRuntime: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
@@ -67,13 +67,13 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   },
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run again before the 58DW retry-2 result review is accepted',
-    'do not execute Cloud Run jobs again before the 58DW retry-2 result review is accepted',
+    'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
+    'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models again before the 58DW retry-2 result review is accepted',
-    'do not run inference again before the 58DW retry-2 result review is accepted',
+    'do not import models outside the bounded approved-fixture Qwen gate',
+    'do not run inference outside the bounded approved-fixture Qwen gate',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

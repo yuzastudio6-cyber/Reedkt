@@ -210,8 +210,10 @@ function main() {
   const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
   const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
   const gateToolSummaries = executionGateToolSummaries(executionGate.json)
-  const executionAllowedNow = executionGateAllowsRuntime && qwenLivePreflightPassed
-  const qwenLivePreflightVerificationRequired = qwenLivePreflightPassed && !executionGateAllowsRuntime
+  const executionAllowedNow =
+    (executionGateAllowsRuntime || staticExplicitToolGateReady) && qwenLivePreflightPassed
+  const qwenLivePreflightVerificationRequired =
+    staticExplicitToolGateReady && !qwenLivePreflightPassed
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
   const gcloudDiagnostic = shouldRunGcloudDiagnostic
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
@@ -226,9 +228,7 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
-      : qwenLivePreflightVerificationRequired
-        ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
-      : !qwenLivePreflightPassed
+      : !qwenLivePreflightPassed || qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
         : !brollQuotaSufficient
           ? spec.nextCommandRules.whenBrollQuotaNeedsVerification

@@ -1,13 +1,13 @@
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
-  'do not invoke Cloud Run again before the 58DW retry-2 result review is accepted',
-  'do not execute Cloud Run jobs again before the 58DW retry-2 result review is accepted',
+  'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
+  'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',
   'do not create Compute Engine VMs',
   'do not request quota',
   'do not run Docker',
-  'do not import models again before the 58DW retry-2 result review is accepted',
-  'do not run inference again before the 58DW retry-2 result review is accepted',
+  'do not import models outside the bounded approved-fixture Qwen gate',
+  'do not run inference outside the bounded approved-fixture Qwen gate',
   'do not create generated assets',
   'do not call providers',
   'do not dispatch workers',
@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'Qwen completed the bounded 58DW retry-2 after the strict output fix; no further runtime retry is allowed until the retry-2 metadata result review is accepted',
+        'Qwen 58DX result review accepted the bounded approved-fixture private inference result for the explicit external-agent gate; live preflight is still required before any runtime attempt',
       afterBlockerClears:
-        'complete the 58DX private inference result review before any further Qwen runtime posture is proposed',
+        'run npm run external-agent-tool-next-command to combine the prepared static gate with live read-only Qwen preflight',
     }
   }
 

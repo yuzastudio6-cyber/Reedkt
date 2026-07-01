@@ -184,6 +184,7 @@
     "smoke:runtime-credit-guard": "tsx server/smoke/runtime-credit-guard-smoke.ts",
     "smoke:credit-revision-action": "tsx server/smoke/credit-revision-action-smoke.ts",
     "smoke:credit-revision": "npm run smoke:credit-revision-action",
+    "smoke:credit-settlement": "tsx server/smoke/credit-settlement-smoke.ts",
     "smoke:edit-level-surface-audit": "tsx server/smoke/edit-level-surface-audit-smoke.ts",
     "smoke:edit-level-architecture": "tsx server/smoke/edit-level-architecture-smoke.ts",
     "smoke:edit-level-types": "tsx server/smoke/edit-level-types-smoke.ts",

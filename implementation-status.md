@@ -201,3 +201,11 @@ Status: mock-safe revised-credit action resolution implemented.
 Projected-overage pauses can now be resolved through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work. Approve & Continue reserves only the additional mock max hold as `revised_credit_additional_hold` and does not start paid work; lower-cost and cancel resolutions leave the original paid runtime path blocked until a future plan/estimate path or cancellation flow handles it.
 
 It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export execution, export unlock, checkout/top-up, or UI. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
+
+## RP-SETTLEMENT-01
+
+Status: mock-safe final credit settlement implemented.
+
+Completed edits can now settle against a local mock reservation by aggregating billable tool-cost events, adding the separate ReEditPro service/edit fee, spending the final mock charge, and releasing unused reserved credits. Unapproved overage is absorbed by ReEditPro, while approved-but-unfunded export top-up is recorded without mutating the wallet/reservation.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, checkout/top-up, or UI. See `docs/credit-settlement-finalization.md` and `smoke:credit-settlement`.

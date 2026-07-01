@@ -560,3 +560,11 @@ Do not implement these without explicit user request:
 - Lower-cost and cancel resolutions must not reserve credits or silently resume the original paid tool.
 - Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, spend/release/refund, render/export execution, checkout/top-up, or export unlock.
 - Use `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action` when changing this surface.
+
+## RP-SETTLEMENT-01 Final Credit Settlement Boundary
+
+- Final settlement may mutate only local in-memory mock wallet/reservation state.
+- Charge actual billable tool cost plus the separate ReEditPro service/edit fee; keep tool-cost events `serviceFeeIncluded = false`.
+- Release unused mock hold, record absorbed overage when unapproved cost exceeds the hold, and keep approved-but-unfunded top-up informational.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, checkout/top-up, or export unlock.
+- Use `docs/credit-settlement-finalization.md` and `smoke:credit-settlement` when changing this surface.

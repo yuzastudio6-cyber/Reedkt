@@ -167,6 +167,29 @@ export const CREDIT_REVISION_ACTION_RESOLUTION_STATUSES = [
 export type CreditRevisionActionResolutionStatus =
   typeof CREDIT_REVISION_ACTION_RESOLUTION_STATUSES[number]
 
+export const CREDIT_SETTLEMENT_MODES = [
+  'completed_edit',
+  'preview_only',
+  'force_absorb_unapproved_overage',
+  'approved_but_unfunded',
+] as const
+
+export type CreditSettlementMode = typeof CREDIT_SETTLEMENT_MODES[number]
+
+export const SETTLE_CREDIT_RESERVATION_STATUSES = [
+  'previewed',
+  'settled',
+  'settled_with_absorbed_overage',
+  'requires_top_up_before_export',
+  'reservation_not_found',
+  'reservation_not_active',
+  'estimate_not_found',
+  'invalid_request',
+  'already_settled',
+] as const
+
+export type SettleCreditReservationStatus = typeof SETTLE_CREDIT_RESERVATION_STATUSES[number]
+
 export interface CreditSettlementRecord {
   id: ID
   workspaceId: ID
@@ -301,6 +324,55 @@ export interface PreviewCreditSettlementResponse {
   summary: EditCreditCostSummary
   requiresAction: boolean
   requiredActionType?: 'revised_estimate' | 'top_up_before_export' | 'none'
+  warnings: string[]
+}
+
+export interface SettleCreditReservationRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  settledByUserId?: ID | null
+  settledByAgent?: string | null
+  productEditLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  settlementMode: CreditSettlementMode
+  toolCostEventIds?: ID[]
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CreditSettlementSafetyFlags {
+  mockOnly: true
+  walletMutated: boolean
+  reservationMutated: boolean
+  creditsSpent: boolean
+  creditsReleased: boolean
+  creditsRefunded: false
+  ledgerWritten: false
+  productionWalletMutated: false
+  productionSettlementWritten: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface SettleCreditReservationResponse {
+  status: SettleCreditReservationStatus
+  settlement: CreditSettlementRecord | null
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  walletBalance: CreditReservationWalletBalance | null
+  summary?: EditCreditCostSummary
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  userFacingTitle: string
+  userFacingMessage: string
+  safetyFlags: CreditSettlementSafetyFlags
   warnings: string[]
 }
 

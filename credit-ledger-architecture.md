@@ -185,3 +185,7 @@ RP-RUNTIME-GUARD-01 adds a mock-safe paid-tool start guard before worker lease, 
 ## RP-CREDITREVISION-01 Revised Credit Resolution
 
 RP-CREDITREVISION-01 resolves those mock revised-credit actions. Approve & Continue may reserve a local mock `revised_credit_additional_hold` on the existing reservation; Choose Lower-Cost Option and Cancel Extra Work record the user decision without reservation changes. This layer still creates no ledger entries and performs no spend, release, refund, settlement, provider call, render/export, checkout/top-up, export unlock, Supabase write, or live billing behavior.
+
+## RP-SETTLEMENT-01 Final Credit Settlement
+
+RP-SETTLEMENT-01 performs final settlement in local mock state only. It aggregates billable tool-cost events, adds the ReEditPro service/edit fee separately, updates mock wallet/reservation balances, releases unused hold, and records absorbed overage or approved-but-unfunded state without creating production ledger entries. Live billing, Stripe/payment, Supabase writes, provider calls, render/export, checkout/top-up, and export unlock remain future work.

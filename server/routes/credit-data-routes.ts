@@ -5,18 +5,21 @@ import {
   cancelCreditRevisionAction,
   chooseLowerCostCreditRevisionOption,
   createCreditRevisionActionRecord,
+  getCreditSettlementForReservation,
   listCreditRevisionActionsForProject,
   listCreditSettlementsForProject,
   previewCreditSettlement,
+  settleCreditReservation,
   upsertCreditRevisionActionByIdempotencyKey,
 } from '../services/mock-credit-data-store'
-import { sharedMockCreditDataStore, sharedMockCreditReservationStore } from '../services/mock-credit-foundation-stores'
+import { sharedMockCreditDataStore, sharedMockCreditEstimateStore, sharedMockCreditReservationStore } from '../services/mock-credit-foundation-stores'
 import {
   approveCreditRevisionActionSchema,
   cancelCreditRevisionActionSchema,
   chooseLowerCostCreditRevisionOptionSchema,
   createCreditRevisionActionSchema,
   previewCreditSettlementSchema,
+  settleCreditReservationSchema,
 } from '../validation/credit-data-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getRouteParam, sendOk } from './route-helpers'
@@ -31,6 +34,11 @@ const revisionResolutionWarnings = [
   'No live billing, Stripe/payment, Supabase write, production wallet mutation, production ledger write, settlement, spend/release/refund, provider call, worker, render/export, checkout/top-up, or export unlock occurred.',
 ]
 
+const settlementWarnings = [
+  'RP-SETTLEMENT-01 mock-only route; final settlement may mutate local in-memory mock wallet/reservation state only.',
+  'No live billing, Stripe/payment, Supabase write, production wallet mutation, production ledger write, provider call, worker, render/export, checkout/top-up, or export unlock occurred.',
+]
+
 export function createCreditDataRoutes(): Router {
   const router = Router()
 
@@ -40,9 +48,28 @@ export function createCreditDataRoutes(): Router {
     sendOk(response, preview, [...mockWarnings, ...preview.warnings])
   }))
 
+  router.post('/v1/credit-settlements/settle', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(settleCreditReservationSchema, request.body)
+    const result = settleCreditReservation(
+      sharedMockCreditDataStore,
+      sharedMockCreditReservationStore,
+      sharedMockCreditEstimateStore,
+      {
+        ...body,
+        metadata: body.metadata as JSONObject | undefined,
+      },
+    )
+    sendOk(response, { settlement: result }, [...settlementWarnings, ...result.warnings], result.idempotencyStatus === 'created' ? 201 : 200)
+  }))
+
   router.get('/v1/projects/:projectId/credit-settlements', requireAuth, asyncRoute(async (request, response) => {
     const settlements = listCreditSettlementsForProject(sharedMockCreditDataStore, getRouteParam(request, 'projectId'))
     sendOk(response, { settlements }, mockWarnings)
+  }))
+
+  router.get('/v1/credit-reservations/:creditReservationId/settlement', requireAuth, asyncRoute(async (request, response) => {
+    const settlement = getCreditSettlementForReservation(sharedMockCreditDataStore, getRouteParam(request, 'creditReservationId'))
+    sendOk(response, { settlement }, mockWarnings)
   }))
 
   router.post('/v1/credit-revision-actions', requireAuth, asyncRoute(async (request, response) => {

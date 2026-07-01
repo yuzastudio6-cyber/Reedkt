@@ -11,3 +11,5 @@ RP-CREDITREVISION-01 resolves those actions without starting paid work. Approve 
 Tool-cost events remain owner/internal-cost only with `serviceFeeIncluded = false`. Current billable tool credits come from billable mock tool-cost events for the same workspace/project/estimate/reservation; non-billable events remain visible but excluded. ReEditPro service fee is projected separately with credit-policy helpers.
 
 Boundaries: no live billing, no Stripe/payment, no Supabase migrations or writes, no provider call, no worker run after a failed guard, no render/export execution, no production wallet mutation, no reservation spend/release/refund, no production ledger write, no settlement execution, no export unlock, and no checkout/top-up. `smoke:runtime-credit-guard` covers the guard contract and boundary integrations.
+
+RP-SETTLEMENT-01 runs after paid work is complete. Runtime guard still blocks new paid work unless the reservation is `reserved`; final settlement marks a reservation `spent`, releases unused mock hold, and does not call providers or render/export.

@@ -148,7 +148,9 @@ function main() {
     !qwenDownstreamProbeSkipped &&
     nestedString(liveBlocker.json, ['qwen', 'blocker']) === 'cleared'
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
-  const staticExecutionGateAllowed = nestedBoolean(executionGate.json, ['executionAllowedNow'])
+  const staticExecutionGateAllowed =
+    nestedBoolean(executionGate.json, ['staticExplicitToolGateReady']) ||
+    nestedBoolean(executionGate.json, ['executionAllowedNow'])
   const executionAllowedNow = staticExecutionGateAllowed && qwenLivePreflightPassed
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
   const gcloudDiagnostic = shouldRunGcloudDiagnostic

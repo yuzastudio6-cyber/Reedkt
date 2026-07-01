@@ -68,6 +68,9 @@ function main() {
   const evidence = checkEvidence()
   const missingEvidence = evidence.filter((item) => !item.present)
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const explicitToolGateReadyTools = rollup.tools.filter(
+    (tool) => tool.status === 'ready_for_explicit_tool_gate',
+  )
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
@@ -95,6 +98,8 @@ function main() {
     generatedAssetsCreated: false,
     readyForAnyExternalAgentExecutionNow: readyTools.length > 0,
     readyToolIds: readyTools.map((tool) => tool.toolId),
+    staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
+    livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     retryReadyAfterBlockerClearsToolIds: retryReadyAfterBlockerClears.map((tool) => tool.toolId),
     blockers: blockedTools.map((tool) => ({

@@ -1,6 +1,6 @@
 import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
-  QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+  QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
 export type ExternalAgentToolExecutionGateDecision =
@@ -10,6 +10,7 @@ export type ExternalAgentToolExecutionGateDecision =
 export type ExternalAgentToolExecutionGateRow = {
   toolId: string
   executionAllowedNow: boolean
+  staticExplicitToolGateReady?: boolean
   requiredBeforeExecution: string[]
   currentBlocker: string
   safeNextCommand: string
@@ -27,7 +28,9 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   requiresApprovedSnapshotBeforeExecution: true,
   requiresStructuredToolEnvelopeBeforeExecution: true,
   rawChatExecutionAllowed: false,
-  readyForAnyExternalAgentExecutionNow: true,
+  readyForAnyExternalAgentExecutionNow: false,
+  staticExplicitToolGateReady: true,
+  requiresLivePreflightBeforeRuntime: true,
   requireGoExitCodeWhenBlocked: 2,
   safeCommandsBeforeExecution: [
     'npm run external-agent-tool-action-plan',
@@ -42,9 +45,10 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   toolRows: [
     {
       toolId: 'qwen2_5_vl_7b_instruct',
-      executionAllowedNow: true,
+      executionAllowedNow: false,
+      staticExplicitToolGateReady: true,
       requiredBeforeExecution: [
-        'non-interactive gcloud token refresh must remain verified in this shell',
+        'non-interactive gcloud token refresh must pass in this shell',
         'Cloud Run service and caller job visibility must remain verified via read-only describe',
         'bounded approved-fixture private inference retry plan must remain recorded',
         'bounded approved-fixture private inference retry gate must remain recorded and passed',
@@ -56,8 +60,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '58DW must use approved fixture, persisted job, lease bridge, and private source-of-truth refs',
         'approved fixture private inference attempt must remain bounded and fail-closed',
       ],
-      currentBlocker: 'tool_specific_bounded_execution_prompt_required_before_runtime',
-      safeNextCommand: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
+      currentBlocker: 'local_gcloud_reauthentication_required_before_58dw_runtime',
+      safeNextCommand: QWEN2_5_VL_58DQ_AUTH_USER_PROMPT,
     },
     {
       toolId: 'ai_video_broll_generation_wan',

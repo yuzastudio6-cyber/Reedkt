@@ -20,7 +20,7 @@ const forbiddenRuntimeActions = [
 
 const externalAgentPreExecutionActions = [
   'npm run external-agent-tool-next-command',
-  'npm run external-agent-tool-execution-gate -- --require-go',
+  'npm run external-agent-tool-execution-gate',
 ] as const
 
 function actionForTool(toolId: string) {
@@ -31,9 +31,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'tool-specific bounded 58DW execution prompt is required before runtime; no direct or unbounded inference is allowed from this action plan',
+        'live Qwen auth/service/job preflight must clear before the bounded 58DW execution prompt; no direct or unbounded inference is allowed from this action plan',
       afterBlockerClears:
-        'run only the approved 58DW bounded retry prompt through the persisted job and lease bridge; generated assets, Supabase mutation, and credits remain blocked',
+        'run npm run external-agent-tool-next-command again and only use the approved 58DW bounded retry prompt if that live selector returns it',
     }
   }
 
@@ -69,6 +69,9 @@ function actionForTool(toolId: string) {
 function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const explicitToolGateReadyTools = rollup.tools.filter(
+    (tool) => tool.status === 'ready_for_explicit_tool_gate',
+  )
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)
   const preferredNextSafeCommand =
@@ -84,6 +87,8 @@ function main() {
     generatedLocalFixturePassedClaimed: rollup.generatedLocalFixturePassedClaimed,
     readyForAnyExternalAgentExecutionNow: readyTools.length > 0,
     readyToolIds: readyTools.map((tool) => tool.toolId),
+    staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
+    livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     runtimeGatesAllFalse,
     safeCommandQueue: rollup.safeNextCommands.map((command) => ({

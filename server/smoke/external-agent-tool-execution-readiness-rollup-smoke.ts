@@ -10,7 +10,7 @@ const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
 const NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,12 +65,12 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_verified_broll_quota',
+  'external_agent_tool_execution_readiness_live_preflight_required_qwen_auth_blocked_broll_quota',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
-  'ready for explicit tool gate',
+  'explicit tool gate prepared, live runtime blocked',
   'auth-readable live preflight now reads GPU quota',
   '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
@@ -78,14 +78,13 @@ for (const required of [
   'B-roll selected proof GPU: `nvidia_l4`',
   'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
-  'auth/service/job visibility is now verified',
-  'the historical 58DU blocked retry result, and the 58DV gate alignment are recorded',
-  'Qwen may proceed only to the explicit 58DW bounded retry prompt',
+  'the 58DW live-preflight result is blocked by local gcloud reauthentication',
+  'refresh the active local gcloud account/configuration visible to this shell',
   'External agents should start with `npm run external-agent-tool-action-plan`',
-  '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
-  '`npm run external-agent-tool-execution-gate -- --require-go` exits zero only because Qwen is ready for the explicit 58DW tool prompt',
-  'the preferred next safe command is `npm run external-agent-tool-next-command`',
-  'combines the fail-closed gate and live read-only blocker probes',
+  '`npm run external-agent-tool-execution-gate` as a fail-closed static gate',
+  'a static gate is not runtime permission',
+  'The preferred next safe command is `npm run external-agent-tool-next-command`',
+  'combines the static gate and live read-only blocker probes',
   '`npm run external-agent-tool-execution-gate` provides a fail-closed static go/no-go report',
   '`npm run external-agent-tool-next-command` provides a read-only live next-command decision',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
@@ -99,7 +98,10 @@ for (const required of [
 }
 
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
-assert.equal(rollup.decision, 'external_agent_tool_execution_readiness_partial_blocked_qwen_auth_verified_broll_quota')
+assert.equal(
+  rollup.decision,
+  'external_agent_tool_execution_readiness_live_preflight_required_qwen_auth_blocked_broll_quota',
+)
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
 assert.equal(rollup.dryRunPassedClaimed, false)
@@ -164,10 +166,16 @@ const qwen = toolsById.get('qwen2_5_vl_7b_instruct')
 assert.equal(qwen?.status, 'ready_for_explicit_tool_gate')
 assert.equal(qwen?.selectedGpu, 'nvidia_l4')
 assert.equal(qwen?.scaleToZeroRequired, true)
-assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
-assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, false)
-assert.equal(qwen?.primaryBlocker, 'tool_specific_bounded_execution_prompt_required_before_runtime')
+assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
+assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
+assert.equal(qwen?.primaryBlocker, 'local_gcloud_reauthentication_required_before_58dw_runtime')
 assert.equal(qwen?.nextAction, NEXT_PROMPT)
+assert.equal(
+  qwen?.evidence.includes(
+    'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
+  ),
+  true,
+)
 assert.equal(
   qwen?.evidence.includes(
     'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-gate-alignment.md',
@@ -177,6 +185,12 @@ assert.equal(
 assert.equal(
   qwen?.evidence.includes(
     'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-attempt-result.md',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.ts',
   ),
   true,
 )
@@ -225,6 +239,12 @@ assert.equal(
 assert.equal(
   qwen?.evidence.includes(
     'src/backend/mock/mock-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-retry-plan.ts',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes(
+    'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result-smoke.ts',
   ),
   true,
 )
@@ -293,11 +313,7 @@ assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-pr
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 
 for (const tool of rollup.tools) {
-  if (tool.toolId === 'qwen2_5_vl_7b_instruct') {
-    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be explicit-gate ready`)
-  } else {
-    assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)
-  }
+  assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)
 }
 

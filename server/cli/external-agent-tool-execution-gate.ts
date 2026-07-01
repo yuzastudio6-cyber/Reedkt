@@ -5,10 +5,13 @@ function main() {
   const gate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const staticExplicitGateTools = gate.toolRows.filter((tool) => tool.staticExplicitToolGateReady)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(gate.runtimeSideEffects).every((value) => value === false)
   const executionAllowedNow =
     gate.readyForAnyExternalAgentExecutionNow && readyTools.length > 0 && runtimeGatesAllFalse
+  const staticExplicitToolGateReady =
+    gate.staticExplicitToolGateReady && staticExplicitGateTools.length > 0 && runtimeGatesAllFalse
   const requireGo = process.argv.includes('--require-go')
 
   const report = {
@@ -22,6 +25,9 @@ function main() {
     dryRunPassedClaimed: gate.dryRunPassedClaimed,
     generatedLocalFixturePassedClaimed: gate.generatedLocalFixturePassedClaimed,
     requireGoMode: requireGo,
+    staticExplicitToolGateReady,
+    staticExplicitToolGateReadyToolIds: staticExplicitGateTools.map((tool) => tool.toolId),
+    requiresLivePreflightBeforeRuntime: gate.requiresLivePreflightBeforeRuntime,
     executionAllowedNow,
     readyForAnyExternalAgentExecutionNow: executionAllowedNow,
     readyToolIds: readyTools.map((tool) => tool.toolId),
@@ -39,7 +45,7 @@ function main() {
 
   console.log(JSON.stringify(report, null, 2))
 
-  if (requireGo && !executionAllowedNow) {
+  if (requireGo && !staticExplicitToolGateReady) {
     process.exitCode = gate.requireGoExitCodeWhenBlocked
   }
 }

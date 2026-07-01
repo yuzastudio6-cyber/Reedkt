@@ -358,6 +358,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-tool-adapter-authorization-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-cpu-static-adapter-smoke": "tsx server/cli/ai-graphics-external-agent-cpu-static-adapter-smoke.ts",',
   '+    "ai-graphics:external-agent-cpu-static-adapter-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-adapter-smoke-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs",',
 ])
 const unexpectedPackageAdditions = packageDiff
   .split('\n')

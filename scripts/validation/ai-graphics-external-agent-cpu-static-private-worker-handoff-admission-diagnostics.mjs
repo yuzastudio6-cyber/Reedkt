@@ -4,21 +4,19 @@ import path from 'node:path'
 
 const root = process.cwd()
 const decision =
-  'ai_graphics_external_agent_cpu_static_adapter_smoke_prepared_with_runtime_blocks'
+  'ai_graphics_external_agent_cpu_static_private_worker_handoff_admission_prepared_with_runtime_blocks'
 const acceptedStatus =
-  'external_agent_cpu_static_adapter_smoke_prepared_five_ready_one_blocked_execution_blocked'
-const phase0Decision =
-  'ai_graphics_cpu_static_execution_proof_phase_0_completed_with_warnings'
-const adapterAuthorizationDecision =
-  'ai_graphics_external_agent_tool_adapter_authorization_prepared_with_runtime_blocks'
+  'external_agent_cpu_static_private_worker_handoff_admission_prepared_five_admitted_one_blocked_execution_blocked'
+const sourceDecision =
+  'ai_graphics_external_agent_cpu_static_adapter_smoke_prepared_with_runtime_blocks'
 const runScriptName =
-  'ai-graphics:external-agent-cpu-static-adapter-smoke'
+  'ai-graphics:external-agent-cpu-static-private-worker-handoff-admission'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-agent-cpu-static-adapter-smoke.ts'
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-agent-cpu-static-adapter-smoke:diagnostics'
+  'ai-graphics:external-agent-cpu-static-private-worker-handoff-admission:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-agent-cpu-static-adapter-smoke-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -59,7 +57,7 @@ const capabilities = [
   'model_runtime_foundation',
 ]
 
-const readyCpuStaticTools = [
+const admittedTools = [
   'd3',
   'vega_lite',
   'vega',
@@ -69,30 +67,36 @@ const readyCpuStaticTools = [
 
 const expectedCounts = {
   totalAiGraphicsTools: 21,
-  cpuStaticCohortTools: 6,
-  cpuStaticAdapterSmokeReadyTools: 5,
-  cpuStaticAdapterSmokeBlockedTools: 1,
+  privateWorkerHandoffAdmissionPreparedTools: 5,
+  cpuStaticPrivateWorkerHandoffReadyTools: 5,
+  cpuStaticPrivateWorkerHandoffBlockedTools: 1,
   satoriBlockedPendingApprovedFontFixtureTools: 1,
   nonCpuStaticDeferredTools: 15,
-  sourceAdapterAuthorizationRows: 21,
-  sourceAdapterContractsAuthorizedWithRuntimeBlocks: 21,
+  externalAgentCanRequestPrivateWorkerHandoffNowTools: 0,
   externalAgentCanInvokeAdapterNowTools: 0,
   externalAgentExecutableNowTools: 0,
+  workerEnqueueApprovedNowTools: 0,
+  workerDispatchApprovedNowTools: 0,
   toolExecutionApprovedNowTools: 0,
+  publicArtifactAllowedTools: 0,
+  signedUrlAllowedTools: 0,
   gpuRuntimeShouldStartNowTools: 0,
 }
 
 const trueKeys = [
-  'externalAgentCpuStaticAdapterSmokePrepared',
-  'sourcePhase0Accepted',
-  'sourceAdapterAuthorizationAccepted',
+  'externalAgentCpuStaticPrivateWorkerHandoffAdmissionPrepared',
+  'sourceCpuStaticAdapterSmokeAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'cpuStaticCohortCovered',
-  'fiveCpuStaticAdapterSmokeReadyWithPrivateOutputContracts',
+  'fiveCpuStaticPrivateWorkerHandoffAdmissionsPrepared',
   'satoriBlockedPendingApprovedFontFixture',
   'nonCpuStaticToolsDeferredByRuntimeBoundary',
-  'privateOutputContractsPreparedForPassedCpuStaticTools',
+  'privateOutputManifestContractsPreparedForAdmittedTools',
+  'privateArtifactOnlyPolicyAccepted',
+  'workerCheckbackPolicyRequired',
+  'workerFallbackPolicyRequired',
+  'workerQaGateRequired',
+  'unblockPolicyDefined',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -100,10 +104,13 @@ const trueKeys = [
 ]
 
 const falseKeys = [
+  'externalAgentCanRequestPrivateWorkerHandoffNow',
   'externalAgentCanInvokeAdapterNow',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
+  'workerEnqueueApprovedNow',
+  'workerDispatchApprovedNow',
   'toolExecutionApprovedNow',
   'providerRuntimeApprovedNow',
   'browserWebglCanvasRuntimeApprovedNow',
@@ -133,15 +140,14 @@ const falseKeys = [
 ]
 
 const requiredFiles = [
-  'server/tool-registry/ai-graphics-external-agent-cpu-static-adapter-smoke.ts',
-  'server/cli/ai-graphics-external-agent-cpu-static-adapter-smoke.ts',
-  'scripts/validation/ai-graphics-external-agent-cpu-static-adapter-smoke-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts',
+  'server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts',
+  'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-handoff-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-handoff-admission.md',
+  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-results.md',
+  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.md',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-adapter-smoke.json',
-  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-adapter-smoke.md',
-  'docs/prompt-ai-graphics-external-agent-cpu-static-adapter-smoke-results.md',
-  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-adapter-smoke.md',
-  'docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json',
-  'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
   'server/tool-registry/index.ts',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
@@ -150,18 +156,19 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts",',
-  '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =
   /(^|\/)(\.local-artifacts|generated|render|renders|media-output|browser-output|canvas-output|webgl-output|public-artifacts?|signed-urls?)(\/|$)|\.(mp4|mov|webm|png|jpe?g|gif|webp)$/i
 
 const forbiddenDocPatterns = [
+  /externalAgentCanRequestPrivateWorkerHandoffNow["`:\s=]+true/i,
   /externalAgentCanInvokeAdapterNow["`:\s=]+true/i,
   /agentCanExecuteToolsNow["`:\s=]+true/i,
   /routeExecutionApprovedNow["`:\s=]+true/i,
   /workerExecutionApprovedNow["`:\s=]+true/i,
+  /workerEnqueueApprovedNow["`:\s=]+true/i,
+  /workerDispatchApprovedNow["`:\s=]+true/i,
   /toolExecutionApprovedNow["`:\s=]+true/i,
   /providerRuntimeApprovedNow["`:\s=]+true/i,
   /browserWebglCanvasRuntimeApprovedNow["`:\s=]+true/i,
@@ -267,42 +274,45 @@ function checkRows(label, rows) {
       fail(`${label}_missing_row:${toolId}`)
       continue
     }
-    if (readyCpuStaticTools.includes(toolId)) {
-      if (
-        row.adapterSmokeStatus !==
-        'cpu_static_adapter_smoke_ready_private_output_contract_execution_blocked'
-      ) {
-        fail(`${label}_ready_tool_status_mismatch:${toolId}:${row.adapterSmokeStatus}`)
+    if (admittedTools.includes(toolId)) {
+      if (row.admissionStatus !== 'private_worker_handoff_admission_prepared_execution_blocked') {
+        fail(`${label}_admitted_status_mismatch:${toolId}:${row.admissionStatus}`)
       }
-      if (row.adapterSmokePreparedWithProvidedEvidence !== true) {
-        fail(`${label}_ready_tool_not_prepared:${toolId}`)
+      if (row.privateWorkerHandoffAdmissionPrepared !== true) {
+        fail(`${label}_admitted_not_prepared:${toolId}`)
       }
-      if (row.privateOutputContractPrepared !== true) {
-        fail(`${label}_ready_tool_missing_private_output_contract:${toolId}`)
+      if (row.privateOutputManifestContractPrepared !== true) {
+        fail(`${label}_admitted_missing_private_manifest_contract:${toolId}`)
+      }
+      if (!/^private:\/\//.test(row.privateArtifactManifestRef ?? '')) {
+        fail(`${label}_admitted_manifest_not_private:${toolId}`)
+      }
+      if (!String(row.idempotencyKeyTemplate ?? '').includes('{{approvedPlanSnapshotId}}')) {
+        fail(`${label}_admitted_missing_snapshot_idempotency_template:${toolId}`)
       }
     }
     if (toolId === 'satori') {
-      if (
-        row.adapterSmokeStatus !==
-        'cpu_static_adapter_smoke_blocked_pending_approved_font_fixture'
-      ) {
-        fail(`${label}_satori_status_mismatch:${row.adapterSmokeStatus}`)
+      if (row.admissionStatus !== 'private_worker_handoff_blocked_pending_satori_font_fixture') {
+        fail(`${label}_satori_status_mismatch:${row.admissionStatus}`)
       }
       if (!/font/i.test(row.blocker ?? '')) fail(`${label}_satori_blocker_missing_font`)
-      if (row.satoriApprovedFontFixtureRequired !== true) {
-        fail(`${label}_satori_font_requirement_not_true`)
-      }
     }
-    if (!readyCpuStaticTools.includes(toolId) && toolId !== 'satori') {
-      if (row.cpuStaticCohortTool && row.adapterSmokePreparedWithProvidedEvidence) {
-        fail(`${label}_unexpected_cpu_static_ready:${toolId}`)
+    if (!admittedTools.includes(toolId) && toolId !== 'satori') {
+      if (row.privateWorkerHandoffAdmissionPrepared !== false) {
+        fail(`${label}_unexpected_handoff_prepared:${toolId}`)
+      }
+      if (row.admissionStatus !== 'private_worker_handoff_deferred_non_cpu_static_runtime_boundary') {
+        fail(`${label}_deferred_status_mismatch:${toolId}:${row.admissionStatus}`)
       }
     }
     for (const field of [
+      'externalAgentCanRequestPrivateWorkerHandoffNow',
       'externalAgentCanInvokeAdapterNow',
       'agentCanExecuteToolsNow',
       'routeExecutionApprovedNow',
       'workerExecutionApprovedNow',
+      'workerEnqueueApprovedNow',
+      'workerDispatchApprovedNow',
       'toolExecutionApprovedNow',
       'providerRuntimeApprovedNow',
       'browserWebglCanvasRuntimeApprovedNow',
@@ -311,6 +321,8 @@ function checkRows(label, rows) {
       'runtimeReadyNow',
       'externalBetaReadyNow',
       'productionReadyNow',
+      'publicArtifactAllowed',
+      'signedUrlAllowed',
     ]) {
       if (row[field] !== false) fail(`${label}_row_runtime_gate_not_false:${toolId}:${field}`)
     }
@@ -334,30 +346,27 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(absolute(file))) fail(`missing_file:${file}`)
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-adapter-smoke.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-adapter-smoke.md')
-const promptResult = read('docs/prompt-ai-graphics-external-agent-cpu-static-adapter-smoke-results.md')
-const implementationPrompt = read('docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-adapter-smoke.md')
-const phase0 = json('docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json')
-const adapter = json('docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json')
+const docs = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-handoff-admission.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-handoff-admission.md')
+const promptResult = read('docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-results.md')
+const implementationPrompt = read('docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.md')
+const source = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-adapter-smoke.json')
 const packageJson = json('package.json')
-const moduleSource = read('server/tool-registry/ai-graphics-external-agent-cpu-static-adapter-smoke.ts')
-const cliSource = read('server/cli/ai-graphics-external-agent-cpu-static-adapter-smoke.ts')
-const diagnosticSource = read('scripts/validation/ai-graphics-external-agent-cpu-static-adapter-smoke-diagnostics.mjs')
+const moduleSource = read('server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts')
+const cliSource = read('server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts')
+const diagnosticSource = read('scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs')
 const indexSource = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
-if (docs.sourcePhase0Decision !== phase0Decision) fail('docs_phase0_decision_mismatch')
-if (docs.sourceAdapterAuthorizationDecision !== adapterAuthorizationDecision) {
-  fail('docs_adapter_authorization_decision_mismatch')
-}
-if (phase0.decision !== phase0Decision) fail('phase0_decision_mismatch')
-if (phase0.status !== 'completed_with_warnings') fail('phase0_status_mismatch')
-if (adapter.decision !== adapterAuthorizationDecision) fail('adapter_authorization_decision_mismatch')
-if (adapter.status !== 'external_agent_tool_adapter_authorization_prepared_all_21_execution_blocked') {
-  fail('adapter_authorization_status_mismatch')
+if (docs.sourceAdapterSmokeDecision !== sourceDecision) fail('docs_source_decision_mismatch')
+if (source.decision !== sourceDecision) fail('source_decision_mismatch')
+if (
+  source.status !==
+  'external_agent_cpu_static_adapter_smoke_prepared_five_ready_one_blocked_execution_blocked'
+) {
+  fail('source_status_mismatch')
 }
 
 checkList('docs_tools', docs.tools, tools)
@@ -366,17 +375,39 @@ checkCounts('docs', docs.counts)
 checkBooleans('docs', docs.booleans)
 checkRows('docs', docs.rows)
 
+if (docs.unblockPolicy?.temporaryRuntimeBlock !== true) fail('unblock_policy_not_temporary')
+if (docs.unblockPolicy?.unblockMode !== 'tool_by_tool_after_required_execution_gates') {
+  fail('unblock_policy_mode_mismatch')
+}
+for (const required of [
+  'approved plan snapshot reference',
+  'approved credit reservation reference',
+  'Tool Route admission approval for the exact tool',
+  'Worker admission approval for the exact tool',
+  'private artifact manifest writer and retention policy',
+  'worker queue transport proof',
+  'worker claim and lease proof',
+  'idempotency and retry policy',
+  'checkback policy',
+  'fallback policy',
+  'tool-specific QA gate',
+]) {
+  if (!docs.unblockPolicy?.requiredBeforeAnyToolExecution?.includes(required)) {
+    fail(`unblock_policy_missing:${required}`)
+  }
+}
+
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) fail('package_run_script_mismatch')
 if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail('package_diagnostic_script_mismatch')
 }
 
 for (const required of [
-  'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_ADAPTER_SMOKE_DECISION',
-  'buildAiGraphicsExternalAgentCpuStaticAdapterSmoke',
-  'fiveCpuStaticAdapterSmokeReadyWithPrivateOutputContracts',
-  'satoriBlockedPendingApprovedFontFixture',
-  'externalAgentCanInvokeAdapterNow: false',
+  'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_HANDOFF_ADMISSION_DECISION',
+  'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerHandoffAdmission',
+  'requiredBeforeAnyToolExecution',
+  'privateWorkerHandoffAdmissionPrepared',
+  'externalAgentCanRequestPrivateWorkerHandoffNow: false',
   'agentCanExecuteToolsNow: false',
   'gpuRuntimeShouldStartNow: false',
 ]) {
@@ -384,11 +415,10 @@ for (const required of [
 }
 
 for (const required of [
-  'phase0Path',
-  'adapterAuthorizationPath',
-  'buildAiGraphicsExternalAgentCpuStaticAdapterSmoke',
+  'sourceAdapterSmokePath',
+  'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerHandoffAdmission',
   '--write-records',
-  'report.counts.cpuStaticAdapterSmokeReadyTools === 5',
+  'report.counts.privateWorkerHandoffAdmissionPreparedTools === 5',
   'report.booleans.agentCanExecuteToolsNow === false',
 ]) {
   if (!cliSource.includes(required)) fail(`cli_missing_required_text:${required}`)
@@ -398,8 +428,8 @@ if (!diagnosticSource.includes('forbiddenDocPatterns')) fail('diagnostic_missing
 if (!diagnosticSource.includes('generatedArtifactPattern')) {
   fail('diagnostic_missing_generated_artifact_scan')
 }
-if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-adapter-smoke'")) {
-  fail('index_missing_cpu_static_adapter_smoke_export')
+if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-private-worker-handoff-admission'")) {
+  fail('index_missing_private_worker_handoff_admission_export')
 }
 
 let cliReport = {}
@@ -433,21 +463,21 @@ for (const fileText of [JSON.stringify(docs), docsMd, promptResult, implementati
 for (const required of [
   decision,
   acceptedStatus,
-  'externalAgentCanInvokeAdapterNow=false',
+  'externalAgentCanRequestPrivateWorkerHandoffNow=false',
   'agentCanExecuteToolsNow=false',
   'gpuRuntimeShouldStartNow=false',
-  'Satori blocked pending approved font fixture',
-  'Adapter-smoke ready with private output contracts',
+  'temporary and must be lifted tool-by-tool',
+  'Private worker-handoff admissions prepared',
 ]) {
   if (!docsMd.includes(required)) fail(`docs_md_missing:${required}`)
 }
 
 for (const required of [
-  'AI Graphics External Agent CPU Static Adapter Smoke',
+  'AI Graphics External Agent CPU Static Private Worker Handoff Admission',
   decision,
-  'cpuStaticAdapterSmokeReadyTools=5',
+  'privateWorkerHandoffAdmissionPreparedTools=5',
   'satoriBlockedPendingApprovedFontFixtureTools=1',
-  'externalAgentCanInvokeAdapterNowTools=0',
+  'externalAgentCanRequestPrivateWorkerHandoffNowTools=0',
   'toolExecutionApprovedNowTools=0',
 ]) {
   if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
@@ -500,9 +530,9 @@ console.log(
       decision,
       status: acceptedStatus,
       totalTools: 21,
-      readyCpuStaticTools: readyCpuStaticTools.length,
+      privateWorkerHandoffAdmissionsPrepared: admittedTools.length,
       satoriBlocked: true,
-      externalAgentCanInvokeAdapterNow: false,
+      externalAgentCanRequestPrivateWorkerHandoffNow: false,
       agentCanExecuteToolsNow: false,
       gpuRuntimeShouldStartNow: false,
     },

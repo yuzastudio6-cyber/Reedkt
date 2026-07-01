@@ -211,6 +211,8 @@ const allowedPackageDiffLines = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   `+    "${cpuStaticAdapterSmokeRunScriptName}": "${cpuStaticAdapterSmokeRunScriptCommand}",`,
   `+    "${cpuStaticAdapterSmokeDiagnosticScriptName}": "${cpuStaticAdapterSmokeDiagnosticScriptCommand}",`,
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs",',
 ])
 
 const changedGeneratedArtifactPattern =

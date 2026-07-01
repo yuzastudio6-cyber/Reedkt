@@ -129,6 +129,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       purpose: 'Fast static readiness and evidence presence check for all tracked external-agent tool lanes.',
     },
     {
+      id: 'surface_consistency_smoke',
+      command: 'npm run smoke:external-agent-tool-surface-consistency',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Read-only smoke that compares external-agent readiness surfaces for shared manual blockers, fail-closed gates, and drift.',
+    },
+    {
       id: 'fail_closed_execution_gate',
       command: 'npm run external-agent-tool-execution-gate',
       liveReadOnly: false,

@@ -90,6 +90,7 @@ for (const required of [
   'The preferred next safe command is `npm run external-agent-tool-next-command`',
   'combines the static gate and live read-only blocker probes',
   'The shared rollup, readiness check, execution gate, live blocker preflight, live next-command selector, and static action plan include `manualBlockerActions`',
+  '`npm run smoke:external-agent-tool-surface-consistency` compares those surfaces',
   '`runInsideCodex=false`',
   '`mutatesRuntime=false`',
   'B-roll `GPUS_ALL_REGIONS` quota request is explicitly outside Codex',
@@ -127,13 +128,17 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 7)
+assert.equal(rollup.safeNextCommands.length, 8)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-readiness:check'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run smoke:external-agent-tool-surface-consistency'),
   true,
 )
 assert.equal(

@@ -63,6 +63,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   },
   safeNextCommands: [
     {
+      id: 'static_action_plan',
+      command: 'npm run external-agent-tool-action-plan',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Static ordered action plan for external agents, including per-tool safe actions, blockers, and forbidden runtime actions.',
+    },
+    {
       id: 'static_readiness_check',
       command: 'npm run external-agent-tool-readiness:check',
       liveReadOnly: false,

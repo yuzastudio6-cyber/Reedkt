@@ -860,6 +860,7 @@
     "rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1-diagnostics.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-diagnostics.mjs",
+    "rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-qa-rollup-2-diagnostics.mjs",
     "rp-qwen2-5-vl-external-beta-stack-integration-rollup-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-stack-integration-rollup-1-diagnostics.mjs",
     "smoke:qwen2-5-vl-external-beta-structured-output-source-import-1": "tsx server/smoke/qwen2-5-vl-external-beta-structured-output-source-import-1-smoke.ts",
     "rp-qwen2-5-vl-external-beta-structured-output-source-import-1:diagnostics": "node scripts/validation/rp-qwen2-5-vl-external-beta-structured-output-source-import-1-diagnostics.mjs",

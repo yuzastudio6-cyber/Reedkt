@@ -128,6 +128,8 @@ assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-executi
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(broll.externalManualBlocker.includes('GPUS_ALL_REGIONS'), true)
+assert.equal(broll.externalManualBlocker.includes('auth-readable live preflight'), true)
+assert.equal(broll.externalManualBlocker.includes('only after'), true)
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 
 for (const toolAction of plan.toolActions as Array<{ toolId: string; immediateSafeActions: string[] }>) {

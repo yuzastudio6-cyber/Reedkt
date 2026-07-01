@@ -187,7 +187,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
       nextAction:
-        'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
+        'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: after auth-readable live preflight, request GPUS_ALL_REGIONS quota increase to 1 only if quota remains insufficient',
     },
     {
       toolId: 'sound_music_audio',

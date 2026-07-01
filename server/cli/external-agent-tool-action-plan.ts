@@ -45,7 +45,8 @@ function actionForTool(toolId: string) {
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run external-agent-tool-blockers:preflight',
       ],
-      externalManualBlocker: 'request GPUS_ALL_REGIONS quota increase to 1 if live quota remains insufficient',
+      externalManualBlocker:
+        'request GPUS_ALL_REGIONS quota increase to 1 only after auth-readable live preflight confirms quota is still insufficient',
       afterBlockerClears:
         'verify quota increase, then require bounded no-idle L4 proof cleanup before any inference path',
     }

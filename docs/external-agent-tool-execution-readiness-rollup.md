@@ -35,7 +35,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 ## Safe Agent Commands
 
-External agents should start with `npm run external-agent-tool-readiness:check`. When static evidence is present and runtime gates remain closed, the preferred next safe command is `npm run external-agent-tool-blockers:preflight`. That command may perform read-only live blocker checks only; it must not invoke Cloud Run, create VMs, request quota, import models, run inference, mutate Supabase, execute SQL, create storage, create signed URLs, call providers, dispatch workers, create assets, or mutate credits.
+External agents should start with `npm run external-agent-tool-action-plan` for an ordered static plan, then run `npm run external-agent-tool-readiness:check` for the static evidence surface. When static evidence is present and runtime gates remain closed, the preferred next safe command is `npm run external-agent-tool-blockers:preflight`. That command may perform read-only live blocker checks only; it must not invoke Cloud Run, create VMs, request quota, import models, run inference, mutate Supabase, execute SQL, create storage, create signed URLs, call providers, dispatch workers, create assets, or mutate credits.
 
 For B-roll cache evidence only, agents may run `npm run ai-video-broll-wan-fast-cache-readiness:check`. That command is stat-only and avoids hashing the full private cache.
 

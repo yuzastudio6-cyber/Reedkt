@@ -76,6 +76,7 @@ for (const required of [
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
   '## Safe Agent Commands',
+  'External agents should start with `npm run external-agent-tool-action-plan`',
   'the preferred next safe command is `npm run external-agent-tool-blockers:preflight`',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
@@ -95,7 +96,11 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 3)
+assert.equal(rollup.safeNextCommands.length, 4)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
+  true,
+)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-readiness:check'),
   true,

@@ -61,6 +61,22 @@ const nextRouteWorkerDryRunFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-1-diagnostics.mjs',
 ]
 
+const nextRouteWorkerDryRunQaRollupDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-qa-rollup-1'
+const nextRouteWorkerDryRunQaRollupFiles = [
+  `${nextRouteWorkerDryRunQaRollupDir}/source-audit.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/evidence-matrix.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/qa-decision.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/artifact-manifest-summary.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/readiness.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/safety-boundary.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/validation-results.md`,
+  `${nextRouteWorkerDryRunQaRollupDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-qa-rollup-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-execution-packet-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-route-worker-dry-run-qa-rollup-1-diagnostics.mjs',
+]
+
 const sourceFiles = [
   sourceRecordPath,
   'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-1/dry-run-result.md',
@@ -69,7 +85,12 @@ const sourceFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-registered-noop-source-dry-run-qa-rollup-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...nextRouteWorkerDryRunFiles])
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...nextRouteWorkerDryRunFiles,
+  ...nextRouteWorkerDryRunQaRollupFiles,
+])
 
 const requiredText = [
   packet,

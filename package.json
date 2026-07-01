@@ -495,6 +495,7 @@
     "worker-runtime-jobs:sound-cpu-phase95-caption-render-runtime-hook-private-manifest-persistence-source-creation-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase95-caption-render-runtime-hook-private-manifest-persistence-source-creation-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase95-caption-render-runtime-hook-private-manifest-persistence-source-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase95-caption-render-runtime-hook-private-manifest-persistence-source-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase96-caption-render-runtime-hook-actual-private-manifest-persistence-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase96-caption-render-runtime-hook-actual-private-manifest-persistence-source-creation-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase96-caption-render-runtime-hook-private-manifest-persistence-source-static-validation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase96-caption-render-runtime-hook-private-manifest-persistence-source-static-validation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

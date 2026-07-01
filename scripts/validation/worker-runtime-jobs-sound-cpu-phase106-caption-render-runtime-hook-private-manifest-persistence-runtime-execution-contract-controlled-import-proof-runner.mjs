@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { spawnSync } from 'node:child_process'
 
 const targetSourcePath =
   'server/workers/sound-cpu/runtime/privateManifestPersistenceExecutionContract.ts'
@@ -60,6 +60,142 @@ function summarizeGateInspection(gateInspection) {
   return Object.values(gateInspection).every((value) => value === true)
 }
 
+const tsxImportInspectionSource = `
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+const targetSourcePath = process.env.REEDITPRO_SOUND_CPU_CONTROLLED_IMPORT_TARGET
+const expectedExports = JSON.parse(process.env.REEDITPRO_SOUND_CPU_EXPECTED_EXPORTS ?? '[]')
+
+function inspectGate(gate) {
+  return {
+    present: Boolean(gate),
+    acceptedForExternalAgentExecutionToday:
+      gate?.acceptedForExternalAgentExecutionToday === false,
+    acceptedForRuntimeExecutionToday: gate?.acceptedForRuntimeExecutionToday === false,
+    acceptedForWorkerDispatchToday: gate?.acceptedForWorkerDispatchToday === false,
+    acceptedForPersistenceToday: gate?.acceptedForPersistenceToday === false,
+    acceptedForStorageObjectCreationToday:
+      gate?.acceptedForStorageObjectCreationToday === false,
+    acceptedForSignedUrlCreationToday:
+      gate?.acceptedForSignedUrlCreationToday === false,
+    acceptedForMediaOpenToday: gate?.acceptedForMediaOpenToday === false,
+    acceptedForBetaUnlockToday: gate?.acceptedForBetaUnlockToday === false,
+    acceptedForProductionUnlockToday: gate?.acceptedForProductionUnlockToday === false,
+  }
+}
+
+function summarizeGateInspection(gateInspection) {
+  return Object.values(gateInspection).every((value) => value === true)
+}
+
+try {
+  const targetPath = path.join(process.cwd(), targetSourcePath)
+  const importedModule = await import(pathToFileURL(targetPath).href)
+  const missingExports = expectedExports.filter(
+    (exportName) => !(exportName in importedModule),
+  )
+  const gate =
+    importedModule.SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_RUNTIME_EXECUTION_CONTRACT_SOURCE_GATE
+  const gateInspection = inspectGate(gate)
+  const failClosedGateConfirmed = summarizeGateInspection(gateInspection)
+
+  console.log(
+    JSON.stringify({
+      ok: missingExports.length === 0 && failClosedGateConfirmed,
+      moduleImported: true,
+      exportsPresent: missingExports.length === 0,
+      missingExports,
+      failClosedGateConfirmed,
+      gateInspection,
+      factoryCalled: false,
+      workerDispatched: false,
+      supabaseTouched: false,
+      mediaOpened: false,
+      sqlExecuted: false,
+      storageObjectCreated: false,
+      signedUrlCreated: false,
+      externalAgentExecutionReady: false,
+      realUserMediaBetaReady: false,
+      productionReady: false,
+    }),
+  )
+} catch (error) {
+  console.log(
+    JSON.stringify({
+      ok: false,
+      blockedReason: 'tsx_controlled_import_inspection_failed',
+      error: error instanceof Error ? error.message : String(error),
+      moduleImported: false,
+      factoryCalled: false,
+      workerDispatched: false,
+      supabaseTouched: false,
+    }),
+  )
+  process.exitCode = 1
+}
+`
+
+function resolveTsxCommand() {
+  const localBin = path.join(
+    process.cwd(),
+    'node_modules',
+    '.bin',
+    process.platform === 'win32' ? 'tsx.cmd' : 'tsx',
+  )
+  return fs.existsSync(localBin) ? localBin : 'tsx'
+}
+
+function runTsxImportInspection() {
+  const command = resolveTsxCommand()
+  const child = spawnSync(command, ['--eval', tsxImportInspectionSource], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      REEDITPRO_SOUND_CPU_CONTROLLED_IMPORT_TARGET: targetSourcePath,
+      REEDITPRO_SOUND_CPU_EXPECTED_EXPORTS: JSON.stringify(expectedExports),
+    },
+    maxBuffer: 1024 * 1024,
+  })
+
+  if (child.error) {
+    return {
+      ok: false,
+      blockedReason: 'tsx_controlled_import_inspection_unavailable',
+      error: child.error.message,
+      moduleImported: false,
+      factoryCalled: false,
+      workerDispatched: false,
+      supabaseTouched: false,
+    }
+  }
+
+  const output = child.stdout.trim()
+  try {
+    const parsed = JSON.parse(output)
+    return {
+      ...parsed,
+      invokedWith: 'tsx',
+      stderr: child.stderr.trim() ? 'sanitized_stderr_present' : '',
+      exitStatus: child.status,
+      ok: child.status === 0 && parsed.ok === true,
+    }
+  } catch {
+    return {
+      ok: false,
+      blockedReason: 'tsx_controlled_import_inspection_output_parse_failed',
+      stdout: output ? 'sanitized_stdout_present' : '',
+      stderr: child.stderr.trim() ? 'sanitized_stderr_present' : '',
+      exitStatus: child.status,
+      moduleImported: false,
+      factoryCalled: false,
+      workerDispatched: false,
+      supabaseTouched: false,
+    }
+  }
+}
+
 async function main() {
   const targetPath = path.join(process.cwd(), targetSourcePath)
   const sourceText = fs.readFileSync(targetPath, 'utf8')
@@ -80,24 +216,19 @@ async function main() {
     }
   }
 
-  const importedModule = await import(pathToFileURL(targetPath).href)
-  const missingExports = expectedExports.filter(
-    (exportName) => !(exportName in importedModule),
-  )
-  const gate =
-    importedModule.SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_RUNTIME_EXECUTION_CONTRACT_SOURCE_GATE
-  const gateInspection = inspectGate(gate)
-  const failClosedGateConfirmed = summarizeGateInspection(gateInspection)
+  const importInspection = runTsxImportInspection()
 
   return {
-    ok: missingExports.length === 0 && failClosedGateConfirmed,
+    ok: importInspection.ok === true,
     targetSourcePath,
     staticScan,
-    moduleImported: true,
-    exportsPresent: missingExports.length === 0,
-    missingExports,
-    failClosedGateConfirmed,
-    gateInspection,
+    moduleImported: importInspection.moduleImported === true,
+    exportsPresent: importInspection.exportsPresent === true,
+    missingExports: importInspection.missingExports ?? expectedExports,
+    failClosedGateConfirmed: importInspection.failClosedGateConfirmed === true,
+    gateInspection: importInspection.gateInspection ?? inspectGate(undefined),
+    proofHarnessExecutionPath: 'tsx',
+    importInspection,
     factoryCalled: false,
     workerDispatched: false,
     supabaseTouched: false,

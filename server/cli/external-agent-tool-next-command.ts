@@ -71,6 +71,36 @@ function nestedString(document: Record<string, unknown> | undefined, keys: strin
   return typeof value === 'string' ? value : undefined
 }
 
+function nestedUnknown(document: Record<string, unknown> | undefined, keys: string[]): unknown {
+  let value: unknown = document
+  for (const key of keys) {
+    if (!value || typeof value !== 'object' || !(key in value)) return undefined
+    value = (value as Record<string, unknown>)[key]
+  }
+  return value
+}
+
+function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    path: nestedString(document, ['gcloud', 'path']),
+    installationSdkRoot: nestedString(document, ['gcloud', 'installationSdkRoot']),
+    installationOnPath: nestedUnknown(document, ['gcloud', 'installationOnPath']),
+    releaseChannel: nestedString(document, ['gcloud', 'releaseChannel']),
+    activeConfigurationName: nestedString(document, ['gcloud', 'activeConfigurationName']),
+    globalConfigDir: nestedString(document, ['gcloud', 'globalConfigDir']),
+    activeConfigPath: nestedString(document, ['gcloud', 'activeConfigPath']),
+    configSdkRoot: nestedString(document, ['gcloud', 'configSdkRoot']),
+    universeDomain: nestedString(document, ['gcloud', 'universeDomain']),
+    configuredProject: nestedString(document, ['gcloud', 'configuredProject']),
+    projectMatches: nestedUnknown(document, ['gcloud', 'projectMatches']),
+    activeAccountDomain: nestedString(document, ['gcloud', 'activeAccountDomain']),
+    accessTokenRefreshPassed: nestedUnknown(document, ['gcloud', 'accessTokenRefreshPassed']),
+    likelyMismatch: nestedString(document, ['gcloud', 'likelyMismatch']),
+  }
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
@@ -91,6 +121,10 @@ function main() {
   const gcloudDiagnostic = shouldRunGcloudDiagnostic
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
     : undefined
+  const diagnosticSummary = shouldRunGcloudDiagnostic ? gcloudDiagnosticSummary(gcloudDiagnostic?.json) : undefined
+  const diagnosticRecommendedNextPrompt = shouldRunGcloudDiagnostic
+    ? nestedString(gcloudDiagnostic?.json, ['recommendedNextPrompt'])
+    : undefined
 
   const chosenNextCommand = executionAllowedNow
     ? undefined
@@ -101,7 +135,7 @@ function main() {
         : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
-    : nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
+    : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
     .filter((probe): probe is ProbeResult => Boolean(probe))
@@ -129,6 +163,7 @@ function main() {
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
+        gcloudDiagnosticSummary: diagnosticSummary,
         chosenNextCommand,
         chosenManualAction,
         probeSummaries,

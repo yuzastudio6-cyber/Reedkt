@@ -114,6 +114,17 @@ assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
+if (decision.gcloudDiagnosticRun) {
+  assert.equal(typeof decision.gcloudDiagnosticSummary, 'object')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.path, 'string')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.installationSdkRoot, 'string')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.globalConfigDir, 'string')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.activeConfigPath, 'string')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.configuredProject, 'string')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.activeAccountDomain, 'string')
+  assert.equal(typeof decision.gcloudDiagnosticSummary.accessTokenRefreshPassed, 'boolean')
+  assert.equal(decision.chosenManualAction.includes('active local gcloud account/configuration'), true)
+}
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime side-effect flag must remain false: ${flag}`)
@@ -132,7 +143,9 @@ console.log(
       qwenAuthRefreshPassed: decision.qwenAuthRefreshPassed,
       brollQuotaSufficientForOneL4Vm: decision.brollQuotaSufficientForOneL4Vm,
       gcloudDiagnosticRun: decision.gcloudDiagnosticRun,
+      gcloudDiagnosticSummary: decision.gcloudDiagnosticSummary,
       chosenNextCommand: decision.chosenNextCommand,
+      chosenManualAction: decision.chosenManualAction,
       runtimeGatesAllFalse: decision.runtimeGatesAllFalse,
     },
     null,

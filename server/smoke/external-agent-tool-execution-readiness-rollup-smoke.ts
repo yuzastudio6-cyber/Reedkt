@@ -128,6 +128,7 @@ for (const required of [
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
   '`sound_metadata_only_runtime_execution_not_accepted`',
+  'docs/sound-music-audio-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-supabase-harness`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true`',
   '`supabase_local_harness_supporting_evidence_only`',
@@ -467,6 +468,10 @@ assert.equal(
 
 const sound = toolsById.get('sound_music_audio')
 assert.equal(sound?.status, 'metadata_only')
+assert.equal(
+  sound?.currentStage,
+  'mock_dry_run_local_fixture_handoff_evidence_external_agent_wrapper_blocked_result_recorded',
+)
 assert.equal(sound?.readyForExternalAgentExecutionNow, false)
 assert.equal(sound?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(sound?.primaryBlocker, 'real_provider_worker_storage_track_qa_billing_export_handoffs_required')
@@ -475,6 +480,15 @@ assert.equal(sound?.evidence.includes('docs/sound-music-audio-open-source-tool-f
 assert.equal(sound?.evidence.includes('docs/sound-oss-tools-15-post-archive-handoff-review.md'), true)
 assert.equal(
   sound?.evidence.includes('docs/sound-runtime-media-gate-2f-controlled-synthetic-route-source-validation-result.md'),
+  true,
+)
+assert.equal(sound?.evidence.includes('docs/sound-music-audio-external-agent-wrapper-blocked-result.md'), true)
+assert.equal(
+  sound?.evidence.includes('src/backend/mock/mock-sound-music-audio-external-agent-wrapper-blocked-result.ts'),
+  true,
+)
+assert.equal(
+  sound?.evidence.includes('server/smoke/sound-music-audio-external-agent-wrapper-blocked-result-smoke.ts'),
   true,
 )
 assert.equal(sound?.evidence.includes('server/cli/external-agent-tool-execute-sound.ts'), true)

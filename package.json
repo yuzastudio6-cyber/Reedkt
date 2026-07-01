@@ -643,6 +643,7 @@
     "smoke:ai-video-broll-wan-external-agent-wrapper-blocked-result": "tsx server/smoke/ai-video-broll-wan-external-agent-wrapper-blocked-result-smoke.ts",
     "external-agent-tool-execute-sound": "tsx server/cli/external-agent-tool-execute-sound.ts",
     "smoke:external-agent-tool-execute-sound": "tsx server/smoke/external-agent-tool-execute-sound-smoke.ts",
+    "smoke:sound-music-audio-external-agent-wrapper-blocked-result": "tsx server/smoke/sound-music-audio-external-agent-wrapper-blocked-result-smoke.ts",
     "external-agent-tool-execute-supabase-harness": "tsx server/cli/external-agent-tool-execute-supabase-harness.ts",
     "smoke:external-agent-tool-execute-supabase-harness": "tsx server/smoke/external-agent-tool-execute-supabase-harness-smoke.ts",
     "external-agent-tool-next-command": "tsx server/cli/external-agent-tool-next-command.ts",

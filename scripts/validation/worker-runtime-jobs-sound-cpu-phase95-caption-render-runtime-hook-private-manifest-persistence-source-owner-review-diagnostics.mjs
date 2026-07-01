@@ -13,6 +13,8 @@ const plannedSourcePath = 'server/workers/sound-cpu/runtime/privateManifestPersi
 const existingManifestSourcePath = 'server/workers/sound-cpu/runtime/privateManifest.ts'
 const supabaseGuardPath = 'server/workers/sound-cpu/runtime/soundCpuSupabaseGuards.ts'
 const jobContractsPath = 'server/workers/sound-cpu/runtime/soundCpuJobContracts.ts'
+const laterPhase96ResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-phase96-caption-render-runtime-hook-private-manifest-persistence-source-creation-result.md'
 
 const docs = {
   sourcePrompt:
@@ -195,7 +197,12 @@ for (const file of Object.values(docs)) assertNoUnsafeClaims(file)
 assert(exists(existingManifestSourcePath), 'existing privateManifest.ts source context must exist')
 assert(exists(supabaseGuardPath), 'Supabase guard source context must exist')
 assert(exists(jobContractsPath), 'job contract source context must exist')
-assert(!exists(plannedSourcePath), `${plannedSourcePath} must not exist before Phase 96`)
+const sourceCreatedInLaterApprovedGate = exists(laterPhase96ResultPath)
+if (sourceCreatedInLaterApprovedGate) {
+  assert(exists(plannedSourcePath), `${plannedSourcePath} must exist after the approved Phase 96 source-creation gate`)
+} else {
+  assert(!exists(plannedSourcePath), `${plannedSourcePath} must not exist before Phase 96`)
+}
 assert(read(existingManifestSourcePath).includes('SOUND_CPU_PRIVATE_MANIFEST_RUNTIME_DEFAULTS'), 'manifest defaults missing')
 assert(read(supabaseGuardPath).includes('assertSoundCpuSupabaseMutationBlocked'), 'Supabase mutation guard missing')
 assert(read(jobContractsPath).includes('sound.package_import_smoke'), 'job contract context missing SOUND CPU job type')
@@ -360,8 +367,8 @@ console.log(
       sourceHead,
       sourceMergeCommit,
       plannedSourcePath,
-      plannedSourcePathExistsToday: false,
-      sourceFileCreatedToday: false,
+      plannedSourcePathExistsToday: sourceCreatedInLaterApprovedGate,
+      sourceFileCreatedToday: sourceCreatedInLaterApprovedGate,
       actualPrivateManifestPersistenceSourceCreationMayProceed: true,
       soundCpuToolsCovered: 15,
       readyForRealExecutionToday: 0,

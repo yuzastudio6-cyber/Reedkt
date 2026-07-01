@@ -18,10 +18,16 @@ const forbiddenRuntimeActions = [
   'do not mutate credits',
 ] as const
 
+const externalAgentPreExecutionActions = [
+  'npm run external-agent-tool-next-command',
+  'npm run external-agent-tool-execution-gate -- --require-go',
+] as const
+
 function actionForTool(toolId: string) {
   if (toolId === 'qwen2_5_vl_7b_instruct') {
     return {
       immediateSafeActions: [
+        ...externalAgentPreExecutionActions,
         'npm run external-agent-tool-blockers:preflight',
         'npm run external-agent-gcloud-session:diagnostic',
       ],
@@ -34,6 +40,7 @@ function actionForTool(toolId: string) {
   if (toolId === 'ai_video_broll_generation_wan') {
     return {
       immediateSafeActions: [
+        ...externalAgentPreExecutionActions,
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run external-agent-tool-blockers:preflight',
       ],
@@ -44,14 +51,14 @@ function actionForTool(toolId: string) {
 
   if (toolId === 'sound_music_audio') {
     return {
-      immediateSafeActions: ['inspect mock evidence only'],
+      immediateSafeActions: [...externalAgentPreExecutionActions, 'inspect mock evidence only'],
       externalManualBlocker: 'runtime owner handoffs still required',
       afterBlockerClears: 'continue only after real provider, worker, storage, QA, billing, and export paths are accepted',
     }
   }
 
   return {
-    immediateSafeActions: ['use as source-of-truth evidence only'],
+    immediateSafeActions: [...externalAgentPreExecutionActions, 'use as source-of-truth evidence only'],
     externalManualBlocker: 'not a model or media execution lane',
     afterBlockerClears: 'do not mutate live Supabase from this external-agent rollup',
   }

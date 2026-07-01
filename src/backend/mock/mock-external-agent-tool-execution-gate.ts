@@ -5,6 +5,7 @@ import {
 
 export type ExternalAgentToolExecutionGateDecision =
   | 'external_agent_execution_no_go_runtime_blocked'
+  | 'external_agent_execution_no_go_live_preflight_required'
   | 'external_agent_execution_go_after_explicit_tool_gate'
 
 export type ExternalAgentToolExecutionGateRow = {
@@ -19,7 +20,7 @@ export type ExternalAgentToolExecutionGateRow = {
 const ROLLUP = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
-  decision: 'external_agent_execution_go_after_explicit_tool_gate' satisfies ExternalAgentToolExecutionGateDecision,
+  decision: 'external_agent_execution_no_go_live_preflight_required' satisfies ExternalAgentToolExecutionGateDecision,
   mode: 'fail_closed_external_agent_tool_execution_gate',
   sourceRollupDecision: ROLLUP.decision,
   paidProductionInScope: false,
@@ -36,7 +37,6 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'npm run external-agent-tool-action-plan',
     'npm run external-agent-tool-readiness:check',
     'npm run external-agent-tool-execution-gate',
-    'npm run external-agent-tool-execution-gate -- --require-go',
     'npm run external-agent-tool-next-command',
     'npm run external-agent-tool-blockers:preflight',
     'npm run external-agent-gcloud-session:diagnostic',

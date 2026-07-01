@@ -45,7 +45,7 @@ function main() {
 
   console.log(JSON.stringify(report, null, 2))
 
-  if (requireGo && !staticExplicitToolGateReady) {
+  if (requireGo && !executionAllowedNow) {
     process.exitCode = gate.requireGoExitCodeWhenBlocked
   }
 }

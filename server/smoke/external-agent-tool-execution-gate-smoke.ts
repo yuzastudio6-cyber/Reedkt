@@ -73,7 +73,7 @@ assert.equal(
 )
 
 const gate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
-assert.equal(gate.decision, 'external_agent_execution_go_after_explicit_tool_gate')
+assert.equal(gate.decision, 'external_agent_execution_no_go_live_preflight_required')
 assert.equal(gate.mode, 'fail_closed_external_agent_tool_execution_gate')
 assert.equal(gate.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(gate.staticExplicitToolGateReady, true)
@@ -83,7 +83,12 @@ assert.equal(gate.requiresStructuredToolEnvelopeBeforeExecution, true)
 assert.equal(gate.rawChatExecutionAllowed, false)
 assert.equal(gate.toolRows.length, 4)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-next-command'), true)
-assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execution-gate -- --require-go'), true)
+assert.equal(
+  (gate.safeCommandsBeforeExecution as readonly string[]).includes(
+    'npm run external-agent-tool-execution-gate -- --require-go',
+  ),
+  false,
+)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
 
@@ -201,11 +206,11 @@ const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
   encoding: 'utf8',
   maxBuffer: 1024 * 1024,
 })
-assert.equal(requireGo.status, 0)
 const requireGoReport = JSON.parse(String(requireGo.stdout))
 assert.equal(requireGoReport.requireGoMode, true)
 assert.equal(requireGoReport.staticExplicitToolGateReady, true)
 assert.equal(requireGoReport.executionAllowedNow, false)
+assert.equal(requireGo.status, gate.requireGoExitCodeWhenBlocked)
 
 const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

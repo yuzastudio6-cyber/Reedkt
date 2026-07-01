@@ -32,10 +32,16 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - cpuStaticPrivateArtifactManifestAcceptedTools: `5`
 - cpuStaticWorkerAcceptedRequestSchemaAcceptedTools: `5`
 - externalAgentExactRequestAdmittedWithProvidedEvidenceTools: `5`
+- CPU/static adapter/enqueue admission accepted: `true`
+- cpuStaticAdapterInvocationEnqueueAdmissionReadyTools: `5`
+- cpuStaticAdapterInvocationEnvelopePreparedTools: `5`
+- cpuStaticWorkerEnqueuePayloadPreparedTools: `5`
+- cpuStaticProductionWorkerJobPayloadAcceptedTools: `5`
+- externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools: `5`
 - cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: `1`
 - cpuStaticNonCpuStaticDeferredTools: `15`
 - nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`
-- adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `5`
+- adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`
 - Representative disabled route blocked-detail cases covered: `21`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
@@ -55,7 +61,8 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - Read route-mount readiness evidence while preserving `apiRouteMountedNow=false`.
 - Read controlled on-demand external-beta status while preserving that direct agent execution remains blocked.
 - Read the CPU/static live-adapter queue-service proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; these five are closest to direct agent execution, but actual execution still blocked.
-- Read the CPU/static exact execution-admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; exact request envelopes, approved plan snapshots, private artifact manifests, worker-accepted request schemas, and tool QA gates are accepted, but adapter invocation, live queue write, worker enqueue, worker dispatch, and tool execution remain blocked until the next gate passes.
+- Read the CPU/static exact execution-admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; exact request envelopes, approved plan snapshots, private artifact manifests, worker-accepted request schemas, and tool QA gates are accepted.
+- Read the CPU/static adapter-invocation and worker-enqueue admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; adapter envelopes and worker enqueue payloads are accepted, but live queue write, worker enqueue, worker dispatch, and tool execution remain blocked until the next gate passes.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
@@ -93,9 +100,10 @@ Blocked now:
 7. `npm run ai-graphics:external-beta-worker-enqueue-adapter`
 8. `npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics`
 9. `npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics`
-10. `npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics`
-11. `npm run ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics`
-12. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
+10. `npm run ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics`
+11. `npm run ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics`
+12. `npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics`
+13. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -108,6 +116,7 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `sourceExternalBetaControlledOnDemandStatusBridgeAccepted=true`
 - `sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted=true`
 - `sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted=true`
+- `sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted=true`
 - `properInstallAuditAccepted=true`
 - `all21ToolsProperlyInstalledForPlannedSurface=true`
 - `installAuditSeparatesPlannedSurfaceFromRuntimeCallable=true`
@@ -131,10 +140,16 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `allFiveCpuStaticPrivateArtifactManifestsAccepted=true`
 - `allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted=true`
 - `allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence=true`
+- `cpuStaticAdapterInvocationEnqueueAdmissionAccepted=true`
+- `allFiveCpuStaticAdapterInvocationEnqueueAdmissionsReady=true`
+- `allFiveCpuStaticAdapterInvocationEnvelopesPrepared=true`
+- `allFiveCpuStaticWorkerEnqueuePayloadsPrepared=true`
+- `allFiveCpuStaticProductionWorkerJobPayloadsAccepted=true`
+- `allFiveCpuStaticExternalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence=true`
 - `satoriRemainsBlockedPendingApprovedFontFixture=true`
 - `fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes=true`
 - `nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution=true`
-- `adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution=true`
+- `adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution=false`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
 - `externalAgentExecutionAllowedNow=false`
@@ -153,4 +168,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have live-adapter queue-service proof plus exact execution-admission evidence. The disabled route now returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need adapter invocation, worker enqueue, worker claim, worker dispatch, and tool-specific result proof, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is adapter invocation and worker enqueue admission for the five CPU/static tools, while keeping private queue/worker/tool execution blocked until each following proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, and mock-only live-adapter queue-service validation. The disabled route now returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need non-production service-role queue write smoke, worker claim, worker dispatch, and tool-specific result proof, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is non-production service-role queue write smoke for the five CPU/static tools, while keeping private queue/worker/tool execution blocked until each following proof passes.

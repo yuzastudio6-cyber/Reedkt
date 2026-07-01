@@ -14,7 +14,8 @@
     "externalBetaRuntimeAdmission": "ai_graphics_external_beta_runtime_admission_contract_prepared_with_runtime_blocks",
     "externalBetaWorkerEnqueueAdapter": "ai_graphics_external_beta_worker_enqueue_adapter_prepared_with_runtime_blocks",
     "externalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProof": "ai_graphics_external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_passed_with_runtime_blocks",
-    "externalAgentCpuStaticPrivateWorkerExactExecutionAdmission": "ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks"
+    "externalAgentCpuStaticPrivateWorkerExactExecutionAdmission": "ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks",
+    "externalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmission": "ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks"
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -42,10 +43,15 @@
     "cpuStaticPrivateArtifactManifestAcceptedTools": 5,
     "cpuStaticWorkerAcceptedRequestSchemaAcceptedTools": 5,
     "externalAgentExactRequestAdmittedWithProvidedEvidenceTools": 5,
+    "cpuStaticAdapterInvocationEnqueueAdmissionReadyTools": 5,
+    "cpuStaticAdapterInvocationEnvelopePreparedTools": 5,
+    "cpuStaticWorkerEnqueuePayloadPreparedTools": 5,
+    "cpuStaticProductionWorkerJobPayloadAcceptedTools": 5,
+    "externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools": 5,
     "cpuStaticSatoriBlockedPendingApprovedFontFixtureTools": 1,
     "cpuStaticNonCpuStaticDeferredTools": 15,
     "nonProductionServiceRoleQueueWriteSmokeRequiredTools": 5,
-    "adapterInvocationAndWorkerEnqueueAdmissionRequiredTools": 5,
+    "adapterInvocationAndWorkerEnqueueAdmissionRequiredTools": 0,
     "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21,
     "externalBetaCallableCandidateToolsWithProvidedEvidence": 21,
     "externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence": 1,
@@ -361,6 +367,7 @@
     "sourceExternalBetaControlledOnDemandStatusBridgeAccepted": true,
     "sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted": true,
     "sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted": true,
+    "sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted": true,
     "properInstallAuditAccepted": true,
     "all21ToolsProperlyInstalledForPlannedSurface": true,
     "installAuditSeparatesPlannedSurfaceFromRuntimeCallable": true,
@@ -384,10 +391,16 @@
     "allFiveCpuStaticPrivateArtifactManifestsAccepted": true,
     "allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted": true,
     "allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence": true,
+    "cpuStaticAdapterInvocationEnqueueAdmissionAccepted": true,
+    "allFiveCpuStaticAdapterInvocationEnqueueAdmissionsReady": true,
+    "allFiveCpuStaticAdapterInvocationEnvelopesPrepared": true,
+    "allFiveCpuStaticWorkerEnqueuePayloadsPrepared": true,
+    "allFiveCpuStaticProductionWorkerJobPayloadsAccepted": true,
+    "allFiveCpuStaticExternalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence": true,
     "satoriRemainsBlockedPendingApprovedFontFixture": true,
     "fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes": true,
     "nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution": true,
-    "adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution": true,
+    "adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution": false,
     "approvedPlanSnapshotRequired": true,
     "creditReservationRequired": true,
     "privateArtifactManifestRequired": true,
@@ -430,5 +443,5 @@
     "publicArtifactCreated": false,
     "signedUrlCreated": false
   },
-  "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_QA_REVIEW_OR_ROUTE_MOUNT_PROOF"
+  "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE"
 }

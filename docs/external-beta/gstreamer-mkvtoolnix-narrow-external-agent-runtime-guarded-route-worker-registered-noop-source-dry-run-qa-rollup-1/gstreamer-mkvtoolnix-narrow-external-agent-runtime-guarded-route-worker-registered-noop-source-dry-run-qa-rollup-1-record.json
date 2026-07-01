@@ -1,0 +1,82 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-DRY-RUN-QA-ROLLUP-1",
+  "integrationBase": "af748afe4992b7326f9952bc5a3c09ff5ffbbf75",
+  "decision": "qa_passed_gstreamer_mkvtoolnix_narrow_registered_noop_source_dry_run_evidence",
+  "execution": "completed_docs_only_registered_noop_source_dry_run_qa_rollup_no_route_worker_tool_or_media_execution",
+  "sourceChain": {
+    "registeredNoopSourceDryRunPr": 1991,
+    "registeredNoopSourceDryRunMergeSha": "af748afe4992b7326f9952bc5a3c09ff5ffbbf75",
+    "registeredNoopSourceDryRunDecision": "completed_gstreamer_mkvtoolnix_narrow_registered_noop_source_dry_run",
+    "registeredNoopSourceDryRunExecution": "completed_confirmation_gated_registered_noop_source_contract_dry_run_no_route_worker_tool_or_media_execution",
+    "registeredNoopSourceDryRunReadiness": "ready_for_guarded_narrow_route_worker_registered_noop_source_dry_run_qa_rollup",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "qa": {
+    "scope": "dry_run_evidence_review_only",
+    "dryRunEvidence": "passed",
+    "dryRunDiagnostics": "passed",
+    "priorRegisteredNoopSourceQaDiagnostics": "passed",
+    "runId": "2026-07-01T13-04-23-510Z-0e78b3a6",
+    "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_ROUTE_WORKER_REGISTERED_NOOP_SOURCE_DRY_RUN=true",
+    "responseShapeStatus": "accepted_registered_noop_source_contract",
+    "negativeFailClosedMatrix": "passed",
+    "productionRouteFileCreated": false,
+    "routeRegistered": false,
+    "routeEnabled": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "workerLeaseClaim": false,
+    "persistentQueueWrite": false
+  },
+  "artifacts": {
+    "report": {
+      "fileName": "registered-noop-source-dry-run-report.json",
+      "bytes": 4809,
+      "sha256": "4869290dc0df43e7198cd08dc195dccc566dd20278fc220705b4af1a2c890ad5"
+    },
+    "manifest": {
+      "fileName": "registered-noop-source-dry-run-manifest.json",
+      "bytes": 748,
+      "sha256": "a3e83d794526cf99e29340549406b0e47118bfcc83b611af4c8418177b17ae59"
+    }
+  },
+  "readiness": {
+    "gstreamer": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run",
+    "mkvtoolnix": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run",
+    "externalAgentBoundary": "ready_for_guarded_narrow_route_worker_registered_noop_source_route_worker_dry_run"
+  },
+  "safety": {
+    "productionRouteFileCreatedInThisQaRollupPhase": false,
+    "routeRegisteredInThisQaRollupPhase": false,
+    "routeEnabledInThisQaRollupPhase": false,
+    "routeExecutionInThisQaRollupPhase": false,
+    "workerDispatchInThisQaRollupPhase": false,
+    "workerExecutionInThisQaRollupPhase": false,
+    "workerProcessStartInThisQaRollupPhase": false,
+    "workerLeaseClaimInThisQaRollupPhase": false,
+    "persistentJobQueueWriteInThisQaRollupPhase": false,
+    "gstreamerExecutionInThisQaRollupPhase": false,
+    "mkvtoolnixExecutionInThisQaRollupPhase": false,
+    "dockerExecutionInThisQaRollupPhase": false,
+    "ffmpegFfprobeExecutionInThisQaRollupPhase": false,
+    "remotionExecutionInThisQaRollupPhase": false,
+    "privateMediaProcessingInThisQaRollupPhase": false,
+    "userMediaProcessingInThisQaRollupPhase": false,
+    "mediaProcessingInThisQaRollupPhase": false,
+    "supabaseMutationInThisQaRollupPhase": false,
+    "sqlExecutionInThisQaRollupPhase": false,
+    "signedUrlCreationInThisQaRollupPhase": false,
+    "publicArtifactCreationInThisQaRollupPhase": false,
+    "finalRenderExportInThisQaRollupPhase": false,
+    "broadExternalBetaUnlockInThisQaRollupPhase": false,
+    "paidProductionUnlockInThisQaRollupPhase": false,
+    "productionUnlockInThisQaRollupPhase": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-REGISTERED-NOOP-SOURCE-ROUTE-WORKER-DRY-RUN-1"
+}

@@ -4,17 +4,17 @@ import path from 'node:path'
 
 const root = process.cwd()
 const decision =
-  'ai_graphics_external_agent_mock_worker_claim_proof_passed_with_runtime_blocks'
-const acceptedStatus = 'mock_worker_claim_validated_all_21_dispatch_still_blocked'
+  'ai_graphics_external_agent_mock_worker_dispatch_handoff_proof_passed_with_runtime_blocks'
+const acceptedStatus = 'mock_worker_dispatch_handoff_prepared_all_21_execution_still_blocked'
 const sourceDecision =
-  'ai_graphics_external_agent_mock_queue_insertion_proof_passed_with_runtime_blocks'
-const runScriptName = 'ai-graphics:external-agent-mock-worker-claim-proof'
+  'ai_graphics_external_agent_mock_worker_claim_proof_passed_with_runtime_blocks'
+const runScriptName = 'ai-graphics:external-agent-mock-worker-dispatch-handoff-proof'
 const runScriptCommand =
-  'tsx server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts'
+  'tsx server/cli/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof.ts'
 const diagnosticScriptName =
-  'ai-graphics:external-agent-mock-worker-claim-proof:diagnostics'
+  'ai-graphics:external-agent-mock-worker-dispatch-handoff-proof:diagnostics'
 const diagnosticScriptCommand =
-  'node scripts/validation/ai-graphics-external-agent-mock-worker-claim-proof-diagnostics.mjs'
+  'node scripts/validation/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -43,11 +43,12 @@ const tools = [
 const expectedCounts = {
   totalAiGraphicsTools: 21,
   totalProductFacingCapabilities: 12,
-  sourceMockQueueInsertedJobCount: 21,
+  sourceMockWorkerClaimsCreated: 21,
   mockQueuePreludeInsertedJobCount: 21,
-  mockWorkerClaimAttemptedTools: 21,
   mockWorkerClaimsCreated: 21,
   mockWorkerLeaseSeconds: 900,
+  mockDispatchHandoffPreparedTools: 21,
+  mockWorkerEventsRecorded: 21,
   queueValidationAcceptedTools: 21,
   gpuRuntimeTargetedTools: 8,
   gpuRuntimeShouldStartNowTools: 0,
@@ -61,15 +62,17 @@ const expectedCounts = {
 }
 
 const trueKeys = [
-  'externalAgentMockWorkerClaimProofPassed',
-  'sourceMockQueueInsertionProofAccepted',
+  'externalAgentMockWorkerDispatchHandoffProofPassed',
+  'sourceMockWorkerClaimProofAccepted',
   'mockQueueServiceClaimAccepted',
+  'mockQueueServiceWorkerEventAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'all21MockWorkerClaimsCreated',
-  'mockWorkerClaimProofPerformed',
+  'all21MockDispatchHandoffsPrepared',
+  'mockWorkerDispatchHandoffProofPerformed',
   'mockOnlyRuntimeModeEnforced',
   'privateWorkerClaimLeaseOnly',
+  'dispatchEnvelopePreparedOnly',
   'agentCanSelectForPlanning',
 ]
 
@@ -141,11 +144,11 @@ const forbiddenDocPatterns = [
 ]
 
 const requiredFiles = [
-  'server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts',
-  'scripts/validation/ai-graphics-external-agent-mock-worker-claim-proof-diagnostics.mjs',
+  'server/cli/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof.ts',
+  'scripts/validation/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-agent-mock-worker-dispatch-handoff-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-mock-worker-dispatch-handoff-proof.md',
   'docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.json',
-  'docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.md',
-  'docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.json',
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
   'server/tool-registry/ai-graphics-tool-call-readiness.ts',
   'docs/production-beta-readiness-scorecard.md',
@@ -212,32 +215,37 @@ function checkBooleans(label, booleans) {
   }
 }
 
-function checkClaims(label, claims) {
-  if (!Array.isArray(claims)) {
-    fail(`${label}_claims_not_array`)
+function checkHandoffs(label, handoffs) {
+  if (!Array.isArray(handoffs)) {
+    fail(`${label}_handoffs_not_array`)
     return
   }
-  if (claims.length !== 21) fail(`${label}_claim_count_not_21`)
+  if (handoffs.length !== 21) fail(`${label}_handoff_count_not_21`)
   for (const toolId of tools) {
-    const claim = claims.find((item) => item.toolId === toolId)
-    if (!claim) {
-      fail(`${label}_missing_claim:${toolId}`)
+    const handoff = handoffs.find((item) => item.toolId === toolId)
+    if (!handoff) {
+      fail(`${label}_missing_handoff:${toolId}`)
       continue
     }
-    if (!claim.productionToolId) fail(`${label}_missing_production_tool_id:${toolId}`)
-    if (!claim.workerType) fail(`${label}_missing_worker_type:${toolId}`)
-    if (!claim.runtimeTarget) fail(`${label}_missing_runtime_target:${toolId}`)
-    if (claim.mockWorkerClaimCreated !== true) fail(`${label}_claim_not_created:${toolId}`)
-    if (claim.mockWorkerLeaseSeconds !== 900) fail(`${label}_lease_seconds_mismatch:${toolId}`)
-    if (claim.leaseExpiresAtPresent !== true) fail(`${label}_lease_expiry_not_present:${toolId}`)
-    if (claim.privateWorkerClaimLeaseOnly !== true) fail(`${label}_private_claim_not_true:${toolId}`)
+    if (!handoff.productionToolId) fail(`${label}_missing_production_tool_id:${toolId}`)
+    if (!handoff.workerType) fail(`${label}_missing_worker_type:${toolId}`)
+    if (!handoff.runtimeTarget) fail(`${label}_missing_runtime_target:${toolId}`)
+    if (handoff.mockWorkerClaimCreated !== true) fail(`${label}_claim_not_created:${toolId}`)
+    if (handoff.mockDispatchHandoffPrepared !== true) fail(`${label}_handoff_not_prepared:${toolId}`)
+    if (handoff.mockWorkerEventRecorded !== true) fail(`${label}_worker_event_not_recorded:${toolId}`)
+    if (handoff.dispatchStatus !== 'prepared_not_dispatched') fail(`${label}_dispatch_status_mismatch:${toolId}`)
+    if (handoff.dispatchHandoffOnly !== true) fail(`${label}_dispatch_handoff_only_not_true:${toolId}`)
+    if (handoff.privateWorkerClaimLeaseOnly !== true) fail(`${label}_private_claim_not_true:${toolId}`)
+    if (!String(handoff.privateArtifactManifestRef ?? '').startsWith('private://')) {
+      fail(`${label}_private_artifact_ref_not_private:${toolId}`)
+    }
     for (const key of [
       'liveQueueWritePerformed',
       'workerDispatchPerformed',
       'toolExecutionPerformed',
       'gpuRuntimeShouldStartNow',
     ]) {
-      if (claim[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
+      if (handoff[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
     }
   }
 }
@@ -246,12 +254,12 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(absolute(file))) fail(`missing_file:${file}`)
 }
 
-const docs = json('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.json')
-const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.md')
-const source = json('docs/tool-intelligence/ai-graphics/external-agent-mock-queue-insertion-proof.json')
+const docs = json('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-dispatch-handoff-proof.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-dispatch-handoff-proof.md')
+const source = json('docs/tool-intelligence/ai-graphics/external-agent-mock-worker-claim-proof.json')
 const packageJson = json('package.json')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
-const cliSource = read('server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts')
+const cliSource = read('server/cli/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof.ts')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
@@ -263,17 +271,17 @@ if (source.booleans?.toolExecutionPerformed !== false) fail('source_tool_executi
 
 checkCounts('docs', docs.counts)
 checkBooleans('docs', docs.booleans)
-checkClaims('docs', docs.claims)
+checkHandoffs('docs', docs.handoffs)
 
 for (const toolId of tools) {
   if (!docsMd.includes(toolId)) fail(`markdown_missing_tool:${toolId}`)
 }
 for (const required of [
-  'external-agent-mock-queue-insertion-proof.json',
+  'external-agent-mock-worker-claim-proof.json',
   'createAiGraphicsToolRuntimeQueueService',
   'claimToolRuntimeJob',
-  'mock mode',
-  'private worker claim lease',
+  'recordWorkerEvent',
+  'prepared_not_dispatched',
   'no worker dispatch',
   'no tool execution',
 ]) {
@@ -282,10 +290,12 @@ for (const required of [
   }
 }
 for (const required of [
-  'claimToolRuntimeJob',
+  'recordWorkerEvent',
+  'mock_dispatch_handoff_prepared',
+  'prepared_not_dispatched',
   'E2E_RUNTIME_MODE',
   'mock',
-  'private://ai-graphics/external-agent/mock-worker-claim-proof',
+  'private://ai-graphics/external-agent/mock-worker-dispatch-handoff-proof',
   'workerDispatchPerformed: false',
   'toolExecutionPerformed: false',
   'gpuRuntimeShouldStartNow: false',
@@ -306,8 +316,8 @@ if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
 }
 
 if (!scorecard.includes(decision) ||
-    !scorecard.includes('External Agent Mock Worker Claim Proof')) {
-  fail('scorecard_missing_mock_worker_claim_section')
+    !scorecard.includes('External Agent Mock Worker Dispatch Handoff Proof')) {
+  fail('scorecard_missing_mock_worker_dispatch_handoff_section')
 }
 if (/runtimeReadyNow["`:\s=]+true/i.test(scorecard) ||
     /productionReadyNow["`:\s=]+true/i.test(scorecard)) {
@@ -325,7 +335,7 @@ if (cliReport.decision !== decision) fail('cli_decision_mismatch')
 if (cliReport.status !== acceptedStatus) fail('cli_status_mismatch')
 checkCounts('cli', cliReport.counts)
 checkBooleans('cli', cliReport.booleans)
-checkClaims('cli', cliReport.claims)
+checkHandoffs('cli', cliReport.handoffs)
 if (cliReport.queuePreludeResult?.mockOnly !== true) fail('cli_queue_prelude_not_mock_only')
 if (cliReport.queuePreludeResult?.insertedJobCount !== 21) fail('cli_queue_prelude_inserted_count_not_21')
 if (cliReport.queuePreludeResult?.returnedJobIds !== 21) fail('cli_queue_prelude_returned_job_ids_not_21')
@@ -340,8 +350,6 @@ const packageDiff = [
 const allowedPackageAdditions = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
-  '+    "ai-graphics:external-agent-mock-worker-dispatch-handoff-proof": "tsx server/cli/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof.ts",',
-  '+    "ai-graphics:external-agent-mock-worker-dispatch-handoff-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof-diagnostics.mjs",',
 ])
 const unexpectedPackageAdditions = packageDiff
   .split('\n')
@@ -384,8 +392,8 @@ console.log(JSON.stringify({
   ok: true,
   decision,
   acceptedStatus,
-  mockWorkerClaimsCreated: 21,
-  mockWorkerLeaseSeconds: 900,
+  mockDispatchHandoffPreparedTools: 21,
+  mockWorkerEventsRecorded: 21,
   gpuRuntimeShouldStartNowTools: 0,
   liveQueueWritePerformed: false,
   workerDispatchPerformed: false,

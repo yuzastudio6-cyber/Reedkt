@@ -118,6 +118,8 @@ It is not an implementation of skills, a runtime registry, a database schema, a 
 | [end-to-end-beta-merge-readiness-and-commit-plan-checklist.md](end-to-end-beta-merge-readiness-and-commit-plan-checklist.md) | Provides RP-BETA-INTEGRATION-18 merge-readiness checks and fail conditions. |
 | [sound-agent-planner-build-repair.md](sound-agent-planner-build-repair.md) | Records the RP-BETA-INTEGRATION-19 sound-agent planner build repair, validation results, and remaining beta blockers. |
 | [sound-agent-planner-build-repair-checklist.md](sound-agent-planner-build-repair-checklist.md) | Provides RP-BETA-INTEGRATION-19 build repair checks and fail conditions. |
+| [owner-staging-approval-and-commit-execution.md](owner-staging-approval-and-commit-execution.md) | Records the RP-BETA-INTEGRATION-20 owner-approved local staging and commit execution. |
+| [owner-staging-approval-and-commit-execution-checklist.md](owner-staging-approval-and-commit-execution-checklist.md) | Provides RP-BETA-INTEGRATION-20 local commit execution checks and fail conditions. |
 | [repo-audit.md](repo-audit.md) | Summarizes the current repo state, inspected architecture, gaps, constraints, and risks. |
 | [source-of-truth-map.md](source-of-truth-map.md) | Maps likely Creative Skill domains to existing owner docs, types, mocks, migrations, and boundaries. |
 | [duplicate-lane-checklist.md](duplicate-lane-checklist.md) | Lists duplicate-lane checks that future skill work must pass before adding new docs, contracts, or runtime concepts. |
@@ -897,6 +899,22 @@ Summary:
 - Remaining blockers are Qwen clone reconciliation, tool-calling diagnostic policy mismatch, and owner-approved staging/commit/merge execution.
 
 Recommended next prompt: `RP-BETA-INTEGRATION-20 - Owner Staging Approval and Commit Group Execution`.
+
+## RP-BETA-INTEGRATION-20 Owner Staging Approval And Commit Execution
+
+`RP-BETA-INTEGRATION-20` creates [owner-staging-approval-and-commit-execution.md](owner-staging-approval-and-commit-execution.md) and [owner-staging-approval-and-commit-execution-checklist.md](owner-staging-approval-and-commit-execution-checklist.md).
+
+Decision: `local_commits_created_ready_for_merge_readiness_review`.
+
+Summary:
+
+- Created local commits for reviewed RP-SKILLS/RP-BETA docs, types, fixtures, catalog migrations, manifest, local migration-chain repairs, local config, and the sound-agent build repair.
+- Used explicit path lists only; no broad `git add` was used.
+- Excluded `supabase/.branches/`, `supabase/.temp/`, and Qwen clone files.
+- Post-content-commit `git diff --check`, lint, build, and safe smokes passed.
+- No merge, push, deploy, remote Supabase, Qwen mutation, provider call, worker execution, package mutation, or app behavior change occurred.
+
+Recommended next prompt: `RP-BETA-INTEGRATION-21 - Post-Commit Merge Readiness Review and Qwen Reconciliation Decision`.
 
 ## Scope Boundary
 

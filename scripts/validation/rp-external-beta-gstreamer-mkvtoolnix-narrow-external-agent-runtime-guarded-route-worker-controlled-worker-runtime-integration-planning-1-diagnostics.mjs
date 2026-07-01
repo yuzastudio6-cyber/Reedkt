@@ -49,7 +49,24 @@ const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-planning-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const runtimeIntegrationPacketDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-1'
+const runtimeIntegrationPacketFiles = [
+  `${runtimeIntegrationPacketDir}/source-audit.md`,
+  `${runtimeIntegrationPacketDir}/execution-result.md`,
+  `${runtimeIntegrationPacketDir}/integration-envelope.md`,
+  `${runtimeIntegrationPacketDir}/artifact-manifest.md`,
+  `${runtimeIntegrationPacketDir}/readiness.md`,
+  `${runtimeIntegrationPacketDir}/safety-boundary.md`,
+  `${runtimeIntegrationPacketDir}/validation-results.md`,
+  `${runtimeIntegrationPacketDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-qa-rollup-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-1.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...runtimeIntegrationPacketFiles])
 
 const requiredText = [
   packet,

@@ -576,3 +576,11 @@ Do not implement these without explicit user request:
 - The mock export lock record is local in-memory state only and must not run checkout/top-up or unlock export.
 - Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, checkout/top-up, production persistence, or export unlock.
 - Use `docs/credit-export-lock.md` and `smoke:credit-export-lock` when changing this surface.
+
+## RP-CREDITPURCHASE-01 Mock Credit Top-Up Boundary
+
+- Mock top-up may add purchased credits only to local in-memory mock wallet available balance.
+- Purchased grants must use `sourceType = purchased`, `billingProvider = mock`, and `metadata.mockOnly = true`.
+- Top-up suggestions must not automatically retry reservation, revised-credit approval, or export gate; callers must retry explicitly.
+- Do not wire live billing, Stripe/payment, real checkout, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, production persistence, automatic retry, or export unlock.
+- Use `docs/credit-top-up-purchased-grants.md` and `smoke:credit-purchase` when changing this surface.

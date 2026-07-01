@@ -25,3 +25,5 @@ Reservation line items are settled with `lineItemSettlementAllocationMode = prop
 RP-SETTLEMENT-01 is local/mock only: no live billing, no Stripe/payment, no Supabase migration or write, no production wallet mutation, no production ledger write, no provider call, no worker execution, no render/export execution, no export lock/unlock, and no checkout/top-up. See `smoke:credit-settlement`.
 
 RP-EXPORTLOCK-01 consumes this settlement state after completion. `settled` and `settled_with_absorbed_overage` are export-ready, while `requires_top_up_before_export` returns "Action required: add credits to export" and records only a local mock lock; there is still no checkout/top-up, render/export execution, production wallet mutation, production ledger write, Supabase write, or export unlock.
+
+RP-CREDITPURCHASE-01 can fund the local mock wallet after an approved-but-unfunded settlement. The settlement record is not rerun or mutated by top-up; the user must recheck the export gate after credits are added.

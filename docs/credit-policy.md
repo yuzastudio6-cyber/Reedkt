@@ -106,3 +106,7 @@ RP-SETTLEMENT-01 settles completed edits in local mock state only. The final use
 ## RP-EXPORTLOCK-01 Export Credit Gate
 
 RP-EXPORTLOCK-01 evaluates export readiness after settlement. Export is allowed when settlement is `settled` or `settled_with_absorbed_overage`; export is locked only for `requires_top_up_before_export` with "Action required: add credits to export". The lock is local/mock only and does not start checkout/top-up or unlock export.
+
+## RP-CREDITPURCHASE-01 Mock Credit Top-Up
+
+RP-CREDITPURCHASE-01 adds fixed mock purchased credit packs and purchased credit grants. Top-up completion adds available credits to the local mock wallet only, keeps purchased credits separate from weekly bonus/promotional/admin credits, and requires the user to retry reservation, revised-credit approval, or export gate explicitly. It remains mock-only: no live billing, no Stripe/payment, no real checkout, no Supabase write, no production wallet or ledger mutation, no render/export, and no export unlock.

@@ -217,3 +217,11 @@ Status: mock-safe export credit gate implemented.
 Completed edits can now evaluate export credit readiness from local mock settlement state. `settled` and `settled_with_absorbed_overage` allow export readiness, while `requires_top_up_before_export` creates an idempotent local mock export lock with "Action required: add credits to export".
 
 It does not add live billing, Stripe/payment, checkout/top-up, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, production persistence, or UI. See `docs/credit-export-lock.md` and `smoke:credit-export-lock`.
+
+## RP-CREDITPURCHASE-01
+
+Status: mock-safe credit top-up foundation implemented.
+
+The mock credit foundation now includes fixed purchased credit packs, local mock top-up intents, purchased credit grants, and read-only top-up suggestions for estimate reservation, revised-credit additional hold, and export top-up contexts. Completing a mock top-up increases only local in-memory wallet available credits.
+
+It does not add live billing, Stripe/payment, real checkout, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, production persistence, UI, or automatic retry behavior. See `docs/credit-top-up-purchased-grants.md` and `smoke:credit-purchase`.

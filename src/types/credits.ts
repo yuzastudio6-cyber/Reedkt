@@ -233,6 +233,185 @@ export const CREDIT_EXPORT_LOCK_REASONS = [
 
 export type CreditExportLockReason = typeof CREDIT_EXPORT_LOCK_REASONS[number]
 
+export const CREDIT_TOP_UP_REASONS = [
+  'insufficient_credits_for_estimate',
+  'revised_credit_additional_hold',
+  'export_top_up_required',
+  'manual_wallet_top_up',
+  'admin_test',
+] as const
+
+export type CreditTopUpReason = typeof CREDIT_TOP_UP_REASONS[number]
+
+export const MOCK_CREDIT_TOP_UP_INTENT_STATUSES = [
+  'created',
+  'completed',
+  'cancelled',
+  'failed',
+] as const
+
+export type MockCreditTopUpIntentStatus = typeof MOCK_CREDIT_TOP_UP_INTENT_STATUSES[number]
+
+export const MOCK_CREDIT_TOP_UP_RESPONSE_STATUSES = [
+  'created',
+  'completed',
+  'wallet_not_found',
+  'pack_not_found',
+  'invalid_request',
+  'already_created',
+  'already_completed',
+] as const
+
+export type MockCreditTopUpResponseStatus = typeof MOCK_CREDIT_TOP_UP_RESPONSE_STATUSES[number]
+
+export const MOCK_CREDIT_TOP_UP_NEXT_ACTIONS = [
+  'none',
+  'retry_estimate_reservation',
+  'retry_revised_credit_approval',
+  'retry_export_gate',
+  'review_wallet',
+] as const
+
+export type MockCreditTopUpNextAction = typeof MOCK_CREDIT_TOP_UP_NEXT_ACTIONS[number]
+
+export interface CreditPackDefinition {
+  id: ID
+  label: string
+  credits: CreditAmount
+  priceCents: number
+  currency: 'USD'
+  retailValueCents: number
+  isActive: boolean
+  metadata: JSONObject
+}
+
+export interface MockCreditTopUpIntent extends BaseRecord {
+  workspaceId: ID
+  userId: ID
+  creditWalletId: ID
+  creditPackId?: ID | null
+  credits: CreditAmount
+  priceCents: number
+  currency: 'USD'
+  status: MockCreditTopUpIntentStatus
+  topUpReason: CreditTopUpReason
+  mockOnly: true
+  checkoutProvider: 'mock'
+  checkoutUrl?: string | null
+  relatedProjectId?: ID | null
+  relatedCreditEstimateId?: ID | null
+  relatedCreditReservationId?: ID | null
+  relatedCreditSettlementId?: ID | null
+  relatedCreditRevisionActionId?: ID | null
+  idempotencyKey: string
+  completedAt?: ISODateString | null
+}
+
+export interface CreateMockCreditTopUpRequest {
+  workspaceId: ID
+  userId: ID
+  creditWalletId: ID
+  creditPackId?: ID
+  customCredits?: number
+  topUpReason: CreditTopUpReason
+  relatedProjectId?: ID | null
+  relatedCreditEstimateId?: ID | null
+  relatedCreditReservationId?: ID | null
+  relatedCreditSettlementId?: ID | null
+  relatedCreditRevisionActionId?: ID | null
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CompleteMockCreditTopUpRequest extends CreateMockCreditTopUpRequest {
+  topUpIntentId?: ID
+}
+
+export interface SuggestCreditTopUpRequest {
+  workspaceId: ID
+  userId?: ID
+  creditWalletId: ID
+  topUpReason: CreditTopUpReason
+  relatedProjectId?: ID | null
+  relatedCreditEstimateId?: ID | null
+  relatedCreditReservationId?: ID | null
+  relatedCreditSettlementId?: ID | null
+  relatedCreditRevisionActionId?: ID | null
+  requestedCredits?: CreditAmount
+  metadata?: JSONObject
+}
+
+export interface MockCreditTopUpSafetyFlags {
+  mockOnly: true
+  mockTopUpIntentWritten: boolean
+  mockCreditGrantWritten: boolean
+  walletMutated: boolean
+  creditsAdded: boolean
+  creditsReserved: false
+  creditsSpent: false
+  creditsReleased: false
+  creditsRefunded: false
+  ledgerWritten: false
+  productionWalletMutated: false
+  productionPersistenceWritten: false
+  checkoutSessionCreated: false
+  paymentProviderCalled: false
+  stripeCalled: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+}
+
+export interface CreateMockCreditTopUpResponse {
+  status: MockCreditTopUpResponseStatus
+  topUpIntent: MockCreditTopUpIntent | null
+  creditGrant: null
+  walletBalance: CreditReservationWalletBalance | null
+  creditsAdded: 0
+  priceCents: number
+  userFacingTitle: string
+  userFacingMessage: string
+  nextSuggestedAction: MockCreditTopUpNextAction
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  safetyFlags: MockCreditTopUpSafetyFlags
+  warnings: string[]
+}
+
+export interface CompleteMockCreditTopUpResponse {
+  status: MockCreditTopUpResponseStatus
+  topUpIntent: MockCreditTopUpIntent | null
+  creditGrant: CreditGrantRecord | null
+  walletBalance: CreditReservationWalletBalance | null
+  creditsAdded: CreditAmount
+  priceCents: number
+  userFacingTitle: string
+  userFacingMessage: string
+  nextSuggestedAction: MockCreditTopUpNextAction
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  safetyFlags: MockCreditTopUpSafetyFlags
+  warnings: string[]
+}
+
+export interface SuggestedCreditTopUp {
+  requiredTopUpCredits: CreditAmount
+  recommendedPackId?: ID
+  recommendedCredits: CreditAmount
+  recommendedPriceCents: number
+  reason: CreditTopUpReason
+  nextSuggestedAction: MockCreditTopUpNextAction
+  warnings: string[]
+}
+
+export interface SuggestCreditTopUpResponse {
+  suggestion: SuggestedCreditTopUp
+  walletBalance: CreditReservationWalletBalance | null
+  safetyFlags: MockCreditTopUpSafetyFlags
+  warnings: string[]
+}
+
 export interface CreditSettlementRecord {
   id: ID
   workspaceId: ID

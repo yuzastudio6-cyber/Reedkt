@@ -78,3 +78,9 @@
 - Real: local/mock export readiness can be evaluated from settlement state.
 - Real: `requires_top_up_before_export` creates an idempotent mock export lock with "Action required: add credits to export".
 - Mock-only: `settled_with_absorbed_overage` allows export readiness, and no live billing, Stripe/payment, checkout/top-up, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, production persistence, or ledger write is wired.
+
+## RP-CREDITPURCHASE-01 Mock Credit Top-Up Status
+
+- Real: local/mock fixed credit packs, top-up intents, purchased grants, and top-up suggestions exist.
+- Real: completing a mock top-up increases local in-memory wallet available credits only.
+- Mock-only: no live billing, Stripe/payment, real checkout, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, production persistence, ledger write, or automatic retry behavior is wired.

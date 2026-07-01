@@ -113,6 +113,103 @@ assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, t
 assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
+assert.deepEqual(summary.manualBlockerActionToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+
+const blockersByTool = new Map(
+  summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),
+)
+const qwenBlocker = blockersByTool.get('qwen2_5_vl_7b_instruct') as {
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
+}
+assert.equal(qwenBlocker.manualBlockerActions.length, 2)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.runInsideCodex === false), true)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.mutatesRuntime === false), true)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.runsModel === false), true)
+assert.equal(qwenBlocker.manualBlockerActions.every((action) => action.createsAssets === false), true)
+assert.equal(
+  qwenBlocker.manualBlockerActions.some(
+    (action) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.mutatesLocalGcloudConfig === false &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  qwenBlocker.manualBlockerActions.some(
+    (action) =>
+      action.id === 'select_authenticated_gcloud_account_if_needed' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === false &&
+      action.mutatesLocalGcloudConfig === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+
+const brollBlocker = blockersByTool.get('ai_video_broll_generation_wan') as {
+  manualBlockerActions: Array<{
+    id: string
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+    mutatesCloud: boolean
+    mutatesLocalGcloudAuth: boolean
+    mutatesLocalGcloudConfig: boolean
+    changesQuotaRequest: boolean
+    afterCompletionCommand: string
+  }>
+}
+assert.equal(brollBlocker.manualBlockerActions.length, 1)
+assert.equal(brollBlocker.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(brollBlocker.manualBlockerActions[0].runInsideCodex, false)
+assert.equal(brollBlocker.manualBlockerActions[0].mutatesRuntime, false)
+assert.equal(brollBlocker.manualBlockerActions[0].runsModel, false)
+assert.equal(brollBlocker.manualBlockerActions[0].createsAssets, false)
+assert.equal(brollBlocker.manualBlockerActions[0].mutatesCloud, true)
+assert.equal(brollBlocker.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
+assert.equal(brollBlocker.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
+assert.equal(brollBlocker.manualBlockerActions[0].changesQuotaRequest, true)
+assert.equal(
+  brollBlocker.manualBlockerActions[0].afterCompletionCommand,
+  'npm run external-agent-tool-blockers:preflight',
+)
+
+for (const blocker of summary.blockers as Array<{
+  toolId: string
+  manualBlockerActions: Array<{
+    runInsideCodex: boolean
+    mutatesRuntime: boolean
+    runsModel: boolean
+    createsAssets: boolean
+  }>
+}>) {
+  for (const action of blocker.manualBlockerActions) {
+    assert.equal(action.runInsideCodex, false, `${blocker.toolId} manual action must stay outside Codex`)
+    assert.equal(action.mutatesRuntime, false, `${blocker.toolId} manual action must not run runtime`)
+    assert.equal(action.runsModel, false, `${blocker.toolId} manual action must not run models`)
+    assert.equal(action.createsAssets, false, `${blocker.toolId} manual action must not create assets`)
+  }
+}
 
 let liveModeFailed = false
 try {

@@ -108,10 +108,14 @@ function main() {
       toolId: tool.toolId,
       gate: tool.noIdleLifecycleGate,
     })),
+    manualBlockerActionToolIds: blockedTools
+      .filter((tool) => (tool.manualBlockerActions ?? []).length > 0)
+      .map((tool) => tool.toolId),
     blockers: blockedTools.map((tool) => ({
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,
       nextAction: tool.nextAction,
+      manualBlockerActions: tool.manualBlockerActions ?? [],
     })),
     safeNextCommands,
     preferredNextSafeCommand,

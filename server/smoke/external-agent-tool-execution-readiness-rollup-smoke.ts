@@ -89,7 +89,7 @@ for (const required of [
   'a static gate is not runtime permission',
   'The preferred next safe command is `npm run external-agent-tool-next-command`',
   'combines the static gate and live read-only blocker probes',
-  'The static action plan includes `manualBlockerActions`',
+  'The shared rollup, readiness check, and static action plan include `manualBlockerActions`',
   '`runInsideCodex=false`',
   '`mutatesRuntime=false`',
   'B-roll `GPUS_ALL_REGIONS` quota request is explicitly outside Codex',
@@ -186,6 +186,35 @@ assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(qwen?.primaryBlocker, 'local_gcloud_reauthentication_required_before_58dw_runtime')
 assert.equal(qwen?.nextAction, NEXT_PROMPT)
+assert.equal(qwen?.manualBlockerActions?.length, 2)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.runInsideCodex === false), true)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.mutatesRuntime === false), true)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.runsModel === false), true)
+assert.equal(qwen?.manualBlockerActions?.every((action) => action.createsAssets === false), true)
+assert.equal(
+  qwen?.manualBlockerActions?.some(
+    (action) =>
+      action.id === 'refresh_active_gcloud_login' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === true &&
+      action.mutatesLocalGcloudConfig === false &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
+assert.equal(
+  qwen?.manualBlockerActions?.some(
+    (action) =>
+      action.id === 'select_authenticated_gcloud_account_if_needed' &&
+      action.mutatesCloud === false &&
+      action.mutatesLocalGcloudAuth === false &&
+      action.mutatesLocalGcloudConfig === true &&
+      action.changesQuotaRequest === false &&
+      action.afterCompletionCommand === 'npm run external-agent-tool-blockers:preflight',
+  ),
+  true,
+)
 assert.equal(
   qwen?.evidence.includes(
     'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-bounded-retry-prompt-result.md',
@@ -327,6 +356,20 @@ assert.equal(
 )
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
+assert.equal(broll?.manualBlockerActions?.length, 1)
+assert.equal(broll?.manualBlockerActions?.[0].id, 'request_gpus_all_regions_quota_in_console')
+assert.equal(broll?.manualBlockerActions?.[0].runInsideCodex, false)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesRuntime, false)
+assert.equal(broll?.manualBlockerActions?.[0].runsModel, false)
+assert.equal(broll?.manualBlockerActions?.[0].createsAssets, false)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesCloud, true)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesLocalGcloudAuth, false)
+assert.equal(broll?.manualBlockerActions?.[0].mutatesLocalGcloudConfig, false)
+assert.equal(broll?.manualBlockerActions?.[0].changesQuotaRequest, true)
+assert.equal(
+  broll?.manualBlockerActions?.[0].afterCompletionCommand,
+  'npm run external-agent-tool-blockers:preflight',
+)
 assert.equal(broll?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(broll?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.noIdleLifecycleGate?.machineType, 'g2-standard-4')

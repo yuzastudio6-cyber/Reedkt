@@ -27,11 +27,25 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1.md',
 ]
 
+const workerDispatchExecutionPacketFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/worker-dispatch-execution-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/worker-dispatch-metadata.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1/gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-handoff-1.md',
+]
+
 const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-plan-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1.ts',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1-diagnostics.mjs',
   'package.json',
 ]
 
@@ -40,7 +54,7 @@ const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-record.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...workerDispatchExecutionPacketFiles, ...implementationFiles])
 
 const requiredText = [
   packet,

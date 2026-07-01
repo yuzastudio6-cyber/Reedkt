@@ -45,7 +45,8 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker: 'request GPUS_ALL_REGIONS quota increase to 1 if live quota remains insufficient',
-      afterBlockerClears: 'verify quota increase with no VM creation and no inference',
+      afterBlockerClears:
+        'verify quota increase, then require bounded no-idle L4 proof cleanup before any inference path',
     }
   }
 

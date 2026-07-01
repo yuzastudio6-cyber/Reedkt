@@ -75,6 +75,7 @@ for (const required of [
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
+  'B-roll no-idle GPU lifecycle is required',
   '## Safe Agent Commands',
   'External agents should start with `npm run external-agent-tool-action-plan`',
   '`npm run external-agent-tool-execution-gate` as a fail-closed static go/no-go gate',
@@ -87,6 +88,7 @@ for (const required of [
   '`npm run external-agent-gcloud-session:diagnostic`',
   'read-only local gcloud session/config diagnostic',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
+  'B-roll external-agent execution must not leave an idle GPU running',
   NEXT_PROMPT,
 ]) {
   assert.equal(doc.includes(required), true, `Rollup doc missing ${required}`)
@@ -169,9 +171,18 @@ assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session
 const broll = toolsById.get('ai_video_broll_generation_wan')
 assert.equal(broll?.status, 'blocked_external_state')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
+assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(broll?.primaryBlocker, 'gpus_all_regions_quota_zero')
+assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-generation-gcp-private-vm-create-plan-3-result.md'),
+  true,
+)
 assert.equal(
   broll?.evidence.includes('server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'),
   true,

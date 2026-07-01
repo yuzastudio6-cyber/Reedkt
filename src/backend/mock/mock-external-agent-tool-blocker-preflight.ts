@@ -31,7 +31,10 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     selectedGpu: 'nvidia_l4',
     minimumGlobalGpusAllRegionsQuota: 1,
     minimumRegionalL4Quota: 1,
+    blockerIfSkippedForAuth: 'quota_probe_skipped_auth_refresh_failed',
     blockerIfFailed: 'gpus_all_regions_quota_zero_or_unverified',
+    nextActionIfSkippedForAuth:
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfCleared:

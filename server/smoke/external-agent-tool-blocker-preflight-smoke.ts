@@ -74,6 +74,7 @@ assert.equal(spec.decision, 'external_agent_tool_blocker_preflight_read_only_pro
 assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
+assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
@@ -169,6 +170,8 @@ const downstreamCommandIds = [
 if (!live.qwen.accessTokenRefreshPassed) {
   assert.equal(live.qwen.downstreamProbeSkipped, true)
   assert.equal(live.broll.quotaProbeSkipped, true)
+  assert.equal(live.broll.blocker, spec.broll.blockerIfSkippedForAuth)
+  assert.equal(live.broll.nextAction, spec.broll.nextActionIfSkippedForAuth)
   assert.equal(live.skippedCommandSummaries.length, downstreamCommandIds.length)
 
   for (const id of downstreamCommandIds) {

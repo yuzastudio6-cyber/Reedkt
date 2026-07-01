@@ -195,7 +195,17 @@ function main() {
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
 
   const qwenNextAction = qwenAuthCleared ? spec.qwen.nextActionIfCleared : spec.qwen.nextActionIfBlocked
-  const brollNextAction = brollQuotaCleared ? spec.broll.nextActionIfCleared : spec.broll.nextActionIfBlocked
+  const brollSkippedForAuth = !downstreamProbeReady && downstreamSkipReason === 'auth_refresh_failed_before_downstream_probe'
+  const brollNextAction = brollQuotaCleared
+    ? spec.broll.nextActionIfCleared
+    : brollSkippedForAuth
+      ? spec.broll.nextActionIfSkippedForAuth
+      : spec.broll.nextActionIfBlocked
+  const brollBlocker = brollQuotaCleared
+    ? 'cleared'
+    : brollSkippedForAuth
+      ? spec.broll.blockerIfSkippedForAuth
+      : spec.broll.blockerIfFailed
   const recommendedNextPrompt = accessTokenRefresh?.ok && qwenAuthCleared ? brollNextAction : qwenNextAction
 
   const commandSummaries = [...commandResults.values()].map((result) => ({
@@ -251,7 +261,7 @@ function main() {
           preemptibleRegionalL4GpuQuotaLimit: preemptibleRegionalL4Quota?.limit,
           preemptibleRegionalL4GpuQuotaUsage: preemptibleRegionalL4Quota?.usage,
           quotaSufficientForOneL4Vm: brollQuotaCleared,
-          blocker: brollQuotaCleared ? 'cleared' : spec.broll.blockerIfFailed,
+          blocker: brollBlocker,
           readyForNextQuotaVerify: brollQuotaCleared,
           readyForExternalAgentExecutionNow: false,
           nextAction: brollNextAction,

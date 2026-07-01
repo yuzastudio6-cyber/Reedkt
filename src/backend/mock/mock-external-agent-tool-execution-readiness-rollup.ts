@@ -67,6 +67,9 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       evidence: [
         'docs/qwen2-5-vl-7b-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result.md',
         'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
+        'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
+        'server/cli/external-agent-tool-blocker-preflight.ts',
+        'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/smoke/qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-approved-fixture-private-inference-auth-refresh-result-smoke.ts',
         'pull_request_1914_open_draft_clean',
       ],
@@ -90,8 +93,11 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/ai-video-broll-generation-gcp-private-cache-validate-result.md',
         'docs/ai-video-broll-generation-gcp-private-diffusers-cache-manifest.md',
         'src/backend/mock/mock-ai-video-broll-wan-fast-cache-readiness.ts',
+        'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
         'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts',
+        'server/cli/external-agent-tool-blocker-preflight.ts',
         'server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts',
+        'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
       nextAction:

@@ -37,6 +37,7 @@ This rollup is a coordination artifact for external AI-agent execution readiness
 
 - There is a single status surface for external agents to choose the next tool-readiness action.
 - `npm run external-agent-tool-readiness:check` provides a fast static JSON check for this status surface without live auth checks, cache hashing, GPU work, model imports, or mutations.
+- `npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight for Qwen local gcloud auth/service/job visibility and B-roll `GPUS_ALL_REGIONS`/regional L4 quota without Cloud Run invocation, VM creation, quota requests, model imports, inference, Docker, Supabase, SQL, providers, workers, storage, signed URLs, or credit mutation.
 - `npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight without cache hashing, GPU work, model imports, inference, provider calls, workers, Docker, Supabase, SQL, or mutations.
 - Qwen is the closest lane to controlled private model inference, but remains auth-blocked.
 - B-roll has Wan/Wan2.1 planning, private cache evidence, proof-runner evidence, and fast stat-only cache readiness evidence, but remains quota-blocked for cloud GPU proof.

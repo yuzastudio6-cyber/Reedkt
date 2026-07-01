@@ -112,6 +112,9 @@ assert.equal(decision.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)
+assert.equal(typeof decision.liveBlockerSummary, 'object')
+assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
+assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
 if (decision.gcloudDiagnosticRun) {
@@ -124,6 +127,11 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(typeof decision.gcloudDiagnosticSummary.activeAccountDomain, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.accessTokenRefreshPassed, 'boolean')
   assert.equal(decision.chosenManualAction.includes('active local gcloud account/configuration'), true)
+  assert.equal(decision.liveBlockerSummary.qwen.blocker, 'local_gcloud_reauthentication_required')
+  assert.equal(decision.liveBlockerSummary.qwen.downstreamProbeSkipped, true)
+  assert.equal(decision.liveBlockerSummary.broll.blocker, 'quota_probe_skipped_auth_refresh_failed')
+  assert.equal(decision.liveBlockerSummary.broll.quotaProbeSkipped, true)
+  assert.equal(decision.liveBlockerSummary.broll.nextAction, decision.chosenManualAction)
 }
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {
@@ -142,6 +150,7 @@ console.log(
       executionAllowedNow: decision.executionAllowedNow,
       qwenAuthRefreshPassed: decision.qwenAuthRefreshPassed,
       brollQuotaSufficientForOneL4Vm: decision.brollQuotaSufficientForOneL4Vm,
+      liveBlockerSummary: decision.liveBlockerSummary,
       gcloudDiagnosticRun: decision.gcloudDiagnosticRun,
       gcloudDiagnosticSummary: decision.gcloudDiagnosticSummary,
       chosenNextCommand: decision.chosenNextCommand,

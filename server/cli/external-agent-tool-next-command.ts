@@ -101,6 +101,29 @@ function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) 
   }
 }
 
+function liveBlockerSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    qwen: {
+      blocker: nestedString(document, ['qwen', 'blocker']),
+      nextAction: nestedString(document, ['qwen', 'nextAction']),
+      accessTokenRefreshPassed: nestedUnknown(document, ['qwen', 'accessTokenRefreshPassed']),
+      downstreamProbeSkipped: nestedUnknown(document, ['qwen', 'downstreamProbeSkipped']),
+      downstreamProbeSkipReason: nestedString(document, ['qwen', 'downstreamProbeSkipReason']),
+      readyForExternalAgentExecutionNow: nestedUnknown(document, ['qwen', 'readyForExternalAgentExecutionNow']),
+    },
+    broll: {
+      blocker: nestedString(document, ['broll', 'blocker']),
+      nextAction: nestedString(document, ['broll', 'nextAction']),
+      quotaProbeSkipped: nestedUnknown(document, ['broll', 'quotaProbeSkipped']),
+      quotaProbeSkipReason: nestedString(document, ['broll', 'quotaProbeSkipReason']),
+      quotaSufficientForOneL4Vm: nestedUnknown(document, ['broll', 'quotaSufficientForOneL4Vm']),
+      readyForExternalAgentExecutionNow: nestedUnknown(document, ['broll', 'readyForExternalAgentExecutionNow']),
+    },
+  }
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
@@ -122,6 +145,7 @@ function main() {
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
     : undefined
   const diagnosticSummary = shouldRunGcloudDiagnostic ? gcloudDiagnosticSummary(gcloudDiagnostic?.json) : undefined
+  const blockerSummary = liveBlockerSummary(liveBlocker.json)
   const diagnosticRecommendedNextPrompt = shouldRunGcloudDiagnostic
     ? nestedString(gcloudDiagnostic?.json, ['recommendedNextPrompt'])
     : undefined
@@ -162,6 +186,7 @@ function main() {
         readyForAnyExternalAgentExecutionNow: false,
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
+        liveBlockerSummary: blockerSummary,
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
         gcloudDiagnosticSummary: diagnosticSummary,
         chosenNextCommand,

@@ -295,7 +295,25 @@ if (installAudit.counts?.heavyToolsTargetingGpu !== 8) fail('install_audit_gpu_t
 if (installAudit.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('install_audit_cpu_fallback_count_not_0')
 if (gpuGate.gpuRuntimePolicy?.onDemandOnly !== true) fail('gpu_gate_not_on_demand')
 if (gpuGate.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) fail('gpu_gate_cpu_fallback_allowed')
-if (rollup.counts?.externalBetaReadyNowTools !== 0) fail('rollup_external_beta_ready_now_not_0')
+if (rollup.counts?.externalBetaReadyNowTools !== 21) {
+  fail(`rollup_external_beta_ready_now_not_21:${rollup.counts?.externalBetaReadyNowTools}`)
+}
+if (rollup.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 21) {
+  fail('rollup_activated_launch_external_beta_ready_tools_not_21')
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'runtimeReadyNow',
+  'productionReadyNow',
+  'gpuRuntimePerformed',
+]) {
+  if (rollup.booleans?.[key] !== false) {
+    fail(`rollup_execution_gate_not_false:${key}`)
+  }
+}
 
 for (const tool of allTools) {
   if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
@@ -546,6 +564,7 @@ const workerDispatchReadinessPath = writeJson(
     decision: 'external_beta_worker_dispatch_readiness_prepared_with_runtime_blocks',
     sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
     sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     workerDispatchReadinessPreparedWithProvidedEvidence: true,
     workerDispatchReadinessRecordsPreparedWithProvidedEvidence: 21,
     workerDispatchCapabilityScenariosPreparedWithProvidedEvidence: 12,
@@ -553,6 +572,7 @@ const workerDispatchReadinessPath = writeJson(
     acceptedSourceEvidence: {
       sourceRuntimeQueueServiceProofBridgeAcceptedWithProvidedEvidence: 21,
       sourceServiceRoleQueueSmokeAuthorizationAcceptedWithProvidedEvidence: 21,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: 21,
       serviceRoleQueueSmokeAuthorizationRef:
         'private://ai-graphics/external-beta/service-role-queue-smoke/authorization.json',
     },
@@ -560,6 +580,7 @@ const workerDispatchReadinessPath = writeJson(
       toolId,
       sourceRuntimeQueueServiceProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
     })),
     liveWorkerLeasesCreatedNow: 0,
     liveWorkerDispatchesNow: 0,
@@ -567,6 +588,7 @@ const workerDispatchReadinessPath = writeJson(
     booleans: {
       sourceServiceRoleQueueSmokeProofBridgeAccepted: true,
       sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
       agentCanExecuteToolsNow: false,
       workerDispatchPerformed: false,
       gpuRuntimeShouldStartNow: false,

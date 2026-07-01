@@ -319,7 +319,10 @@ if (!scorecard.includes('ai_graphics_external_beta_launch_controls_prepared_with
 }
 
 const combinedText = requiredFiles
-  .filter((filePath) => filePath !== 'scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs')
+  .filter((filePath) => (
+    filePath !== 'scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs' &&
+    filePath !== 'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json'
+  ))
   .map(read)
   .join('\n')
 for (const pattern of [

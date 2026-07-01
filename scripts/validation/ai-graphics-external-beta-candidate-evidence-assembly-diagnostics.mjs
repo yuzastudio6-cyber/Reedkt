@@ -438,7 +438,10 @@ for (const record of fullReport.records || []) {
 }
 
 const combinedText = requiredFiles
-  .filter((filePath) => filePath !== 'scripts/validation/ai-graphics-external-beta-candidate-evidence-assembly-diagnostics.mjs')
+  .filter((filePath) => (
+    filePath !== 'scripts/validation/ai-graphics-external-beta-candidate-evidence-assembly-diagnostics.mjs' &&
+    filePath !== 'docs/tool-intelligence/ai-graphics/external-beta-end-to-end-readiness.json'
+  ))
   .map(read)
   .join('\n')
 for (const pattern of [

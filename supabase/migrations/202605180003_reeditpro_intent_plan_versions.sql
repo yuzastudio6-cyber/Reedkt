@@ -75,6 +75,18 @@ create table if not exists public.edit_plan_segments (
   created_at timestamptz not null default now()
 );
 
+alter table public.edit_plan_segments
+  add column if not exists edit_plan_version_id uuid;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'edit_plan_segments_edit_plan_version_id_fkey') then
+    alter table public.edit_plan_segments
+      add constraint edit_plan_segments_edit_plan_version_id_fkey
+      foreign key (edit_plan_version_id) references public.edit_plan_versions(id) on delete set null;
+  end if;
+end $$;
+
 create table if not exists public.edit_operations (
   id uuid primary key default gen_random_uuid(),
   edit_plan_segment_id uuid not null references public.edit_plan_segments(id) on delete cascade,

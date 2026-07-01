@@ -104,8 +104,23 @@ comment on table public.credit_reservations is 'Future credit reservation planni
 comment on table public.credit_ledger_entries is 'Append-only future credit ledger. Normal users must not update or delete ledger entries.';
 comment on column public.approved_plan_snapshots.snapshot_json is 'Frozen approved EditPlan JSONB, including tier constraints, provider routes, fallback rules, QA, and tool notes.';
 
+alter table public.credit_reservations
+  add column if not exists approved_plan_snapshot_id uuid;
+
+alter table public.credit_ledger_entries
+  add column if not exists approved_plan_snapshot_id uuid;
+
+alter table public.credit_estimates
+  add column if not exists edit_plan_version_id uuid;
+
 do $$
 begin
+  if not exists (select 1 from pg_constraint where conname = 'credit_estimates_edit_plan_version_id_fkey') then
+    alter table public.credit_estimates
+      add constraint credit_estimates_edit_plan_version_id_fkey
+      foreign key (edit_plan_version_id) references public.edit_plan_versions(id) on delete set null;
+  end if;
+
   if not exists (select 1 from pg_constraint where conname = 'credit_reservations_approved_plan_snapshot_id_fkey') then
     alter table public.credit_reservations
       add constraint credit_reservations_approved_plan_snapshot_id_fkey

@@ -95,11 +95,23 @@ comment on table public.editing_jobs is 'Editing jobs execute approved snapshots
 comment on table public.job_steps is 'Worker-controlled job steps. Normal users must not directly insert or update job_steps in production.';
 comment on table public.worker_events is 'Worker and fallback events should be audited through backend/service-role paths.';
 
+alter table public.generation_requests
+  add column if not exists approved_plan_snapshot_id uuid;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'generation_requests_approved_plan_snapshot_id_fkey') then
+    alter table public.generation_requests
+      add constraint generation_requests_approved_plan_snapshot_id_fkey
+      foreign key (approved_plan_snapshot_id) references public.approved_plan_snapshots(id) on delete set null;
+  end if;
+end $$;
+
 create index if not exists idx_generation_requests_project_snapshot on public.generation_requests(project_id, approved_plan_snapshot_id);
 create index if not exists idx_generation_requests_status on public.generation_requests(status);
 create index if not exists idx_generation_events_request_created on public.generation_events(generation_request_id, created_at);
 create index if not exists idx_generated_assets_project_request on public.generated_assets(project_id, generation_request_id);
-create index if not exists idx_generated_asset_versions_asset_version on public.generated_asset_versions(generated_asset_id, version);
+create index if not exists idx_generated_asset_versions_asset_version on public.generated_asset_versions(generated_asset_id, version_number);
 create index if not exists idx_editing_jobs_project_snapshot on public.editing_jobs(project_id, approved_plan_snapshot_id);
 create index if not exists idx_editing_jobs_status on public.editing_jobs(status);
 create index if not exists idx_job_steps_job_order on public.job_steps(editing_job_id, step_order);

@@ -21,6 +21,19 @@ create table if not exists public.media_assets (
   updated_at timestamptz not null default now()
 );
 
+alter table public.media_assets
+  add column if not exists status text;
+
+alter table public.media_assets
+  alter column status set default 'uploaded';
+
+update public.media_assets
+set status = 'uploaded'
+where status is null;
+
+alter table public.media_assets
+  alter column status set not null;
+
 create table if not exists public.uploaded_clips (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,

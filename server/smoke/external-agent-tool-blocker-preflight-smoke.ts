@@ -152,10 +152,41 @@ assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
 assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(live.commandSummaries.length > 0, true)
+assert.equal(Array.isArray(live.skippedCommandSummaries), true)
 assert.equal(typeof live.recommendedNextPrompt, 'string')
 if (live.gcloud.activeAccountDomain) {
   assert.equal(live.gcloud.activeAccountDomain.includes('@'), false)
   assert.equal(live.gcloud.activeAccountDomain.includes('<redacted'), false)
+}
+
+const downstreamCommandIds = [
+  'qwen_cloud_run_service_describe',
+  'qwen_cloud_run_job_describe',
+  'broll_project_quota_describe',
+  'broll_region_quota_describe',
+]
+
+if (!live.qwen.accessTokenRefreshPassed) {
+  assert.equal(live.qwen.downstreamProbeSkipped, true)
+  assert.equal(live.broll.quotaProbeSkipped, true)
+  assert.equal(live.skippedCommandSummaries.length, downstreamCommandIds.length)
+
+  for (const id of downstreamCommandIds) {
+    assert.equal(
+      live.commandSummaries.some((summary: { id: string }) => summary.id === id),
+      false,
+      `${id} must not run after token refresh fails`,
+    )
+    const skipped = live.skippedCommandSummaries.find((summary: { id: string }) => summary.id === id)
+    assert.ok(skipped, `${id} must be reported as skipped`)
+    assert.equal(skipped.reason, 'auth_refresh_failed_before_downstream_probe')
+  }
+
+  assert.equal(
+    live.recommendedNextPrompt,
+    spec.qwen.nextActionIfBlocked,
+    'auth failure must recommend refreshing the active local gcloud account/configuration',
+  )
 }
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {

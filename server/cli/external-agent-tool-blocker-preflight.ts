@@ -11,6 +11,13 @@ type CommandResult = {
   stderrSummary?: string
 }
 
+type SkippedCommandSummary = {
+  id: string
+  ok: false
+  skipped: true
+  reason: 'gcloud_unavailable_before_downstream_probe' | 'auth_refresh_failed_before_downstream_probe'
+}
+
 type QuotaEntry = {
   metric?: string
   limit?: number
@@ -28,6 +35,13 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['jwt', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g],
   ['email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi],
 ]
+
+const DOWNSTREAM_AUTH_REQUIRED_COMMAND_IDS = [
+  'qwen_cloud_run_service_describe',
+  'qwen_cloud_run_job_describe',
+  'broll_project_quota_describe',
+  'broll_region_quota_describe',
+] as const
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -122,6 +136,7 @@ function main() {
   }
 
   const commandResults = new Map<string, CommandResult>()
+  const skippedCommandSummaries: SkippedCommandSummary[] = []
   const commandById = new Map(spec.allowedReadOnlyCommands.map((command) => [command.id, command]))
 
   function run(id: string, options: { captureStdout?: boolean; suppressStdout?: boolean } = {}) {
@@ -139,10 +154,26 @@ function main() {
   const accessTokenRefresh = gcloudPath.ok
     ? run('gcloud_access_token_refresh_suppressed', { suppressStdout: true })
     : undefined
-  const qwenService = gcloudPath.ok ? run('qwen_cloud_run_service_describe', { captureStdout: true }) : undefined
-  const qwenJob = gcloudPath.ok ? run('qwen_cloud_run_job_describe', { captureStdout: true }) : undefined
-  const projectQuota = gcloudPath.ok ? run('broll_project_quota_describe', { captureStdout: true }) : undefined
-  const regionQuota = gcloudPath.ok ? run('broll_region_quota_describe', { captureStdout: true }) : undefined
+  const downstreamProbeReady = Boolean(gcloudPath.ok && accessTokenRefresh?.ok)
+  const downstreamSkipReason: SkippedCommandSummary['reason'] = gcloudPath.ok
+    ? 'auth_refresh_failed_before_downstream_probe'
+    : 'gcloud_unavailable_before_downstream_probe'
+
+  if (!downstreamProbeReady) {
+    for (const id of DOWNSTREAM_AUTH_REQUIRED_COMMAND_IDS) {
+      skippedCommandSummaries.push({
+        id,
+        ok: false,
+        skipped: true,
+        reason: downstreamSkipReason,
+      })
+    }
+  }
+
+  const qwenService = downstreamProbeReady ? run('qwen_cloud_run_service_describe', { captureStdout: true }) : undefined
+  const qwenJob = downstreamProbeReady ? run('qwen_cloud_run_job_describe', { captureStdout: true }) : undefined
+  const projectQuota = downstreamProbeReady ? run('broll_project_quota_describe', { captureStdout: true }) : undefined
+  const regionQuota = downstreamProbeReady ? run('broll_region_quota_describe', { captureStdout: true }) : undefined
 
   const projectQuotaDoc = parseJson<QuotaDocument>(projectQuota ?? { id: '', ok: false, exitCode: null })
   const regionQuotaDoc = parseJson<QuotaDocument>(regionQuota ?? { id: '', ok: false, exitCode: null })
@@ -165,7 +196,7 @@ function main() {
 
   const qwenNextAction = qwenAuthCleared ? spec.qwen.nextActionIfCleared : spec.qwen.nextActionIfBlocked
   const brollNextAction = brollQuotaCleared ? spec.broll.nextActionIfCleared : spec.broll.nextActionIfBlocked
-  const recommendedNextPrompt = qwenAuthCleared ? qwenNextAction : brollQuotaCleared ? brollNextAction : qwenNextAction
+  const recommendedNextPrompt = accessTokenRefresh?.ok && qwenAuthCleared ? brollNextAction : qwenNextAction
 
   const commandSummaries = [...commandResults.values()].map((result) => ({
     id: result.id,
@@ -195,6 +226,8 @@ function main() {
           accessTokenRefreshPassed: Boolean(accessTokenRefresh?.ok),
           serviceDescribePassed: Boolean(qwenService?.ok),
           jobDescribePassed: Boolean(qwenJob?.ok),
+          downstreamProbeSkipped: !downstreamProbeReady,
+          downstreamProbeSkipReason: downstreamProbeReady ? undefined : downstreamSkipReason,
           serviceNameMatched: qwenService?.stdout === spec.qwen.serviceName,
           jobNameMatched: qwenJob?.stdout === spec.qwen.callerJobName,
           blocker: qwenAuthCleared ? 'cleared' : spec.qwen.blockerIfFailed,
@@ -209,6 +242,8 @@ function main() {
           targetZone: spec.broll.targetZone,
           projectQuotaReadPassed: Boolean(projectQuota?.ok),
           regionQuotaReadPassed: Boolean(regionQuota?.ok),
+          quotaProbeSkipped: !downstreamProbeReady,
+          quotaProbeSkipReason: downstreamProbeReady ? undefined : downstreamSkipReason,
           globalGpusAllRegionsQuotaLimit: globalGpuQuota?.limit,
           globalGpusAllRegionsQuotaUsage: globalGpuQuota?.usage,
           regionalL4GpuQuotaLimit: regionalL4Quota?.limit,
@@ -222,6 +257,7 @@ function main() {
           nextAction: brollNextAction,
         },
         commandSummaries,
+        skippedCommandSummaries,
         runtimeSideEffects: spec.runtimeSideEffects,
         runtimeGatesAllFalse,
         readyForAnyExternalAgentExecutionNow: false,

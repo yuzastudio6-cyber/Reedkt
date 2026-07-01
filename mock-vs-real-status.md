@@ -84,3 +84,9 @@
 - Real: local/mock fixed credit packs, top-up intents, purchased grants, and top-up suggestions exist.
 - Real: completing a mock top-up increases local in-memory wallet available credits only.
 - Mock-only: no live billing, Stripe/payment, real checkout, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, production persistence, ledger write, or automatic retry behavior is wired.
+
+## RP-STRIPE-FOUNDATION-01 Stripe Foundation Status
+
+- Real: disabled/test/live Stripe config contracts, Secret Manager reference validation, customer/payment method link contracts, mock SetupIntent/Checkout records, webhook idempotency records, and live-readiness checks exist.
+- Mock-only: `/v1/billing/stripe/*` routes are config/mock endpoints and expose no raw secret values.
+- Not implemented: live Stripe SDK calls, real Checkout Sessions, real SetupIntents, real PaymentIntents, card charges, webhook credit grants, Supabase writes, production wallet mutation, production ledger writes, provider/render/export execution, export unlock, and live checkout/top-up behavior.

@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-STRIPE-FOUNDATION-01
+
+Status: mock/config foundation.
+
+The repository now includes Stripe disabled/test/live runtime config, Secret Manager reference validation, customer/payment method link contracts, mock SetupIntent and Checkout Session stubs, webhook raw-body/idempotency contracts, live-mode readiness checks, and `smoke:stripe-foundation`.
+
+It does not call Stripe, create real Checkout Sessions, create SetupIntents, create PaymentIntents, charge cards, grant webhook credits, write Supabase data, mutate production wallets, write production ledger entries, call providers, or run render/export work.
+
 ## RP-FIX-06
 
 Status: partially fixed.

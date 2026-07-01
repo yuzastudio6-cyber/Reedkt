@@ -32,7 +32,7 @@ export type QwenVlPlannerRoutingUiPrivateInvokeClient = {
   clientHelper: 'callQwen25VlPrivateInvokeDryRun'
   statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus'
   routeRuntime: 'mock'
-  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required'
+  currentStatus: 'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_prompt_blocked_live_gcloud_reauthentication_required'
   currentBlocker: string
   boundaryNotes: string[]
   runtimeFlags: {
@@ -65,7 +65,7 @@ export type QwenVlPlannerRoutingUiData = {
   privateInvokeClient: QwenVlPlannerRoutingUiPrivateInvokeClient
   executionGates: QwenVlPlannerRoutingUiExecutionGates
   ownerBoundaries: string[]
-  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
+  nextPrompt: 'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
 }
 
 const handoffs: QwenVlPlannerRoutingUiHandoff[] = [
@@ -220,14 +220,14 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       statusHelper: 'getQwen25VlPrivateInvokeFrontendClientStatus',
       routeRuntime: 'mock',
       currentStatus:
-        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_gate_alignment_accepted_explicit_tool_prompt_required',
+        'controlled_persisted_worker_dispatch_runtime_real_dispatch_approved_fixture_private_inference_bounded_retry_prompt_blocked_live_gcloud_reauthentication_required',
       currentBlocker:
-        'Controlled private invoke, structured-output, persistence, active migration, persisted worker dispatch, private invoke, and private inference planning evidence are recorded through the historical 58DU blocked retry result. Read-only auth refresh, Cloud Run service describe, and caller job describe pass. The 58DV gate alignment is accepted, so Qwen may proceed only to the explicit 58DW bounded retry prompt before any runtime action. Generated assets, signed URLs, beta, and production remain blocked.',
+        'Controlled private invoke, structured-output, persistence, active migration, persisted worker dispatch, private invoke, and private inference planning evidence are recorded through the historical 58DU blocked retry result and 58DV gate alignment. The 58DW bounded retry prompt result records the current live next-command guard as blocked by local gcloud reauthentication before any runtime action. Generated assets, signed URLs, beta, and production remain blocked.',
       boundaryNotes: [
         'The frontend helper calls only the central ReeditPro API client boundary.',
         'The mock route rejects raw prompt-shaped fields before dry-run coordination.',
         'The client does not resolve service URLs, create auth headers, fetch identity tokens, or invoke Cloud Run.',
-        'The gate alignment is recorded as accepted; the next step is the explicit 58DW bounded retry prompt. Generated assets, published artifacts, signed URLs, beta, and production remain blocked now.',
+        'The next step is refreshing the active local gcloud account/configuration and rerunning the live blocker preflight before any 58DW retry can be attempted. Generated assets, published artifacts, signed URLs, beta, and production remain blocked now.',
       ],
       runtimeFlags: {
         usesCentralApiClient: true,
@@ -263,6 +263,6 @@ export function getQwenVlPlannerRoutingUiData(): QwenVlPlannerRoutingUiData {
       'Remotion, FFmpeg, and ffprobe own composition, media integrity, and final export.',
     ],
     nextPrompt:
-      'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation',
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
   }
 }

@@ -75,6 +75,7 @@ for (const required of [
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
+  '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
   NEXT_PROMPT,
 ]) {
@@ -114,6 +115,8 @@ assert.equal(qwen?.scaleToZeroRequired, true)
 assert.equal(qwen?.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(qwen?.primaryBlocker, 'local_gcloud_reauthentication_required')
+assert.equal(qwen?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
+assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
 assert.equal(broll?.status, 'blocked_external_state')
@@ -129,6 +132,8 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts'),
   true,
 )
+assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
+assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 
 for (const tool of rollup.tools) {
   assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not be execution-ready now`)

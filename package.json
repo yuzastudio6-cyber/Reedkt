@@ -621,6 +621,8 @@
     "smoke:external-agent-tool-execution-readiness-rollup": "tsx server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts",
     "external-agent-tool-readiness:check": "tsx server/cli/external-agent-tool-readiness-check.ts",
     "smoke:external-agent-tool-readiness-check": "tsx server/smoke/external-agent-tool-readiness-check-smoke.ts",
+    "external-agent-tool-blockers:preflight": "tsx server/cli/external-agent-tool-blocker-preflight.ts",
+    "smoke:external-agent-tool-blocker-preflight": "tsx server/smoke/external-agent-tool-blocker-preflight-smoke.ts",
     "smoke:ai-video-broll-wan-fast-cache-readiness-check": "tsx server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",
     "smoke:qwen2-5-vl-private-invoke-auth-verify-result": "tsx server/smoke/qwen2-5-vl-private-invoke-auth-verify-result-smoke.ts",

@@ -160,6 +160,11 @@ function main() {
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
     : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
+  const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
+  const manualActionRequired = !executionAllowedNow && !qwenAuthRefreshPassed && authManualActionRule.required
+  const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined
+  const manualActionBlocksRuntime = manualActionRequired ? authManualActionRule.blocksRuntime : undefined
+  const rerunAfterManualAction = manualActionRequired ? authManualActionRule.rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
     .filter((probe): probe is ProbeResult => Boolean(probe))
@@ -191,6 +196,10 @@ function main() {
         gcloudDiagnosticSummary: diagnosticSummary,
         chosenNextCommand,
         chosenManualAction,
+        manualActionRequired,
+        manualActionReason,
+        manualActionBlocksRuntime,
+        rerunAfterManualAction,
         probeSummaries,
         forbiddenRuntimeActions: spec.forbiddenRuntimeActions,
         runtimeSideEffects: spec.runtimeSideEffects,

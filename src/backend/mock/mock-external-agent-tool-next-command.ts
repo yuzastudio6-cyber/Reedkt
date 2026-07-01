@@ -52,6 +52,14 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
   },
+  manualActionRules: {
+    whenQwenAuthRefreshFails: {
+      required: true,
+      reason: 'gcloud_auth_refresh_required_before_downstream_probes',
+      blocksRuntime: true,
+      rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
+    },
+  },
   forbiddenRuntimeActions: [
     'do not invoke Cloud Run',
     'do not execute Cloud Run jobs',

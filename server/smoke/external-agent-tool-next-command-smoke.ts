@@ -118,6 +118,10 @@ assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
 if (decision.gcloudDiagnosticRun) {
+  assert.equal(decision.manualActionRequired, true)
+  assert.equal(decision.manualActionReason, 'gcloud_auth_refresh_required_before_downstream_probes')
+  assert.equal(decision.manualActionBlocksRuntime, true)
+  assert.equal(decision.rerunAfterManualAction, 'npm run external-agent-tool-blockers:preflight')
   assert.equal(typeof decision.gcloudDiagnosticSummary, 'object')
   assert.equal(typeof decision.gcloudDiagnosticSummary.path, 'string')
   assert.equal(typeof decision.gcloudDiagnosticSummary.installationSdkRoot, 'string')
@@ -155,6 +159,9 @@ console.log(
       gcloudDiagnosticSummary: decision.gcloudDiagnosticSummary,
       chosenNextCommand: decision.chosenNextCommand,
       chosenManualAction: decision.chosenManualAction,
+      manualActionRequired: decision.manualActionRequired,
+      manualActionReason: decision.manualActionReason,
+      rerunAfterManualAction: decision.rerunAfterManualAction,
       runtimeGatesAllFalse: decision.runtimeGatesAllFalse,
     },
     null,

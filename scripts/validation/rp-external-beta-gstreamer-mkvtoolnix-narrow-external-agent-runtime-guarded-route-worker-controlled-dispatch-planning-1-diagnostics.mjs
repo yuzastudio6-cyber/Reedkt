@@ -53,7 +53,25 @@ const sourceFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-planning-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const controlledDispatchExecutionDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1'
+const controlledDispatchExecutionFiles = [
+  `${controlledDispatchExecutionDir}/source-audit.md`,
+  `${controlledDispatchExecutionDir}/execution-result.md`,
+  `${controlledDispatchExecutionDir}/command-matrix.md`,
+  `${controlledDispatchExecutionDir}/artifact-manifest.md`,
+  `${controlledDispatchExecutionDir}/negative-cases.md`,
+  `${controlledDispatchExecutionDir}/readiness.md`,
+  `${controlledDispatchExecutionDir}/safety-boundary.md`,
+  `${controlledDispatchExecutionDir}/validation-results.md`,
+  `${controlledDispatchExecutionDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-qa-rollup-1.md',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...controlledDispatchExecutionFiles])
 
 const requiredText = [
   packet,
@@ -104,7 +122,7 @@ const requiredText = [
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\//,
+  /^server\/(?!smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-dispatch-execution-packet-1\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

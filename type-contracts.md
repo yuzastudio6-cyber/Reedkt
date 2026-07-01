@@ -1,4 +1,4 @@
-﻿# Type Contracts
+# Type Contracts
 
 ## Purpose
 
@@ -25,9 +25,277 @@ The contracts live under `src/types/`:
 - `sfx-director.ts`: SoundSync SFX Director contracts for event planning, provider routing, prompts, trim/hit alignment, mix/ducking, QA, usage, and generated SFX library growth.
 - `review-render-export.ts`: preview renders, final renders, exports, preview reviews, comments, revisions, approvals, and QA reports.
 - `google-cloud.ts`: reference-only contracts for Cloud Run, Cloud Run Jobs, GPU workers, Cloud Storage, Pub/Sub, Secret Manager, Artifact Registry, and worker runtime configuration.
+- `creative-skills-core.ts`: Creative Skill taxonomy, family/key unions, catalog records, aliases, relationships, duplicate review, and contract mapping records.
+- `creative-skill-plans.ts`: universal and specialized Creative Skill planning contracts, including StoryTiming coordination planning shapes.
+- `creative-skill-workflow.ts`: edit preference snapshots, visual opportunities, creative concepts, skill candidates, skill routes, and credit/approval planning records.
+- `creative-skill-qa.ts`: Creative Skill QA requirements, results, reports, repair recommendations, and gate status contracts.
+- `creative-skill-diagnostics.ts`: Creative Skill diagnostics/static validation categories, levels, rule keys, rules, results, and run records.
 - `index.ts`: the future backend-oriented public type entrypoint.
 
 The existing frontend compatibility file, `src/types/reeditpro.ts`, remains available for current mock UI imports.
+
+The static Creative Skill fixture file lives outside the type entrypoint at `src/lib/mock-creative-skill-records.ts`. It imports only types from `src/types` and exports static mock constants that exercise the RP-SKILLS-21 contracts.
+
+## RP-SKILLS-21 TypeScript Creative Skill Contracts
+
+RP-SKILLS-21 adds the first TypeScript-only Creative Skill contract layer approved by the docs-only RP-SKILLS-00 through RP-SKILLS-20 sequence.
+
+Files added:
+
+- `src/types/creative-skills-core.ts`
+- `src/types/creative-skill-plans.ts`
+- `src/types/creative-skill-workflow.ts`
+- `src/types/creative-skill-qa.ts`
+- `src/types/creative-skill-diagnostics.ts`
+
+These files provide typed shapes for taxonomy, planning contracts, specialized skill plans, edit preference snapshots, visual opportunities, creative concepts, skill candidate scoring, route assembly, credit/approval planning, QA, and diagnostics/static validation metadata.
+
+This layer is type-only. It does not implement planner logic, scoring, routing, QA execution, diagnostics execution, provider calls, workers, schemas, migrations, Supabase access, UI, package changes, render/export, media processing, browser capture, audio generation, caption rendering, 3D runtime, or app behavior.
+
+Future recommended prompt: `RP-SKILLS-22 - Creative Skill Mock Records and Fixture Contracts`.
+
+## RP-SKILLS-22 Creative Skill Mock Records And Fixture Contracts
+
+RP-SKILLS-22 adds `src/lib/mock-creative-skill-records.ts` as a static fixture layer for the RP-SKILLS-21 Creative Skill TypeScript contracts.
+
+The fixture file covers taxonomy/catalog records, aliases, relationships, contract mappings, edit preference profiles and snapshots, visual opportunities, restraint opportunities, opportunity questions and runs, creative concepts, concept selections and rejections, lower-cost alternatives, skill candidates, resolver runs, route previews, route assembly records, specialized skill plans, StoryTiming coordination plans, credit/approval planning records, QA records, diagnostic rules/results/runs, and grouped fixture scenarios.
+
+The exported scenario set includes:
+
+- `clean_talking_head_restraint`
+- `premium_real_estate_3d_optional`
+- `product_demo_screen_interaction`
+- `education_visual_explain`
+- `marketing_ad_hero`
+- `testimonial_trust_first`
+
+This layer is static data only. It does not add runtime planner logic, scoring or resolver functions, validation scripts, schemas, migrations, providers, workers, UI, package changes, Supabase access, render/export behavior, media processing, browser capture, audio generation, caption rendering, 3D runtime, or app behavior.
+
+Validation for RP-SKILLS-22 should include lint, build or narrow TypeScript checks, static pattern checks confirming type-only imports and no runtime APIs, and acceptance searches for required fixture categories and scenarios.
+
+Future recommended prompt: `RP-SKILLS-23 - Creative Skill Type Contract Reconciliation and Narrow Validation`.
+
+## RP-SKILLS-23 Creative Skill Type Contract Reconciliation And Narrow Validation
+
+RP-SKILLS-23 reconciles the RP-SKILLS-21 Creative Skill TypeScript contracts and the RP-SKILLS-22 static mock fixtures against existing repo type owners.
+
+Files inspected include the five Creative Skill type files, `src/types/index.ts`, `src/lib/mock-creative-skill-records.ts`, Creative Skill docs, and core owner surfaces such as shared, planning, edit-quality, signature-system, StoryTiming, audio/music, credit, job, generation, render/export, media, and edit-planning-db types.
+
+The reconciliation found no new RP-SKILLS export collisions. Existing known collisions remain intentionally handled in `src/types/index.ts` by exporting Creative Skill-specific aliases for `CaptionTimingPlanRecord` and `StoryTimingConflictType`.
+
+No TypeScript contract changes were required. The pass created `docs/creative-skills/type-contract-reconciliation-report.md`, updated the Creative Skill docs/handoff, and made a prose-only cleanup in `src/lib/mock-creative-skill-records.ts` to keep raw `any`/`object` acceptance searches unambiguous.
+
+This pass does not implement runtime planner logic, scoring or resolver functions, validation scripts, diagnostics scripts, schemas, migrations, providers, workers, UI, package changes, Supabase access, render/export behavior, media processing, browser capture, audio generation, caption rendering, 3D runtime, or app behavior.
+
+Validation notes:
+
+- Narrow RP-SKILLS TypeScript check passed.
+- `npm run lint` passed.
+- `npm run build` still fails only on unrelated `src/backend/services/sound-agent-planner-service.ts` TypeScript issues.
+
+Future recommended prompt: `RP-SKILLS-24 - Creative Skill Schema Planning Contract`.
+
+## RP-SKILLS-24 Creative Skill Schema Planning Contract
+
+RP-SKILLS-24 adds docs-only schema planning for the Creative Skill System. It maps the RP-SKILLS TypeScript contracts and static mock fixtures to future table groups, RLS/security expectations, migration sequencing, source/proof safety fields, approval/credit foreign-key strategy, StoryTiming references, QA records, diagnostics records, lifecycle/versioning, JSON strategy, and query/index needs.
+
+This layer does not change TypeScript contracts, create SQL, create Supabase migrations, connect to Supabase, modify schema, add RLS policies, add runtime code, mutate package files, call providers, run workers, add UI, or change app behavior.
+
+Future recommended prompt: `RP-SKILLS-25 - Creative Skill Supabase Migration Blueprint and RLS Readiness Contract`.
+
+## RP-SKILLS-25 Creative Skill Supabase Migration Blueprint And RLS Readiness Contract
+
+RP-SKILLS-25 adds docs-only migration blueprint and RLS readiness planning for the Creative Skill System. It maps the RP-SKILLS TypeScript contracts, static fixtures, reconciliation report, and schema planning contract to future migration packages, table-by-table field summaries, FK/RLS/security expectations, rollback/supersession strategy, seed strategy, validation planning, and query/index readiness.
+
+This layer does not change TypeScript contracts, create SQL, create Supabase migrations, connect to Supabase, modify schema, add RLS policies, add seed scripts, add runtime code, mutate package files, call providers, run workers, add UI, or change app behavior.
+
+Future recommended prompt: `RP-SKILLS-26 - Creative Skill Catalog Migration Readiness Review`.
+
+## RP-SKILLS-26 Creative Skill Catalog Migration Readiness Review
+
+RP-SKILLS-26 adds a docs-only readiness review for the first future Creative Skill catalog migration package. It compares the proposed catalog tables to the RP-SKILLS TypeScript contracts, static fixtures, reconciliation report, schema planning, migration blueprint, existing migrations, and existing signature-system catalog ownership.
+
+The review records the final decision `ready_with_warnings` for a future catalog-only migration prompt. It does not change TypeScript contracts, create SQL, create Supabase migrations, connect to Supabase, modify schema, add RLS policies, add seed scripts, change mock fixtures, add runtime code, mutate package files, call providers, run workers, add UI, or change app behavior.
+
+Future recommended prompt: `RP-SKILLS-27 - Creative Skill Catalog Supabase Migration Implementation`.
+
+## RP-SKILLS-27 Creative Skill Catalog Supabase Migration Implementation
+
+RP-SKILLS-27 adds the first local-only Creative Skill catalog migration file, `supabase/migrations/202606250001_creative_skill_catalog_foundation.sql`, for the six catalog foundation tables: `creative_skill_families`, `creative_skills`, `creative_skill_aliases`, `creative_skill_relationships`, `creative_skill_contract_mappings`, and `creative_skill_duplicate_reviews`.
+
+The migration corresponds to the RP-SKILLS-21 Creative Skill core type contracts and RP-SKILLS-26 catalog readiness decisions. It does not change TypeScript contracts, exports, mock fixtures, runtime behavior, providers, workers, UI, package files, or app behavior. The migration was not applied, executed, reset, deployed, or connected to Supabase, and no seed data was added.
+
+Future recommended prompt: `RP-SKILLS-28 - Creative Skill Catalog Migration Static Review and Canonical Seed Readiness`.
+
+## RP-SKILLS-28 Creative Skill Catalog Migration Static Review And Seed Readiness
+
+RP-SKILLS-28 statically reviews `supabase/migrations/202606250001_creative_skill_catalog_foundation.sql` against the Creative Skill TypeScript contracts and records canonical seed readiness. The migration static-review decision is `migration_static_review_repaired_and_passed`; the canonical seed-readiness decision is `not_ready_seed_metadata_incomplete`.
+
+No TypeScript contracts, exports, mock fixtures, runtime behavior, package files, providers, workers, UI, or app behavior changed. No seed data was implemented, and the migration remains unapplied.
+
+Future recommended prompt: `RP-SKILLS-29 - Creative Skill Catalog Canonical Seed Manifest Completion`.
+
+## RP-SKILLS-29 Creative Skill Catalog Canonical Seed Manifest Completion
+
+RP-SKILLS-29 completes a static canonical seed manifest for the Creative Skill catalog. The manifest treats RP-SKILLS-21 TypeScript unions as canonical, covers 21 families and 140 skills, and records aliases, relationships, contract mappings, approval-label mappings, and an empty duplicate-review seed decision.
+
+No TypeScript contracts, exports, mock fixtures, package files, SQL, migrations, seed scripts, database application, runtime behavior, providers, workers, UI, or app behavior changed.
+
+Future recommended prompt: `RP-SKILLS-30 - Creative Skill Catalog Canonical Seed Manifest Static Review and Seed Migration Readiness`.
+
+## RP-SKILLS-30 Creative Skill Catalog Canonical Seed Manifest Static Review And Seed Migration Readiness
+
+RP-SKILLS-30 statically reviews the canonical Creative Skill seed manifest against the RP-SKILLS-21 TypeScript unions and RP-SKILLS-27 migration constraints. It records the manifest static-review decision `seed_manifest_static_review_repaired_and_passed` and the seed-migration-readiness decision `ready_with_warnings_for_seed_migration`.
+
+No TypeScript contracts, exports, mock fixtures, package files, SQL, migrations, seed scripts, database application, runtime behavior, providers, workers, UI, or app behavior changed. The manifest was patched only for deterministic ordering.
+
+Future recommended prompt: `RP-SKILLS-31 - Creative Skill Catalog Canonical Seed Migration Implementation`.
+
+## RP-SKILLS-31 Creative Skill Catalog Canonical Seed Migration Implementation
+
+RP-SKILLS-31 generates the local-only canonical Creative Skill catalog seed migration from the reviewed manifest. The seed migration represents 21 families, 140 skills, 9 aliases, 20 relationships, 450 contract mappings, and 0 duplicate-review rows.
+
+No TypeScript contracts, exports, mock fixtures, package files, manifest data, runtime behavior, providers, workers, UI, or app behavior changed. The seed migration remains unapplied and no Supabase connection or SQL execution occurred.
+
+Future recommended prompt: `RP-SKILLS-32 - Creative Skill Catalog Canonical Seed Migration Static Review and Local Apply Readiness`.
+
+## RP-SKILLS-32 Creative Skill Catalog Canonical Seed Migration Static Review And Local Apply Readiness
+
+RP-SKILLS-32 statically reviews the foundation and canonical seed migrations against the RP-SKILLS-21 TypeScript contracts, reviewed manifest, SQL constraints, fail-closed assertions, and RLS posture. The static review decision is `seed_migration_static_review_passed`.
+
+No TypeScript contracts, exports, mock fixtures, package files, manifest data, runtime behavior, providers, workers, UI, or app behavior changed. Both migrations remain unapplied, and no Supabase CLI, Supabase connection, or SQL execution occurred. Local apply readiness is `blocked_local_apply_repository_not_ready` because `supabase/config.toml` is absent.
+
+Future recommended prompt: `RP-SKILLS-33 - Creative Skill Local Supabase Readiness Repair`.
+
+## RP-SKILLS-33 Creative Skill Local Supabase Readiness Repair
+
+RP-SKILLS-33 records the local Supabase readiness repair decision packet. The config repair decision is `owner_decision_required`, and local apply readiness remains blocked as `blocked_owner_decision_required` until owner decisions define whether and how a local Supabase config should be created.
+
+No TypeScript contracts, exports, migrations, manifest data, mock fixtures, package files, Supabase config, SQL, runtime behavior, providers, workers, UI, or app behavior changed. No Supabase CLI, Supabase connection, SQL execution, migration application, or database/container startup occurred.
+
+Future recommended prompt: `RP-SKILLS-34 - Creative Skill Local Supabase Owner Decision Packet`.
+
+## RP-SKILLS-34 Creative Skill Local Supabase Owner Decision Packet
+
+RP-SKILLS-34 records the owner decision packet for local Supabase config readiness. The decision outcome is `awaiting_owner_approval`, with recommended approval text `Approve RP-SKILLS-34 recommended decisions and proceed with RP-SKILLS-35.`
+
+No TypeScript contracts, exports, migrations, manifest data, mock fixtures, package files, Supabase config, SQL, runtime behavior, providers, workers, UI, or app behavior changed. No Supabase CLI, Supabase connection, SQL execution, migration application, or database/container startup occurred.
+
+Future recommended next step: owner approval for RP-SKILLS-35.
+
+## RP-SKILLS-35 Creative Skill Local Supabase Config Creation
+
+RP-SKILLS-35 creates `supabase/config.toml` as a local-only Supabase configuration for future disposable local migration verification. The local project ID is `reeditpro-local`, and the config decision is `local_config_created`.
+
+No TypeScript contracts, exports, migrations, manifest data, mock fixtures, package files, SQL, Supabase connection, migration application, runtime behavior, providers, workers, UI, or app behavior changed. No Supabase CLI, SQL execution, database/container startup, deployment, build, provider call, worker execution, or render/export occurred.
+
+Future recommended prompt: `RP-SKILLS-36 - Creative Skill Catalog Migrations Disposable Local Apply and Data Verification`.
+
+## RP-SKILLS-36 Creative Skill Catalog Migrations Disposable Local Apply And Data Verification
+
+RP-SKILLS-36 attempted local-only verification of the Creative Skill catalog migrations against the manifest and type expectations. Static preflight passed, but local apply did not proceed because an existing local Supabase stack named `reeditpro` already occupied the configured `reeditpro-local` ports.
+
+No TypeScript contracts, exports, migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed. No remote Supabase connection, `supabase link`, `supabase db push`, remote SQL, production deploy, or migration application occurred.
+
+Future recommended prompt: `RP-SKILLS-37 - Creative Skill Local Supabase Environment Repair`.
+
+## RP-SKILLS-37 Creative Skill Local Supabase Environment Repair Decision Packet
+
+RP-SKILLS-37 creates a docs-only owner decision packet for the local Supabase port conflict that blocked RP-SKILLS-36. The outcome is `awaiting_owner_repair_choice`, with Option C recommended for a future local-only port repair.
+
+No TypeScript contracts, exports, migrations, config files, manifest data, mock fixtures, package files, Supabase CLI, SQL, migration application, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-SKILLS-38 Creative Skill Local Supabase Port Repair
+
+RP-SKILLS-38 patches the local-only `reeditpro-local` Supabase config to use the non-conflicting `55430` through `55439` port band for future disposable local verification.
+
+No TypeScript contracts, exports, migrations, manifest data, mock fixtures, package files, Supabase CLI, SQL, migration application, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-SKILLS-39 Creative Skill Catalog Migrations Disposable Local Apply And Data Verification Retry
+
+RP-SKILLS-39 attempted disposable local verification of the Creative Skill catalog migrations. Static remote-safety checks passed and the local stack started, but the repository migration chain failed before Creative Skill migrations at `202605130007_generation_providers_generated_assets.sql`.
+
+No TypeScript contracts, exports, Creative Skill migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-SKILLS-40 Creative Skill Catalog Migration Local Failure Repair
+
+RP-SKILLS-40 repaired the local migration-chain blocker in `202605130007_generation_providers_generated_assets.sql` by qualifying seed-owned fields in the existing generation provider model seed insert. Local reset now passes that migration and stops at a later migration-chain blocker in `202605180001_reeditpro_core_workspace_projects.sql`.
+
+No TypeScript contracts, exports, Creative Skill migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-01 Beta Integration Merge Readiness
+
+RP-BETA-INTEGRATION-01 confirms RP-SKILLS and Qwen beta are separate clones of the same remote. It repairs the `current_edit_session_id` migration-chain blocker in `202605180001_reeditpro_core_workspace_projects.sql`, but merge readiness remains blocked by a later same-migration `workspaces.owner_id` compatibility issue and existing Sound Agent build errors.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-02 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-02 repairs the `owner_id` compatibility gap in `202605180001_reeditpro_core_workspace_projects.sql` by adding nullable compatibility columns for existing workspace/project rows. Local reset now passes the previous owner-index blocker and stops at a later same-migration `chat_messages.edit_session_id` compatibility issue.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-03 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-03 repairs the `chat_messages.edit_session_id` compatibility gap in `202605180001_reeditpro_core_workspace_projects.sql` with a nullable compatibility column and idempotent FK. Local reset now passes that blocker and stops at `202605180002_reeditpro_media_source_sequence.sql` on `media_assets.status`, so Creative Skill catalog migrations still have not been reached locally.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-04 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-04 repairs the `media_assets.status` compatibility gap in `202605180002_reeditpro_media_source_sequence.sql` with a generic status column that preserves existing `processing_status`. Local reset now passes that blocker and stops at `202605180003_reeditpro_intent_plan_versions.sql` on `edit_plan_segments.edit_plan_version_id`, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-05 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-05 repairs the `edit_plan_segments.edit_plan_version_id` compatibility gap in `202605180003_reeditpro_intent_plan_versions.sql` with a nullable version pointer and idempotent FK to `edit_plan_versions(id)`. TypeScript contracts were not changed. Local reset now passes that blocker and stops at `202605180004_reeditpro_credits_approval_snapshots.sql` on missing `approved_plan_snapshot_id` compatibility, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-06 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-06 repairs the approved-plan-snapshot compatibility gap in `202605180004_reeditpro_credits_approval_snapshots.sql` with nullable `approved_plan_snapshot_id` columns on `credit_reservations` and `credit_ledger_entries`. TypeScript contracts were not changed and no credit runtime behavior was added. Local reset now passes that blocker and stops later in the same migration on missing `credit_estimates.edit_plan_version_id` compatibility, so Creative Skill catalog migrations still have not been reached locally.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-07 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-07 repairs the `credit_estimates.edit_plan_version_id` compatibility gap in `202605180004_reeditpro_credits_approval_snapshots.sql` with a nullable version pointer and idempotent FK to `edit_plan_versions(id)`. TypeScript contracts were not changed and no credit runtime behavior was added. Local reset now passes that blocker and stops at `202605180005_reeditpro_generation_assets_jobs.sql` on missing `generation_requests.approved_plan_snapshot_id` compatibility, so Creative Skill catalog migrations still have not been reached locally.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-08 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-08 repairs the `generation_requests.approved_plan_snapshot_id` compatibility gap in `202605180005_reeditpro_generation_assets_jobs.sql` with a nullable approved-snapshot pointer and idempotent FK to `approved_plan_snapshots(id)`. TypeScript contracts were not changed and no generation, provider, job, credit, approval, or runtime behavior was added. Local reset now passes that blocker and stops later in the same migration on missing `generated_asset_versions.version` compatibility, so Creative Skill catalog migrations still have not been reached locally.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-09 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-09 repairs the generated asset version index blocker in `202605180005_reeditpro_generation_assets_jobs.sql` by retargeting `idx_generated_asset_versions_asset_version` to the existing `version_number` field. TypeScript contracts were not changed and no generated asset, generation, provider, job, credit, approval, or runtime behavior was added. Local reset now passes that blocker and stops at `202605180006_reeditpro_qa_exports_audit.sql` on the `qa_check_results.check` column syntax issue, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-10 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-10 repairs the QA check result column syntax blocker in `202605180006_reeditpro_qa_exports_audit.sql` by quoting the existing `qa_check_results."check"` column. TypeScript contracts were not changed; the repair preserves `QACheckResultRecord.check` from `src/types/edit-planning-db.ts`. Local reset now passes that blocker and stops later in the same migration on missing `qa_reports.approved_plan_snapshot_id`, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-11 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-11 repairs the QA report approved-snapshot compatibility gap in `202605180006_reeditpro_qa_exports_audit.sql` with nullable `qa_reports.approved_plan_snapshot_id` and an idempotent FK to `approved_plan_snapshots(id)`. TypeScript contracts were not changed and no QA/export, credit, approval, provider, worker, or runtime behavior was added. Local reset now passes that blocker and stops at `202605180007_reeditpro_rls_policies.sql` on the `is_workspace_member` function input-parameter compatibility issue, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-12 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-12 repairs the `is_workspace_member` function parameter-name blocker in `202605180007_reeditpro_rls_policies.sql` by preserving the existing `target_workspace_id` parameter name. TypeScript contracts were not changed and no RLS policy broadening, runtime, provider, worker, UI, or app behavior was added. Local reset now passes that blocker and stops at the same migration on the `is_workspace_owner_or_admin` function input-parameter compatibility issue, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-13 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-13 repairs the `is_workspace_owner_or_admin` function parameter-name blocker in `202605180007_reeditpro_rls_policies.sql` by preserving the existing `target_workspace_id` parameter name and updating body references. TypeScript contracts were not changed and no RLS policy broadening, runtime, provider, worker, UI, or app behavior was added. Local reset now passes that blocker and stops at `202605180008_reeditpro_storage_buckets_policies.sql` on `storage.buckets` ownership for a table comment, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-14 Local Migration Chain Repair
+
+RP-BETA-INTEGRATION-14 repairs ownership-sensitive storage database comments in `202605180008_reeditpro_storage_buckets_policies.sql` by converting `COMMENT ON storage.*` statements to ordinary SQL comments. TypeScript contracts were not changed and no storage RLS broadening, public bucket change, runtime, provider, worker, UI, or app behavior was added. Local reset verification is blocked because Docker was not reachable, so Creative Skill catalog migrations still have not been reached locally.
+
+## RP-BETA-INTEGRATION-15 Local Docker Environment Repair
+
+RP-BETA-INTEGRATION-15 starts Docker Desktop locally, verifies Docker daemon availability, and retries local Supabase reset without changing TypeScript contracts, migrations, manifest data, mocks, package files, runtime, provider, worker, UI, or app behavior. Local reset now passes `202605180008_reeditpro_storage_buckets_policies.sql` and stops later at `202605200001_storage_upload_pipeline_readiness.sql` on a same-class `storage.objects` policy comment ownership blocker, so Creative Skill catalog migrations still have not been reached locally.
+
+No TypeScript contracts, exports, Creative Skill catalog migrations, manifest data, mock fixtures, package files, runtime behavior, providers, workers, UI, or app behavior changed.
 
 ## Chat-Native Editing
 
@@ -262,3 +530,19 @@ RP-TIMING-06 adds mock SoundSync timing contracts for `MusicBeatGridRecord`, `Mu
 - revision request placeholder
 
 These records are static examples only. They do not connect to Supabase or trigger any backend work.
+
+## RP-BETA-INTEGRATION-16 Note
+
+RP-BETA-INTEGRATION-16 repaired storage upload policy migration comments in `supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql` and verified the local migration chain reached the Creative Skill catalog smoke checks. No TypeScript contracts, exports, mock fixtures, package files, runtime code, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-17 Note
+
+RP-BETA-INTEGRATION-17 verified the Creative Skill catalog foundation and canonical seed migrations locally against the static manifest. No TypeScript contracts, exports, mock fixtures, package files, runtime code, providers, workers, UI, or app behavior changed.
+
+## RP-BETA-INTEGRATION-18 Note
+
+RP-BETA-INTEGRATION-18 documented beta merge readiness and commit grouping. It did not change TypeScript contracts, exports, mock fixtures, package files, runtime code, providers, workers, UI, or app behavior.
+
+## RP-BETA-INTEGRATION-19 Note
+
+RP-BETA-INTEGRATION-19 repaired the sound-agent planner build blocker by importing the existing `SoundAgentPlan` type where it was already used. No TypeScript contracts, exports, mock fixtures, package files, migrations, runtime code, providers, workers, UI, or app behavior changed.

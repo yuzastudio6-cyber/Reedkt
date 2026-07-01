@@ -32,7 +32,21 @@ const packetFiles = [
 const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-plan-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1-diagnostics.mjs',
   'package.json',
+]
+
+const executionPacketFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/route-dispatch-execution-result.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/route-handler-metadata.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1/gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-dispatch-execution-packet-1.md',
 ]
 
 const sourceFiles = [
@@ -41,7 +55,7 @@ const sourceFiles = [
   'docs/external-beta/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-qa-rollup-1/gstreamer-mkvtoolnix-agent-controlled-worker-runtime-qa-rollup-1-record.json',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...executionPacketFiles])
 
 const requiredText = [
   packet,

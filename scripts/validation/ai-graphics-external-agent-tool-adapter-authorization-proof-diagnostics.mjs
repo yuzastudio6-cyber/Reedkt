@@ -19,6 +19,14 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-tool-adapter-authorization-proof-diagnostics.mjs'
+const cpuStaticAdapterSmokeRunScriptName =
+  'ai-graphics:external-agent-cpu-static-adapter-smoke'
+const cpuStaticAdapterSmokeRunScriptCommand =
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-adapter-smoke.ts'
+const cpuStaticAdapterSmokeDiagnosticScriptName =
+  'ai-graphics:external-agent-cpu-static-adapter-smoke:diagnostics'
+const cpuStaticAdapterSmokeDiagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-agent-cpu-static-adapter-smoke-diagnostics.mjs'
 
 const tools = [
   'torch_torchvision',
@@ -201,6 +209,8 @@ const requiredFiles = [
 const allowedPackageDiffLines = new Set([
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  `+    "${cpuStaticAdapterSmokeRunScriptName}": "${cpuStaticAdapterSmokeRunScriptCommand}",`,
+  `+    "${cpuStaticAdapterSmokeDiagnosticScriptName}": "${cpuStaticAdapterSmokeDiagnosticScriptCommand}",`,
 ])
 
 const changedGeneratedArtifactPattern =

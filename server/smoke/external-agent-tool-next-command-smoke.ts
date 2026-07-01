@@ -15,6 +15,8 @@ const QWEN_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DW-PRIVATE-INFERENCE-BOUNDED-RETRY-PROMPT: run one bounded approved-fixture private inference retry through the persisted job and lease bridge, no generated assets/no mutation'
 const QWEN_AUTH_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+const QWEN_AUTH_REFRESH_VERIFY_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH-VERIFY: record refreshed read-only gcloud auth/service/job readiness, no inference/no mutation'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -85,6 +87,10 @@ assert.equal(
   spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails,
   'npm run external-agent-tool-blockers:preflight',
 )
+assert.equal(
+  spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
+  'npm run external-agent-tool-execution-gate',
+)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -117,8 +123,13 @@ assert.equal(decision.ok, true)
 assert.equal(decision.mode, spec.mode)
 assert.equal(decision.liveReadOnlyChecksRun, true)
 assert.equal(decision.staticExecutionGateAllowed, true)
-assert.equal(decision.executionAllowedNow, decision.qwenLivePreflightPassed)
-assert.equal(decision.readyForAnyExternalAgentExecutionNow, decision.qwenLivePreflightPassed)
+assert.equal(typeof decision.staticExplicitToolGateReady, 'boolean')
+assert.equal(typeof decision.executionGateAllowsRuntime, 'boolean')
+assert.equal(
+  decision.executionAllowedNow,
+  decision.executionGateAllowsRuntime && decision.qwenLivePreflightPassed,
+)
+assert.equal(decision.readyForAnyExternalAgentExecutionNow, decision.executionAllowedNow)
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)
@@ -127,7 +138,7 @@ assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
-if (decision.qwenLivePreflightPassed) {
+if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
   assert.equal(decision.executionAllowedNow, true)
   assert.equal(decision.chosenManualAction, QWEN_NEXT_PROMPT)
   assert.equal(decision.chosenNextCommand, undefined)
@@ -135,6 +146,15 @@ if (decision.qwenLivePreflightPassed) {
   assert.equal(decision.manualActionReason, undefined)
   assert.equal(decision.manualActionBlocksRuntime, undefined)
   assert.equal(decision.rerunAfterManualAction, undefined)
+} else if (decision.qwenLivePreflightPassed) {
+  assert.equal(decision.executionAllowedNow, false)
+  assert.equal(decision.qwenLivePreflightVerificationRequired, true)
+  assert.equal(
+    decision.chosenNextCommand,
+    spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
+  )
+  assert.equal(decision.chosenManualAction, QWEN_AUTH_REFRESH_VERIFY_PROMPT)
+  assert.equal(decision.manualActionRequired, false)
 } else {
   assert.equal(decision.executionAllowedNow, false)
   assert.equal(

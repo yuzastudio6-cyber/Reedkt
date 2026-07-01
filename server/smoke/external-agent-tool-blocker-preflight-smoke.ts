@@ -74,6 +74,8 @@ assert.equal(spec.decision, 'external_agent_tool_blocker_preflight_read_only_pro
 assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
+assert.equal(spec.qwen.nextActionIfCleared.includes('58DQ-AUTH-REFRESH-VERIFY'), true)
+assert.equal(spec.qwen.nextActionIfCleared.includes('58DW-PRIVATE'), false)
 assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)

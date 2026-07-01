@@ -50,6 +50,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_PRIVATE_INFERENCE_BOUNDED_RETRY_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
+    whenQwenLivePreflightPassesButExecutionGateBlocked: 'npm run external-agent-tool-execution-gate',
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
     whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',

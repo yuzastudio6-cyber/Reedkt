@@ -156,10 +156,11 @@ function main() {
     !qwenDownstreamProbeSkipped &&
     nestedString(liveBlocker.json, ['qwen', 'blocker']) === 'cleared'
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
-  const staticExecutionGateAllowed =
-    nestedBoolean(executionGate.json, ['staticExplicitToolGateReady']) ||
-    nestedBoolean(executionGate.json, ['executionAllowedNow'])
-  const executionAllowedNow = staticExecutionGateAllowed && qwenLivePreflightPassed
+  const executionGateAllowsRuntime = nestedBoolean(executionGate.json, ['executionAllowedNow'])
+  const staticExplicitToolGateReady = nestedBoolean(executionGate.json, ['staticExplicitToolGateReady'])
+  const staticExecutionGateAllowed = staticExplicitToolGateReady || executionGateAllowsRuntime
+  const executionAllowedNow = executionGateAllowsRuntime && qwenLivePreflightPassed
+  const qwenLivePreflightVerificationRequired = qwenLivePreflightPassed && !executionGateAllowsRuntime
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
   const gcloudDiagnostic = shouldRunGcloudDiagnostic
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
@@ -174,6 +175,8 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
+      : qwenLivePreflightVerificationRequired
+        ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
       : !qwenLivePreflightPassed
         ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
         : !brollQuotaSufficient
@@ -181,6 +184,8 @@ function main() {
           : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
+    : qwenLivePreflightVerificationRequired
+      ? nestedString(liveBlocker.json, ['qwen', 'nextAction'])
     : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
   const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required
@@ -210,7 +215,10 @@ function main() {
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
         staticExecutionGateAllowed,
+        staticExplicitToolGateReady,
+        executionGateAllowsRuntime,
         qwenLivePreflightPassed,
+        qwenLivePreflightVerificationRequired,
         qwenServiceDescribePassed,
         qwenJobDescribePassed,
         qwenDownstreamProbeSkipped,

@@ -85,6 +85,29 @@ function nestedArray(document: Record<string, unknown> | undefined, keys: string
   return Array.isArray(value) ? value : undefined
 }
 
+function objectString(row: Record<string, unknown>, key: string): string | undefined {
+  const value = row[key]
+  return typeof value === 'string' ? value : undefined
+}
+
+function executionGateToolSummaries(document: Record<string, unknown> | undefined) {
+  const rows = nestedArray(document, ['toolRows']) ?? []
+
+  return rows
+    .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object' && !Array.isArray(row))
+    .map((row) => ({
+      toolId: objectString(row, 'toolId'),
+      executionAllowedNow: row.executionAllowedNow === true,
+      staticExplicitToolGateReady: row.staticExplicitToolGateReady === true,
+      currentBlocker: objectString(row, 'currentBlocker'),
+      safeNextCommand: objectString(row, 'safeNextCommand'),
+      noIdleLifecycleGate:
+        row.noIdleLifecycleGate && typeof row.noIdleLifecycleGate === 'object' && !Array.isArray(row.noIdleLifecycleGate)
+          ? row.noIdleLifecycleGate
+          : undefined,
+    }))
+}
+
 function gcloudDiagnosticSummary(document: Record<string, unknown> | undefined) {
   if (!document) return undefined
 
@@ -178,6 +201,7 @@ function main() {
   const staticExecutionGateAllowed = executionGateAllowsRuntime
   const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
   const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
+  const gateToolSummaries = executionGateToolSummaries(executionGate.json)
   const executionAllowedNow = executionGateAllowsRuntime && qwenLivePreflightPassed
   const qwenLivePreflightVerificationRequired = qwenLivePreflightPassed && !executionGateAllowsRuntime
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
@@ -239,6 +263,7 @@ function main() {
         staticGatePlanningOnly,
         staticGateDoesNotAuthorizeRuntime,
         executionGateAllowsRuntime,
+        executionGateToolSummaries: gateToolSummaries,
         qwenLivePreflightPassed,
         qwenLivePreflightVerificationRequired,
         qwenServiceDescribePassed,

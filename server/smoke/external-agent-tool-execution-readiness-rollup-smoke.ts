@@ -91,6 +91,8 @@ for (const required of [
   'combines the static gate and live read-only blocker probes',
   'distinguishes `staticExplicitToolGatePrepared` from `staticExecutionGateAllowed`',
   'prepared static evidence can be true while runtime execution remains false',
+  'includes `executionGateToolSummaries`',
+  'B-roll no-idle lifecycle gate',
   'When `staticGatePlanningOnly=true` or `staticGateDoesNotAuthorizeRuntime=true`',
   '`npm run external-agent-tool-execution-gate` provides a fail-closed static go/no-go report',
   '`npm run external-agent-tool-next-command` provides a read-only live next-command decision',

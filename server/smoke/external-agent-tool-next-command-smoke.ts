@@ -131,6 +131,45 @@ assert.equal(
 )
 assert.equal(decision.staticGateDoesNotAuthorizeRuntime, !decision.executionGateAllowsRuntime)
 assert.equal(typeof decision.executionGateAllowsRuntime, 'boolean')
+assert.equal(Array.isArray(decision.executionGateToolSummaries), true)
+assert.equal(decision.executionGateToolSummaries.length, 4)
+const gateToolSummaries = new Map(
+  decision.executionGateToolSummaries.map((row: { toolId: string }) => [row.toolId, row]),
+)
+const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
+  executionAllowedNow: boolean
+  staticExplicitToolGateReady: boolean
+  currentBlocker: string
+  safeNextCommand: string
+}
+assert.equal(qwenGateSummary.executionAllowedNow, false)
+assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
+assert.equal(qwenGateSummary.currentBlocker, 'local_gcloud_reauthentication_required_before_58dw_runtime')
+assert.equal(qwenGateSummary.safeNextCommand, QWEN_AUTH_NEXT_PROMPT)
+const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') as {
+  executionAllowedNow: boolean
+  staticExplicitToolGateReady: boolean
+  currentBlocker: string
+  safeNextCommand: string
+  noIdleLifecycleGate: {
+    proofVmName: string
+    noPublicIpRequired: boolean
+    externalIpAllowed: boolean
+    idleGpuAllowed: boolean
+    vmCreateAllowedNow: boolean
+    modelInferenceAllowedNow: boolean
+  }
+}
+assert.equal(brollGateSummary.executionAllowedNow, false)
+assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
+assert.equal(brollGateSummary.currentBlocker, 'gpus_all_regions_quota_zero_or_unverified')
+assert.equal(brollGateSummary.safeNextCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
+assert.equal(brollGateSummary.noIdleLifecycleGate.noPublicIpRequired, true)
+assert.equal(brollGateSummary.noIdleLifecycleGate.externalIpAllowed, false)
+assert.equal(brollGateSummary.noIdleLifecycleGate.idleGpuAllowed, false)
+assert.equal(brollGateSummary.noIdleLifecycleGate.vmCreateAllowedNow, false)
+assert.equal(brollGateSummary.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 assert.equal(
   decision.executionAllowedNow,
   decision.executionGateAllowsRuntime && decision.qwenLivePreflightPassed,

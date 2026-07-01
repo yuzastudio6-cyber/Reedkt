@@ -1,5 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -8,6 +9,8 @@ const runScriptCommand = 'tsx server/cli/ai-graphics-external-agent-execution-ga
 const diagnosticScriptName = 'ai-graphics:external-agent-execution-gate:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs'
+const serviceRoleQueueWriteSmokeProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
 const decision =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
 const acceptedStatus = 'external_agent_execution_gate_fail_closed_runtime_blocked'
@@ -72,6 +75,11 @@ const falseBooleanKeys = [
   'workerExecutionPerformed',
   'workerEnqueuePerformed',
   'adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution',
+  'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence',
+  'nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence',
+  'workerClaimAndDispatchSmokeProofRequiredBeforeExecution',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
@@ -153,6 +161,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -201,6 +210,72 @@ function runGate(args = []) {
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
   })
   return JSON.parse(output)
+}
+
+function buildAcceptedServiceRoleQueueWriteSmokeProofPacket() {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-agent-gate-'))
+  const smokeResultPath = path.join(tempDir, 'accepted-service-role-queue-write-smoke-result.json')
+  const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
+  fs.writeFileSync(smokeResultPath, `${JSON.stringify({
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_passed_with_cleanup',
+    status:
+      'non_production_service_role_queue_write_smoke_passed_with_cleanup_no_worker_dispatch_or_tool_execution',
+    queueName: 'ai_graphics_external_agent_cpu_static_private_worker_queue',
+    toolsSubmitted: 5,
+    toolsSubmittedIds: proofTools,
+    queueRowsWritten: 5,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    workerClaimsCreated: 0,
+    workerDispatchesPerformed: 0,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/telemetry.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/rollback.md',
+    sourcePreflightDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_prepared_with_runtime_blocks',
+    sourcePreflightAccepted: true,
+    liveServiceRoleQueueWriteSmokeExecutedNow: true,
+    liveSupabaseQueueWritesNow: 5,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }, null, 2)}\n`)
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      serviceRoleQueueWriteSmokeProofScriptName,
+      '--',
+      '--external-agent-cpu-static-service-role-queue-write-smoke-result',
+      smokeResultPath,
+      '--print-only',
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  const proofPath = path.join(tempDir, 'accepted-service-role-queue-write-smoke-proof.json')
+  fs.writeFileSync(proofPath, output)
+  return proofPath
 }
 
 function runBlockedReadinessCases() {
@@ -296,6 +371,12 @@ if (packageJson.scripts?.[runScriptName] !== runScriptCommand) {
 if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
   fail('package_diagnostic_script_mismatch')
 }
+if (
+  packageJson.scripts?.[serviceRoleQueueWriteSmokeProofScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts'
+) {
+  fail('service_role_queue_write_smoke_proof_script_mismatch')
+}
 
 const indexSource = read('server/tool-registry/index.ts')
 if (!indexSource.includes("export * from './ai-graphics-external-agent-execution-gate'")) {
@@ -379,6 +460,15 @@ if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyT
 if (docs.counts?.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
   fail('docs_external_agent_service_role_queue_write_smoke_preflight_evidence_not_5')
 }
+if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_cpu_static_service_role_queue_write_smoke_proof_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_cpu_static_service_role_queue_writes_accepted_not_0')
+}
+if (docs.counts?.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
+  fail('docs_service_role_queue_rows_persisted_after_cleanup_not_0')
+}
 if (docs.counts?.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
   fail('docs_cpu_static_satori_blocked_not_1')
 }
@@ -388,8 +478,14 @@ if (docs.counts?.cpuStaticNonCpuStaticDeferredTools !== 15) {
 if (docs.counts?.nonProductionServiceRoleQueueWriteSmokeRequiredTools !== 5) {
   fail('docs_non_production_service_role_queue_smoke_required_not_5')
 }
+if (docs.counts?.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools !== 5) {
+  fail('docs_non_production_service_role_queue_smoke_result_required_not_5')
+}
 if (docs.counts?.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 0) {
   fail('docs_adapter_invocation_worker_enqueue_admission_required_not_0')
+}
+if (docs.counts?.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
+  fail('docs_worker_claim_dispatch_smoke_required_not_0')
 }
 if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
   fail('docs_disabled_route_blocked_detail_cases_not_21')
@@ -425,12 +521,19 @@ for (const phrase of [
   'CPU/static service-role queue-write smoke preflight accepted: `true`',
   'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`',
   'externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`',
+  'CPU/static saved service-role queue-write smoke proof accepted: `false`',
+  'cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
+  'cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools: `0`',
+  'nonProductionServiceRoleQueueRowsPersistedAfterCleanup: `0`',
   'adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`',
+  'nonProductionServiceRoleQueueWriteSmokeResultRequiredTools: `5`',
+  'workerClaimAndDispatchSmokeProofRequiredTools: `0`',
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
   'CPU/static live-adapter queue-service proof accepted: `true`',
   'CPU/static exact execution admission accepted: `true`',
   'CPU/static adapter/enqueue admission accepted: `true`',
+  'checked-in packet has no saved smoke result yet',
   'direct agent execution remains blocked',
   'actual execution still blocked',
   'tool/capability-specific blocked details',
@@ -666,6 +769,15 @@ if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflig
 if (acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
   fail('accepted_report_service_role_queue_write_smoke_preflight_evidence_not_5')
 }
+if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_service_role_queue_write_smoke_proof_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_service_role_queue_writes_accepted_not_0')
+}
+if (acceptedSourceReport.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
+  fail('accepted_report_service_role_queue_rows_persisted_after_cleanup_not_0')
+}
 if (acceptedSourceReport.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
   fail('accepted_report_cpu_static_satori_blocked_not_1')
 }
@@ -675,8 +787,14 @@ if (acceptedSourceReport.cpuStaticNonCpuStaticDeferredTools !== 15) {
 if (acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools !== 5) {
   fail('accepted_report_non_production_service_role_queue_smoke_required_not_5')
 }
+if (acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools !== 5) {
+  fail('accepted_report_non_production_service_role_queue_smoke_result_required_not_5')
+}
 if (acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 0) {
   fail('accepted_report_adapter_invocation_worker_enqueue_admission_required_not_0')
+}
+if (acceptedSourceReport.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
+  fail('accepted_report_worker_claim_dispatch_smoke_required_not_0')
 }
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')
@@ -691,6 +809,106 @@ assertToolCoverage('accepted_report', acceptedSourceReport.toolRows)
 assertRuntimeRows('accepted_report', acceptedSourceReport.toolRows)
 assertTrueBooleans('accepted_report', acceptedSourceReport.booleans)
 assertFalseBooleans('accepted_report', acceptedSourceReport.booleans)
+
+const acceptedSmokeProofPath = buildAcceptedServiceRoleQueueWriteSmokeProofPacket()
+const acceptedProofReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
+  acceptedSmokeProofPath,
+])
+if (acceptedProofReport.status !== acceptedStatus) {
+  fail('accepted_proof_report_status_mismatch')
+}
+if (acceptedProofReport.executionAllowedNow !== false) {
+  fail('accepted_proof_report_execution_not_false')
+}
+if (acceptedProofReport.sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted !== true) {
+  fail('accepted_proof_report_source_smoke_proof_not_true')
+}
+if (acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_proof_report_smoke_proof_tools_not_5')
+}
+if (acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_proof_report_queue_writes_not_5')
+}
+if (acceptedProofReport.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
+  fail('accepted_proof_report_rows_persisted_not_0')
+}
+if (acceptedProofReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools !== 0) {
+  fail('accepted_proof_report_smoke_result_required_not_0')
+}
+if (acceptedProofReport.workerClaimAndDispatchSmokeProofRequiredTools !== 5) {
+  fail('accepted_proof_report_worker_claim_dispatch_required_not_5')
+}
+if (acceptedProofReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF') {
+  fail('accepted_proof_report_next_prompt_mismatch')
+}
+for (const key of [
+  'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence',
+  'nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence',
+  'workerClaimAndDispatchSmokeProofRequiredBeforeExecution',
+]) {
+  if (acceptedProofReport.booleans?.[key] !== true) {
+    fail(`accepted_proof_report_${key}_not_true`)
+  }
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'apiRouteExecutionApprovedNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'supabaseMutationPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]) {
+  if (acceptedProofReport.booleans?.[key] !== false) {
+    fail(`accepted_proof_report_${key}_not_false`)
+  }
+}
+const acceptedProofRows = acceptedProofReport.toolRows
+  ?.filter((row) => row.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence)
+if (!Array.isArray(acceptedProofRows) || acceptedProofRows.length !== 5) {
+  fail('accepted_proof_report_rows_not_5')
+} else {
+  for (const row of acceptedProofRows) {
+    if (row.workerClaimAndDispatchSmokeProofRequired !== true) {
+      fail(`accepted_proof_report_${row.toolId}_worker_claim_dispatch_not_true`)
+    }
+    if (!row.requiredBeforeExecution?.some((item) => item.includes('worker claim and dispatch smoke proof must pass next'))) {
+      fail(`accepted_proof_report_${row.toolId}_missing_worker_claim_dispatch_requirement`)
+    }
+    if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
+      fail(`accepted_proof_report_${row.toolId}_runtime_gate_not_false`)
+    }
+  }
+}
 
 const requireGo = spawnSync(
   'npm',
@@ -775,8 +993,16 @@ console.log(JSON.stringify({
     acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools,
   externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools:
     acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools,
+  cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools:
+    acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools,
+  acceptedProofFixtureQueueWriteSmokeProofTools:
+    acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools,
+  acceptedProofFixtureWorkerClaimAndDispatchSmokeProofRequiredTools:
+    acceptedProofReport.workerClaimAndDispatchSmokeProofRequiredTools,
   nonProductionServiceRoleQueueWriteSmokeRequiredTools:
     acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools,
+  nonProductionServiceRoleQueueWriteSmokeResultRequiredTools:
+    acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools,
   adapterInvocationAndWorkerEnqueueAdmissionRequiredTools:
     acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools,
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:

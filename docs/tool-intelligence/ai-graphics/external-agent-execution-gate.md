@@ -41,10 +41,16 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - CPU/static service-role queue-write smoke preflight accepted: `true`
 - cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`
 - externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`
+- CPU/static saved service-role queue-write smoke proof accepted: `false`
+- cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: `0`
+- cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools: `0`
+- nonProductionServiceRoleQueueRowsPersistedAfterCleanup: `0`
 - cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: `1`
 - cpuStaticNonCpuStaticDeferredTools: `15`
 - nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`
+- nonProductionServiceRoleQueueWriteSmokeResultRequiredTools: `5`
 - adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`
+- workerClaimAndDispatchSmokeProofRequiredTools: `0`
 - Representative disabled route blocked-detail cases covered: `21`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
@@ -67,6 +73,7 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - Read the CPU/static exact execution-admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; exact request envelopes, approved plan snapshots, private artifact manifests, worker-accepted request schemas, and tool QA gates are accepted.
 - Read the CPU/static adapter-invocation and worker-enqueue admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; adapter envelopes and worker enqueue payloads are accepted, but live queue write, worker enqueue, worker dispatch, and tool execution remain blocked until the next gate passes.
 - Read the CPU/static non-production service-role queue-write smoke preflight for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; the exact environment, server-only credential boundary, telemetry, cleanup, rollback, and saved-result requirements are prepared, but the smoke itself remains unrun and unapproved.
+- Read a saved CPU/static non-production service-role queue-write smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, worker claim and dispatch smoke proof, while direct agent execution remains blocked.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
@@ -108,7 +115,8 @@ Blocked now:
 11. `npm run ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics`
 12. `npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics`
 13. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics`
-14. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
+14. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics`
+15. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -152,13 +160,19 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `allFiveCpuStaticProductionWorkerJobPayloadsAccepted=true`
 - `allFiveCpuStaticExternalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence=true`
 - `sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted=true`
+- `sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted=false`
 - `cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted=true`
 - `allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady=true`
 - `allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence=true`
+- `allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence=false`
+- `allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence=false`
+- `nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence=false`
 - `satoriRemainsBlockedPendingApprovedFontFixture=true`
 - `fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes=true`
 - `nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution=true`
+- `nonProductionServiceRoleQueueWriteSmokeResultRequiredBeforeExecution=true`
 - `adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution=false`
+- `workerClaimAndDispatchSmokeProofRequiredBeforeExecution=false`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
 - `externalAgentExecutionAllowedNow=false`
@@ -177,4 +191,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The disabled route now returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim, worker dispatch, and tool-specific result proof, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, while keeping private queue/worker/tool execution blocked until each following proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now also understands the saved non-production service-role queue-write smoke proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof remains `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim, worker dispatch, and tool-specific result proof, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, while keeping private queue/worker/tool execution blocked until each following proof passes.

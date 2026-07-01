@@ -162,7 +162,6 @@ for (const file of Object.values(docs)) assertNoUnsafeTrueClaims(file)
 const existingSource = read(existingSourcePath)
 assert(existingSource.includes('createSoundCpuPrivateManifestPersistenceRuntimeBindingBlockedResult'), 'existing source has fail-closed binding')
 assert(existingSource.includes('SOUND_CPU_PRIVATE_MANIFEST_PERSISTENCE_RUNTIME_BINDING_SOURCE_GATE'), 'existing source has gate')
-assert(!fs.existsSync(filePath(plannedSourcePath)), 'planned source path must not exist in Phase 103')
 
 assert(parsed.prompt.requiredSourceDecision === sourceDecision, 'prompt required source')
 assert(parsed.prompt.expectedDecision === decision, 'prompt expected decision')

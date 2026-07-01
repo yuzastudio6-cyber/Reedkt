@@ -49,6 +49,7 @@ const gpuTools = new Set([
 
 const falseBooleanKeys = [
   'rawChatExecutionAllowed',
+  'externalBetaCallableInstallReadyNow',
   'agentCanExecuteToolsNow',
   'externalAgentExecutionAllowedNow',
   'apiRouteMountedNow',
@@ -85,8 +86,12 @@ const falseBooleanKeys = [
 
 const trueBooleanKeys = [
   'externalAgentExecutionGatePrepared',
+  'source21ToolProperInstallAuditAccepted',
   'sourceExternalBetaCallableRequestAdmissionAccepted',
   'sourceExternalBetaApiRouteMountReadinessAccepted',
+  'properInstallAuditAccepted',
+  'all21ToolsProperlyInstalledForPlannedSurface',
+  'installAuditSeparatesPlannedSurfaceFromRuntimeCallable',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
@@ -110,6 +115,7 @@ const requiredFiles = [
   'scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.md',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
   'server/tool-registry/index.ts',
@@ -197,6 +203,18 @@ function assertRuntimeRows(label, rows) {
   }
   for (const row of rows) {
     if (row.executionAllowedNow !== false) fail(`${label}_${row.toolId}_execution_not_false`)
+    if (row.properlyInstalledForPlannedSurface !== true) {
+      fail(`${label}_${row.toolId}_proper_install_not_true`)
+    }
+    if (row.externalBetaCallableInstallReadyNow !== false) {
+      fail(`${label}_${row.toolId}_external_beta_callable_install_not_false`)
+    }
+    if (row.runtimeReadyNow !== false) {
+      fail(`${label}_${row.toolId}_runtime_ready_not_false`)
+    }
+    if (!row.installSurface) {
+      fail(`${label}_${row.toolId}_install_surface_missing`)
+    }
     if (row.gpuRuntimeShouldStartNow !== false) {
       fail(`${label}_${row.toolId}_gpu_runtime_should_start_not_false`)
     }
@@ -234,6 +252,21 @@ if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
 if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_total_tools_not_21')
 if (docs.counts?.totalProductFacingCapabilities !== 12) fail('docs_capability_count_not_12')
 if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_tools_not_8')
+if (docs.counts?.properlyInstalledForPlannedSurfaceTools !== 21) {
+  fail('docs_properly_installed_for_planned_surface_not_21')
+}
+if (docs.counts?.runtimeProofPassedButToolCallBlockedTools !== 13) {
+  fail('docs_runtime_proof_passed_blocked_not_13')
+}
+if (docs.counts?.nativeGpuRuntimeProofPendingTools !== 8) {
+  fail('docs_native_gpu_runtime_proof_pending_not_8')
+}
+if (docs.counts?.modelWeightManifestPendingTools !== 5) {
+  fail('docs_model_weight_manifest_pending_not_5')
+}
+if (docs.counts?.externalBetaCallableInstallReadyNowTools !== 0) {
+  fail('docs_external_beta_callable_install_ready_not_0')
+}
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_0')
 if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
   fail('docs_route_mount_ready_tools_not_21')
@@ -251,6 +284,9 @@ for (const phrase of [
   '21',
   'GPU startup as on-demand only',
   'route-mount readiness evidence',
+  'proper-install audit',
+  'properlyInstalledForPlannedSurfaceTools: `21`',
+  'externalBetaCallableInstallReadyNowTools: `0`',
   'apiRouteMountedNow=false',
   'exit code `2`',
   'agentCanExecuteToolsNow=false',
@@ -287,13 +323,15 @@ for (const forbidden of [
 }
 
 const missingSourceReport = runGate()
-if (missingSourceReport.status !== 'missing_external_beta_callable_request_admission') {
+if (missingSourceReport.status !== 'missing_21_tool_proper_install_audit') {
   fail('missing_source_status_mismatch')
 }
 if (missingSourceReport.executionAllowedNow !== false) fail('missing_source_execution_not_false')
 assertFalseBooleans('missing_source_report', missingSourceReport.booleans)
 
 const acceptedSourceReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
   '--external-beta-callable-request-admission-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
   '--external-beta-api-route-mount-readiness-packet',
@@ -307,6 +345,21 @@ if (acceptedSourceReport.readyForAnyExternalAgentExecutionNow !== false) {
 }
 if (acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence !== 21) {
   fail('accepted_report_candidate_tools_not_21')
+}
+if (acceptedSourceReport.properlyInstalledForPlannedSurfaceTools !== 21) {
+  fail('accepted_report_proper_install_tools_not_21')
+}
+if (acceptedSourceReport.runtimeProofPassedButToolCallBlockedTools !== 13) {
+  fail('accepted_report_runtime_proof_passed_blocked_not_13')
+}
+if (acceptedSourceReport.nativeGpuRuntimeProofPendingTools !== 8) {
+  fail('accepted_report_native_gpu_pending_not_8')
+}
+if (acceptedSourceReport.modelWeightManifestPendingTools !== 5) {
+  fail('accepted_report_model_manifest_pending_not_5')
+}
+if (acceptedSourceReport.externalBetaCallableInstallReadyNowTools !== 0) {
+  fail('accepted_report_external_beta_callable_install_not_0')
 }
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')
@@ -329,6 +382,8 @@ const requireGo = spawnSync(
     '--silent',
     runScriptName,
     '--',
+    '--proper-install-audit-packet',
+    'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
     '--external-beta-callable-request-admission-packet',
     'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
     '--external-beta-api-route-mount-readiness-packet',
@@ -371,6 +426,10 @@ console.log(JSON.stringify({
   gpuRuntimeTargetedTools: acceptedSourceReport.gpuRuntimeTargetedTools,
   externalBetaCallableCandidateToolsWithProvidedEvidence:
     acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence,
+  properlyInstalledForPlannedSurfaceTools:
+    acceptedSourceReport.properlyInstalledForPlannedSurfaceTools,
+  externalBetaCallableInstallReadyNowTools:
+    acceptedSourceReport.externalBetaCallableInstallReadyNowTools,
   externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
     acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence,
   apiRouteMountReadyToolsWithProvidedEvidence:

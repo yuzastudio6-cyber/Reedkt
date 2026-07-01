@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import {
   buildAiGraphicsExternalAgentExecutionGate,
+  type AiGraphics21ToolProperInstallAudit,
   type AiGraphicsExternalAgentExecutionGateInput,
 } from '../tool-registry/ai-graphics-external-agent-execution-gate'
 import type {
@@ -22,6 +23,10 @@ function readJsonFile<T>(flag: string): T | undefined {
 }
 
 const input: AiGraphicsExternalAgentExecutionGateInput = {
+  source21ToolProperInstallAuditPacket:
+    readJsonFile<Partial<AiGraphics21ToolProperInstallAudit>>(
+      '--proper-install-audit-packet',
+    ),
   sourceExternalBetaCallableRequestAdmissionPacket:
     readJsonFile<Partial<AiGraphicsExternalBetaCallableRequestAdmission>>(
       '--external-beta-callable-request-admission-packet',
@@ -40,6 +45,8 @@ console.log(JSON.stringify({
   input: {
     evaluatorOnly: true,
     requireGo,
+    properInstallAuditPacketRead:
+      Boolean(valueAfterFlag('--proper-install-audit-packet')),
     callableRequestAdmissionPacketRead:
       Boolean(valueAfterFlag('--external-beta-callable-request-admission-packet')),
     apiRouteMountReadinessPacketRead:

@@ -3,7 +3,7 @@
   "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
   "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
   "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
-  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, and controlled on-demand status bridge evidence, but the default route mount remains off and no direct agent, route, worker, provider, browser, GPU, artifact, beta, or production execution is allowed.",
+  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, and controlled on-demand status bridge evidence, and the disabled route can return per-request tool/capability planning and missing-proof details. The default route mount remains off and no direct agent, route, worker, provider, browser, GPU, artifact, beta, or production execution is allowed.",
   "sourceEvidence": {
     "properInstallAudit": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
     "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",
@@ -301,13 +301,16 @@
     "npm run ai-graphics:external-beta-tool-call-gateway",
     "npm run ai-graphics:external-beta-runtime-admission",
     "npm run ai-graphics:external-beta-worker-enqueue-adapter",
-    "npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics"
+    "npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics",
+    "npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics"
   ],
   "allowedPreExecutionActions": [
     "read sanitized callable-scope and request-admission evidence",
     "select, rank, and eliminate planning tools from the 21-tool AI graphics set",
     "explain missing proof before execution",
     "verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata",
+    "distinguish controlled on-demand worker-path readiness from direct agent execution",
+    "return per-request disabled route details with selected planning tools, missing proof, missing execution gates, and GPU on-demand status",
     "return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job"
   ],

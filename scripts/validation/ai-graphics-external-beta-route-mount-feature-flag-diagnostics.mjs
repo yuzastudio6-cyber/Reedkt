@@ -118,9 +118,17 @@ for (const phrase of [
 
 const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
 for (const phrase of [
+  'evaluateAiGraphicsToolCallPlan',
+  'buildAiGraphicsExternalBetaToolCallBlockedDetails',
   'routeMountedByAppNow: true',
   'routeMountFeatureFlagEnabled: true',
   'externalAgentExecutionGateRequired: true',
+  'requestAcceptedForPlanningMetadata',
+  'planEvaluationDecision',
+  'requestedToolsAcceptedForPlanning',
+  'selectedPlanningTools',
+  'missingProofBeforeExecution',
+  'missingExecutionGates',
   'properInstallAuditAcceptedToolsWithProvidedEvidence: 21',
   'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: 21',
   'controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked: true',

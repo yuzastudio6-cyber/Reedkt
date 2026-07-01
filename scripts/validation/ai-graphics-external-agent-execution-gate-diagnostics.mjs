@@ -122,6 +122,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
   'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
 ]
@@ -251,6 +252,7 @@ if (!indexSource.includes("export * from './ai-graphics-external-agent-execution
 
 const docs = json('docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json')
 const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-execution-gate.md')
+const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
 if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_total_tools_not_21')
@@ -302,11 +304,27 @@ for (const phrase of [
   'externalBetaCallableInstallReadyNowTools: `0`',
   'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`',
   'direct agent execution remains blocked',
+  'tool/capability-specific blocked details',
   'apiRouteMountedNow=false',
   'exit code `2`',
   'agentCanExecuteToolsNow=false',
 ]) {
   if (!docsMd.includes(phrase)) fail(`docs_md_missing:${phrase}`)
+}
+
+for (const phrase of [
+  'evaluateAiGraphicsToolCallPlan',
+  'buildAiGraphicsExternalBetaToolCallBlockedDetails',
+  'requestAcceptedForPlanningMetadata',
+  'planEvaluationDecision',
+  'requestedToolsAcceptedForPlanning',
+  'selectedPlanningTools',
+  'missingProofBeforeExecution',
+  'missingExecutionGates',
+  'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
+  'gpuRuntimeShouldStartNow: false',
+]) {
+  if (!routeSource.includes(phrase)) fail(`route_source_missing:${phrase}`)
 }
 
 for (const forbidden of [

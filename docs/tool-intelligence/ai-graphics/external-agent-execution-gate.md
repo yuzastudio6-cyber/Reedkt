@@ -37,6 +37,7 @@ This packet gives an external agent a deterministic fail-closed gate for the 21 
 - Verify approved plan snapshot, credit reservation, private manifest, trace, and idempotency metadata.
 - Read route-mount readiness evidence while preserving `apiRouteMountedNow=false`.
 - Read controlled on-demand external-beta status while preserving that direct agent execution remains blocked.
+- Return per-request disabled route details that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
 
@@ -114,4 +115,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, and controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, and no direct route/worker/tool runtime execution is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, and controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools. The disabled route now returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, and no direct route/worker/tool runtime execution is approved. The next aligned step is a deliberate route-mount approval that keeps private queue/worker execution blocked until its own proof passes.

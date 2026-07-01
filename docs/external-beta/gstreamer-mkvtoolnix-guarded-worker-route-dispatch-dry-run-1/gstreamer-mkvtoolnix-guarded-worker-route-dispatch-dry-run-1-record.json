@@ -1,0 +1,131 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-ROUTE-DISPATCH-DRY-RUN-1",
+  "integrationBase": "746a017a626d6874d2513e4250af645692dff84e",
+  "runId": "2026-07-01T01-21-40-972Z-40ea3844",
+  "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1/2026-07-01T01-21-40-972Z-40ea3844",
+  "decision": "completed_gstreamer_mkvtoolnix_guarded_worker_route_dispatch_dry_run_metadata_only",
+  "execution": "completed_confirmation_gated_guarded_worker_route_dispatch_dry_run_metadata_only_no_route_worker_or_tool_execution",
+  "confirmationGate": {
+    "env": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GUARDED_WORKER_ROUTE_DISPATCH_DRY_RUN=true",
+    "observed": "present_true"
+  },
+  "sourceChain": {
+    "routeDispatchReadinessPr": 1925,
+    "routeDispatchReadinessMergeSha": "746a017a626d6874d2513e4250af645692dff84e",
+    "routeDispatchReadinessDecision": "completed_gstreamer_mkvtoolnix_guarded_worker_route_dispatch_readiness_for_confirmation_gated_dry_run",
+    "runtimeQaRollupPr": 1921,
+    "runtimeQaRollupMergeSha": "61619709d92f035b82ca9ef3d8013d9300bf3043",
+    "runtimeQaRollupDecision": "completed_gstreamer_mkvtoolnix_agent_controlled_worker_runtime_qa_rollup_generated_fixture_only",
+    "runtimePacketPr": 1918,
+    "runtimePacketMergeSha": "f7e2b76235d9b66a56cae7a6df74e0bc29045b3a",
+    "runtimePacketRunId": "2026-07-01T00-16-10-927Z-8b7402d8",
+    "guardedRuntimeRunId": "2026-07-01T00-16-10-989Z-a9752eae",
+    "dispatchDryRunPr": 1905,
+    "dispatchDryRunMergeSha": "6cc86d71f383a64254ce2324e02e5d83e70bc031",
+    "dispatchDryRunRunId": "2026-06-30T20-56-18-927Z-8e5d25d9",
+    "queueIntegrationPr": 1902,
+    "queueIntegrationMergeSha": "cc18a07622a3107c589d2d2957432026da27b8cd",
+    "queueIntegrationRunId": "2026-06-30T19-45-59-915Z-af80c9f8",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "routeDispatchDryRun": {
+    "status": "validated_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "readinessSourceStatus": "ready_for_confirmation_gated_guarded_worker_route_dispatch_dry_run",
+    "routeDispatchEnvelopeId": "route-dispatch-envelope-gstreamer-mkvtoolnix-guarded-worker-dry-run-1",
+    "routeDispatchMode": "metadata_only_route_dispatch_dry_run",
+    "workerDispatchMode": "metadata_only_no_worker_process_started",
+    "fixtureScope": "generated_srt_and_generated_subtitle_only_mkv_fixture",
+    "approvedSnapshotReference": "approved-snapshot-agent-controlled-dispatch-1",
+    "approvalRecordReference": "approval-record-agent-controlled-dispatch-1",
+    "creditPolicyReference": "no-spend-fixture-policy-agent-controlled-dispatch-1",
+    "jobReference": "job-agent-controlled-dispatch-1",
+    "workerLeaseReference": "worker-lease-agent-controlled-dispatch-1",
+    "routeIdempotencyKey": "gstreamer-mkvtoolnix:agent-controlled-dispatch-1:approved-snapshot:job:template",
+    "routeDispatchIdempotencyKey": "gstreamer-mkvtoolnix:guarded-route-dispatch-dry-run-1:approved-snapshot-agent-controlled-dispatch-1:job-agent-controlled-dispatch-1",
+    "privateInputManifestReference": "private-input-manifest-agent-controlled-dispatch-1",
+    "outputManifestSchemaReference": "output-manifest-schema-agent-controlled-dispatch-1",
+    "qaReportSchemaReference": "qa-report-schema-agent-controlled-dispatch-1",
+    "cleanupPolicyReference": "cleanup-policy-agent-controlled-dispatch-1",
+    "retryPolicyReference": "retry-policy-agent-controlled-dispatch-1",
+    "nonPublicArtifactPolicyReference": "non-public-artifact-policy-agent-controlled-dispatch-1",
+    "acceptedCommandTemplates": [
+      "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+      "gst_controlled_generated_fixture_pipeline_v1",
+      "mkvmerge_generated_subtitle_only_package_v1",
+      "mkvmerge_identify_generated_subtitle_only_v1"
+    ],
+    "routeDispatchEnvelopeCreated": true,
+    "routeDispatchAccepted": true,
+    "routeExecution": "not_run_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "workerDispatch": "not_run_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "workerExecution": "not_run_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "workerLeaseClaim": "not_run_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "toolExecution": "not_run_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "persistentJobQueueWrite": "not_run_guarded_worker_route_dispatch_dry_run_metadata_only",
+    "nextSourceStatus": "ready_for_guarded_worker_route_dispatch_execution_plan"
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-report.json",
+      "bytes": 6359,
+      "sha256": "f6a319365a4976c08f32d149e2466bb421567c1ceffacde419773438821fc7bd"
+    },
+    {
+      "fileName": "route-dispatch-envelope.json",
+      "bytes": 4181,
+      "sha256": "b1b795fb8fe26cf88ae68ea1c215a8fa9ac8f2d5ac8686c3b68891bc26e8a479"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 428,
+      "sha256": "4f9c40a324d0b047854be77a55a995a2c84382c780d10c2de41da6b478875ad1"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 967,
+      "sha256": "5ebacfc1aa8e5b6264342a2296a89af777121854e6a5cec31db180e69206ca9e"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-route-dispatch-dry-run-1-manifest.json",
+      "bytes": 1231,
+      "sha256": "2af1aa490754b7996c8812992a0002476ad31173a32a2004c8802a9349c3e78f"
+    }
+  ],
+  "safety": {
+    "guardedWorkerRouteDispatchDryRunMetadataOnly": true,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "persistentJobQueueWrite": false,
+    "gstreamerExecutionInThisRouteDispatchDryRun": false,
+    "mkvtoolnixExecutionInThisRouteDispatchDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "mediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "dockerPushDeploy": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "providerCall": false,
+    "modelCall": false,
+    "finalRenderExport": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "packageLockMutation": false,
+    "dependencyMutation": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GUARDED-WORKER-ROUTE-DISPATCH-EXECUTION-PLAN-1"
+}

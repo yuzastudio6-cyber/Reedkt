@@ -72,6 +72,7 @@ for (const required of [
   '`supabase_local_fixture_harness`',
   'ready for explicit external-agent gate',
   'auth-readable live preflight now reads GPU quota',
+  'confirmed wrapper execution mode reads quota and cache readiness',
   '`GPUS_ALL_REGIONS` remains insufficient',
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
@@ -123,6 +124,7 @@ for (const required of [
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
   '`broll_gpus_all_regions_quota_not_sufficient`',
+  'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
   '`sound_metadata_only_runtime_execution_not_accepted`',
@@ -393,6 +395,10 @@ assert.equal(
   'gpus_all_regions_quota_zero_or_unverified',
 )
 assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md'),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md'),
   true,
 )
@@ -401,7 +407,15 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-wan-external-agent-wrapper-blocked-result.ts'),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-wan-external-agent-wrapper-blocked-result-smoke.ts'),
   true,
 )
 assert.equal(

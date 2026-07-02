@@ -1,0 +1,25 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1",
+  "decision": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation",
+  "execution": "blocked_confirmation_absent_contract_pinned_no_route_worker_or_tool_execution",
+  "sourceChain": {
+    "officialAptInstallSourceExecution": "tracka_gpac_mp4box_official_apt_install_source_execution_passed_ready_for_official_apt_install_source_qa",
+    "officialAptInstallSourceQa": "tracka_gpac_mp4box_official_apt_install_source_qa_passed_ready_for_controlled_runtime_proof",
+    "controlledRuntimeProof": "tracka_gpac_mp4box_controlled_runtime_proof_passed_ready_for_controlled_synthetic_media_command_proof",
+    "controlledSyntheticMediaCommandQa": "tracka_gpac_mp4box_controlled_synthetic_media_command_qa_passed_ready_for_worker_contract_review",
+    "currentRuntimeGateReadinessRollup": "tracka_gpac_mp4box_current_runtime_gate_readiness_rollup_passed_ready_for_guarded_runtime_dispatch_enablement_plan",
+    "guardedRuntimeDispatchEnablementPlan": "tracka_gpac_mp4box_guarded_runtime_dispatch_enablement_plan_passed_ready_for_guarded_runtime_dispatch_scaffold",
+    "existingFailClosedScaffold": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation",
+    "trackaToolLaneRealignment": "completed_tracka_tool_lane_ownership_realignment_for_external_agent_execution"
+  },
+  "confirmationGate": {
+    "name": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH",
+    "requiredValue": "true",
+    "observed": "absent",
+    "runtimeDispatchAllowed": false
+  },
+  "pr577": "open_draft_blocked_excluded",
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none"
+}

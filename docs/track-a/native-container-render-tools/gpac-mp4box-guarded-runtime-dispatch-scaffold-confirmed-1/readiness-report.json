@@ -1,0 +1,17 @@
+{
+  "lane": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1",
+  "readyForConfirmedExternalAgentDispatchRetry": true,
+  "contractPinned": true,
+  "readyForRouteExecutionNow": false,
+  "readyForWorkerDispatchNow": false,
+  "readyForWorkerExecutionNow": false,
+  "readyForGpacMp4boxExecutionNow": false,
+  "readyForMediaProcessingNow": false,
+  "readyForStorageTransferNow": false,
+  "readyForSignedUrlCreationNow": false,
+  "readyForPublicArtifactCreationNow": false,
+  "readyForExternalBetaProductUseNow": false,
+  "readyForProductionNow": false,
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextPrompt": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1"
+}

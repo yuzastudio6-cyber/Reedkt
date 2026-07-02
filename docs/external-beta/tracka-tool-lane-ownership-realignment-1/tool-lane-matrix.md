@@ -12,7 +12,7 @@ Product-ready end-to-end local OSS tools: `0`
 | --- | --- | --- | --- |
 | `gstreamer_render_pipeline_support` | yes | `ready_for_guarded_external_agent_controlled_generated_fixture_execution` | `RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1` |
 | `mkvtoolnix_container_validation` | yes | `ready_for_guarded_external_agent_controlled_generated_fixture_execution` | `RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1` |
-| `gpac_mp4box_packaging_validation` | yes | `blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa` | `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1` |
+| `gpac_mp4box_packaging_validation` | yes | `blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_with_route_worker_contract_pinned` | `TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1` |
 | `remotion` | no | `not_this_lane_track_b_or_render_runtime_owned_current_external_beta_evidence_exists` | do not count in this agent lane |
 | `revideo_render_preview_alternative` | no | `excluded_by_operator_instruction_no_active_tracka_execution_work` | no action in this agent lane |
 | `ffmpeg_ffprobe_shared_dependency` | no | `track_b_owned_shared_dependency_boundary` | Track B coordination only |

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 
 import type { ProductionToolExecutionReadinessGateInput } from '../beta-readiness'
 import { createToolExecutionGatewayService } from '../services/tool-execution-gateway-service'
+import { resetMockToolCostStore, resetMockToolCostWalletSettlementStore } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
 import type { ToolExecutionGatewayDispatchBody } from '../validation/tool-execution-gateway-schemas'
 
@@ -21,6 +22,9 @@ const context: ServiceContext = {
     isMockUser: true,
   },
 }
+
+resetMockToolCostStore()
+resetMockToolCostWalletSettlementStore()
 
 const baseInput: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } = {
   workspaceId: 'workspace-smoke',
@@ -198,6 +202,15 @@ assert.equal(productionReadyDispatch.gateway.status, 'dispatched', 'complete pro
 assert.equal(productionReadyDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'dispatched production_ready request should include the passing readiness report')
 assert.equal(productionReadyDispatch.workerResult?.status, 'completed', 'complete production readiness evidence should reach only the placeholder worker route')
 assert.equal(productionReadyDispatch.workerResult?.output?.mockOnly, true, 'production_ready smoke must still use the mock-safe placeholder output')
+assert.equal(productionReadyDispatch.toolCostEvents?.length, 1, 'production_ready dispatch should emit one gateway tool-cost event for the requested tool')
+assert.equal(productionReadyDispatch.toolCostEvents?.[0]?.toolId, 'ffprobe', 'gateway tool-cost event should be scoped to the requested tool')
+assert.equal(productionReadyDispatch.toolCostEvents?.[0]?.billableToUser, true, 'completed production_ready gateway event should be billable after approval/reservation gates')
+assert.equal(productionReadyDispatch.toolCostEvents?.[0]?.metadata.serviceFeeIncluded, false, 'gateway billing metadata must keep service fees excluded')
+assert.equal(productionReadyDispatch.walletSettlements?.length, 1, 'production_ready dispatch should create one wallet settlement audit row')
+assert.equal(productionReadyDispatch.walletSettlements?.[0]?.toolCostEventId, productionReadyDispatch.toolCostEvents?.[0]?.id, 'wallet settlement should reference the emitted tool-cost event')
+assert.equal(productionReadyDispatch.walletSettlements?.[0]?.stripeCallAttempted, false, 'gateway wallet settlement must preserve Stripe isolation')
+assert.equal(productionReadyDispatch.walletSettlements?.[0]?.serviceFeeIncluded, false, 'gateway wallet settlement must exclude service fees')
+assert.equal(productionReadyDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyDispatch.toolCostEvents![0].toolCostCredits, 'completed production_ready gateway settlement should spend the tool event credits')
 
 await assert.rejects(
   () => createToolExecutionGatewayService({

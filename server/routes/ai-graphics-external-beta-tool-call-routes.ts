@@ -1,13 +1,19 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
+import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
 import { listAiGraphicsToolCallHandoffTools } from '../tool-registry/ai-graphics-tool-call-handoff'
 import { evaluateAiGraphicsToolCallPlan } from '../tool-registry/ai-graphics-tool-call-plan-evaluator'
+import { getAiGraphicsToolCallReadiness } from '../tool-registry/ai-graphics-tool-call-readiness'
+import type { ServiceContext } from '../types'
 import { validateBody } from '../validation/common-schemas'
-import { asyncRoute } from './route-helpers'
+import { asyncRoute, getServiceContext, sendOk } from './route-helpers'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH =
   '/api/ai-graphics/external-beta/tool-call'
+
+export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG =
+  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWARE = [
   'requireAuth',
@@ -147,6 +153,177 @@ export function buildAiGraphicsExternalBetaToolCallBlockedDetails(
   }
 }
 
+export async function admitAiGraphicsExternalBetaToolCallToMockQueue(
+  request: AiGraphicsExternalBetaToolCallRequest,
+  serviceContext: ServiceContext,
+) {
+  if (!serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta tool-call route queue admission is disabled.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+  if (!serviceContext.env.mockOnly) {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'AI graphics external-beta route queue admission smoke requires explicit mock runtime mode; live service-role queue writes remain separately gated.',
+      409,
+      {
+        requestId: request.requestId,
+        toolId: request.toolId,
+        capabilityId: request.capabilityId,
+        queueAdmissionSmokeRequiresMockOnly: true,
+        liveQueueWriteApprovedNow: false,
+        workerDispatchApprovedNow: false,
+        toolExecutionApprovedNow: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    )
+  }
+
+  const readiness = getAiGraphicsToolCallReadiness(request.toolId)
+  if (!readiness?.productionToolId) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `AI graphics canonical production mapping is missing for ${request.toolId}.`,
+      400,
+    )
+  }
+  if (!readiness.capabilities.includes(request.capabilityId)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `AI graphics capability ${request.capabilityId} is not valid for ${request.toolId}.`,
+      400,
+    )
+  }
+
+  const queueService = createAiGraphicsToolRuntimeQueueService(serviceContext)
+  const enqueue = await queueService.enqueueToolRuntimeJobs({
+    workspaceId: request.workspaceId,
+    projectId: `project-ai-graphics-external-beta-${request.workspaceId}`,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    idempotencyKey: `ai-graphics-external-beta-tool-call-route:${request.requestId}:${request.toolId}`,
+    batchName: 'AI graphics external beta tool-call route mock queue admission',
+    createdByAgent: 'ai_graphics_external_beta_tool_call_route',
+    jobs: [
+      {
+        toolId: request.toolId,
+        productionToolId: readiness.productionToolId,
+        workerType: readiness.productionWorkerType,
+        runtimeTarget: readiness.runtimeTarget,
+        capabilityIds: [request.capabilityId],
+        privateArtifactManifestRef: request.privateArtifactManifestRef,
+        idempotencyKey:
+          `ai-graphics-external-beta-tool-call-route:${request.requestId}:${request.toolId}:job`,
+        priority: 'normal',
+        maxAttempts: 3,
+        inputPayload: {
+          sourceRoute: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+          traceId: request.traceId,
+          toolRouteApprovalRef: request.toolRouteApprovalRef,
+          workerApprovalRef: request.workerApprovalRef,
+          runtimeEnqueueApprovalRef: request.runtimeEnqueueApprovalRef,
+          ownerRuntimeApprovalRef: request.ownerRuntimeApprovalRef,
+          payload: request.payload ?? {},
+          routeQueueAdmissionSmokeOnly: true,
+          routeExecutionPerformed: true,
+          backendQueueSubmissionPerformed: false,
+          workerEnqueuePerformed: false,
+          workerDispatchPerformed: false,
+          toolExecutionPerformed: false,
+          gpuRuntimeShouldStartNow: false,
+          publicArtifactCreated: false,
+          signedUrlCreated: false,
+        },
+      },
+    ],
+  })
+  const queueResult = enqueue.queueResult as {
+    jobBatchId?: string
+    jobIds?: string[]
+    insertedJobCount?: number
+    mockOnly?: boolean
+    liveToolExecutionPerformed?: boolean
+  }
+
+  return {
+    routeDecision:
+      'ai_graphics_external_beta_tool_call_route_mock_queue_admission_accepted',
+    routeStatus:
+      'external_beta_tool_call_route_mock_queue_admission_accepted_runtime_still_blocked',
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routeFlag: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG,
+    workspaceId: request.workspaceId,
+    requestId: request.requestId,
+    toolId: request.toolId,
+    productionToolId: readiness.productionToolId,
+    capabilityId: request.capabilityId,
+    workerType: readiness.productionWorkerType,
+    runtimeTarget: readiness.runtimeTarget,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    privateArtifactManifestRef: request.privateArtifactManifestRef,
+    queueName: 'ai_graphics_external_beta_tool_runtime',
+    queueAdmissionMode: 'mock_only',
+    queueResult: {
+      jobBatchId: queueResult.jobBatchId ?? null,
+      jobIds: Array.isArray(queueResult.jobIds) ? queueResult.jobIds : [],
+      insertedJobCount: queueResult.insertedJobCount ?? 0,
+      mockOnly: queueResult.mockOnly === true,
+      liveToolExecutionPerformed: queueResult.liveToolExecutionPerformed === true,
+    },
+    warnings: enqueue.warnings,
+    counts: {
+      totalAiGraphicsTools: 21,
+      totalProductFacingCapabilities: 12,
+      mockQueueAdmissionAcceptedTools: 1,
+      scopedControlledToolsCallableNow: 13,
+      remainingGpuModelToolsBlockedForRuntime: 8,
+      liveQueueWritePerformedTools: 0,
+      workerDispatchPerformedTools: 0,
+      toolExecutionPerformedTools: 0,
+      gpuRuntimeShouldStartNowTools: 0,
+    },
+    booleans: {
+      externalBetaToolCallRouteMockQueueAdmissionAccepted: true,
+      routeSchemaAccepted: true,
+      approvedPlanSnapshotAccepted: true,
+      creditReservationAccepted: true,
+      privateArtifactManifestAccepted: true,
+      mockOnlyRuntimeModeEnforced: true,
+      agentCanSelectForPlanning: true,
+      agentCanSubmitToolCallToQueueAdmissionNow: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      routeExecutionPerformed: true,
+      backendQueueSubmissionApprovedNow: false,
+      backendQueueSubmissionPerformed: false,
+      liveQueueWriteApprovedNow: false,
+      liveQueueWritePerformed: false,
+      workerExecutionApprovedNow: false,
+      workerEnqueueApprovedNow: false,
+      workerEnqueuePerformed: false,
+      workerDispatchApprovedNow: false,
+      workerDispatchPerformed: false,
+      toolExecutionApprovedNow: false,
+      toolExecutionPerformed: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
 function buildRepresentativeToolCallRequest(
   toolId: string,
   capabilityId: string,
@@ -196,8 +373,17 @@ export function listAiGraphicsExternalBetaToolCallBlockedReadinessCases() {
 export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
   const router = Router()
 
-  router.post(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH, asyncRoute(async (request) => {
+  router.post(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH, asyncRoute(async (request, response) => {
     const body = validateBody(aiGraphicsExternalBetaToolCallRequestSchema, request.body)
+    const serviceContext = getServiceContext(request)
+    if (serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {
+      const admission = await admitAiGraphicsExternalBetaToolCallToMockQueue(
+        body,
+        serviceContext,
+      )
+      sendOk(response, admission, admission.warnings, 202)
+      return
+    }
     throw new ApiError(
       'TOOL_NOT_READY',
       'AI graphics external-beta tool-call route is source-controlled but not approved for runtime execution.',

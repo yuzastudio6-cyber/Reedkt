@@ -100,6 +100,8 @@
     "ai-graphics:external-beta-cpu-static-controlled-tool-call-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-controlled-tool-call-route-smoke-diagnostics.mjs",
     "ai-graphics:external-beta-browser-runtime-controlled-tool-call-route-smoke": "tsx server/cli/ai-graphics-external-beta-browser-runtime-controlled-tool-call-route-smoke.ts",
     "ai-graphics:external-beta-browser-runtime-controlled-tool-call-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-browser-runtime-controlled-tool-call-route-smoke-diagnostics.mjs",
+    "ai-graphics:external-beta-tool-call-route-mock-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-mock-queue-admission-smoke.ts",
+    "ai-graphics:external-beta-tool-call-route-mock-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-mock-queue-admission-smoke-diagnostics.mjs",
     "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission.ts",
     "ai-graphics:external-agent-cpu-static-private-worker-handoff-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-handoff-admission-diagnostics.mjs",
     "ai-graphics:external-agent-cpu-static-private-worker-queue-dry-admission": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-queue-dry-admission.ts",

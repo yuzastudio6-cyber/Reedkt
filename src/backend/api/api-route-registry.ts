@@ -5,6 +5,7 @@ import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
 import { GENERATION_API_ROUTES } from './routes/generation-api-routes'
 import { GPAC_MP4BOX_API_ROUTES } from './routes/gpac-mp4box-api-routes'
+import { GSTREAMER_MKVTOOLNIX_API_ROUTES } from './routes/gstreamer-mkvtoolnix-api-routes'
 import { INTERNAL_BETA_API_ROUTES } from './routes/internal-beta-api-routes'
 import { JOB_API_ROUTES } from './routes/job-api-routes'
 import { MEDIA_UPLOAD_API_ROUTES } from './routes/media-upload-api-routes'
@@ -37,6 +38,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...GENERATION_API_ROUTES,
   ...RENDER_API_ROUTES,
   ...GPAC_MP4BOX_API_ROUTES,
+  ...GSTREAMER_MKVTOOLNIX_API_ROUTES,
   ...INTERNAL_BETA_API_ROUTES,
   ...MUSIC_API_ROUTES,
   ...SFX_API_ROUTES,

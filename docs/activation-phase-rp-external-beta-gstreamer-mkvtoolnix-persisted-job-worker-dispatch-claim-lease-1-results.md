@@ -26,4 +26,4 @@ Generated artifacts committed: `none`
 
 Product-ready end-to-end local OSS tools: `0`
 
-Next milestone: `RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-WORKER-DISPATCH-CLAIM-LEASE-QA-ROLLUP-1`
+Next milestone: `RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-OWNER-GATE-1`

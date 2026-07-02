@@ -23,21 +23,29 @@ export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH
 export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_CONFIRM_ENV =
   'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE' as const
 
+export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE_CONFIRM_ENV =
+  'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE' as const
+
 export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_ROUTE_PATH =
   '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-claim-lease' as const
 
 export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_NEXT_MILESTONE =
-  'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-WORKER-DISPATCH-CLAIM-LEASE-QA-ROLLUP-1' as const
+  'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-OWNER-GATE-1' as const
 
 export type GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseStatus =
   | 'completed_persisted_job_worker_claim_lease_boundary'
   | 'blocked_missing_gstreamer_mkvtoolnix_persisted_job_worker_claim_lease_confirmation'
+  | 'blocked_missing_gstreamer_mkvtoolnix_remote_worker_claim_lease_confirmation'
   | 'blocked_missing_gstreamer_mkvtoolnix_persisted_job_worker_claim_lease_reference'
   | 'blocked_invalid_gstreamer_mkvtoolnix_persisted_job_worker_claim_lease_state'
   | 'blocked_missing_persisted_job_worker_claim_lease_payload'
   | 'blocked_unsafe_gstreamer_mkvtoolnix_persisted_job_worker_claim_lease_request'
   | 'blocked_remote_worker_claim_requires_separate_owner_confirmation'
   | 'blocked_worker_claim_lease_service_failed'
+
+export type GstreamerMkvtoolnixPersistedJobWorkerClaimLeaseMode =
+  | 'local_mock_claim_lease_no_worker_execution'
+  | 'remote_supabase_worker_claim_lease_no_worker_execution'
 
 export interface GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseInput {
   workspaceId: string
@@ -49,10 +57,11 @@ export interface GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseInput {
   persistedJobPayloadMode: 'persisted_job_payload_to_worker_claim_lease' | string
   persistedJobPayloadJson: GstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationPayload
   persistedJobWorkerClaimLeaseConfirmed: boolean
+  remoteWorkerClaimLeaseConfirmed?: boolean
   workerType: 'gstreamer_mkvtoolnix_generated_fixture_worker' | string
   workerInstanceId: string
   leaseExpiresAt: string
-  claimLeaseMode: 'local_mock_claim_lease_no_worker_execution' | string
+  claimLeaseMode: GstreamerMkvtoolnixPersistedJobWorkerClaimLeaseMode | string
   routeIdempotencyKey: string
   routeExecutionRequestedNow?: boolean
   workerDispatchRequestedNow?: boolean
@@ -104,7 +113,8 @@ export interface GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseResult {
     routeIdempotencyKey: string
     persistedPayloadAccepted: boolean
     runtimeInvocationBodyAccepted: boolean
-    workerLeaseClaim: 'completed_local_mock_claim_only' | false
+    claimLeaseMode: GstreamerMkvtoolnixPersistedJobWorkerClaimLeaseMode | string
+    workerLeaseClaim: 'completed_local_mock_claim_only' | 'completed_remote_worker_claim_only' | false
     workerDispatch: false
     workerExecution: false
     workerProcessStart: false
@@ -114,7 +124,7 @@ export interface GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseResult {
     mediaProcessing: false
     privateMediaProcessing: false
     userMediaProcessing: false
-    supabaseMutation: false
+    supabaseMutation: 'worker_claim_lease_only' | false
     sqlExecution: false
     signedUrlCreation: false
     publicArtifactCreation: false
@@ -123,7 +133,7 @@ export interface GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseResult {
   safety: {
     routeHandlerInvocation: 'completed_guarded_persisted_job_worker_claim_lease_handler' | 'not_run_blocked_before_claim'
     localMockWorkerLeaseClaim: 'completed' | false
-    remoteWorkerClaim: false
+    remoteWorkerClaim: 'completed' | false
     workerDispatch: false
     workerExecution: false
     workerProcessStart: false
@@ -137,7 +147,7 @@ export interface GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseResult {
     dockerExecution: false
     dockerPushDeploy: false
     remotionExecution: false
-    supabaseMutation: false
+    supabaseMutation: 'worker_claim_lease_only' | false
     sqlExecution: false
     secretPayloadAccess: false
     serviceRoleSecretPayloadAccess: false
@@ -200,6 +210,7 @@ export function buildGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseInpu
     persistedJobPayloadMode: overrides.persistedJobPayloadMode ?? 'persisted_job_payload_to_worker_claim_lease',
     persistedJobPayloadJson: overrides.persistedJobPayloadJson ?? persistedRouteInvocation.persistedJobPayloadJson,
     persistedJobWorkerClaimLeaseConfirmed: overrides.persistedJobWorkerClaimLeaseConfirmed ?? true,
+    remoteWorkerClaimLeaseConfirmed: overrides.remoteWorkerClaimLeaseConfirmed ?? false,
     workerType: overrides.workerType ?? 'gstreamer_mkvtoolnix_generated_fixture_worker',
     workerInstanceId: overrides.workerInstanceId ?? 'local-gstreamer-mkvtoolnix-generated-fixture-worker-1',
     leaseExpiresAt: overrides.leaseExpiresAt ?? '2026-07-02T13:45:00.000Z',
@@ -263,7 +274,10 @@ export function validateGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseI
     input.persistedJobType !== RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_JOB_TYPE ||
     input.persistedJobPayloadMode !== 'persisted_job_payload_to_worker_claim_lease' ||
     input.workerType !== 'gstreamer_mkvtoolnix_generated_fixture_worker' ||
-    input.claimLeaseMode !== 'local_mock_claim_lease_no_worker_execution' ||
+    ![
+      'local_mock_claim_lease_no_worker_execution',
+      'remote_supabase_worker_claim_lease_no_worker_execution',
+    ].includes(input.claimLeaseMode) ||
     payload?.packet !== RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PACKET ||
     payload?.runtimeInvocationRoutePath !== '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/invoke' ||
     runtimeBody?.workspaceId !== input.workspaceId ||
@@ -333,6 +347,9 @@ function buildResult(
   claim?: unknown,
   warnings: string[] = [],
 ): GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseResult {
+  const remoteClaimMode = input.claimLeaseMode === 'remote_supabase_worker_claim_lease_no_worker_execution'
+  const completedLocalClaim = ok && !remoteClaimMode
+  const completedRemoteClaim = ok && remoteClaimMode
   return {
     packet: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_PACKET,
     decision: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_DECISION,
@@ -359,7 +376,12 @@ function buildResult(
       routeIdempotencyKey: input.routeIdempotencyKey,
       persistedPayloadAccepted: ok,
       runtimeInvocationBodyAccepted: ok,
-      workerLeaseClaim: ok ? 'completed_local_mock_claim_only' : false,
+      claimLeaseMode: input.claimLeaseMode,
+      workerLeaseClaim: completedRemoteClaim
+        ? 'completed_remote_worker_claim_only'
+        : completedLocalClaim
+          ? 'completed_local_mock_claim_only'
+          : false,
       workerDispatch: false,
       workerExecution: false,
       workerProcessStart: false,
@@ -369,7 +391,7 @@ function buildResult(
       mediaProcessing: false,
       privateMediaProcessing: false,
       userMediaProcessing: false,
-      supabaseMutation: false,
+      supabaseMutation: completedRemoteClaim ? 'worker_claim_lease_only' : false,
       sqlExecution: false,
       signedUrlCreation: false,
       publicArtifactCreation: false,
@@ -377,8 +399,8 @@ function buildResult(
     },
     safety: {
       routeHandlerInvocation: ok ? 'completed_guarded_persisted_job_worker_claim_lease_handler' : 'not_run_blocked_before_claim',
-      localMockWorkerLeaseClaim: ok ? 'completed' : false,
-      remoteWorkerClaim: false,
+      localMockWorkerLeaseClaim: completedLocalClaim ? 'completed' : false,
+      remoteWorkerClaim: completedRemoteClaim ? 'completed' : false,
       workerDispatch: false,
       workerExecution: false,
       workerProcessStart: false,
@@ -392,7 +414,7 @@ function buildResult(
       dockerExecution: false,
       dockerPushDeploy: false,
       remotionExecution: false,
-      supabaseMutation: false,
+      supabaseMutation: completedRemoteClaim ? 'worker_claim_lease_only' : false,
       sqlExecution: false,
       secretPayloadAccess: false,
       serviceRoleSecretPayloadAccess: false,
@@ -414,11 +436,23 @@ export async function runGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLease
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<GstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseResult> {
   const blockers = validateGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseInput(input)
+  const remoteClaimMode = input.claimLeaseMode === 'remote_supabase_worker_claim_lease_no_worker_execution'
+  const hasRemoteAdminContext = Boolean(context.clients.admin && !context.env.mockOnly)
 
   if (env[RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_CONFIRM_ENV] !== 'true') {
     pushOnce(blockers, 'blocked_missing_gstreamer_mkvtoolnix_persisted_job_worker_claim_lease_confirmation')
   }
-  if (!context.env.mockOnly || context.clients.admin) {
+  if (remoteClaimMode) {
+    if (
+      !input.remoteWorkerClaimLeaseConfirmed ||
+      env[RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE_CONFIRM_ENV] !== 'true'
+    ) {
+      pushOnce(blockers, 'blocked_missing_gstreamer_mkvtoolnix_remote_worker_claim_lease_confirmation')
+    }
+    if (!hasRemoteAdminContext) {
+      pushOnce(blockers, 'blocked_remote_worker_claim_requires_separate_owner_confirmation')
+    }
+  } else if (hasRemoteAdminContext) {
     pushOnce(blockers, 'blocked_remote_worker_claim_requires_separate_owner_confirmation')
   }
   if (blockers.length > 0) {
@@ -447,7 +481,7 @@ export function summarizeGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLease
   return [
     'Consumes the persisted generated-fixture job payload and validates a local/mock worker lease claim boundary.',
     'Requires REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE=true before claim-lease validation runs.',
-    'Blocks remote Supabase worker-claim mutation until a separate explicitly confirmed owner packet approves remote claim/lease validation.',
+    'Remote Supabase worker-claim mutation is limited to claimLeaseMode=remote_supabase_worker_claim_lease_no_worker_execution and requires REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE=true plus payload confirmation.',
     'Does not dispatch or execute a worker, run GStreamer/MKVToolNix, process private/user media, create public artifacts, or unlock beta/production/final export.',
   ]
 }

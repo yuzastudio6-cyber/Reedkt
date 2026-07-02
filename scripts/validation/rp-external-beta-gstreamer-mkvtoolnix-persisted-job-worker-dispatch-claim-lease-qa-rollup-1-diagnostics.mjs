@@ -23,8 +23,34 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1.md',
 ]
 
+const claimLeasePacketFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1/gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1-results.md',
+]
+
+const remoteOwnerGateFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/owner-gate.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-diagnostics.mjs',
+]
+
+const sourceFiles = [
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1-smoke.ts',
+  'server/validation/worker-schemas.ts',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...claimLeasePacketFiles,
+  ...remoteOwnerGateFiles,
+  ...sourceFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-qa-rollup-1-diagnostics.mjs',

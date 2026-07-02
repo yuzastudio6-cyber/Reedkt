@@ -9,7 +9,7 @@ const decision = 'completed_gstreamer_mkvtoolnix_persisted_job_worker_claim_leas
 const execution = 'completed_local_mock_worker_claim_lease_no_worker_execution_or_tool_execution'
 const routePath = '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-claim-lease'
 const mergeSha2139 = 'e1f3e3a661c5fd8299d4a85189c86670a4db2568'
-const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-WORKER-DISPATCH-CLAIM-LEASE-QA-ROLLUP-1'
+const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-OWNER-GATE-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
@@ -40,10 +40,22 @@ const sourceFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1-diagnostics.mjs',
 ]
 
+const remoteOwnerGateFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/owner-gate.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1/gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...sourceFiles,
   ...qaRollupFiles,
+  ...remoteOwnerGateFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-qa-rollup-1-diagnostics.mjs',
@@ -58,7 +70,9 @@ const requiredText = [
   'local_mock_claim_lease_no_worker_execution',
   'gstreamer_mkvtoolnix_generated_fixture_worker',
   'completed_local_mock_claim_only',
-  'remote worker-claim mutation',
+  'worker-claim mutation',
+  'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE',
+  'remote_supabase_worker_claim_lease_no_worker_execution',
   '#2139',
   mergeSha2139,
   '#577 open_draft_blocked_excluded',
@@ -198,8 +212,8 @@ const schema = read('server/validation/worker-schemas.ts')
 if (!schema.includes('gstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseSchema')) {
   fail('worker schema missing claim lease schema')
 }
-if (!schema.includes("z.literal('local_mock_claim_lease_no_worker_execution')")) {
-  fail('schema missing claim lease mode literal')
+if (!schema.includes("z.enum([") || !schema.includes('local_mock_claim_lease_no_worker_execution')) {
+  fail('schema missing claim lease mode enum')
 }
 
 const record = json(recordPath)

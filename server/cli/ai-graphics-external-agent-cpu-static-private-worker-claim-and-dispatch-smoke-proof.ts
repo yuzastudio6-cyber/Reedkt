@@ -47,7 +47,7 @@ function optionalJsonFlag<T>(flag: string): T | undefined {
 function makeMarkdown(report: Report): string {
   const rows = report.rows
     .map((row) =>
-      `| \`${row.toolId}\` | \`${row.runtimeTarget}\` | \`${row.workerClaimAndDispatchSmokeProofStatus}\` | \`${row.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence}\` | \`${row.workerClaimsAcceptedWithProvidedEvidence}\` | \`${row.workerDispatchHandoffsAcceptedWithProvidedEvidence}\` | \`${row.workerDispatchLeasesReleasedWithProvidedEvidence}\` | \`${row.toolExecutionApprovedNow}\` | ${row.blocker} |`,
+      `| \`${row.toolId}\` | \`${row.runtimeTarget}\` | \`${row.workerClaimAndDispatchSmokeProofStatus}\` | \`${row.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence}\` | \`${row.sourceQueueWriteSmokeJobId}\` | \`${row.workerClaimAndDispatchJobId}\` | \`${row.workerClaimsAcceptedWithProvidedEvidence}\` | \`${row.workerDispatchHandoffsAcceptedWithProvidedEvidence}\` | \`${row.workerDispatchLeasesReleasedWithProvidedEvidence}\` | \`${row.toolExecutionApprovedNow}\` | ${row.blocker} |`,
     )
     .join('\n')
   const rejectionReasons = report.rejectionReasons.length > 0
@@ -74,8 +74,10 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 ## Proof State
 
 - Source queue-write smoke proof accepted tools: \`${report.counts.sourceQueueWriteSmokeProofAcceptedTools}\`
+- Source queue-write smoke trace accepted with provided evidence: \`${report.counts.sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools}\`
 - Saved worker claim and dispatch smoke accepted tools with provided evidence: \`${report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence}\`
 - Exact request lineages preserved with provided evidence: \`${report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools}\`
+- Worker claim and dispatch trace accepted with provided evidence: \`${report.counts.workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools}\`
 - Saved worker claim and dispatch smoke rejected tools: \`${report.counts.savedWorkerClaimAndDispatchSmokeRejectedTools}\`
 - Queue rows read accepted with provided evidence: \`${report.counts.queueRowsReadAcceptedWithProvidedEvidence}\`
 - Worker claims accepted with provided evidence: \`${report.counts.workerClaimsAcceptedWithProvidedEvidence}\`
@@ -102,8 +104,8 @@ ${rejectionReasons}
 
 ## Tool Rows
 
-| Tool | Runtime target | Proof status | Accepted evidence | Worker claims | Dispatch handoffs | Leases released | Tool execution now | Blocker |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Tool | Runtime target | Proof status | Accepted evidence | Source queue job id | Worker claim job id | Worker claims | Dispatch handoffs | Leases released | Tool execution now | Blocker |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Runtime Boundary
@@ -143,8 +145,10 @@ function makePromptResult(report: Report): string {
 - Decision: \`${report.decision}\`
 - Status: \`${report.status}\`
 - Source queue-write smoke proof accepted tools: \`${report.counts.sourceQueueWriteSmokeProofAcceptedTools}\`
+- Source queue-write smoke trace accepted tools: \`${report.counts.sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools}\`
 - Saved worker claim and dispatch smoke accepted tools: \`${report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence}\`
 - Exact request lineages preserved: \`${report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools}\`
+- Worker claim and dispatch trace accepted tools: \`${report.counts.workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools}\`
 - Worker dispatch handoffs accepted with provided evidence: \`${report.counts.workerDispatchHandoffsAcceptedWithProvidedEvidence}\`
 - Worker executions performed now: \`${report.counts.workerExecutionsPerformedNow}\`
 - Tool executions performed now: \`${report.counts.toolExecutionsPerformedNow}\`
@@ -180,8 +184,10 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 - Decision: \`${report.decision}\`
 - Status: \`${report.status}\`
 - Source queue-write smoke proof accepted tools: \`${report.counts.sourceQueueWriteSmokeProofAcceptedTools}\`
+- Source queue-write smoke trace accepted tools: \`${report.counts.sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools}\`
 - Saved worker claim and dispatch smoke accepted tools: \`${report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence}\`
 - Exact request lineages preserved: \`${report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools}\`
+- Worker claim and dispatch trace accepted tools: \`${report.counts.workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools}\`
 - External-agent executable now tools: \`${report.counts.externalAgentExecutableNowTools}\`
 - GPU runtime starts now: \`${report.counts.gpuRuntimeShouldStartNowTools}\`
 
@@ -238,12 +244,16 @@ if (process.argv.includes('--print-only')) {
     status: report.status,
     sourceQueueWriteSmokeProofAcceptedTools:
       report.counts.sourceQueueWriteSmokeProofAcceptedTools,
+    sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools:
+      report.counts.sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools,
     sourceExactExecutionAdmissionAccepted:
       report.booleans.sourceExactExecutionAdmissionAccepted,
     savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence:
       report.counts.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence,
     exactRequestLineagePreservedWithProvidedEvidenceTools:
       report.counts.exactRequestLineagePreservedWithProvidedEvidenceTools,
+    workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools:
+      report.counts.workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools,
     externalAgentExecutableNowTools: report.counts.externalAgentExecutableNowTools,
     agentCanExecuteToolsNow: report.booleans.agentCanExecuteToolsNow,
     gpuRuntimeShouldStartNow: report.booleans.gpuRuntimeShouldStartNow,

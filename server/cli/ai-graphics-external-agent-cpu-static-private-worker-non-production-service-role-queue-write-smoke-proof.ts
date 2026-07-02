@@ -42,7 +42,7 @@ function optionalJsonFlag<T>(flag: string): T | undefined {
 function makeMarkdown(report: Report): string {
   const rows = report.rows
     .map((row) =>
-      `| \`${row.toolId}\` | \`${row.runtimeTarget}\` | \`${row.serviceRoleQueueWriteSmokeProofStatus}\` | \`${row.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence}\` | \`${row.queueRowsWrittenWithProvidedEvidence}\` | \`${row.queueRowsPersistedAfterCleanup}\` | \`${row.workerDispatchApprovedNow}\` | \`${row.toolExecutionApprovedNow}\` | ${row.blocker} |`,
+      `| \`${row.toolId}\` | \`${row.runtimeTarget}\` | \`${row.serviceRoleQueueWriteSmokeProofStatus}\` | \`${row.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence}\` | \`${row.queueRowsWrittenWithProvidedEvidence}\` | \`${row.queueRowsPersistedAfterCleanup}\` | \`${row.serviceRoleQueueWriteSmokeJobBatchId}\` | \`${row.serviceRoleQueueWriteSmokeJobId}\` | \`${row.serviceRoleQueueWriteSmokeIdempotencyPrefix}\` | \`${row.workerDispatchApprovedNow}\` | \`${row.toolExecutionApprovedNow}\` | ${row.blocker} |`,
     )
     .join('\n')
   const rejectionReasons = report.rejectionReasons.length > 0
@@ -78,6 +78,7 @@ This packet validates a saved non-production service-role queue-write smoke resu
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
 - Saved smoke result rejected tools: \`${report.counts.savedSmokeResultRejectedTools}\`
 - Service-role queue writes accepted with provided evidence: \`${report.counts.serviceRoleQueueWritesAcceptedWithProvidedEvidence}\`
+- Service-role queue-write trace accepted with provided evidence: \`${report.counts.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence}\`
 - Queue rows persisted after cleanup: \`${report.counts.queueRowsPersistedAfterCleanup}\`
 - Worker claims created now: \`${report.counts.workerClaimsCreatedNow}\`
 - Worker dispatches performed now: \`${report.counts.workerDispatchesPerformedNow}\`
@@ -113,8 +114,8 @@ ${requiredFields}
 
 ## Tool Rows
 
-| Tool | Runtime target | Proof status | Accepted evidence | Queue rows | Persisted after cleanup | Worker dispatch now | Tool execution now | Blocker |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Tool | Runtime target | Proof status | Accepted evidence | Queue rows | Persisted after cleanup | Job batch | Job id | Idempotency prefix | Worker dispatch now | Tool execution now | Blocker |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Runtime Boundary
@@ -156,6 +157,7 @@ function makePromptResult(report: Report): string {
 - Status: \`${report.status}\`
 - Source preflight ready tools: \`${report.counts.sourcePreflightReadyTools}\`
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
+- Service-role queue-write trace accepted with provided evidence: \`${report.counts.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence}\`
 - Operator result template rows: \`${report.operatorResultTemplate.perToolQueueRows.length}\`
 - Operator result template can be accepted without live smoke: \`${report.operatorResultTemplate.canBeUsedAsAcceptedResultWithoutLiveSmoke}\`
 - Operator preflight command: \`${report.operatorResultTemplate.operatorPreflightCommand}\`
@@ -197,6 +199,7 @@ Implemented the saved-result validator for the CPU/static private-worker non-pro
 - Status: \`${report.status}\`
 - Source preflight ready tools: \`${report.counts.sourcePreflightReadyTools}\`
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
+- Service-role queue-write trace accepted with provided evidence: \`${report.counts.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence}\`
 - Operator result template rows: \`${report.operatorResultTemplate.perToolQueueRows.length}\`
 - Operator result template local-only output path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
 - Operator preflight command: \`${report.operatorResultTemplate.operatorPreflightCommand}\`
@@ -245,6 +248,8 @@ if (process.argv.includes('--print-only')) {
     sourcePreflightReadyTools: report.counts.sourcePreflightReadyTools,
     savedSmokeResultAcceptedToolsWithProvidedEvidence:
       report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence,
+    serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence:
+      report.counts.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence,
     externalAgentExecutableNowTools: report.counts.externalAgentExecutableNowTools,
     agentCanExecuteToolsNow: report.booleans.agentCanExecuteToolsNow,
     gpuRuntimeShouldStartNow: report.booleans.gpuRuntimeShouldStartNow,

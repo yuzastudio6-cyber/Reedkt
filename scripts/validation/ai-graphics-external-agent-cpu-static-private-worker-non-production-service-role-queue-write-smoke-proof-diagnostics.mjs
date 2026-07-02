@@ -136,6 +136,22 @@ function validSmokeResult() {
     queueName: 'ai_graphics_external_agent_cpu_static_private_worker_queue',
     toolsSubmitted: 5,
     toolsSubmittedIds: proofTools,
+    jobBatchId: 'job-batch-ai-graphics-cpu-static-queue-smoke-0001',
+    jobIds: [
+      'job-ai-graphics-cpu-static-queue-smoke-d3',
+      'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      'job-ai-graphics-cpu-static-queue-smoke-vega',
+      'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    ],
+    jobIdByToolId: {
+      d3: 'job-ai-graphics-cpu-static-queue-smoke-d3',
+      vega_lite: 'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      vega: 'job-ai-graphics-cpu-static-queue-smoke-vega',
+      svgdotjs_svg_js: 'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      viz_js: 'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    },
+    idempotencyPrefix: 'ai_graphics_cpu_static_queue_write_smoke_0001',
     queueRowsWritten: 5,
     queueRowsCleanedUp: 5,
     queueRowsPersistedAfterCleanup: 0,
@@ -256,6 +272,10 @@ function assertOperatorTemplate(label, template) {
     }
   }
   for (const field of [
+    'jobBatchId',
+    'jobIds',
+    'jobIdByToolId',
+    'idempotencyPrefix',
     'liveServiceRoleQueueWriteSmokeExecutedNow',
     'liveSupabaseQueueWritesNow',
     'queueRowsPersistedAfterCleanup',
@@ -353,6 +373,9 @@ if (docs.counts?.sourcePreflightReadyTools !== 5) fail('docs_source_preflight_re
 if (docs.counts?.savedSmokeResultAcceptedToolsWithProvidedEvidence !== 0) {
   fail('docs_saved_smoke_result_should_not_be_accepted_without_result')
 }
+if (docs.counts?.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence !== 0) {
+  fail('docs_queue_write_trace_should_not_be_accepted_without_result')
+}
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_zero')
 if (docs.counts?.gpuRuntimeShouldStartNowTools !== 0) fail('docs_gpu_start_now_not_zero')
 assertOperatorTemplate('docs', docs.operatorResultTemplate)
@@ -377,6 +400,7 @@ for (const [key, expected] of Object.entries({
   savedNonProductionServiceRoleQueueWriteSmokeResultProvided: false,
   serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence: false,
   allFiveCpuStaticSavedSmokeResultsAcceptedWithProvidedEvidence: false,
+  queueWriteSmokeTracePreservedWithProvidedEvidence: false,
   cleanupVerifiedWithProvidedEvidence: false,
   serverOnlyServiceRoleCredentialsRequired: true,
   nonProductionEnvironmentRequired: true,
@@ -435,6 +459,9 @@ if (acceptedOutput.counts?.savedSmokeResultAcceptedToolsWithProvidedEvidence !==
 if (acceptedOutput.counts?.serviceRoleQueueWritesAcceptedWithProvidedEvidence !== 5) {
   fail('accepted_output_queue_writes_not_5')
 }
+if (acceptedOutput.counts?.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence !== 5) {
+  fail('accepted_output_queue_trace_not_5')
+}
 if (acceptedOutput.counts?.queueRowsPersistedAfterCleanup !== 0) {
   fail('accepted_output_cleanup_not_zero')
 }
@@ -444,8 +471,23 @@ for (const key of falseBooleanKeys) {
 if (acceptedOutput.booleans?.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence !== true) {
   fail('accepted_output_proof_not_accepted')
 }
+if (acceptedOutput.booleans?.queueWriteSmokeTracePreservedWithProvidedEvidence !== true) {
+  fail('accepted_output_queue_trace_not_true')
+}
 if (acceptedOutput.booleans?.agentCanExecuteToolsNow !== false) {
   fail('accepted_output_agent_execute_not_false')
+}
+for (const toolId of proofTools) {
+  const row = acceptedOutput.rows?.find((candidate) => candidate.toolId === toolId)
+  if (!String(row?.serviceRoleQueueWriteSmokeJobBatchId ?? '').startsWith('job-batch-')) {
+    fail(`accepted_output_missing_job_batch_trace:${toolId}`)
+  }
+  if (!String(row?.serviceRoleQueueWriteSmokeJobId ?? '').startsWith('job-')) {
+    fail(`accepted_output_missing_job_id_trace:${toolId}`)
+  }
+  if (!String(row?.serviceRoleQueueWriteSmokeIdempotencyPrefix ?? '').includes('smoke')) {
+    fail(`accepted_output_missing_idempotency_trace:${toolId}`)
+  }
 }
 assertOperatorTemplate('accepted_output', acceptedOutput.operatorResultTemplate)
 

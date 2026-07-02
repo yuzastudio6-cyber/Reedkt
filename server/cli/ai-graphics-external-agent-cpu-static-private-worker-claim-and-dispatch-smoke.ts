@@ -8,7 +8,6 @@ import {
   type AiGraphicsCanonicalToolId,
 } from '../tool-registry/ai-graphics-tool-call-readiness'
 import {
-  AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF_DECISION,
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
 import {
@@ -135,13 +134,12 @@ function flagValueRejection(flag: string, value: string): string | null {
 function invalidFlagValueFindings(): Array<{ flag: string; value: string; reason: string }> {
   return requiredFlags
     .filter((flag) => flag !== executeFlag)
-    .map((flag) => {
+    .flatMap((flag): Array<{ flag: string; value: string; reason: string }> => {
       const value = valueAfterFlag(flag)
-      if (!value) return undefined
+      if (!value) return []
       const reason = flagValueRejection(flag, value)
-      return reason ? { flag, value, reason } : undefined
+      return reason ? [{ flag, value, reason }] : []
     })
-    .filter((entry): entry is { flag: string; value: string; reason: string } => Boolean(entry))
 }
 
 function envValueRejection(name: string, value: string | undefined): string | null {
@@ -532,6 +530,7 @@ function requireAcceptedQueueWriteSmokeProof(
     packet.queueName === AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME &&
     packet.counts?.savedSmokeResultAcceptedToolsWithProvidedEvidence === 5 &&
     packet.counts?.serviceRoleQueueWritesAcceptedWithProvidedEvidence === 5 &&
+    packet.counts?.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence === 5 &&
     packet.counts?.queueRowsPersistedAfterCleanup === 0 &&
     packet.counts?.workerClaimsCreatedNow === 0 &&
     packet.counts?.workerDispatchesPerformedNow === 0 &&
@@ -539,6 +538,7 @@ function requireAcceptedQueueWriteSmokeProof(
     packet.counts?.toolExecutionsPerformedNow === 0 &&
     packet.booleans?.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence === true &&
     packet.booleans?.allFiveCpuStaticSavedSmokeResultsAcceptedWithProvidedEvidence === true &&
+    packet.booleans?.queueWriteSmokeTracePreservedWithProvidedEvidence === true &&
     packet.booleans?.cleanupVerifiedWithProvidedEvidence === true &&
     packet.booleans?.agentCanExecuteToolsNow === false &&
     packet.booleans?.workerClaimApprovedNow === false &&
@@ -663,7 +663,7 @@ function buildJobs(
 ) {
   return rows.map((row) => {
     const readiness = getAiGraphicsToolCallReadiness(row.toolId)
-    const capabilityIds = readiness.capabilities.filter(
+    const capabilityIds = (readiness?.capabilities ?? []).filter(
       (capability) =>
         capability !== 'planning_metadata_only' &&
         capability !== 'blocked_or_deferred',
@@ -714,6 +714,29 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport
   >(requiredFlag('--source-service-role-queue-write-smoke-proof-packet'))
   requireAcceptedQueueWriteSmokeProof(sourceQueueWriteSmokeProof)
+  const sourceQueueWriteSmokeRows = sourceQueueWriteSmokeProof.rows.filter(
+    (row) =>
+      proofTools.includes(row.toolId as (typeof proofTools)[number]) &&
+      row.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence === true,
+  )
+  const sourceQueueWriteSmokeJobBatchId =
+    sourceQueueWriteSmokeRows[0]?.serviceRoleQueueWriteSmokeJobBatchId ?? ''
+  const sourceQueueWriteSmokeJobIds = sourceQueueWriteSmokeRows
+    .map((row) => row.serviceRoleQueueWriteSmokeJobId)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const sourceQueueWriteSmokeIdempotencyPrefix =
+    sourceQueueWriteSmokeRows[0]?.serviceRoleQueueWriteSmokeIdempotencyPrefix ?? ''
+  if (
+    sourceQueueWriteSmokeRows.length !== 5 ||
+    sourceQueueWriteSmokeJobIds.length !== 5 ||
+    new Set(sourceQueueWriteSmokeJobIds).size !== 5 ||
+    sourceQueueWriteSmokeJobBatchId.trim().length === 0 ||
+    sourceQueueWriteSmokeIdempotencyPrefix.trim().length === 0
+  ) {
+    throw new Error(
+      'CPU/static worker claim/dispatch smoke requires preserved source queue-write smoke job trace evidence.',
+    )
+  }
   const sourceExactExecutionAdmission = readJsonFile<
     AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport
   >(requiredFlag('--source-exact-execution-admission-packet'))
@@ -774,20 +797,26 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     insertedJobCount?: number
   }
   const jobIds = queueResult.jobIds ?? []
+  const jobBatchId = queueResult.jobBatchId
   if (
     jobIds.length !== 5 ||
+    typeof jobBatchId !== 'string' ||
+    jobBatchId.trim().length === 0 ||
     (typeof queueResult.insertedJobCount === 'number' &&
       queueResult.insertedJobCount !== 5)
   ) {
     await cleanupSmokeRows(admin, {
-      jobBatchId: queueResult.jobBatchId,
+      jobBatchId,
       jobIds,
       idempotencyPrefix,
     })
     throw new Error(
-      `CPU/static worker claim/dispatch smoke expected five inserted rows, received ${jobIds.length}.`,
+      `CPU/static worker claim/dispatch smoke expected five inserted rows and a job batch id, received ${jobIds.length}.`,
     )
   }
+  const jobIdByToolId = Object.fromEntries(
+    jobs.map((job, index) => [job.toolId, jobIds[index]]),
+  ) as Partial<Record<AiGraphicsCanonicalToolId, string>>
 
   const claims = []
   let workerDispatchHandoffsCreated = 0
@@ -815,6 +844,11 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
           runtimeTarget: job.runtimeTarget,
           sourceQueueWriteSmokeProofDecision:
             AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION,
+          sourceQueueWriteSmokeJobBatchId,
+          sourceQueueWriteSmokeJobId: sourceQueueWriteSmokeRows.find(
+            (row) => row.toolId === job.toolId,
+          )?.serviceRoleQueueWriteSmokeJobId,
+          sourceQueueWriteSmokeIdempotencyPrefix,
           sourceExactExecutionAdmissionDecision:
             AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION,
           sourceQueueWriteSmokeProofAccepted: true,
@@ -840,8 +874,11 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
         'ai_graphics_external_agent_cpu_static_worker_claim_and_dispatch_smoke',
       eventJson: {
         idempotencyPrefix,
-        jobBatchId: queueResult.jobBatchId,
+        jobBatchId,
         jobCount: jobIds.length,
+        sourceQueueWriteSmokeJobBatchId,
+        sourceQueueWriteSmokeJobIds,
+        sourceQueueWriteSmokeIdempotencyPrefix,
         sourceQueueWriteSmokeProofAccepted: true,
         sourceExactExecutionAdmissionAccepted: true,
         serviceRoleBoundaryRef,
@@ -858,7 +895,7 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     })
   } finally {
     cleanupSummary = await cleanupSmokeRows(admin, {
-      jobBatchId: queueResult.jobBatchId,
+      jobBatchId,
       jobIds,
       idempotencyPrefix,
     })
@@ -885,6 +922,10 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
     toolsClaimed: 5,
     toolsClaimedIds: [...proofTools] as AiGraphicsCanonicalToolId[],
+    jobBatchId,
+    jobIds,
+    jobIdByToolId,
+    idempotencyPrefix,
     queueRowsRead: 5,
     workerClaimsCreated: 5,
     workerDispatchHandoffsCreated: 5,
@@ -902,6 +943,9 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     sourceQueueWriteSmokeProofDecision:
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION,
     sourceQueueWriteSmokeProofAccepted: true,
+    sourceQueueWriteSmokeJobBatchId,
+    sourceQueueWriteSmokeJobIds,
+    sourceQueueWriteSmokeIdempotencyPrefix,
     liveWorkerClaimAndDispatchSmokeExecutedNow: true,
     publicArtifactCreated: false,
     signedUrlCreated: false,

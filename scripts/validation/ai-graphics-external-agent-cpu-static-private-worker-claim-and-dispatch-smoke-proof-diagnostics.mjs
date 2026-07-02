@@ -161,6 +161,22 @@ function acceptedQueueWriteSmokeResult() {
     queueName,
     toolsSubmitted: 5,
     toolsSubmittedIds: proofTools,
+    jobBatchId: 'job-batch-ai-graphics-cpu-static-queue-smoke-0001',
+    jobIds: [
+      'job-ai-graphics-cpu-static-queue-smoke-d3',
+      'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      'job-ai-graphics-cpu-static-queue-smoke-vega',
+      'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    ],
+    jobIdByToolId: {
+      d3: 'job-ai-graphics-cpu-static-queue-smoke-d3',
+      vega_lite: 'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      vega: 'job-ai-graphics-cpu-static-queue-smoke-vega',
+      svgdotjs_svg_js: 'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      viz_js: 'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    },
+    idempotencyPrefix: 'ai_graphics_cpu_static_queue_write_smoke_0001',
     queueRowsWritten: 5,
     queueRowsCleanedUp: 5,
     queueRowsPersistedAfterCleanup: 0,
@@ -203,6 +219,22 @@ function acceptedClaimAndDispatchSmokeResult(overrides = {}) {
     queueName,
     toolsClaimed: 5,
     toolsClaimedIds: proofTools,
+    jobBatchId: 'job-batch-ai-graphics-cpu-static-claim-dispatch-smoke-0001',
+    jobIds: [
+      'job-ai-graphics-cpu-static-claim-dispatch-d3',
+      'job-ai-graphics-cpu-static-claim-dispatch-vega-lite',
+      'job-ai-graphics-cpu-static-claim-dispatch-vega',
+      'job-ai-graphics-cpu-static-claim-dispatch-svgdotjs',
+      'job-ai-graphics-cpu-static-claim-dispatch-viz-js',
+    ],
+    jobIdByToolId: {
+      d3: 'job-ai-graphics-cpu-static-claim-dispatch-d3',
+      vega_lite: 'job-ai-graphics-cpu-static-claim-dispatch-vega-lite',
+      vega: 'job-ai-graphics-cpu-static-claim-dispatch-vega',
+      svgdotjs_svg_js: 'job-ai-graphics-cpu-static-claim-dispatch-svgdotjs',
+      viz_js: 'job-ai-graphics-cpu-static-claim-dispatch-viz-js',
+    },
+    idempotencyPrefix: 'ai_graphics_cpu_static_claim_dispatch_smoke_0001',
     queueRowsRead: 5,
     workerClaimsCreated: 5,
     workerDispatchHandoffsCreated: 5,
@@ -226,6 +258,15 @@ function acceptedClaimAndDispatchSmokeResult(overrides = {}) {
     sourceQueueWriteSmokeProofDecision:
       'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_validator_prepared_with_runtime_blocks',
     sourceQueueWriteSmokeProofAccepted: true,
+    sourceQueueWriteSmokeJobBatchId: 'job-batch-ai-graphics-cpu-static-queue-smoke-0001',
+    sourceQueueWriteSmokeJobIds: [
+      'job-ai-graphics-cpu-static-queue-smoke-d3',
+      'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      'job-ai-graphics-cpu-static-queue-smoke-vega',
+      'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    ],
+    sourceQueueWriteSmokeIdempotencyPrefix: 'ai_graphics_cpu_static_queue_write_smoke_0001',
     liveWorkerClaimAndDispatchSmokeExecutedNow: true,
     publicArtifactCreated: false,
     signedUrlCreated: false,
@@ -308,11 +349,17 @@ if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_total_tools_not_21')
 if (docs.counts?.sourceQueueWriteSmokeProofAcceptedTools !== 0) {
   fail('docs_source_queue_proof_tools_not_0')
 }
+if (docs.counts?.sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_source_queue_trace_tools_not_0')
+}
 if (docs.counts?.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence !== 0) {
   fail('docs_saved_claim_dispatch_tools_not_0')
 }
 if (docs.counts?.exactRequestLineagePreservedWithProvidedEvidenceTools !== 0) {
   fail('docs_exact_request_lineage_not_0')
+}
+if (docs.counts?.workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_claim_dispatch_trace_not_0')
 }
 if (docs.counts?.workerClaimsAcceptedWithProvidedEvidence !== 0) {
   fail('docs_worker_claims_not_0')
@@ -346,6 +393,19 @@ if (docs.booleans?.sourceExactExecutionAdmissionAccepted !== true) {
 if (docs.booleans?.agentCanSelectForPlanning !== true) {
   fail('docs_agent_planning_not_true')
 }
+for (const field of [
+  'jobBatchId',
+  'jobIds',
+  'jobIdByToolId',
+  'idempotencyPrefix',
+  'sourceQueueWriteSmokeJobBatchId',
+  'sourceQueueWriteSmokeJobIds',
+  'sourceQueueWriteSmokeIdempotencyPrefix',
+]) {
+  if (!docs.operatorResultTemplate?.requiredResultFields?.includes(field)) {
+    fail(`docs_operator_template_missing_trace_result_field:${field}`)
+  }
+}
 
 for (const phrase of [
   'validates a saved non-production worker claim and dispatch handoff smoke result',
@@ -377,11 +437,17 @@ if (acceptedReport.status !== acceptedStatus) fail('accepted_fixture_status_mism
 if (acceptedReport.counts?.sourceQueueWriteSmokeProofAcceptedTools !== 5) {
   fail('accepted_fixture_source_queue_proof_tools_not_5')
 }
+if (acceptedReport.counts?.sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_fixture_source_queue_trace_tools_not_5')
+}
 if (acceptedReport.counts?.savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence !== 5) {
   fail('accepted_fixture_claim_dispatch_tools_not_5')
 }
 if (acceptedReport.counts?.exactRequestLineagePreservedWithProvidedEvidenceTools !== 5) {
   fail('accepted_fixture_exact_request_lineage_tools_not_5')
+}
+if (acceptedReport.counts?.workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_fixture_worker_claim_dispatch_trace_tools_not_5')
 }
 if (acceptedReport.counts?.queueRowsReadAcceptedWithProvidedEvidence !== 5) {
   fail('accepted_fixture_queue_rows_read_not_5')
@@ -412,6 +478,12 @@ if (acceptedReport.booleans?.sourceExactExecutionAdmissionAccepted !== true) {
 }
 if (acceptedReport.booleans?.allFiveCpuStaticExactRequestLineagesPreservedWithProvidedEvidence !== true) {
   fail('accepted_fixture_exact_request_lineage_not_true')
+}
+if (acceptedReport.booleans?.sourceQueueWriteSmokeTracePreservedWithProvidedEvidence !== true) {
+  fail('accepted_fixture_source_queue_trace_not_true')
+}
+if (acceptedReport.booleans?.workerClaimAndDispatchTracePreservedWithProvidedEvidence !== true) {
+  fail('accepted_fixture_worker_claim_dispatch_trace_not_true')
 }
 if (acceptedReport.booleans?.cleanupVerifiedWithProvidedEvidence !== true) {
   fail('accepted_fixture_cleanup_not_true')
@@ -445,6 +517,24 @@ for (const toolId of proofTools) {
   ]
   if (!lineageChecks.every(Boolean)) {
     fail(`accepted_fixture_invalid_exact_lineage:${toolId}`)
+  }
+  if (!String(row.sourceQueueWriteSmokeJobBatchId ?? '').startsWith('job-batch-')) {
+    fail(`accepted_fixture_missing_source_queue_job_batch_trace:${toolId}`)
+  }
+  if (!String(row.sourceQueueWriteSmokeJobId ?? '').startsWith('job-')) {
+    fail(`accepted_fixture_missing_source_queue_job_id_trace:${toolId}`)
+  }
+  if (!String(row.sourceQueueWriteSmokeIdempotencyPrefix ?? '').includes('smoke')) {
+    fail(`accepted_fixture_missing_source_queue_idempotency_trace:${toolId}`)
+  }
+  if (!String(row.workerClaimAndDispatchJobBatchId ?? '').startsWith('job-batch-')) {
+    fail(`accepted_fixture_missing_worker_claim_dispatch_job_batch_trace:${toolId}`)
+  }
+  if (!String(row.workerClaimAndDispatchJobId ?? '').startsWith('job-')) {
+    fail(`accepted_fixture_missing_worker_claim_dispatch_job_id_trace:${toolId}`)
+  }
+  if (!String(row.workerClaimAndDispatchIdempotencyPrefix ?? '').includes('smoke')) {
+    fail(`accepted_fixture_missing_worker_claim_dispatch_idempotency_trace:${toolId}`)
   }
 }
 

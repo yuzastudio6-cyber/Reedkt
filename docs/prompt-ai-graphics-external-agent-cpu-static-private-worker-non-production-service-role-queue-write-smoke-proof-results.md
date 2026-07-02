@@ -6,6 +6,7 @@
 - Status: `blocked_pending_saved_non_production_service_role_queue_write_smoke_result`
 - Source preflight ready tools: `5`
 - Saved smoke result accepted tools with provided evidence: `0`
+- Service-role queue-write trace accepted with provided evidence: `0`
 - Operator result template rows: `5`
 - Operator result template can be accepted without live smoke: `false`
 - Operator preflight command: `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke -- --operator-preflight --execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke --source-non-production-service-role-queue-write-smoke-preflight-packet docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json --workspace-id <non-production-workspace-id> --project-id <non-production-project-id> --approved-plan-snapshot-id <approved-plan-snapshot-id> --credit-reservation-id <credit-reservation-id> --idempotency-prefix <unique-smoke-prefix> --service-role-boundary-ref <service-role-boundary-ref> --private-evidence-ref <private-evidence-ref> --telemetry-ref <telemetry-ref> --cleanup-proof-ref <cleanup-proof-ref> --rollback-ref <rollback-ref> --output-result .local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json`

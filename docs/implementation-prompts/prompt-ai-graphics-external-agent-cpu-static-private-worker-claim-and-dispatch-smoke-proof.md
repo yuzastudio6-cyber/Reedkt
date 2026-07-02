@@ -12,8 +12,10 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 - Decision: `ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_validator_prepared_with_runtime_blocks`
 - Status: `blocked_pending_source_non_production_service_role_queue_write_smoke_proof`
 - Source queue-write smoke proof accepted tools: `0`
+- Source queue-write smoke trace accepted tools: `0`
 - Saved worker claim and dispatch smoke accepted tools: `0`
 - Exact request lineages preserved: `0`
+- Worker claim and dispatch trace accepted tools: `0`
 - External-agent executable now tools: `0`
 - GPU runtime starts now: `0`
 

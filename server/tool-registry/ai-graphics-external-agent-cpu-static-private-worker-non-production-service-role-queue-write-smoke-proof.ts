@@ -62,6 +62,10 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
   queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
   toolsSubmitted: 5
   toolsSubmittedIds: AiGraphicsCanonicalToolId[]
+  jobBatchId: string
+  jobIds: string[]
+  jobIdByToolId: Partial<Record<AiGraphicsCanonicalToolId, string>>
+  idempotencyPrefix: string
   queueRowsWritten: 5
   queueRowsCleanedUp: 5
   queueRowsPersistedAfterCleanup: 0
@@ -162,6 +166,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
   serviceRoleQueueWriteSmokeTelemetryRef: string | null
   serviceRoleQueueWriteSmokeCleanupProofRef: string | null
   serviceRoleQueueWriteSmokeRollbackRef: string | null
+  serviceRoleQueueWriteSmokeJobBatchId: string | null
+  serviceRoleQueueWriteSmokeJobId: string | null
+  serviceRoleQueueWriteSmokeIdempotencyPrefix: string | null
   queueRowsWrittenWithProvidedEvidence: number
   queueRowsPersistedAfterCleanup: number
   serviceRoleQueueWriteSmokeApprovedNow: false
@@ -218,6 +225,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
     savedSmokeResultAcceptedToolsWithProvidedEvidence: number
     savedSmokeResultRejectedTools: number
     serviceRoleQueueWritesAcceptedWithProvidedEvidence: number
+    serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence: number
     queueRowsPersistedAfterCleanup: number
     workerClaimsCreatedNow: 0
     workerDispatchesPerformedNow: 0
@@ -235,6 +243,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
     savedNonProductionServiceRoleQueueWriteSmokeResultProvided: boolean
     serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence: boolean
     allFiveCpuStaticSavedSmokeResultsAcceptedWithProvidedEvidence: boolean
+    queueWriteSmokeTracePreservedWithProvidedEvidence: boolean
     cleanupVerifiedWithProvidedEvidence: boolean
     serverOnlyServiceRoleCredentialsRequired: true
     nonProductionEnvironmentRequired: true
@@ -292,7 +301,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
   nextMilestone: string
 }
 
-function hasValue(value?: string): boolean {
+function hasValue(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
@@ -302,6 +311,25 @@ function sameFiveToolSet(toolIds: readonly string[] | undefined): boolean {
   const actual = [...toolIds].sort()
   return expected.length === actual.length &&
     expected.every((toolId, index) => toolId === actual[index])
+}
+
+function hasFiveUniqueValues(values: readonly string[] | undefined): boolean {
+  return Array.isArray(values) &&
+    values.length === 5 &&
+    values.every(hasValue) &&
+    new Set(values).size === 5
+}
+
+function hasFiveToolJobMap(
+  jobIdByToolId: Partial<Record<AiGraphicsCanonicalToolId, string>> | undefined,
+  jobIds: readonly string[] | undefined,
+): boolean {
+  if (!jobIdByToolId || !hasFiveUniqueValues(jobIds)) return false
+  const knownJobIds = new Set(jobIds ?? [])
+  return proofTools.every((toolId) => {
+    const jobId = jobIdByToolId[toolId]
+    return hasValue(jobId) && knownJobIds.has(jobId)
+  })
 }
 
 function preflightAccepted(
@@ -360,6 +388,18 @@ function validateSmokeResult(
     result.toolsSubmitted !== 5 ? 'smoke result must submit exactly five CPU/static tools' : undefined,
     !sameFiveToolSet(result.toolsSubmittedIds)
       ? 'smoke result tool ids must match the five CPU/static tools'
+      : undefined,
+    !hasValue(result.jobBatchId)
+      ? 'smoke result must preserve queue-write smoke job batch id'
+      : undefined,
+    !hasFiveUniqueValues(result.jobIds)
+      ? 'smoke result must preserve five unique queue-write smoke job ids'
+      : undefined,
+    !hasFiveToolJobMap(result.jobIdByToolId, result.jobIds)
+      ? 'smoke result must map each CPU/static tool to a preserved queue-write smoke job id'
+      : undefined,
+    !hasValue(result.idempotencyPrefix) || !result.idempotencyPrefix.includes('smoke')
+      ? 'smoke result must preserve a smoke-scoped idempotency prefix'
       : undefined,
     result.queueRowsWritten !== 5 ? 'smoke result must write five queue rows' : undefined,
     result.queueRowsCleanedUp !== 5 ? 'smoke result must clean up five queue rows' : undefined,
@@ -477,6 +517,10 @@ function operatorResultTemplateFor(input: {
       'queueName',
       'toolsSubmitted',
       'toolsSubmittedIds',
+      'jobBatchId',
+      'jobIds',
+      'jobIdByToolId',
+      'idempotencyPrefix',
       'queueRowsWritten',
       'queueRowsCleanedUp',
       'queueRowsPersistedAfterCleanup',
@@ -555,6 +599,7 @@ function buildRow(input: {
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofRow {
   const isProofTool = proofTools.includes(input.toolId)
   const accepted = isProofTool && input.resultAccepted
+  const acceptedJobId = accepted ? input.result?.jobIdByToolId?.[input.toolId] ?? null : null
   return {
     toolId: input.toolId,
     productionToolId:
@@ -576,6 +621,10 @@ function buildRow(input: {
     serviceRoleQueueWriteSmokeTelemetryRef: accepted ? input.result?.telemetryRef ?? null : null,
     serviceRoleQueueWriteSmokeCleanupProofRef: accepted ? input.result?.cleanupProofRef ?? null : null,
     serviceRoleQueueWriteSmokeRollbackRef: accepted ? input.result?.rollbackRef ?? null : null,
+    serviceRoleQueueWriteSmokeJobBatchId: accepted ? input.result?.jobBatchId ?? null : null,
+    serviceRoleQueueWriteSmokeJobId: acceptedJobId,
+    serviceRoleQueueWriteSmokeIdempotencyPrefix:
+      accepted ? input.result?.idempotencyPrefix ?? null : null,
     queueRowsWrittenWithProvidedEvidence: accepted ? 1 : 0,
     queueRowsPersistedAfterCleanup: accepted ? input.result?.queueRowsPersistedAfterCleanup ?? 0 : 0,
     serviceRoleQueueWriteSmokeApprovedNow: false,
@@ -638,6 +687,12 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerNonProducti
   const acceptedRows = rows.filter(
     (row) => row.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence,
   )
+  const traceAcceptedRows = acceptedRows.filter(
+    (row) =>
+      hasValue(row.serviceRoleQueueWriteSmokeJobBatchId ?? undefined) &&
+      hasValue(row.serviceRoleQueueWriteSmokeJobId ?? undefined) &&
+      hasValue(row.serviceRoleQueueWriteSmokeIdempotencyPrefix ?? undefined),
+  )
 
   return {
     schemaVersion:
@@ -678,6 +733,8 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerNonProducti
         resultProvided && !resultAccepted ? proofTools.length : 0,
       serviceRoleQueueWritesAcceptedWithProvidedEvidence:
         resultAccepted ? input.serviceRoleQueueWriteSmokeResult?.queueRowsWritten ?? 0 : 0,
+      serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence:
+        traceAcceptedRows.length,
       queueRowsPersistedAfterCleanup:
         resultAccepted
           ? input.serviceRoleQueueWriteSmokeResult?.queueRowsPersistedAfterCleanup ?? 0
@@ -699,6 +756,8 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerNonProducti
       serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence: resultAccepted,
       allFiveCpuStaticSavedSmokeResultsAcceptedWithProvidedEvidence:
         acceptedRows.length === 5,
+      queueWriteSmokeTracePreservedWithProvidedEvidence:
+        traceAcceptedRows.length === 5,
       cleanupVerifiedWithProvidedEvidence:
         resultAccepted &&
         input.serviceRoleQueueWriteSmokeResult?.queueRowsPersistedAfterCleanup === 0,

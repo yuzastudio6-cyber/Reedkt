@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import { loadRuntimeEnv } from '../config/env'
 import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
 import { createSupabaseAdminClient } from '../supabase/admin-client'
+import type { AiGraphicsCanonicalToolId } from '../tool-registry/ai-graphics-tool-call-readiness'
 import {
   AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PREFLIGHT_DECISION,
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport,
@@ -117,13 +118,12 @@ function flagValueRejection(flag: string, value: string): string | null {
 function invalidFlagValueFindings(): Array<{ flag: string; value: string; reason: string }> {
   return requiredFlags
     .filter((flag) => flag !== executeFlag)
-    .map((flag) => {
+    .flatMap((flag): Array<{ flag: string; value: string; reason: string }> => {
       const value = valueAfterFlag(flag)
-      if (!value) return undefined
+      if (!value) return []
       const reason = flagValueRejection(flag, value)
-      return reason ? { flag, value, reason } : undefined
+      return reason ? [{ flag, value, reason }] : []
     })
-    .filter((entry): entry is { flag: string; value: string; reason: string } => Boolean(entry))
 }
 
 function envValueRejection(name: string, value: string | undefined): string | null {
@@ -636,19 +636,28 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     insertedJobCount?: number
   }
   const jobIds = queueResult.jobIds ?? []
-  if (jobIds.length !== 5 || queueResult.insertedJobCount !== 5) {
+  const jobBatchId = queueResult.jobBatchId
+  if (
+    jobIds.length !== 5 ||
+    queueResult.insertedJobCount !== 5 ||
+    typeof jobBatchId !== 'string' ||
+    jobBatchId.trim().length === 0
+  ) {
     await cleanupSmokeRows(admin, {
-      jobBatchId: queueResult.jobBatchId,
+      jobBatchId,
       jobIds,
       idempotencyPrefix,
     })
     throw new Error(
-      `CPU/static queue-write smoke expected five inserted rows, received ${jobIds.length}.`,
+      `CPU/static queue-write smoke expected five inserted rows and a job batch id, received ${jobIds.length}.`,
     )
   }
+  const jobIdByToolId = Object.fromEntries(
+    jobs.map((job, index) => [job.toolId, jobIds[index]]),
+  ) as Partial<Record<AiGraphicsCanonicalToolId, string>>
 
   const persistedAfterCleanup = await cleanupSmokeRows(admin, {
-    jobBatchId: queueResult.jobBatchId,
+    jobBatchId,
     jobIds,
     idempotencyPrefix,
   })
@@ -667,6 +676,10 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
     queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
     toolsSubmitted: 5,
     toolsSubmittedIds: [...proofTools],
+    jobBatchId,
+    jobIds,
+    jobIdByToolId,
+    idempotencyPrefix,
     queueRowsWritten: jobIds.length as 5,
     queueRowsCleanedUp: jobIds.length as 5,
     queueRowsPersistedAfterCleanup: 0,

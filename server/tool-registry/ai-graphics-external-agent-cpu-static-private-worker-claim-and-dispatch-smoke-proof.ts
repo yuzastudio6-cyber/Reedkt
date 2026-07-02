@@ -80,6 +80,10 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
   toolsClaimed: 5
   toolsClaimedIds: AiGraphicsCanonicalToolId[]
+  jobBatchId: string
+  jobIds: string[]
+  jobIdByToolId: Partial<Record<AiGraphicsCanonicalToolId, string>>
+  idempotencyPrefix: string
   queueRowsRead: 5
   workerClaimsCreated: 5
   workerDispatchHandoffsCreated: 5
@@ -97,6 +101,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   sourceQueueWriteSmokeProofDecision:
     typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION
   sourceQueueWriteSmokeProofAccepted: true
+  sourceQueueWriteSmokeJobBatchId: string
+  sourceQueueWriteSmokeJobIds: string[]
+  sourceQueueWriteSmokeIdempotencyPrefix: string
   liveWorkerClaimAndDispatchSmokeExecutedNow: true
   publicArtifactCreated: false
   signedUrlCreated: false
@@ -182,6 +189,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME | null
   sourceQueueWriteSmokeProofStatus: string | null
   sourceQueueWriteSmokeProofAccepted: boolean
+  sourceQueueWriteSmokeJobBatchId: string | null
+  sourceQueueWriteSmokeJobId: string | null
+  sourceQueueWriteSmokeIdempotencyPrefix: string | null
   sourceExactExecutionAdmissionStatus: string | null
   sourceExactExecutionAdmissionAccepted: boolean
   workerClaimAndDispatchSmokeProofStatus:
@@ -195,6 +205,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   workerLeaseAuditRef: string | null
   workerDispatchCleanupProofRef: string | null
   workerDispatchRollbackRef: string | null
+  workerClaimAndDispatchJobBatchId: string | null
+  workerClaimAndDispatchJobId: string | null
+  workerClaimAndDispatchIdempotencyPrefix: string | null
   queueRowsReadWithProvidedEvidence: number
   workerClaimsAcceptedWithProvidedEvidence: number
   workerDispatchHandoffsAcceptedWithProvidedEvidence: number
@@ -250,9 +263,11 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   counts: {
     totalAiGraphicsTools: 21
     sourceQueueWriteSmokeProofAcceptedTools: number
+    sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools: number
     savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence: number
     savedWorkerClaimAndDispatchSmokeRejectedTools: number
     exactRequestLineagePreservedWithProvidedEvidenceTools: number
+    workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools: number
     queueRowsReadAcceptedWithProvidedEvidence: number
     workerClaimsAcceptedWithProvidedEvidence: number
     workerDispatchHandoffsAcceptedWithProvidedEvidence: number
@@ -275,6 +290,8 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
     allFiveCpuStaticWorkerClaimAndDispatchSmokeResultsAcceptedWithProvidedEvidence:
       boolean
     allFiveCpuStaticExactRequestLineagesPreservedWithProvidedEvidence: boolean
+    sourceQueueWriteSmokeTracePreservedWithProvidedEvidence: boolean
+    workerClaimAndDispatchTracePreservedWithProvidedEvidence: boolean
     cleanupVerifiedWithProvidedEvidence: boolean
     workerDispatchLeasesReleasedWithProvidedEvidence: boolean
     serverOnlyServiceRoleCredentialsRequired: true
@@ -332,7 +349,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   nextMilestone: string
 }
 
-function hasValue(value?: string): boolean {
+function hasValue(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
@@ -342,6 +359,25 @@ function sameFiveToolSet(toolIds: readonly string[] | undefined): boolean {
   const actual = [...toolIds].sort()
   return expected.length === actual.length &&
     expected.every((toolId, index) => toolId === actual[index])
+}
+
+function hasFiveUniqueValues(values: readonly string[] | undefined): boolean {
+  return Array.isArray(values) &&
+    values.length === 5 &&
+    values.every(hasValue) &&
+    new Set(values).size === 5
+}
+
+function hasFiveToolJobMap(
+  jobIdByToolId: Partial<Record<AiGraphicsCanonicalToolId, string>> | undefined,
+  jobIds: readonly string[] | undefined,
+): boolean {
+  if (!jobIdByToolId || !hasFiveUniqueValues(jobIds)) return false
+  const knownJobIds = new Set(jobIds ?? [])
+  return proofTools.every((toolId) => {
+    const jobId = jobIdByToolId[toolId]
+    return hasValue(jobId) && knownJobIds.has(jobId)
+  })
 }
 
 function sourceAccepted(
@@ -354,6 +390,7 @@ function sourceAccepted(
       'accepted_saved_non_production_service_role_queue_write_smoke_result_execution_blocked' &&
     packet.counts?.savedSmokeResultAcceptedToolsWithProvidedEvidence === 5 &&
     packet.counts?.serviceRoleQueueWritesAcceptedWithProvidedEvidence === 5 &&
+    packet.counts?.serviceRoleQueueWriteSmokeTraceAcceptedWithProvidedEvidence === 5 &&
     packet.counts?.queueRowsPersistedAfterCleanup === 0 &&
     packet.counts?.workerClaimsCreatedNow === 0 &&
     packet.counts?.workerDispatchesPerformedNow === 0 &&
@@ -361,6 +398,7 @@ function sourceAccepted(
     packet.counts?.toolExecutionsPerformedNow === 0 &&
     packet.booleans?.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence === true &&
     packet.booleans?.allFiveCpuStaticSavedSmokeResultsAcceptedWithProvidedEvidence === true &&
+    packet.booleans?.queueWriteSmokeTracePreservedWithProvidedEvidence === true &&
     packet.booleans?.cleanupVerifiedWithProvidedEvidence === true &&
     packet.booleans?.agentCanExecuteToolsNow === false &&
     packet.booleans?.workerClaimApprovedNow === false &&
@@ -492,6 +530,18 @@ function validateSmokeResult(
     !sameFiveToolSet(result.toolsClaimedIds)
       ? 'worker claim/dispatch smoke tool ids must match the five CPU/static tools'
       : undefined,
+    !hasValue(result.jobBatchId)
+      ? 'worker claim/dispatch smoke must preserve worker claim job batch id'
+      : undefined,
+    !hasFiveUniqueValues(result.jobIds)
+      ? 'worker claim/dispatch smoke must preserve five unique worker claim job ids'
+      : undefined,
+    !hasFiveToolJobMap(result.jobIdByToolId, result.jobIds)
+      ? 'worker claim/dispatch smoke must map each CPU/static tool to a preserved worker claim job id'
+      : undefined,
+    !hasValue(result.idempotencyPrefix) || !result.idempotencyPrefix.includes('smoke')
+      ? 'worker claim/dispatch smoke must preserve a smoke-scoped idempotency prefix'
+      : undefined,
     result.queueRowsRead !== 5 ? 'worker claim/dispatch smoke must read five queue rows' : undefined,
     result.workerClaimsCreated !== 5 ? 'worker claim/dispatch smoke must create five worker claims' : undefined,
     result.workerDispatchHandoffsCreated !== 5
@@ -534,6 +584,16 @@ function validateSmokeResult(
       : undefined,
     result.sourceQueueWriteSmokeProofAccepted !== true
       ? 'worker claim/dispatch smoke must preserve source queue-write smoke proof acceptance'
+      : undefined,
+    !hasValue(result.sourceQueueWriteSmokeJobBatchId)
+      ? 'worker claim/dispatch smoke must preserve source queue-write smoke job batch id'
+      : undefined,
+    !hasFiveUniqueValues(result.sourceQueueWriteSmokeJobIds)
+      ? 'worker claim/dispatch smoke must preserve five source queue-write smoke job ids'
+      : undefined,
+    !hasValue(result.sourceQueueWriteSmokeIdempotencyPrefix) ||
+    !result.sourceQueueWriteSmokeIdempotencyPrefix.includes('smoke')
+      ? 'worker claim/dispatch smoke must preserve source queue-write smoke idempotency prefix'
       : undefined,
     result.liveWorkerClaimAndDispatchSmokeExecutedNow !== true
       ? 'worker claim/dispatch smoke result must come from the explicit non-production smoke'
@@ -624,6 +684,10 @@ function claimAndDispatchOperatorResultTemplate(
       'queueName',
       'toolsClaimed',
       'toolsClaimedIds',
+      'jobBatchId',
+      'jobIds',
+      'jobIdByToolId',
+      'idempotencyPrefix',
       'queueRowsRead',
       'workerClaimsCreated',
       'workerDispatchHandoffsCreated',
@@ -640,6 +704,9 @@ function claimAndDispatchOperatorResultTemplate(
       'rollbackRef',
       'sourceQueueWriteSmokeProofDecision',
       'sourceQueueWriteSmokeProofAccepted',
+      'sourceQueueWriteSmokeJobBatchId',
+      'sourceQueueWriteSmokeJobIds',
+      'sourceQueueWriteSmokeIdempotencyPrefix',
       'liveWorkerClaimAndDispatchSmokeExecutedNow',
       'publicArtifactCreated',
       'signedUrlCreated',
@@ -735,6 +802,8 @@ function buildRow(input: {
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow {
   const isProofTool = proofTools.includes(input.toolId)
   const accepted = isProofTool && input.resultAccepted
+  const workerClaimAndDispatchJobId =
+    accepted ? input.result?.jobIdByToolId?.[input.toolId] ?? null : null
   const exactRequestLineage = exactLineageFor({
     toolId: input.toolId,
     exactSource: input.exactSource,
@@ -753,6 +822,12 @@ function buildRow(input: {
       input.source?.serviceRoleQueueWriteSmokeProofStatus ?? null,
     sourceQueueWriteSmokeProofAccepted:
       input.source?.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence === true,
+    sourceQueueWriteSmokeJobBatchId:
+      input.source?.serviceRoleQueueWriteSmokeJobBatchId ?? null,
+    sourceQueueWriteSmokeJobId:
+      input.source?.serviceRoleQueueWriteSmokeJobId ?? null,
+    sourceQueueWriteSmokeIdempotencyPrefix:
+      input.source?.serviceRoleQueueWriteSmokeIdempotencyPrefix ?? null,
     sourceExactExecutionAdmissionStatus:
       input.exactSource?.exactExecutionAdmissionStatus ?? null,
     sourceExactExecutionAdmissionAccepted:
@@ -769,6 +844,11 @@ function buildRow(input: {
     workerLeaseAuditRef: accepted ? input.result?.leaseAuditRef ?? null : null,
     workerDispatchCleanupProofRef: accepted ? input.result?.cleanupProofRef ?? null : null,
     workerDispatchRollbackRef: accepted ? input.result?.rollbackRef ?? null : null,
+    workerClaimAndDispatchJobBatchId:
+      accepted ? input.result?.jobBatchId ?? null : null,
+    workerClaimAndDispatchJobId,
+    workerClaimAndDispatchIdempotencyPrefix:
+      accepted ? input.result?.idempotencyPrefix ?? null : null,
     queueRowsReadWithProvidedEvidence: accepted ? 1 : 0,
     workerClaimsAcceptedWithProvidedEvidence: accepted ? 1 : 0,
     workerDispatchHandoffsAcceptedWithProvidedEvidence: accepted ? 1 : 0,
@@ -847,6 +927,20 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
   const acceptedRows = rows.filter(
     (row) => row.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence,
   )
+  const sourceQueueWriteSmokeTraceRows = rows.filter(
+    (row) =>
+      proofTools.includes(row.toolId) &&
+      row.sourceQueueWriteSmokeProofAccepted &&
+      hasValue(row.sourceQueueWriteSmokeJobBatchId ?? undefined) &&
+      hasValue(row.sourceQueueWriteSmokeJobId ?? undefined) &&
+      hasValue(row.sourceQueueWriteSmokeIdempotencyPrefix ?? undefined),
+  )
+  const workerClaimAndDispatchTraceRows = acceptedRows.filter(
+    (row) =>
+      hasValue(row.workerClaimAndDispatchJobBatchId ?? undefined) &&
+      hasValue(row.workerClaimAndDispatchJobId ?? undefined) &&
+      hasValue(row.workerClaimAndDispatchIdempotencyPrefix ?? undefined),
+  )
 
   return {
     schemaVersion:
@@ -884,12 +978,16 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
       totalAiGraphicsTools: 21,
       sourceQueueWriteSmokeProofAcceptedTools:
         rows.filter((row) => row.sourceQueueWriteSmokeProofAccepted).length,
+      sourceQueueWriteSmokeTraceAcceptedWithProvidedEvidenceTools:
+        sourceQueueWriteSmokeTraceRows.length,
       savedWorkerClaimAndDispatchSmokeAcceptedToolsWithProvidedEvidence:
         acceptedRows.length,
       savedWorkerClaimAndDispatchSmokeRejectedTools:
         resultProvided && !resultAccepted ? proofTools.length : 0,
       exactRequestLineagePreservedWithProvidedEvidenceTools:
         rows.filter((row) => row.exactRequestLineagePreserved).length,
+      workerClaimAndDispatchTraceAcceptedWithProvidedEvidenceTools:
+        workerClaimAndDispatchTraceRows.length,
       queueRowsReadAcceptedWithProvidedEvidence:
         resultAccepted ? input.workerClaimAndDispatchSmokeResult?.queueRowsRead ?? 0 : 0,
       workerClaimsAcceptedWithProvidedEvidence:
@@ -943,6 +1041,10 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
             lineage.expectedOutputVisibility === 'private_artifact_only'
           )
         }),
+      sourceQueueWriteSmokeTracePreservedWithProvidedEvidence:
+        sourceQueueWriteSmokeTraceRows.length === 5,
+      workerClaimAndDispatchTracePreservedWithProvidedEvidence:
+        workerClaimAndDispatchTraceRows.length === 5,
       cleanupVerifiedWithProvidedEvidence:
         resultAccepted &&
         input.workerClaimAndDispatchSmokeResult?.queueRowsPersistedAfterCleanup === 0,

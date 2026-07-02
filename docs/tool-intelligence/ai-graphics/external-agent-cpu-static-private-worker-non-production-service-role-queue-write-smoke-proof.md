@@ -19,6 +19,7 @@ This packet validates a saved non-production service-role queue-write smoke resu
 - Saved smoke result accepted tools with provided evidence: `0`
 - Saved smoke result rejected tools: `0`
 - Service-role queue writes accepted with provided evidence: `0`
+- Service-role queue-write trace accepted with provided evidence: `0`
 - Queue rows persisted after cleanup: `0`
 - Worker claims created now: `0`
 - Worker dispatches performed now: `0`
@@ -60,6 +61,10 @@ Required saved-result fields:
 - `queueName`
 - `toolsSubmitted`
 - `toolsSubmittedIds`
+- `jobBatchId`
+- `jobIds`
+- `jobIdByToolId`
+- `idempotencyPrefix`
 - `queueRowsWritten`
 - `queueRowsCleanedUp`
 - `queueRowsPersistedAfterCleanup`
@@ -86,29 +91,29 @@ Required saved-result fields:
 
 ## Tool Rows
 
-| Tool | Runtime target | Proof status | Accepted evidence | Queue rows | Persisted after cleanup | Worker dispatch now | Tool execution now | Blocker |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `torch_torchvision` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `transformers` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `sam2` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `birefnet` | `native_linux_amd64_nvidia_l4_birefnet_runtime` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `real_esrgan` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `kornia` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `rembg` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `transparent_background` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `d3` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
-| `echarts` | `browser_chart_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `vega_lite` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
-| `vega` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
-| `satori` | `node_cpu_static` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | blocked pending approved Satori font fixture proof before CPU/static service-role smoke proof |
-| `svgdotjs_svg_js` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
-| `viz_js` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
-| `lottie_web` | `browser_animation_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `animejs` | `browser_animation_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `three_js` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `pixi_js` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `konva` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
-| `babylonjs` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| Tool | Runtime target | Proof status | Accepted evidence | Queue rows | Persisted after cleanup | Job batch | Job id | Idempotency prefix | Worker dispatch now | Tool execution now | Blocker |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `transformers` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `sam2` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `birefnet` | `native_linux_amd64_nvidia_l4_birefnet_runtime` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `real_esrgan` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `kornia` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `rembg` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `transparent_background` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `d3` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
+| `echarts` | `browser_chart_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `vega_lite` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
+| `vega` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
+| `satori` | `node_cpu_static` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | blocked pending approved Satori font fixture proof before CPU/static service-role smoke proof |
+| `svgdotjs_svg_js` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
+| `viz_js` | `node_cpu_static` | `blocked_pending_saved_non_production_service_role_queue_write_smoke_result` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | waiting for saved non-production service-role queue-write smoke result with cleanup proof |
+| `lottie_web` | `browser_animation_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `animejs` | `browser_animation_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `three_js` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `pixi_js` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `konva` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
+| `babylonjs` | `browser_canvas_webgl_runtime_later` | `blocked_pending_source_non_production_service_role_queue_write_smoke_preflight` | `false` | `0` | `0` | `null` | `null` | `null` | `false` | `false` | deferred to browser/canvas/WebGL, animation, or GPU/model runtime boundary lanes |
 
 ## Runtime Boundary
 

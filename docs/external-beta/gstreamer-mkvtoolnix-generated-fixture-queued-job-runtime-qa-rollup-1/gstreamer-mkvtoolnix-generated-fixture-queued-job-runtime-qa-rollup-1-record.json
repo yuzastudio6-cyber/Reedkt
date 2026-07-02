@@ -1,0 +1,89 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GENERATED-FIXTURE-QUEUED-JOB-RUNTIME-QA-ROLLUP-1",
+  "decision": "completed_gstreamer_mkvtoolnix_generated_fixture_queued_job_runtime_qa_rollup",
+  "execution": "completed_docs_only_qa_rollup_for_confirmed_queued_job_runtime_route_invocation",
+  "sourceChain": {
+    "runtimeRouteBridgePr": 2113,
+    "runtimeRouteBridgeMergeSha": "67602b088009779d45b0d1f26eabac65c48902fc",
+    "runtimeRouteBridgeQaRollupPr": 2115,
+    "runtimeRouteBridgeQaRollupMergeSha": "932cba325d9b82ea88bd2e753bb3ff92ad58cb78",
+    "approvedSnapshotQueueHandoffPr": 2120,
+    "approvedSnapshotQueueHandoffMergeSha": "d197af4b7acdaa331782d9329ab41f306288045e",
+    "queuedJobRuntimeRouteInvocationPr": 2122,
+    "queuedJobRuntimeRouteInvocationMergeSha": "1101d465ee8d79b893c3964dbfde9b9060b7a565",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "routeInvocation": {
+    "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/invoke",
+    "statusCode": 201,
+    "ok": true,
+    "runId": "2026-07-02T12-31-21-746Z-route-invoke",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-route-invocation-1/2026-07-02T12-31-21-746Z-route-invoke",
+    "reportPath": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-route-invocation-1/2026-07-02T12-31-21-746Z-route-invoke/queued-job-runtime-route-invocation-report.json",
+    "manifestPath": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-route-invocation-1/2026-07-02T12-31-21-746Z-route-invoke/queued-job-runtime-route-invocation-manifest.json",
+    "decision": "completed_gstreamer_mkvtoolnix_generated_fixture_queued_job_to_runtime_route_invocation",
+    "status": "completed_generated_fixture_queued_job_runtime_route_invocation",
+    "runtimeRouteRunnerRunId": "2026-07-02T12-31-21-863Z-6184f874",
+    "runtimeRouteRunnerOutputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/2026-07-02T12-31-21-863Z-6184f874"
+  },
+  "artifacts": [
+    {
+      "fileName": "queued-job-runtime-route-invocation-report.json",
+      "bytes": 27178,
+      "sha256": "a8e35f407a3a6f92bbab5984e2d4adaf50dfcf355faedd65613cdd8f496527f3"
+    },
+    {
+      "fileName": "queued-job-runtime-route-invocation-manifest.json",
+      "bytes": 3052,
+      "sha256": "036f17edb8315b6c141f0ffa09c23b907921ecdaf3203bff8f24957bcc76f904"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-report.json",
+      "bytes": 7963,
+      "sha256": "73320913dba26de8b62022d12911a1f5824d09aa2519fd04c2d4c88c3a37be34"
+    },
+    {
+      "fileName": "runtime-packet-envelope.json",
+      "bytes": 3375,
+      "sha256": "5c670e0264b3e83a71d480ef0c998b9c7dfdbc4ad264765861a4b0bcd770cd6a"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 612,
+      "sha256": "572a12d856c64f62a15c27fd0f95db54be66fe14ad347a6ca77b103a40322a63"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 856,
+      "sha256": "8a9252935c70fc2a2d127e7008e944b0d8e27477af63b25b98487d4060bd50d2"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-manifest.json",
+      "bytes": 1480,
+      "sha256": "fc8aa1ca96e897f4f09dce6443dfe6b87c2ee1a4f71c4d2ac007205e298292ea"
+    }
+  ],
+  "safety": {
+    "workerDispatch": false,
+    "workerExecution": false,
+    "persistentJobQueueWrite": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-RUNTIME-HANDOFF-1"
+}

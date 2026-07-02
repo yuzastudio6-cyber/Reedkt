@@ -916,7 +916,9 @@
     "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-qa-diagnostics.mjs",
     "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-diagnostics.mjs",
-    "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-diagnostics.mjs"
+    "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics": "node scripts/validation/ai-graphics-canonical-agent-selection-runtime-boundary-handoff-owner-approval-diagnostics.mjs",
+    "ai-graphics:external-agent-controlled-worker-route-execution-smoke": "tsx server/cli/ai-graphics-external-agent-controlled-worker-route-execution-smoke.ts",
+    "ai-graphics:external-agent-controlled-worker-route-execution-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-worker-route-execution-smoke-diagnostics.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

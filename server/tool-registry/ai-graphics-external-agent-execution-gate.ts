@@ -77,6 +77,8 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_PROOF_REF_QUEUE
   'ai_graphics_external_beta_tool_call_route_gpu_model_proof_ref_queue_admission_smoke_passed'
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_WORKER_CLAIM_SMOKE_DECISION =
   'ai_graphics_external_beta_tool_call_route_mock_queue_worker_claim_smoke_passed'
+export const AI_GRAPHICS_EXTERNAL_AGENT_CONTROLLED_WORKER_ROUTE_EXECUTION_SMOKE_DECISION =
+  'ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks'
 export const AI_GRAPHICS_SATORI_FONT_RUNTIME_PROOF_DECISION =
   'ai_graphics_satori_font_runtime_proof_completed_with_warnings'
 
@@ -380,6 +382,98 @@ export interface AiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExec
   }
 }
 
+export interface AiGraphicsExternalAgentControlledWorkerRouteExecutionSmokePacket {
+  decision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CONTROLLED_WORKER_ROUTE_EXECUTION_SMOKE_DECISION
+  status:
+    'controlled_worker_claim_route_execution_passed_for_thirteen_tools_gpu_model_still_blocked'
+  counts: {
+    totalAiGraphicsTools: 21
+    totalProductFacingCapabilities: 12
+    controlledWorkerRouteExecutionAttemptedTools: 13
+    controlledWorkerRouteExecutionCompletedTools: 13
+    mockQueueInsertedJobsWithProvidedEvidence: 13
+    mockWorkerClaimsCreatedWithProvidedEvidence: 13
+    mockWorkerEventsRecordedWithProvidedEvidence: 13
+    controlledCanonicalRouteExecutedToolsWithProvidedEvidence: 13
+    cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence: 6
+    browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence: 7
+    localControlledPackageExecutionPerformedToolsWithProvidedEvidence: 13
+    controlledAdapterExecutedToolsWithProvidedEvidence: 13
+    gpuModelBlockedToolsWithProvidedEvidence: 8
+    externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence: 13
+    externalAgentBroadExecutableNowTools: 0
+    workerDispatchPerformedTools: 0
+    routeExecutionPerformedTools: 13
+    toolExecutionPerformedTools: 0
+    gpuRuntimeShouldStartNowTools: 0
+    publicArtifactCreatedTools: 0
+    signedUrlCreatedTools: 0
+    externalBetaReadyNowTools: 0
+    productionReadyNowTools: 0
+  }
+  booleans: {
+    externalAgentControlledWorkerRouteExecutionSmokePassed: true
+    sourceRouteControlledExecutionSmokeAccepted: true
+    mockQueueServiceClaimAccepted: true
+    mockQueueServiceWorkerEventAccepted: true
+    all21ToolsCovered: true
+    all12CapabilitiesCovered: true
+    thirteenControlledToolsClaimedBeforeRouteExecution: true
+    thirteenControlledToolsExecutedViaClaimedCanonicalRoute: true
+    sixCpuStaticToolsExecutedViaClaimedCanonicalRoute: true
+    sevenBrowserRuntimeToolsExecutedViaClaimedCanonicalRoute: true
+    eightGpuModelToolsRemainBlocked: true
+    localControlledPackageExecutionPerformed: true
+    controlledAdapterExecutionPerformed: true
+    privateOutputMetadataReturned: true
+    agentCanSelectForPlanning: true
+    externalAgentCanExecuteControlledWorkerRouteToolsNow: true
+    agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow: true
+    agentCanExecuteAll21ToolsNow: false
+    agentCanExecuteGpuModelToolsNow: false
+    agentCanExecuteToolsNow: false
+    routeExecutionApprovedNow: true
+    routeExecutionPerformed: true
+    mockWorkerClaimPerformed: true
+    backendQueueSubmissionApprovedNow: false
+    backendQueueSubmissionPerformed: false
+    liveQueueWriteApprovedNow: false
+    liveQueueWritePerformed: false
+    workerExecutionApprovedNow: false
+    workerExecutionPerformed: false
+    workerEnqueueApprovedNow: false
+    workerEnqueuePerformed: false
+    workerDispatchApprovedNow: false
+    workerDispatchPerformed: false
+    toolExecutionApprovedNow: false
+    toolExecutionPerformed: false
+    providerRuntimeApprovedNow: false
+    providerRuntimePerformed: false
+    controlledLocalBrowserRuntimePerformed: true
+    browserRuntimeStartedByCanonicalRoute: true
+    browserWebglCanvasRuntimeApprovedNow: false
+    browserWebglCanvasRuntimePerformed: false
+    gpuRuntimeApprovedNow: false
+    gpuRuntimePerformed: false
+    gpuRuntimeShouldStartNow: false
+    modelWeightsDownloaded: false
+    modelWeightsLoaded: false
+    modelInferencePerformed: false
+    mediaProcessingPerformed: false
+    supabaseMutationPerformed: false
+    gcsUploadPerformed: false
+    publicArtifactCreated: false
+    signedUrlCreated: false
+    runtimeReadyNow: false
+    internalBetaReadyNow: false
+    externalBetaReadyNow: false
+    productionReadyNow: false
+    dependencyInstallPerformed: false
+    packageLockMutationPerformed: false
+  }
+}
+
 export interface AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket {
   decision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_SMOKE_DECISION
@@ -624,6 +718,8 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
     Partial<AiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket>
   sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket?:
     Partial<AiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket>
+  sourceExternalAgentControlledWorkerRouteExecutionSmokePacket?:
+    Partial<AiGraphicsExternalAgentControlledWorkerRouteExecutionSmokePacket>
   sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket?:
     Partial<AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket>
   sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokePacket?:
@@ -788,6 +884,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_SMOKE_DECISION | null
   sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_SMOKE_DECISION | null
+  sourceExternalAgentControlledWorkerRouteExecutionSmokeDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CONTROLLED_WORKER_ROUTE_EXECUTION_SMOKE_DECISION | null
   sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_SMOKE_DECISION | null
   sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeDecision:
@@ -814,6 +912,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
   sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted: boolean
+  sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
@@ -887,6 +986,12 @@ export interface AiGraphicsExternalAgentExecutionGate {
   browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence: 0 | 7
   localControlledPackageExecutionPerformedToolsWithProvidedEvidence: 0 | 13
   controlledAdapterExecutedToolsWithProvidedEvidence: 0 | 13
+  controlledWorkerRouteExecutionSmokeAcceptedToolsWithProvidedEvidence: 0 | 13
+  externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence: 0 | 13
+  controlledWorkerRouteMockQueueInsertedJobsWithProvidedEvidence: 0 | 13
+  controlledWorkerRouteMockWorkerClaimsCreatedWithProvidedEvidence: 0 | 13
+  controlledWorkerRouteMockWorkerEventsRecordedWithProvidedEvidence: 0 | 13
+  controlledWorkerRouteExecutionPerformedToolsWithProvidedEvidence: 0 | 13
   gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence: 0 | 8
   gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence: 0 | 8
   gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence: 0
@@ -950,6 +1055,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted: boolean
+    sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
@@ -1028,6 +1134,9 @@ export interface AiGraphicsExternalAgentExecutionGate {
     thirteenControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence: boolean
     sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence: boolean
     sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence: boolean
+    externalAgentControlledWorkerRouteExecutionSmokeAcceptedWithProvidedEvidence: boolean
+    thirteenControlledToolsExecutedViaClaimedWorkerRouteWithProvidedEvidence: boolean
+    externalAgentCanExecuteControlledWorkerRouteToolsNow: boolean
     eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence: boolean
     allEightGpuModelProofRefQueueAdmissionsAcceptedWithProvidedEvidence: boolean
     allEightGpuModelProofRefMockWorkerClaimsAcceptedWithProvidedEvidence: boolean
@@ -1571,6 +1680,101 @@ function sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAc
     packet.booleans?.publicArtifactCreated === false &&
     packet.booleans?.signedUrlCreated === false &&
     packet.booleans?.runtimeReadyNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false &&
+    packet.booleans?.dependencyInstallPerformed === false &&
+    packet.booleans?.packageLockMutationPerformed === false
+}
+
+function sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted(
+  packet?: Partial<AiGraphicsExternalAgentControlledWorkerRouteExecutionSmokePacket>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CONTROLLED_WORKER_ROUTE_EXECUTION_SMOKE_DECISION &&
+    packet.status ===
+      'controlled_worker_claim_route_execution_passed_for_thirteen_tools_gpu_model_still_blocked' &&
+    packet.counts?.totalAiGraphicsTools === 21 &&
+    packet.counts?.totalProductFacingCapabilities === 12 &&
+    packet.counts?.controlledWorkerRouteExecutionAttemptedTools === 13 &&
+    packet.counts?.controlledWorkerRouteExecutionCompletedTools === 13 &&
+    packet.counts?.mockQueueInsertedJobsWithProvidedEvidence === 13 &&
+    packet.counts?.mockWorkerClaimsCreatedWithProvidedEvidence === 13 &&
+    packet.counts?.mockWorkerEventsRecordedWithProvidedEvidence === 13 &&
+    packet.counts?.controlledCanonicalRouteExecutedToolsWithProvidedEvidence ===
+      13 &&
+    packet.counts?.cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence ===
+      6 &&
+    packet.counts?.browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence ===
+      7 &&
+    packet.counts?.localControlledPackageExecutionPerformedToolsWithProvidedEvidence ===
+      13 &&
+    packet.counts?.controlledAdapterExecutedToolsWithProvidedEvidence === 13 &&
+    packet.counts?.gpuModelBlockedToolsWithProvidedEvidence === 8 &&
+    packet.counts?.externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence ===
+      13 &&
+    packet.counts?.externalAgentBroadExecutableNowTools === 0 &&
+    packet.counts?.workerDispatchPerformedTools === 0 &&
+    packet.counts?.routeExecutionPerformedTools === 13 &&
+    packet.counts?.toolExecutionPerformedTools === 0 &&
+    packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
+    packet.counts?.publicArtifactCreatedTools === 0 &&
+    packet.counts?.signedUrlCreatedTools === 0 &&
+    packet.counts?.externalBetaReadyNowTools === 0 &&
+    packet.counts?.productionReadyNowTools === 0 &&
+    packet.booleans?.externalAgentControlledWorkerRouteExecutionSmokePassed ===
+      true &&
+    packet.booleans?.sourceRouteControlledExecutionSmokeAccepted === true &&
+    packet.booleans?.mockQueueServiceClaimAccepted === true &&
+    packet.booleans?.mockQueueServiceWorkerEventAccepted === true &&
+    packet.booleans?.all21ToolsCovered === true &&
+    packet.booleans?.all12CapabilitiesCovered === true &&
+    packet.booleans?.thirteenControlledToolsClaimedBeforeRouteExecution === true &&
+    packet.booleans?.thirteenControlledToolsExecutedViaClaimedCanonicalRoute ===
+      true &&
+    packet.booleans?.sixCpuStaticToolsExecutedViaClaimedCanonicalRoute === true &&
+    packet.booleans?.sevenBrowserRuntimeToolsExecutedViaClaimedCanonicalRoute ===
+      true &&
+    packet.booleans?.eightGpuModelToolsRemainBlocked === true &&
+    packet.booleans?.localControlledPackageExecutionPerformed === true &&
+    packet.booleans?.controlledAdapterExecutionPerformed === true &&
+    packet.booleans?.privateOutputMetadataReturned === true &&
+    packet.booleans?.agentCanSelectForPlanning === true &&
+    packet.booleans?.externalAgentCanExecuteControlledWorkerRouteToolsNow ===
+      true &&
+    packet.booleans?.agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow ===
+      true &&
+    packet.booleans?.agentCanExecuteAll21ToolsNow === false &&
+    packet.booleans?.agentCanExecuteGpuModelToolsNow === false &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.routeExecutionApprovedNow === true &&
+    packet.booleans?.routeExecutionPerformed === true &&
+    packet.booleans?.mockWorkerClaimPerformed === true &&
+    packet.booleans?.backendQueueSubmissionPerformed === false &&
+    packet.booleans?.liveQueueWritePerformed === false &&
+    packet.booleans?.workerExecutionApprovedNow === false &&
+    packet.booleans?.workerExecutionPerformed === false &&
+    packet.booleans?.workerEnqueuePerformed === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.workerDispatchPerformed === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.toolExecutionPerformed === false &&
+    packet.booleans?.providerRuntimePerformed === false &&
+    packet.booleans?.controlledLocalBrowserRuntimePerformed === true &&
+    packet.booleans?.browserRuntimeStartedByCanonicalRoute === true &&
+    packet.booleans?.browserWebglCanvasRuntimePerformed === false &&
+    packet.booleans?.gpuRuntimePerformed === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.modelWeightsDownloaded === false &&
+    packet.booleans?.modelWeightsLoaded === false &&
+    packet.booleans?.modelInferencePerformed === false &&
+    packet.booleans?.mediaProcessingPerformed === false &&
+    packet.booleans?.supabaseMutationPerformed === false &&
+    packet.booleans?.gcsUploadPerformed === false &&
+    packet.booleans?.publicArtifactCreated === false &&
+    packet.booleans?.signedUrlCreated === false &&
+    packet.booleans?.runtimeReadyNow === false &&
+    packet.booleans?.internalBetaReadyNow === false &&
     packet.booleans?.externalBetaReadyNow === false &&
     packet.booleans?.productionReadyNow === false &&
     packet.booleans?.dependencyInstallPerformed === false &&
@@ -2812,6 +3016,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket
   const sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmoke =
     input.sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket
+  const sourceExternalAgentControlledWorkerRouteExecutionSmoke =
+    input.sourceExternalAgentControlledWorkerRouteExecutionSmokePacket
   const sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmoke =
     input.sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket
   const sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmoke =
@@ -2875,6 +3081,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const routeBrowserRuntimeControlledExecutionSmokeAccepted =
     sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted(
       sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmoke,
+    )
+  const controlledWorkerRouteExecutionSmokeAccepted =
+    sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted(
+      sourceExternalAgentControlledWorkerRouteExecutionSmoke,
     )
   const routeGpuModelRuntimeAdmissionSmokeAccepted =
     sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted(
@@ -3348,6 +3558,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_SMOKE_DECISION
         ? sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmoke.decision
         : null,
+    sourceExternalAgentControlledWorkerRouteExecutionSmokeDecision:
+      sourceExternalAgentControlledWorkerRouteExecutionSmoke?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CONTROLLED_WORKER_ROUTE_EXECUTION_SMOKE_DECISION
+        ? sourceExternalAgentControlledWorkerRouteExecutionSmoke.decision
+        : null,
     sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeDecision:
       sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmoke?.decision ===
       AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_SMOKE_DECISION
@@ -3402,6 +3617,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       routeCpuStaticControlledExecutionSmokeAccepted,
     sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted:
       routeBrowserRuntimeControlledExecutionSmokeAccepted,
+    sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted:
+      controlledWorkerRouteExecutionSmokeAccepted,
     sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted:
       routeGpuModelRuntimeAdmissionSmokeAccepted,
     sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted:
@@ -3536,6 +3753,18 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       routeBrowserRuntimeControlledExecutionSmokeAccepted ? 13 : 0,
     controlledAdapterExecutedToolsWithProvidedEvidence:
       routeBrowserRuntimeControlledExecutionSmokeAccepted ? 13 : 0,
+    controlledWorkerRouteExecutionSmokeAcceptedToolsWithProvidedEvidence:
+      controlledWorkerRouteExecutionSmokeAccepted ? 13 : 0,
+    externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence:
+      controlledWorkerRouteExecutionSmokeAccepted ? 13 : 0,
+    controlledWorkerRouteMockQueueInsertedJobsWithProvidedEvidence:
+      controlledWorkerRouteExecutionSmokeAccepted ? 13 : 0,
+    controlledWorkerRouteMockWorkerClaimsCreatedWithProvidedEvidence:
+      controlledWorkerRouteExecutionSmokeAccepted ? 13 : 0,
+    controlledWorkerRouteMockWorkerEventsRecordedWithProvidedEvidence:
+      controlledWorkerRouteExecutionSmokeAccepted ? 13 : 0,
+    controlledWorkerRouteExecutionPerformedToolsWithProvidedEvidence:
+      controlledWorkerRouteExecutionSmokeAccepted ? 13 : 0,
     gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence:
       routeGpuModelRuntimeAdmissionSmokeAccepted ? 8 : 0,
     gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence:
@@ -3790,6 +4019,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         routeCpuStaticControlledExecutionSmokeAccepted,
       sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence:
         routeBrowserRuntimeControlledExecutionSmokeAccepted,
+      sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted:
+        controlledWorkerRouteExecutionSmokeAccepted,
+      externalAgentControlledWorkerRouteExecutionSmokeAcceptedWithProvidedEvidence:
+        controlledWorkerRouteExecutionSmokeAccepted,
+      thirteenControlledToolsExecutedViaClaimedWorkerRouteWithProvidedEvidence:
+        controlledWorkerRouteExecutionSmokeAccepted,
+      externalAgentCanExecuteControlledWorkerRouteToolsNow:
+        controlledWorkerRouteExecutionSmokeAccepted,
       eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence:
         routeGpuModelRuntimeAdmissionSmokeAccepted,
       allEightGpuModelProofRefQueueAdmissionsAcceptedWithProvidedEvidence:

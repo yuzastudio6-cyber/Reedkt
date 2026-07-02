@@ -29,6 +29,8 @@ const routeGpuModelProofRefQueueAdmissionSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics'
 const routeMockQueueWorkerClaimSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics'
+const controlledWorkerRouteExecutionSmokeCommand =
+  'npm run ai-graphics:external-agent-controlled-worker-route-execution-smoke:diagnostics'
 const externalAgentToolAdapterAuthorizationCommand =
   'npm run ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics'
 const liveAdapterQueueWriteProofCommand =
@@ -45,6 +47,8 @@ const workerClaimAndDispatchSmokeProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
 const toolExecutionDryRunProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof'
+const controlledWorkerRouteExecutionSmokeScriptName =
+  'ai-graphics:external-agent-controlled-worker-route-execution-smoke'
 const decision =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
 const acceptedStatus =
@@ -232,6 +236,7 @@ const trueBooleanKeys = [
   'sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted',
   'sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted',
   'sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted',
+  'sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted',
   'sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted',
   'sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted',
   'externalAgentCanExecuteControlledRouteToolsNow',
@@ -241,6 +246,9 @@ const trueBooleanKeys = [
   'thirteenControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
   'sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
   'sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
+  'externalAgentControlledWorkerRouteExecutionSmokeAcceptedWithProvidedEvidence',
+  'thirteenControlledToolsExecutedViaClaimedWorkerRouteWithProvidedEvidence',
+  'externalAgentCanExecuteControlledWorkerRouteToolsNow',
   'eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence',
   'all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence',
   'all21RouteAdmittedMockJobsClaimedWithProvidedEvidence',
@@ -759,6 +767,18 @@ if (
 ) {
   fail('tool_execution_dry_run_proof_script_mismatch')
 }
+if (
+  packageJson.scripts?.[controlledWorkerRouteExecutionSmokeScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-controlled-worker-route-execution-smoke.ts'
+) {
+  fail('controlled_worker_route_execution_smoke_script_mismatch')
+}
+if (
+  packageJson.scripts?.[`${controlledWorkerRouteExecutionSmokeScriptName}:diagnostics`] !==
+  'node scripts/validation/ai-graphics-external-agent-controlled-worker-route-execution-smoke-diagnostics.mjs'
+) {
+  fail('controlled_worker_route_execution_smoke_diagnostic_script_mismatch')
+}
 
 const indexSource = read('server/tool-registry/index.ts')
 if (!indexSource.includes("export * from './ai-graphics-external-agent-execution-gate'")) {
@@ -950,6 +970,24 @@ if (docs.counts?.localControlledPackageExecutionPerformedToolsWithProvidedEviden
 }
 if (docs.counts?.controlledAdapterExecutedToolsWithProvidedEvidence !== 13) {
   fail('docs_controlled_adapter_executed_not_13')
+}
+if (docs.counts?.controlledWorkerRouteExecutionSmokeAcceptedToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_smoke_accepted_not_13')
+}
+if (docs.counts?.externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_executable_not_13')
+}
+if (docs.counts?.controlledWorkerRouteMockQueueInsertedJobsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_mock_queue_jobs_not_13')
+}
+if (docs.counts?.controlledWorkerRouteMockWorkerClaimsCreatedWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_claims_not_13')
+}
+if (docs.counts?.controlledWorkerRouteMockWorkerEventsRecordedWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_events_not_13')
+}
+if (docs.counts?.controlledWorkerRouteExecutionPerformedToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_executions_not_13')
 }
 if (docs.counts?.gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence !== 8) {
   fail('docs_gpu_model_runtime_admission_evaluated_not_8')
@@ -1143,6 +1181,14 @@ for (const phrase of [
   'browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence: `7`',
   'localControlledPackageExecutionPerformedToolsWithProvidedEvidence: `13`',
   'controlledAdapterExecutedToolsWithProvidedEvidence: `13`',
+  'Controlled worker-route execution smoke accepted: `true`',
+  'controlledWorkerRouteExecutionSmokeAcceptedToolsWithProvidedEvidence: `13`',
+  'externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence: `13`',
+  'controlledWorkerRouteMockQueueInsertedJobsWithProvidedEvidence: `13`',
+  'controlledWorkerRouteMockWorkerClaimsCreatedWithProvidedEvidence: `13`',
+  'controlledWorkerRouteMockWorkerEventsRecordedWithProvidedEvidence: `13`',
+  'controlledWorkerRouteExecutionPerformedToolsWithProvidedEvidence: `13`',
+  controlledWorkerRouteExecutionSmokeCommand,
   'gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence: `8`',
   'gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence: `8`',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence: `0`',
@@ -1357,6 +1403,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-cpu-static-controlled-execution-smoke.json',
   '--external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.json',
+  '--external-agent-controlled-worker-route-execution-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
   '--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
   '--external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-packet',

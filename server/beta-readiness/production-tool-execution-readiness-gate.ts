@@ -13,6 +13,9 @@ import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 export type ProductionToolExecutionReadinessStatus = 'ready_for_paid_production' | 'blocked'
 
 export interface ProductionToolExecutionEvidenceNotes {
+  evidenceArtifactId: string
+  reviewedBy: string
+  reviewedAt: string
   notes: string[]
 }
 
@@ -256,6 +259,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
   return [
     check('supabase_production_persistence', 'Supabase production persistence', [
       requireEvidence(input.supabasePersistence, 'Supabase production persistence evidence is missing.'),
+      ...requireEvidenceProvenance(input.supabasePersistence, 'Supabase production persistence'),
       requireBoolean(input.supabasePersistence?.environment === 'production', 'Evidence environment is not production.'),
       requireBoolean(input.supabasePersistence?.toolCostEventsMigrationDeployed, 'tool_cost_events migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.betaReadinessEvidenceMigrationDeployed, 'beta_readiness_evidence migration deployment is unverified.'),
@@ -271,6 +275,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.supabasePersistence?.notes),
     check('tool_cost_ledger_writes', 'Tool cost ledger writes', [
       requireEvidence(input.toolCostLedger, 'Tool cost ledger evidence is missing.'),
+      ...requireEvidenceProvenance(input.toolCostLedger, 'Tool cost ledger'),
       requireBoolean(input.toolCostLedger?.toolCostEventWriteVerified, 'tool cost event write is unverified.'),
       requireBoolean(input.toolCostLedger?.ledgerAppendOnlyVerified, 'append-only ledger behavior is unverified.'),
       requireBoolean(input.toolCostLedger?.idempotentReplayVerified, 'idempotent replay is unverified.'),
@@ -279,6 +284,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.toolCostLedger?.notes),
     check('wallet_settlement', 'Wallet reserve/spend/release/refund', [
       requireEvidence(input.walletSettlement, 'Wallet settlement evidence is missing.'),
+      ...requireEvidenceProvenance(input.walletSettlement, 'Wallet settlement'),
       requireBoolean(input.walletSettlement?.reservationVerified, 'credit reservation verification is missing.'),
       requireBoolean(input.walletSettlement?.spendVerified, 'wallet spend verification is missing.'),
       requireBoolean(input.walletSettlement?.releaseVerified, 'wallet release verification is missing.'),
@@ -291,6 +297,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.walletSettlement?.notes),
     check('stripe_boundary', 'Stripe boundary confirmation', [
       requireEvidence(input.stripeBoundary, 'Stripe boundary evidence is missing.'),
+      ...requireEvidenceProvenance(input.stripeBoundary, 'Stripe boundary'),
       requireBoolean(input.stripeBoundary?.billingOwnerApproved, 'billing-owner Stripe boundary approval is missing.'),
       requireBoolean(input.stripeBoundary?.noStripeFromToolCostSurface, 'tool cost surfaces are not proven Stripe-free.'),
       requireBoolean(input.stripeBoundary?.serviceFeeExcludedFromToolEvents, 'service fee exclusion is unverified.'),
@@ -299,6 +306,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.stripeBoundary?.notes),
     check('observability_alerts', 'Observability and alerts', [
       requireEvidence(input.observability, 'Observability evidence is missing.'),
+      ...requireEvidenceProvenance(input.observability, 'Observability'),
       requireBoolean(input.observability?.dashboardsDeployed, 'monitoring dashboards are not deployed.'),
       requireBoolean(input.observability?.alertsDeployed, 'alerts are not deployed.'),
       requireBoolean(input.observability?.alertRoutingVerified, 'alert routing is unverified.'),
@@ -309,6 +317,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.observability?.notes),
     check('operations_controls', 'Rollback, kill switches, rate limits, and concurrency limits', [
       requireEvidence(input.operationsControls, 'Operations control evidence is missing.'),
+      ...requireEvidenceProvenance(input.operationsControls, 'Operations controls'),
       requireBoolean(input.operationsControls?.rollbackPlanApproved, 'rollback plan approval is missing.'),
       requireBoolean(input.operationsControls?.killSwitchesVerified, 'kill switches are unverified.'),
       requireBoolean(input.operationsControls?.rateLimitsVerified, 'rate limits are unverified.'),
@@ -319,6 +328,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.operationsControls?.notes),
     check('tool_execution_evidence', 'Production tool execution evidence', [
       requireEvidence(input.toolEvidence, 'Production tool evidence is missing.'),
+      ...requireEvidenceProvenance(input.toolEvidence, 'Production tool evidence'),
       requireBoolean(Boolean(input.toolEvidence?.sourceId.trim()), 'production tool evidence sourceId is missing.'),
       requireBoolean(input.toolEvidence?.allProductionToolsAccepted, 'not every production tool is accepted for production execution.'),
       requireBoolean(input.toolEvidence?.modelWeightLicenseReviewApproved, 'model/license review is missing.'),
@@ -326,6 +336,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.toolEvidence?.notes),
     check('hard_safety_invariants', 'Hard safety invariants', [
       requireEvidence(input.hardSafety, 'Hard safety evidence is missing.'),
+      ...requireEvidenceProvenance(input.hardSafety, 'Hard safety evidence'),
       requireBoolean(input.hardSafety?.approvedPlanSnapshotRequired, 'approved plan snapshot requirement is not enforced.'),
       requireBoolean(input.hardSafety?.creditEstimateAndReservationRequired, 'credit estimate/reservation requirement is not enforced.'),
       requireBoolean(input.hardSafety?.idempotencyRequired, 'idempotency requirement is not enforced.'),
@@ -339,6 +350,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
     ], input.hardSafety?.notes),
     check('final_owner_signoff', 'Final owner signoff', [
       requireEvidence(input.finalOwnerSignoff, 'Final owner signoff is missing.'),
+      ...requireEvidenceProvenance(input.finalOwnerSignoff, 'Final owner signoff'),
       requireBoolean(input.finalOwnerSignoff?.deploymentOwnerApproved, 'deployment owner approval is missing.'),
       requireBoolean(input.finalOwnerSignoff?.securityOwnerApproved, 'security owner approval is missing.'),
       requireBoolean(input.finalOwnerSignoff?.storagePrivacyOwnerApproved, 'storage/privacy owner approval is missing.'),
@@ -409,7 +421,8 @@ function buildAcceptedToolEvidence(toolEvidence?: ProductionToolEvidence): ToolB
 
 function isSupabasePersistenceReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const evidence = input.supabasePersistence
-  return Boolean(evidence && evidence.environment === 'production' &&
+  return Boolean(evidence && hasEvidenceProvenance(evidence) &&
+    evidence.environment === 'production' &&
     evidence.toolCostEventsMigrationDeployed &&
     evidence.betaReadinessEvidenceMigrationDeployed &&
     evidence.serviceRoleWritePathVerified &&
@@ -425,7 +438,8 @@ function isSupabasePersistenceReady(input: ProductionToolExecutionReadinessGateI
 
 function isToolCostLedgerReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const evidence = input.toolCostLedger
-  return Boolean(evidence?.toolCostEventWriteVerified &&
+  return Boolean(evidence && hasEvidenceProvenance(evidence) &&
+    evidence.toolCostEventWriteVerified &&
     evidence.ledgerAppendOnlyVerified &&
     evidence.idempotentReplayVerified &&
     evidence.projectSummaryReadbackVerified &&
@@ -434,7 +448,8 @@ function isToolCostLedgerReady(input: ProductionToolExecutionReadinessGateInput)
 
 function isWalletSettlementReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const evidence = input.walletSettlement
-  return Boolean(evidence?.reservationVerified &&
+  return Boolean(evidence && hasEvidenceProvenance(evidence) &&
+    evidence.reservationVerified &&
     evidence.spendVerified &&
     evidence.releaseVerified &&
     evidence.refundVerified &&
@@ -447,7 +462,8 @@ function isWalletSettlementReady(input: ProductionToolExecutionReadinessGateInpu
 
 function isStripeBoundaryReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const evidence = input.stripeBoundary
-  return Boolean(evidence?.billingOwnerApproved &&
+  return Boolean(evidence && hasEvidenceProvenance(evidence) &&
+    evidence.billingOwnerApproved &&
     evidence.noStripeFromToolCostSurface &&
     evidence.serviceFeeExcludedFromToolEvents &&
     evidence.stripeWebhookSeparatedFromToolLedger &&
@@ -456,7 +472,8 @@ function isStripeBoundaryReady(input: ProductionToolExecutionReadinessGateInput)
 
 function isObservabilityReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const evidence = input.observability
-  return Boolean(evidence?.dashboardsDeployed &&
+  return Boolean(evidence && hasEvidenceProvenance(evidence) &&
+    evidence.dashboardsDeployed &&
     evidence.alertsDeployed &&
     evidence.alertRoutingVerified &&
     evidence.billingQaMonitoringVerified &&
@@ -467,7 +484,8 @@ function isObservabilityReady(input: ProductionToolExecutionReadinessGateInput):
 
 function isOperationsControlReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const evidence = input.operationsControls
-  return Boolean(evidence?.rollbackPlanApproved &&
+  return Boolean(evidence && hasEvidenceProvenance(evidence) &&
+    evidence.rollbackPlanApproved &&
     evidence.killSwitchesVerified &&
     evidence.rateLimitsVerified &&
     evidence.concurrencyLimitsVerified &&
@@ -478,7 +496,8 @@ function isOperationsControlReady(input: ProductionToolExecutionReadinessGateInp
 
 function isFinalOwnerSignoffReady(input: ProductionToolExecutionReadinessGateInput): boolean {
   const signoff = input.finalOwnerSignoff
-  return Boolean(signoff?.deploymentOwnerApproved &&
+  return Boolean(signoff && hasEvidenceProvenance(signoff) &&
+    signoff.deploymentOwnerApproved &&
     signoff.securityOwnerApproved &&
     signoff.storagePrivacyOwnerApproved &&
     signoff.legalOwnerApproved &&
@@ -534,12 +553,69 @@ function requireNotes(notes: string[] | undefined, blocker: string): string | nu
   return notes && notes.length > 0 && notes.every((note) => note.trim().length > 0) ? null : blocker
 }
 
+function requireEvidenceProvenance(evidence: ProductionToolExecutionEvidenceNotes | undefined, label: string): string[] {
+  if (!evidence) return []
+  return [
+    requireString(evidence.evidenceArtifactId, `${label} evidence artifact ID is missing.`),
+    requireString(evidence.reviewedBy, `${label} reviewer reference is missing.`),
+    requireIsoDate(evidence.reviewedAt, `${label} review timestamp is missing or invalid.`),
+  ].filter((item): item is string => Boolean(item))
+}
+
+function hasEvidenceProvenance(evidence: ProductionToolExecutionEvidenceNotes): boolean {
+  return Boolean(
+    evidence.evidenceArtifactId.trim() &&
+    evidence.reviewedBy.trim() &&
+    isValidIsoDate(evidence.reviewedAt),
+  )
+}
+
+function requireString(value: string | undefined, blocker: string): string | null {
+  return value?.trim() ? null : blocker
+}
+
+function requireIsoDate(value: string | undefined, blocker: string): string | null {
+  return value && isValidIsoDate(value) ? null : blocker
+}
+
+function isValidIsoDate(value: string): boolean {
+  const time = Date.parse(value)
+  return Number.isFinite(time) && new Date(time).toISOString() === value
+}
+
 function assertNoSecretLikeProductionEvidence(input: ProductionToolExecutionReadinessGateInput): void {
   const evidenceValues = [
     input.sourceId,
     input.sourceSha,
     input.workspaceId,
     input.projectId,
+    input.supabasePersistence?.evidenceArtifactId,
+    input.supabasePersistence?.reviewedBy,
+    input.supabasePersistence?.reviewedAt,
+    input.toolCostLedger?.evidenceArtifactId,
+    input.toolCostLedger?.reviewedBy,
+    input.toolCostLedger?.reviewedAt,
+    input.walletSettlement?.evidenceArtifactId,
+    input.walletSettlement?.reviewedBy,
+    input.walletSettlement?.reviewedAt,
+    input.stripeBoundary?.evidenceArtifactId,
+    input.stripeBoundary?.reviewedBy,
+    input.stripeBoundary?.reviewedAt,
+    input.observability?.evidenceArtifactId,
+    input.observability?.reviewedBy,
+    input.observability?.reviewedAt,
+    input.operationsControls?.evidenceArtifactId,
+    input.operationsControls?.reviewedBy,
+    input.operationsControls?.reviewedAt,
+    input.toolEvidence?.evidenceArtifactId,
+    input.toolEvidence?.reviewedBy,
+    input.toolEvidence?.reviewedAt,
+    input.hardSafety?.evidenceArtifactId,
+    input.hardSafety?.reviewedBy,
+    input.hardSafety?.reviewedAt,
+    input.finalOwnerSignoff?.evidenceArtifactId,
+    input.finalOwnerSignoff?.reviewedBy,
+    input.finalOwnerSignoff?.reviewedAt,
     ...(input.supabasePersistence?.notes ?? []),
     ...(input.toolCostLedger?.notes ?? []),
     ...(input.walletSettlement?.notes ?? []),

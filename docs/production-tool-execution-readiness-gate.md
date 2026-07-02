@@ -14,6 +14,14 @@ The gate can pass only when the production evidence packet proves:
 - Hard safety invariants remain enforced: approved snapshots, credit estimate/reservation, idempotency, raw prompt/secret rejection, no signed URLs as source truth, backend-only heavy execution, and no silent billing.
 - Final owners approve deployment, security, storage/privacy, legal, support, billing, operations, real-user-media beta, artifact privacy, paid production, and final delivery/share.
 
+Every production evidence section must also include non-secret provenance:
+
+- `evidenceArtifactId`: a durable internal artifact/attestation ID, not a signed URL or secret-bearing path.
+- `reviewedBy`: the owner/operator reviewer reference.
+- `reviewedAt`: an exact ISO timestamp for the review.
+
+The gate rejects sections that only provide booleans and notes without this provenance. This keeps paid-production readiness tied to auditable artifacts rather than informal status text.
+
 The default local report stays blocked because no real production evidence is supplied. The smoke test uses a controlled complete fixture to prove the policy can graduate when every required field exists.
 
 Commands:
@@ -29,6 +37,8 @@ npm run prod:readiness:tool-execution-gate
 This is the bridge between beta readiness and paid production. It makes the remaining blockers exact evidence gaps instead of permanent hardcoded no-rules.
 
 Use `prod:readiness:tool-execution-gate-preflight` before the final gate report. The preflight reads non-secret operator evidence variables, checks for missing production evidence, rejects secret-like notes, and tells operators whether the supplied packet is ready to evaluate against the paid-production gate. It does not call Supabase, Stripe, workers, tools, media processors, deployments, or production routes.
+
+For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT` apply to the reviewed packet, while each evidence section has its own artifact ID, for example `REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID`, and `REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID`.
 
 Backend callers can also evaluate the same evidence packet with:
 

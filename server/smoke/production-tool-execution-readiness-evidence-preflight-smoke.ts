@@ -17,6 +17,14 @@ assert.ok(
   'preflight should document explicit Supabase Data API grant evidence variable',
 )
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY'),
+  'preflight should document production evidence reviewer variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID'),
+  'preflight should document Supabase evidence artifact variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED'),
   'preflight should document wallet refund evidence variable',
 )
@@ -39,6 +47,10 @@ assert.ok(
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('tool_cost_events migration')),
   'missing report should name Supabase migration deployment',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('evidence artifact ID')),
+  'missing report should name evidence artifact provenance',
 )
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('wallet refund')),
@@ -95,7 +107,10 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID: 'workspace-production-readiness-preflight-smoke',
     REEDITPRO_PRODUCTION_READINESS_PROJECT_ID: 'project-production-readiness-preflight-smoke',
     REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW: yes,
+    REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY: 'production-preflight-smoke-reviewer',
+    REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT: '2026-07-02T00:00:00.000Z',
     REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT: 'production',
+    REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:supabase',
     REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED: yes,
@@ -107,11 +122,13 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_STORAGE_POLICIES_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES: 'Supabase production persistence evidence reviewed.',
+    REEDITPRO_PRODUCTION_TOOL_COST_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:tool-cost-ledger',
     REEDITPRO_PRODUCTION_TOOL_COST_EVENT_WRITE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_APPEND_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_TOOL_COST_IDEMPOTENT_REPLAY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_TOOL_COST_SUMMARY_READBACK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_NOTES: 'Tool cost ledger write and readback evidence reviewed.',
+    REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:wallet',
     REEDITPRO_PRODUCTION_WALLET_RESERVATION_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED: yes,
@@ -121,27 +138,32 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_NOTES: 'Wallet reserve spend release refund evidence reviewed.',
+    REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:stripe',
     REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_BILLING_OWNER_APPROVED: yes,
     REEDITPRO_PRODUCTION_STRIPE_NO_TOOL_COST_SURFACE_CALLS: yes,
     REEDITPRO_PRODUCTION_STRIPE_SERVICE_FEE_EXCLUDED: yes,
     REEDITPRO_PRODUCTION_STRIPE_WEBHOOK_SEPARATED: yes,
     REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_NOTES: 'Stripe boundary owner approval reviewed.',
+    REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:observability',
     REEDITPRO_PRODUCTION_OBSERVABILITY_DASHBOARDS_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_OBSERVABILITY_ALERTS_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_OBSERVABILITY_ALERT_ROUTING_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OBSERVABILITY_BILLING_QA_MONITORING_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES: 'Observability dashboard and alert evidence reviewed.',
+    REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:operations',
     REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_INCIDENT_RUNBOOK_APPROVED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_NOTES: 'Operations controls evidence reviewed.',
+    REEDITPRO_PRODUCTION_TOOLS_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:tools',
     REEDITPRO_PRODUCTION_TOOLS_SOURCE_ID: 'production-readiness-evidence-preflight-smoke:tools',
     REEDITPRO_PRODUCTION_TOOLS_SOURCE_SHA: 'fe57a1c3c937663e152ddc64c012df3f051365a8',
     REEDITPRO_PRODUCTION_TOOLS_ALL_ACCEPTED: yes,
     REEDITPRO_PRODUCTION_TOOLS_MODEL_LICENSE_APPROVED: yes,
     REEDITPRO_PRODUCTION_TOOLS_NOTES: 'All production tools and model license evidence reviewed.',
+    REEDITPRO_PRODUCTION_HARD_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:hard-safety',
     REEDITPRO_PRODUCTION_HARD_APPROVED_SNAPSHOT_REQUIRED: yes,
     REEDITPRO_PRODUCTION_HARD_CREDIT_ESTIMATE_RESERVATION_REQUIRED: yes,
     REEDITPRO_PRODUCTION_HARD_IDEMPOTENCY_REQUIRED: yes,
@@ -152,6 +174,7 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_HARD_LICENSE_MODEL_REVIEW_REQUIRED: yes,
     REEDITPRO_PRODUCTION_HARD_SILENT_BILLING_BLOCKED: yes,
     REEDITPRO_PRODUCTION_HARD_NOTES: 'Hard safety invariant evidence reviewed.',
+    REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:owner-signoff',
     REEDITPRO_PRODUCTION_OWNER_DEPLOYMENT_APPROVED: yes,
     REEDITPRO_PRODUCTION_OWNER_SECURITY_APPROVED: yes,
     REEDITPRO_PRODUCTION_OWNER_STORAGE_PRIVACY_APPROVED: yes,

@@ -320,14 +320,13 @@ function productionEvidenceFixture(
   workspaceId: string,
   projectId: string,
 ): ProductionToolExecutionReadinessGateInput {
-  const notes = (label: string) => [`${label} verified in tool execution gateway smoke fixture.`]
-
   return {
     sourceId: 'tool-execution-gateway-smoke:complete-production-readiness',
     sourceSha: '82f60e0a4d5d4707543a29f026a30f77c75b61fa',
     workspaceId,
     projectId,
     supabasePersistence: {
+      ...reviewedProductionEvidence('Supabase persistence'),
       environment: 'production',
       toolCostEventsMigrationDeployed: true,
       betaReadinessEvidenceMigrationDeployed: true,
@@ -339,16 +338,16 @@ function productionEvidenceFixture(
       securityAdvisorReviewed: true,
       performanceAdvisorReviewed: true,
       storagePoliciesVerified: true,
-      notes: notes('Supabase persistence'),
     },
     toolCostLedger: {
+      ...reviewedProductionEvidence('Tool cost ledger'),
       toolCostEventWriteVerified: true,
       ledgerAppendOnlyVerified: true,
       idempotentReplayVerified: true,
       projectSummaryReadbackVerified: true,
-      notes: notes('Tool cost ledger'),
     },
     walletSettlement: {
+      ...reviewedProductionEvidence('Wallet settlement'),
       reservationVerified: true,
       spendVerified: true,
       releaseVerified: true,
@@ -357,38 +356,38 @@ function productionEvidenceFixture(
       settlementRpcServiceRoleOnlyVerified: true,
       idempotentSettlementReplayVerified: true,
       noSilentChargeVerified: true,
-      notes: notes('Wallet settlement'),
     },
     stripeBoundary: {
+      ...reviewedProductionEvidence('Stripe boundary'),
       billingOwnerApproved: true,
       noStripeFromToolCostSurface: true,
       serviceFeeExcludedFromToolEvents: true,
       stripeWebhookSeparatedFromToolLedger: true,
-      notes: notes('Stripe boundary'),
     },
     observability: {
+      ...reviewedProductionEvidence('Observability and alerts'),
       dashboardsDeployed: true,
       alertsDeployed: true,
       alertRoutingVerified: true,
       billingQaMonitoringVerified: true,
-      notes: notes('Observability and alerts'),
     },
     operationsControls: {
+      ...reviewedProductionEvidence('Operations controls'),
       rollbackPlanApproved: true,
       killSwitchesVerified: true,
       rateLimitsVerified: true,
       concurrencyLimitsVerified: true,
       incidentRunbookApproved: true,
-      notes: notes('Operations controls'),
     },
     toolEvidence: {
+      ...reviewedProductionEvidence('Production tool evidence'),
       sourceId: 'tool-execution-gateway-smoke:tool-evidence',
       sourceSha: '82f60e0a4d5d4707543a29f026a30f77c75b61fa',
       allProductionToolsAccepted: true,
       modelWeightLicenseReviewApproved: true,
-      notes: notes('Production tool evidence'),
     },
     hardSafety: {
+      ...reviewedProductionEvidence('Hard safety invariants'),
       approvedPlanSnapshotRequired: true,
       creditEstimateAndReservationRequired: true,
       idempotencyRequired: true,
@@ -398,9 +397,9 @@ function productionEvidenceFixture(
       frontendHeavyExecutionBlocked: true,
       licenseAndModelWeightReviewRequired: true,
       silentBillingBlocked: true,
-      notes: notes('Hard safety invariants'),
     },
     finalOwnerSignoff: {
+      ...reviewedProductionEvidence('Final owner signoff'),
       deploymentOwnerApproved: true,
       securityOwnerApproved: true,
       storagePrivacyOwnerApproved: true,
@@ -413,7 +412,15 @@ function productionEvidenceFixture(
       artifactPrivacyEvidenceReady: true,
       paidProductionApproved: true,
       finalDeliveryShareApproved: true,
-      notes: notes('Final owner signoff'),
     },
+  }
+}
+
+function reviewedProductionEvidence(label: string) {
+  return {
+    evidenceArtifactId: `gateway-prod-artifact:${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    reviewedBy: 'tool-execution-gateway-smoke-reviewer',
+    reviewedAt: '2026-07-02T00:00:00.000Z',
+    notes: [`${label} verified in tool execution gateway smoke fixture.`],
   }
 }

@@ -115,7 +115,16 @@ const completeLedger = buildBetaReadinessBlockerLedger({
   monitoringApproved: true,
   supportApproved: true,
   realUserMediaBetaApproved: true,
+  privateMediaApproval: true,
+  artifactPrivacyEvidenceReady: true,
   paidProductionApproved: true,
+  productionDeploymentApproved: true,
+  billingLedgerPersistenceApproved: true,
+  costControlsApproved: true,
+  observabilityApproved: true,
+  incidentRunbookApproved: true,
+  finalDeliveryShareApproved: true,
+  hardLaunchBlockersPresent: false,
 })
 
 assert.equal(completeLedger.duplicateRowKeys.length, 0, 'complete ledger must not contain duplicate row keys')

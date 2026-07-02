@@ -65,8 +65,8 @@ export interface BetaPlatformDeployedEvidenceVerificationReport {
   evidencePacketReady: boolean
   evidencePacket?: BetaReadinessEvidencePacketInput
   evaluatedReadiness: BetaReadinessReport
-  externalBetaAllowed: false
-  productionAllowed: false
+  externalBetaAllowed: boolean
+  productionAllowed: boolean
   warnings: string[]
 }
 
@@ -123,8 +123,8 @@ export async function runBetaPlatformDeployedEvidenceVerifier(
     evidencePacketReady,
     evidencePacket,
     evaluatedReadiness,
-    externalBetaAllowed: false,
-    productionAllowed: false,
+    externalBetaAllowed: evaluatedReadiness.goNoGo.externalBetaAllowed,
+    productionAllowed: evaluatedReadiness.goNoGo.paidProductionAllowed,
     warnings: [
       'This verifier builds a platform evidence packet only after every deployed probe and owner approval passes.',
       'It does not write evidence, call Supabase by itself, call Stripe, execute tools, process media, enable beta, or enable production.',

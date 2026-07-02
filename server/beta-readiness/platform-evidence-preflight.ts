@@ -109,7 +109,7 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'beta_platform_deployed_evidence_verifier_present',
       'Beta platform deployed evidence verifier is present',
       'server/beta-readiness/platform-deployed-evidence-verifier.ts',
-      ['evidencePacketReady', 'ownerApprovalGaps', 'service_role_write_path_verified', 'externalBetaAllowed: false'],
+      ['evidencePacketReady', 'ownerApprovalGaps', 'service_role_write_path_verified', 'externalBetaAllowed: evaluatedReadiness.goNoGo.externalBetaAllowed'],
       'Connect the verifier to real staging probes before recording deployed platform evidence.',
     ),
     sourceFileCheck(

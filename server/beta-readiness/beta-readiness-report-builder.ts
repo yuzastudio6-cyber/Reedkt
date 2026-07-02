@@ -14,6 +14,8 @@ export interface BuildBetaReadinessReportOptions {
   e2eDryRunPassed?: boolean
   safetyDocsExist?: boolean
   costDocsExist?: boolean
+  boundedToolExecutionReady?: boolean
+  productionReadinessBlocked?: boolean
   checklistEvidence?: BetaReadinessChecklistEvidence[]
   acceptedToolEvidence?: ToolBetaAcceptedExecutionEvidence[]
   platformEvidence?: ToolBetaPlatformReadinessEvidence
@@ -25,21 +27,31 @@ export interface BuildBetaReadinessReportOptions {
   monitoringApproved?: boolean
   supportApproved?: boolean
   realUserMediaBetaApproved?: boolean
+  privateMediaApproval?: boolean
+  artifactPrivacyEvidenceReady?: boolean
   paidProductionApproved?: boolean
+  productionDeploymentApproved?: boolean
+  billingLedgerPersistenceApproved?: boolean
+  costControlsApproved?: boolean
+  observabilityApproved?: boolean
+  incidentRunbookApproved?: boolean
+  finalDeliveryShareApproved?: boolean
+  hardLaunchBlockersPresent?: boolean
 }
 
 export function buildBetaReadinessReport(options: BuildBetaReadinessReportOptions = {}): BetaReadinessReport {
   const checklist = applyChecklistEvidence(betaReadinessChecklist, options.checklistEvidence)
-  const scenarioMatrix = buildBetaScenarioReadinessMatrix()
   const toolExecutionReadiness = buildToolBetaExecutionReadinessReport({
     acceptedEvidence: options.acceptedToolEvidence,
     platformEvidence: options.platformEvidence,
   })
+  const productionReadinessBlocked = options.productionReadinessBlocked ?? !toolExecutionReadiness.externalBetaToolExecutionAllowed
   const goNoGo = evaluateBetaGoNoGo({
     e2eDryRunPassed: options.e2eDryRunPassed ?? true,
     safetyDocsExist: options.safetyDocsExist ?? true,
     costDocsExist: options.costDocsExist ?? true,
-    productionReadinessBlocked: !toolExecutionReadiness.externalBetaToolExecutionAllowed,
+    boundedToolExecutionReady: options.boundedToolExecutionReady,
+    productionReadinessBlocked,
     deploymentApproved: options.deploymentApproved,
     securityApproved: options.securityApproved,
     storageApproved: options.storageApproved,
@@ -48,9 +60,20 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
     monitoringApproved: options.monitoringApproved,
     supportApproved: options.supportApproved,
     realUserMediaBetaApproved: options.realUserMediaBetaApproved,
+    privateMediaApproval: options.privateMediaApproval,
+    artifactPrivacyEvidenceReady: options.artifactPrivacyEvidenceReady,
     paidProductionApproved: options.paidProductionApproved,
+    productionDeploymentApproved: options.productionDeploymentApproved,
+    billingLedgerPersistenceApproved: options.billingLedgerPersistenceApproved,
+    costControlsApproved: options.costControlsApproved,
+    observabilityApproved: options.observabilityApproved,
+    incidentRunbookApproved: options.incidentRunbookApproved,
+    finalDeliveryShareApproved: options.finalDeliveryShareApproved,
+    hardLaunchBlockersPresent: options.hardLaunchBlockersPresent,
     checklist,
   })
+  const productionReady = goNoGo.paidProductionAllowed
+  const scenarioMatrix = buildBetaScenarioReadinessMatrix({ productionReady })
   const blockers = [
     ...goNoGo.blockers,
     ...scenarioMatrix.flatMap((scenario) => scenario.blockers),
@@ -66,18 +89,19 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
     reportId: `beta-readiness-${new Date().toISOString()}`,
     createdAt: new Date().toISOString(),
     overallStatus: goNoGo.internalDryRunTestingAllowed ? 'internal_testing_ready' : 'blocked',
-    productionReady: false,
+    productionReady,
     checklist,
     scenarioMatrix,
     toolExecutionReadiness,
     goNoGo,
+    launchStageDecisions: goNoGo.launchStageDecisions,
     blockers: [...new Set(blockers)],
     warnings: [...new Set(warnings)],
     nextActions: [
       'Run M16B dry-run E2E and M17 hardening smokes before any internal demo.',
       ...toolExecutionReadiness.nextActions,
-      'Complete human security, cost, storage, deployment, model, and legal reviews before external beta.',
-      'Keep real user media beta and paid production blocked until readiness is explicitly approved.',
+      'Complete human security, cost, storage, deployment, model, legal, monitoring, and support reviews before external beta.',
+      'Keep real user media beta and paid production closed until their evidence-driven gates explicitly pass.',
     ],
   }
 }

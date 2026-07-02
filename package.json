@@ -602,6 +602,7 @@
     "worker-runtime-jobs:sound-cpu-phase142-disabled-route-metadata-alignment:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase142-disabled-route-metadata-alignment-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase143-controlled-disabled-route-request-validation:proof": "tsx scripts/validation/worker-runtime-jobs-sound-cpu-phase143-controlled-disabled-route-request-validation-runner.ts",
     "worker-runtime-jobs:sound-cpu-phase143-controlled-disabled-route-request-validation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase143-controlled-disabled-route-request-validation-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase143-disabled-route-request-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase143-disabled-route-request-owner-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

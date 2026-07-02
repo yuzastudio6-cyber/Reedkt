@@ -162,6 +162,61 @@ function runPlaceholderOperatorPreflightProbe() {
   return JSON.parse(output)
 }
 
+function runPlaceholderEnvOperatorPreflightProbe() {
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      runScriptName,
+      '--',
+      '--operator-preflight',
+      '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke',
+      '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+      'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+      '--workspace-id',
+      'workspace-smoke-nonprod-0001',
+      '--project-id',
+      'project-smoke-nonprod-0001',
+      '--approved-plan-snapshot-id',
+      'approved-snapshot-smoke-nonprod-0001',
+      '--credit-reservation-id',
+      'credit-reservation-smoke-nonprod-0001',
+      '--idempotency-prefix',
+      'ai_graphics_smoke_nonprod_0001',
+      '--service-role-boundary-ref',
+      'service-role-boundary://ai-graphics/non-production-smoke',
+      '--private-evidence-ref',
+      'private://ai-graphics/non-production-smoke/evidence.json',
+      '--telemetry-ref',
+      'private://ai-graphics/non-production-smoke/telemetry.json',
+      '--cleanup-proof-ref',
+      'private://ai-graphics/non-production-smoke/cleanup.json',
+      '--rollback-ref',
+      'private://ai-graphics/non-production-smoke/rollback.md',
+      '--output-result',
+      '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json',
+    ],
+    {
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE:
+          'true',
+        REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE_ENV:
+          'non_production',
+        SUPABASE_URL: 'https://non-production.supabase.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'non-production-service-role-placeholder',
+        E2E_RUNTIME_MODE: 'local',
+        WORKER_RUNTIME_MODE: 'mock',
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
 function runRejectedExecutionProbe() {
   try {
     execFileSync('npm', ['run', '--silent', runScriptName, '--', '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke'], {
@@ -221,7 +276,10 @@ for (const phrase of [
   'missingOrMismatchedEnv',
   'missingFlags',
   'invalidFlagValues',
+  'invalidEnvValues',
   'assertRuntimeFlagValues',
+  'assertRuntimeEnvValues',
+  'envValueRejection',
   'sourcePreflightChecks',
   'createAiGraphicsToolRuntimeQueueService',
   'createSupabaseAdminClient',
@@ -296,6 +354,7 @@ for (const flag of [
 
 const operatorPreflight = runOperatorPreflightProbe()
 const placeholderOperatorPreflight = runPlaceholderOperatorPreflightProbe()
+const placeholderEnvOperatorPreflight = runPlaceholderEnvOperatorPreflightProbe()
 if (operatorPreflight.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_operator_preflight_completed_with_runtime_blocks') {
   fail(`operator_preflight_decision_mismatch:${operatorPreflight.decision}`)
 }
@@ -382,6 +441,24 @@ if (placeholderOperatorPreflight.liveServiceRoleQueueWriteSmokeExecutedNow !== f
 if (placeholderOperatorPreflight.liveSupabaseQueueWritesNow !== 0) {
   fail('placeholder_operator_preflight_live_writes_not_0')
 }
+if (placeholderEnvOperatorPreflight.canRunQueueWriteSmokeNow !== false) {
+  fail('placeholder_env_operator_preflight_unexpectedly_ready')
+}
+if (!Array.isArray(placeholderEnvOperatorPreflight.invalidEnvValues)) {
+  fail('placeholder_env_operator_preflight_missing_invalid_env_values')
+} else {
+  for (const name of ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']) {
+    if (!placeholderEnvOperatorPreflight.invalidEnvValues.some((entry) => entry.name === name)) {
+      fail(`placeholder_env_operator_preflight_missing_invalid_env:${name}`)
+    }
+  }
+}
+if (placeholderEnvOperatorPreflight.liveServiceRoleQueueWriteSmokeExecutedNow !== false) {
+  fail('placeholder_env_operator_preflight_live_smoke_not_false')
+}
+if (placeholderEnvOperatorPreflight.liveSupabaseQueueWritesNow !== 0) {
+  fail('placeholder_env_operator_preflight_live_writes_not_0')
+}
 
 const rejected = runRejectedExecutionProbe()
 if (!/REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE=true/.test(rejected)) {
@@ -437,6 +514,10 @@ console.log(JSON.stringify({
   placeholderPreflightBlocked: placeholderOperatorPreflight.canRunQueueWriteSmokeNow === false,
   placeholderInvalidFlagValues:
     placeholderOperatorPreflight.invalidFlagValues?.length ?? 0,
+  placeholderEnvPreflightBlocked:
+    placeholderEnvOperatorPreflight.canRunQueueWriteSmokeNow === false,
+  placeholderInvalidEnvValues:
+    placeholderEnvOperatorPreflight.invalidEnvValues?.length ?? 0,
   agentCanExecuteToolsNow: prepared.booleans.agentCanExecuteToolsNow,
   gpuRuntimeShouldStartNow: prepared.booleans.gpuRuntimeShouldStartNow,
   proofTemplateRunnerCommandPresent: true,

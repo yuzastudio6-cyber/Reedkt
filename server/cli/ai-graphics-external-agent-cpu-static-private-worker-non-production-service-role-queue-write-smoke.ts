@@ -126,12 +126,59 @@ function invalidFlagValueFindings(): Array<{ flag: string; value: string; reason
     .filter((entry): entry is { flag: string; value: string; reason: string } => Boolean(entry))
 }
 
+function envValueRejection(name: string, value: string | undefined): string | null {
+  const trimmed = value?.trim() ?? ''
+  if (!trimmed) return null
+  if (isPlaceholderValue(trimmed) || /placeholder|example|your[-_]/i.test(trimmed)) {
+    return `${name} must be a real non-production value, not a placeholder`
+  }
+  if (name === 'SUPABASE_URL') {
+    if (!/^https?:\/\/[a-z0-9.-]+(?::\d+)?(\/.*)?$/i.test(trimmed)) {
+      return 'SUPABASE_URL must be a valid http(s) URL'
+    }
+    if (/\.example($|[/:])|example\./i.test(trimmed)) {
+      return 'SUPABASE_URL must not use an example host'
+    }
+  }
+  if (name === 'SUPABASE_SERVICE_ROLE_KEY') {
+    if (trimmed.length < 32) {
+      return 'SUPABASE_SERVICE_ROLE_KEY must be long enough to be a real service-role secret'
+    }
+    if (/anon|public/i.test(trimmed)) {
+      return 'SUPABASE_SERVICE_ROLE_KEY must be a service-role secret, not an anon/public key'
+    }
+  }
+  return null
+}
+
+function invalidEnvValueFindings(): Array<{ name: string; reason: string }> {
+  return requiredEnv
+    .map((entry) => {
+      const { name, expectedValue } = splitRequiredEnv(entry)
+      if (expectedValue != null) return undefined
+      const reason = envValueRejection(name, process.env[name])
+      return reason ? { name, reason } : undefined
+    })
+    .filter((entry): entry is { name: string; reason: string } => Boolean(entry))
+}
+
 function assertRuntimeFlagValues(): void {
   const invalidFlagValues = invalidFlagValueFindings()
   if (invalidFlagValues.length > 0) {
     throw new Error(
       `CPU/static queue-write smoke received unsafe runtime flag values: ${invalidFlagValues
         .map((entry) => `${entry.flag}: ${entry.reason}`)
+        .join('; ')}`,
+    )
+  }
+}
+
+function assertRuntimeEnvValues(): void {
+  const invalidEnvValues = invalidEnvValueFindings()
+  if (invalidEnvValues.length > 0) {
+    throw new Error(
+      `CPU/static queue-write smoke received unsafe runtime env values: ${invalidEnvValues
+        .map((entry) => `${entry.name}: ${entry.reason}`)
         .join('; ')}`,
     )
   }
@@ -261,6 +308,7 @@ function buildOperatorPreflightReport() {
   const missingFlags = requiredFlags.filter(
     (flag) => !requiredFlagSatisfiedForOperatorPreflight(flag),
   )
+  const invalidEnvValues = invalidEnvValueFindings()
   const invalidFlagValues = invalidFlagValueFindings()
   const explicitSourcePreflightPath = valueAfterFlag(
     '--source-non-production-service-role-queue-write-smoke-preflight-packet',
@@ -288,6 +336,7 @@ function buildOperatorPreflightReport() {
   const canRunQueueWriteSmokeNow =
     missingOrMismatchedEnv.length === 0 &&
     missingFlags.length === 0 &&
+    invalidEnvValues.length === 0 &&
     invalidFlagValues.length === 0 &&
     sourcePreflightAccepted &&
     productionBlocked === false
@@ -311,6 +360,7 @@ function buildOperatorPreflightReport() {
       sourcePreflightError,
     },
     missingOrMismatchedEnv,
+    invalidEnvValues,
     missingFlags,
     invalidFlagValues,
     productionBlocked,
@@ -409,6 +459,7 @@ function assertAllowedToExecute(): void {
   if (process.env.WORKER_RUNTIME_MODE !== 'mock') {
     throw new Error('CPU/static queue-write smoke requires WORKER_RUNTIME_MODE=mock.')
   }
+  assertRuntimeEnvValues()
 }
 
 function acceptedPreflightRows(

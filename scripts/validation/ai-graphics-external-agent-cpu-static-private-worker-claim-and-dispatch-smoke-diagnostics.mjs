@@ -112,6 +112,65 @@ function runOperatorPreflightProbe() {
   return JSON.parse(output)
 }
 
+function runPlaceholderOperatorPreflightProbe() {
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      runScriptName,
+      '--',
+      '--operator-preflight',
+      '--execute-ai-graphics-external-agent-cpu-static-worker-claim-and-dispatch-smoke',
+      '--source-service-role-queue-write-smoke-proof-packet',
+      'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
+      '--source-exact-execution-admission-packet',
+      'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+      '--workspace-id',
+      '<non-production-workspace-id>',
+      '--project-id',
+      '<non-production-project-id>',
+      '--approved-plan-snapshot-id',
+      '<approved-plan-snapshot-id>',
+      '--credit-reservation-id',
+      '<credit-reservation-id>',
+      '--idempotency-prefix',
+      '<unique-smoke-prefix>',
+      '--service-role-boundary-ref',
+      '<service-role-boundary-ref>',
+      '--private-evidence-ref',
+      '<private-evidence-ref>',
+      '--telemetry-ref',
+      '<telemetry-ref>',
+      '--lease-audit-ref',
+      '<lease-audit-ref>',
+      '--cleanup-proof-ref',
+      '<cleanup-proof-ref>',
+      '--rollback-ref',
+      '<rollback-ref>',
+      '--output-result',
+      '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json',
+    ],
+    {
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE:
+          'true',
+        REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE_ENV:
+          'non_production',
+        SUPABASE_URL: 'https://non-production.supabase.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'non-production-service-role-placeholder',
+        E2E_RUNTIME_MODE: 'local',
+        WORKER_RUNTIME_MODE: 'mock',
+      },
+    },
+  )
+  return JSON.parse(output)
+}
+
 function runRejectedExecutionProbe() {
   try {
     execFileSync(
@@ -188,6 +247,8 @@ for (const phrase of [
   'canRunClaimAndDispatchSmokeNow',
   'missingOrMismatchedEnv',
   'missingFlags',
+  'invalidFlagValues',
+  'assertRuntimeFlagValues',
   'sourceQueueWriteSmokeProofChecks',
   'sourceExactExecutionAdmissionChecks',
   'createAiGraphicsToolRuntimeQueueService',
@@ -272,6 +333,7 @@ for (const flag of [
 }
 
 const operatorPreflight = runOperatorPreflightProbe()
+const placeholderOperatorPreflight = runPlaceholderOperatorPreflightProbe()
 if (operatorPreflight.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_operator_preflight_completed_with_runtime_blocks') {
   fail(`operator_preflight_decision_mismatch:${operatorPreflight.decision}`)
 }
@@ -337,6 +399,42 @@ for (const flag of [
   if (!operatorPreflight.missingFlags?.includes(flag)) {
     fail(`operator_preflight_missing_flag_blocker:${flag}`)
   }
+}
+if (placeholderOperatorPreflight.canRunClaimAndDispatchSmokeNow !== false) {
+  fail('placeholder_operator_preflight_unexpectedly_ready')
+}
+if (!Array.isArray(placeholderOperatorPreflight.invalidFlagValues)) {
+  fail('placeholder_operator_preflight_missing_invalid_flag_values')
+} else {
+  for (const flag of [
+    '--workspace-id',
+    '--project-id',
+    '--approved-plan-snapshot-id',
+    '--credit-reservation-id',
+    '--idempotency-prefix',
+    '--service-role-boundary-ref',
+    '--private-evidence-ref',
+    '--telemetry-ref',
+    '--lease-audit-ref',
+    '--cleanup-proof-ref',
+    '--rollback-ref',
+  ]) {
+    if (!placeholderOperatorPreflight.invalidFlagValues.some((entry) => entry.flag === flag)) {
+      fail(`placeholder_operator_preflight_missing_invalid_flag:${flag}`)
+    }
+  }
+}
+if (placeholderOperatorPreflight.liveWorkerClaimAndDispatchSmokeExecutedNow !== false) {
+  fail('placeholder_operator_preflight_live_claim_dispatch_not_false')
+}
+if (placeholderOperatorPreflight.liveSupabaseQueueWritesNow !== 0) {
+  fail('placeholder_operator_preflight_live_writes_not_0')
+}
+if (placeholderOperatorPreflight.liveWorkerClaimsNow !== 0) {
+  fail('placeholder_operator_preflight_worker_claims_not_0')
+}
+if (placeholderOperatorPreflight.liveWorkerDispatchHandoffsNow !== 0) {
+  fail('placeholder_operator_preflight_worker_handoffs_not_0')
 }
 
 const rejected = runRejectedExecutionProbe()
@@ -435,6 +533,10 @@ console.log(JSON.stringify({
   liveSupabaseQueueWritesNow: prepared.liveSupabaseQueueWritesNow,
   liveWorkerClaimsNow: prepared.liveWorkerClaimsNow,
   liveWorkerDispatchHandoffsNow: prepared.liveWorkerDispatchHandoffsNow,
+  placeholderPreflightBlocked:
+    placeholderOperatorPreflight.canRunClaimAndDispatchSmokeNow === false,
+  placeholderInvalidFlagValues:
+    placeholderOperatorPreflight.invalidFlagValues?.length ?? 0,
   agentCanExecuteToolsNow: prepared.booleans.agentCanExecuteToolsNow,
   gpuRuntimeShouldStartNow: prepared.booleans.gpuRuntimeShouldStartNow,
   proofTemplateRunnerCommandPresent: true,

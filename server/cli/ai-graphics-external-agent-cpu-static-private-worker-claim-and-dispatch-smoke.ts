@@ -38,6 +38,8 @@ const sourceQueueWriteSmokeProofPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json'
 const sourceExactExecutionAdmissionPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json'
+const localOnlySuggestedResultPath =
+  '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json'
 
 const requiredEnv = [
   'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE=true',
@@ -85,6 +87,74 @@ function readJsonFile<T>(filePath: string): T {
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T
 }
 
+function isPlaceholderValue(value: string): boolean {
+  const trimmed = value.trim()
+  return trimmed.length === 0 || /^<[^>]+>$/.test(trimmed) || trimmed.includes('<') || trimmed.includes('>')
+}
+
+function flagValueRejection(flag: string, value: string): string | null {
+  if (isPlaceholderValue(value)) {
+    return `${flag} must be a real non-production value, not a placeholder`
+  }
+  if (/\s/.test(value)) return `${flag} must not contain whitespace`
+  if (flag === '--idempotency-prefix') {
+    return /^[a-z0-9][a-z0-9:_-]{15,160}$/i.test(value) && value.includes('smoke')
+      ? null
+      : `${flag} must be a unique smoke idempotency prefix with 16-160 safe characters`
+  }
+  if (
+    flag === '--source-service-role-queue-write-smoke-proof-packet' ||
+    flag === '--source-exact-execution-admission-packet'
+  ) {
+    return value.endsWith('.json') && !value.includes('..')
+      ? null
+      : `${flag} must point at a JSON source packet without parent traversal`
+  }
+  if (flag === '--service-role-boundary-ref') {
+    return value.startsWith('service-role-boundary://')
+      ? null
+      : `${flag} must use a service-role-boundary:// reference`
+  }
+  if (
+    flag === '--private-evidence-ref' ||
+    flag === '--telemetry-ref' ||
+    flag === '--lease-audit-ref' ||
+    flag === '--cleanup-proof-ref' ||
+    flag === '--rollback-ref'
+  ) {
+    return value.startsWith('private://') ? null : `${flag} must use a private:// reference`
+  }
+  if (flag === '--output-result') {
+    return value === localOnlySuggestedResultPath
+      ? null
+      : `${flag} must write only to ${localOnlySuggestedResultPath}`
+  }
+  return value.length >= 4 ? null : `${flag} must be at least four characters`
+}
+
+function invalidFlagValueFindings(): Array<{ flag: string; value: string; reason: string }> {
+  return requiredFlags
+    .filter((flag) => flag !== executeFlag)
+    .map((flag) => {
+      const value = valueAfterFlag(flag)
+      if (!value) return undefined
+      const reason = flagValueRejection(flag, value)
+      return reason ? { flag, value, reason } : undefined
+    })
+    .filter((entry): entry is { flag: string; value: string; reason: string } => Boolean(entry))
+}
+
+function assertRuntimeFlagValues(): void {
+  const invalidFlagValues = invalidFlagValueFindings()
+  if (invalidFlagValues.length > 0) {
+    throw new Error(
+      `CPU/static worker claim/dispatch smoke received unsafe runtime flag values: ${invalidFlagValues
+        .map((entry) => `${entry.flag}: ${entry.reason}`)
+        .join('; ')}`,
+    )
+  }
+}
+
 function preparedContract() {
   return {
     ok: true,
@@ -99,8 +169,7 @@ function preparedContract() {
     sourceExactExecutionAdmissionPacket: sourceExactExecutionAdmissionPath,
     requiredEnv,
     requiredFlags,
-    localOnlySuggestedResultPath:
-      '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json',
+    localOnlySuggestedResultPath,
     validatorCommand:
       'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof -- --external-agent-cpu-static-worker-claim-and-dispatch-smoke-result <local-result.json> --print-only',
     toolsClaimed: 5,
@@ -215,6 +284,7 @@ function buildOperatorPreflightReport() {
   const missingFlags = requiredFlags.filter(
     (flag) => !requiredFlagSatisfiedForOperatorPreflight(flag),
   )
+  const invalidFlagValues = invalidFlagValueFindings()
   const explicitSourceQueueWriteSmokeProofPath = valueAfterFlag(
     '--source-service-role-queue-write-smoke-proof-packet',
   )
@@ -264,6 +334,7 @@ function buildOperatorPreflightReport() {
   const canRunClaimAndDispatchSmokeNow =
     missingOrMismatchedEnv.length === 0 &&
     missingFlags.length === 0 &&
+    invalidFlagValues.length === 0 &&
     sourceQueueWriteSmokeProofAccepted &&
     sourceExactExecutionAdmissionAccepted &&
     productionBlocked === false
@@ -294,6 +365,7 @@ function buildOperatorPreflightReport() {
     },
     missingOrMismatchedEnv,
     missingFlags,
+    invalidFlagValues,
     productionBlocked,
     requiredEnv,
     requiredFlags,
@@ -586,6 +658,7 @@ function buildJobs(
 
 async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeResult> {
   assertAllowedToExecute()
+  assertRuntimeFlagValues()
   const sourceQueueWriteSmokeProof = readJsonFile<
     AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport
   >(requiredFlag('--source-service-role-queue-write-smoke-proof-packet'))
@@ -617,6 +690,7 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
   const leaseAuditRef = requiredFlag('--lease-audit-ref')
   const cleanupProofRef = requiredFlag('--cleanup-proof-ref')
   const rollbackRef = requiredFlag('--rollback-ref')
+  requiredFlag('--output-result')
   const workerInstanceId =
     valueAfterFlag('--worker-instance-id') ??
     'ai-graphics-external-agent-cpu-static-claim-dispatch-smoke-worker'

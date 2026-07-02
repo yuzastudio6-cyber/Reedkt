@@ -1,0 +1,7 @@
+# Safety Boundary
+
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, worker execution from raw chat, route execution for arbitrary media, browser capture, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, raw prompt execution, final render/export, private media processing, user media processing, FFmpeg/FFprobe execution, Docker push/deploy, Remotion execution, package installation, dependency mutation, package-lock mutation, Dockerfile install-source change, requirements install-source change, or broad service-role handler was enabled.
+
+The confirmed route invocation used `REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_EXECUTION_READY_ROUTE_WORKER_BRIDGE=true` and delegated only to the existing generated-fixture runtime packet. The runtime delegate reported Docker execution as `completed_local_image_only_network_disabled_no_push_no_deploy`, GStreamer execution as `completed_controlled_generated_fixture_only`, MKVToolNix execution as `completed_controlled_generated_fixture_only`, and media processing as `controlled_generated_fixture_only`.
+
+This does not approve private/user media, public artifacts, final export, external beta unlock, paid production, production, Supabase mutation, SQL, provider calls, model calls, or arbitrary tool commands.

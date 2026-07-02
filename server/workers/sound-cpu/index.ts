@@ -6,6 +6,24 @@ export {
 } from './synthetic-route-decision.ts'
 
 export {
+  SOUND_CPU_DISPATCH_ALLOWED_IMAGES,
+  SOUND_CPU_DISPATCH_ALLOWED_JOB_TYPES,
+  SOUND_CPU_DISPATCH_ALLOWED_WORKERS,
+  SOUND_CPU_DISPATCH_CONTRACT_VERSION,
+  SOUND_CPU_DISPATCH_DISABLED_RUNTIME_FLAGS,
+  buildDisabledSoundCpuDispatchEnvelope,
+  validateSoundCpuDispatchContractPayload,
+  type SoundCpuDisabledDispatchEnvelope,
+  type SoundCpuDispatchAttemptMetadata,
+  type SoundCpuDispatchContractPayload,
+  type SoundCpuDispatchImageName,
+  type SoundCpuDispatchJobType,
+  type SoundCpuDispatchRuntimeFlags,
+  type SoundCpuDispatchValidationResult,
+  type SoundCpuDispatchWorkerName,
+} from './dispatch-contract.ts'
+
+export {
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_BLOCKED_REASON,
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_NAME,
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_SOURCE_STATUS,

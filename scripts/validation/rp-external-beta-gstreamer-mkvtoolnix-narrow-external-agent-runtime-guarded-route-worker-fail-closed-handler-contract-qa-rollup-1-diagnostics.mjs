@@ -31,11 +31,26 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1.md',
 ]
 
+const registrationPlanDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1'
+const registrationPlanFiles = [
+  `${registrationPlanDir}/source-audit.md`,
+  `${registrationPlanDir}/registration-plan.md`,
+  `${registrationPlanDir}/readiness.md`,
+  `${registrationPlanDir}/safety-boundary.md`,
+  `${registrationPlanDir}/validation-results.md`,
+  `${registrationPlanDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1.md',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...registrationPlanFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1-diagnostics.mjs',
 ])
 
 const requiredText = [

@@ -543,6 +543,7 @@
     "worker-runtime-jobs:sound-cpu-phase117-controlled-limited-no-real-media-tool-execution-proof:proof": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase117-controlled-limited-no-real-media-tool-execution-proof-runner.mjs",
     "worker-runtime-jobs:sound-cpu-phase117-controlled-limited-no-real-media-tool-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase117-controlled-limited-no-real-media-tool-execution-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase117-limited-no-real-media-tool-execution-proof-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase117-limited-no-real-media-tool-execution-proof-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase118-product-tool-execution-gate-plan-no-real-user-media:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase118-product-tool-execution-gate-plan-no-real-user-media-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

@@ -2,11 +2,11 @@
 
 Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings`
 
-Status: `external_agent_execution_gate_fail_closed_runtime_blocked`
+Status: `external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked`
 
-This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled canonical route execution-smoke evidence, all-21 mock queue worker-claim smoke evidence, and all-21 external-agent tool-adapter authorization evidence, then returns a clear no-go for direct/global execution until a later live queue, worker dispatch, adapter invocation, and private runtime proof explicitly opens that broader execution path.
+This packet gives an external agent a deterministic controlled-route execution gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled canonical route execution-smoke evidence, all-21 mock queue worker-claim smoke evidence, and all-21 external-agent tool-adapter authorization evidence, then separates the current controlled external-beta route surface from the still-blocked direct/global execution surface.
 
-The current global block is intentional and temporary. It does not mean the 21 tools are rejected. It means the agent may plan with the tools, controlled route smoke now proves 13 tools executed through the mock/private canonical route surface, mock queue worker-claim smoke proves all 21 requests can reach a private mock worker lease shape, and adapter authorization now proves all 21 mapped production adapter contracts are prepared with runtime blocks. Full direct execution, adapter invocation, live worker dispatch, GPU/model runtime, public artifacts, beta, and production stay blocked.
+The current state is not zero-tool execution. Controlled route smoke now proves 13 tools executed through the mock/private canonical route surface: six CPU/static tools and seven browser/runtime tools. Mock queue worker-claim smoke proves all 21 requests can reach a private mock worker lease shape, and adapter authorization proves all 21 mapped production adapter contracts are prepared with runtime blocks. Full direct all-21 execution, adapter invocation outside the controlled route surface, live worker dispatch, GPU/model runtime, public artifacts, beta, and production stay blocked.
 
 ## Scope
 
@@ -117,7 +117,8 @@ The current global block is intentional and temporary. It does not mean the 21 t
 - Request-admission candidates with provided evidence: `1`
 - Route-mount-ready tools with provided evidence: `21`
 - API-route-mounted-now tools: `0`
-- External-agent executable now tools: `0`
+- Direct/global external-agent executable now tools: `0`
+- Controlled canonical route executable now tools: `13`
 - External-beta-ready-now tools: `0`
 - Production-ready-now tools: `0`
 

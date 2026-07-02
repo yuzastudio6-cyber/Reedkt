@@ -45,7 +45,8 @@ const toolExecutionDryRunProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof'
 const decision =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
-const acceptedStatus = 'external_agent_execution_gate_fail_closed_runtime_blocked'
+const acceptedStatus =
+  'external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked'
 
 const allTools = [
   'torch_torchvision',

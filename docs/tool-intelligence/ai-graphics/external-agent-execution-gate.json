@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
-  "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
+  "status": "external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked",
   "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
-  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled canonical route execution-smoke evidence proving 13 controlled canonical route-executed tools, all-21 mock queue worker-claim smoke evidence, all-21 external-agent tool-adapter authorization contracts, and the existing Satori locked package-font runtime proof. Six CPU/static tools now have accepted local runtime proof coverage, while direct/global execution, adapter invocation, GPU/model runtime, live queue writes, worker dispatch, providers, artifacts, beta, and production remain blocked.",
+  "summary": "Controlled-route-ready external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled canonical route execution-smoke evidence proving 13 controlled canonical route-executed tools, all-21 mock queue worker-claim smoke evidence, all-21 external-agent tool-adapter authorization contracts, and the existing Satori locked package-font runtime proof. Six CPU/static tools and seven browser/runtime tools are executable through the controlled canonical external-beta route surface with private/mock-safe output metadata. Direct/global all-21 execution, adapter invocation outside the controlled route surface, GPU/model runtime, live queue writes, worker dispatch, providers, public artifacts, beta, and production remain blocked.",
   "sourceEvidence": {
     "properInstallAudit": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
     "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",

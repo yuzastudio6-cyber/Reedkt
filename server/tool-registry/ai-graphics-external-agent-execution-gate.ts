@@ -100,6 +100,7 @@ export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_rejected'
   | 'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_rejected'
   | 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_rejected'
+  | 'external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked'
   | 'external_agent_execution_gate_fail_closed_runtime_blocked'
 
 export interface AiGraphics21ToolProperInstallAudit {
@@ -2445,7 +2446,7 @@ function statusFromInput(input: {
   ) {
     return 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_rejected'
   }
-  return 'external_agent_execution_gate_fail_closed_runtime_blocked'
+  return 'external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked'
 }
 
 function requiredBeforeExecution(input: {

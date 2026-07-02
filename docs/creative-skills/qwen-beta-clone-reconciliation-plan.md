@@ -349,3 +349,21 @@ Decision:
 Next step:
 
 `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`
+
+## RP-BETA-INTEGRATION-27 Result
+
+RP-BETA-INTEGRATION-27 completed the target-side dependency repair for the imported Qwen slice.
+
+Decision:
+
+- `qwen_dependency_completion_passed_with_warnings`
+
+Current interpretation:
+
+- Direct dirty-clone import remains blocked as a general strategy.
+- The approved RP-BETA-27 dependency set was imported because it was explicit, inspected, and required by already-imported Qwen commits.
+- Qwen clone remains dirty outside the imported dependency slice and was not mutated.
+
+Next step:
+
+`RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`

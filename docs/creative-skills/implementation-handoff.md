@@ -3682,3 +3682,63 @@ Boundary:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`
+
+## RP-BETA-INTEGRATION-27 Completion
+
+RP-BETA-INTEGRATION-27 completed the missing Qwen/Project Edit Brief dependency import and build repair for the already-imported RP-BETA-26 commit slice.
+
+Created docs:
+
+- `docs/creative-skills/qwen-import-dependency-completion-and-build-repair.md`
+- `docs/creative-skills/qwen-import-dependency-completion-and-build-repair-checklist.md`
+
+Decision:
+
+- `qwen_dependency_completion_passed_with_warnings`
+
+Created target commit:
+
+- `7a5c6c80` - `fix(qwen): import marker chat dependency files`
+
+Imported/added dependency surfaces:
+
+- Missing API route and Project Edit Session shared types.
+- Missing ReeditPro API client helper types.
+- Missing Project Edit Brief marker-chat UI helper components.
+- Missing API route validation service, repaired to avoid absent broad route registry imports.
+- Missing mock Qwen runtime-boundary and Supabase-command safety orchestrator exports.
+- Narrow Project Edit Brief mock database collections and Qwen/Project Edit Brief error-code literals.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `npm run check:qwen-secret-leakage`: passed.
+- `npm run smoke:qwen-runtime-boundary`: passed.
+- `npm run check:qwen-runtime-boundary`: passed.
+- `npm run smoke:qwen-marker-chat-bridge`: passed.
+- `npm run smoke:project-edit-brief-marker-chat`: passed.
+- `npm run check:frontend-boundary`: passed.
+- `npm run smoke:supabase-command-safety`: passed.
+- `npm run check:supabase-command-safety`: passed.
+- `npm run smoke:beta-readiness`: passed.
+- `npm run smoke:api`: passed.
+- `npm run smoke:sound-music-audio-contracts`: passed.
+- `npm run smoke:sound-music-audio-planner`: passed.
+
+Boundaries:
+
+- Qwen clone was inspected read-only and not mutated.
+- No broad copy, package change, Supabase config change, migration edit, Creative Skill manifest edit, Creative Skill type/mock edit, provider call, worker execution, remote Supabase command, push, merge, deploy, or runtime behavior change occurred.
+- Protected hashes for Supabase config, migrations, Creative Skill manifest/contracts/mocks, and package files remained unchanged.
+
+Remaining warnings:
+
+- Target repo still has excluded local Supabase side artifacts under `supabase/.branches/` and `supabase/.temp/`.
+- Qwen clone remains dirty outside the imported/repaired dependency slice.
+- Final beta merge readiness review is still pending.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`

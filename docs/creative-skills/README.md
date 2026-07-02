@@ -1019,6 +1019,24 @@ Summary:
 
 Recommended next prompt: `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`.
 
+## RP-BETA-INTEGRATION-27 Qwen Import Dependency Completion And Build Repair
+
+`RP-BETA-INTEGRATION-27` creates [qwen-import-dependency-completion-and-build-repair.md](qwen-import-dependency-completion-and-build-repair.md) and [qwen-import-dependency-completion-and-build-repair-checklist.md](qwen-import-dependency-completion-and-build-repair-checklist.md).
+
+Decision: `qwen_dependency_completion_passed_with_warnings`.
+
+Summary:
+
+- Imported only the missing Qwen/Project Edit Brief dependency files needed by the already-imported RP-BETA-26 commits.
+- Added bounded mock orchestrator exports for Qwen runtime-boundary and Supabase-command safety smokes.
+- Patched target compatibility only in Qwen/Project Edit Brief surfaces and mock/error support.
+- Created local commit `7a5c6c80` - `fix(qwen): import marker chat dependency files`.
+- `git diff --check`, lint, build, all Qwen checks/smokes, Supabase-command safety checks/smokes, existing beta/API smokes, and sound/music smokes passed.
+- Protected Supabase config, migrations, Creative Skill manifest, Creative Skill contracts, mock fixtures, and package files remained unchanged.
+- The Qwen clone remained read-only and dirty outside the imported dependency slice.
+
+Recommended next prompt: `RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`.
+
 ## Scope Boundary
 
 Allowed in this audit:

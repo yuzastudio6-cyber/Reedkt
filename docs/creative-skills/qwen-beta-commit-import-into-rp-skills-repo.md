@@ -123,3 +123,32 @@ The imported commits are now local RP-SKILLS history, but they are not build-val
 
 `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`
 
+## L. RP-BETA-INTEGRATION-27 Follow-Up
+
+RP-BETA-INTEGRATION-27 repaired the dependency-incomplete state created by importing the reviewed Qwen commit slice.
+
+Decision:
+
+- `qwen_dependency_completion_passed_with_warnings`
+
+Created target commit:
+
+- `7a5c6c80` - `fix(qwen): import marker chat dependency files`
+
+Resolution:
+
+- Imported the missing Qwen/Project Edit Brief dependency files that were explicitly listed for RP-BETA-27.
+- Added bounded mock Qwen runtime-boundary and command-safety orchestrator exports required by imported smokes.
+- Patched only Qwen/Project Edit Brief target compatibility surfaces.
+- Updated imported smoke migration-count baselines to the RP-SKILLS target's approved `23` migrations.
+
+Validation after repair:
+
+- `npm run build`: passed.
+- All Qwen checks/smokes: passed.
+- Existing beta/API/sound smokes: passed.
+- Protected Supabase, Creative Skill, and package files: unchanged.
+
+Next step:
+
+`RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`

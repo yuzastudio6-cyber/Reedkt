@@ -489,3 +489,25 @@ Updated readiness:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`
+
+## Y. RP-BETA-INTEGRATION-27 Dependency Completion Update
+
+RP-BETA-INTEGRATION-27 completed the missing dependency repair for the imported Qwen slice.
+
+Decision:
+
+- `qwen_dependency_completion_passed_with_warnings`
+
+Created target commit:
+
+- `7a5c6c80` - `fix(qwen): import marker chat dependency files`
+
+Updated readiness:
+
+- The target repo now builds with the imported Qwen/Project Edit Brief slice.
+- Qwen checks/smokes, Supabase-command safety checks/smokes, existing beta/API smokes, and sound/music smokes pass.
+- Final beta merge readiness still requires a post-repair review.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`

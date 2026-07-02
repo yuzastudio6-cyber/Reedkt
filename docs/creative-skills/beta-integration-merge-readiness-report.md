@@ -1028,3 +1028,35 @@ Updated status:
 Updated next step:
 
 `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`
+
+## 38. RP-BETA-INTEGRATION-27 Update
+
+RP-BETA-INTEGRATION-27 completed the missing Qwen dependency import and build repair.
+
+Decision:
+
+- `qwen_dependency_completion_passed_with_warnings`
+
+Created target commit:
+
+- `7a5c6c80` - `fix(qwen): import marker chat dependency files`
+
+Validation summary:
+
+- Diff check, lint, build, Qwen safety checks, Qwen runtime/marker-chat smokes, Project Edit Brief marker-chat smoke, frontend-boundary check, Supabase-command safety check/smoke, beta readiness smoke, API smoke, and sound/music smokes passed.
+- Qwen runtime and marker-chat smokes now use the RP-SKILLS target migration baseline of `23`.
+- Protected Supabase config, migrations, Creative Skill manifest, Creative Skill contracts, Creative Skill mock fixtures, and package files remained unchanged.
+
+Updated readiness:
+
+- The RP-BETA-26 imported Qwen slice is now dependency-complete for local build and approved smokes.
+- The repo is still not final beta merge-ready until a final post-repair merge-readiness review is completed.
+- Qwen clone remains dirty outside the imported/repaired slice and was not mutated.
+
+Updated status:
+
+- `blocked_pending_final_beta_merge_readiness_review`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`

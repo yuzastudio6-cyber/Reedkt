@@ -574,3 +574,7 @@ RP-BETA-INTEGRATION-25 repaired the Qwen package/script split in the separate Qw
 ## RP-BETA-INTEGRATION-26 Note
 
 RP-BETA-INTEGRATION-26 imported the reviewed Qwen commit slice into RP-SKILLS, including Qwen/Project Edit Brief contracts, exports, backend services, browser-safe marker-chat adapters, validation scripts, package scripts/dependencies, and docs. Validation is blocked because the committed slice references additional dependency files that are still untracked in the Qwen clone and absent from RP-SKILLS. No Creative Skill migrations, manifest files, Creative Skill contracts, mock fixtures, Supabase config, remote Supabase, provider calls, worker execution, push, merge, or deployment behavior changed.
+
+## RP-BETA-INTEGRATION-27 Note
+
+RP-BETA-INTEGRATION-27 imported the missing Qwen/Project Edit Brief dependency files required by the RP-BETA-26 Qwen slice and added narrow target compatibility repairs for API route validation, mock database collections, error-code literals, and mock safety orchestrator exports. Build, Qwen checks/smokes, Supabase-command safety checks/smokes, existing beta/API smokes, and sound/music smokes passed. No Creative Skill migrations, manifest files, Creative Skill contracts, mock fixtures, Supabase config, package files, remote Supabase, provider calls, worker execution, push, merge, or deployment behavior changed.

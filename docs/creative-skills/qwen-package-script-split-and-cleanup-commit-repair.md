@@ -112,3 +112,17 @@ Outcome:
 - `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`
 
 The next repair must address the missing dependency graph without copying untracked Qwen files outside owner-approved scope.
+
+## RP-BETA-INTEGRATION-27 Dependency Repair Result
+
+RP-BETA-INTEGRATION-27 imported the explicitly approved missing Qwen/Project Edit Brief dependency files into RP-SKILLS and repaired narrow target compatibility gaps.
+
+Decision:
+
+- `qwen_dependency_completion_passed_with_warnings`
+
+Created target commit:
+
+- `7a5c6c80` - `fix(qwen): import marker chat dependency files`
+
+Validation after repair passed for build, Qwen checks/smokes, Supabase-command safety checks/smokes, existing beta/API smokes, and sound/music smokes. The Qwen clone remains dirty outside the committed/imported slice.

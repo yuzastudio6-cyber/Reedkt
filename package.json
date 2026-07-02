@@ -652,6 +652,7 @@
     "tracka:gpac-mp4box-execution-ready-route-worker-bridge-1:diagnostics": "node scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-execution-ready-route-worker-bridge-1": "tsx server/smoke/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-smoke.ts",
     "tracka:gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1:diagnostics": "node scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs",
+    "tracka:three-tool-external-agent-runtime-ready-rollup-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-runtime-ready-rollup-1-diagnostics.mjs",
     "tracka:gpac-mp4box-disabled-runtime-scaffold:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-runtime-scaffold-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-disabled-runtime-scaffold": "tsx server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts",
     "tracka:gpac-mp4box-runtime-scaffold-negative-tests:diagnostics": "node scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs",

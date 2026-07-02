@@ -69,7 +69,27 @@ const gpacQaRollupFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...readyRollupFiles, ...gpacQaRollupFiles])
+const threeToolRollupDir = 'docs/external-beta/tracka-three-tool-external-agent-runtime-ready-rollup-1'
+const threeToolRollupFiles = [
+  `${threeToolRollupDir}/source-chain.md`,
+  `${threeToolRollupDir}/tool-matrix.md`,
+  `${threeToolRollupDir}/external-agent-boundary.md`,
+  `${threeToolRollupDir}/artifact-manifest-summary.md`,
+  `${threeToolRollupDir}/validation-results.md`,
+  `${threeToolRollupDir}/tracka-three-tool-external-agent-runtime-ready-rollup-1-record.json`,
+  'docs/activation-phase-tracka-three-tool-external-agent-runtime-ready-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...readyRollupFiles,
+  ...gpacQaRollupFiles,
+  ...threeToolRollupFiles,
+])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
@@ -261,6 +281,7 @@ const changedCorpus = uniqueChangedFiles
       (packetFiles.includes(file) ||
         readyRollupFiles.includes(file) ||
         gpacQaRollupFiles.includes(file) ||
+        threeToolRollupFiles.includes(file) ||
         file === 'package.json') &&
       (file.startsWith('docs/') || file === 'package.json')
   )

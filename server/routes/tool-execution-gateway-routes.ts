@@ -21,6 +21,8 @@ export function createToolExecutionGatewayRoutes(): Router {
       {
         gateway: result.gateway,
         productionReadinessReport: result.productionReadinessReport,
+        toolCostEvents: result.toolCostEvents,
+        walletSettlements: result.walletSettlements,
         trackBAdapterResult: result.trackBAdapterResult,
         workerRuntimeArtifactPipeline: result.workerRuntimeArtifactPipeline,
         workerResult: result.workerResult,

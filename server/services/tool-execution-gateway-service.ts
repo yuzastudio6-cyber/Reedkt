@@ -5,6 +5,12 @@ import {
 } from '../beta-readiness'
 import {
   assertToolExecutionCostCreditGate,
+  createToolCostMeteringService,
+  getToolCostOwnerCoverage,
+  settleToolCostWallet,
+  type ToolCostEvent,
+  type ToolCostFailureCategory,
+  type ToolCostWalletSettlement,
 } from '../tool-cost-metering'
 import {
   getTrackBAdapterContract,
@@ -31,6 +37,7 @@ import { buildWorkerIdempotencyKey } from '../workers/production/production-work
 import type {
   ProductionWorkerExecutionMode,
   ProductionWorkerExecutionResult,
+  ProductionWorkerFailureCategory,
   ProductionWorkerJobPayload,
   ProductionWorkerRuntimeType,
   ProductionWorkerStorageReferenceInput,
@@ -73,6 +80,8 @@ export interface ToolExecutionGatewayDispatchResult {
     dispatchedAt: string
   }
   productionReadinessReport?: ProductionToolExecutionReadinessGateReport
+  toolCostEvents?: ToolCostEvent[]
+  walletSettlements?: ToolCostWalletSettlement[]
   trackBAdapterResult?: TrackBAdapterResult
   workerRuntimeArtifactPipeline?: WorkerRuntimeArtifactPipelineResult
   workerResult?: ProductionWorkerExecutionResult
@@ -144,21 +153,31 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
 
       const replay = getWorkerRuntimeArtifactReplay(workerIdempotencyKey)
       if (replay) {
+        const billingAudit = await recordGatewayBillingAudit({
+          context,
+          input,
+          workerResult: replay.workerResult,
+          workerIdempotencyKey,
+        })
+        blockers.push(...billingAudit.blockers)
         return {
           gateway: buildGatewayRecord({
             input,
             adapterId,
             blockers,
-            status: 'dispatched',
+            status: blockers.length > 0 ? 'blocked' : 'dispatched',
             dispatchedAt: createdAt,
             workerIdempotencyKey,
           }),
           productionReadinessReport: productionReadiness.report,
+          toolCostEvents: billingAudit.toolCostEvents,
+          walletSettlements: billingAudit.walletSettlements,
           trackBAdapterResult: replay.trackBAdapterResult ?? trackBAdapterResult,
           workerRuntimeArtifactPipeline: replay.pipeline,
           workerResult: replay.workerResult,
           warnings: [
             ...warnings,
+            ...billingAudit.warnings,
             ...replay.pipeline.warnings,
             'Tool execution gateway returned an idempotent worker/runtime artifact replay.',
           ],
@@ -187,6 +206,13 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         trackBAdapterResult,
         apiIdempotencyKey: input.apiIdempotencyKey,
       })
+      const billingAudit = await recordGatewayBillingAudit({
+        context,
+        input,
+        workerResult,
+        workerIdempotencyKey,
+      })
+      blockers.push(...billingAudit.blockers)
 
       return {
         gateway: buildGatewayRecord({
@@ -198,11 +224,14 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           workerIdempotencyKey,
         }),
         productionReadinessReport: productionReadiness.report,
+        toolCostEvents: billingAudit.toolCostEvents,
+        walletSettlements: billingAudit.walletSettlements,
         trackBAdapterResult,
         workerRuntimeArtifactPipeline,
         workerResult,
         warnings: [
           ...warnings,
+          ...billingAudit.warnings,
           ...workerRuntimeArtifactPipeline.warnings,
           'Tool execution gateway dispatched only through mock-safe backend worker adapters; no frontend tool execution occurred.',
         ],
@@ -762,6 +791,138 @@ function validateProductionReadinessGate(input: ToolExecutionGatewayDispatchBody
           : 'Production readiness evidence could not be evaluated.',
       }],
     }
+  }
+}
+
+async function recordGatewayBillingAudit(input: {
+  context: ServiceContext
+  input: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string }
+  workerResult: ProductionWorkerExecutionResult | undefined
+  workerIdempotencyKey: string
+}): Promise<{
+  toolCostEvents: ToolCostEvent[]
+  walletSettlements: ToolCostWalletSettlement[]
+  warnings: string[]
+  blockers: ToolExecutionGatewayBlocker[]
+}> {
+  if (input.input.executionMode !== 'production_ready') {
+    return { toolCostEvents: [], walletSettlements: [], warnings: [], blockers: [] }
+  }
+
+  if (!input.workerResult) {
+    return {
+      toolCostEvents: [],
+      walletSettlements: [],
+      warnings: [],
+      blockers: [{
+        code: 'TOOL_COST_BILLING_AUDIT_MISSING_WORKER_RESULT',
+        gateName: 'billing_audit',
+        message: 'Production-ready gateway billing audit requires a worker result.',
+      }],
+    }
+  }
+
+  const toolCostEvents: ToolCostEvent[] = []
+  const walletSettlements: ToolCostWalletSettlement[] = []
+  const warnings: string[] = []
+  const blockers: ToolExecutionGatewayBlocker[] = []
+  const meteringService = createToolCostMeteringService(input.context)
+
+  for (const toolId of input.input.requestedToolIds) {
+    try {
+      const coverage = getToolCostOwnerCoverage(toolId)
+      const failureCategory = input.workerResult.status === 'completed'
+        ? 'none'
+        : mapWorkerFailureCategory(input.workerResult.error?.failureCategory)
+      const eventResult = await meteringService.emitToolCostEvent({
+        workspaceId: input.input.workspaceId,
+        projectId: input.input.projectId,
+        editPlanId: input.input.editPlanId ?? null,
+        jobId: input.input.jobId,
+        jobBatchId: input.input.toolExecutionPlanId,
+        creditEstimateId: input.input.creditEstimateId,
+        creditReservationId: input.input.creditReservationId,
+        toolId,
+        toolName: coverage.displayName,
+        usageCategory: coverage.usageCategory,
+        providerType: coverage.providerType,
+        providerName: 'reeditpro-tool-execution-gateway',
+        modelName: null,
+        qualityLevel: coverage.qualityLevel,
+        startedAt: input.workerResult.startedAt,
+        completedAt: input.workerResult.completedAt,
+        wallClockMs: Math.max(0, Date.parse(input.workerResult.completedAt) - Date.parse(input.workerResult.startedAt)),
+        retryAttempt: input.input.attempt,
+        failureCategory,
+        billableToUser: input.workerResult.status === 'completed',
+        approvedReservationRemainingCredits: input.input.approvedReservationRemainingCredits,
+        gpuCount: coverage.gpuRequired ? 1 : 0,
+        metadata: {
+          gatewayBillingAudit: true,
+          gatewayAdapterId: input.input.adapterId ?? defaultAdapterForWorker(input.input.workerType),
+          toolExecutionPlanId: input.input.toolExecutionPlanId,
+          workerIdempotencyKey: input.workerIdempotencyKey,
+          serviceFeeIncluded: false,
+          stripeCallAttempted: false,
+        },
+      }, `${input.workerIdempotencyKey}:tool-cost:${toolId}`)
+      toolCostEvents.push(eventResult.event)
+      warnings.push(...eventResult.warnings)
+
+      const settlementResult = await settleToolCostWallet(input.context, {
+        workspaceId: input.input.workspaceId,
+        projectId: input.input.projectId,
+        toolCostEventId: eventResult.event.id,
+        creditEstimateId: eventResult.event.creditEstimateId,
+        creditReservationId: eventResult.event.creditReservationId,
+        toolCostCredits: eventResult.event.toolCostCredits,
+        billableToUser: eventResult.event.billableToUser,
+        failureCategory: eventResult.event.failureCategory,
+        settlementType: eventResult.event.billableToUser ? 'spend' : 'release',
+        metadata: {
+          gatewayBillingAudit: true,
+          workerIdempotencyKey: input.workerIdempotencyKey,
+          toolId,
+          serviceFeeIncluded: false,
+          stripeCallAttempted: false,
+        },
+      }, `${input.workerIdempotencyKey}:wallet-settlement:${toolId}`)
+      walletSettlements.push(settlementResult.settlement)
+      warnings.push(...settlementResult.warnings)
+    } catch (error) {
+      blockers.push({
+        code: 'TOOL_COST_BILLING_AUDIT_FAILED',
+        gateName: 'billing_audit',
+        message: error instanceof Error
+          ? error.message
+          : 'Production-ready gateway billing audit failed.',
+        details: { toolId },
+      })
+    }
+  }
+
+  return { toolCostEvents, walletSettlements, warnings, blockers }
+}
+
+function mapWorkerFailureCategory(category: ProductionWorkerFailureCategory | undefined): ToolCostFailureCategory {
+  switch (category) {
+    case 'credit_blocked':
+      return 'credit_not_reserved'
+    case 'missing_artifact':
+      return 'asset_missing'
+    case 'qa_failed':
+      return 'quality_failed'
+    case 'policy_blocked':
+    case 'license_blocked':
+    case 'model_weight_blocked':
+    case 'invalid_payload':
+      return 'approval_missing'
+    case 'transient_runtime':
+    case 'tool_unavailable':
+      return 'worker_error'
+    case 'unknown':
+    default:
+      return 'unknown'
   }
 }
 

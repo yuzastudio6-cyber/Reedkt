@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
-import { buildBetaReadinessReport } from '../beta-readiness'
+import { buildBetaReadinessReport, evaluateProductionToolExecutionReadinessGate } from '../beta-readiness'
 import { createBetaReadinessEvidenceService } from '../beta-readiness/beta-readiness-evidence-service'
 import { buildCoreRealCheckEvidencePacket } from '../beta-readiness/core-real-check-evidence'
 import { buildBetaPlatformEvidencePreflight } from '../beta-readiness/platform-evidence-preflight'
@@ -29,6 +29,7 @@ import {
   betaReadinessPlatformBillingQaSchema,
   betaReadinessPlatformDeployedEvidenceSchema,
   betaReadinessPlatformSupabaseDeployedProbeSchema,
+  productionToolExecutionReadinessGateSchema,
   type BetaReadinessPlatformDeployedEvidenceBody,
   type BetaReadinessPlatformSupabaseDeployedProbeBody,
 } from '../validation/beta-readiness-schemas'
@@ -110,6 +111,23 @@ export function createBetaReadinessRoutes(): Router {
       ...status.warnings,
       ...result.warnings,
     ])
+  }))
+
+  router.post('/v1/beta-readiness/production-tool-execution-readiness/evaluate', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(productionToolExecutionReadinessGateSchema, request.body)
+
+    try {
+      const report = evaluateProductionToolExecutionReadinessGate(body)
+      sendOk(response, { report }, [
+        ...report.warnings,
+        'Production tool execution readiness evaluation is report-only; no evidence was recorded and no worker, billing, Supabase, Stripe, media, beta, or production action ran.',
+      ])
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new ApiError('VALIDATION_FAILED', error.message, 400)
+      }
+      throw error
+    }
   }))
 
   router.post('/v1/beta-readiness/platform-billing-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {

@@ -43,6 +43,7 @@
     "smoke:prod-security-privacy": "tsx server/smoke/production-security-privacy-smoke.ts",
     "smoke:prod-cost-controls": "tsx server/smoke/production-cost-control-smoke.ts",
     "smoke:production-tool-execution-readiness-gate": "tsx server/smoke/production-tool-execution-readiness-gate-smoke.ts",
+    "smoke:production-tool-execution-readiness-api": "tsx server/smoke/production-tool-execution-readiness-api-smoke.ts",
     "smoke:production-tool-execution-readiness-evidence-preflight": "tsx server/smoke/production-tool-execution-readiness-evidence-preflight-smoke.ts",
     "smoke:tool-cost-metering": "tsx server/smoke/professional-tool-cost-metering-smoke.ts",
     "smoke:tool-cost-wallet-settlement": "tsx server/smoke/tool-cost-wallet-settlement-smoke.ts",

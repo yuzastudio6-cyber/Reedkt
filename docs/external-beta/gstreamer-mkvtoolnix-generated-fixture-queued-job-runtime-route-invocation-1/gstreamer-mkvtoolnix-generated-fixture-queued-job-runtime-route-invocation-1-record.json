@@ -1,0 +1,60 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GENERATED-FIXTURE-QUEUED-JOB-TO-RUNTIME-ROUTE-INVOCATION-1",
+  "integrationBase": "d197af4b7acdaa331782d9329ab41f306288045e",
+  "decision": "completed_gstreamer_mkvtoolnix_generated_fixture_queued_job_to_runtime_route_invocation",
+  "execution": "completed_approved_snapshot_queued_job_payload_to_existing_generated_fixture_runtime_route_delegate",
+  "sourceChain": {
+    "routeBridgePr": 2113,
+    "routeBridgeMergeSha": "67602b088009779d45b0d1f26eabac65c48902fc",
+    "routeBridgeQaRollupPr": 2115,
+    "routeBridgeQaRollupMergeSha": "932cba325d9b82ea88bd2e753bb3ff92ad58cb78",
+    "approvedSnapshotQueueHandoffPr": 2120,
+    "approvedSnapshotQueueHandoffMergeSha": "d197af4b7acdaa331782d9329ab41f306288045e",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "route": {
+    "invocationRoutePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/invoke",
+    "queueHandoffRoutePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/enqueue",
+    "runtimeRoutePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute",
+    "confirmationGates": [
+      "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GENERATED_FIXTURE_APPROVED_SNAPSHOT_JOB_QUEUE_HANDOFF=true",
+      "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GENERATED_FIXTURE_QUEUED_JOB_RUNTIME_ROUTE_INVOCATION=true",
+      "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_EXECUTION_READY_ROUTE_WORKER_BRIDGE=true"
+    ],
+    "invocationMode": "queued_job_payload_to_existing_runtime_route_delegate",
+    "fixtureScope": "generated_srt_and_generated_subtitle_only_mkv_fixture",
+    "readiness": "ready_for_generated_fixture_queued_job_runtime_qa_rollup"
+  },
+  "runtimeScope": {
+    "gstreamerExecution": "completed_controlled_generated_fixture_only",
+    "mkvtoolnixExecution": "completed_controlled_generated_fixture_only",
+    "mediaProcessing": "controlled_generated_fixture_only",
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false
+  },
+  "safety": {
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "workerLeaseClaim": false,
+    "persistentJobQueueWrite": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerPushDeploy": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "broadExternalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GENERATED-FIXTURE-QUEUED-JOB-RUNTIME-QA-ROLLUP-1"
+}

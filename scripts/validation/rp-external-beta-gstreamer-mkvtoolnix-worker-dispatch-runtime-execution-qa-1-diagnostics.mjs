@@ -41,6 +41,21 @@ const implementationFiles = [
 ]
 
 const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+for (const file of [
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/handoff-contract.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/command-template-allowlist.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/readiness.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/rollback-cleanup.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 
 const forbiddenChangedPathPatterns = [
   /^package-lock\.json$/,

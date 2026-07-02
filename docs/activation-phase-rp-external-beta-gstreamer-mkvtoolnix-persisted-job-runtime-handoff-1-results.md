@@ -6,7 +6,9 @@ Execution: `completed_backend_job_service_handoff_no_runtime_execution`
 
 Route: `/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-handoff`
 
-Job type: `gstreamer_mkvtoolnix_generated_fixture_runtime`
+DB job type: `quality_check`
+
+Payload kind: `gstreamer_mkvtoolnix_generated_fixture_runtime`
 
 Validation result: `passed`
 

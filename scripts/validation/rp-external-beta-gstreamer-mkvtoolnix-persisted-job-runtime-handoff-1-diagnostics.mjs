@@ -11,7 +11,8 @@ const routePath = '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated
 const queueRoutePath = '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/enqueue'
 const invocationRoutePath = '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/invoke'
 const runtimeRoutePath = '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute'
-const jobType = 'gstreamer_mkvtoolnix_generated_fixture_runtime'
+const jobType = 'quality_check'
+const payloadKind = 'gstreamer_mkvtoolnix_generated_fixture_runtime'
 const confirmEnv = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF'
 const queueConfirmEnv = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GENERATED_FIXTURE_APPROVED_SNAPSHOT_JOB_QUEUE_HANDOFF'
 const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-RUNTIME-ROUTE-INVOCATION-1'
@@ -50,11 +51,30 @@ const downstreamQaRollupFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1-diagnostics.mjs',
 ]
 
+const remoteWorkerClaimLeaseRuntimeValidationFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/schema-compatibility-repair.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/remote-validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-record.json',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1-record.json',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1/persisted-job-runtime-route-invocation.md',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-source-gate-1.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...sourceFiles,
   ...priorDiagnostics,
   ...downstreamQaRollupFiles,
+  ...remoteWorkerClaimLeaseRuntimeValidationFiles,
   'package.json',
 ])
 
@@ -67,6 +87,8 @@ const requiredText = [
   invocationRoutePath,
   runtimeRoutePath,
   jobType,
+  payloadKind,
+  'db_job_type_uses_public_job_type_enum_payload_kind_preserves_gstreamer_mkvtoolnix_runtime_identity',
   `${confirmEnv}=true`,
   `${queueConfirmEnv}=true`,
   'backend_job_service_handoff_no_runtime_execution',
@@ -245,6 +267,10 @@ if (record.sourceChain?.queuedJobRuntimeQaRollupMergeSha !== '26ba53f12eee7b1bcc
 if (record.sourceChain?.excludedRemotionPr !== '#577 open_draft_blocked_excluded') fail('#577 exclusion mismatch')
 if (record.route?.path !== routePath) fail('route path mismatch')
 if (record.route?.jobType !== jobType) fail('job type mismatch')
+if (record.route?.payloadKind !== payloadKind) fail('payload kind mismatch')
+if (record.route?.schemaCompatibility !== 'db_job_type_uses_public_job_type_enum_payload_kind_preserves_gstreamer_mkvtoolnix_runtime_identity') {
+  fail('schema compatibility marker mismatch')
+}
 if (record.route?.confirmationGate !== confirmEnv) fail('confirmation gate mismatch')
 if (record.route?.queueHandoffConfirmationGate !== queueConfirmEnv) fail('queue confirmation gate mismatch')
 if (record.route?.queueHandoffRoutePath !== queueRoutePath) fail('queue handoff route path mismatch')

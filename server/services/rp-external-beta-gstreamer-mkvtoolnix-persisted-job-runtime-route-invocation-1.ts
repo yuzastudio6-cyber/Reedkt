@@ -16,6 +16,7 @@ import {
 import {
   RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_JOB_TYPE,
   RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PACKET,
+  RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND,
   RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_ROUTE_PATH,
 } from './rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1'
 
@@ -50,6 +51,7 @@ export type GstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationStatus =
 export interface GstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationPayload {
   persistedHandoffId: string
   packet: typeof RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PACKET | string
+  persistedJobPayloadKind?: typeof RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND | string
   runtimeInvocationRoutePath: typeof RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_QUEUED_JOB_RUNTIME_ROUTE_INVOCATION_ROUTE_PATH | string
   runtimeInvocationIdempotencyKey: string
   runtimeInvocationBody: GstreamerMkvtoolnixQueuedJobRuntimeRouteInvocationInput
@@ -198,6 +200,7 @@ export function buildGstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationInput(
   const persistedJobPayloadJson = overrides.persistedJobPayloadJson ?? {
     persistedHandoffId: 'persisted-handoff-gstreamer-mkvtoolnix-generated-fixture-1',
     packet: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PACKET,
+    persistedJobPayloadKind: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND,
     runtimeInvocationRoutePath: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_QUEUED_JOB_RUNTIME_ROUTE_INVOCATION_ROUTE_PATH,
     runtimeInvocationIdempotencyKey: runtimeInvocationBody.routeIdempotencyKey,
     runtimeInvocationBody,
@@ -271,6 +274,7 @@ export function validateGstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationInp
     input.persistedJobType !== RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_JOB_TYPE ||
     input.persistedJobPayloadMode !== 'persisted_job_payload_to_existing_runtime_route_delegate' ||
     payload?.packet !== RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PACKET ||
+    payload?.persistedJobPayloadKind !== RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND ||
     payload?.runtimeInvocationRoutePath !== RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_QUEUED_JOB_RUNTIME_ROUTE_INVOCATION_ROUTE_PATH ||
     runtimeBody?.invocationMode !== 'queued_job_payload_to_existing_runtime_route_delegate' ||
     runtimeBody?.workspaceId !== input.workspaceId ||

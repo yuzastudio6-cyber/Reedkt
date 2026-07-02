@@ -51,11 +51,39 @@ const remoteOwnerGateFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-owner-gate-1-diagnostics.mjs',
 ]
 
+const schemaCompatibilityRepairFiles = [
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-record.json',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/persisted-job-runtime-handoff.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1-record.json',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/route-invocation-evidence.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1-record.json',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1/persisted-job-runtime-route-invocation.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1.ts',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1-diagnostics.mjs',
+]
+
+const remoteRuntimeValidationFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/schema-compatibility-repair.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/remote-validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-source-gate-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-confirmed.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...sourceFiles,
   ...qaRollupFiles,
   ...remoteOwnerGateFiles,
+  ...schemaCompatibilityRepairFiles,
+  ...remoteRuntimeValidationFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-qa-rollup-1-diagnostics.mjs',

@@ -192,3 +192,13 @@ export const gstreamerMkvtoolnixGeneratedFixtureQueuedJobRuntimeRouteInvocationS
     invocationMode: z.literal('queued_job_payload_to_existing_runtime_route_delegate'),
     runtimeRouteInvocationConfirmed: z.boolean(),
   }).strict()
+
+export const gstreamerMkvtoolnixPersistedJobRuntimeHandoffSchema =
+  gstreamerMkvtoolnixGeneratedFixtureQueuedJobRuntimeRouteInvocationSchema.extend({
+    persistedHandoffId: idSchema,
+    persistedJobHandoffMode: z.literal('backend_job_service_handoff_no_runtime_execution'),
+    persistedJobWriteConfirmed: z.boolean(),
+    jobBatchName: z.string().optional(),
+    persistedJobWriteRequestedNow: z.boolean().optional(),
+    runtimeRouteInvocationRequestedNow: z.boolean().optional(),
+  }).strict()

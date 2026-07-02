@@ -24,8 +24,24 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1.md',
 ]
 
+const persistedJobRuntimeHandoffFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/persisted-job-runtime-handoff.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-diagnostics.mjs',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1-smoke.ts',
+  'server/routes/worker-routes.ts',
+  'server/validation/worker-schemas.ts',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...persistedJobRuntimeHandoffFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-route-invocation-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-qa-rollup-1-diagnostics.mjs',

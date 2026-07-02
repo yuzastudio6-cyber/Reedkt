@@ -3,6 +3,10 @@ import {
   evaluateProductionToolExecutionReadinessGate,
   type ProductionToolExecutionReadinessGateReport,
 } from '../beta-readiness'
+import {
+  getMockProductionToolExecutionReadinessEvidencePacket,
+  getPersistentProductionToolExecutionReadinessEvidencePacket,
+} from '../beta-readiness/production-tool-execution-readiness-evidence-store'
 import { admitProductionGatewayOpsControls } from '../cost-controls'
 import {
   assertToolExecutionCostCreditGate,
@@ -75,6 +79,7 @@ export interface ToolExecutionGatewayDispatchResult {
     creditReservationId: string
     apiIdempotencyKey: string
     workerIdempotencyKey?: string
+    productionReadinessEvidencePacketId?: string
     adapterId: ToolExecutionGatewayAdapterId
     requestedToolIds: ProductionToolId[]
     blockers: ToolExecutionGatewayBlocker[]
@@ -116,7 +121,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
       const trackBAdapterResult = input.trackBAdapterToolId
         ? runTrackBAdapter(buildTrackBAdapterRequest(input))
         : undefined
-      const productionReadiness = validateProductionReadinessGate(input)
+      const productionReadiness = await validateProductionReadinessGate(context, input)
       blockers.push(...await validateApprovedSnapshotAndCreditReservation(context, input))
       blockers.push(...validateGatewayAdapter(adapterId, input.workerType))
       blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId))
@@ -335,6 +340,7 @@ function buildGatewayWorkerPayload(input: {
       approvedReservationRemainingCredits: input.input.approvedReservationRemainingCredits,
       estimatedHighCredits: input.input.estimatedHighCredits,
       apiIdempotencyKey: input.input.apiIdempotencyKey,
+      productionReadinessEvidencePacketId: input.input.productionReadinessEvidencePacketId,
     },
   }
 }
@@ -431,6 +437,7 @@ function buildGatewayRecord(input: {
     creditReservationId: input.input.creditReservationId,
     apiIdempotencyKey: input.input.apiIdempotencyKey,
     workerIdempotencyKey: input.workerIdempotencyKey,
+    productionReadinessEvidencePacketId: input.input.productionReadinessEvidencePacketId,
     adapterId: input.adapterId,
     requestedToolIds: input.input.requestedToolIds,
     blockers: input.blockers,
@@ -763,13 +770,57 @@ function validateCostCreditGate(input: ToolExecutionGatewayDispatchBody): ToolEx
   }
 }
 
-function validateProductionReadinessGate(input: ToolExecutionGatewayDispatchBody): {
+async function validateProductionReadinessGate(context: ServiceContext, input: ToolExecutionGatewayDispatchBody): Promise<{
   report?: ProductionToolExecutionReadinessGateReport
   blockers: ToolExecutionGatewayBlocker[]
-} {
+}> {
   if (input.executionMode !== 'production_ready') return { blockers: [] }
 
-  if (!input.productionReadinessEvidence) {
+  if (input.productionReadinessEvidence && input.productionReadinessEvidencePacketId) {
+    return {
+      blockers: [{
+        code: 'PRODUCTION_READINESS_EVIDENCE_AMBIGUOUS',
+        gateName: 'production_readiness_gate',
+        message: 'production_ready gateway dispatch must supply either productionReadinessEvidence or productionReadinessEvidencePacketId, not both.',
+      }],
+    }
+  }
+
+  let productionReadinessEvidence = input.productionReadinessEvidence
+  if (!productionReadinessEvidence && input.productionReadinessEvidencePacketId) {
+    try {
+      const packet = await getProductionReadinessEvidencePacket(context, input.workspaceId, input.productionReadinessEvidencePacketId)
+      if (!packet) {
+        return {
+          blockers: [{
+            code: 'PRODUCTION_READINESS_EVIDENCE_PACKET_NOT_FOUND',
+            gateName: 'production_readiness_gate',
+            message: 'production_ready gateway dispatch could not find the supplied production readiness evidence packet for this workspace.',
+            details: {
+              productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+              workspaceId: input.workspaceId,
+            },
+          }],
+        }
+      }
+      productionReadinessEvidence = packet.readinessInput
+    } catch (error) {
+      return {
+        blockers: [{
+          code: 'PRODUCTION_READINESS_EVIDENCE_PACKET_LOOKUP_FAILED',
+          gateName: 'production_readiness_gate',
+          message: error instanceof Error
+            ? error.message
+            : 'Production readiness evidence packet lookup failed.',
+          details: {
+            productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+          },
+        }],
+      }
+    }
+  }
+
+  if (!productionReadinessEvidence) {
     return {
       blockers: [{
         code: 'PRODUCTION_READINESS_GATE_REQUIRED',
@@ -780,31 +831,31 @@ function validateProductionReadinessGate(input: ToolExecutionGatewayDispatchBody
   }
 
   const blockers: ToolExecutionGatewayBlocker[] = []
-  if (input.productionReadinessEvidence.workspaceId !== input.workspaceId) {
+  if (productionReadinessEvidence.workspaceId !== input.workspaceId) {
     blockers.push({
       code: 'PRODUCTION_READINESS_WORKSPACE_MISMATCH',
       gateName: 'production_readiness_gate',
       message: 'Production readiness evidence workspaceId does not match the gateway request workspaceId.',
       details: {
         requestWorkspaceId: input.workspaceId,
-        evidenceWorkspaceId: input.productionReadinessEvidence.workspaceId,
+        evidenceWorkspaceId: productionReadinessEvidence.workspaceId,
       },
     })
   }
-  if (input.productionReadinessEvidence.projectId !== input.projectId) {
+  if (productionReadinessEvidence.projectId !== input.projectId) {
     blockers.push({
       code: 'PRODUCTION_READINESS_PROJECT_MISMATCH',
       gateName: 'production_readiness_gate',
       message: 'Production readiness evidence projectId does not match the gateway request projectId.',
       details: {
         requestProjectId: input.projectId,
-        evidenceProjectId: input.productionReadinessEvidence.projectId,
+        evidenceProjectId: productionReadinessEvidence.projectId,
       },
     })
   }
 
   try {
-    const report = evaluateProductionToolExecutionReadinessGate(input.productionReadinessEvidence)
+    const report = evaluateProductionToolExecutionReadinessGate(productionReadinessEvidence)
     if (!report.productionToolExecutionAllowed) {
       blockers.push({
         code: 'PRODUCTION_READINESS_GATE_BLOCKED',
@@ -829,6 +880,17 @@ function validateProductionReadinessGate(input: ToolExecutionGatewayDispatchBody
       }],
     }
   }
+}
+
+async function getProductionReadinessEvidencePacket(
+  context: ServiceContext,
+  workspaceId: string,
+  packetId: string,
+) {
+  if (context.clients.admin && !context.env.mockOnly) {
+    return getPersistentProductionToolExecutionReadinessEvidencePacket(context.clients.admin, workspaceId, packetId)
+  }
+  return getMockProductionToolExecutionReadinessEvidencePacket(workspaceId, packetId)
 }
 
 async function recordGatewayBillingAudit(input: {

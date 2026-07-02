@@ -98,6 +98,7 @@ export const toolExecutionGatewayDispatchSchema = z.object({
   renderMode: z.enum(['preview', 'final_export', 'qa_probe']).optional(),
   requiredQualityGateIds: z.array(idSchema).optional(),
   requiredQualityGateTypes: z.array(qualityGateTypeSchema).optional(),
+  productionReadinessEvidencePacketId: idSchema.optional(),
   productionReadinessEvidence: productionToolExecutionReadinessGateSchema.optional(),
   attempt: z.number().int().positive().default(1),
   maxAttempts: z.number().int().positive().default(1),

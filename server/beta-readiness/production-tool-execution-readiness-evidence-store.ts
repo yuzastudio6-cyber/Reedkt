@@ -72,6 +72,14 @@ export function listMockProductionToolExecutionReadinessEvidencePackets(
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
 }
 
+export function getMockProductionToolExecutionReadinessEvidencePacket(
+  workspaceId: string,
+  packetId: string,
+): ProductionToolExecutionReadinessEvidencePacket | null {
+  return listMockProductionToolExecutionReadinessEvidencePackets(workspaceId)
+    .find((packet) => packet.id === packetId) ?? null
+}
+
 export async function recordPersistentProductionToolExecutionReadinessEvidencePacket(
   admin: SupabaseClient,
   idempotencyKey: string,
@@ -134,6 +142,22 @@ export async function listPersistentProductionToolExecutionReadinessEvidencePack
 
   throwPersistentStoreError(result.error)
   return ((result.data ?? []) as ProductionToolExecutionReadinessEvidencePacketRow[]).map(rowToPacket)
+}
+
+export async function getPersistentProductionToolExecutionReadinessEvidencePacket(
+  admin: SupabaseClient,
+  workspaceId: string,
+  packetId: string,
+): Promise<ProductionToolExecutionReadinessEvidencePacket | null> {
+  const result = await admin
+    .from('production_tool_execution_readiness_evidence_packets')
+    .select('*')
+    .eq('workspace_id', workspaceId)
+    .eq('id', packetId)
+    .maybeSingle()
+
+  throwPersistentStoreError(result.error)
+  return result.data ? rowToPacket(result.data as ProductionToolExecutionReadinessEvidencePacketRow) : null
 }
 
 function packetToRow(

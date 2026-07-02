@@ -23,7 +23,6 @@ const readyStatus =
   'ready_for_guarded_narrow_route_worker_runtime_integration_implementation_qa_rollup'
 const nextMilestone =
   'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-WORKER-RUNTIME-INTEGRATION-IMPLEMENTATION-QA-ROLLUP-1'
-const validationBlocker = 'blocked_host_resource_limit_no_space_left_on_device_during_npm_ci'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
@@ -101,15 +100,13 @@ const requiredText = [
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
-  `Validation status: \`${validationBlocker}\``,
-  `Blocker: \`${validationBlocker}\``,
-  'failed_enospc_no_space_left_on_device',
-  'skipped_after_npm_ci_enospc',
+  'Validation status: `passed`',
+  'Host disk closure',
   'cf8c175bce2e38897b5c419d395faa0ee8000aa4b5edd9485f37bb8a0e03967f',
   '9758827ff49ee6c04b7cf33c40662887b0d2ed7ecc074a12459724578260cfe4',
-  '00cf96f71676b3f4b4e2761a6a576718c82fe45fcddef2da5dd84eb6244b98e9',
-  'cd9b850a86e28124ade8467ab9f62d991cd6952a2b821d724a7d53aaf33bbcf0',
-  'ab7d71dd630f0ac214ea2582970420797d1d903eb3e3e116f4b3c57664ca916a',
+  '0e0966620b2c5f5d92027dad5d4a4448dd874263d5f5bd32f40fcebc7eb5a850',
+  'f83ce9caa97187f7ab10a6a487f2d1742b7d358856ee16e09ebd674e05cb3f6f',
+  '7c2b99caa5f035dbac77e1725eb25ee076e8b8f69da57b92036c899d5428b700',
   nextMilestone,
   '#577 remains `open_draft_blocked_excluded`',
 ]
@@ -261,8 +258,8 @@ if (record.readiness?.mkvtoolnix !== readyStatus) fail('mkvtoolnix readiness mis
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count mismatch')
 if (record.packageLock !== 'unchanged') fail('package-lock mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('generated artifact status mismatch')
-if (record.validation !== validationBlocker) fail('validation status mismatch')
-if (record.blocker !== validationBlocker) fail('validation blocker mismatch')
+if (record.validation !== 'passed') fail('validation status mismatch')
+if ('blocker' in record) fail('unexpected validation blocker remains recorded')
 if (record.nextMilestone !== nextMilestone) fail('next milestone mismatch')
 
 const safety = record.safety ?? {}

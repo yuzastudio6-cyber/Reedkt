@@ -4,9 +4,9 @@ Decision: `completed_gstreamer_mkvtoolnix_narrow_controlled_worker_runtime_integ
 
 Execution: `completed_confirmation_gated_narrow_controlled_worker_runtime_integration_implementation_metadata_only_no_route_worker_or_tool_execution`
 
-Run ID: `2026-07-02T00-02-09-290Z-38bb4bfd`
+Run ID: `2026-07-02T00-34-22-766Z-c5302439`
 
-Output directory: `/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-narrow-route-worker-runtime-integration-implementation-1/2026-07-02T00-02-09-290Z-38bb4bfd`
+Output directory: `/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-narrow-route-worker-runtime-integration-implementation-1/2026-07-02T00-34-22-766Z-c5302439`
 
 GStreamer readiness: `ready_for_guarded_narrow_route_worker_runtime_integration_implementation_qa_rollup`
 
@@ -20,9 +20,7 @@ Package-lock: `unchanged`
 
 Generated artifacts committed: `none`
 
-Validation status: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`
-
-Blocker: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation status: `passed`
 
 Next milestone: `RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-WORKER-RUNTIME-INTEGRATION-IMPLEMENTATION-QA-ROLLUP-1`
 

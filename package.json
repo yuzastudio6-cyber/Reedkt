@@ -650,6 +650,7 @@
     "worker-runtime-jobs:sound-cpu-phase181-disabled-route-registry-app-registration-static-validation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase181-disabled-route-registry-app-registration-static-validation-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase182-disabled-route-registry-app-registration-static-validation-result-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase182-disabled-route-registry-app-registration-static-validation-result-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase183-disabled-route-runtime-readiness-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase183-disabled-route-runtime-readiness-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase184-disabled-route-runtime-readiness-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase184-disabled-route-runtime-readiness-owner-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

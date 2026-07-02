@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 
 import type { ProductionToolExecutionReadinessGateInput } from '../beta-readiness'
+import {
+  rateLimitPolicy,
+  resetMockProductionGatewayOpsControlState,
+  setMockProductionGatewayOpsControlState,
+  workerConcurrencyPolicy,
+} from '../cost-controls'
 import { createToolExecutionGatewayService } from '../services/tool-execution-gateway-service'
 import { resetMockToolCostStore, resetMockToolCostWalletSettlementStore } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
@@ -25,6 +31,7 @@ const context: ServiceContext = {
 
 resetMockToolCostStore()
 resetMockToolCostWalletSettlementStore()
+resetMockProductionGatewayOpsControlState()
 
 const baseInput: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } = {
   workspaceId: 'workspace-smoke',
@@ -211,6 +218,76 @@ assert.equal(productionReadyDispatch.walletSettlements?.[0]?.toolCostEventId, pr
 assert.equal(productionReadyDispatch.walletSettlements?.[0]?.stripeCallAttempted, false, 'gateway wallet settlement must preserve Stripe isolation')
 assert.equal(productionReadyDispatch.walletSettlements?.[0]?.serviceFeeIncluded, false, 'gateway wallet settlement must exclude service fees')
 assert.equal(productionReadyDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyDispatch.toolCostEvents![0].toolCostCredits, 'completed production_ready gateway settlement should spend the tool event credits')
+
+setMockProductionGatewayOpsControlState({
+  activeKillSwitches: {
+    globalGeneration: true,
+  },
+})
+const productionReadyKillSwitchBlocked = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-kill-switch-blocked',
+  toolExecutionPlanId: 'tool-execution-plan-kill-switch-blocked',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+})
+assert.equal(productionReadyKillSwitchBlocked.gateway.status, 'blocked', 'active production kill switch should block production_ready gateway dispatch')
+assert.equal(productionReadyKillSwitchBlocked.workerResult, undefined, 'active production kill switch should block before worker dispatch')
+assert.equal(productionReadyKillSwitchBlocked.toolCostEvents, undefined, 'active production kill switch should block before billing audit events')
+assert.ok(
+  productionReadyKillSwitchBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_GLOBAL_KILL_SWITCH_ACTIVE'),
+  'active production kill switch should identify the kill-switch blocker',
+)
+
+const nowMs = Date.now()
+setMockProductionGatewayOpsControlState({
+  workspaceJobCreationTimestamps: Array.from({ length: rateLimitPolicy.perWorkspaceJobCreationPerHour }, (_, index) => ({
+    workspaceId: baseInput.workspaceId,
+    createdAtMs: nowMs - index,
+  })),
+})
+const productionReadyRateLimitBlocked = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-rate-limit-blocked',
+  toolExecutionPlanId: 'tool-execution-plan-rate-limit-blocked',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+})
+assert.equal(productionReadyRateLimitBlocked.gateway.status, 'blocked', 'workspace production rate limit should block production_ready gateway dispatch')
+assert.equal(productionReadyRateLimitBlocked.workerResult, undefined, 'workspace production rate limit should block before worker dispatch')
+assert.ok(
+  productionReadyRateLimitBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_WORKSPACE_RATE_LIMIT_EXCEEDED'),
+  'workspace production rate limit should identify rate-limit blocker',
+)
+
+setMockProductionGatewayOpsControlState({
+  projectActiveJobs: [{
+    projectId: baseInput.projectId,
+    count: rateLimitPolicy.perProjectConcurrentJobs,
+  }],
+  workerActiveJobs: [{
+    workerType: baseInput.workerType,
+    count: workerConcurrencyPolicy.maxConcurrentJobsByWorkerType[baseInput.workerType],
+  }],
+})
+const productionReadyConcurrencyBlocked = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-concurrency-blocked',
+  toolExecutionPlanId: 'tool-execution-plan-concurrency-blocked',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+})
+assert.equal(productionReadyConcurrencyBlocked.gateway.status, 'blocked', 'production concurrency limits should block production_ready gateway dispatch')
+assert.equal(productionReadyConcurrencyBlocked.workerResult, undefined, 'production concurrency limits should block before worker dispatch')
+assert.ok(
+  productionReadyConcurrencyBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_PROJECT_CONCURRENCY_LIMIT_EXCEEDED'),
+  'production project concurrency blocker should be reported',
+)
+assert.ok(
+  productionReadyConcurrencyBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_WORKER_CONCURRENCY_LIMIT_EXCEEDED'),
+  'production worker concurrency blocker should be reported',
+)
+resetMockProductionGatewayOpsControlState()
 
 await assert.rejects(
   () => createToolExecutionGatewayService({

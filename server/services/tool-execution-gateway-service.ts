@@ -3,6 +3,7 @@ import {
   evaluateProductionToolExecutionReadinessGate,
   type ProductionToolExecutionReadinessGateReport,
 } from '../beta-readiness'
+import { admitProductionGatewayOpsControls } from '../cost-controls'
 import {
   assertToolExecutionCostCreditGate,
   createToolCostMeteringService,
@@ -184,10 +185,45 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         }
       }
 
-      const workerResult = await dispatchProductionWorkerJob({
-        payload,
-        executionPlan,
-      })
+      const opsAdmission = input.executionMode === 'production_ready'
+        ? await admitProductionGatewayOpsControls(context, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          userId,
+          jobId: input.jobId,
+          workerType: input.workerType,
+          renderMode: input.renderMode,
+        })
+        : undefined
+      if (opsAdmission?.blockers.length) {
+        blockers.push(...opsAdmission.blockers)
+        return {
+          gateway: buildGatewayRecord({
+            input,
+            adapterId,
+            blockers,
+            status: 'blocked',
+            dispatchedAt: createdAt,
+            workerIdempotencyKey,
+          }),
+          productionReadinessReport: productionReadiness.report,
+          trackBAdapterResult,
+          warnings: [
+            ...warnings,
+            ...opsAdmission.warnings,
+          ],
+        }
+      }
+
+      let workerResult: ProductionWorkerExecutionResult
+      try {
+        workerResult = await dispatchProductionWorkerJob({
+          payload,
+          executionPlan,
+        })
+      } finally {
+        opsAdmission?.release()
+      }
 
       if (workerResult.status === 'blocked') {
         blockers.push(...workerResult.gateChecks
@@ -231,6 +267,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         workerResult,
         warnings: [
           ...warnings,
+          ...(opsAdmission?.warnings ?? []),
           ...billingAudit.warnings,
           ...workerRuntimeArtifactPipeline.warnings,
           'Tool execution gateway dispatched only through mock-safe backend worker adapters; no frontend tool execution occurred.',

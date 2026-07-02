@@ -25,6 +25,7 @@ The route requires:
 - allowed gateway adapter
 - private source-of-truth artifact references
 - metadata without raw prompts, secrets, provider keys, or signed URLs
+- for `production_ready` only: a passing production-readiness evidence packet plus backend-owned operations-control admission for kill switches, workspace rate limits, project concurrency limits, and worker concurrency limits
 
 If any gate fails, the response is `409` with precise blocker records. The gateway does not attempt worker dispatch when pre-dispatch blockers exist.
 
@@ -67,6 +68,17 @@ The gateway uses the Milestone 3 cost/credit assertion:
 - high estimate must fit the approved reservation
 
 Over-budget requests must go back through a revised estimate and reservation approval path before dispatch.
+
+## Production Ops Controls
+
+`production_ready` dispatch is not allowed to rely only on a user-supplied readiness packet. Immediately before a new worker dispatch, the gateway checks backend-owned operations controls:
+
+- active kill-switch state;
+- workspace job creation rate limit;
+- project concurrent job limit;
+- worker-type concurrent job limit.
+
+Local/mock runtime uses in-memory counters for deterministic smoke coverage. Non-mock runtime defaults production kill switches active unless backend env opens them, and reads persistent `api_idempotency_keys` and `worker_leases` for rate/concurrency checks. Missing deployed control sources fail closed before worker dispatch or billing audit.
 
 ## Non-Goals
 

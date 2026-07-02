@@ -57,6 +57,7 @@
     "ai-video-broll-wan-gpu-global-quota:verify": "tsx server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts",
     "smoke:ai-video-broll-gen-9k-no-idle-l4-proof-prompt": "tsx server/smoke/ai-video-broll-gen-9k-no-idle-l4-proof-prompt-smoke.ts",
     "smoke:ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result": "tsx server/smoke/ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result-smoke.ts",
+    "smoke:ai-video-broll-gen-9l-stockout-fix-result": "tsx server/smoke/ai-video-broll-gen-9l-stockout-fix-result-smoke.ts",
     "ai-video-broll-gen-9j-vm-preflight-2:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-2-diagnostics.mjs",
     "ai-video-broll-gen-9j-gcp-iap-egress-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-gcp-iap-egress-fix-diagnostics.mjs",
     "ai-video-broll-gen-9j-vm-preflight-3:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-3-diagnostics.mjs",

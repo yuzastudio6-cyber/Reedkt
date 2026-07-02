@@ -27,7 +27,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
   broll: {
     toolId: 'ai_video_broll_generation_wan',
     targetRegion: 'us-central1',
-    targetZone: 'us-central1-b',
+    targetZone: 'us-central1-a',
     selectedGpu: 'nvidia_l4',
     minimumGlobalGpusAllRegionsQuota: 1,
     minimumRegionalL4Quota: 1,
@@ -38,7 +38,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfCleared:
-      'AI-VIDEO-BROLL-GEN-9L-STOCKOUT-FIX: choose approved alternate no-idle L4 proof zone or retry plan, no VM/no inference',
+      'AI-VIDEO-BROLL-GEN-9M-NO-IDLE-L4-PROOF-EXECUTE-US-CENTRAL1-A: run bounded no-idle L4 VM lifecycle proof in us-central1-a with mandatory cleanup, no model inference',
   },
   allowedReadOnlyCommands: [
     {

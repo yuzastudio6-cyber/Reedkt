@@ -196,7 +196,7 @@ assert.equal(brollGateRow?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll
 assert.equal(brollGateRow?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'us-central1')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'us-central1-b')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'us-central1-a')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.noPublicIpRequired, true)
 assert.equal(brollGateRow?.noIdleLifecycleGate?.externalIpAllowed, false)
 assert.equal(brollGateRow?.noIdleLifecycleGate?.cleanupVerificationRequired, true)
@@ -240,11 +240,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'us_central1_b_l4_resource_pool_exhausted_before_lifecycle_proof',
+  'bounded_no_idle_l4_lifecycle_retry_us_central1_a_prompt_required_before_vm_or_inference',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result',
+  'npm run smoke:ai-video-broll-gen-9l-stockout-fix-result',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

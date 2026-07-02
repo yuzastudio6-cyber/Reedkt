@@ -1,0 +1,873 @@
+{
+  "schemaVersion": "2026-07-02.ai-graphics.external-agent-controlled-route-caller",
+  "decision": "ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks",
+  "status": "external_agent_controlled_route_caller_ready_for_thirteen_tools_gpu_model_blocked",
+  "summary": "Defines the exact external-agent caller contract for the 13 scoped controlled AI graphics tools. The caller may submit these private route envelopes to the mounted canonical tool-call route when the scoped flags are enabled; the eight GPU/model tools remain excluded until native GPU/model proof is accepted.",
+  "sourceEvidence": {
+    "controlledRouteRequireGo": {
+      "path": "docs/tool-intelligence/ai-graphics/external-agent-controlled-route-require-go.json",
+      "decision": "ai_graphics_external_agent_controlled_route_require_go_approved_with_gpu_model_blocks",
+      "accepted": true
+    },
+    "controlledWorkerRouteExecutionSmoke": {
+      "path": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+      "decision": "ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks",
+      "accepted": true
+    }
+  },
+  "interfaces": {
+    "packageScript": "ai-graphics:external-agent-controlled-route-caller",
+    "diagnosticScript": "ai-graphics:external-agent-controlled-route-caller:diagnostics",
+    "cli": "server/cli/ai-graphics-external-agent-controlled-route-caller.ts",
+    "diagnostic": "scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs",
+    "routePath": "/api/ai-graphics/external-beta/tool-call",
+    "method": "POST",
+    "contentType": "application/json"
+  },
+  "requiredFeatureFlags": {
+    "routeMount": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+    "cpuStaticControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED",
+    "browserRuntimeControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED",
+    "mockQueueAdmissionNotRequiredForDirectControlledRoute": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "totalProductFacingCapabilities": 12,
+    "controlledRouteCallableToolsNow": 13,
+    "cpuStaticControlledRouteCallableToolsNow": 6,
+    "browserRuntimeControlledRouteCallableToolsNow": 7,
+    "gpuModelToolsBlockedFromControlledRouteCallerNow": 8,
+    "requestEnvelopesPrepared": 13,
+    "privateOutputOnlyEnvelopes": 13,
+    "all21ExecutableNowTools": 0,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "publicArtifactCreatedTools": 0,
+    "signedUrlCreatedTools": 0,
+    "routeExecutionPerformedInThisLaneTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "controlledCallerRows": [
+    {
+      "toolId": "d3",
+      "capabilityId": "chart_overlay",
+      "group": "cpu_static_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-cpu-static-route-call-d3",
+        "toolId": "d3",
+        "capabilityId": "chart_overlay",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-d3",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-d3",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/d3/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/d3/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/d3/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/d3/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/d3/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-d3",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "vega_lite",
+      "capabilityId": "chart_overlay",
+      "group": "cpu_static_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-cpu-static-route-call-vega_lite",
+        "toolId": "vega_lite",
+        "capabilityId": "chart_overlay",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-vega_lite",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-vega_lite",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/vega_lite/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega_lite/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega_lite/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega_lite/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega_lite/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-vega_lite",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "vega",
+      "capabilityId": "chart_overlay",
+      "group": "cpu_static_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-cpu-static-route-call-vega",
+        "toolId": "vega",
+        "capabilityId": "chart_overlay",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-vega",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-vega",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/vega/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/vega/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-vega",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "satori",
+      "capabilityId": "svg_graphics",
+      "group": "cpu_static_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-cpu-static-route-call-satori",
+        "toolId": "satori",
+        "capabilityId": "svg_graphics",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-satori",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-satori",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/satori/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/satori/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/satori/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/satori/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/satori/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-satori",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "capabilityId": "svg_graphics",
+      "group": "cpu_static_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-cpu-static-route-call-svgdotjs_svg_js",
+        "toolId": "svgdotjs_svg_js",
+        "capabilityId": "svg_graphics",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-svgdotjs_svg_js",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-svgdotjs_svg_js",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/svgdotjs_svg_js/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/svgdotjs_svg_js/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/svgdotjs_svg_js/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/svgdotjs_svg_js/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/svgdotjs_svg_js/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-svgdotjs_svg_js",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "viz_js",
+      "capabilityId": "diagram_graphics",
+      "group": "cpu_static_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-cpu-static-route-call-viz_js",
+        "toolId": "viz_js",
+        "capabilityId": "diagram_graphics",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-viz_js",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-viz_js",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/viz_js/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/viz_js/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/viz_js/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/viz_js/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/viz_js/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-viz_js",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "echarts",
+      "capabilityId": "chart_overlay",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-echarts",
+        "toolId": "echarts",
+        "capabilityId": "chart_overlay",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-echarts",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-echarts",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/echarts/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/echarts/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/echarts/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/echarts/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/echarts/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-echarts",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "lottie_web",
+      "capabilityId": "animation_overlay",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-lottie_web",
+        "toolId": "lottie_web",
+        "capabilityId": "animation_overlay",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-lottie_web",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-lottie_web",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/lottie_web/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/lottie_web/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/lottie_web/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/lottie_web/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/lottie_web/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-lottie_web",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "animejs",
+      "capabilityId": "animation_overlay",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-animejs",
+        "toolId": "animejs",
+        "capabilityId": "animation_overlay",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-animejs",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-animejs",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/animejs/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/animejs/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/animejs/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/animejs/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/animejs/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-animejs",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "three_js",
+      "capabilityId": "webgl_3d_scene",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-three_js",
+        "toolId": "three_js",
+        "capabilityId": "webgl_3d_scene",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-three_js",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-three_js",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/three_js/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/three_js/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/three_js/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/three_js/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/three_js/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-three_js",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "pixi_js",
+      "capabilityId": "canvas_scene",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-pixi_js",
+        "toolId": "pixi_js",
+        "capabilityId": "canvas_scene",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-pixi_js",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-pixi_js",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/pixi_js/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/pixi_js/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/pixi_js/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/pixi_js/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/pixi_js/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-pixi_js",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "konva",
+      "capabilityId": "canvas_scene",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-konva",
+        "toolId": "konva",
+        "capabilityId": "canvas_scene",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-konva",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-konva",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/konva/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/konva/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/konva/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/konva/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/konva/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-konva",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "babylonjs",
+      "capabilityId": "webgl_3d_scene",
+      "group": "browser_runtime_controlled_route",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-browser-runtime-route-call-babylonjs",
+        "toolId": "babylonjs",
+        "capabilityId": "webgl_3d_scene",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-babylonjs",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-babylonjs",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/babylonjs/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/babylonjs/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/babylonjs/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/babylonjs/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/babylonjs/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-babylonjs",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
+      ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    }
+  ],
+  "blockedGpuModelRows": [
+    {
+      "toolId": "torch_torchvision",
+      "capabilityId": "model_runtime_foundation",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-torch_torchvision",
+        "toolId": "torch_torchvision",
+        "capabilityId": "model_runtime_foundation",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-torch_torchvision",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-torch_torchvision",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/torch_torchvision/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/torch_torchvision/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/torch_torchvision/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/torch_torchvision/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/torch_torchvision/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-torch_torchvision",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "transformers",
+      "capabilityId": "model_runtime_foundation",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-transformers",
+        "toolId": "transformers",
+        "capabilityId": "model_runtime_foundation",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-transformers",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-transformers",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/transformers/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transformers/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transformers/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transformers/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transformers/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-transformers",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "sam2",
+      "capabilityId": "subject_segmentation",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-sam2",
+        "toolId": "sam2",
+        "capabilityId": "subject_segmentation",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-sam2",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-sam2",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/sam2/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/sam2/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/sam2/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/sam2/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/sam2/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-sam2",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "birefnet",
+      "capabilityId": "background_removal",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-birefnet",
+        "toolId": "birefnet",
+        "capabilityId": "background_removal",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-birefnet",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-birefnet",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/birefnet/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/birefnet/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/birefnet/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/birefnet/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/birefnet/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-birefnet",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "capabilityId": "upscaling",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-real_esrgan",
+        "toolId": "real_esrgan",
+        "capabilityId": "upscaling",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-real_esrgan",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-real_esrgan",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/real_esrgan/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/real_esrgan/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/real_esrgan/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/real_esrgan/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/real_esrgan/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-real_esrgan",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-kornia",
+        "toolId": "kornia",
+        "capabilityId": "tensor_image_ops",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-kornia",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-kornia",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/kornia/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/kornia/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/kornia/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/kornia/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/kornia/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-kornia",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "rembg",
+      "capabilityId": "background_removal",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-rembg",
+        "toolId": "rembg",
+        "capabilityId": "background_removal",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-rembg",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-rembg",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/rembg/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/rembg/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/rembg/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/rembg/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/rembg/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-rembg",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    },
+    {
+      "toolId": "transparent_background",
+      "capabilityId": "background_removal",
+      "group": "gpu_model_runtime_blocked",
+      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "method": "POST",
+      "requestEnvelope": {
+        "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
+        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-transparent_background",
+        "toolId": "transparent_background",
+        "capabilityId": "background_removal",
+        "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-transparent_background",
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-controlled-route-caller-transparent_background",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/controlled-route-caller/transparent_background/artifact-manifest",
+        "toolRouteApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transparent_background/tool-route-approval",
+        "workerApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transparent_background/worker-approval",
+        "runtimeEnqueueApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transparent_background/runtime-enqueue-approval",
+        "ownerRuntimeApprovalRef": "private://ai-graphics/external-agent/controlled-route-caller/transparent_background/owner-runtime-approval",
+        "traceId": "trace-ai-graphics-external-agent-controlled-route-caller-transparent_background",
+        "payload": {
+          "externalAgentControlledRouteCaller": true,
+          "rawPromptExecutionAllowed": false,
+          "privateOutputOnly": true
+        }
+      },
+      "expectedHttpStatusIfInvoked": 409,
+      "blockedFromControlledRouteCallerNow": true,
+      "requiredProofBeforeCallerMayInvoke": [
+        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
+        "reviewed private model-weight manifest when model weights are required",
+        "external-beta per-tool runtime proof recheck with accepted private evidence",
+        "approved worker enqueue lane that starts GPU only for the accepted job"
+      ],
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    }
+  ],
+  "booleans": {
+    "externalAgentControlledRouteCallerContractPrepared": true,
+    "sourceControlledRouteRequireGoAccepted": true,
+    "sourceControlledWorkerRouteExecutionSmokeAccepted": true,
+    "routeSchemaEnvelopeAccepted": true,
+    "all21ToolsCovered": true,
+    "all12CapabilitiesCovered": true,
+    "all13ControlledRouteCallerEnvelopesPrepared": true,
+    "cpuStatic6ControlledRouteCallerEnvelopesPrepared": true,
+    "browserRuntime7ControlledRouteCallerEnvelopesPrepared": true,
+    "controlledRouteCallerCanInvokeCanonicalRouteFor13ToolsNow": true,
+    "agentCanExecuteControlledRouteToolsNow": true,
+    "agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow": true,
+    "routeExecutionApprovedForControlled13ToolsNow": true,
+    "privateOutputOnly": true,
+    "eightGpuModelToolsRemainBlockedFromControlledRouteCaller": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForAcceptedExternalBetaToolCall": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteAll21ToolsNow": false,
+    "agentCanExecuteGpuModelToolsNow": false,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "routeExecutionPerformedInThisLane": false,
+    "workerExecutionApprovedNow": false,
+    "workerExecutionPerformed": false,
+    "workerDispatchApprovedNow": false,
+    "workerDispatchPerformed": false,
+    "toolExecutionApprovedNow": false,
+    "toolExecutionPerformed": false,
+    "providerRuntimeApprovedNow": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimePerformed": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false
+  },
+  "nextExternalAgentAction": {
+    "controlled13Tools": "POST /api/ai-graphics/external-beta/tool-call with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.",
+    "gpuModel8Tools": "Do not call through the controlled route caller yet; collect accepted native GPU/model proof and per-tool runtime proof first."
+  }
+}

@@ -1107,6 +1107,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-agent-execution-gate:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-controlled-route-require-go": "tsx server/cli/ai-graphics-external-agent-controlled-route-require-go.ts",',
   '+    "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-controlled-route-caller": "tsx server/cli/ai-graphics-external-agent-controlled-route-caller.ts",',
+  '+    "ai-graphics:external-agent-controlled-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-mount-feature-flag:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-worker-enqueue-adapter": "tsx server/cli/ai-graphics-external-beta-worker-enqueue-adapter.ts",',
   '+    "ai-graphics:external-beta-worker-enqueue-adapter:diagnostics": "node scripts/validation/ai-graphics-external-beta-worker-enqueue-adapter-diagnostics.mjs",',

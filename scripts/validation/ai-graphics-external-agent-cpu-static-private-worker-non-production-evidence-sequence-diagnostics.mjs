@@ -9,6 +9,14 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence-diagnostics.mjs'
+const outputJsonPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json'
+const outputMdPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.md'
+const promptResultPath =
+  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence-results.md'
+const implementationPromptPath =
+  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence.md'
 
 const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
 const falseBooleanKeys = [
@@ -128,6 +136,10 @@ const requiredFiles = [
   'server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  outputJsonPath,
+  outputMdPath,
+  promptResultPath,
+  implementationPromptPath,
   'package.json',
 ]
 
@@ -159,6 +171,9 @@ for (const phrase of [
   'assertAcceptedClaimDispatchProof',
   'queue-write-smoke-proof.json',
   'claim-and-dispatch-smoke-proof.json',
+  '--write-records',
+  outputJsonPath,
+  outputMdPath,
   'toolExecutionsPerformed: 0',
   'gpuRuntimeShouldStartNow: false',
 ]) {
@@ -187,6 +202,11 @@ for (const deferredTool of ['satori', 'echarts', 'three_js', 'pixi_js', 'babylon
 }
 
 const prepared = runPrepared()
+const committed = json(outputJsonPath)
+const committedMd = read(outputMdPath)
+const promptResult = read(promptResultPath)
+const implementationPrompt = read(implementationPromptPath)
+
 if (prepared.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_with_runtime_blocks') {
   fail(`prepared_decision_mismatch:${prepared.decision}`)
 }
@@ -197,6 +217,17 @@ if (prepared.toolsCovered !== 5) fail('prepared_tools_covered_not_5')
 if (JSON.stringify([...prepared.toolsCoveredIds].sort()) !== JSON.stringify([...proofTools].sort())) {
   fail('prepared_tool_ids_mismatch')
 }
+if (committed.decision !== prepared.decision) fail(`committed_decision_mismatch:${committed.decision}`)
+if (committed.status !== prepared.status) fail(`committed_status_mismatch:${committed.status}`)
+if (committed.toolsCovered !== 5) fail('committed_tools_covered_not_5')
+if (JSON.stringify([...(committed.toolsCoveredIds ?? [])].sort()) !== JSON.stringify([...proofTools].sort())) {
+  fail('committed_tool_ids_mismatch')
+}
+if (committed.liveEvidenceSequenceExecutedNow !== false) fail('committed_live_sequence_not_false')
+if (committed.liveSupabaseQueueWritesNow !== 0) fail('committed_live_queue_writes_not_0')
+if (committed.liveWorkerClaimsNow !== 0) fail('committed_worker_claims_not_0')
+if (committed.liveWorkerDispatchHandoffsNow !== 0) fail('committed_worker_handoffs_not_0')
+if (committed.toolExecutionsPerformedNow !== 0) fail('committed_tool_executions_not_0')
 if (prepared.liveEvidenceSequenceExecutedNow !== false) fail('prepared_live_sequence_not_false')
 if (prepared.liveSupabaseQueueWritesNow !== 0) fail('prepared_live_queue_writes_not_0')
 if (prepared.liveWorkerClaimsNow !== 0) fail('prepared_worker_claims_not_0')
@@ -205,8 +236,12 @@ if (prepared.toolExecutionsPerformedNow !== 0) fail('prepared_tool_executions_no
 if (!Array.isArray(prepared.stages) || prepared.stages.length !== 2) {
   fail('prepared_stages_not_2')
 }
+if (!Array.isArray(committed.stages) || committed.stages.length !== 2) {
+  fail('committed_stages_not_2')
+}
 for (const key of falseBooleanKeys) {
   if (prepared.booleans?.[key] !== false) fail(`prepared_false_gate_not_false:${key}`)
+  if (committed.booleans?.[key] !== false) fail(`committed_false_gate_not_false:${key}`)
 }
 for (const env of [
   'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_NON_PRODUCTION_EVIDENCE_SEQUENCE=true',
@@ -218,6 +253,37 @@ for (const env of [
   'WORKER_RUNTIME_MODE=mock',
 ]) {
   if (!prepared.requiredEnv?.includes(env)) fail(`prepared_missing_env:${env}`)
+  if (!committed.requiredEnv?.includes(env)) fail(`committed_missing_env:${env}`)
+}
+
+for (const phrase of [
+  'queue-write smoke first',
+  'worker claim/dispatch smoke',
+  'does not execute the sequence',
+  'server-only service-role credentials',
+  'No-Scope',
+  'Agent can execute tools now: `false`',
+]) {
+  if (!committedMd.includes(phrase) && !promptResult.includes(phrase) && !implementationPrompt.includes(phrase)) {
+    fail(`committed_docs_missing_phrase:${phrase}`)
+  }
+}
+
+for (const forbidden of [
+  'Agent can execute tools now: `true`',
+  '`agentCanExecuteToolsNow=true`',
+  '`gpuRuntimeShouldStartNow=true`',
+  'runtimeReadyNow=true',
+  'externalBetaReadyNow=true',
+  'productionReadyNow=true',
+]) {
+  if (
+    committedMd.includes(forbidden) ||
+    promptResult.includes(forbidden) ||
+    implementationPrompt.includes(forbidden)
+  ) {
+    fail(`committed_docs_forbidden_phrase:${forbidden}`)
+  }
 }
 
 const rejected = runRejectedExecutionProbe()

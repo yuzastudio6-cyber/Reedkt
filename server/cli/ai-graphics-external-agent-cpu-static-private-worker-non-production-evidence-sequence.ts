@@ -16,6 +16,14 @@ const defaultSourceExactExecutionAdmissionPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json'
 const defaultOutputDir =
   '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence'
+const outputJsonPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json'
+const outputMdPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.md'
+const promptResultPath =
+  'docs/prompt-ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence-results.md'
+const implementationPromptPath =
+  'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence.md'
 
 const requiredEnv = [
   'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_NON_PRODUCTION_EVIDENCE_SEQUENCE=true',
@@ -166,6 +174,128 @@ function preparedContract() {
       signedUrlCreated: false,
     },
   }
+}
+
+type PreparedContract = ReturnType<typeof preparedContract>
+
+function markdownList(values: readonly string[]): string {
+  return values.map((value) => `- \`${value}\``).join('\n')
+}
+
+function stageRows(contract: PreparedContract): string {
+  return contract.stages
+    .map((stage) =>
+      `| \`${stage.stageId}\` | \`${stage.command}\` | \`${stage.outputResult}\` | \`${stage.outputProof}\` | \`${stage.expectedToolExecutionsPerformed}\` |`,
+    )
+    .join('\n')
+}
+
+function makeMarkdown(contract: PreparedContract): string {
+  return `# AI Graphics External Agent CPU Static Private Worker Non-Production Evidence Sequence
+
+Decision: \`${contract.decision}\`
+
+Status: \`${contract.status}\`
+
+This packet records the exact operator handoff for the CPU/static private-worker non-production evidence sequence. It does not execute the sequence, mutate Supabase, claim workers, dispatch workers, execute tools, start GPU runtime, create signed URLs, create public artifacts, unlock external beta, or unlock production.
+
+## Scope
+
+- Tools covered: \`${contract.toolsCovered}\`
+- Tool IDs: ${contract.toolsCoveredIds.map((toolId) => `\`${toolId}\``).join(', ')}
+- Source queue-write preflight packet: \`${contract.sourceQueueWritePreflightPacket}\`
+- Source exact execution admission packet: \`${contract.sourceExactExecutionAdmissionPacket}\`
+- Local-only suggested output directory: \`${contract.localOnlySuggestedOutputDir}\`
+
+## Required Environment
+
+${markdownList(contract.requiredEnv)}
+
+## Required Flags
+
+${markdownList(contract.requiredFlags)}
+
+## Ordered Evidence Stages
+
+| Stage | Command | Result output | Proof output | Tool executions expected |
+| --- | --- | --- | --- | --- |
+${stageRows(contract)}
+
+## Runtime Gates
+
+- \`liveEvidenceSequenceExecutedNow=${contract.liveEvidenceSequenceExecutedNow}\`
+- \`liveSupabaseQueueWritesNow=${contract.liveSupabaseQueueWritesNow}\`
+- \`liveWorkerClaimsNow=${contract.liveWorkerClaimsNow}\`
+- \`liveWorkerDispatchHandoffsNow=${contract.liveWorkerDispatchHandoffsNow}\`
+- \`toolExecutionsPerformedNow=${contract.toolExecutionsPerformedNow}\`
+- \`agentCanExecuteToolsNow=${contract.agentCanExecuteToolsNow}\`
+- \`gpuRuntimeShouldStartNow=${contract.gpuRuntimeShouldStartNow}\`
+- \`runtimeReadyNow=${contract.runtimeReadyNow}\`
+- \`externalBetaReadyNow=${contract.externalBetaReadyNow}\`
+- \`productionReadyNow=${contract.productionReadyNow}\`
+
+## Operator Rule
+
+Run this sequence only in a private non-production environment with server-only service-role credentials and explicit operator confirmation. The queue-write smoke proof must validate before the claim/dispatch smoke runs. The claim/dispatch smoke proof must validate before any later dry-run or controlled tool execution gate can advance.
+
+## No-Scope
+
+This packet does not run \`npm install\`, run \`npm ci\`, mutate \`package-lock.json\`, rerun CPU/static validation, execute tools, execute workers, execute routes, call providers/models, run browser/WebGL/canvas runtime, run GPU/model runtime, download model weights, process media, mutate Supabase/GCS, create signed URLs, create public artifacts, unlock external beta, or unlock production.
+`
+}
+
+function makePromptResult(contract: PreparedContract): string {
+  return `# Prompt AI Graphics External Agent CPU Static Private Worker Non-Production Evidence Sequence Results
+
+- Branch: \`codex/rp-ai-graphics-tool-call-readiness-contract\`
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862
+- Decision: \`${contract.decision}\`
+- Status: \`${contract.status}\`
+- Tools covered: \`${contract.toolsCovered}\`
+- Tool IDs: ${contract.toolsCoveredIds.map((toolId) => `\`${toolId}\``).join(', ')}
+- Live evidence sequence executed now: \`${contract.liveEvidenceSequenceExecutedNow}\`
+- Live Supabase queue writes now: \`${contract.liveSupabaseQueueWritesNow}\`
+- Worker claims now: \`${contract.liveWorkerClaimsNow}\`
+- Worker dispatch handoffs now: \`${contract.liveWorkerDispatchHandoffsNow}\`
+- Tool executions now: \`${contract.toolExecutionsPerformedNow}\`
+- Agent can execute tools now: \`${contract.agentCanExecuteToolsNow}\`
+- GPU runtime should start now: \`${contract.gpuRuntimeShouldStartNow}\`
+
+## Interpretation
+
+The evidence sequence handoff is prepared but not executed. It preserves the exact two-stage order needed for the next real non-production proof: queue-write smoke first, then worker claim/dispatch smoke. Both stages write local-only proof files under \`${contract.localOnlySuggestedOutputDir}\`.
+
+## Next Step
+
+Run the sequence only after explicit non-production operator approval and server-only service-role credentials are present. The checked-in packet remains fail-closed and does not make the five CPU/static tools agent-executable.
+`
+}
+
+function makeImplementationPrompt(contract: PreparedContract): string {
+  return `# AI Graphics External Agent CPU Static Private Worker Non-Production Evidence Sequence Implementation Record
+
+Implemented committed evidence-sequence records for the CPU/static private-worker external-agent execution path.
+
+## Result
+
+- Decision: \`${contract.decision}\`
+- Status: \`${contract.status}\`
+- Tools covered: \`${contract.toolsCovered}\`
+- Local-only output directory: \`${contract.localOnlySuggestedOutputDir}\`
+- Queue-write smoke proof must validate before claim/dispatch smoke: \`${contract.booleans.queueWriteProofMustValidateBeforeClaimDispatch}\`
+- Claim/dispatch smoke proof must validate before execution gate: \`${contract.booleans.claimDispatchProofMustValidateBeforeExecutionGate}\`
+- Agent can execute tools now: \`${contract.booleans.agentCanExecuteToolsNow}\`
+- GPU runtime should start now: \`${contract.booleans.gpuRuntimeShouldStartNow}\`
+
+This record adds traceability for the next real non-production proof run. It does not execute the sequence or approve runtime.
+`
+}
+
+function writePreparedRecords(contract: PreparedContract): void {
+  fs.writeFileSync(outputJsonPath, `${JSON.stringify(contract, null, 2)}\n`)
+  fs.writeFileSync(outputMdPath, makeMarkdown(contract))
+  fs.writeFileSync(promptResultPath, makePromptResult(contract))
+  fs.writeFileSync(implementationPromptPath, makeImplementationPrompt(contract))
 }
 
 function assertAllowedToExecute(): void {
@@ -404,7 +534,11 @@ async function executeSequence() {
 
 async function main(): Promise<void> {
   if (!hasFlag(executeFlag)) {
-    console.log(JSON.stringify(preparedContract(), null, 2))
+    const contract = preparedContract()
+    if (hasFlag('--write-records')) {
+      writePreparedRecords(contract)
+    }
+    console.log(JSON.stringify(contract, null, 2))
     return
   }
   const result = await executeSequence()

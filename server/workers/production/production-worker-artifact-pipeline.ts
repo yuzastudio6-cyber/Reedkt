@@ -41,6 +41,7 @@ export interface WorkerRuntimeJobRecord {
   approvedPlanSnapshotId: string
   creditEstimateId?: string
   creditReservationId?: string
+  productionReadinessEvidencePacketId?: string
   workerType: ProductionWorkerJobPayload['workerType']
   executionMode: ProductionWorkerJobPayload['executionMode']
   requestedToolIds: string[]
@@ -161,6 +162,7 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
     approvedPlanSnapshotId: input.payload.approvedSnapshotId,
     creditEstimateId: input.payload.metadata?.creditEstimateId as string | undefined,
     creditReservationId: input.payload.creditReservationId,
+    productionReadinessEvidencePacketId: input.payload.metadata?.productionReadinessEvidencePacketId as string | undefined,
     workerType: input.payload.workerType,
     executionMode: input.payload.executionMode,
     requestedToolIds: input.payload.requestedToolIds,

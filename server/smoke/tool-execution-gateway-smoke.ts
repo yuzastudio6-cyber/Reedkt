@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 
-import type { ProductionToolExecutionReadinessGateInput } from '../beta-readiness'
+import {
+  evaluateProductionToolExecutionReadinessGate,
+  type ProductionToolExecutionReadinessGateInput,
+} from '../beta-readiness'
+import { recordMockProductionToolExecutionReadinessEvidencePacket } from '../beta-readiness/production-tool-execution-readiness-evidence-store'
 import {
   rateLimitPolicy,
   resetMockProductionGatewayOpsControlState,
@@ -65,6 +69,15 @@ const baseInput: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string 
 }
 
 const service = createToolExecutionGatewayService(context)
+const storedProductionEvidence = productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId)
+const storedProductionEvidencePacket = recordMockProductionToolExecutionReadinessEvidencePacket(
+  'tool-execution-gateway-smoke-production-readiness-packet',
+  {
+    readinessInput: storedProductionEvidence,
+    readinessReport: evaluateProductionToolExecutionReadinessGate(storedProductionEvidence),
+  },
+  context.auth!.userId,
+).packet
 
 const dispatched = await service.dispatchApprovedToolCall(baseInput)
 assert.equal(dispatched.gateway.status, 'dispatched', 'valid request should dispatch through the backend gateway')
@@ -169,6 +182,19 @@ assert.ok(
   'production_ready without readiness evidence should identify the production readiness gate',
 )
 
+const productionReadyMissingEvidencePacket = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-missing-evidence-packet',
+  executionMode: 'production_ready',
+  productionReadinessEvidencePacketId: 'production-tool-execution-readiness-evidence-missing',
+})
+assert.equal(productionReadyMissingEvidencePacket.gateway.status, 'blocked', 'production_ready dispatch should block when the stored evidence packet cannot be found')
+assert.equal(productionReadyMissingEvidencePacket.workerResult, undefined, 'missing production evidence packet should not dispatch a worker')
+assert.ok(
+  productionReadyMissingEvidencePacket.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_EVIDENCE_PACKET_NOT_FOUND'),
+  'missing production evidence packet should identify the packet lookup blocker',
+)
+
 const productionReadyBlockedEvidence = await service.dispatchApprovedToolCall({
   ...baseInput,
   jobId: 'job-production-ready-blocked-evidence',
@@ -184,6 +210,20 @@ assert.equal(productionReadyBlockedEvidence.productionReadinessReport?.status, '
 assert.ok(
   productionReadyBlockedEvidence.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_GATE_BLOCKED'),
   'incomplete production readiness evidence should identify the production readiness gate blocker',
+)
+
+const productionReadyAmbiguousEvidence = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-ambiguous-evidence',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  productionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
+})
+assert.equal(productionReadyAmbiguousEvidence.gateway.status, 'blocked', 'production_ready dispatch should block ambiguous inline plus stored evidence')
+assert.equal(productionReadyAmbiguousEvidence.workerResult, undefined, 'ambiguous production readiness evidence should not dispatch a worker')
+assert.ok(
+  productionReadyAmbiguousEvidence.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_EVIDENCE_AMBIGUOUS'),
+  'ambiguous production readiness evidence should identify the ambiguity blocker',
 )
 
 const productionReadyMismatchedEvidence = await service.dispatchApprovedToolCall({
@@ -218,6 +258,30 @@ assert.equal(productionReadyDispatch.walletSettlements?.[0]?.toolCostEventId, pr
 assert.equal(productionReadyDispatch.walletSettlements?.[0]?.stripeCallAttempted, false, 'gateway wallet settlement must preserve Stripe isolation')
 assert.equal(productionReadyDispatch.walletSettlements?.[0]?.serviceFeeIncluded, false, 'gateway wallet settlement must exclude service fees')
 assert.equal(productionReadyDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyDispatch.toolCostEvents![0].toolCostCredits, 'completed production_ready gateway settlement should spend the tool event credits')
+
+const productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-stored-packet-dispatch',
+  toolExecutionPlanId: 'tool-execution-plan-stored-packet-dispatch',
+  executionMode: 'production_ready',
+  productionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
+})
+assert.equal(productionReadyStoredPacketDispatch.gateway.status, 'dispatched', 'stored production readiness evidence packet should allow the backend gateway path')
+assert.equal(productionReadyStoredPacketDispatch.gateway.productionReadinessEvidencePacketId, storedProductionEvidencePacket.id, 'gateway result should echo the durable evidence packet id')
+assert.equal(productionReadyStoredPacketDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'stored production readiness packet should include the passing readiness report')
+assert.equal(productionReadyStoredPacketDispatch.workerResult?.status, 'completed', 'stored production readiness packet should reach the placeholder worker route')
+assert.equal(productionReadyStoredPacketDispatch.toolCostEvents?.length, 1, 'stored production readiness packet dispatch should emit one gateway tool-cost event')
+assert.equal(
+  productionReadyStoredPacketDispatch.workerResult?.output?.mockOnly,
+  true,
+  'stored production readiness packet dispatch should still use only mock-safe worker output',
+)
+assert.equal(
+  productionReadyStoredPacketDispatch.workerRuntimeArtifactPipeline?.job.productionReadinessEvidencePacketId,
+  storedProductionEvidencePacket.id,
+  'worker runtime job record should preserve the durable production readiness evidence packet id',
+)
+assert.equal(productionReadyStoredPacketDispatch.walletSettlements?.length, 1, 'stored production readiness packet dispatch should create one wallet settlement audit row')
 
 setMockProductionGatewayOpsControlState({
   activeKillSwitches: {
@@ -311,9 +375,12 @@ console.log(JSON.stringify({
     rawMetadata.gateway.blockers[0]?.gateName,
     reservedRouterMetadata.gateway.blockers[0]?.gateName,
     productionReadyMissingEvidence.gateway.blockers[0]?.gateName,
+    productionReadyMissingEvidencePacket.gateway.blockers[0]?.gateName,
     productionReadyBlockedEvidence.gateway.blockers[0]?.gateName,
+    productionReadyAmbiguousEvidence.gateway.blockers[0]?.gateName,
     productionReadyMismatchedEvidence.gateway.blockers[0]?.gateName,
   ],
+  storedProductionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
 }, null, 2))
 
 function productionEvidenceFixture(

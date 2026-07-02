@@ -1003,6 +1003,22 @@ Summary:
 
 Recommended next prompt: `RP-BETA-INTEGRATION-26 - Qwen Beta Commit Import into RP-SKILLS Repo`.
 
+## RP-BETA-INTEGRATION-26 Qwen Beta Commit Import Into RP-SKILLS Repo
+
+`RP-BETA-INTEGRATION-26` creates [qwen-beta-commit-import-into-rp-skills-repo.md](qwen-beta-commit-import-into-rp-skills-repo.md) and [qwen-beta-commit-import-into-rp-skills-repo-checklist.md](qwen-beta-commit-import-into-rp-skills-repo-checklist.md).
+
+Decision: `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`.
+
+Summary:
+
+- Created `711039ae` - `docs(beta): record qwen reconciliation planning` before import.
+- Imported the six reviewed Qwen commits into RP-SKILLS as local commits `7457a8cf`, `e20472aa`, `897bb81a`, `4abd758b`, `f8ad24ee`, and `62933d5c`.
+- `git diff --check`, `npm run lint`, the existing beta/sound smokes, and static Qwen safety checks passed.
+- `npm run build` and Qwen runtime smokes failed because the committed slice references Qwen clone dependencies that remain untracked there and absent here, including `src/types/api-routes.ts`.
+- No uncommitted Qwen files were copied, and no push, merge, deploy, remote Supabase, provider call, worker execution, Creative Skill migration, manifest, type, mock, or Supabase config change occurred.
+
+Recommended next prompt: `RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`.
+
 ## Scope Boundary
 
 Allowed in this audit:

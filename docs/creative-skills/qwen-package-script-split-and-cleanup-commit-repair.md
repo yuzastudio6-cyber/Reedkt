@@ -103,3 +103,12 @@ No Qwen push, merge, rebase, tag, deploy, remote Supabase command, provider call
 
 No RP-SKILLS package, migration, manifest, type contract, mock fixture, runtime, UI, provider, worker, or app behavior changed in this pass.
 
+## RP-BETA-INTEGRATION-26 Import Follow-Up
+
+RP-BETA-INTEGRATION-26 imported the six reviewed Qwen commits into RP-SKILLS, but validation found the committed slice is not dependency-complete in the target repo.
+
+Outcome:
+
+- `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`
+
+The next repair must address the missing dependency graph without copying untracked Qwen files outside owner-approved scope.

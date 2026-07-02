@@ -993,3 +993,38 @@ Updated status:
 Updated next step:
 
 `RP-BETA-INTEGRATION-26 - Qwen Beta Commit Import into RP-SKILLS Repo`
+
+## 37. RP-BETA-INTEGRATION-26 Update
+
+RP-BETA-INTEGRATION-26 imported the reviewed Qwen commit slice into RP-SKILLS but did not reach merge readiness.
+
+Decision:
+
+- `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`
+
+Imported target commits:
+
+- `7457a8cf`
+- `e20472aa`
+- `897bb81a`
+- `4abd758b`
+- `f8ad24ee`
+- `62933d5c`
+
+Validation summary:
+
+- Diff check, lint, existing beta smokes, sound smokes, and static Qwen checks passed.
+- Build failed.
+- Qwen runtime smokes failed because the imported committed slice references missing dependency files.
+
+Blocker:
+
+- Qwen dependency completeness is still not solved. Required files such as `src/types/api-routes.ts`, `src/types/project-edit-session.ts`, and marker-chat UI components are untracked in the Qwen clone and absent from RP-SKILLS.
+
+Updated status:
+
+- `blocked_pending_qwen_dependency_completion`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`

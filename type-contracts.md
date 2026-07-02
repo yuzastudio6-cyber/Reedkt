@@ -570,3 +570,7 @@ RP-BETA-INTEGRATION-24 attempted owner-approved local Qwen clone cleanup commits
 ## RP-BETA-INTEGRATION-25 Note
 
 RP-BETA-INTEGRATION-25 repaired the Qwen package/script split in the separate Qwen clone and created local Qwen commits for marker-chat runtime contracts, backend bridge code, Project Edit Brief marker-chat adapters, validation checks, package dependencies/scripts, and docs. It did not change RP-SKILLS TypeScript contracts, exports, mock fixtures, package files, migrations, manifest files, runtime code, providers, workers, UI, remote Supabase, push, merge, or deployment behavior.
+
+## RP-BETA-INTEGRATION-26 Note
+
+RP-BETA-INTEGRATION-26 imported the reviewed Qwen commit slice into RP-SKILLS, including Qwen/Project Edit Brief contracts, exports, backend services, browser-safe marker-chat adapters, validation scripts, package scripts/dependencies, and docs. Validation is blocked because the committed slice references additional dependency files that are still untracked in the Qwen clone and absent from RP-SKILLS. No Creative Skill migrations, manifest files, Creative Skill contracts, mock fixtures, Supabase config, remote Supabase, provider calls, worker execution, push, merge, or deployment behavior changed.

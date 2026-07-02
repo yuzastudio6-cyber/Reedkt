@@ -471,3 +471,21 @@ Updated readiness:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-25 - Qwen Package Script Split and Cleanup Commit Repair`
+
+## X. RP-BETA-INTEGRATION-26 Qwen Import Update
+
+RP-BETA-INTEGRATION-26 imported the six reviewed Qwen commits into the current RP-SKILLS repo.
+
+Decision:
+
+- `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`
+
+Updated readiness:
+
+- RP-SKILLS now contains the reviewed committed Qwen slice.
+- The branch is still not end-to-end beta-ready because the imported commits depend on Qwen clone files that remain untracked there and absent here.
+- `npm run build` and Qwen runtime smokes fail on missing dependencies such as `src/types/api-routes.ts`.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`

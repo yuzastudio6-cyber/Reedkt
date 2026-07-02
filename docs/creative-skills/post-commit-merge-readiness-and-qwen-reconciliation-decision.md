@@ -262,3 +262,17 @@ Qwen validation passed, but the Qwen package/script surface must be split or exp
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-25 - Qwen Package Script Split and Cleanup Commit Repair`
+
+## S. RP-BETA-INTEGRATION-26 Import Update
+
+RP-BETA-INTEGRATION-26 imported the reviewed Qwen commits into the current repo, but post-import validation is blocked.
+
+Decision:
+
+- `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`
+
+Merge readiness remains blocked because `npm run build` and Qwen runtime smokes fail on missing dependency files that were untracked in the Qwen clone and therefore outside the committed import slice.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`

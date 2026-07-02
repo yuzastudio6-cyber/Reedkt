@@ -3633,3 +3633,52 @@ Boundaries:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-26 - Qwen Beta Commit Import into RP-SKILLS Repo`
+
+## RP-BETA-INTEGRATION-26 Completion
+
+RP-BETA-INTEGRATION-26 imported the six reviewed Qwen beta commits into the RP-SKILLS repo, but validation is blocked because the committed slice is not dependency-complete.
+
+Created docs:
+
+- `docs/creative-skills/qwen-beta-commit-import-into-rp-skills-repo.md`
+- `docs/creative-skills/qwen-beta-commit-import-into-rp-skills-repo-checklist.md`
+
+Decision:
+
+- `qwen_beta_commits_imported_but_validation_blocked_dependency_incomplete`
+
+Target commits:
+
+- `711039ae` - `docs(beta): record qwen reconciliation planning`
+- `7457a8cf` - `types(qwen): add marker chat runtime contracts`
+- `e20472aa` - `feat(qwen): add backend marker chat runtime bridge`
+- `897bb81a` - `feat(project-edit-brief): add marker chat runtime adapter`
+- `4abd758b` - `test(qwen): add beta runtime validation checks`
+- `f8ad24ee` - `chore(qwen): add beta runtime dependencies and scripts`
+- `62933d5c` - `docs(qwen): document beta runtime readiness`
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run build`: failed.
+- Existing beta/sound smokes: passed.
+- Static Qwen safety checks: passed.
+- Qwen runtime smokes: failed on missing committed dependency files.
+
+Blocker:
+
+- `blocked_qwen_import_dependency_incomplete`
+
+Representative missing committed dependency:
+
+- `src/types/api-routes.ts`
+
+Boundary:
+
+- Missing dependencies are untracked in the Qwen clone and were not copied into RP-SKILLS.
+- No push, merge, deploy, remote Supabase, provider call, worker execution, Creative Skill migration, manifest, type, mock fixture, or Supabase config change occurred.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-27 - Qwen Import Dependency Completion and Build Repair`

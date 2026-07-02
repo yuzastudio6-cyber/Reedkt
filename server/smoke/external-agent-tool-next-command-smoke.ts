@@ -278,11 +278,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'bounded_no_idle_l4_lifecycle_retry_us_central1_c_prompt_required_before_vm_or_inference',
+  'bounded_no_idle_l4_iap_wheelhouse_transfer_prompt_required_before_dependency_or_inference',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-9m-no-idle-l4-lifecycle-proof-result',
+  'npm run smoke:ai-video-broll-gen-9n-no-idle-l4-lifecycle-proof-result',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

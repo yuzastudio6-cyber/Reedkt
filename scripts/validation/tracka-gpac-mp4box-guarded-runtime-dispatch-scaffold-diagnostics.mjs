@@ -89,12 +89,26 @@ const followOnConfirmedDispatchScaffoldFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-diagnostics.mjs',
 ]
 
+const followOnConfirmedDispatchExecutionFiles = [
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/source-chain.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/execution-runner.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/evidence-manifest-policy.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/blocked-result.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/safety-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-record.json',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-results.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...followOnExternalReadinessFiles,
   ...followOnToolExecutionReadinessMatrixFiles,
   ...followOnTrackaToolLaneRealignmentFiles,
   ...followOnConfirmedDispatchScaffoldFiles,
+  ...followOnConfirmedDispatchExecutionFiles,
 ])
 
 function fail(message) {

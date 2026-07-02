@@ -182,7 +182,10 @@ assert(!schemaSource.includes('createClient'), 'schema Supabase client forbidden
 assert(!schemaSource.includes('service_role'), 'schema service-role text forbidden')
 
 assert(!workerRoutes.includes('sound-cpu-worker-routes'), 'worker-routes registered Phase139 route')
-assert(!appSource.includes('sound-cpu-worker-routes'), 'app registered Phase139 route')
+const phase142SourceCreated = fs.existsSync(
+  path.join(process.cwd(), 'docs/worker-runtime-jobs-sound-cpu-phase142-disabled-route-registration-source-result.md'),
+)
+if (!phase142SourceCreated) assert(!appSource.includes('sound-cpu-worker-routes'), 'app registered Phase139 route')
 
 console.log(
   JSON.stringify(

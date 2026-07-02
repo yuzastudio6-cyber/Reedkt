@@ -146,7 +146,12 @@ assert(parsed.nextPrompt.executionScope.routeRequestExecutionEnabled === false, 
 assertNoOpClassification(parsed.nextPrompt.supabaseClassification, 'nextPrompt.supabaseClassification')
 
 const appSource = read('server/app.ts')
-assert(!appSource.includes('sound-cpu-worker-routes'), 'owner review unexpectedly changed app route registration')
+const phase142SourceCreated = fs.existsSync(
+  path.join(process.cwd(), 'docs/worker-runtime-jobs-sound-cpu-phase142-disabled-route-registration-source-result.md'),
+)
+if (!phase142SourceCreated) {
+  assert(!appSource.includes('sound-cpu-worker-routes'), 'owner review unexpectedly changed app route registration')
+}
 
 console.log(
   JSON.stringify(

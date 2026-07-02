@@ -13,6 +13,9 @@ import type {
   AiGraphicsExternalAgentToolAdapterAuthorizationReport,
 } from '../tool-registry/ai-graphics-external-agent-tool-adapter-authorization'
 import type {
+  AiGraphicsSatoriFontRuntimeProofReport,
+} from '../tool-registry/ai-graphics-external-agent-execution-gate'
+import type {
   AiGraphicsExternalBetaCallableRequestAdmission,
 } from '../tool-registry/ai-graphics-external-beta-callable-request-admission'
 import type {
@@ -137,6 +140,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentToolAdapterAuthorizationReport>>(
       '--external-agent-tool-adapter-authorization-packet',
     ),
+  sourceSatoriFontRuntimeProofPacket:
+    readJsonFile<Partial<AiGraphicsSatoriFontRuntimeProofReport>>(
+      '--satori-font-runtime-proof-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -185,6 +192,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet')),
     externalAgentToolAdapterAuthorizationPacketRead:
       Boolean(valueAfterFlag('--external-agent-tool-adapter-authorization-packet')),
+    satoriFontRuntimeProofPacketRead:
+      Boolean(valueAfterFlag('--satori-font-runtime-proof-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

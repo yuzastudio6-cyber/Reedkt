@@ -75,6 +75,8 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSI
   'ai_graphics_external_beta_tool_call_route_gpu_model_runtime_admission_smoke_passed'
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_WORKER_CLAIM_SMOKE_DECISION =
   'ai_graphics_external_beta_tool_call_route_mock_queue_worker_claim_smoke_passed'
+export const AI_GRAPHICS_SATORI_FONT_RUNTIME_PROOF_DECISION =
+  'ai_graphics_satori_font_runtime_proof_completed_with_warnings'
 
 export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'missing_21_tool_proper_install_audit'
@@ -530,6 +532,62 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
     Partial<AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket>
   sourceExternalAgentToolAdapterAuthorizationPacket?:
     Partial<AiGraphicsExternalAgentToolAdapterAuthorizationReport>
+  sourceSatoriFontRuntimeProofPacket?:
+    Partial<AiGraphicsSatoriFontRuntimeProofReport>
+}
+
+export interface AiGraphicsSatoriFontRuntimeProofReport {
+  decision: typeof AI_GRAPHICS_SATORI_FONT_RUNTIME_PROOF_DECISION
+  status: 'completed_with_warnings'
+  proofScope: 'satori_cpu_static_text_svg_layout_with_locked_package_font_fixture'
+  tool?: {
+    toolId?: 'satori'
+    packageName?: 'satori'
+    status?: 'satori_font_fixture_svg_layout_proof_passed'
+    runtimeTarget?: 'node_cpu_static_svg_layout'
+    fontFixture?: {
+      packageName?: 'three'
+      path?: string
+      sha256?: string
+      byteLength?: number
+    }
+    outputContract?: {
+      hasSvgRoot?: boolean
+      hasExpectedViewBox?: boolean
+      pathCount?: number
+      deterministic?: boolean
+      svgArtifactCommitted?: boolean
+      publicArtifactCreated?: boolean
+    }
+    agentExecutableNow?: false
+    routeExecutionUsed?: false
+    workerExecutionUsed?: false
+    providerRuntimeUsed?: false
+    publicArtifactCreated?: false
+  }
+  booleans?: {
+    satoriFontRuntimeProofCompleted?: true
+    lockedPackageFontFixtureUsed?: true
+    satoriTextSvgLayoutProofPassed?: true
+    dependencyInstallPerformed?: false
+    packageLockMutationPerformed?: false
+    generatedArtifactsCommitted?: false
+    publicArtifactCreated?: false
+    signedUrlCreated?: false
+    providerRuntimePerformed?: false
+    browserWebglCanvasRuntimePerformed?: false
+    gpuRuntimePerformed?: false
+    agentCanSelectForPlanning?: true
+    agentCanExecuteToolsNow?: false
+    toolRouteExecutionReadyNow?: false
+    workerExecutionReadyNow?: false
+    browserWebglCanvasRuntimeReadyNow?: false
+    gpuModelRuntimeReadyNow?: false
+    runtimeBetaReadyNow?: false
+    internalBetaReadyNow?: false
+    externalBetaReadyNow?: false
+    productionReadyNow?: false
+  }
 }
 
 export interface AiGraphicsExternalAgentExecutionGateToolRow {
@@ -546,6 +604,8 @@ export interface AiGraphicsExternalAgentExecutionGateToolRow {
   requestAdmissionCandidateWithProvidedEvidence: boolean
   cpuStaticLiveAdapterQueueWriteProofStatus: string | null
   cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidence: boolean
+  satoriFontRuntimeProofAcceptedWithProvidedEvidence: boolean
+  cpuStaticLocalRuntimeProofAcceptedWithProvidedEvidence: boolean
   nonProductionServiceRoleQueueWriteSmokeRequired: boolean
   cpuStaticExactExecutionAdmissionStatus: string | null
   cpuStaticExactExecutionAdmissionReady: boolean
@@ -622,6 +682,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_WORKER_CLAIM_SMOKE_DECISION | null
   sourceExternalAgentToolAdapterAuthorizationDecision:
     typeof AI_GRAPHICS_EXTERNAL_AGENT_TOOL_ADAPTER_AUTHORIZATION_DECISION | null
+  sourceSatoriFontRuntimeProofDecision:
+    typeof AI_GRAPHICS_SATORI_FONT_RUNTIME_PROOF_DECISION | null
   source21ToolProperInstallAuditAccepted: boolean
   sourceExternalBetaCallableRequestAdmissionAccepted: boolean
   sourceExternalBetaApiRouteMountReadinessAccepted: boolean
@@ -641,6 +703,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
   sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
   sourceExternalAgentToolAdapterAuthorizationAccepted: boolean
+  sourceSatoriFontRuntimeProofAccepted: boolean
   readyForAnyExternalAgentExecutionNow: false
   executionAllowedNow: false
   requireGoExitCodeWhenBlocked: 2
@@ -688,6 +751,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
   cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools: 0 | 5
   cpuStaticPhase0ExecutionEvidenceAcceptedTools: 0 | 5
   cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: 0 | 1
+  cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools: 0 | 1
+  cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools: 0 | 6
   cpuStaticNonCpuStaticDeferredTools: 0 | 15
   nonProductionServiceRoleQueueWriteSmokeRequiredTools: 0 | 5
   nonProductionServiceRoleQueueWriteSmokeResultRequiredTools: 0 | 5
@@ -763,6 +828,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
     sourceExternalAgentToolAdapterAuthorizationAccepted: boolean
+    sourceSatoriFontRuntimeProofAccepted: boolean
     properInstallAuditAccepted: boolean
     all21ToolsProperlyInstalledForPlannedSurface: boolean
     installAuditSeparatesPlannedSurfaceFromRuntimeCallable: boolean
@@ -810,6 +876,9 @@ export interface AiGraphicsExternalAgentExecutionGate {
     allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence: boolean
     allFiveCpuStaticPhase0ExecutionEvidenceAccepted: boolean
     satoriRemainsBlockedPendingApprovedFontFixture: boolean
+    satoriFontRuntimeProofAcceptedWithProvidedEvidence: boolean
+    satoriFontBlockResolvedForLocalRuntimeProof: boolean
+    allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence: boolean
     fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes: boolean
     nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution: boolean
     nonProductionServiceRoleQueueWriteSmokeResultRequiredBeforeExecution: boolean
@@ -947,6 +1016,7 @@ const browserRuntimeProofTools = new Set<AiGraphicsCanonicalToolId>([
 function safeNextCommand(input: {
   toolId: AiGraphicsCanonicalToolId
   gpuRequiredForRuntime: boolean
+  satoriFontRuntimeProofAccepted?: boolean
   cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
   cpuStaticExactAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
   cpuStaticAdapterInvocationEnqueueAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionRow
@@ -1012,6 +1082,9 @@ function safeNextCommand(input: {
   }
   if (input.gpuRequiredForRuntime) {
     return 'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
+  }
+  if (input.toolId === 'satori' && input.satoriFontRuntimeProofAccepted === true) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics'
   }
   if (input.toolId === 'satori') {
     return 'npm run ai-graphics:satori-font-runtime-proof:diagnostics'
@@ -1554,6 +1627,60 @@ function sourceExternalAgentToolAdapterAuthorizationAccepted(
     packet.booleans?.gcsUploadPerformed === false &&
     packet.booleans?.publicArtifactCreated === false &&
     packet.booleans?.signedUrlCreated === false
+}
+
+function sourceSatoriFontRuntimeProofAccepted(
+  packet?: Partial<AiGraphicsSatoriFontRuntimeProofReport>,
+): boolean {
+  const outputContract = packet?.tool?.outputContract
+  const fontFixture = packet?.tool?.fontFixture
+  return Boolean(packet) &&
+    packet?.decision === AI_GRAPHICS_SATORI_FONT_RUNTIME_PROOF_DECISION &&
+    packet.status === 'completed_with_warnings' &&
+    packet.proofScope === 'satori_cpu_static_text_svg_layout_with_locked_package_font_fixture' &&
+    packet.tool?.toolId === 'satori' &&
+    packet.tool.packageName === 'satori' &&
+    packet.tool.status === 'satori_font_fixture_svg_layout_proof_passed' &&
+    packet.tool.runtimeTarget === 'node_cpu_static_svg_layout' &&
+    fontFixture?.packageName === 'three' &&
+    typeof fontFixture.path === 'string' &&
+    fontFixture.path === 'node_modules/three/examples/fonts/ttf/kenpixel.ttf' &&
+    /^[a-f0-9]{64}$/.test(fontFixture.sha256 ?? '') &&
+    typeof fontFixture.byteLength === 'number' &&
+    fontFixture.byteLength > 0 &&
+    outputContract?.hasSvgRoot === true &&
+    outputContract?.hasExpectedViewBox === true &&
+    typeof outputContract.pathCount === 'number' &&
+    outputContract.pathCount > 0 &&
+    outputContract.deterministic === true &&
+    outputContract.svgArtifactCommitted === false &&
+    outputContract.publicArtifactCreated === false &&
+    packet.tool.agentExecutableNow === false &&
+    packet.tool.routeExecutionUsed === false &&
+    packet.tool.workerExecutionUsed === false &&
+    packet.tool.providerRuntimeUsed === false &&
+    packet.tool.publicArtifactCreated === false &&
+    packet.booleans?.satoriFontRuntimeProofCompleted === true &&
+    packet.booleans?.lockedPackageFontFixtureUsed === true &&
+    packet.booleans?.satoriTextSvgLayoutProofPassed === true &&
+    packet.booleans?.dependencyInstallPerformed === false &&
+    packet.booleans?.packageLockMutationPerformed === false &&
+    packet.booleans?.generatedArtifactsCommitted === false &&
+    packet.booleans?.publicArtifactCreated === false &&
+    packet.booleans?.signedUrlCreated === false &&
+    packet.booleans?.providerRuntimePerformed === false &&
+    packet.booleans?.browserWebglCanvasRuntimePerformed === false &&
+    packet.booleans?.gpuRuntimePerformed === false &&
+    packet.booleans?.agentCanSelectForPlanning === true &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.toolRouteExecutionReadyNow === false &&
+    packet.booleans?.workerExecutionReadyNow === false &&
+    packet.booleans?.browserWebglCanvasRuntimeReadyNow === false &&
+    packet.booleans?.gpuModelRuntimeReadyNow === false &&
+    packet.booleans?.runtimeBetaReadyNow === false &&
+    packet.booleans?.internalBetaReadyNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false
 }
 
 function sourceCpuStaticLiveAdapterQueueWriteProofAccepted(
@@ -2427,6 +2554,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket
   const sourceExternalAgentToolAdapterAuthorization =
     input.sourceExternalAgentToolAdapterAuthorizationPacket
+  const sourceSatoriFontRuntimeProof =
+    input.sourceSatoriFontRuntimeProofPacket
   const installAccepted = sourceProperInstallAuditAccepted(sourceProperInstallAudit)
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
   const routeMountAccepted =
@@ -2493,6 +2622,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     sourceExternalAgentToolAdapterAuthorizationAccepted(
       sourceExternalAgentToolAdapterAuthorization,
     )
+  const satoriFontRuntimeProofAccepted =
+    sourceSatoriFontRuntimeProofAccepted(sourceSatoriFontRuntimeProof)
   const controlledRouteExecutionSmokeAccepted =
     routeCpuStaticControlledExecutionSmokeAccepted &&
     routeBrowserRuntimeControlledExecutionSmokeAccepted &&
@@ -2570,6 +2701,12 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       cpuStaticLiveAdapterQueueWriteProofAccepted &&
       cpuStaticProofRow?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidence ===
         true
+    const satoriFontRuntimeProofReady =
+      tool.toolId === 'satori' && satoriFontRuntimeProofAccepted
+    const cpuStaticLocalRuntimeProofAccepted =
+      cpuStaticProofPassed || satoriFontRuntimeProofReady
+    const satoriLiveAdapterQueueProofPending =
+      satoriFontRuntimeProofReady && !cpuStaticProofPassed
     const cpuStaticExactAdmissionReady =
       cpuStaticExactExecutionAdmissionAccepted &&
       cpuStaticExactAdmissionRow?.externalAgentExactRequestAdmittedWithProvidedEvidence ===
@@ -2612,27 +2749,39 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       requestAdmissionCandidateWithProvidedEvidence:
         sourceAccepted && requestedToolId === tool.toolId,
       cpuStaticLiveAdapterQueueWriteProofStatus:
-        cpuStaticProofRow?.liveAdapterInvocationQueueWriteProofStatus ?? null,
+        satoriLiveAdapterQueueProofPending
+          ? 'live_adapter_invocation_queue_write_proof_pending_satori_live_adapter_queue_extension'
+          : cpuStaticProofRow?.liveAdapterInvocationQueueWriteProofStatus ?? null,
       cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidence:
         cpuStaticProofPassed,
+      satoriFontRuntimeProofAcceptedWithProvidedEvidence:
+        satoriFontRuntimeProofReady,
+      cpuStaticLocalRuntimeProofAcceptedWithProvidedEvidence:
+        cpuStaticLocalRuntimeProofAccepted,
       nonProductionServiceRoleQueueWriteSmokeRequired:
         cpuStaticProofPassed &&
         cpuStaticProofRow?.serviceRoleQueueWriteSmokeRequired === true,
       cpuStaticExactExecutionAdmissionStatus:
-        cpuStaticExactAdmissionRow?.exactExecutionAdmissionStatus ?? null,
+        satoriLiveAdapterQueueProofPending
+          ? 'exact_external_agent_execution_admission_pending_satori_live_adapter_queue_extension'
+          : cpuStaticExactAdmissionRow?.exactExecutionAdmissionStatus ?? null,
       cpuStaticExactExecutionAdmissionReady: cpuStaticExactAdmissionReady,
       externalAgentExactRequestAdmittedWithProvidedEvidence:
         cpuStaticExactAdmissionReady,
       cpuStaticAdapterInvocationEnqueueAdmissionStatus:
-        cpuStaticAdapterInvocationEnqueueAdmissionRow
-          ?.adapterInvocationEnqueueAdmissionStatus ?? null,
+        satoriLiveAdapterQueueProofPending
+          ? 'adapter_invocation_enqueue_admission_pending_satori_live_adapter_queue_extension'
+          : cpuStaticAdapterInvocationEnqueueAdmissionRow
+            ?.adapterInvocationEnqueueAdmissionStatus ?? null,
       cpuStaticAdapterInvocationEnqueueAdmissionReady:
         cpuStaticAdapterInvocationEnqueueAdmissionReady,
       externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence:
         cpuStaticAdapterInvocationEnqueueAdmissionReady,
       cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightStatus:
-        cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightRow
-          ?.nonProductionServiceRoleQueueWriteSmokePreflightStatus ?? null,
+        satoriLiveAdapterQueueProofPending
+          ? 'non_production_service_role_queue_write_smoke_preflight_pending_satori_live_adapter_queue_extension'
+          : cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightRow
+            ?.nonProductionServiceRoleQueueWriteSmokePreflightStatus ?? null,
       cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReady:
         cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReady,
       externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidence:
@@ -2713,6 +2862,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       safeNextCommand: safeNextCommand({
         toolId: tool.toolId,
         gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
+        satoriFontRuntimeProofAccepted,
         cpuStaticProofRow,
         cpuStaticExactAdmissionRow,
         cpuStaticAdapterInvocationEnqueueAdmissionRow,
@@ -2866,6 +3016,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       AI_GRAPHICS_EXTERNAL_AGENT_TOOL_ADAPTER_AUTHORIZATION_DECISION
         ? sourceExternalAgentToolAdapterAuthorization.decision
         : null,
+    sourceSatoriFontRuntimeProofDecision:
+      sourceSatoriFontRuntimeProof?.decision ===
+      AI_GRAPHICS_SATORI_FONT_RUNTIME_PROOF_DECISION
+        ? sourceSatoriFontRuntimeProof.decision
+        : null,
     source21ToolProperInstallAuditAccepted: installAccepted,
     sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
     sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
@@ -2901,6 +3056,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       routeMockQueueWorkerClaimSmokeAccepted,
     sourceExternalAgentToolAdapterAuthorizationAccepted:
       externalAgentToolAdapterAuthorizationAccepted,
+    sourceSatoriFontRuntimeProofAccepted:
+      satoriFontRuntimeProofAccepted,
     readyForAnyExternalAgentExecutionNow: false,
     executionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
@@ -2978,7 +3135,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     cpuStaticPhase0ExecutionEvidenceAcceptedTools:
       cpuStaticControlledToolExecutionProofAccepted ? 5 : 0,
     cpuStaticSatoriBlockedPendingApprovedFontFixtureTools:
-      cpuStaticLiveAdapterQueueWriteProofAccepted ? 1 : 0,
+      cpuStaticLiveAdapterQueueWriteProofAccepted && !satoriFontRuntimeProofAccepted ? 1 : 0,
+    cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools:
+      satoriFontRuntimeProofAccepted ? 1 : 0,
+    cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools:
+      cpuStaticLiveAdapterQueueWriteProofAccepted && satoriFontRuntimeProofAccepted ? 6 : 0,
     cpuStaticNonCpuStaticDeferredTools:
       cpuStaticLiveAdapterQueueWriteProofAccepted ? 15 : 0,
     nonProductionServiceRoleQueueWriteSmokeRequiredTools:
@@ -3122,6 +3283,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         routeMockQueueWorkerClaimSmokeAccepted,
       sourceExternalAgentToolAdapterAuthorizationAccepted:
         externalAgentToolAdapterAuthorizationAccepted,
+      sourceSatoriFontRuntimeProofAccepted:
+        satoriFontRuntimeProofAccepted,
       properInstallAuditAccepted: installAccepted,
       all21ToolsProperlyInstalledForPlannedSurface: installAccepted,
       installAuditSeparatesPlannedSurfaceFromRuntimeCallable: installAccepted,
@@ -3204,7 +3367,13 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       allFiveCpuStaticPhase0ExecutionEvidenceAccepted:
         cpuStaticControlledToolExecutionProofAccepted,
       satoriRemainsBlockedPendingApprovedFontFixture:
-        cpuStaticLiveAdapterQueueWriteProofAccepted,
+        cpuStaticLiveAdapterQueueWriteProofAccepted && !satoriFontRuntimeProofAccepted,
+      satoriFontRuntimeProofAcceptedWithProvidedEvidence:
+        satoriFontRuntimeProofAccepted,
+      satoriFontBlockResolvedForLocalRuntimeProof:
+        satoriFontRuntimeProofAccepted,
+      allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence:
+        cpuStaticLiveAdapterQueueWriteProofAccepted && satoriFontRuntimeProofAccepted,
       fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
       nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution:

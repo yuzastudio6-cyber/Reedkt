@@ -29,6 +29,8 @@ const routeMockQueueWorkerClaimSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics'
 const externalAgentToolAdapterAuthorizationCommand =
   'npm run ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics'
+const liveAdapterQueueWriteProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics'
 const nativeGpuProofCollectionCommand =
   'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
 const satoriFontProofCommand =
@@ -134,6 +136,7 @@ const falseBooleanKeys = [
   'sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted',
   'allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence',
   'allFiveCpuStaticPhase0ExecutionEvidenceAccepted',
+  'satoriRemainsBlockedPendingApprovedFontFixture',
   'agentCanExecuteAll21ToolsNow',
   'agentCanExecuteGpuModelToolsNow',
   'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
@@ -195,7 +198,10 @@ const trueBooleanKeys = [
   'allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence',
   'allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks',
   'nonProductionEvidenceSequenceKeepsRuntimeBlocks',
-  'satoriRemainsBlockedPendingApprovedFontFixture',
+  'sourceSatoriFontRuntimeProofAccepted',
+  'satoriFontRuntimeProofAcceptedWithProvidedEvidence',
+  'satoriFontBlockResolvedForLocalRuntimeProof',
+  'allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence',
   'fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes',
   'nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution',
   'approvedPlanSnapshotRequired',
@@ -260,6 +266,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -756,8 +763,14 @@ if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvide
 if (docs.counts?.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
   fail('docs_service_role_queue_rows_persisted_after_cleanup_not_0')
 }
-if (docs.counts?.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
-  fail('docs_cpu_static_satori_blocked_not_1')
+if (docs.counts?.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 0) {
+  fail('docs_cpu_static_satori_blocked_not_0')
+}
+if (docs.counts?.cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools !== 1) {
+  fail('docs_cpu_static_satori_font_runtime_proof_not_1')
+}
+if (docs.counts?.cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools !== 6) {
+  fail('docs_cpu_static_local_runtime_proofs_not_6')
 }
 if (docs.counts?.cpuStaticNonCpuStaticDeferredTools !== 15) {
   fail('docs_cpu_static_non_cpu_static_deferred_not_15')
@@ -957,6 +970,10 @@ for (const phrase of [
   'workerClaimAndDispatchSmokeProofRequiredTools: `0`',
   'CPU/static worker claim/dispatch smoke proof accepted: `false`',
   'cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
+  'Satori font runtime proof accepted: `true`',
+  'cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: `0`',
+  'cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools: `1`',
+  'cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools: `6`',
   'toolExecutionDryRunProofRequiredTools: `0`',
   'CPU/static tool execution dry-run proof accepted: `false`',
   'cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools: `0`',
@@ -1025,6 +1042,10 @@ for (const phrase of [
   'apiRouteMountedNow=false',
   'exit code `2`',
   'agentCanExecuteToolsNow=false',
+  'satoriRemainsBlockedPendingApprovedFontFixture=false',
+  'satoriFontRuntimeProofAcceptedWithProvidedEvidence=true',
+  'satoriFontBlockResolvedForLocalRuntimeProof=true',
+  'allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true',
   'gpuModelUnblockPlanAcceptedWithProvidedEvidence=true',
   'gpuModelToolsReadyForExecutionAfterCurrentEvidence=false',
 ]) {
@@ -1194,6 +1215,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
   '--external-agent-tool-adapter-authorization-packet',
   'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
+  '--satori-font-runtime-proof-packet',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -1303,8 +1326,17 @@ if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWit
 if (acceptedSourceReport.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
   fail('accepted_report_service_role_queue_rows_persisted_after_cleanup_not_0')
 }
-if (acceptedSourceReport.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 1) {
-  fail('accepted_report_cpu_static_satori_blocked_not_1')
+if (acceptedSourceReport.sourceSatoriFontRuntimeProofAccepted !== true) {
+  fail('accepted_report_source_satori_font_proof_not_true')
+}
+if (acceptedSourceReport.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 0) {
+  fail('accepted_report_cpu_static_satori_blocked_not_0')
+}
+if (acceptedSourceReport.cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools !== 1) {
+  fail('accepted_report_cpu_static_satori_font_proof_not_1')
+}
+if (acceptedSourceReport.cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools !== 6) {
+  fail('accepted_report_cpu_static_local_runtime_proofs_not_6')
 }
 if (acceptedSourceReport.cpuStaticNonCpuStaticDeferredTools !== 15) {
   fail('accepted_report_cpu_static_non_cpu_static_deferred_not_15')
@@ -1512,8 +1544,14 @@ for (const row of acceptedSourceReport.toolRows.filter(
   }
 }
 const satoriRow = acceptedSourceReport.toolRows.find((tool) => tool.toolId === 'satori')
-if (satoriRow?.safeNextCommand !== satoriFontProofCommand) {
-  fail('accepted_report_satori_safe_next_not_satori_font_proof')
+if (satoriRow?.safeNextCommand !== liveAdapterQueueWriteProofCommand) {
+  fail('accepted_report_satori_safe_next_not_live_adapter_queue_write_proof')
+}
+if (satoriRow?.satoriFontRuntimeProofAcceptedWithProvidedEvidence !== true) {
+  fail('accepted_report_satori_font_runtime_proof_not_true')
+}
+if (satoriRow?.cpuStaticLocalRuntimeProofAcceptedWithProvidedEvidence !== true) {
+  fail('accepted_report_satori_local_runtime_proof_not_true')
 }
 for (const row of acceptedSourceReport.toolRows.filter(
   (tool) => browserRuntimeProofTools.has(tool.toolId),

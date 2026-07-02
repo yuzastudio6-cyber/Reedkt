@@ -87,6 +87,24 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase164IndexExportEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase164-actual-disabled-route-index-export-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase164-actual-disabled-route-index-export-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase164_actual_disabled_route_index_export_source_creation_completed_with_warnings_ready_for_index_export_static_validation' &&
+    evidence.sourceChange?.indexExportAdded === true &&
+    evidence.sourceChange?.routeRegisteredToday === false &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false &&
+    evidence.sourceChange?.routeExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase162-disabled-route-index-export-plan-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase163-disabled-route-index-export-owner-review'),
@@ -104,7 +122,10 @@ const routeSource = read(routePath)
 const indexText = read(indexPath)
 assert(routeSource.includes('createSoundCpuDisabledDispatchRouteResult'), 'route helper missing')
 assert(routeSource.includes('acceptedForDispatch: false'), 'route source must stay fail-closed')
-assert(!indexText.includes('disabled-dispatch-route.ts'), 'index export must not include route source before Phase164')
+assert(
+  !indexText.includes('disabled-dispatch-route.ts') || phase164IndexExportEvidenceExists(),
+  'index export must not include route source before Phase164 evidence',
+)
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')
 assert(parsed.source.sourceVerification.sourcePr === 2200, 'source PR mismatch')

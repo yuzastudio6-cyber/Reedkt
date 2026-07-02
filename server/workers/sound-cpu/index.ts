@@ -24,6 +24,18 @@ export {
 } from './dispatch-contract.ts'
 
 export {
+  SOUND_CPU_DISABLED_DISPATCH_ROUTE_BLOCKED_REASON,
+  SOUND_CPU_DISABLED_DISPATCH_ROUTE_INVALID_PAYLOAD_REASON,
+  SOUND_CPU_DISABLED_DISPATCH_ROUTE_NAME,
+  SOUND_CPU_DISABLED_DISPATCH_ROUTE_STATUS,
+  assertSoundCpuDisabledDispatchRouteExecutionBlocked,
+  createSoundCpuDisabledDispatchRouteResult,
+  type SoundCpuDisabledDispatchRouteInput,
+  type SoundCpuDisabledDispatchRouteInvalidPayloadResult,
+  type SoundCpuDisabledDispatchRouteResult,
+} from './disabled-dispatch-route.ts'
+
+export {
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_BLOCKED_REASON,
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_NAME,
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_SOURCE_STATUS,

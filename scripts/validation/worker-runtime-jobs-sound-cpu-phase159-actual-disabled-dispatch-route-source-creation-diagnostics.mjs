@@ -104,6 +104,24 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase164IndexExportEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase164-actual-disabled-route-index-export-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase164-actual-disabled-route-index-export-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase164_actual_disabled_route_index_export_source_creation_completed_with_warnings_ready_for_index_export_static_validation' &&
+    evidence.sourceChange?.indexExportAdded === true &&
+    evidence.sourceChange?.routeRegisteredToday === false &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false &&
+    evidence.sourceChange?.routeExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase158-disabled-dispatch-route-source-creation-plan-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase159-actual-disabled-dispatch-route-source-creation'),
@@ -124,7 +142,10 @@ assert(sourceText.includes("from './dispatch-contract.ts'"), 'route source must 
 assert(!sourceText.includes("from './index.ts'"), 'route source must not import index and create a cycle')
 assert(!sourceText.includes('fetch('), 'route source must not call network')
 assert(!sourceText.includes('child_process'), 'route source must not spawn processes')
-assert(!indexText.includes('disabled-dispatch-route.ts'), 'index export must not include route source yet')
+assert(
+  !indexText.includes('disabled-dispatch-route.ts') || phase164IndexExportEvidenceExists(),
+  'index export must not include route source before Phase164 evidence',
+)
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')
 assert(parsed.source.planResult.routeSourceCreationPlanned === true, 'source creation plan missing')

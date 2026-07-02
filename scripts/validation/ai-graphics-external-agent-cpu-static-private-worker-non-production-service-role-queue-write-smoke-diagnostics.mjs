@@ -1,0 +1,256 @@
+import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
+
+const runScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke'
+const runScriptCommand =
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke.ts'
+const diagnosticScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-diagnostics.mjs'
+
+const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
+const falseBooleanKeys = [
+  'agentCanExecuteToolsNow',
+  'serviceRoleQueueWriteSmokeApprovedNow',
+  'liveQueueWriteApprovedNow',
+  'backendQueueSubmissionApprovedNow',
+  'workerEnqueueApprovedNow',
+  'workerClaimApprovedNow',
+  'workerDispatchApprovedNow',
+  'workerExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'serviceRoleQueueWriteSmokePerformed',
+  'backendQueueSubmissionPerformed',
+  'workerEnqueuePerformed',
+  'workerClaimPerformed',
+  'workerDispatchPerformed',
+  'workerExecutionPerformed',
+  'toolExecutionPerformed',
+  'routeExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
+const failures = []
+
+function fail(message) {
+  failures.push(message)
+}
+
+function read(filePath) {
+  if (!fs.existsSync(filePath)) {
+    fail(`missing_file:${filePath}`)
+    return ''
+  }
+  return fs.readFileSync(filePath, 'utf8')
+}
+
+function json(filePath) {
+  try {
+    return JSON.parse(read(filePath))
+  } catch (error) {
+    fail(`invalid_json:${filePath}:${error.message}`)
+    return {}
+  }
+}
+
+function git(args) {
+  return execFileSync('git', args, {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  }).trim()
+}
+
+function runPrepared() {
+  const output = execFileSync('npm', ['run', '--silent', runScriptName], {
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+  return JSON.parse(output)
+}
+
+function runRejectedExecutionProbe() {
+  try {
+    execFileSync('npm', ['run', '--silent', runScriptName, '--', '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke'], {
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE: '',
+        REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE_ENV: '',
+        E2E_RUNTIME_MODE: 'local',
+        WORKER_RUNTIME_MODE: 'mock',
+      },
+      stdio: 'pipe',
+    })
+    fail('execution_probe_unexpectedly_succeeded')
+    return ''
+  } catch (error) {
+    return `${error.stderr ?? ''}${error.stdout ?? ''}`
+  }
+}
+
+const requiredFiles = [
+  'server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke.ts',
+  'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-diagnostics.mjs',
+  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.ts',
+  'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
+  'package.json',
+]
+
+for (const file of requiredFiles) read(file)
+
+const pkg = json('package.json')
+const source = read('server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke.ts')
+const proofSource = read('server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts')
+const proofDocs = json('docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json')
+
+if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
+if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
+  fail(`missing_package_script:${diagnosticScriptName}`)
+}
+
+for (const phrase of [
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE',
+  'REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE_ENV',
+  'non_production',
+  'E2E_RUNTIME_MODE=local',
+  'WORKER_RUNTIME_MODE=mock',
+  '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+  '--output-result',
+  'createAiGraphicsToolRuntimeQueueService',
+  'createSupabaseAdminClient',
+  'enqueueToolRuntimeJobs',
+  'cleanupSmokeRows',
+  'workerClaimsCreated: 0',
+  'workerDispatchesPerformed: 0',
+  'toolExecutionsPerformed: 0',
+  'gpuRuntimeShouldStartNow: false',
+]) {
+  if (!source.includes(phrase)) fail(`runner_source_missing_phrase:${phrase}`)
+}
+
+for (const forbidden of [
+  'claimToolRuntimeJob(',
+  'recordWorkerEvent(',
+  'toolExecutionPerformed: true',
+  'workerDispatchPerformed: true',
+  'gpuRuntimeShouldStartNow: true',
+  'publicArtifactCreated: true',
+  'signedUrlCreated: true',
+]) {
+  if (source.includes(forbidden)) fail(`runner_source_forbidden_phrase:${forbidden}`)
+}
+
+for (const toolId of proofTools) {
+  if (!source.includes(`'${toolId}'`)) fail(`runner_source_missing_tool:${toolId}`)
+}
+for (const deferredTool of ['satori', 'echarts', 'three_js', 'pixi_js', 'babylonjs', 'sam2']) {
+  if (source.includes(`'${deferredTool}'`)) fail(`runner_source_should_not_name_deferred_tool:${deferredTool}`)
+}
+
+const prepared = runPrepared()
+if (prepared.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_runner_prepared_with_runtime_blocks') {
+  fail(`prepared_decision_mismatch:${prepared.decision}`)
+}
+if (prepared.status !== 'external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_runner_prepared_not_executed') {
+  fail(`prepared_status_mismatch:${prepared.status}`)
+}
+if (prepared.toolsSubmitted !== 5) fail('prepared_tools_submitted_not_5')
+if (JSON.stringify([...prepared.toolsSubmittedIds].sort()) !== JSON.stringify([...proofTools].sort())) {
+  fail('prepared_tool_ids_mismatch')
+}
+if (prepared.liveServiceRoleQueueWriteSmokeExecutedNow !== false) {
+  fail('prepared_live_smoke_not_false')
+}
+if (prepared.liveSupabaseQueueWritesNow !== 0) fail('prepared_live_writes_not_0')
+for (const key of falseBooleanKeys) {
+  if (prepared.booleans?.[key] !== false) fail(`prepared_false_gate_not_false:${key}`)
+}
+for (const env of [
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE=true',
+  'REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE_ENV=non_production',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'E2E_RUNTIME_MODE=local',
+  'WORKER_RUNTIME_MODE=mock',
+]) {
+  if (!prepared.requiredEnv?.includes(env)) fail(`prepared_missing_env:${env}`)
+}
+for (const flag of [
+  '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke',
+  '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+  '--private-evidence-ref',
+  '--output-result',
+]) {
+  if (!prepared.requiredFlags?.includes(flag)) fail(`prepared_missing_flag:${flag}`)
+}
+
+const rejected = runRejectedExecutionProbe()
+if (!/REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE=true/.test(rejected)) {
+  fail('execution_probe_missing_confirmation_rejection')
+}
+
+if (!proofSource.includes('runnerCommand')) fail('proof_template_missing_runner_command')
+if (!proofSource.includes(runScriptName)) fail('proof_template_missing_runner_script_name')
+if (!proofDocs.operatorResultTemplate?.runnerCommand?.includes(runScriptName)) {
+  fail('proof_docs_missing_runner_command')
+}
+if (proofDocs.operatorResultTemplate?.canBeUsedAsAcceptedResultWithoutLiveSmoke !== false) {
+  fail('proof_docs_template_accepts_without_live_smoke')
+}
+
+const packageLockDiff = git(['diff', '--', 'package-lock.json'])
+if (packageLockDiff.trim().length > 0) fail('package_lock_changed')
+const tracked = git(['ls-files'])
+if (tracked.split('\n').some((file) => file.startsWith('.local-artifacts/'))) {
+  fail('local_artifacts_tracked')
+}
+for (const file of git(['diff', '--name-only']).split('\n').filter(Boolean)) {
+  if (/(^|\/)(\.local-artifacts|renders?|media-output|browser-output|canvas-output|webgl-output|public-artifacts?|signed-urls?)(\/|$)|\.(mp4|mov|webm|png|jpe?g|gif|webp)$/i.test(file)) {
+    fail(`generated_artifact_path_changed:${file}`)
+  }
+}
+
+if (failures.length > 0) {
+  console.error(JSON.stringify({ ok: false, failures }, null, 2))
+  process.exit(1)
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  decision: prepared.decision,
+  status: prepared.status,
+  toolsSubmitted: prepared.toolsSubmitted,
+  toolsSubmittedIds: prepared.toolsSubmittedIds,
+  liveServiceRoleQueueWriteSmokeExecutedNow:
+    prepared.liveServiceRoleQueueWriteSmokeExecutedNow,
+  liveSupabaseQueueWritesNow: prepared.liveSupabaseQueueWritesNow,
+  agentCanExecuteToolsNow: prepared.booleans.agentCanExecuteToolsNow,
+  gpuRuntimeShouldStartNow: prepared.booleans.gpuRuntimeShouldStartNow,
+  proofTemplateRunnerCommandPresent: true,
+  packageLockUnchanged: true,
+}, null, 2))

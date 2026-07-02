@@ -121,6 +121,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
     rollbackRef: string
   }
   localOnlySuggestedResultPath: string
+  runnerCommand: string
   validatorCommand: string
   canBeUsedAsAcceptedResultWithoutLiveSmoke: false
   agentCanExecuteToolsNow: false
@@ -451,7 +452,12 @@ function operatorResultTemplateFor(input: {
     expectedWorkerExecutionsPerformed: 0,
     expectedToolExecutionsPerformed: 0,
     requiredEnvironment: [...(firstContract?.requiredEnvironment ?? [])],
-    requiredFlags: [...(firstContract?.requiredFlags ?? [])],
+    requiredFlags: Array.from(new Set([
+      ...(firstContract?.requiredFlags ?? []),
+      '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+      '--private-evidence-ref',
+      '--output-result',
+    ])),
     requiredResultFields: [
       'ok',
       'decision',
@@ -513,6 +519,8 @@ function operatorResultTemplateFor(input: {
     },
     localOnlySuggestedResultPath:
       '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json',
+    runnerCommand:
+      'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke -- --execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke --source-non-production-service-role-queue-write-smoke-preflight-packet docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json --workspace-id <non-production-workspace-id> --project-id <non-production-project-id> --approved-plan-snapshot-id <approved-plan-snapshot-id> --credit-reservation-id <credit-reservation-id> --idempotency-prefix <unique-smoke-prefix> --service-role-boundary-ref <service-role-boundary-ref> --private-evidence-ref <private-evidence-ref> --telemetry-ref <telemetry-ref> --cleanup-proof-ref <cleanup-proof-ref> --rollback-ref <rollback-ref> --output-result .local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json',
     validatorCommand:
       'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof -- --external-agent-cpu-static-service-role-queue-write-smoke-result <local-result.json> --print-only',
     canBeUsedAsAcceptedResultWithoutLiveSmoke: false,

@@ -98,6 +98,7 @@ ${rejectionReasons}
 - Expected queue rows cleaned up: \`${report.operatorResultTemplate.expectedQueueRowsCleanedUp}\`
 - Expected queue rows persisted after cleanup: \`${report.operatorResultTemplate.expectedQueueRowsPersistedAfterCleanup}\`
 - Local-only suggested result path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
+- Runner command: \`${report.operatorResultTemplate.runnerCommand}\`
 - Validator command: \`${report.operatorResultTemplate.validatorCommand}\`
 - Can be used as accepted result without live smoke: \`${report.operatorResultTemplate.canBeUsedAsAcceptedResultWithoutLiveSmoke}\`
 
@@ -156,6 +157,7 @@ function makePromptResult(report: Report): string {
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
 - Operator result template rows: \`${report.operatorResultTemplate.perToolQueueRows.length}\`
 - Operator result template can be accepted without live smoke: \`${report.operatorResultTemplate.canBeUsedAsAcceptedResultWithoutLiveSmoke}\`
+- Operator runner command: \`${report.operatorResultTemplate.runnerCommand}\`
 - Queue rows persisted after cleanup: \`${report.counts.queueRowsPersistedAfterCleanup}\`
 - Worker dispatches performed now: \`${report.counts.workerDispatchesPerformedNow}\`
 - Tool executions performed now: \`${report.counts.toolExecutionsPerformedNow}\`
@@ -195,6 +197,7 @@ Implemented the saved-result validator for the CPU/static private-worker non-pro
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
 - Operator result template rows: \`${report.operatorResultTemplate.perToolQueueRows.length}\`
 - Operator result template local-only output path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
+- Operator runner command: \`${report.operatorResultTemplate.runnerCommand}\`
 - External-agent executable now tools: \`${report.counts.externalAgentExecutableNowTools}\`
 - GPU runtime starts now: \`${report.counts.gpuRuntimeShouldStartNowTools}\`
 

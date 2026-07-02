@@ -387,6 +387,7 @@ This migration has not been run locally, in staging, or in production. It does n
 Later migrations should add, in order:
 
 - RP-PERSISTENCE-PLAN-01 reviewed migration authoring for external-beta credit persistence, based on `docs/credit-production-persistence-plan.md`
+- RP-SUPABASE-MIGRATION-01 adds review-only credit persistence SQL drafts under `supabase/review/`; these are not active migrations, are not applied, and do not run Supabase CLI.
 - local/staging application and verification of RP-E2E-READY-01 runtime readiness tables
 - local/staging application and verification of the tool cost event ledger, service-role write path, and idempotent replay behavior
 - backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks

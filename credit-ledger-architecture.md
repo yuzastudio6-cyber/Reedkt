@@ -201,3 +201,7 @@ RP-CREDITPURCHASE-01 adds fixed mock credit packs and purchased grants to the sh
 ## RP-PERSISTENCE-PLAN-01 Production Persistence Plan
 
 RP-PERSISTENCE-PLAN-01 keeps the existing wallet, grant, ledger, estimate, approval, reservation, refund, idempotency, and tool-cost schema as the production target. The new plan documents how final settlements, revised-credit actions, export locks, purchased top-up intents, Stripe links/sessions/webhooks, and support audit evidence should extend that schema in later reviewed migrations. It is docs/status/smoke-only and does not create migrations, run Supabase CLI, apply SQL, write Supabase data, mutate production wallets/ledgers, call Stripe/providers, or run render/export.
+
+## RP-SUPABASE-MIGRATION-01 Review Draft
+
+RP-SUPABASE-MIGRATION-01 turns the persistence plan into review-only SQL drafts in `supabase/review/`. The drafts preserve the existing wallet/grant/ledger/estimate/reservation spine, propose settlement/revision/export-lock/top-up/Stripe tables, and document RLS, explicit grants, service-role-only writes, idempotency, and RPC transaction skeletons. They are not active migrations and do not apply SQL, run Supabase CLI, generate DB types, mutate wallets/ledgers, or wire production persistence.

@@ -577,6 +577,7 @@
     "worker-runtime-jobs:sound-cpu-phase131-external-beta-enablement-owner-review-no-real-user-media:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase131-external-beta-enablement-owner-review-no-real-user-media-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase132-real-user-media-beta-gap-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase132-real-user-media-beta-gap-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase132-real-user-media-beta-gap-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase132-real-user-media-beta-gap-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase133-real-user-media-safety-policy-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase133-real-user-media-safety-policy-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

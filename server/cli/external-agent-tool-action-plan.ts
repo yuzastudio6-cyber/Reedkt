@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 9L stockout fix selected us-central1-a, but the bounded no-idle lifecycle retry prompt is still required before any VM or inference path; do not create VMs from this rollup',
+        'B-roll 9M lifecycle proof attempted us-central1-a and stocked out with cleanup verified, but the bounded no-idle us-central1-c retry prompt is still required before any VM or inference path; do not create VMs from this rollup',
       afterBlockerClears:
-        'run the separate bounded no-idle us-central1-a L4 lifecycle execution prompt with mandatory cleanup before any inference path',
+        'run the separate bounded no-idle us-central1-c L4 lifecycle execution prompt with mandatory cleanup before any inference path',
     }
   }
 

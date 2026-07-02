@@ -9,7 +9,7 @@ const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const NEXT_AFTER_QUOTA =
-  'AI-VIDEO-BROLL-GEN-9M-NO-IDLE-L4-PROOF-EXECUTE-US-CENTRAL1-A: run bounded no-idle L4 VM lifecycle proof in us-central1-a with mandatory cleanup, no model inference'
+  'AI-VIDEO-BROLL-GEN-9N-NO-IDLE-L4-PROOF-EXECUTE-US-CENTRAL1-C: run bounded no-idle L4 VM lifecycle proof in us-central1-c with mandatory cleanup, no model inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -113,7 +113,7 @@ function validateReadiness(quota: JsonRecord | undefined, cache: JsonRecord | un
   if (cache?.modelIndexClassNameMatches !== true) blockers.push('broll_private_cache_model_index_mismatch')
   if (cache?.indexRefsLocal !== true) blockers.push('broll_private_cache_refs_not_local')
 
-  blockers.push('broll_no_idle_l4_retry_us_central1_a_execute_prompt_required_before_vm_lifecycle')
+  blockers.push('broll_no_idle_l4_retry_us_central1_c_execute_prompt_required_before_vm_lifecycle')
   return Array.from(new Set(blockers))
 }
 

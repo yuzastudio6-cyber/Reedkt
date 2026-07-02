@@ -70,6 +70,7 @@ import { InlineSegmentEditPlanCard } from './InlineSegmentEditPlanCard'
 import { InlineSoundSyncTransitionTimingCard } from './InlineSoundSyncTransitionTimingCard'
 import { InlineSpeakerVisualLayoutCard } from './InlineSpeakerVisualLayoutCard'
 import { InlineTimingValidationCard } from './InlineTimingValidationCard'
+import { InlineToolCallIntentCard } from './InlineToolCallIntentCard'
 import { InlineToolRegistryCard } from './InlineToolRegistryCard'
 import { InlineToolStrategyCard } from './InlineToolStrategyCard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
@@ -807,6 +808,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('tool_strategy') && (
                 <InlineToolStrategyCard descriptor={cardById.tool_strategy} plan={plan} />
+              )}
+              {showCard('tool_call_intents') && (
+                <InlineToolCallIntentCard descriptor={cardById.tool_call_intents} plan={plan} />
               )}
               {showCard('map_animation_plan') && (
                 <InlineMapAnimationPlanCard descriptor={cardById.map_animation_plan} plan={plan} />

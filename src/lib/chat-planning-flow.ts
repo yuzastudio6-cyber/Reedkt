@@ -299,6 +299,22 @@ function toolStrategySummary(plan: EditPlan) {
   return `${toolStrategyPlan.items.length} tool strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
 }
 
+function toolCallIntentSummary(plan: EditPlan) {
+  const toolCallIntentPlan = plan.toolCallIntentPlan
+
+  if (!toolCallIntentPlan) {
+    return 'Tool-call intent plan is not ready.'
+  }
+
+  const gatedCount =
+    toolCallIntentPlan.readinessCounts.blocked_by_owner_approval +
+    toolCallIntentPlan.readinessCounts.blocked_by_provider_lane +
+    toolCallIntentPlan.readinessCounts.blocked_by_storage_billing +
+    toolCallIntentPlan.readinessCounts.dry_run_only
+
+  return `${toolCallIntentPlan.intents.length} planned tool call${toolCallIntentPlan.intents.length === 1 ? '' : 's'}; ${toolCallIntentPlan.readinessCounts.ready_for_backend_execution} backend candidate${toolCallIntentPlan.readinessCounts.ready_for_backend_execution === 1 ? '' : 's'}, ${gatedCount} gated or dry-run.`
+}
+
 function colorPipelineSummary(plan: EditPlan) {
   const colorPlan = plan.colorPipelinePlan
 
@@ -433,6 +449,20 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const renderStrategyStatus = renderStrategyValidationStatus ?? (plan.renderStrategyPlan?.items.length ? 'ready' : 'not_started')
   const toolStrategyValidationStatus = validationCategoryStatus(validationReport, 'tool_strategy')
   const toolStrategyStatus = toolStrategyValidationStatus ?? (plan.toolStrategyPlan?.items.length ? 'ready' : 'not_started')
+  const toolCallIntentValidationStatus = validationCategoryStatus(validationReport, 'tool_call_intents')
+  const toolCallIntentGatedCount = plan.toolCallIntentPlan
+    ? plan.toolCallIntentPlan.readinessCounts.blocked_by_owner_approval +
+      plan.toolCallIntentPlan.readinessCounts.blocked_by_provider_lane +
+      plan.toolCallIntentPlan.readinessCounts.blocked_by_storage_billing +
+      plan.toolCallIntentPlan.readinessCounts.dry_run_only
+    : 0
+  const toolCallIntentStatus = toolCallIntentValidationStatus ?? (
+    !plan.toolCallIntentPlan
+      ? 'not_started'
+      : toolCallIntentGatedCount > 0
+        ? 'warning'
+        : 'ready'
+  )
   const colorPipelineValidationStatus = validationCategoryStatus(validationReport, 'color_pipeline')
   const colorPipelineStatus = colorPipelineValidationStatus ?? (plan.colorPipelinePlan ? 'ready' : 'not_started')
   const audioPipelineValidationStatus = validationCategoryStatus(validationReport, 'audio_pipeline')
@@ -723,6 +753,16 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       requiredBeforeApproval: false,
       summary: toolStrategySummary(plan),
       hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'tool_call_intents',
+      label: 'Planned tool calls',
+      phase: 'credits_approval',
+      priority: 'user_summary',
+      status: toolCallIntentStatus,
+      defaultExpanded: true,
+      requiredBeforeApproval: false,
+      summary: toolCallIntentSummary(plan),
     }),
     descriptor({
       id: 'map_animation_plan',

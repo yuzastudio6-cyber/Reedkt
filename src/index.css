@@ -4740,6 +4740,10 @@ li {
   border-color: rgba(0, 229, 255, 0.26);
 }
 
+.tool-call-intent-card {
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
 .tool-strategy-summary-grid {
   display: grid;
   gap: 9px;

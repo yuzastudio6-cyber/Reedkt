@@ -8,6 +8,8 @@ const decision =
 const nextDecision =
   'worker_runtime_jobs_sound_cpu_phase148_actual_dispatch_contract_source_creation_completed_with_warnings_ready_for_dispatch_contract_source_owner_review'
 const futureSourcePath = 'server/workers/sound-cpu/dispatch-contract.ts'
+const phase148ResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-phase148-actual-dispatch-contract-source-creation-result.md'
 
 const docs = {
   source: 'docs/worker-runtime-jobs-sound-cpu-phase146-dispatch-source-owner-review-result.md',
@@ -99,7 +101,12 @@ const parsed = {
 
 for (const file of Object.values(docs).filter((file) => file.endsWith('.md'))) assertNoUnsafeTrueClaims(file)
 
-assert(!fs.existsSync(path.join(process.cwd(), futureSourcePath)), `${futureSourcePath} must not exist in Phase147`)
+const futureSourceExists = fs.existsSync(path.join(process.cwd(), futureSourcePath))
+const phase148ResultExists = fs.existsSync(path.join(process.cwd(), phase148ResultPath))
+assert(
+  !futureSourceExists || phase148ResultExists,
+  `${futureSourcePath} must not exist until Phase148 result evidence exists`,
+)
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')
 assert(parsed.source.ownerReviewResult.sourceCreationPlanMayProceed === true, 'Phase146 did not allow Phase147')

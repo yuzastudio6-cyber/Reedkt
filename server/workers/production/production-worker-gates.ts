@@ -1,4 +1,5 @@
 import type { ToolExecutionPlan } from '../../../src/backend/contracts/tool-execution-contracts'
+import { isTrackBAdapterToolId } from '../../trackb-adapters'
 import {
   evaluateRuntimePolicy,
   evaluateToolLicensePolicy,
@@ -131,8 +132,17 @@ export function secretBlockGate(payload: ProductionWorkerJobPayload): Production
 export function registryRuntimeGate(payload: ProductionWorkerJobPayload): ProductionWorkerGateCheck {
   const blockingReasons: string[] = []
   const warnings: string[] = []
+  const trackBAdapterToolId = typeof payload.metadata?.trackBAdapterToolId === 'string' &&
+    isTrackBAdapterToolId(payload.metadata.trackBAdapterToolId)
+    ? payload.metadata.trackBAdapterToolId
+    : undefined
 
   for (const toolId of payload.requestedToolIds) {
+    if (trackBAdapterToolId === toolId) {
+      warnings.push(`${toolId} runtime policy is enforced by the Track B adapter contract for this gateway-backed job.`)
+      continue
+    }
+
     const profile = getProductionToolProfile(toolId)
     if (!profile) {
       blockingReasons.push(`Unknown production tool: ${toolId}`)

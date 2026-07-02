@@ -3,6 +3,12 @@ import {
   assertToolExecutionCostCreditGate,
 } from '../tool-cost-metering'
 import {
+  getTrackBAdapterContract,
+  isTrackBAdapterToolId,
+  runTrackBAdapter,
+  type TrackBAdapterResult,
+} from '../trackb-adapters'
+import {
   evaluateRuntimePolicy,
   evaluateToolLicensePolicy,
   evaluateToolModelWeightPolicy,
@@ -56,6 +62,7 @@ export interface ToolExecutionGatewayDispatchResult {
     blockers: ToolExecutionGatewayBlocker[]
     dispatchedAt: string
   }
+  trackBAdapterResult?: TrackBAdapterResult
   workerResult?: ProductionWorkerExecutionResult
   warnings: string[]
 }
@@ -84,12 +91,16 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         projectId: input.projectId,
         userId,
       }))
+      const trackBAdapterResult = input.trackBAdapterToolId
+        ? runTrackBAdapter(buildTrackBAdapterRequest(input))
+        : undefined
       blockers.push(...await validateApprovedSnapshotAndCreditReservation(context, input))
       blockers.push(...validateGatewayAdapter(adapterId, input.workerType))
-      blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode))
+      blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId))
       blockers.push(...validateArtifactPrivacy(input))
       blockers.push(...validateMetadataSafety(input.metadata))
       blockers.push(...validateCostCreditGate(input))
+      blockers.push(...validateTrackBAdapterSelection(input, trackBAdapterResult))
 
       const payload = buildGatewayWorkerPayload({
         input,
@@ -111,6 +122,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
             dispatchedAt: createdAt,
             workerIdempotencyKey,
           }),
+          trackBAdapterResult,
           warnings,
         }
       }
@@ -140,6 +152,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           dispatchedAt: createdAt,
           workerIdempotencyKey,
         }),
+        trackBAdapterResult,
         workerResult,
         warnings: [
           ...warnings,
@@ -179,6 +192,8 @@ function buildGatewayWorkerPayload(input: {
     metadata: {
       ...(input.input.metadata ?? {}),
       gatewayAdapterId: input.adapterId,
+      trackBAdapterToolId: input.input.trackBAdapterToolId,
+      trackBAdapterExecutionMode: input.input.trackBAdapterExecutionMode,
       creditEstimateId: input.input.creditEstimateId,
       approvedReservationRemainingCredits: input.input.approvedReservationRemainingCredits,
       estimatedHighCredits: input.input.estimatedHighCredits,
@@ -414,10 +429,15 @@ function validateToolReadiness(
   toolIds: ProductionToolId[],
   workerType: ProductionWorkerRuntimeType,
   executionMode: ProductionWorkerExecutionMode,
+  trackBAdapterToolId?: string,
 ): ToolExecutionGatewayBlocker[] {
   const blockers: ToolExecutionGatewayBlocker[] = []
 
   for (const toolId of toolIds) {
+    if (trackBAdapterToolId && isTrackBAdapterToolId(trackBAdapterToolId) && toolId === trackBAdapterToolId) {
+      continue
+    }
+
     const profile = getProductionToolProfile(toolId)
     if (!profile) {
       blockers.push({
@@ -452,6 +472,44 @@ function validateToolReadiness(
         details: { toolId },
       })))
     }
+  }
+
+  return blockers
+}
+
+function validateTrackBAdapterSelection(
+  input: ToolExecutionGatewayDispatchBody,
+  result: TrackBAdapterResult | undefined,
+): ToolExecutionGatewayBlocker[] {
+  if (!input.trackBAdapterToolId) return []
+
+  const blockers: ToolExecutionGatewayBlocker[] = []
+
+  if (!input.requestedToolIds.includes(input.trackBAdapterToolId)) {
+    blockers.push({
+      code: 'TRACKB_ADAPTER_TOOL_NOT_REQUESTED',
+      gateName: 'trackb_adapter_pack',
+      message: 'Track B adapter tool must also appear in requestedToolIds.',
+      details: { trackBAdapterToolId: input.trackBAdapterToolId, requestedToolIds: input.requestedToolIds },
+    })
+  }
+
+  if (input.requestedToolIds.length !== 1) {
+    blockers.push({
+      code: 'TRACKB_ADAPTER_ONE_TOOL_PER_REQUEST',
+      gateName: 'trackb_adapter_pack',
+      message: 'Track B adapter dispatch handles exactly one tool per approved backend job.',
+      details: { requestedToolIds: input.requestedToolIds },
+    })
+  }
+
+  if (result?.status === 'blocked') {
+    blockers.push(...result.blockers.map((blocker) => ({
+      code: blocker.code,
+      gateName: 'trackb_adapter_pack',
+      message: blocker.message,
+      details: blocker.details,
+    })))
   }
 
   return blockers
@@ -570,4 +628,37 @@ function validateCostCreditGate(input: ToolExecutionGatewayDispatchBody): ToolEx
 
 function defaultAdapterForWorker(workerType: ProductionWorkerRuntimeType): ToolExecutionGatewayAdapterId {
   return `${workerType}_placeholder` as ToolExecutionGatewayAdapterId
+}
+
+function buildTrackBAdapterRequest(
+  input: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string },
+) {
+  if (!input.trackBAdapterToolId) {
+    throw new Error('Track B adapter tool ID is required to build adapter request.')
+  }
+
+  const contract = getTrackBAdapterContract(input.trackBAdapterToolId)
+  const defaultInputArtifactType = contract.inputManifest[0]?.artifactType ?? 'temp_file'
+
+  return {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    jobId: input.jobId,
+    toolExecutionPlanId: input.toolExecutionPlanId,
+    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    toolId: input.trackBAdapterToolId,
+    workerType: input.workerType,
+    executionMode: input.trackBAdapterExecutionMode ?? 'dry_run',
+    inputArtifacts: input.artifactReferences.map((artifact, index) => ({
+      ...artifact,
+      artifactType: contract.inputManifest[index]?.artifactType ?? defaultInputArtifactType,
+      description: `Gateway Track B adapter input ${index + 1} for ${input.trackBAdapterToolId}.`,
+    })),
+    metadata: {
+      ...(input.metadata ?? {}),
+      apiIdempotencyKey: input.apiIdempotencyKey,
+    },
+  }
 }

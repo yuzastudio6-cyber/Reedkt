@@ -1,0 +1,38 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-OWNER-GATE-1",
+  "decision": "completed_gstreamer_mkvtoolnix_remote_worker_claim_lease_owner_gate_source_path",
+  "execution": "completed_remote_worker_claim_lease_source_gate_no_remote_execution",
+  "ownerGate": "approved_for_guarded_remote_worker_claim_lease_source_path_only",
+  "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-claim-lease",
+  "localClaimMode": "local_mock_claim_lease_no_worker_execution",
+  "remoteClaimMode": "remote_supabase_worker_claim_lease_no_worker_execution",
+  "confirmationGates": [
+    "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE",
+    "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE"
+  ],
+  "payloadConfirmation": "remoteWorkerClaimLeaseConfirmed",
+  "futureRemoteMutationScope": "worker_claim_lease_only",
+  "remoteExecutionInThisPhase": false,
+  "workerDispatch": false,
+  "workerExecution": false,
+  "gstreamerExecution": false,
+  "mkvtoolnixExecution": false,
+  "privateMediaProcessing": false,
+  "userMediaProcessing": false,
+  "sqlExecution": false,
+  "secretPayloadAccess": false,
+  "publicArtifactCreation": false,
+  "finalRenderExport": false,
+  "sourceChain": {
+    "persistedRouteInvocationPr": 2137,
+    "persistedRouteInvocationQaPr": 2139,
+    "localMockClaimLeasePr": 2142,
+    "localMockClaimLeaseQaPr": 2144,
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-RUNTIME-VALIDATION-1"
+}

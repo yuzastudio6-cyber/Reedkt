@@ -65,5 +65,5 @@
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none",
   "productReadyEndToEndLocalOssTools": 0,
-  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-WORKER-DISPATCH-CLAIM-LEASE-QA-ROLLUP-1"
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-OWNER-GATE-1"
 }

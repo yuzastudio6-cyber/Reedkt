@@ -45,6 +45,19 @@ const stagingBlocked = evaluateProductionToolExecutionReadinessGate({
 assert.equal(stagingBlocked.productionToolExecutionAllowed, false, 'staging evidence must not clear paid production')
 assert.ok(stagingBlocked.blockers.some((blocker) => blocker.includes('Evidence environment is not production')), 'staging evidence should name production environment blocker')
 
+const productionEvidenceMigrationBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  supabasePersistence: {
+    ...completeEvidence.supabasePersistence!,
+    productionReadinessEvidenceMigrationDeployed: false,
+  },
+})
+assert.equal(productionEvidenceMigrationBlocked.productionToolExecutionAllowed, false, 'missing production evidence packet migration proof should block production')
+assert.ok(
+  productionEvidenceMigrationBlocked.blockers.some((blocker) => blocker.includes('production_tool_execution_readiness_evidence_packets')),
+  'missing production evidence packet migration proof should name the durable production evidence table',
+)
+
 const refundBlocked = evaluateProductionToolExecutionReadinessGate({
   ...completeEvidence,
   walletSettlement: {
@@ -86,6 +99,7 @@ console.log(JSON.stringify({
   productionToolCount: passingReport.productionToolCount,
   defaultBlocked: defaultBlocked.blockers.length,
   stagingBlocked: stagingBlocked.blockers.length,
+  productionEvidenceMigrationBlocked: productionEvidenceMigrationBlocked.blockers.length,
   refundBlocked: refundBlocked.blockers.length,
   provenanceBlocked: provenanceBlocked.blockers.length,
   paidProductionAllowed: passingReport.paidProductionAllowed,
@@ -102,6 +116,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       environment: 'production',
       toolCostEventsMigrationDeployed: true,
       betaReadinessEvidenceMigrationDeployed: true,
+      productionReadinessEvidenceMigrationDeployed: true,
       serviceRoleWritePathVerified: true,
       rlsMemberReadPathVerified: true,
       explicitDataApiGrantsVerified: true,

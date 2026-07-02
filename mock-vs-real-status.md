@@ -102,3 +102,9 @@
 - Real: `/v1/billing/stripe/live-readiness` and `/v1/billing/stripe/live-readiness/no-charge-dry-run` report live config readiness and secret-reference audit details.
 - Real: complete production live config can reach `ready_no_charge`.
 - Blocked by design: live Checkout Sessions, live SetupIntents, live PaymentIntents, live webhooks, live credit grants, production wallet mutation, production ledger writes, Supabase writes, provider/render/export execution, export unlock, and production persistence.
+
+## RP-CREDITUI-01 Credit UI Status
+
+- Real: `/wallet` displays browser-safe fixture cards for the external-beta credit lifecycle and Stripe readiness.
+- Real: credit UI adapter formats existing credit/Stripe payload shapes and separates tool cost, ReEditPro service/edit fee, reserved credits, spent credits, returned credits, and outstanding credits.
+- Mock-only: no route call, live billing, Stripe payment, checkout, live webhook, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, production persistence, ledger write, or raw secret exposure is wired.

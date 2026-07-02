@@ -1,0 +1,62 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXECUTION-READY-ROUTE-WORKER-BRIDGE-QA-ROLLUP-1",
+  "integrationBase": "67602b088009779d45b0d1f26eabac65c48902fc",
+  "decision": "qa_passed_gstreamer_mkvtoolnix_narrow_execution_ready_route_worker_bridge_confirmed_invocation",
+  "execution": "completed_confirmed_route_invocation_to_existing_generated_fixture_runtime_delegate",
+  "sourceChain": {
+    "routeWorkerBridgePr": 2113,
+    "routeWorkerBridgeMergeSha": "67602b088009779d45b0d1f26eabac65c48902fc",
+    "routeWorkerBridgeDecision": "completed_gstreamer_mkvtoolnix_narrow_execution_ready_route_worker_bridge",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "confirmedInvocation": {
+    "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute",
+    "httpStatus": 201,
+    "status": "completed_narrow_execution_ready_route_worker_bridge_controlled_generated_fixture_runtime_delegate",
+    "runnerRunId": "2026-07-02T12-00-03-397Z-aa991010",
+    "runnerOutputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/2026-07-02T12-00-03-397Z-aa991010",
+    "gstreamerExecution": "completed_controlled_generated_fixture_only",
+    "mkvtoolnixExecution": "completed_controlled_generated_fixture_only",
+    "mediaProcessing": "controlled_generated_fixture_only",
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false
+  },
+  "artifacts": {
+    "report": {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-report.json",
+      "bytes": 7963,
+      "sha256": "7085009c186b8e63974ad457f3e6a03bf62be59c6b4a5ccaa273654f313262b6"
+    },
+    "runtimePacketEnvelope": {
+      "fileName": "runtime-packet-envelope.json",
+      "bytes": 3375,
+      "sha256": "8869db792abc806399474b89cbf24669a918d9b41eb473fd99e350a5772a8448"
+    },
+    "outputManifest": {
+      "fileName": "output-manifest.json",
+      "bytes": 612,
+      "sha256": "07743460206ebf064d9209c444aebf422df552f232210bf78fd0fe6632c35e6b"
+    },
+    "qaReport": {
+      "fileName": "qa-report.json",
+      "bytes": 856,
+      "sha256": "8a9252935c70fc2a2d127e7008e944b0d8e27477af63b25b98487d4060bd50d2"
+    },
+    "manifest": {
+      "fileName": "gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2-manifest.json",
+      "bytes": 1265,
+      "sha256": "b66899e7234b96b354334c2c8884744a4e2376614b49dc6d1406cfae6cf805c9"
+    }
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-GENERATED-FIXTURE-TO-APPROVED-SNAPSHOT-JOB-QUEUE-HANDOFF-1"
+}

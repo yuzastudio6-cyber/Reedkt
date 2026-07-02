@@ -30,6 +30,7 @@
     "--output-dir"
   ],
   "localOnlySuggestedOutputDir": ".local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence",
+  "localOnlySuggestedSequenceResult": ".local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json",
   "stages": [
     {
       "stageId": "queue_write_smoke",

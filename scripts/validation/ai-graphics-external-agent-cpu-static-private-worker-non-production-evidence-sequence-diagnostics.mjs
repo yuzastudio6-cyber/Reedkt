@@ -171,6 +171,10 @@ for (const phrase of [
   'assertAcceptedClaimDispatchProof',
   'queue-write-smoke-proof.json',
   'claim-and-dispatch-smoke-proof.json',
+  'evidence-sequence-result.json',
+  'localOnlySuggestedSequenceResult',
+  'evidenceSequenceResultPath',
+  'writeJson(sequenceResultPath, sequenceResult)',
   '--write-records',
   outputJsonPath,
   outputMdPath,
@@ -228,11 +232,23 @@ if (committed.liveSupabaseQueueWritesNow !== 0) fail('committed_live_queue_write
 if (committed.liveWorkerClaimsNow !== 0) fail('committed_worker_claims_not_0')
 if (committed.liveWorkerDispatchHandoffsNow !== 0) fail('committed_worker_handoffs_not_0')
 if (committed.toolExecutionsPerformedNow !== 0) fail('committed_tool_executions_not_0')
+if (
+  committed.localOnlySuggestedSequenceResult !==
+  '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json'
+) {
+  fail('committed_sequence_result_path_mismatch')
+}
 if (prepared.liveEvidenceSequenceExecutedNow !== false) fail('prepared_live_sequence_not_false')
 if (prepared.liveSupabaseQueueWritesNow !== 0) fail('prepared_live_queue_writes_not_0')
 if (prepared.liveWorkerClaimsNow !== 0) fail('prepared_worker_claims_not_0')
 if (prepared.liveWorkerDispatchHandoffsNow !== 0) fail('prepared_worker_handoffs_not_0')
 if (prepared.toolExecutionsPerformedNow !== 0) fail('prepared_tool_executions_not_0')
+if (
+  prepared.localOnlySuggestedSequenceResult !==
+  '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json'
+) {
+  fail('prepared_sequence_result_path_mismatch')
+}
 if (!Array.isArray(prepared.stages) || prepared.stages.length !== 2) {
   fail('prepared_stages_not_2')
 }
@@ -263,6 +279,8 @@ for (const phrase of [
   'server-only service-role credentials',
   'No-Scope',
   'Agent can execute tools now: `false`',
+  'Local-only sequence result',
+  'evidence-sequence-result.json',
 ]) {
   if (!committedMd.includes(phrase) && !promptResult.includes(phrase) && !implementationPrompt.includes(phrase)) {
     fail(`committed_docs_missing_phrase:${phrase}`)

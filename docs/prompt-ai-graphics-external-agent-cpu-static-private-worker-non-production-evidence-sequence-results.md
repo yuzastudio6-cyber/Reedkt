@@ -7,6 +7,7 @@
 - Tools covered: `5`
 - Tool IDs: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, `viz_js`
 - Live evidence sequence executed now: `false`
+- Local-only sequence result path: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json`
 - Live Supabase queue writes now: `0`
 - Worker claims now: `0`
 - Worker dispatch handoffs now: `0`
@@ -17,6 +18,7 @@
 ## Interpretation
 
 The evidence sequence handoff is prepared but not executed. It preserves the exact two-stage order needed for the next real non-production proof: queue-write smoke first, then worker claim/dispatch smoke. Both stages write local-only proof files under `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence`.
+The future executed sequence must also save the final local-only sequence summary to `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json`.
 
 ## Next Step
 

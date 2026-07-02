@@ -8,6 +8,7 @@ Implemented committed evidence-sequence records for the CPU/static private-worke
 - Status: `external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_not_executed`
 - Tools covered: `5`
 - Local-only output directory: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence`
+- Local-only sequence result path: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json`
 - Queue-write smoke proof must validate before claim/dispatch smoke: `true`
 - Claim/dispatch smoke proof must validate before execution gate: `true`
 - Agent can execute tools now: `false`

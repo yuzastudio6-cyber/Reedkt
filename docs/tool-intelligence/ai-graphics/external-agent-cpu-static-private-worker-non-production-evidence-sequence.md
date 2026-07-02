@@ -13,6 +13,7 @@ This packet records the exact operator handoff for the CPU/static private-worker
 - Source queue-write preflight packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json`
 - Source exact execution admission packet: `docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json`
 - Local-only suggested output directory: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence`
+- Local-only sequence result: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json`
 
 ## Required Environment
 

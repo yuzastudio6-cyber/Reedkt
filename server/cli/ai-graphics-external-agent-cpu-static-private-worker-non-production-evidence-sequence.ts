@@ -87,6 +87,7 @@ function preparedContract() {
     requiredEnv,
     requiredFlags,
     localOnlySuggestedOutputDir: defaultOutputDir,
+    localOnlySuggestedSequenceResult: `${defaultOutputDir}/evidence-sequence-result.json`,
     stages: [
       {
         stageId: 'queue_write_smoke',
@@ -206,6 +207,7 @@ This packet records the exact operator handoff for the CPU/static private-worker
 - Source queue-write preflight packet: \`${contract.sourceQueueWritePreflightPacket}\`
 - Source exact execution admission packet: \`${contract.sourceExactExecutionAdmissionPacket}\`
 - Local-only suggested output directory: \`${contract.localOnlySuggestedOutputDir}\`
+- Local-only sequence result: \`${contract.localOnlySuggestedSequenceResult}\`
 
 ## Required Environment
 
@@ -254,6 +256,7 @@ function makePromptResult(contract: PreparedContract): string {
 - Tools covered: \`${contract.toolsCovered}\`
 - Tool IDs: ${contract.toolsCoveredIds.map((toolId) => `\`${toolId}\``).join(', ')}
 - Live evidence sequence executed now: \`${contract.liveEvidenceSequenceExecutedNow}\`
+- Local-only sequence result path: \`${contract.localOnlySuggestedSequenceResult}\`
 - Live Supabase queue writes now: \`${contract.liveSupabaseQueueWritesNow}\`
 - Worker claims now: \`${contract.liveWorkerClaimsNow}\`
 - Worker dispatch handoffs now: \`${contract.liveWorkerDispatchHandoffsNow}\`
@@ -264,6 +267,7 @@ function makePromptResult(contract: PreparedContract): string {
 ## Interpretation
 
 The evidence sequence handoff is prepared but not executed. It preserves the exact two-stage order needed for the next real non-production proof: queue-write smoke first, then worker claim/dispatch smoke. Both stages write local-only proof files under \`${contract.localOnlySuggestedOutputDir}\`.
+The future executed sequence must also save the final local-only sequence summary to \`${contract.localOnlySuggestedSequenceResult}\`.
 
 ## Next Step
 
@@ -282,6 +286,7 @@ Implemented committed evidence-sequence records for the CPU/static private-worke
 - Status: \`${contract.status}\`
 - Tools covered: \`${contract.toolsCovered}\`
 - Local-only output directory: \`${contract.localOnlySuggestedOutputDir}\`
+- Local-only sequence result path: \`${contract.localOnlySuggestedSequenceResult}\`
 - Queue-write smoke proof must validate before claim/dispatch smoke: \`${contract.booleans.queueWriteProofMustValidateBeforeClaimDispatch}\`
 - Claim/dispatch smoke proof must validate before execution gate: \`${contract.booleans.claimDispatchProofMustValidateBeforeExecutionGate}\`
 - Agent can execute tools now: \`${contract.booleans.agentCanExecuteToolsNow}\`
@@ -407,6 +412,7 @@ async function executeSequence() {
   const queueProofPath = path.join(outputDir, 'queue-write-smoke-proof.json')
   const claimResultPath = path.join(outputDir, 'claim-and-dispatch-smoke-result.json')
   const claimProofPath = path.join(outputDir, 'claim-and-dispatch-smoke-proof.json')
+  const sequenceResultPath = path.join(outputDir, 'evidence-sequence-result.json')
 
   const queueResult = runNpmJson(
     'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke',
@@ -500,7 +506,7 @@ async function executeSequence() {
   assertAcceptedClaimDispatchProof(claimProof)
   writeJson(claimProofPath, claimProof)
 
-  return {
+  const sequenceResult = {
     ok: true,
     decision:
       'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_passed_with_cleanup',
@@ -512,6 +518,7 @@ async function executeSequence() {
     queueWriteSmokeProofPath: queueProofPath,
     claimAndDispatchSmokeResultPath: claimResultPath,
     claimAndDispatchSmokeProofPath: claimProofPath,
+    evidenceSequenceResultPath: sequenceResultPath,
     queueRowsWritten: queueResult.queueRowsWritten,
     queueRowsPersistedAfterQueueWriteCleanup:
       queueResult.queueRowsPersistedAfterCleanup,
@@ -530,6 +537,8 @@ async function executeSequence() {
     externalBetaReadyNow: false,
     productionReadyNow: false,
   }
+  writeJson(sequenceResultPath, sequenceResult)
+  return sequenceResult
 }
 
 async function main(): Promise<void> {

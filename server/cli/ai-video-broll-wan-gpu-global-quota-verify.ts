@@ -243,7 +243,7 @@ function main() {
         quotaSufficientForOneL4Vm,
         blocker,
         readyForBrollNoIdleProofPrompt: false,
-        readyForIapOsLoginAccessFixPrompt: quotaSufficientForOneL4Vm,
+        readyForNonGpuIapSshCanaryPrompt: quotaSufficientForOneL4Vm,
         readyForExternalAgentExecutionNow: false,
         noIdleLifecycleGate: spec.noIdleLifecycleGate,
         commandSummaries,

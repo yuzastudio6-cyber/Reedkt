@@ -75,6 +75,8 @@ const BROLL_10P_NORTHAMERICA_NORTHEAST2_A_PAYLOAD_INSTALL_PROMPT =
   'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast2-a with mandatory cleanup, no model import/no inference'
 const BROLL_10Q_IAP_OSLOGIN_ACCESS_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10Q-IAP-OSLOGIN-ACCESS-FIX: diagnose and plan no-public-IP IAP/OS Login access after northeast2-a VM create success and publickey failure, no GPU VM/no inference'
+const BROLL_10R_NO_GPU_IAP_SSH_CANARY_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10R-NO-GPU-IAP-SSH-CANARY: run bounded no-public-IP non-GPU IAP SSH canary with the same image, target tag, proof service account, and mandatory cleanup; no GPU/no model/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -129,7 +131,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10p_iap_oslogin_access_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10q_non_gpu_iap_canary_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -205,7 +207,7 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_iap_oslogin_access_fix_required_after_10p_publickey_failure`',
+  '`broll_non_gpu_iap_ssh_canary_required_after_10q_access_diagnosis`',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -249,6 +251,7 @@ for (const required of [
   BROLL_10O_PAYLOAD_INSTALL_RESOURCE_AVAILABILITY_FIX_PROMPT,
   BROLL_10P_NORTHAMERICA_NORTHEAST2_A_PAYLOAD_INSTALL_PROMPT,
   BROLL_10Q_IAP_OSLOGIN_ACCESS_FIX_PROMPT,
+  BROLL_10R_NO_GPU_IAP_SSH_CANARY_PROMPT,
   'docs/ai-video-broll-gen-10k-payload-install-stockout-fix-result.md',
   'docs/ai-video-broll-gen-10l-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-b-result.md',
   'docs/ai-video-broll-gen-10m-payload-install-config-availability-fix-result.md',
@@ -262,6 +265,8 @@ for (const required of [
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10o-payload-install-resource-availability-fix.md',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10p-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast2-a.md',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10q-iap-oslogin-access-fix.md',
+  'docs/implementation-prompts/prompt-ai-video-broll-gen-10r-no-gpu-iap-ssh-canary.md',
+  'docs/ai-video-broll-gen-10q-iap-oslogin-access-fix-result.md',
   'src/backend/mock/mock-ai-video-broll-gen-10k-payload-install-stockout-fix-result.ts',
   'src/backend/mock/mock-ai-video-broll-gen-10l-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-b-result.ts',
   'src/backend/mock/mock-ai-video-broll-gen-10m-payload-install-config-availability-fix-result.ts',
@@ -365,6 +370,7 @@ for (const required of [
   'server/smoke/ai-video-broll-gen-10f-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts',
   'server/smoke/ai-video-broll-gen-10g-no-idle-l4-iap-wheelhouse-transfer-proof-us-west4-a-result-smoke.ts',
   'server/smoke/ai-video-broll-gen-10h-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts',
+  'server/smoke/ai-video-broll-gen-10q-iap-oslogin-access-fix-result-smoke.ts',
   'server/smoke/ai-video-broll-gen-9p-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts',
   'server/smoke/ai-video-broll-gen-9o-retry-no-idle-l4-iap-wheelhouse-transfer-proof-result-smoke.ts',
 ]) {
@@ -374,7 +380,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10p_iap_oslogin_access_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10q_non_gpu_iap_canary_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -384,7 +390,7 @@ assert.equal(rollup.sourceRules.approvedSnapshotRequired, true)
 assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
-assert.equal(rollup.recommendedNextPrompt, BROLL_10Q_IAP_OSLOGIN_ACCESS_FIX_PROMPT)
+assert.equal(rollup.recommendedNextPrompt, BROLL_10R_NO_GPU_IAP_SSH_CANARY_PROMPT)
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
@@ -647,7 +653,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'iap_oslogin_publickey_access_fix_required_after_10p_vm_create_success_cleanup_verified',
+  'non_gpu_iap_ssh_canary_required_after_10q_read_only_access_diagnosis',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1009,6 +1015,11 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes('docs/implementation-prompts/prompt-ai-video-broll-gen-10r-no-gpu-iap-ssh-canary.md'),
+  true,
+)
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-10q-iap-oslogin-access-fix-result.md'), true)
+assert.equal(
   broll?.evidence.includes(
     'docs/ai-video-broll-gen-10p-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast2-a-result.md',
   ),
@@ -1025,6 +1036,10 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-10q-iap-oslogin-access-fix-result.ts'),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10o-payload-install-resource-availability-fix-result-smoke.ts'),
   true,
 )
@@ -1034,7 +1049,8 @@ assert.equal(
   ),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_10Q_IAP_OSLOGIN_ACCESS_FIX_PROMPT)
+assert.equal(broll?.evidence.includes('server/smoke/ai-video-broll-gen-10q-iap-oslogin-access-fix-result-smoke.ts'), true)
+assert.equal(broll?.nextAction, BROLL_10R_NO_GPU_IAP_SSH_CANARY_PROMPT)
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(broll?.manualBlockerActions?.length, 0)
@@ -1065,7 +1081,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_10Q_IAP_OSLOGIN_ACCESS_FIX_PROMPT,
+  BROLL_10R_NO_GPU_IAP_SSH_CANARY_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

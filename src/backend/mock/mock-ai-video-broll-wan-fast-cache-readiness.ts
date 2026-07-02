@@ -17,7 +17,7 @@ export type AiVideoBrollWanFastCacheManifestEntry = {
 
 export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   decision:
-    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10q_iap_oslogin_access_fix',
+    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10r_no_gpu_iap_ssh_canary',
   mode: 'stat_only_private_cache_readiness_check',
   toolId: 'ai_video_broll_generation_wan',
   modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
@@ -45,9 +45,9 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   creditMutationCreated: false,
   readyForExternalAgentExecutionNow: false,
   readyForBoundedRetryAfterBlockerClears: false,
-  readyForIapOsLoginAccessFixPrompt: true,
+  readyForNonGpuIapSshCanaryPrompt: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-10Q-IAP-OSLOGIN-ACCESS-FIX: diagnose and plan no-public-IP IAP/OS Login access after northeast2-a VM create success and publickey failure, no GPU VM/no inference',
+    'AI-VIDEO-BROLL-GEN-10R-NO-GPU-IAP-SSH-CANARY: run bounded no-public-IP non-GPU IAP SSH canary with the same image, target tag, proof service account, and mandatory cleanup; no GPU/no model/no inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

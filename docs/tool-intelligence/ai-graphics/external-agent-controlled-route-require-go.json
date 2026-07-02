@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "decision": "ai_graphics_external_agent_controlled_route_require_go_approved_with_gpu_model_blocks",
+  "status": "external_agent_controlled_route_execution_approved_for_thirteen_tools_gpu_model_blocked",
+  "summary": "Approves the existing controlled external-agent route path for the 13 proven CPU/static and browser/runtime tools only. The eight GPU/model tools remain fail-closed and GPU stays on-demand/idle until an accepted tool call has the required runtime proof references.",
+  "sourceEvidence": {
+    "externalAgentExecutionGate": {
+      "path": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+      "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
+      "status": "external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked",
+      "accepted": true
+    },
+    "controlledWorkerRouteExecutionSmoke": {
+      "path": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+      "decision": "ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks",
+      "status": "controlled_worker_claim_route_execution_passed_for_thirteen_tools_gpu_model_still_blocked",
+      "accepted": true
+    }
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "totalProductFacingCapabilities": 12,
+    "controlledExternalAgentRouteExecutableToolsNow": 13,
+    "cpuStaticControlledRouteExecutableToolsNow": 6,
+    "browserRuntimeControlledRouteExecutableToolsNow": 7,
+    "gpuModelBlockedToolsNow": 8,
+    "agentCanExecuteAll21ToolsNowTools": 0,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "publicArtifactCreatedTools": 0,
+    "signedUrlCreatedTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "toolRows": [
+    {
+      "toolId": "d3",
+      "capabilityId": "chart_overlay",
+      "group": "cpu_static_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "vega_lite",
+      "capabilityId": "data_visualization",
+      "group": "cpu_static_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "vega",
+      "capabilityId": "data_visualization",
+      "group": "cpu_static_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "satori",
+      "capabilityId": "svg_graphics",
+      "group": "cpu_static_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "svgdotjs_svg_js",
+      "capabilityId": "svg_graphics",
+      "group": "cpu_static_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "viz_js",
+      "capabilityId": "diagram_graphics",
+      "group": "cpu_static_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "echarts",
+      "capabilityId": "chart_overlay",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "lottie_web",
+      "capabilityId": "animation_overlay",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "animejs",
+      "capabilityId": "animation_overlay",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "three_js",
+      "capabilityId": "webgl_3d_scene",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "pixi_js",
+      "capabilityId": "canvas_scene",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "konva",
+      "capabilityId": "canvas_scene",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "babylonjs",
+      "capabilityId": "webgl_3d_scene",
+      "group": "browser_runtime_controlled_route",
+      "controlledRouteExecutableNow": true,
+      "agentCanExecuteThisControlledToolNow": true,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": null
+    },
+    {
+      "toolId": "torch_torchvision",
+      "capabilityId": "model_runtime_foundation",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "transformers",
+      "capabilityId": "model_runtime_foundation",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "sam2",
+      "capabilityId": "subject_segmentation",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "birefnet",
+      "capabilityId": "background_removal",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "real_esrgan",
+      "capabilityId": "upscaling",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "rembg",
+      "capabilityId": "background_removal",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    },
+    {
+      "toolId": "transparent_background",
+      "capabilityId": "background_removal",
+      "group": "gpu_model_runtime",
+      "controlledRouteExecutableNow": false,
+      "agentCanExecuteThisControlledToolNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "remainingBlocker": "gpu_model_tools_require accepted native GPU/model runtime proof and per-tool external-beta runtime proof before agent execution"
+    }
+  ],
+  "booleans": {
+    "externalAgentControlledRouteRequireGoApproved": true,
+    "sourceExternalAgentExecutionGateAccepted": true,
+    "sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted": true,
+    "all21ToolsCovered": true,
+    "all12CapabilitiesCovered": true,
+    "controlled13ToolsAgentExecutableNow": true,
+    "cpuStatic6ToolsAgentExecutableNow": true,
+    "browserRuntime7ToolsAgentExecutableNow": true,
+    "agentCanExecuteControlledRouteToolsNow": true,
+    "agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow": true,
+    "routeExecutionApprovedForControlled13ToolsNow": true,
+    "gpuModel8ToolsRemainBlocked": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForAcceptedExternalBetaToolCall": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteAll21ToolsNow": false,
+    "agentCanExecuteGpuModelToolsNow": false,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "workerExecutionPerformed": false,
+    "toolExecutionApprovedNow": false,
+    "toolExecutionPerformed": false,
+    "providerRuntimeApprovedNow": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimePerformed": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false
+  },
+  "nextRecommendedWork": [
+    "Wire the external agent caller to the controlled route with explicit feature flags for the 13 approved tools.",
+    "Collect accepted native GPU/model runtime proof for the eight GPU/model tools before enabling their route execution.",
+    "Keep GPU runtime idle until an accepted GPU/model tool call is admitted."
+  ]
+}

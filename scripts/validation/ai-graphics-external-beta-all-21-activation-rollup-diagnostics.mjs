@@ -423,6 +423,8 @@ function verifyPackageJson() {
     '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.ts",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-controlled-route-require-go": "tsx server/cli/ai-graphics-external-agent-controlled-route-require-go.ts",',
+    '+    "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')

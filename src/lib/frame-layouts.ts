@@ -1,6 +1,16 @@
 import type { AspectRatio, FrameLayoutPlan, FrameTemplateType } from '../types/reeditpro'
 
-export const frameLayoutTemplates: Record<FrameTemplateType, FrameLayoutPlan> = {
+export const frameLayoutTemplates: Partial<Record<FrameTemplateType, FrameLayoutPlan>> & Record<
+  | 'vertical_talking_head_lower_panel'
+  | 'vertical_full_panel'
+  | 'youtube_side_panel'
+  | 'youtube_lower_panel'
+  | 'square_center_panel'
+  | 'portrait_feed_lower_panel'
+  | 'classic_documentary_center_panel'
+  | 'let_ai_decide',
+  FrameLayoutPlan
+> = {
   vertical_talking_head_lower_panel: {
     templateType: 'vertical_talking_head_lower_panel',
     aspectRatio: '9:16',
@@ -255,7 +265,7 @@ export const frameLayoutTemplates: Record<FrameTemplateType, FrameLayoutPlan> = 
 }
 
 export function getFrameLayoutTemplate(templateType: FrameTemplateType) {
-  return frameLayoutTemplates[templateType]
+  return frameLayoutTemplates[templateType] ?? frameLayoutTemplates.vertical_talking_head_lower_panel
 }
 
 export function getFrameCanvasForAspectRatio(aspectRatio: AspectRatio) {

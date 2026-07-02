@@ -7,6 +7,8 @@ These instructions are for Codex and any future agent working in this repository
 - Read `design.md` before any UI, layout, component, visual, brand, or frontend design work.
 - Read `product-plan.md` before product-scope decisions.
 - Read `intent-led-edit-planning.md` before upload, planning, AI workflow, generation, or approval work.
+- Read `reference-video-dna-ux.md` before reference video, style matching, Reference DNA, or reference-analysis UX work.
+- Read `browser-app-capture-planning.md` and `browser-capture-settings-catalog.md` before browser capture, app capture, website visuals, dashboard visuals, product page visuals, article visuals, evidence page visuals, or UI walkthrough planning.
 - Read `pricing-and-credits.md` before billing, credits, subscription, usage, or estimate work.
 - Read `signature-systems.md` and `real-motion-system.md` before visual AI system work.
 - Read `edit-workflow-blueprints.md` before changing video type dropdowns, workflow profiles, edit setup, or planning prompts.
@@ -65,6 +67,8 @@ These instructions are for Codex and any future agent working in this repository
 - Read `docs/lyria-integration-adapter.md` before Lyria provider adapter, Lyria request building, Lyria response parsing, integration mode, or disabled real API path work.
 - Read `supabase-production-test-readiness.md` and `supabase-local-staging-test-plan.md` before active Supabase migration testing, production-test readiness, local/staging database validation, or Supabase advisor review work.
 
+- Read `soundsync-music-intelligence.md`, `music-reference-dna.md`, `lyria-music-generation-plan.md`, and `audio-library-and-licensing.md` before SoundSync music, generated music, reference audio, SFX, audio library, or Lyria Pro planning work.
+
 ## Product Identity
 
 ReeditPro is a web-first AI video editing platform. It is not a generic video editor, timeline clone, or template-only dashboard.
@@ -94,6 +98,13 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Real Motion is premium and credit-heavy.
 - RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.
 - RP-FIX-10 job runtime helpers are the current mock-safe queue/readiness layer. Real worker dispatch, Cloud Run jobs, service-role job mutation, provider execution, and rendering remain backend-required.
+
+- Blockers are evidence gaps, not permanent stop signs. A blocker must name the unsafe action it protects, the exact missing proof or approval, and the next smallest safe lane that can reduce or retire it.
+- Hard rule: intentional blanket blockers are not allowed. Blockers must be scoped guardrails, not global stop signs. Do not use broad "production blocked", "backend-required", or "product-ready false" language to freeze unrelated safe work.
+- Keep approval, credit, privacy, provider, worker, Supabase, storage, beta, and production gates strict. Safe blocker-reduction work should continue through source reviews, local proofs, mock-safe backend skeletons, diagnostics, QA packets, owner-approval packets, deployment preflights, approved owner/environment remediation, rollback plans, or monitoring/support plans.
+- If a blocker report cannot name a safe next action, repair the blocker metadata first. The missing next action is not permission to stop unrelated safe implementation work.
+- If a safe lane exists, move it forward while preserving the blocked unsafe-action boundary. "Blocked" means the named unsafe action stays closed, not that all nearby planning, proof, QA, remediation, or mock-safe implementation must stop.
+- Readiness reports should expose this split in machine-readable form when possible: `intentionalBlanketBlocksAllowed: false`, `safeBlockerReductionAllowed: true`, `blockerScopeType: "unsafe_action_only"`, `mustContinueSafeProgressWhenAvailable: true`, `blockedDoesNotMeanStopAllWork: true`, `blockedActionScope`, and `allowedForwardProgressScopes`.
 
 ## Backend And Database Architecture
 
@@ -444,6 +455,17 @@ StoryTiming coordinates captions, cuts, Stroke Motion, Graphic Design / VisualEx
 - SFX, music, and animation timing should not override speech meaning unless the approved edit is explicitly music-driven.
 - Future timing migrations should connect existing planning, edit quality, music, SFX, signature, generation, render, review, and QA timing records.
 
+## SoundSync Music Intelligence
+
+- SoundSync Music Intelligence plans music before generation. ReeditPro must not generate or pick random background music.
+- Lyria Pro is the future primary custom music generator, but do not add API keys, Google calls, real workers, or integration unless explicitly requested.
+- Music may be generated on the fly per edit, but only after context analysis, cue planning, credit estimate, approval, and future credit reservation.
+- Lifestyle, vacation, travel, vlog, documentary, and long-form videos may need multiple music cues instead of one track.
+- Language/culture-aware music is allowed when supported by footage, transcript, audience, user request, or reference DNA. Avoid stereotypes and never copy reference tracks, melodies, or lyrics.
+- Lyrics are not allowed under important speech by default. Use instrumental-only music for dialogue, teaching, narration, podcast, or speech-heavy sections unless the user explicitly approves otherwise.
+- Generated music should be stored as project assets first. Promote tracks to a future ReeditPro library only after QA, provenance, provider-terms, and reuse review.
+- Music generation remains approval-gated and credit-gated like other expensive generation.
+
 ## Dropdown Workflow Rule
 
 The video type dropdown gives workflow context only. It does not automatically decide which signature systems are used.
@@ -473,6 +495,12 @@ The final edit order should not be changed without showing the plan first.
 
 If the user provides a reference video, AI should study it but not copy it shot-for-shot.
 
+Reference video analysis must create Reference DNA, not shot-for-shot copying. Reference DNA guides planning but does not override explicit user instructions, source order confirmation, platform/frame constraints, tier/model rules, safety rules, QA rules, credit estimates, or approval gates.
+
+Do not copy exact music, exact visual sequence, copyrighted assets, brand assets, or a creator's exact identity or protected distinctive style. Store adaptation rules and do-not-copy rules whenever Reference DNA is created.
+
+Reference video must not bypass approval or credit estimate. Current frontend tasks must not implement real reference downloading, real reference analysis, external fetching, backend work, provider calls, render jobs, or copyright-detection systems unless explicitly requested.
+
 Extract Reference DNA:
 
 - Topic
@@ -488,6 +516,20 @@ Extract Reference DNA:
 - Use of Real Motion-style overlays
 - Mood and tone
 - Why the reference edit works
+
+## Browser And App Capture
+
+Use controlled browser/app capture planning for websites, dashboards, product pages, app screens, articles, ecommerce pages, landing pages, browser evidence pages, tutorial screens, UI comparisons, and feature walkthroughs.
+
+Do not use AI video to invent exact website/app screenshots, UI labels, dashboard metrics, product pages, pricing pages, evidence pages, or article content. Browser/app visuals should plan future Playwright capture, Sharp preparation, and Remotion composition when exact UI/page visuals are needed.
+
+Do not install or execute Playwright unless a milestone explicitly asks for it. Frontend/mock tasks must not access websites, scrape pages, open browsers, capture screenshots, bypass authentication, bypass paywalls, bypass CAPTCHAs, ignore site restrictions, process real browser sessions, or use credentials.
+
+Browser capture must be user-provided or authorized in future production flows. Browser evidence must use safe wording when source status is unclear, and documentary/case-study evidence pages must not be visually treated as verified facts unless source status supports it.
+
+Plan redaction when sensitive data may appear, including emails, names, addresses, payment details, tokens, dashboards, private metrics, account information, or documentary/case-study private data.
+
+Browser capture plans must not bypass edit plan approval, credit estimates, tier/model rules, QA rules, or safety rules.
 
 ## Supabase
 

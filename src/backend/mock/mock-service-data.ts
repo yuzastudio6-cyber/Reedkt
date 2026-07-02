@@ -53,6 +53,7 @@ export const mockProviderPlaceholders = [
   'lottie_renderer',
   'remotion_renderer',
   'google_cloud_worker',
+  'lyria_pro',
 ] as const
 
 export const mockQaChecks = [

@@ -92,7 +92,7 @@ export function buildLyriaGenerateMusicRequestFromPromptPlan(input: {
       referenceDnaId: input.promptPlan.referenceDnaId,
       vocalPolicy: input.promptPlan.vocalPolicy,
       speechSafety: input.promptPlan.speechSafety,
-      blockedReferenceContent: input.promptPlan.blockedReferenceContent.join(', '),
+      blockedReferenceContent: (input.promptPlan.blockedReferenceContent ?? []).join(', '),
     },
   })
 }

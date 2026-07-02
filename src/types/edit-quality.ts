@@ -322,6 +322,12 @@ export interface AmbientSoundPlanRecord extends BaseRecord {
 export interface MusicPlanRecord extends BaseRecord {
   projectId: ID
   editPlanId: ID
+  musicContextAnalysisId?: ID
+  musicCueSheetId?: ID
+  referenceMusicDNAId?: ID
+  lyriaPromptPlanId?: ID
+  generatedMusicTrackIds?: ID[]
+  musicMixPlanId?: ID
   musicNeeded?: boolean
   role: MusicRole
   mood: string

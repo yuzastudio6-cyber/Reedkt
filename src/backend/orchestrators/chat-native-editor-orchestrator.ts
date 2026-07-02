@@ -1,4 +1,4 @@
-import type { ChatNativePlanningInput, ChatNativePlanningState } from '../backend-types'
+import type { ChatNativePlanningInput, ChatNativePlanningState, MusicDirectorPlanningInput, MusicDirectorPlanningResult } from '../backend-types'
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockDatabase } from '../mock/mock-database'
 import { MOCK_USER_ID, MOCK_WORKSPACE_ID, mockClips, mockRealEstatePrompt } from '../mock/mock-service-data'
@@ -39,6 +39,7 @@ import {
   createStrokeMotionTransitions,
 } from '../services/stroke-motion-service'
 import { fail, ok, type ServiceResult, unwrapServiceResult } from '../service-result'
+import { runMockMusicDirectorPlanningFlow } from './mock-music-planning-orchestrator'
 
 export function runChatNativeEditPlanningFlow(
   input: ChatNativePlanningInput = {},
@@ -147,9 +148,62 @@ export function runChatNativeEditPlanningFlow(
   unwrapServiceResult(createPacingAnalysis(db, project.id, awaitingPlan.id))
   unwrapServiceResult(createCutDecisions(db, project.id, awaitingPlan.id))
   unwrapServiceResult(createTransitionPlans(db, project.id, awaitingPlan.id))
-  unwrapServiceResult(createAudioEnvironmentAnalysis(db, project.id, awaitingPlan.id))
-  unwrapServiceResult(createAmbientSoundPlan(db, project.id, awaitingPlan.id))
-  unwrapServiceResult(createMusicPlan(db, project.id, awaitingPlan.id))
+  const audioEnvironmentAnalyses = unwrapServiceResult(createAudioEnvironmentAnalysis(db, project.id, awaitingPlan.id))
+  const ambientSoundPlan = unwrapServiceResult(createAmbientSoundPlan(db, project.id, awaitingPlan.id))
+  const musicDirectorPlan = input.includeMusicDirectorPlanning
+    ? unwrapServiceResult(
+        runMockMusicDirectorPlanningFlow(
+          {
+            workspaceId,
+            projectId: project.id,
+            editPlanId: awaitingPlan.id,
+            chatSessionId: chatSession.id,
+            userPrompt: prompt,
+            transcriptSummary: intentAnalysis.userGoalSummary,
+            videoType: intentAnalysis.selectedWorkflowContext ?? 'chat_native_edit',
+            targetPlatform: intentAnalysis.targetPlatform as MusicDirectorPlanningInput['targetPlatform'],
+            sceneDescriptions: db.editPlanSegments
+              .filter((segment) => segment.editPlanId === awaitingPlan.id)
+              .map((segment, index) => ({
+                id: segment.id,
+                sceneType: index === 0 ? 'intro' : 'custom',
+                label: `Edit segment ${segment.segmentOrder}`,
+                summary: `${segment.segmentPurpose}. ${segment.recommendedAction}`,
+                startTimeSeconds: segment.outputStartSeconds,
+                endTimeSeconds: segment.outputEndSeconds,
+                hasSpeech: Boolean(segment.transcriptText) || prompt.toLowerCase().includes('speaker'),
+                isMontage: segment.signatureSystem !== 'none',
+              })),
+            sourceClipSummaries: clipAttachment.mediaAssets.map((asset) => `${asset.fileName} (${asset.durationSeconds ?? 0}s)`),
+            referenceSummary: prompt.toLowerCase().includes('lake como')
+              ? 'Lake Como luxury lifestyle vacation reference with dialogue, boat movement, food/social moments, ambience, and premium casual pacing.'
+              : undefined,
+            audioEnvironmentSummary: [
+              ...audioEnvironmentAnalyses.map((analysis) => analysis.ambientEnvironment),
+              ambientSoundPlan.preserveNaturalRoomTone ? 'Preserve natural room tone.' : '',
+            ]
+              .filter(Boolean)
+              .join(' '),
+            editQualitySummary: qualityProfile.audioStrategy,
+            userMusicInstructions: [prompt],
+            avoidMusicInstructions: ['No random music.', 'No lyrics under important speech.', 'Do not copy reference tracks.'],
+            spokenLanguages: ['english'],
+            audience: 'Mock ReeditPro planning audience',
+            settingSummary: prompt,
+          },
+          db,
+        ),
+      )
+    : undefined
+
+  unwrapServiceResult(
+    createMusicPlan(db, project.id, awaitingPlan.id, {
+      musicContextAnalysisId: musicDirectorPlan?.musicContextAnalysis.id,
+      musicCueSheetId: musicDirectorPlan?.cueSheet.id,
+      referenceMusicDNAId: musicDirectorPlan?.referenceMusicDNA?.id,
+      musicMixPlanId: musicDirectorPlan?.mixPlans[0]?.id,
+    }),
+  )
   unwrapServiceResult(createSoundEffectPlan(db, project.id, awaitingPlan.id))
   unwrapServiceResult(createCaptionPlan(db, project.id, awaitingPlan.id))
   unwrapServiceResult(createEditQualityChecks(db, project.id, awaitingPlan.id))
@@ -220,6 +274,7 @@ export function runChatNativeEditPlanningFlow(
     editPlan: awaitingPlan,
     qualityProfile,
     strokeMotionPlan,
+    musicDirectorPlan,
     creditEstimate,
     nextRequiredAction: 'approve_plan_and_credits',
   }
@@ -250,7 +305,39 @@ export function getLatestPlanningState(db: MockDatabase): ServiceResult<ChatNati
     editPlan,
     qualityProfile,
     strokeMotionPlan: db.strokeMotionPlans.at(-1),
+    musicDirectorPlan: getLatestMockMusicDirectorPlan(db),
     creditEstimate,
     nextRequiredAction: 'approve_plan_and_credits',
   })
+}
+
+function getLatestMockMusicDirectorPlan(db: MockDatabase): MusicDirectorPlanningResult | undefined {
+  const cueSheet = db.musicCueSheets.at(-1)
+
+  if (!cueSheet) {
+    return undefined
+  }
+
+  const musicContextAnalysis = db.musicContextAnalyses.find((analysis) => analysis.id === cueSheet.musicContextAnalysisId)
+
+  if (!musicContextAnalysis) {
+    return undefined
+  }
+
+  const cues = db.musicCues
+    .filter((cue) => cue.musicCueSheetId === cueSheet.id)
+    .sort((a, b) => a.cueOrder - b.cueOrder)
+
+  return {
+    musicContextAnalysis,
+    languageContexts: db.musicLanguageContexts.filter((context) => context.musicContextAnalysisId === musicContextAnalysis.id),
+    referenceMusicDNA: cueSheet.referenceDnaUsed
+      ? db.musicReferenceDna.find((dna) => dna.id === cueSheet.metadata?.musicReferenceDnaId) ?? db.musicReferenceDna.at(-1)
+      : undefined,
+    cueSheet,
+    cues,
+    mixPlans: db.musicMixPlans.filter((plan) => plan.musicCueSheetId === cueSheet.id),
+    nextStep: 'create_lyria_prompt_plan',
+    warnings: ['Music plan created. Next required action: create Lyria Pro prompt plan and credit estimate.'],
+  }
 }

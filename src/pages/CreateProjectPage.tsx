@@ -6,7 +6,7 @@ import { Card } from '../components/Card'
 import { launchEditingCategories } from '../lib/product-taxonomy'
 import type { EditingCategory } from '../types/reeditpro'
 
-const categoryDescriptions: Record<EditingCategory, string> = {
+const categoryDescriptions: Partial<Record<EditingCategory, string>> = {
   storytelling: 'Signature narrative edits with Stroke Motion, still cards, character consistency, and story beats.',
   lifestyle: 'Creator-style edits for day-in-life, travel, fitness, beauty, food, motivation, and casual stories.',
   business_brand: 'Product, service, offer, SaaS, ecommerce, coaching, agency, and brand content.',
@@ -47,7 +47,7 @@ export function CreateProjectPage() {
                 <div>
                   <span className="section-eyebrow">{category.label}</span>
                   <h3>{category.label}</h3>
-                  <p>{categoryDescriptions[category.value]}</p>
+                  <p>{categoryDescriptions[category.value] ?? 'Plan a professional edit from chat context.'}</p>
                 </div>
                 <small>{category.bestUseCases.slice(0, 5).join(' / ')}</small>
                 <Button icon={Plus} to={`/editor?category=${category.value}`} variant="primary">

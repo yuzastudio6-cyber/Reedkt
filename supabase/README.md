@@ -288,6 +288,34 @@ The migration uses safe direct foreign keys for core workspace/project/chat/edit
 
 This migration includes enum types, structured tables, indexes, updated-at triggers, RLS policies, comments, and local views. It does not connect to Supabase remotely, run remote migrations, call AI/provider APIs, integrate Lyria/Mirelo/MMAudio, render media, deploy Google Cloud, add secrets, integrate Stripe, or build frontend/mobile UI.
 
+### RP-AUDIO-01: SoundSync Music Intelligence Architecture
+
+RP-AUDIO-01 adds documentation-only architecture for SoundSync Music Intelligence, Reference Music DNA, Lyria Pro prompt planning, generated music asset strategy, SFX licensing, and the audio milestone roadmap.
+
+It creates no Supabase migration and does not connect to Supabase, call Lyria Pro or Google APIs, add provider secrets, deploy workers, upload media, render audio/video, integrate Stripe, or build mobile screens. Future RP-AUDIO migrations should follow the existing approval and credit gates before any music generation job can run.
+
+### RP-AUDIO-03: SoundSync Music Intelligence Tables
+
+`migrations/202605130009_soundsync_music_intelligence.sql` creates the SoundSync Music Intelligence database layer:
+
+- music context analyses
+- language/culture music contexts
+- music style taxonomy
+- reference music DNA
+- music cue sheets and per-scene cues
+- future Lyria Pro prompt plans and prompt segments
+- generated music track records
+- track analysis, music QA, and mix/ducking plans
+- library candidate records
+- audio license/provenance and usage records
+- bought/commissioned/ReeditPro-owned SFX library assets
+
+This migration supports professional music planning before generation. One edit can have one cue or many cues, language/culture-aware music is modeled without forcing stereotypes, and lyrics vs instrumental policy is stored per cue so important speech remains voice-first.
+
+Lyria Pro prompt plans are stored for future use, but this migration does not call Lyria Pro, Google APIs, workers, renderers, or any provider. Generated music starts as a project asset. Library promotion requires QA and provider terms/licensing review before reuse across users. SFX records support bought or commissioned sounds with provenance tracking.
+
+RP-AUDIO-03 does not connect to Supabase remotely, add secrets, deploy Google Cloud, generate music, render audio/video, integrate Stripe, build uploads, or build mobile screens.
+
 ## Source Clip Order
 
 Uploaded or sent clip order is stored as a source sequence. This is the order the user filmed the clips or believes they belong.

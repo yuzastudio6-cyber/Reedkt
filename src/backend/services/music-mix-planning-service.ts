@@ -184,11 +184,13 @@ function createTeaserMixPlan(): MusicMixPreset {
 }
 
 function presetForCue(cue: MusicCueSheetItemRecord | undefined, track: GeneratedMusicTrackRecord): MusicMixPreset {
-  if (track.userInstructionTags.includes('faith_teaching')) return createVoiceFirstDuckingPlan()
+  const instructionTags = track.userInstructionTags ?? []
+
+  if (instructionTags.includes('faith_teaching')) return createVoiceFirstDuckingPlan()
   if (cue?.sectionType === 'dialogue' || track.hasSpeechInScene) return createDialogueBedMixPlan()
   if (cue?.sectionType === 'movement' || cue?.sectionType === 'montage') return createMontageMixPlan()
   if (cue?.sectionType === 'coming_up_teaser') return createTeaserMixPlan()
-  if (cue?.sectionType === 'food_social' || track.userInstructionTags.includes('preserve_ambience')) return createAmbienceBridgePlan()
+  if (cue?.sectionType === 'food_social' || instructionTags.includes('preserve_ambience')) return createAmbienceBridgePlan()
   if (cue?.sectionType === 'outro' || track.endingHint === 'abrupt' || track.endingHint === 'fade_needed') return createOutroResolveMixPlan()
   return createMontageMixPlan()
 }
@@ -215,8 +217,8 @@ export function createMusicMixPlan(input: {
     generatedMusicTrackId: input.track.id,
     qaReportId: input.qaReport?.id,
     targetVolumeDb: input.analysis.loudnessLufs > -10 && input.track.hasSpeechInScene
-      ? Math.min(preset.targetVolumeDb, -24)
-      : preset.targetVolumeDb,
+      ? Math.min(preset.targetVolumeDb ?? -18, -24)
+      : preset.targetVolumeDb ?? -18,
     crossfadeWithPreviousSeconds: crossfade.crossfadeWithPreviousSeconds,
     crossfadeWithNextSeconds: crossfade.crossfadeWithNextSeconds,
     silenceMoments: [

@@ -98,7 +98,7 @@ function fallbackActionsForLevel(editLevel: EditLevel): FallbackStep[] {
 }
 
 function segmentSeedsForCategory(category: PlannerInput['editingCategory']): SegmentSeed[] {
-  const byCategory: Record<PlannerInput['editingCategory'], SegmentSeed[]> = {
+  const byCategory: Partial<Record<PlannerInput['editingCategory'], SegmentSeed[]>> = {
     storytelling: [
       {
         role: 'hook',
@@ -243,7 +243,7 @@ function segmentSeedsForCategory(category: PlannerInput['editingCategory']): Seg
     ],
   }
 
-  return byCategory[category]
+  return byCategory[category] ?? byCategory.storytelling ?? []
 }
 
 function clipForSegment(clips: ClipSource[], index: number) {

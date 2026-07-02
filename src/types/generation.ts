@@ -10,6 +10,7 @@ export type GenerationProviderType =
   | 'svg_renderer'
   | 'lottie_renderer'
   | 'google_cloud_worker'
+  | 'lyria_pro'
   | 'custom_deterministic_renderer'
   | 'external_ai_provider'
   | 'human'

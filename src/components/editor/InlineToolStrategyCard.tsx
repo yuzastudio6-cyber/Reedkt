@@ -12,7 +12,7 @@ type InlineToolStrategyCardProps = {
   descriptor?: ChatPlanningCardDescriptor
 }
 
-const chainLabels: Record<ToolChainId, string> = {
+const chainLabels: Partial<Record<ToolChainId, string>> = {
   ai_animation_asset_chain: 'AI asset chain',
   audio_pipeline_chain: 'Audio pipeline',
   browser_capture_chain: 'Browser capture',
@@ -82,7 +82,7 @@ export function InlineToolStrategyCard({ descriptor, plan }: InlineToolStrategyC
 
       <div className="understanding-chip-row">
         {toolStrategyPlan.chainIdsUsed.map((chainId) => (
-          <span className="tool-chain-badge" key={chainId}>{chainLabels[chainId]}</span>
+          <span className="tool-chain-badge" key={chainId}>{chainLabels[chainId] ?? label(chainId)}</span>
         ))}
       </div>
 

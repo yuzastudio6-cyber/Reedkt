@@ -97,7 +97,8 @@
     "smoke:project-edit-brief-marker-chat": "tsx server/smoke/project-edit-brief-marker-chat-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",
     "smoke:supabase-command-safety": "tsx server/smoke/supabase-command-safety-smoke.ts",
-    "check:supabase-command-safety": "node scripts/check-supabase-command-safety.mjs"
+    "check:supabase-command-safety": "node scripts/check-supabase-command-safety.mjs",
+    "smoke:scoped-blocker-policy": "node scripts/validation/scoped-blocker-policy-smoke.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

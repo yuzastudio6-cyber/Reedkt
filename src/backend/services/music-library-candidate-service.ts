@@ -26,6 +26,14 @@ export function createMusicLibraryCandidate(input: {
   analysis: MusicTrackAnalysisRecord
   qaReport: MusicQAReportRecord
 }): MusicLibraryCandidateRecord {
+  const tags = [
+    input.track.cueRole,
+    input.track.sectionType,
+    input.track.energyHint,
+    input.track.moodHint,
+    ...(input.track.genreHints ?? []),
+  ].filter(Boolean).map(String)
+
   return {
     id: createMockId('music-library-candidate'),
     generatedMusicTrackId: input.track.id,
@@ -34,13 +42,7 @@ export function createMusicLibraryCandidate(input: {
     reason: createLibraryCandidateReason(input),
     reusableAcrossProjects: input.track.reuseStatus === 'allowed',
     requiresTermsReview: input.track.reuseStatus === 'terms_review_required',
-    tags: [
-      input.track.cueRole,
-      input.track.sectionType,
-      input.track.energyHint,
-      input.track.moodHint,
-      ...input.track.genreHints,
-    ],
+    tags,
     createdAt: nowIso(),
   }
 }
@@ -50,6 +52,13 @@ export function rejectMusicLibraryCandidate(input: {
   analysis: MusicTrackAnalysisRecord
   qaReport: MusicQAReportRecord
 }): MusicLibraryCandidateRecord {
+  const tags = [
+    input.track.cueRole,
+    input.track.sectionType,
+    input.track.energyHint,
+    input.track.moodHint,
+  ].filter(Boolean).map(String)
+
   return {
     id: createMockId('music-library-candidate'),
     generatedMusicTrackId: input.track.id,
@@ -58,12 +67,7 @@ export function rejectMusicLibraryCandidate(input: {
     reason: createLibraryCandidateReason(input),
     reusableAcrossProjects: false,
     requiresTermsReview: input.track.reuseStatus === 'terms_review_required',
-    tags: [
-      input.track.cueRole,
-      input.track.sectionType,
-      input.track.energyHint,
-      input.track.moodHint,
-    ],
+    tags,
     createdAt: nowIso(),
   }
 }
@@ -79,7 +83,7 @@ export function evaluateMusicLibraryCandidate(input: {
     input.track.provenance !== 'unknown' &&
     (input.track.reuseStatus === 'allowed' || input.track.reuseStatus === 'terms_review_required') &&
     !(input.analysis.hasVocals && input.track.vocalHint === 'lyrics') &&
-    input.track.genreHints.length > 0
+    (input.track.genreHints?.length ?? 0) > 0
 
   return canPromote
     ? createMusicLibraryCandidate(input)

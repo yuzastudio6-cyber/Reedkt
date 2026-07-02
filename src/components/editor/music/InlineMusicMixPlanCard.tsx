@@ -6,6 +6,10 @@ type InlineMusicMixPlanCardProps = {
   mixPlan: MusicMixPlanRecord
 }
 
+function formatMixNote(note: string | { startSeconds: number; endSeconds: number }) {
+  return typeof note === 'string' ? note : `${note.startSeconds}s-${note.endSeconds}s`
+}
+
 export function InlineMusicMixPlanCard({ mixPlan }: InlineMusicMixPlanCardProps) {
   return (
     <InlinePlanCardShell
@@ -38,11 +42,14 @@ export function InlineMusicMixPlanCard({ mixPlan }: InlineMusicMixPlanCardProps)
       <details className="compact-card-details">
         <summary>Show mix notes</summary>
         <div className="music-issue-list">
-          {[...mixPlan.beatSyncPoints, ...mixPlan.silenceMoments, ...mixPlan.mixNotes].map((note) => (
-            <div key={note}>
-              <span>{note}</span>
+          {[...mixPlan.beatSyncPoints, ...mixPlan.silenceMoments, ...mixPlan.mixNotes].map((note) => {
+            const label = formatMixNote(note)
+            return (
+            <div key={label}>
+              <span>{label}</span>
             </div>
-          ))}
+            )
+          })}
         </div>
       </details>
     </InlinePlanCardShell>

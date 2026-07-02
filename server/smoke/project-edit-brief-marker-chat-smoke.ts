@@ -160,7 +160,7 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 assert.equal(packageJson.scripts?.['smoke:project-edit-brief-marker-chat'], 'tsx server/smoke/project-edit-brief-marker-chat-smoke.ts')
 
 const migrationCount = readdirSync(join(root, 'supabase/migrations')).filter((name) => !name.startsWith('.')).length
-assert.equal(migrationCount, 23, 'Supabase migration count must remain at the approved RP-SKILLS target baseline.')
+assert.equal(migrationCount, 24, 'Supabase migration count must remain at the approved PR 637 reconciled baseline.')
 
 console.log(JSON.stringify({
   smoke: 'project-edit-brief-marker-chat',

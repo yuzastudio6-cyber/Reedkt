@@ -1,0 +1,172 @@
+name: RP E2E Staging Media Analysis Canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_writes:
+        description: "Required: acknowledge staging Supabase writes"
+        required: true
+        default: "false"
+      allow_media_analysis:
+        description: "Required: acknowledge bounded staging media analysis"
+        required: true
+        default: "false"
+      cleanup:
+        description: "Required: cleanup smoke DB records and GCS objects"
+        required: true
+        default: "true"
+      max_wait_seconds:
+        description: "Bounded wait for the canary"
+        required: true
+        default: "180"
+      smoke_user_id:
+        description: "Existing safe staging Supabase auth user UUID"
+        required: true
+        default: "bb300bde-97fa-438d-ab97-a47dec0ca7d1"
+      previous_write_smoke_run_id:
+        description: "Previous write smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-79ce5e86-b894-4bf4-967d-d702a1c16ccf"
+      previous_persisted_render_smoke_run_id:
+        description: "Previous persisted render metadata smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-c60fc032-7fee-4810-bc4e-4d799d2a1438"
+      previous_sandbox_render_smoke_run_id:
+        description: "Previous sandbox render smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-5a57ff5e-2017-4cf1-963b-703097fc9ec8"
+      previous_render_infrastructure_smoke_run_id:
+        description: "Passed Cloud Run/Remotion infrastructure smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-299243de-9589-4f4a-9d02-5d1ca5fd4b35"
+      previous_real_video_smoke_run_id:
+        description: "Passed real-video upload-to-preview smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-a7606dae-f697-40cb-ae0a-644cd32b4bc9"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  staging-media-analysis-canary:
+    name: Staging media analysis canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      E2E_RUNTIME_MODE: cloud_run
+      WORKER_RUNTIME_MODE: cloud_run
+      STORAGE_MODE: gcs
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: ${{ inputs.allow_writes }}
+      SUPABASE_E2E_ALLOW_MEDIA_ANALYSIS: ${{ inputs.allow_media_analysis }}
+      SUPABASE_E2E_CLEANUP: ${{ inputs.cleanup }}
+      SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
+      SUPABASE_E2E_MAX_WAIT_SECONDS: ${{ inputs.max_wait_seconds }}
+      SUPABASE_E2E_PREVIOUS_WRITE_SMOKE_RUN_ID: ${{ inputs.previous_write_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_PERSISTED_RENDER_SMOKE_RUN_ID: ${{ inputs.previous_persisted_render_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_SANDBOX_RENDER_SMOKE_RUN_ID: ${{ inputs.previous_sandbox_render_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_RENDER_INFRASTRUCTURE_SMOKE_RUN_ID: ${{ inputs.previous_render_infrastructure_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_REAL_VIDEO_SMOKE_RUN_ID: ${{ inputs.previous_real_video_smoke_run_id }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GOOGLE_CLOUD_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GOOGLE_CLOUD_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      GCS_SOURCE_MEDIA_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_GENERATED_ASSETS_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_PROCESSED_MEDIA_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_PREVIEWS_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_EXPORTS_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_THUMBNAILS_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_QA_ARTIFACTS_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_WORKER_TEMP_BUCKET: ${{ vars.STAGING_MEDIA_ANALYSIS_CANARY_GCS_BUCKET || vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_DEFAULT_REGION: us-east1
+
+    steps:
+      - name: Fail closed unless explicit staging allow flags are true
+        shell: bash
+        run: |
+          test "${{ inputs.allow_writes }}" = "true"
+          test "${{ inputs.allow_media_analysis }}" = "true"
+          test "${{ inputs.cleanup }}" = "true"
+          test "${{ inputs.max_wait_seconds }}" -ge 30
+          test "${{ inputs.max_wait_seconds }}" -le 300
+          for smoke_id in \
+            "${SUPABASE_E2E_PREVIOUS_WRITE_SMOKE_RUN_ID}" \
+            "${SUPABASE_E2E_PREVIOUS_PERSISTED_RENDER_SMOKE_RUN_ID}" \
+            "${SUPABASE_E2E_PREVIOUS_SANDBOX_RENDER_SMOKE_RUN_ID}" \
+            "${SUPABASE_E2E_PREVIOUS_RENDER_INFRASTRUCTURE_SMOKE_RUN_ID}" \
+            "${SUPABASE_E2E_PREVIOUS_REAL_VIDEO_SMOKE_RUN_ID}"; do
+            if ! echo "${smoke_id}" | grep -Eq '^rp-e2e-smoke-[0-9a-f-]{36}$'; then
+              echo "::error::All previous smoke run ids must match rp-e2e-smoke-<uuid>."
+              exit 1
+            fi
+          done
+
+      - name: Checkout readiness branch
+        uses: actions/checkout@v5
+        with:
+          ref: codex/reeditpro-e2e-readiness
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and typecheck API
+        run: |
+          npm run typecheck:api
+          npm run build:api
+
+      - name: Install FFmpeg and FFprobe
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Check required media analysis tools
+        run: npm run tools:readiness:strict -- --require-tool ffmpeg --require-tool ffprobe
+
+      - name: Check staging live env and table readiness
+        run: |
+          npm run smoke:supabase:live-env
+          npm run smoke:supabase:tables
+          npm run smoke:supabase:rls-auth
+
+      - name: Check previous write smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_write_smoke_run_id }}
+
+      - name: Check previous persisted render smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_persisted_render_smoke_run_id }}
+
+      - name: Check previous sandbox render smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_sandbox_render_smoke_run_id }}
+
+      - name: Check previous render infrastructure smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_render_infrastructure_smoke_run_id }}
+
+      - name: Check previous real-video smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_real_video_smoke_run_id }}
+
+      - name: Run staging media analysis canary
+        run: timeout "${SUPABASE_E2E_MAX_WAIT_SECONDS}s" npm run smoke:e2e:staging-media-analysis:strict

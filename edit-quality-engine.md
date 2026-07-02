@@ -304,6 +304,16 @@ Check types:
 - `credit_compliance`
 - `user_instruction_compliance`
 
+## SoundSync Music Intelligence
+
+SoundSync Music Intelligence is the dedicated music supervision layer for future ReeditPro audio work. It extends the existing `music_plans` and `sound_effect_plans` concepts with music context analysis, cue sheets, lyrics/instrumental policy, language/culture context, Lyria Pro prompt planning, music QA, and mix/ducking plans.
+
+The system should decide whether a scene needs music, ambience only, one track, or multiple music cues before generation. Lifestyle, vacation, travel, vlog, documentary, and long-form edits may need multi-cue planning for teasers, dialogue beds, montage sections, chapter/title cards, food/social moments, emotional bridges, and outros.
+
+For speech-heavy sections, music should default to instrumental-only, voice-first, and ducking-ready unless the user explicitly asks for lyrics. Language/culture-aware music can be recommended when the footage, transcript, audience, user request, or reference DNA supports it, but the planner must avoid stereotypes and must not copy reference music.
+
+Future Lyria Pro prompts should be created from approved cue sheets and negative prompts, then QA'd for context fit, speech safety, artifacts, transition points, endings, loop points, and reference-DNA alignment before render use. Sometimes the professional decision is no music, or to preserve natural ambience instead of adding a background bed.
+
 ## SoundSync By Edit Level
 
 ### Basic SoundSync

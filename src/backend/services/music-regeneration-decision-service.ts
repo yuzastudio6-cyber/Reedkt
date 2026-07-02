@@ -16,7 +16,7 @@ export function createRegenerationReason(issue: MusicQAIssueRecord): MusicRegene
   if (issue.category === 'culture_fit') return 'wrong_culture_context'
   if (issue.category === 'reference_dna_fit') return 'reference_dna_mismatch'
   if (issue.category === 'user_instruction_fit') return 'user_instruction_conflict'
-  if (issue.category === 'loop_ending_quality' && /loop/i.test(issue.message)) return 'bad_loop'
+  if (issue.category === 'loop_ending_quality' && /loop/i.test(issue.message ?? issue.description ?? '')) return 'bad_loop'
   if (issue.category === 'loop_ending_quality') return 'bad_ending'
   if (issue.category === 'artifact_quality') return 'audio_artifacts'
   if (issue.category === 'license_provenance') return 'license_provenance_missing'

@@ -15,7 +15,7 @@ const editLevelLabels: Record<EditLevel, string> = {
   premium: 'Premium',
 }
 
-const categoryLabels: Record<EditingCategory, string> = {
+const categoryLabels: Partial<Record<EditingCategory, string>> = {
   storytelling: 'Storytelling',
   lifestyle: 'Lifestyle',
   business_brand: 'Business / Brand',
@@ -68,7 +68,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         {estimate.editingCategory && (
           <div>
             <span>Editing category</span>
-            <strong>{categoryLabels[estimate.editingCategory]}</strong>
+            <strong>{categoryLabels[estimate.editingCategory] ?? estimate.editingCategory.replaceAll('_', ' ')}</strong>
           </div>
         )}
         {estimate.editLevel && (

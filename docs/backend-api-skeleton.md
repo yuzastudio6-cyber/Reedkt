@@ -59,6 +59,16 @@ The API skeleton now includes mock-ready runtime transport and worker lease rout
 
 Real lease mutation, Cloud Run, Pub/Sub, Supabase Edge, provider calls, rendering, and service-role worker state writes remain backend-required.
 
+## SoundSync Music Intelligence
+
+RP-AUDIO-01 defines SoundSync Music Intelligence as a future architecture layer for music context analysis, cue sheets, Reference Music DNA, Lyria Pro prompt planning, music QA, mix/ducking, SFX provenance, generated music project assets, and optional library promotion.
+
+RP-AUDIO-04 adds a mock-only Music Director service and cue sheet planner. It can create local music context analysis, language/culture context, Reference Music DNA, cue sheets, cues, and mix guidance for deterministic demos.
+
+RP-AUDIO-05 adds a mock-only Lyria Pro prompt builder. It creates local prompt plans, timestamped prompt segments, negative prompts, and validation warnings from cue sheets.
+
+The current backend skeleton still does not implement Lyria Pro calls, Google API calls, Supabase writes, workers, rendering, pricing logic, or real music generation. Future services should keep music generation approval-gated and credit-gated.
+
 ## Supabase Later
 
 Future implementation should replace the placeholders in `src/backend/supabase/` with a real Supabase client for the `reeditpro` project. Service role access must stay in a secure backend or Google Cloud runtime and must never be bundled into the Vite frontend.

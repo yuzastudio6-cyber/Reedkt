@@ -52,12 +52,20 @@ function hasSpeechContext(input: MusicQAInput) {
   return input.track.hasSpeechInScene || input.cue?.sectionType === 'dialogue'
 }
 
-function isHighEnergy(energy: string) {
+function trackInstructionTags(input: MusicQAInput) {
+  return input.track.userInstructionTags ?? []
+}
+
+function trackInstructionText(input: MusicQAInput) {
+  return `${input.track.title ?? ''} ${trackInstructionTags(input).join(' ')}`.toLowerCase()
+}
+
+function isHighEnergy(energy?: string) {
   return energy === 'medium_high' || energy === 'high'
 }
 
 function scoreFromIssues(issues: MusicQAIssueRecord[], categories: MusicQACheckCategory[]) {
-  const relevant = issues.filter((item) => categories.includes(item.category))
+  const relevant = issues.filter((item) => item.category && categories.includes(item.category))
   const penalty = relevant.reduce((total, item) => {
     if (item.severity === 'blocking') return total + 40
     if (item.severity === 'high') return total + 25
@@ -154,7 +162,7 @@ export function checkLyricsPolicy(input: MusicQAInput): MusicQAIssueRecord[] {
 }
 
 export function checkCultureFit(input: MusicQAInput): MusicQAIssueRecord[] {
-  const text = `${input.track.title} ${input.track.userInstructionTags.join(' ')}`.toLowerCase()
+  const text = trackInstructionText(input)
 
   if (/accordion|cliche|stereotype|caricature/.test(text)) {
     return [
@@ -203,8 +211,9 @@ export function checkMoodFit(input: MusicQAInput): MusicQAIssueRecord[] {
 
 export function checkEnergyFit(input: MusicQAInput): MusicQAIssueRecord[] {
   const issues: MusicQAIssueRecord[] = []
+  const instructionTags = trackInstructionTags(input)
 
-  if ((input.cue?.sectionType === 'dialogue' || input.track.userInstructionTags.includes('faith_teaching')) && isHighEnergy(input.track.energyHint)) {
+  if ((input.cue?.sectionType === 'dialogue' || instructionTags.includes('faith_teaching')) && isHighEnergy(input.track.energyHint)) {
     issues.push(
       issue({
         category: 'energy_fit',
@@ -217,7 +226,7 @@ export function checkEnergyFit(input: MusicQAInput): MusicQAIssueRecord[] {
     )
   }
 
-  if (input.track.userInstructionTags.includes('fitness_social') && (input.track.energyHint === 'low' || input.track.energyHint === 'medium_low')) {
+  if (instructionTags.includes('fitness_social') && (input.track.energyHint === 'low' || input.track.energyHint === 'medium_low')) {
     issues.push(
       issue({
         category: 'energy_fit',
@@ -236,7 +245,7 @@ export function checkEnergyFit(input: MusicQAInput): MusicQAIssueRecord[] {
 export function checkReferenceDNAFit(input: MusicQAInput): MusicQAIssueRecord[] {
   if (!input.referenceMusicDNA) return []
 
-  const text = `${input.track.title} ${input.track.userInstructionTags.join(' ')}`.toLowerCase()
+  const text = trackInstructionText(input)
   if (/copy|same song|same track|same melody/.test(text)) {
     return [
       issue({
@@ -250,7 +259,7 @@ export function checkReferenceDNAFit(input: MusicQAInput): MusicQAIssueRecord[] 
     ]
   }
 
-  if (input.track.userInstructionTags.includes('reference_mismatch')) {
+  if (trackInstructionTags(input).includes('reference_mismatch')) {
     return [
       issue({
         category: 'reference_dna_fit',
@@ -267,7 +276,7 @@ export function checkReferenceDNAFit(input: MusicQAInput): MusicQAIssueRecord[] 
 }
 
 export function checkUserInstructionFit(input: MusicQAInput): MusicQAIssueRecord[] {
-  const instructions = `${input.userInstructions ?? ''} ${input.track.userInstructionTags.join(' ')}`.toLowerCase()
+  const instructions = `${input.userInstructions ?? ''} ${trackInstructionTags(input).join(' ')}`.toLowerCase()
   const issues: MusicQAIssueRecord[] = []
 
   if (/instrumental|no vocals|voice first/.test(instructions) && input.analysis.hasVocals) {
@@ -390,7 +399,7 @@ export function checkMixReadiness(input: MusicQAInput): MusicQAIssueRecord[] {
     )
   }
 
-  if (input.track.userInstructionTags.includes('preserve_ambience') && input.analysis.loudnessLufs > -14) {
+  if (trackInstructionTags(input).includes('preserve_ambience') && input.analysis.loudnessLufs > -14) {
     issues.push(
       issue({
         category: 'mix_readiness',
@@ -498,8 +507,8 @@ export function createMusicQAReport(input: MusicQAInput): MusicQAReportRecord {
     : issues.some((item) => item.severity === 'warning') || overallScore < 90
       ? 'warning'
       : 'passed'
-  const failedChecks = Array.from(new Set(issues.filter((item) => item.severity === 'blocking' || item.severity === 'high').map((item) => item.category)))
-  const warningChecks = Array.from(new Set(issues.filter((item) => item.severity === 'warning').map((item) => item.category)))
+  const failedChecks = Array.from(new Set(issues.filter((item) => item.category && (item.severity === 'blocking' || item.severity === 'high')).map((item) => item.category as MusicQACheckCategory)))
+  const warningChecks = Array.from(new Set(issues.filter((item) => item.category && item.severity === 'warning').map((item) => item.category as MusicQACheckCategory)))
   const passedChecks = qaCategories.filter((category) => !failedChecks.includes(category) && !warningChecks.includes(category))
   const report: MusicQAReportRecord = {
     id: qaReportId,

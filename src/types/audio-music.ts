@@ -1,4 +1,5 @@
-import type { ID, ISODateString, JSONObject, TimeRange } from './shared'
+import type { BaseRecord, CreditImpact, ID, ISODateString, JSONObject, Percentage, Seconds, TargetPlatform, TimeRange } from './shared'
+import type { SignatureSystem } from './reeditpro'
 
 export type ReferenceVideoCategory =
   | 'lifestyle_vacation'
@@ -52,20 +53,76 @@ export type ReferenceAdaptationRisk =
   | 'copyright_risk'
   | 'stereotype_risk'
 
+export type MusicSceneType =
+  | 'intro'
+  | 'chapter_transition'
+  | 'dialogue'
+  | 'talking_head'
+  | 'narration'
+  | 'lifestyle'
+  | 'vacation'
+  | 'city_walk'
+  | 'travel_montage'
+  | 'boat_movement'
+  | 'food_social'
+  | 'fitness'
+  | 'product_demo'
+  | 'real_estate'
+  | 'luxury_showcase'
+  | 'faith_reflective'
+  | 'education'
+  | 'coming_up_teaser'
+  | 'outro'
+  | 'comedy'
+  | 'documentary'
+  | 'ad_sales'
+  | 'custom'
+
 export type MusicCueRole =
+  | 'no_music'
+  | 'subtle_bed'
   | 'teaser'
   | 'intro_arrival'
   | 'dialogue_bed'
+  | 'intro_hook'
+  | 'coming_up_teaser'
   | 'montage_drive'
+  | 'montage_driver'
+  | 'travel_movement'
   | 'warm_social'
   | 'chapter_punctuation'
+  | 'chapter_transition'
+  | 'emotional_support'
+  | 'premium_polish'
+  | 'comedic_accent'
+  | 'food_social_warmth'
+  | 'sales_momentum'
   | 'ambient_bridge'
+  | 'ambient_only'
   | 'outro_resolve'
   | 'brand_bed'
   | 'none'
   | 'custom'
 
 export type MusicMood =
+  | 'romantic'
+  | 'hopeful'
+  | 'emotional'
+  | 'inspirational'
+  | 'premium'
+  | 'warm'
+  | 'calm'
+  | 'relaxed'
+  | 'stylish'
+  | 'clean'
+  | 'calm_cinematic'
+  | 'bright_uplifting'
+  | 'dramatic_build'
+  | 'warm_acoustic'
+  | 'modern_electronic'
+  | 'playful'
+  | 'luxury'
+  | 'documentary'
   | 'premium_lifestyle'
   | 'cinematic_travel'
   | 'warm_social'
@@ -87,7 +144,15 @@ export type MusicEnergyLevel =
   | 'high'
 
 export type VocalPolicy =
+  | 'no_vocals'
   | 'instrumental_only'
+  | 'vocal_texture_only'
+  | 'vocal_chops_only'
+  | 'soft_hook_vocals'
+  | 'full_lyrical_song'
+  | 'lyrics_allowed_only_without_speech'
+  | 'intro_outro_vocals_only'
+  | 'user_requested_vocals'
   | 'light_vocal_texture'
   | 'lyrics_allowed_no_speech'
   | 'no_vocals_under_dialogue'
@@ -95,13 +160,50 @@ export type VocalPolicy =
   | 'custom'
 
 export type MusicSpeechSafety =
+  | 'unknown'
   | 'speech_first'
+  | 'speech_clear'
+  | 'safe_under_voice'
+  | 'not_safe_under_voice'
+  | 'needs_ducking'
   | 'duck_under_voice'
+  | 'instrumental_under_dialogue'
+  | 'no_lyrics_near_speech'
+  | 'lyrics_allowed_only_without_speech'
+  | 'intro_outro_only'
+  | 'montage_only'
   | 'no_music_under_key_dialogue'
   | 'montage_only_vocals'
   | 'not_applicable'
 
 export type MusicGenreFamily =
+  | 'travel_vlog'
+  | 'lofi_hip_hop'
+  | 'afrobeat'
+  | 'dancehall'
+  | 'pop'
+  | 'house'
+  | 'tropical_house'
+  | 'trap'
+  | 'luxury_lounge'
+  | 'italian_inspired_pop'
+  | 'french_pop'
+  | 'lifestyle_vlog'
+  | 'faith_reflective'
+  | 'cinematic'
+  | 'electronic'
+  | 'ambient'
+  | 'indie'
+  | 'orchestral'
+  | 'jazz'
+  | 'lofi'
+  | 'hip_hop'
+  | 'latin'
+  | 'mediterranean'
+  | 'corporate'
+  | 'acoustic'
+  | 'dance'
+  | 'world'
   | 'cinematic_lifestyle'
   | 'european_lounge'
   | 'indie_pop'
@@ -114,6 +216,209 @@ export type MusicGenreFamily =
   | 'fitness_electronic'
   | 'food_warm_social'
   | 'custom'
+
+export type LyricLanguagePolicy =
+  | 'no_lyrics'
+  | 'same_as_spoken_language'
+  | 'match_location_context'
+  | 'english_only'
+  | 'french_allowed'
+  | 'italian_allowed'
+  | 'spanish_allowed'
+  | 'multilingual_allowed'
+  | 'instrumental_vocal_texture_only'
+  | 'user_requested_language'
+  | 'japanese_allowed'
+  | 'user_specified'
+
+export type MusicCultureRegion =
+  | 'unknown'
+  | 'none'
+  | 'global'
+  | 'italy'
+  | 'france'
+  | 'japan'
+  | 'european_luxury'
+  | 'caribbean'
+  | 'tropical'
+  | 'north_america'
+  | 'latin_america'
+  | 'western_europe'
+  | 'mediterranean'
+  | 'west_africa'
+  | 'east_asia'
+  | 'south_asia'
+  | 'middle_east'
+  | 'global_generic'
+  | 'custom'
+
+export type MusicEnergyArc =
+  | 'montage_drive'
+  | 'chapter_hit'
+  | 'emotional_swell'
+  | 'flat'
+  | 'gentle_build'
+  | 'beat_drop'
+  | 'rise_and_resolve'
+  | 'teaser_peak_then_drop'
+  | 'soft_resolve'
+  | 'flat_low'
+  | 'gentle_rise'
+  | 'intro_peak_then_bed'
+  | 'sectional_rise_fall'
+  | 'montage_build'
+  | 'comedic_punctuated'
+  | 'outro_resolve'
+  | 'custom'
+
+export type MusicGenerationPurpose =
+  | 'intro_music'
+  | 'montage_song'
+  | 'music_cue'
+  | 'outro_resolve'
+  | 'dialogue_bed'
+  | 'intro_hook'
+  | 'montage'
+  | 'transition'
+  | 'outro'
+  | 'ambient_texture'
+  | 'brand_theme'
+  | 'custom'
+
+export type MusicGenerationStatus =
+  | 'ready'
+  | 'planned'
+  | 'awaiting_approval'
+  | 'approved'
+  | 'generation_requested'
+  | 'generated'
+  | 'qa_passed'
+  | 'qa_failed'
+  | 'rejected'
+  | 'archived'
+
+export type MusicNeedDecision =
+  | 'ambience_only'
+  | 'music_needed'
+  | 'music_optional'
+  | 'no_music'
+  | 'reuse_source_audio_only'
+  | 'single_subtle_bed'
+  | 'multi_cue_score'
+  | 'ambience_plus_sfx_only'
+  | 'user_requested_music'
+
+export type MusicCueCountDecision =
+  | 'ambience_only'
+  | 'single_cue'
+  | 'multi_cue'
+  | 'zero'
+  | 'one_bed'
+  | 'two_to_three_cues'
+  | 'multi_scene_cues'
+  | 'section_by_section'
+
+export type MusicQAIssueType =
+  | 'speech_masking'
+  | 'wrong_mood'
+  | 'wrong_energy'
+  | 'wrong_culture_context'
+  | 'stereotype_risk'
+  | 'copyright_or_copy_risk'
+  | 'lyrics_policy_violation'
+  | 'bad_loop'
+  | 'bad_ending'
+  | 'audio_artifact'
+  | 'mix_balance'
+  | 'other'
+
+export type AudioUsageType =
+  | 'project_preview'
+  | 'source_audio'
+  | 'generated_music'
+  | 'licensed_track'
+  | 'sfx_library'
+  | 'ambience'
+  | 'voiceover'
+  | 'other'
+
+export type MusicSpeechPresence =
+  | 'unknown'
+  | 'narration'
+  | 'mixed_speech_and_montage'
+  | 'none'
+  | 'light_voiceover'
+  | 'dialogue'
+  | 'teaching'
+  | 'podcast_style'
+  | 'mixed'
+
+export type MusicReferenceInfluence =
+  | 'light_style_dna'
+  | 'none'
+  | 'light_mood_only'
+  | 'moderate_style_dna'
+  | 'strong_but_safe'
+  | 'not_allowed'
+
+export type MusicRecommendedAction =
+  | 'approve_for_project'
+  | 'approve'
+  | 'approve_with_mix_changes'
+  | 'regenerate'
+  | 'regenerate_instrumental'
+  | 'lower_energy'
+  | 'change_genre'
+  | 'reject'
+  | 'needs_user_choice'
+
+export type SfxVolumeCategory = 'none' | 'low' | 'medium' | 'high'
+
+export type AudioGenerationWorkerStatus =
+  | 'not_started'
+  | 'queued'
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled'
+
+export type LyriaPromptValidationWarningCode =
+  | 'duration_out_of_range'
+  | 'lyrics_conflict_with_speech'
+  | 'culture_context_missing'
+  | 'style_copy_risk'
+  | 'prompt_too_long'
+  | 'negative_prompt_missing'
+  | 'unsafe_reference_language'
+  | 'needs_user_confirmation'
+  | 'missing_speech_safety'
+  | 'missing_duration'
+  | 'missing_vocal_policy'
+  | 'duration_too_short'
+  | 'duration_too_long'
+  | 'lyrics_under_speech'
+  | 'reference_copy_risk'
+  | 'culture_stereotype_risk'
+  | 'prompt_too_vague'
+  | 'missing_negative_prompt'
+  | 'not_aligned_with_cue_role'
+  | 'user_instruction_conflict'
+
+export interface LyriaPromptValidationWarning {
+  code: LyriaPromptValidationWarningCode
+  message: string
+  severity: 'low' | 'medium' | 'high'
+  recommendation?: string
+  field?: string
+}
+
+export const LYRIA_PRO_FUTURE_MODEL_NAME = 'lyria-3-pro-preview'
+
+export const MUSIC_RANDOM_GENERATION_RULE =
+  'Do not generate random music; music prompts must come from approved edit context, source audio context, user instruction, and safe reference DNA only.'
+
+export const MUSIC_CULTURE_STEREOTYPE_RULE =
+  'Culture and location context may guide broad instrumentation only when supported by source context; avoid stereotypes and never infer protected identity.'
 
 export type SfxUseCase =
   | 'transition'
@@ -172,6 +477,8 @@ export type SfxUseCase =
   | 'custom'
 
 export type AudioAssetOrigin =
+  | 'lyria_generated'
+  | 'reeditpro_owned_sfx'
   | 'mock_generated'
   | 'provider_generated'
   | 'project_generated'
@@ -183,6 +490,8 @@ export type AudioAssetOrigin =
   | 'unknown'
 
 export type AudioLicenseScope =
+  | 'requires_review'
+  | 'reeditpro_library'
   | 'project_only'
   | 'workspace_only'
   | 'approved_internal_library'
@@ -276,31 +585,85 @@ export interface ReferenceStyleAdaptationPlanRecord {
 
 export interface ReferenceMusicDNARecord {
   id: string
-  observationId: string
+  updatedAt?: ISODateString
+  observationId?: string
   projectId?: string
   referenceAssetId?: string
   referenceUrl?: string
-  category: ReferenceVideoCategory
+  category?: ReferenceVideoCategory
   title?: string
-  styleSummary: string
-  sceneMusicMapSummary: string
-  cueBoundarySummary: string
-  musicCueBehavior: string[]
-  sfxBehavior: string[]
-  ambienceBehavior: string[]
-  chapterTitleAudioBehavior: string[]
-  pacingMusicRelationship: string[]
-  lyricsVsInstrumentalBehavior: string[]
-  dialogueDuckingBehavior: string[]
+  styleSummary?: string
+  sceneMusicMapSummary?: string
+  cueBoundarySummary?: string
+  musicCueBehavior?: string[]
+  sfxBehavior?: string[]
+  ambienceBehavior?: string[]
+  chapterTitleAudioBehavior?: string[]
+  pacingMusicRelationship?: string[]
+  lyricsVsInstrumentalBehavior?: string[]
+  dialogueDuckingBehavior?: string[]
   adaptationRules: string[]
   doNotCopyRules: string[]
-  safeMusicDirectorGuidance: string[]
-  safeLyriaPromptGuidance: string[]
-  visualStyleNotes: string[]
-  pacingNotes: string[]
-  audioSections: ReferenceAudioSectionRecord[]
-  audioBehaviors: ReferenceAudioBehaviorRecord[]
+  safeMusicDirectorGuidance?: string[]
+  safeLyriaPromptGuidance?: string[]
+  visualStyleNotes?: string[]
+  pacingNotes?: string[]
+  audioSections?: ReferenceAudioSectionRecord[]
+  audioBehaviors?: ReferenceAudioBehaviorRecord[]
   createdAt: ISODateString
+  summary?: string
+  cueBoundaryNotes?: string[]
+  musicCueCount?: number
+  genreMoodPerCue?: string[]
+  lyricsMoments?: string[]
+  instrumentalMoments?: string[]
+  introMusicBehavior?: string
+  montageMusicBehavior?: string
+  outroResolveBehavior?: string
+  confidence?: Percentage
+  metadata?: JSONObject
+}
+
+export interface MusicContextAnalysisRecord extends BaseRecord {
+  projectId: ID
+  editPlanId: ID
+  chatSessionId?: ID
+  referenceAssetId?: ID
+  primarySceneType: MusicSceneType
+  detectedSceneTypes: MusicSceneType[]
+  videoTopic: string
+  settingSummary: string
+  locationHints: string[]
+  cultureRegions: MusicCultureRegion[]
+  spokenLanguages: string[]
+  audience: string
+  platform: TargetPlatform
+  musicNeedDecision: MusicNeedDecision
+  musicCueCountDecision: MusicCueCountDecision
+  speechPresence: MusicSpeechPresence
+  dialogueHeavy: boolean
+  montageSectionsDetected: boolean
+  ambienceImportant: boolean
+  referenceMusicInfluence: MusicReferenceInfluence
+  userMusicInstructions: string[]
+  avoidMusicInstructions: string[]
+  confidence: Percentage
+  notes: string[]
+}
+
+export interface MusicLanguageContextRecord extends BaseRecord {
+  projectId: ID
+  editPlanId: ID
+  musicContextAnalysisId: ID
+  spokenLanguage: string
+  visualLocation: string
+  cultureRegion: MusicCultureRegion
+  recommendedLyricLanguagePolicy: LyricLanguagePolicy
+  allowedLyricLanguages: string[]
+  avoidLanguages: string[]
+  cultureStyleNotes: string[]
+  stereotypeAvoidanceNotes: string[]
+  confidence: Percentage
 }
 
 export interface MusicDirectorGuidanceRecord {
@@ -343,32 +706,134 @@ export interface MusicCueSheetItemRecord {
 
 export interface MusicCueSheetRecord {
   id: ID
+  updatedAt?: ISODateString
   projectId?: ID
   editPlanId?: ID
   referenceDnaId?: ID
   guidanceId?: ID
   summary: string
-  items: MusicCueSheetItemRecord[]
-  doNotCopyRules: string[]
+  items?: MusicCueSheetItemRecord[]
+  doNotCopyRules?: string[]
   createdAt: ISODateString
+  musicContextAnalysisId?: ID
+  cueCountDecision?: MusicCueCountDecision
+  overallMood?: MusicMood
+  overallEnergyArc?: MusicEnergyArc
+  usesMultipleCues?: boolean
+  lyricsAllowedSomewhere?: boolean
+  dialogueSafeRequired?: boolean
+  referenceDnaUsed?: boolean
+  approvalRequired?: boolean
+  creditEstimateId?: ID
+  status?: MusicGenerationStatus
+  notes?: string[]
+  metadata?: JSONObject
+}
+
+export interface MusicCueRecord extends BaseRecord {
+  projectId: ID
+  editPlanId: ID
+  musicCueSheetId: ID
+  editPlanSegmentId?: ID
+  cueOrder: number
+  cueRole: MusicCueRole
+  sceneType: MusicSceneType
+  startTimeSeconds?: Seconds
+  endTimeSeconds?: Seconds
+  targetDurationSeconds: Seconds
+  mood: MusicMood
+  genreFamilies: MusicGenreFamily[]
+  energyLevel: MusicEnergyLevel
+  energyArc: MusicEnergyArc
+  cultureRegion: MusicCultureRegion
+  vocalPolicy: VocalPolicy
+  lyricLanguagePolicy: LyricLanguagePolicy
+  speechSafety: MusicSpeechSafety
+  instrumentation: string[]
+  bpmTarget?: number
+  keyTarget?: string
+  referenceInfluence: MusicReferenceInfluence
+  promptGoal: string
+  negativePromptGoals: string[]
+  duckingRequired: boolean
+  loopableNeeded: boolean
+  creditImpact: CreditImpact
+  requiresApproval: boolean
+  status: MusicGenerationStatus
+  notes: string[]
+}
+
+export interface MusicStyleTaxonomyRecord extends BaseRecord {
+  taxonomyKey: string
+  genreFamily: MusicGenreFamily
+  displayName: string
+  description: string
+  commonMoods: MusicMood[]
+  commonInstruments: string[]
+  goodForSceneTypes: MusicSceneType[]
+  avoidForSceneTypes: MusicSceneType[]
+  speechSafetyDefault: MusicSpeechSafety
+  cultureRegion?: MusicCultureRegion
+  examplePromptPhrases: string[]
+  avoidPromptPhrases: string[]
+  isActive: boolean
 }
 
 export interface LyriaPromptPlanRecord {
   id: ID
-  cueSheetItemId: ID
+  updatedAt?: ISODateString
+  cueSheetItemId?: ID
   referenceDnaId?: ID
-  promptTitle: string
+  promptTitle?: string
   prompt: string
   negativePrompt: string
-  styleDnaOnly: boolean
-  blockedReferenceContent: string[]
-  adaptationRules: string[]
-  speechSafety: MusicSpeechSafety
-  vocalPolicy: VocalPolicy
+  styleDnaOnly?: boolean
+  blockedReferenceContent?: string[]
+  adaptationRules?: string[]
+  speechSafety?: MusicSpeechSafety
+  vocalPolicy?: VocalPolicy
   createdAt: ISODateString
+  projectId?: ID
+  editPlanId?: ID
+  musicCueSheetId?: ID
+  musicCueId?: ID
+  generationPurpose?: MusicGenerationPurpose
+  modelName?: string
+  providerName?: 'Lyria Pro' | string
+  durationSeconds?: Seconds
+  outputFormat?: 'wav' | 'mp3' | 'stems' | 'unknown'
+  instrumentalOnly?: boolean
+  lyricsAllowed?: boolean
+  targetLanguage?: string
+  timestampedStructure?: LyriaPromptSegment[]
+  styleConstraints?: string[]
+  timingConstraints?: string[]
+  speechSafetyInstructions?: string[]
+  cultureContextInstructions?: string[]
+  qualityInstructions?: string[]
+  creditEstimateId?: ID
+  generationRequestId?: ID
+  status?: MusicGenerationStatus
+  notes?: string[]
+  metadata?: JSONObject
+}
+
+export interface LyriaPromptSegment extends BaseRecord {
+  lyriaPromptPlanId: ID
+  segmentOrder: number
+  startTimeSeconds: Seconds
+  endTimeSeconds: Seconds
+  purpose: string
+  energy: MusicEnergyLevel
+  instrumentation: string[]
+  lyricInstruction: string
+  transitionInstruction: string
+  promptText: string
+  metadata?: JSONObject
 }
 
 export type MusicQARecommendedAction =
+  | 'approve_for_project'
   | 'use_track'
   | 'use_with_mix_adjustment'
   | 'regenerate'
@@ -393,7 +858,7 @@ export type MusicRegenerationReason =
   | 'reference_dna_mismatch'
   | 'license_provenance_missing'
 
-export type MusicQAIssueSeverity = 'info' | 'warning' | 'high' | 'blocking'
+export type MusicQAIssueSeverity = 'info' | 'warning' | 'low' | 'medium' | 'high' | 'critical' | 'blocking'
 
 export type MusicQAStatus = 'passed' | 'warning' | 'failed'
 
@@ -424,6 +889,7 @@ export type GeneratedMusicProvenance =
   | 'unknown'
 
 export type MusicReuseStatus =
+  | 'requires_terms_review'
   | 'project_only'
   | 'allowed'
   | 'terms_review_required'
@@ -439,9 +905,11 @@ export type MusicBassIntensity = 'low' | 'medium' | 'high'
 
 export type MusicVocalHint = 'none' | 'vocal_texture' | 'lyrics' | 'unknown'
 
-export type MusicMixStatus = 'ready' | 'needs_adjustment' | 'needs_regeneration'
+export type MusicMixStatus = 'draft' | 'planned' | 'ready' | 'needs_adjustment' | 'needs_regeneration'
 
 export type MusicDuckingStrategy =
+  | 'voice_first'
+  | 'beat_sensitive'
   | 'none'
   | 'voice_first_ducking'
   | 'sidechain_ducking'
@@ -449,6 +917,7 @@ export type MusicDuckingStrategy =
   | 'mute_under_speech'
 
 export type MusicLibraryCandidateStatus =
+  | 'requires_terms_review'
   | 'project_only'
   | 'candidate'
   | 'terms_review_required'
@@ -456,46 +925,75 @@ export type MusicLibraryCandidateStatus =
 
 export interface GeneratedMusicTrackRecord {
   id: ID
+  updatedAt?: ISODateString
   projectId?: ID
+  editPlanId?: ID
+  musicCueId?: ID
+  lyriaPromptPlanId?: ID
+  generationRequestId?: ID
+  generatedAssetId?: ID
   cueSheetItemId?: ID
   promptPlanId?: ID
   referenceDnaId?: ID
-  title: string
-  cueRole: MusicCueRole
-  sectionType: ReferenceAudioSectionType
-  durationSeconds: number
-  provenance: GeneratedMusicProvenance
-  reuseStatus: MusicReuseStatus
-  vocalHint: MusicVocalHint
+  title?: string
+  cueRole?: MusicCueRole
+  sectionType?: ReferenceAudioSectionType
+  durationSeconds?: number
+  provenance?: GeneratedMusicProvenance
+  origin?: AudioAssetOrigin
+  reuseStatus?: MusicReuseStatus
+  vocalHint?: MusicVocalHint
   lyricLanguageHint?: string
-  energyHint: MusicEnergyLevel
-  moodHint: MusicMood
-  genreHints: MusicGenreFamily[]
-  instrumentHints: string[]
-  bassIntensity: MusicBassIntensity
-  artifactHint: MusicArtifactHint
-  loopHint: MusicLoopQuality
-  endingHint: MusicEndingQuality
-  hasSpeechInScene: boolean
-  userInstructionTags: string[]
+  energyHint?: MusicEnergyLevel
+  moodHint?: MusicMood
+  genreHints?: MusicGenreFamily[]
+  instrumentHints?: string[]
+  bassIntensity?: MusicBassIntensity
+  artifactHint?: MusicArtifactHint
+  loopHint?: MusicLoopQuality
+  endingHint?: MusicEndingQuality
+  hasSpeechInScene?: boolean
+  userInstructionTags?: string[]
   createdAt: ISODateString
+  provider?: string
+  model?: string
+  prompt?: string
+  negativePrompt?: string
+  genreFamilies?: MusicGenreFamily[]
+  mood?: MusicMood
+  energy?: MusicEnergyLevel
+  cultureRegion?: MusicCultureRegion
+  vocalPolicy?: VocalPolicy
+  lyricLanguagePolicy?: LyricLanguagePolicy
+  storagePath?: string
+  qaStatus?: MusicQAStatus
+  usedInRenderId?: ID
+  usedInExportId?: ID
+  licenseProvenanceId?: ID
+  notes?: string[]
 }
 
 export interface MusicTrackAnalysisRecord {
   id: ID
-  generatedMusicTrackId: ID
+  updatedAt?: ISODateString
+  generatedMusicTrackId?: ID
+  audioAssetId?: ID
   bpm: number
   key: string
   loudnessLufs: number
   peakDb: number
   hasVocals: boolean
+  detectedLanguages?: string[]
   detectedLyricLanguage?: string
   energyLevel: MusicEnergyLevel
   moodTags: MusicMood[]
   instrumentTags: string[]
   loopable: boolean
   loopPoints?: TimeRange
-  speechSafety: MusicSpeechSafetyResult
+  loopStartSeconds?: Seconds
+  loopEndSeconds?: Seconds
+  speechSafety?: MusicSpeechSafetyResult
+  speechSafe?: boolean
   artifactScore: number
   qualityScore: number
   recommendedUse: string
@@ -506,17 +1004,26 @@ export interface MusicTrackAnalysisRecord {
 export interface MusicQAIssueRecord {
   id: ID
   qaReportId?: ID
-  category: MusicQACheckCategory
+  category?: MusicQACheckCategory
+  issueType?: MusicQAIssueType
   severity: MusicQAIssueSeverity
-  message: string
-  recommendation: string
+  message?: string
+  description?: string
+  recommendation?: string
+  recommendedFix?: string
   relatedCueId?: ID
   relatedTrackId?: ID
+  timeRange?: TimeRange
+  blocksUse?: boolean
 }
 
 export interface MusicQAReportRecord {
   id: ID
+  updatedAt?: ISODateString
   projectId?: ID
+  editPlanId?: ID
+  musicCueSheetId?: ID
+  musicCueId?: ID
   cueSheetItemId?: ID
   generatedMusicTrackId: ID
   referenceDnaId?: ID
@@ -534,29 +1041,42 @@ export interface MusicQAReportRecord {
   failedChecks: string[]
   summary: string
   createdAt: ISODateString
+  notes?: string[]
+  requiresRegeneration?: boolean
+  requiresMixAdjustment?: boolean
+  approvedForProject?: boolean
+  approvedForLibraryCandidate?: boolean
 }
 
 export interface MusicMixPlanRecord {
   id: ID
   projectId?: ID
+  editPlanId?: ID
+  musicCueSheetId?: ID
+  musicCueId?: ID
   cueSheetItemId?: ID
   generatedMusicTrackId?: ID
   qaReportId?: ID
-  targetVolumeDb: number
+  targetVolumeDb?: number
   duckingStrategy: MusicDuckingStrategy
   duckingAmountDb: number
   duckUnderSpeech: boolean
   introFadeSeconds: number
   outroFadeSeconds: number
-  crossfadeWithPreviousSeconds: number
-  crossfadeWithNextSeconds: number
-  beatSyncPoints: string[]
-  silenceMoments: string[]
+  crossfadeWithPreviousSeconds?: number
+  crossfadeWithNextSeconds?: number
+  crossfadeWithPreviousCue?: Seconds
+  crossfadeWithNextCue?: Seconds
+  volumeDbTarget?: number
+  beatSyncPoints: Array<string | TimeRange>
+  silenceMoments: Array<string | TimeRange>
   ambientBridgeNeeded: boolean
   sfxRelationship: string
   mixNotes: string[]
   status: MusicMixStatus
   createdAt: ISODateString
+  updatedAt?: ISODateString
+  metadata?: JSONObject
 }
 
 export interface MusicRegenerationDecisionRecord {
@@ -576,14 +1096,124 @@ export interface MusicRegenerationDecisionRecord {
 
 export interface MusicLibraryCandidateRecord {
   id: ID
+  updatedAt?: ISODateString
   generatedMusicTrackId: ID
   qaReportId?: ID
-  status: MusicLibraryCandidateStatus
+  status?: MusicLibraryCandidateStatus
   reason: string
-  reusableAcrossProjects: boolean
-  requiresTermsReview: boolean
-  tags: string[]
+  reusableAcrossProjects?: boolean
+  requiresTermsReview?: boolean
+  tags?: string[]
   createdAt: ISODateString
+  projectId?: ID
+  workspaceId?: ID
+  candidateStatus?: MusicLibraryCandidateStatus
+  qualityScore?: Percentage
+  reuseStatus?: MusicReuseStatus
+  genreFamilies?: MusicGenreFamily[]
+  moodTags?: MusicMood[]
+  cultureRegion?: MusicCultureRegion
+  vocalPolicy?: VocalPolicy
+  speechSafe?: boolean
+  licenseReviewRequired?: boolean
+  approvedBy?: ID
+  approvedAt?: ISODateString
+  notes?: string[]
+}
+
+export interface MusicQAIssue {
+  id: ID
+  issueType: MusicQAIssueType
+  severity: MusicQAIssueSeverity
+  description: string
+  recommendedFix: string
+  timeRange?: TimeRange
+  blocksUse: boolean
+}
+
+export interface AudioLicenseProvenanceRecord extends BaseRecord {
+  projectId?: ID
+  workspaceId?: ID
+  audioAssetOrigin: AudioAssetOrigin
+  provider: string
+  model?: string
+  termsVersion?: string
+  licenseScope: AudioLicenseScope
+  commercialAllowed: boolean
+  adsAllowed: boolean
+  clientWorkAllowed: boolean
+  reuseAcrossUsersAllowed: boolean
+  requiresAttribution: boolean
+  userProvided: boolean
+  licenseNotes: string[]
+  sourceUrl?: string
+  proofStoragePath?: string
+}
+
+export interface AudioUsageRecord extends BaseRecord {
+  projectId: ID
+  editPlanId?: ID
+  renderId?: ID
+  exportId?: ID
+  generatedMusicTrackId?: ID
+  generatedAssetId?: ID
+  musicCueId?: ID
+  licenseProvenanceId?: ID
+  usageType: AudioUsageType
+  usedStartTimeSeconds: Seconds
+  usedEndTimeSeconds: Seconds
+  mixPlanId?: ID
+  usageNotes: string[]
+}
+
+export interface SfxLibraryAssetRecord extends BaseRecord {
+  displayName: string
+  origin: AudioAssetOrigin
+  sfxUseCase: SfxUseCase
+  storagePath?: string
+  durationSeconds: Seconds
+  licenseProvenanceId?: ID
+  safeUnderVoice: boolean
+  volumeCategory: SfxVolumeCategory
+  tags: string[]
+  recommendedSceneTypes: MusicSceneType[]
+  avoidSceneTypes: MusicSceneType[]
+  supportsSignatureSystems: SignatureSystem[]
+  approvedForUse: boolean
+  notes: string[]
+}
+
+export interface AudioGenerationWorkerRequest {
+  id: ID
+  projectId: ID
+  editPlanId: ID
+  musicCueSheetId: ID
+  musicCueId?: ID
+  lyriaPromptPlanId: ID
+  generationPurpose: MusicGenerationPurpose
+  providerName: 'Lyria Pro' | string
+  modelName: string
+  creditEstimateId?: ID
+  creditReservationId?: ID
+  approvedByUserId?: ID
+  status: AudioGenerationWorkerStatus
+  requestedAt: ISODateString
+  notes: string[]
+}
+
+export interface AudioGenerationWorkerResult {
+  id: ID
+  workerRequestId: ID
+  projectId: ID
+  generatedMusicTrackId?: ID
+  generatedAssetId?: ID
+  qaReportId?: ID
+  status: AudioGenerationWorkerStatus
+  providerRequestId?: string
+  providerResponseSummary?: string
+  errorMessage?: string
+  completedAt?: ISODateString
+  notes: string[]
 }
 
 export type SoundMusicWorkstreamId = 'SOUND_MUSIC_AUDIO'

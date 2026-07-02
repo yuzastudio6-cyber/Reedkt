@@ -135,10 +135,10 @@ export function InlineCompiledIntentCard({ approved = false, intent, onApproveIn
         <div className="intent-rule-list">
           <strong>Custom directives</strong>
           {customDirectives.map((directiveItem) => (
-            <article className="custom-directive-card" key={directiveItem.id}>
+            <article className="custom-directive-card" key={typeof directiveItem === 'string' ? directiveItem : directiveItem.id}>
               <span>Custom style request captured</span>
-              <strong>{directiveItem.interpretedMeaning}</strong>
-              <small>{directiveItem.customOverrides.join(' / ')}</small>
+              <strong>{typeof directiveItem === 'string' ? directiveItem : directiveItem.interpretedMeaning}</strong>
+              {typeof directiveItem === 'string' ? null : <small>{directiveItem.customOverrides.join(' / ')}</small>}
             </article>
           ))}
         </div>

@@ -6,8 +6,8 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
   icon?: LucideIcon
   to?: string
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
-  size?: 'sm' | 'md'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'link'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function Button({

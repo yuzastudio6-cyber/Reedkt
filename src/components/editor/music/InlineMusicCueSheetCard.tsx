@@ -23,10 +23,11 @@ export function InlineMusicCueSheetCard({
   onInstrumentalOnly,
   onLowerCost,
 }: InlineMusicCueSheetCardProps) {
-  const lyricsAllowed = cueSheet.items.some((cue) => cue.vocalPolicy === 'lyrics_allowed_no_speech' || cue.vocalPolicy === 'light_vocal_texture')
-  const dialogueSafeRequired = cueSheet.items.some((cue) => cue.speechSafety === 'duck_under_voice' || cue.vocalPolicy === 'no_vocals_under_dialogue')
-  const moodList = Array.from(new Set(cueSheet.items.map((cue) => cue.mood)))
-  const energyArc = cueSheet.items.map((cue) => formatMusicLabel(cue.energyLevel)).join(' -> ')
+  const cueItems = cueSheet.items ?? []
+  const lyricsAllowed = cueItems.some((cue) => cue.vocalPolicy === 'lyrics_allowed_no_speech' || cue.vocalPolicy === 'light_vocal_texture')
+  const dialogueSafeRequired = cueItems.some((cue) => cue.speechSafety === 'duck_under_voice' || cue.vocalPolicy === 'no_vocals_under_dialogue')
+  const moodList = Array.from(new Set(cueItems.map((cue) => cue.mood)))
+  const energyArc = cueItems.map((cue) => formatMusicLabel(cue.energyLevel)).join(' -> ')
 
   return (
     <InlinePlanCardShell
@@ -34,7 +35,7 @@ export function InlineMusicCueSheetCard({
       className="music-inline-card music-cue-sheet-card"
       compactSummary={(
         <div className="compact-summary-row">
-          <span className="compact-summary-chip">{cueSheet.items.length} cues</span>
+          <span className="compact-summary-chip">{cueItems.length} cues</span>
           <span className="compact-summary-chip">Multi-cue</span>
           <span className="compact-summary-chip">Reference DNA used</span>
         </div>
@@ -56,7 +57,7 @@ export function InlineMusicCueSheetCard({
         <span><strong>Approval required</strong>Yes</span>
       </div>
       <ol className="music-cue-list">
-        {cueSheet.items.map((cue) => (
+        {cueItems.map((cue) => (
           <li key={cue.id}>
             <strong>Cue {cue.cueOrder} - {cue.label}</strong>
             <span>{formatMusicLabel(cue.cueRole)} / {formatMusicLabel(cue.sectionType)}</span>

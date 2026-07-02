@@ -162,6 +162,14 @@ RP-FIX-10 adds job runtime gates and mock worker dispatch around those provider 
 
 RP-FIX-11 adds runtime envelopes, worker leases, heartbeat handling, stale recovery, and idempotency helpers around future provider workers. These are mock-only contracts. Real provider execution still requires backend/cloud runtime, server-side secrets, transactional lease claims, and idempotency checks before retry.
 
+## Lyria Pro Music Generation
+
+Lyria Pro is the future primary custom music generation provider for ReeditPro SoundSync Music Intelligence. This document does not integrate Lyria Pro, add Google API keys, call Google APIs, or deploy workers.
+
+Future generation requests should support project-specific music cues, Lyria Pro prompt plans, negative prompts, generated audio assets, music QA, and mix/ducking plans. Generated audio assets should link back to the music cue, edit plan, credit estimate, credit reservation, generation request, render inputs, and export usage records.
+
+Lyria Pro provider secrets must stay in Secret Manager or secure runtime configuration. Database rows may store provider metadata and secret reference labels only; they must never store API keys, service role keys, provider credentials, signed URLs, or raw secrets.
+
 ## Prompt And Constraint Ownership
 
 Generation requests should store:

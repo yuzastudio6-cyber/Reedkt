@@ -66,10 +66,11 @@ export function createMusicChatUiData(): MusicChatData {
   const cueFlow = runMockReferenceToMusicCueFlow(referenceFlow.referenceMusicDNA)
   const qaFlow = runMockLakeComoMusicQAFlow()
   const cueSheet = cueFlow.cueSheet
-  const cueCards = cueSheet.items.slice(0, 5)
+  const cueItems = cueSheet.items ?? []
+  const cueCards = cueItems.slice(0, 5)
   const qaPassResult = qaFlow.scenarioResults.find((result) => result.qaReport.status === 'passed') ?? qaFlow.scenarioResults[0]
   const qaFailResult = qaFlow.scenarioResults.find((result) =>
-    result.qaIssues.some((issue) => issue.category === 'lyrics_policy'),
+    result.qaIssues.some((issue) => issue.category === 'lyrics_policy' || issue.issueType === 'lyrics_policy_violation'),
   ) ?? qaFlow.scenarioResults[0]
   const generatedCueCount = cueCards.length
   const planningCredits = 2
@@ -96,11 +97,11 @@ export function createMusicChatUiData(): MusicChatData {
     cueSheet,
     cueCards,
     promptPlan: cueFlow.lyriaPromptPlans[0],
-    promptCue: cueSheet.items[0],
+    promptCue: cueItems[0],
     qaPassResult,
     qaFailResult,
     creditEstimate: {
-      cueCount: cueSheet.items.length,
+      cueCount: cueItems.length,
       generatedCueCount,
       planningCredits,
       generationCredits,

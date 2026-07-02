@@ -312,7 +312,7 @@ export function createLyriaGenerationRequestFromPromptPlan(
     projectId: input.projectId,
     editPlanId: input.editPlanId,
     creditReservationId: input.creditReservationId,
-    musicCueId: input.musicCue?.id ?? input.promptPlan.cueSheetItemId,
+    musicCueId: input.musicCue?.id ?? input.promptPlan.musicCueId ?? input.promptPlan.cueSheetItemId ?? input.promptPlan.id,
     lyriaPromptPlanId: input.promptPlan.id,
     prompt: input.promptPlan.prompt,
     negativePrompt: input.promptPlan.negativePrompt,

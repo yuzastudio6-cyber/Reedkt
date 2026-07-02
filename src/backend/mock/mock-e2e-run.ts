@@ -7,8 +7,9 @@ import { unwrapServiceResult } from '../service-result'
 export function runReeditProMockE2E(): ReeditProMockE2ESummary {
   resetMockIds()
   const db = createMockDatabase()
-  const planningState = unwrapServiceResult(runChatNativeEditPlanningFlow({}, db))
+  const planningState = unwrapServiceResult(runChatNativeEditPlanningFlow({ includeMusicDirectorPlanning: true }, db))
   const approvedState = unwrapServiceResult(runMockApprovedGenerationFlow(db, planningState))
+  const musicDirectorPlan = approvedState.musicDirectorPlan
 
   return {
     projectId: approvedState.project.id,
@@ -24,5 +25,10 @@ export function runReeditProMockE2E(): ReeditProMockE2ESummary {
     renderStatus: approvedState.previewRender.status,
     qaStatus: approvedState.qaReport.status,
     previewReady: approvedState.previewReady,
+    musicNeedDecision: musicDirectorPlan?.musicContextAnalysis.musicNeedDecision,
+    musicCueCountDecision: musicDirectorPlan?.musicContextAnalysis.musicCueCountDecision,
+    musicCueCount: musicDirectorPlan?.cues.length,
+    lyricsAllowedSomewhere: musicDirectorPlan?.cueSheet.lyricsAllowedSomewhere,
+    musicNextStep: musicDirectorPlan?.nextStep,
   }
 }

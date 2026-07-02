@@ -29,7 +29,7 @@ export function InlineLyriaPromptPreviewCard({ cue, onAction, promptPlan }: Inli
       helper="Prompt preview only. ReeditPro has not called Lyria or generated music yet."
       priority="developer_detail"
       status="ready"
-      title={promptPlan.promptTitle}
+      title={promptPlan.promptTitle ?? 'Lyria prompt preview'}
     >
       <div className="music-info-grid">
         <span><strong>Provider</strong>Lyria Pro</span>
@@ -53,7 +53,7 @@ export function InlineLyriaPromptPreviewCard({ cue, onAction, promptPlan }: Inli
         <p className="music-negative-prompt-text">{promptPlan.negativePrompt}</p>
       </details>
       <div className="music-pill-row">
-        {promptPlan.blockedReferenceContent.map((item) => (
+        {(promptPlan.blockedReferenceContent ?? []).map((item) => (
           <Badge accent="warning" key={item}>No {item}</Badge>
         ))}
       </div>

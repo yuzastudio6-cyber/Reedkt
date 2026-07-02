@@ -7,7 +7,7 @@ import type {
 } from '../../types/audio-music'
 import { createMockId, nowIso } from '../mock/mock-database'
 
-const keysByMood: Record<MusicMood, string> = {
+const keysByMood: Partial<Record<MusicMood, string>> = {
   corporate_polished: 'C major',
   cinematic_travel: 'D major',
   custom: 'C major',
@@ -19,6 +19,18 @@ const keysByMood: Record<MusicMood, string> = {
   premium_lifestyle: 'D major',
   reflective: 'B minor',
   warm_social: 'G major',
+}
+
+const fallbackEnergy: MusicEnergyLevel = 'medium'
+const fallbackMood: MusicMood = 'custom'
+const fallbackDurationSeconds = 30
+
+function energyHint(track: GeneratedMusicTrackRecord): MusicEnergyLevel {
+  return track.energyHint ?? fallbackEnergy
+}
+
+function moodHint(track: GeneratedMusicTrackRecord): MusicMood {
+  return track.moodHint ?? fallbackMood
 }
 
 function energyRank(energy: MusicEnergyLevel) {
@@ -46,11 +58,11 @@ export function estimateBpm(track: GeneratedMusicTrackRecord) {
 
   if (track.cueRole === 'outro_resolve') return 82
   if (track.cueRole === 'dialogue_bed') return 74
-  return baseByEnergy[track.energyHint]
+  return baseByEnergy[energyHint(track)]
 }
 
 export function estimateKey(track: GeneratedMusicTrackRecord) {
-  return keysByMood[track.moodHint]
+  return keysByMood[moodHint(track)] ?? 'C major'
 }
 
 export function estimateLoudness(track: GeneratedMusicTrackRecord) {
@@ -63,7 +75,7 @@ export function estimateLoudness(track: GeneratedMusicTrackRecord) {
     none: { loudnessLufs: -60, peakDb: -60 },
   }
 
-  return loudnessByEnergy[track.energyHint]
+  return loudnessByEnergy[energyHint(track)]
 }
 
 export function detectVocalPresence(track: GeneratedMusicTrackRecord) {
@@ -76,15 +88,16 @@ export function detectLyricLanguage(track: GeneratedMusicTrackRecord) {
 }
 
 export function estimateEnergyLevel(track: GeneratedMusicTrackRecord): MusicEnergyLevel {
-  return track.energyHint
+  return energyHint(track)
 }
 
 export function estimateMoodTags(track: GeneratedMusicTrackRecord): MusicMood[] {
-  return [track.moodHint]
+  return [moodHint(track)]
 }
 
 export function detectInstrumentTags(track: GeneratedMusicTrackRecord) {
-  return track.instrumentHints.length > 0 ? track.instrumentHints : ['soft synth bed']
+  const instrumentHints = track.instrumentHints ?? []
+  return instrumentHints.length > 0 ? instrumentHints : ['soft synth bed']
 }
 
 export function detectLoopability(track: GeneratedMusicTrackRecord) {
@@ -95,7 +108,7 @@ export function detectLoopability(track: GeneratedMusicTrackRecord) {
     loopPoints: loopable
       ? {
           startSeconds: 4,
-          endSeconds: Math.max(8, track.durationSeconds - 4),
+          endSeconds: Math.max(8, (track.durationSeconds ?? fallbackDurationSeconds) - 4),
         }
       : undefined,
   }
@@ -105,7 +118,7 @@ export function estimateSpeechSafety(track: GeneratedMusicTrackRecord): MusicSpe
   if (!track.hasSpeechInScene) return 'not_applicable'
   if (track.vocalHint === 'lyrics') return 'unsafe_for_speech'
   if (track.vocalHint === 'vocal_texture') return 'ducking_required'
-  if (energyRank(track.energyHint) >= 4 || track.bassIntensity === 'high') return 'ducking_required'
+  if (energyRank(energyHint(track)) >= 4 || track.bassIntensity === 'high') return 'ducking_required'
   return 'safe_for_speech'
 }
 
@@ -117,7 +130,7 @@ export function estimateArtifactScore(track: GeneratedMusicTrackRecord) {
     severe: 35,
   }
 
-  return scores[track.artifactHint]
+  return scores[track.artifactHint ?? 'none']
 }
 
 export function estimateMusicQualityScore(track: GeneratedMusicTrackRecord) {
@@ -140,7 +153,7 @@ export function createMusicTrackAnalysisSummary(track: GeneratedMusicTrackRecord
       ? 'light vocal texture'
       : 'lyrics present'
 
-  return `${track.title} is a ${track.energyHint.replaceAll('_', ' ')} ${track.moodHint.replaceAll('_', ' ')} cue with ${vocalSummary}.`
+  return `${track.title ?? 'Generated music'} is a ${energyHint(track).replaceAll('_', ' ')} ${moodHint(track).replaceAll('_', ' ')} cue with ${vocalSummary}.`
 }
 
 export function analyzeGeneratedMusicTrack(input: {

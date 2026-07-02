@@ -13,7 +13,7 @@ type InlineMusicQACardProps = {
 export function InlineMusicQACard({ primaryResult, warningResult }: InlineMusicQACardProps) {
   const report = primaryResult.qaReport
   const warningReport = warningResult.qaReport
-  const lyricsUnderSpeech = warningReport.issues.some((issue) => issue.category === 'lyrics_policy')
+  const lyricsUnderSpeech = warningReport.issues.some((issue) => issue.category === 'lyrics_policy' || issue.issueType === 'lyrics_policy_violation')
 
   return (
     <InlinePlanCardShell
@@ -60,9 +60,9 @@ export function InlineMusicQACard({ primaryResult, warningResult }: InlineMusicQ
         <div className="music-issue-list">
           {[...report.issues, ...warningReport.issues].map((issue) => (
             <div key={issue.id}>
-              <strong>{formatMusicLabel(issue.category)}</strong>
-              <span>{issue.message}</span>
-              <small>{issue.recommendation}</small>
+              <strong>{formatMusicLabel(issue.category ?? issue.issueType)}</strong>
+              <span>{issue.message ?? issue.description}</span>
+              <small>{issue.recommendation ?? issue.recommendedFix}</small>
             </div>
           ))}
         </div>

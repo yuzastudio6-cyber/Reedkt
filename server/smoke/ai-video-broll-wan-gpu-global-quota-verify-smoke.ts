@@ -89,7 +89,7 @@ for (const required of [
   '10H no-VM stockout-fix result selected `us-west4-c`',
   '10J bounded payload/install-readiness proof then stocked out',
   '10L bounded payload/install-readiness proof then failed in `northamerica-northeast1-b`',
-  'AI-VIDEO-BROLL-GEN-10M-PAYLOAD-INSTALL-CONFIG-AVAILABILITY-FIX',
+  'AI-VIDEO-BROLL-GEN-10N-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-C',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -113,7 +113,7 @@ assert.equal(spec.mode, 'read_only_broll_wan_gpu_global_quota_verify')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.targetRegion, 'northamerica-northeast1')
-assert.equal(spec.targetZone, 'northamerica-northeast1-b')
+assert.equal(spec.targetZone, 'northamerica-northeast1-c')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.machineType, 'g2-standard-4')
 assert.equal(spec.minimumGlobalGpusAllRegionsQuota, 1)
@@ -123,7 +123,7 @@ assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
 assert.equal(
   spec.nextActionIfQuotaCleared.includes(
-    '10M-PAYLOAD-INSTALL-CONFIG-AVAILABILITY-FIX',
+    '10N-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-C',
   ),
   true,
 )

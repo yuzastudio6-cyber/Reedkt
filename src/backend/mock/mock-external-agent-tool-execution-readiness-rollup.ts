@@ -63,6 +63,7 @@ export type ExternalAgentToolNoIdleLifecycleGate = {
     | 'us-west4-a'
     | 'us-west4-c'
     | 'northamerica-northeast1-b'
+    | 'northamerica-northeast1-c'
   minimumGlobalGpusAllRegionsQuota: 1
   minimumRegionalL4Quota: 1
   noPublicIpRequired: true
@@ -164,10 +165,12 @@ export const AI_VIDEO_BROLL_GEN_10L_NO_IDLE_L4_IAP_WHEELHOUSE_PAYLOAD_INSTALL_PR
   'AI-VIDEO-BROLL-GEN-10L-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-B: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast1-b with mandatory cleanup, no model import/no inference' as const
 export const AI_VIDEO_BROLL_GEN_10M_PAYLOAD_INSTALL_CONFIG_AVAILABILITY_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10M-PAYLOAD-INSTALL-CONFIG-AVAILABILITY-FIX: choose next approved no-idle L4 payload/install-readiness proof strategy after northamerica-northeast1-b configuration availability failure, no VM/no inference' as const
+export const AI_VIDEO_BROLL_GEN_10N_NO_IDLE_L4_IAP_WHEELHOUSE_PAYLOAD_INSTALL_PROOF_NORTHAMERICA_NORTHEAST1_C_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10N-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast1-c with mandatory cleanup, no model import/no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10l_config_availability_blocked_10m_strategy_required',
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10m_strategy_selected_10n_payload_install_proof_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -392,15 +395,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_no_idle_payload_install_config_availability_blocked_northamerica_northeast1_b_10m_strategy_required',
+        'controlled_l4_no_idle_payload_install_strategy_selected_northamerica_northeast1_c_10n_proof_required',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
       primaryBlocker:
-        'bounded_no_idle_l4_payload_install_proof_northamerica_northeast1_b_configuration_availability_failed_10m_strategy_required',
+        'bounded_no_idle_l4_payload_install_proof_northamerica_northeast1_c_required_after_10m_config_availability_fix',
       evidence: [
+        'docs/ai-video-broll-gen-10m-payload-install-config-availability-fix-result.md',
         'docs/ai-video-broll-gen-10l-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-b-result.md',
         'docs/ai-video-broll-gen-10k-payload-install-stockout-fix-result.md',
         'docs/ai-video-broll-gen-10j-no-idle-l4-iap-wheelhouse-payload-install-proof-us-west4-c-result.md',
@@ -456,6 +460,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10k-payload-install-stockout-fix.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10l-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-b.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10m-payload-install-config-availability-fix.md',
+        'docs/implementation-prompts/prompt-ai-video-broll-gen-10n-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-c.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-9n-no-idle-l4-proof-execute-us-central1-c.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-9m-no-idle-l4-proof-execute-us-central1-a.md',
         'docs/ai-video-broll-wan-gpu-global-quota-verify-result.md',
@@ -470,6 +475,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify.ts',
         'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-9k-no-idle-l4-proof-prompt.ts',
+        'src/backend/mock/mock-ai-video-broll-gen-10m-payload-install-config-availability-fix-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-10l-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-b-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-10k-payload-install-stockout-fix-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-10j-no-idle-l4-iap-wheelhouse-payload-install-proof-us-west4-c-result.ts',
@@ -507,6 +513,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts',
         'server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts',
         'server/smoke/ai-video-broll-gen-9k-no-idle-l4-proof-prompt-smoke.ts',
+        'server/smoke/ai-video-broll-gen-10m-payload-install-config-availability-fix-result-smoke.ts',
         'server/smoke/ai-video-broll-gen-10l-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-b-result-smoke.ts',
         'server/smoke/ai-video-broll-gen-10k-payload-install-stockout-fix-result-smoke.ts',
         'server/smoke/ai-video-broll-gen-10j-no-idle-l4-iap-wheelhouse-payload-install-proof-us-west4-c-result-smoke.ts',
@@ -540,14 +547,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
       nextAction:
-        AI_VIDEO_BROLL_GEN_10M_PAYLOAD_INSTALL_CONFIG_AVAILABILITY_FIX_PROMPT,
+        AI_VIDEO_BROLL_GEN_10N_NO_IDLE_L4_IAP_WHEELHOUSE_PAYLOAD_INSTALL_PROOF_NORTHAMERICA_NORTHEAST1_C_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
         selectedGpu: 'nvidia_l4',
         machineType: 'g2-standard-4',
         targetRegion: 'northamerica-northeast1',
-        targetZone: 'northamerica-northeast1-b',
+        targetZone: 'northamerica-northeast1-c',
         minimumGlobalGpusAllRegionsQuota: 1,
         minimumRegionalL4Quota: 1,
         noPublicIpRequired: true,
@@ -563,7 +570,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_10M_PAYLOAD_INSTALL_CONFIG_AVAILABILITY_FIX_PROMPT,
+          AI_VIDEO_BROLL_GEN_10N_NO_IDLE_L4_IAP_WHEELHOUSE_PAYLOAD_INSTALL_PROOF_NORTHAMERICA_NORTHEAST1_C_PROMPT,
       },
     },
     {
@@ -616,7 +623,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_10M_PAYLOAD_INSTALL_CONFIG_AVAILABILITY_FIX_PROMPT,
+    AI_VIDEO_BROLL_GEN_10N_NO_IDLE_L4_IAP_WHEELHOUSE_PAYLOAD_INSTALL_PROOF_NORTHAMERICA_NORTHEAST1_C_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

@@ -596,6 +596,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-service-role-queue-smoke-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-service-role-queue-smoke-authorization-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-live-enqueue-authorization": "tsx server/cli/ai-graphics-external-beta-live-enqueue-authorization.ts",',
   '+    "ai-graphics:external-beta-live-enqueue-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-live-enqueue-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-gpu-model-worker-boundary-proof": "tsx server/cli/ai-graphics-external-beta-gpu-model-worker-boundary-proof.ts",',
+  '+    "ai-graphics:external-beta-gpu-model-worker-boundary-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-worker-boundary-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-controlled-runtime-execution-approval": "tsx server/cli/ai-graphics-external-beta-controlled-runtime-execution-approval.ts",',
   '+    "ai-graphics:external-beta-controlled-runtime-execution-approval:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-runtime-execution-approval-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-candidate-evidence-assembly": "tsx server/cli/ai-graphics-external-beta-candidate-evidence-assembly.ts",',

@@ -38,6 +38,7 @@ export type PlanValidationCategory =
   | 'tool_registry'
   | 'render_strategy'
   | 'tool_strategy'
+  | 'tool_call_intents'
   | 'color_pipeline'
   | 'audio_pipeline'
   | 'map_animation'
@@ -799,6 +800,42 @@ function toolStrategySignalsmithOnlyForStretch(plan: EditPlan) {
     `${item.reason} ${item.userFacingSummary} ${item.settingsSummary}`.toLowerCase().includes('stretch') ||
     `${item.reason} ${item.userFacingSummary} ${item.settingsSummary}`.toLowerCase().includes('pitch'),
   )
+}
+
+function toolCallIntentPlanExists(plan: EditPlan) {
+  return Boolean(plan.toolCallIntentPlan?.intents.length)
+}
+
+function toolCallIntentsHaveRequiredShape(plan: EditPlan) {
+  const intents = plan.toolCallIntentPlan?.intents ?? []
+
+  return intents.length > 0 && intents.every((intent) =>
+    Boolean(intent.toolId) &&
+    Boolean(intent.capabilityId) &&
+    intent.reason.length > 20 &&
+    intent.inputArtifactDependency.description.length > 20 &&
+    intent.expectedOutputArtifact.description.length > 20 &&
+    Number.isInteger(intent.costEstimate.credits) &&
+    intent.costEstimate.basis.length > 20 &&
+    intent.fallback.strategy.length > 20,
+  )
+}
+
+function toolCallIntentsExposeBaselineTools(plan: EditPlan) {
+  const toolIds = new Set((plan.toolCallIntentPlan?.intents ?? []).map((intent) => intent.toolId))
+
+  return ['ffmpeg', 'opencv', 'opencolorio', 'remotion'].every((toolId) => toolIds.has(toolId))
+}
+
+function toolCallIntentsPreserveExecutionGates(plan: EditPlan) {
+  const intents = plan.toolCallIntentPlan?.intents ?? []
+  const notes = (plan.toolCallIntentPlan?.notes ?? []).join(' ').toLowerCase()
+
+  return intents.length > 0 &&
+    intents.every((intent) => intent.approvalRequiredBeforeExecution && !intent.frontendExecutionAllowed) &&
+    notes.includes('approved plan snapshot') &&
+    notes.includes('credit reservation') &&
+    notes.includes('idempotency')
 }
 
 function colorPipelinePlanExists(plan: EditPlan) {
@@ -2673,6 +2710,42 @@ export function validateMockEditPlan(params: {
       passed: toolStrategySignalsmithOnlyForStretch(plan),
       message: 'Signalsmith Stretch should appear only when music time-stretch or pitch adjustment is planned.',
       relatedField: 'toolStrategyPlan.items',
+    }),
+    check({
+      id: 'validation-tool-call-intent-plan',
+      category: 'tool_call_intents',
+      label: 'Tool-call intent plan exists',
+      severity: 'error',
+      passed: toolCallIntentPlanExists(plan),
+      message: 'Edit plans should include structured tool-call intents before approval.',
+      relatedField: 'toolCallIntentPlan',
+    }),
+    check({
+      id: 'validation-tool-call-intent-shape',
+      category: 'tool_call_intents',
+      label: 'Tool-call intents have required fields',
+      severity: 'error',
+      passed: toolCallIntentsHaveRequiredShape(plan),
+      message: 'Each tool-call intent should include tool, capability, reason, input artifact, output artifact, cost estimate, fallback, and readiness.',
+      relatedField: 'toolCallIntentPlan.intents',
+    }),
+    check({
+      id: 'validation-tool-call-intent-baseline-tools',
+      category: 'tool_call_intents',
+      label: 'Tool-call intents expose baseline tools',
+      severity: 'warning',
+      passed: toolCallIntentsExposeBaselineTools(plan),
+      message: 'Planned calls should expose the expected FFmpeg, OCR/OpenCV, OpenColorIO, and Remotion backend candidates when the plan is built.',
+      relatedField: 'toolCallIntentPlan.intents.toolId',
+    }),
+    check({
+      id: 'validation-tool-call-intent-execution-gates',
+      category: 'tool_call_intents',
+      label: 'Tool-call intents preserve execution gates',
+      severity: 'blocking',
+      passed: toolCallIntentsPreserveExecutionGates(plan),
+      message: 'Tool-call intents must remain approval-gated, backend-only, and tied to approved snapshot, credit reservation, and idempotency gates.',
+      relatedField: 'toolCallIntentPlan.notes',
     }),
     check({
       id: 'validation-color-pipeline-plan',

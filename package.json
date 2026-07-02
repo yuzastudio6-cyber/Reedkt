@@ -47,6 +47,7 @@
     "smoke:tool-cost-wallet-settlement:service-role": "tsx server/smoke/tool-cost-wallet-settlement-service-role-smoke.ts",
     "smoke:tool-cost-wallet-settlement:sql": "tsx server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts",
     "smoke:unified-skill-capability-registry": "tsx server/smoke/unified-skill-capability-registry-smoke.ts",
+    "smoke:tool-call-intent-planner": "tsx server/smoke/tool-call-intent-planner-smoke.ts",
     "smoke:tool-beta-execution-readiness": "tsx server/smoke/tool-beta-execution-readiness-smoke.ts",
     "smoke:beta-readiness-api": "tsx server/smoke/beta-readiness-api-smoke.ts",
     "smoke:beta-readiness": "tsx server/smoke/beta-readiness-smoke.ts",

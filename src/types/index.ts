@@ -24,6 +24,7 @@ export * from './job-runtime'
 export * from './backend-runtime'
 export * from './worker-lease'
 export * from './e2e-runtime'
+export * from './tool-call-intents'
 export type {
   CreditGateCheckInput,
   CreditGateCheckResult,

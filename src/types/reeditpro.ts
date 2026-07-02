@@ -3,6 +3,7 @@ import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
 import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
+import type { ToolCallIntentPlan } from './tool-call-intents'
 
 export type SignatureSystem =
   | 'stroke_motion'
@@ -4059,6 +4060,7 @@ export interface EditPlan {
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   toolRegistrySummary?: ToolRegistrySummary
   toolStrategyPlan?: ToolStrategyPlan
+  toolCallIntentPlan?: ToolCallIntentPlan
   colorPipelinePlan?: ColorPipelinePlan
   audioPipelinePlan?: AudioPipelinePlan
   mapAnimationPlan?: MapAnimationPlan

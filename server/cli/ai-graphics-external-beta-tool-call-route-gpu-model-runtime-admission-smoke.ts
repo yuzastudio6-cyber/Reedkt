@@ -198,6 +198,34 @@ function normalizeProofReadyNativeGpuOnlyRequest(
   }
 }
 
+function normalizeProofReadyModelWeightRequest(
+  request: AiGraphicsExternalBetaToolCallRequest,
+): AiGraphicsExternalBetaToolCallRequest {
+  const normalized = normalizeRequest(request)
+  return {
+    ...normalized,
+    requestId: normalized.requestId.replace(
+      'gpu-model-admission-',
+      'gpu-model-admission-model-weight-proof-ready-',
+    ),
+    traceId: normalized.traceId.replace(
+      'gpu-model-admission',
+      'gpu-model-admission-model-weight-proof-ready',
+    ),
+    nativeGpuRuntimeProofRef:
+      `private://ai-graphics/external-beta/native-gpu-proof/${request.toolId}/accepted-result`,
+    modelWeightManifestRef:
+      `private://ai-graphics/external-beta/model-weight-manifest/${request.toolId}/accepted-manifest`,
+    payload: {
+      ...(normalized.payload ?? {}),
+      gpuModelRuntimeAdmissionProofRefsProvided: true,
+      nativeGpuRuntimeProofRefProvided: true,
+      modelWeightManifestRefProvided: true,
+      workerEnqueueStillBlockedByCurrentLane: true,
+    },
+  }
+}
+
 function asArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
@@ -284,7 +312,12 @@ function buildReport(
   routeMountedButAdmissionDisabledStatus: number,
   blockedResults: GpuModelRuntimeAdmissionBlockedResult[],
   proofReadyNativeOnlyResults: GpuModelRuntimeAdmissionBlockedResult[],
+  proofReadyModelWeightResults: GpuModelRuntimeAdmissionBlockedResult[],
 ) {
+  const allProofReadyResults = [
+    ...proofReadyNativeOnlyResults,
+    ...proofReadyModelWeightResults,
+  ]
   return {
     schemaVersion:
       '2026-07-02.ai-graphics.external-beta-tool-call-route-gpu-model-runtime-admission-smoke',
@@ -295,6 +328,7 @@ function buildReport(
     routeMountedButAdmissionDisabledStatus,
     blockedResults,
     proofReadyNativeOnlyResults,
+    proofReadyModelWeightResults,
     counts: {
       totalAiGraphicsTools: 21,
       controlledCanonicalRouteExecutedTools: 13,
@@ -328,17 +362,48 @@ function buildReport(
           item.runtimeJobAdmissionReadyWithProvidedEvidence &&
           item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue'
         )).length,
+      modelWeightAdmissionReadyWithProvidedRefsTools:
+        proofReadyModelWeightResults.filter((item) => (
+          item.runtimeJobAdmissionReadyWithProvidedEvidence &&
+          item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue'
+        )).length,
+      allGpuModelAdmissionReadyWithProvidedRefsTools:
+        allProofReadyResults.filter((item) => (
+          item.runtimeJobAdmissionReadyWithProvidedEvidence &&
+          item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue'
+        )).length,
       proofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools:
         proofReadyNativeOnlyResults.filter((item) => (
+          item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob
+        )).length,
+      proofReadyModelWeightGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools:
+        proofReadyModelWeightResults.filter((item) => (
+          item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob
+        )).length,
+      allProofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools:
+        allProofReadyResults.filter((item) => (
           item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob
         )).length,
       proofReadyWorkerEnqueueStillBlockedTools:
         proofReadyNativeOnlyResults.filter((item) => (
           item.workerEnqueueStillBlockedByCurrentLane
         )).length,
+      proofReadyModelWeightWorkerEnqueueStillBlockedTools:
+        proofReadyModelWeightResults.filter((item) => (
+          item.workerEnqueueStillBlockedByCurrentLane
+        )).length,
+      allProofReadyWorkerEnqueueStillBlockedTools:
+        allProofReadyResults.filter((item) => (
+          item.workerEnqueueStillBlockedByCurrentLane
+        )).length,
       proofReadyGpuRuntimeShouldStartNowTools:
         proofReadyNativeOnlyResults.filter((item) => item.gpuRuntimeShouldStartNow)
           .length,
+      proofReadyModelWeightGpuRuntimeShouldStartNowTools:
+        proofReadyModelWeightResults.filter((item) => item.gpuRuntimeShouldStartNow)
+          .length,
+      allProofReadyGpuRuntimeShouldStartNowTools:
+        allProofReadyResults.filter((item) => item.gpuRuntimeShouldStartNow).length,
       gpuRuntimeShouldStartNowTools:
         blockedResults.filter((item) => item.gpuRuntimeShouldStartNow).length,
       workerDispatchPerformedTools:
@@ -380,6 +445,31 @@ function buildReport(
           item.nativeGpuRuntimeProofRefAccepted === true &&
           item.modelWeightManifestRefAccepted === false
         )),
+      modelWeightToolsAcceptPrivateManifestAndGpuProofRefsForAdmission:
+        proofReadyModelWeightResults.length === 5 &&
+        proofReadyModelWeightResults.every((item) => (
+          modelWeightManifestRequiredTools.includes(item.toolId) &&
+          item.blocked === true &&
+          item.statusCode === 409 &&
+          item.runtimeJobAdmissionReadyWithProvidedEvidence === true &&
+          item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue' &&
+          item.nativeGpuRuntimeProofRefAccepted === true &&
+          item.nativeGpuRuntimeProofAccepted === true &&
+          item.modelWeightManifestRequired === true &&
+          item.modelWeightManifestRefAccepted === true &&
+          item.modelWeightPrivateEvidenceAccepted === true
+        )),
+      allGpuModelToolsAcceptRequiredPrivateProofRefsForAdmission:
+        allProofReadyResults.length === 8 &&
+        allProofReadyResults.every((item) => (
+          gpuModelTools.includes(item.toolId) &&
+          item.blocked === true &&
+          item.statusCode === 409 &&
+          item.runtimeJobAdmissionReadyWithProvidedEvidence === true &&
+          item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue' &&
+          item.nativeGpuRuntimeProofRefAccepted === true &&
+          item.nativeGpuRuntimeProofAccepted === true
+        )),
       proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue:
         proofReadyNativeOnlyResults.length === 3 &&
         proofReadyNativeOnlyResults.every((item) => (
@@ -388,9 +478,39 @@ function buildReport(
           item.workerDispatchPerformed === false &&
           item.toolExecutionPerformed === false
         )),
+      proofReadyModelWeightToolsStillFailClosedBeforeWorkerEnqueue:
+        proofReadyModelWeightResults.length === 5 &&
+        proofReadyModelWeightResults.every((item) => (
+          item.blocked === true &&
+          item.workerEnqueueStillBlockedByCurrentLane === true &&
+          item.workerDispatchPerformed === false &&
+          item.toolExecutionPerformed === false
+        )),
+      allProofReadyGpuModelToolsStillFailClosedBeforeWorkerEnqueue:
+        allProofReadyResults.length === 8 &&
+        allProofReadyResults.every((item) => (
+          item.blocked === true &&
+          item.workerEnqueueStillBlockedByCurrentLane === true &&
+          item.workerDispatchPerformed === false &&
+          item.toolExecutionPerformed === false
+        )),
       proofReadyGpuToolsDoNotStartGpuRuntime:
         proofReadyNativeOnlyResults.length === 3 &&
         proofReadyNativeOnlyResults.every((item) => (
+          item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true &&
+          item.gpuRuntimeShouldStartNow === false &&
+          item.modelWeightsLoaded === false
+        )),
+      proofReadyModelWeightToolsDoNotLoadWeightsOrStartGpu:
+        proofReadyModelWeightResults.length === 5 &&
+        proofReadyModelWeightResults.every((item) => (
+          item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true &&
+          item.gpuRuntimeShouldStartNow === false &&
+          item.modelWeightsLoaded === false
+        )),
+      allProofReadyGpuModelToolsDoNotStartGpuRuntimeOrLoadWeights:
+        allProofReadyResults.length === 8 &&
+        allProofReadyResults.every((item) => (
           item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true &&
           item.gpuRuntimeShouldStartNow === false &&
           item.modelWeightsLoaded === false
@@ -456,6 +576,11 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
       `| \`${item.toolId}\` | \`${item.statusCode}\` | \`${item.admissionDecision}\` | \`${item.gpuModelAdmissionEvidenceState}\` | \`${item.workerEnqueueStillBlockedByCurrentLane}\` | \`${item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
     ))
     .join('\n')
+  const modelWeightProofReadyRows = report.proofReadyModelWeightResults
+    .map((item) => (
+      `| \`${item.toolId}\` | \`${item.statusCode}\` | \`${item.admissionDecision}\` | \`${item.gpuModelAdmissionEvidenceState}\` | \`${item.modelWeightManifestRefAccepted}\` | \`${item.nativeGpuRuntimeProofRefAccepted}\` | \`${item.workerEnqueueStillBlockedByCurrentLane}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
+    ))
+    .join('\n')
 
   return `# AI Graphics External Beta Canonical Tool-Call GPU Model Runtime Admission Smoke
 
@@ -479,6 +604,14 @@ These rows prove the canonical route now preserves accepted private native GPU p
 | --- | --- | --- | --- | --- | --- | --- |
 ${proofReadyRows}
 
+## Model-Weight Proof Ref Admission Results
+
+These rows prove the canonical route now preserves both accepted private model-weight manifest refs and accepted private native GPU proof refs for the five model-weight tools. The route can mark those requests as ready for future worker enqueue, but the current lane still returns \`409\`, does not enqueue a live worker, does not dispatch, does not load model weights, and does not start GPU runtime.
+
+| Tool | HTTP status | Admission decision | Evidence state | Model manifest ref accepted | Native GPU proof ref accepted | Worker enqueue still blocked | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+${modelWeightProofReadyRows}
+
 ## Counts
 
 ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
@@ -500,11 +633,18 @@ async function main() {
   const proofReadyNativeOnlyCases = listAiGraphicsExternalBetaToolCallBlockedReadinessCases()
     .filter((item) => nativeGpuProofOnlyTools.includes(item.request.toolId))
     .map((item) => normalizeProofReadyNativeGpuOnlyRequest(item.request))
+  const proofReadyModelWeightCases = listAiGraphicsExternalBetaToolCallBlockedReadinessCases()
+    .filter((item) => modelWeightManifestRequiredTools.includes(item.request.toolId))
+    .map((item) => normalizeProofReadyModelWeightRequest(item.request))
 
   assert(cases.length === 8, `Expected eight GPU/model cases, got ${cases.length}`)
   assert(
     proofReadyNativeOnlyCases.length === 3,
     `Expected three native-GPU proof-ready cases, got ${proofReadyNativeOnlyCases.length}`,
+  )
+  assert(
+    proofReadyModelWeightCases.length === 5,
+    `Expected five model-weight proof-ready cases, got ${proofReadyModelWeightCases.length}`,
   )
 
   const disabledStatus = await withServer(false, async (baseUrl) => {
@@ -522,6 +662,13 @@ async function main() {
   const proofReadyNativeOnlyResults = await withServer(true, async (baseUrl) => {
     const results: GpuModelRuntimeAdmissionBlockedResult[] = []
     for (const request of proofReadyNativeOnlyCases) {
+      results.push(await runBlockedCase(baseUrl, request))
+    }
+    return results
+  })
+  const proofReadyModelWeightResults = await withServer(true, async (baseUrl) => {
+    const results: GpuModelRuntimeAdmissionBlockedResult[] = []
+    for (const request of proofReadyModelWeightCases) {
       results.push(await runBlockedCase(baseUrl, request))
     }
     return results
@@ -668,10 +815,72 @@ async function main() {
     assert(result.signedUrlCreated === false, `${result.toolId} created signed URL`)
   }
 
+  for (const result of proofReadyModelWeightResults) {
+    assert(result.statusCode === 409, `${result.toolId} proof-ready response should return 409`)
+    assert(result.blocked === true, `${result.toolId} proof-ready response should remain blocked`)
+    assert(
+      result.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue',
+      `${result.toolId} proof-ready admission decision mismatch`,
+    )
+    assert(
+      result.runtimeJobAdmissionReadyWithProvidedEvidence === true,
+      `${result.toolId} should accept provided private proof refs for admission`,
+    )
+    assert(
+      result.gpuModelAdmissionEvidenceState ===
+        'proof_refs_accepted_pending_live_worker_enqueue',
+      `${result.toolId} proof-ready evidence state mismatch`,
+    )
+    assert(
+      result.nextExternalAgentAction ===
+        'wait_for_live_worker_enqueue_authorization_or_submit_to_approved_worker_lane',
+      `${result.toolId} proof-ready next action mismatch`,
+    )
+    assert(
+      result.nativeGpuRuntimeProofRefAccepted === true,
+      `${result.toolId} should accept the native GPU proof ref`,
+    )
+    assert(
+      result.nativeGpuRuntimeProofAccepted === true,
+      `${result.toolId} should report native GPU proof accepted`,
+    )
+    assert(
+      result.modelWeightManifestRequired === true,
+      `${result.toolId} should require model-weight manifest ref`,
+    )
+    assert(
+      result.modelWeightManifestRefAccepted === true,
+      `${result.toolId} should accept the model-weight manifest ref`,
+    )
+    assert(
+      result.modelWeightPrivateEvidenceAccepted === true,
+      `${result.toolId} should report private model evidence accepted`,
+    )
+    assert(
+      result.missingRuntimeProofGates.length === 0,
+      `${result.toolId} should not report missing runtime proof gates`,
+    )
+    assert(
+      result.workerEnqueueStillBlockedByCurrentLane === true,
+      `${result.toolId} should keep worker enqueue blocked in this lane`,
+    )
+    assert(
+      result.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true,
+      `${result.toolId} should mark GPU start allowed only after an accepted job`,
+    )
+    assert(result.gpuRuntimeShouldStartNow === false, `${result.toolId} started GPU runtime`)
+    assert(result.workerDispatchPerformed === false, `${result.toolId} dispatched worker`)
+    assert(result.toolExecutionPerformed === false, `${result.toolId} executed tool`)
+    assert(result.modelWeightsLoaded === false, `${result.toolId} loaded model weights`)
+    assert(result.publicArtifactCreated === false, `${result.toolId} created public artifact`)
+    assert(result.signedUrlCreated === false, `${result.toolId} created signed URL`)
+  }
+
   const report = buildReport(
     disabledStatus,
     blockedResults,
     proofReadyNativeOnlyResults,
+    proofReadyModelWeightResults,
   )
   if (process.argv.includes('--write-records')) {
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)

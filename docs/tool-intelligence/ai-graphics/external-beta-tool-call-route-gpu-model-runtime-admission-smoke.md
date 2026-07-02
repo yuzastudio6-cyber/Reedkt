@@ -29,6 +29,18 @@ These rows prove the canonical route now preserves accepted private native GPU p
 | `transformers` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `false` |
 | `kornia` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `false` |
 
+## Model-Weight Proof Ref Admission Results
+
+These rows prove the canonical route now preserves both accepted private model-weight manifest refs and accepted private native GPU proof refs for the five model-weight tools. The route can mark those requests as ready for future worker enqueue, but the current lane still returns `409`, does not enqueue a live worker, does not dispatch, does not load model weights, and does not start GPU runtime.
+
+| Tool | HTTP status | Admission decision | Evidence state | Model manifest ref accepted | Native GPU proof ref accepted | Worker enqueue still blocked | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `sam2` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `true` | `false` |
+| `birefnet` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `true` | `false` |
+| `real_esrgan` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `true` | `false` |
+| `rembg` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `true` | `false` |
+| `transparent_background` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `true` | `false` |
+
 ## Counts
 
 - `totalAiGraphicsTools`: 21
@@ -42,9 +54,17 @@ These rows prove the canonical route now preserves accepted private native GPU p
 - `nativeGpuRuntimeProofRequiredTools`: 8
 - `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 0
 - `nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools`: 3
+- `modelWeightAdmissionReadyWithProvidedRefsTools`: 5
+- `allGpuModelAdmissionReadyWithProvidedRefsTools`: 8
 - `proofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 3
+- `proofReadyModelWeightGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 5
+- `allProofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 8
 - `proofReadyWorkerEnqueueStillBlockedTools`: 3
+- `proofReadyModelWeightWorkerEnqueueStillBlockedTools`: 5
+- `allProofReadyWorkerEnqueueStillBlockedTools`: 8
 - `proofReadyGpuRuntimeShouldStartNowTools`: 0
+- `proofReadyModelWeightGpuRuntimeShouldStartNowTools`: 0
+- `allProofReadyGpuRuntimeShouldStartNowTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
 - `workerDispatchPerformedTools`: 0
 - `toolExecutionPerformedTools`: 0
@@ -62,8 +82,14 @@ These rows prove the canonical route now preserves accepted private native GPU p
 - `fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker`: true
 - `threeFoundationGpuToolsExposeNativeGpuOnlyBlocker`: true
 - `nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission`: true
+- `modelWeightToolsAcceptPrivateManifestAndGpuProofRefsForAdmission`: true
+- `allGpuModelToolsAcceptRequiredPrivateProofRefsForAdmission`: true
 - `proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue`: true
+- `proofReadyModelWeightToolsStillFailClosedBeforeWorkerEnqueue`: true
+- `allProofReadyGpuModelToolsStillFailClosedBeforeWorkerEnqueue`: true
 - `proofReadyGpuToolsDoNotStartGpuRuntime`: true
+- `proofReadyModelWeightToolsDoNotLoadWeightsOrStartGpu`: true
+- `allProofReadyGpuModelToolsDoNotStartGpuRuntimeOrLoadWeights`: true
 - `noGpuModelToolReportsAcceptedEvidenceNow`: true
 - `allGpuModelToolsReportNativeGpuProofMissing`: true
 - `allModelWeightToolsReportManifestMissing`: true

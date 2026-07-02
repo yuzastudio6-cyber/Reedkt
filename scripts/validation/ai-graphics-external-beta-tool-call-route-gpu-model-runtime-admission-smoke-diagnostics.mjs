@@ -249,9 +249,17 @@ function checkReport(label, report) {
     nativeGpuRuntimeProofRequiredTools: 8,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 0,
     nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools: 3,
+    modelWeightAdmissionReadyWithProvidedRefsTools: 5,
+    allGpuModelAdmissionReadyWithProvidedRefsTools: 8,
     proofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 3,
+    proofReadyModelWeightGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 5,
+    allProofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     proofReadyWorkerEnqueueStillBlockedTools: 3,
+    proofReadyModelWeightWorkerEnqueueStillBlockedTools: 5,
+    allProofReadyWorkerEnqueueStillBlockedTools: 8,
     proofReadyGpuRuntimeShouldStartNowTools: 0,
+    proofReadyModelWeightGpuRuntimeShouldStartNowTools: 0,
+    allProofReadyGpuRuntimeShouldStartNowTools: 0,
     gpuRuntimeShouldStartNowTools: 0,
     workerDispatchPerformedTools: 0,
     toolExecutionPerformedTools: 0,
@@ -273,8 +281,14 @@ function checkReport(label, report) {
     'fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker',
     'threeFoundationGpuToolsExposeNativeGpuOnlyBlocker',
     'nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission',
+    'modelWeightToolsAcceptPrivateManifestAndGpuProofRefsForAdmission',
+    'allGpuModelToolsAcceptRequiredPrivateProofRefsForAdmission',
     'proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue',
+    'proofReadyModelWeightToolsStillFailClosedBeforeWorkerEnqueue',
+    'allProofReadyGpuModelToolsStillFailClosedBeforeWorkerEnqueue',
     'proofReadyGpuToolsDoNotStartGpuRuntime',
+    'proofReadyModelWeightToolsDoNotLoadWeightsOrStartGpu',
+    'allProofReadyGpuModelToolsDoNotStartGpuRuntimeOrLoadWeights',
     'noGpuModelToolReportsAcceptedEvidenceNow',
     'allGpuModelToolsReportNativeGpuProofMissing',
     'allModelWeightToolsReportManifestMissing',
@@ -371,6 +385,70 @@ function checkReport(label, report) {
       if (row[key] !== false) fail(`${label}_${toolId}_proof_ready_${key}_not_false`)
     }
   }
+
+  const proofReadyModelWeightRows = report.proofReadyModelWeightResults
+  if (
+    !Array.isArray(proofReadyModelWeightRows) ||
+    proofReadyModelWeightRows.length !== 5
+  ) {
+    fail(`${label}_proof_ready_model_weight_rows_count_mismatch`)
+    return
+  }
+  for (const toolId of modelWeightManifestRequiredTools) {
+    const row = proofReadyModelWeightRows.find((item) => item.toolId === toolId)
+    if (!row) {
+      fail(`${label}_missing_proof_ready_model_weight_tool:${toolId}`)
+      continue
+    }
+    if (row.statusCode !== 409) fail(`${label}_${toolId}_proof_ready_status_not_409`)
+    if (row.blocked !== true) fail(`${label}_${toolId}_proof_ready_not_blocked`)
+    if (row.admissionDecision !== 'runtime_job_admission_ready_for_worker_enqueue') {
+      fail(`${label}_${toolId}_proof_ready_admission_decision_mismatch`)
+    }
+    if (row.runtimeJobAdmissionReadyWithProvidedEvidence !== true) {
+      fail(`${label}_${toolId}_proof_ready_runtime_job_not_ready`)
+    }
+    if (
+      row.gpuModelAdmissionEvidenceState !==
+      'proof_refs_accepted_pending_live_worker_enqueue'
+    ) {
+      fail(`${label}_${toolId}_proof_ready_evidence_state_mismatch`)
+    }
+    if (row.nativeGpuRuntimeProofRefAccepted !== true) {
+      fail(`${label}_${toolId}_native_gpu_proof_ref_not_accepted`)
+    }
+    if (row.nativeGpuRuntimeProofAccepted !== true) {
+      fail(`${label}_${toolId}_native_gpu_proof_not_accepted`)
+    }
+    if (row.modelWeightManifestRequired !== true) {
+      fail(`${label}_${toolId}_model_weight_manifest_required_not_true`)
+    }
+    if (row.modelWeightManifestRefAccepted !== true) {
+      fail(`${label}_${toolId}_model_weight_manifest_ref_not_accepted`)
+    }
+    if (row.modelWeightPrivateEvidenceAccepted !== true) {
+      fail(`${label}_${toolId}_private_model_evidence_not_accepted`)
+    }
+    if (!Array.isArray(row.missingRuntimeProofGates) || row.missingRuntimeProofGates.length !== 0) {
+      fail(`${label}_${toolId}_proof_ready_missing_runtime_proof_gates_not_empty`)
+    }
+    if (row.workerEnqueueStillBlockedByCurrentLane !== true) {
+      fail(`${label}_${toolId}_worker_enqueue_not_blocked_by_lane`)
+    }
+    if (row.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
+      fail(`${label}_${toolId}_gpu_start_not_allowed_after_accepted_job`)
+    }
+    for (const key of [
+      'gpuRuntimeShouldStartNow',
+      'workerDispatchPerformed',
+      'toolExecutionPerformed',
+      'modelWeightsLoaded',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) {
+      if (row[key] !== false) fail(`${label}_${toolId}_proof_ready_${key}_not_false`)
+    }
+  }
 }
 
 for (const file of requiredFiles) read(file)
@@ -421,13 +499,19 @@ for (const phrase of [
 }
 for (const phrase of [
   'Expected eight GPU/model cases',
+  'Expected five model-weight proof-ready cases',
   'allGpuModelToolsExposeActionableUnblockPlan',
   'allModelWeightToolsReportManifestMissing',
   'nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission',
+  'modelWeightToolsAcceptPrivateManifestAndGpuProofRefsForAdmission',
+  'allGpuModelToolsAcceptRequiredPrivateProofRefsForAdmission',
   'proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue',
+  'proofReadyModelWeightToolsStillFailClosedBeforeWorkerEnqueue',
+  'proofReadyModelWeightToolsDoNotLoadWeightsOrStartGpu',
   'blocked_pending_native_gpu_runtime_proof',
   'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
+  'Model-Weight Proof Ref Admission Results',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
 }
@@ -465,6 +549,12 @@ if (!scorecard.includes('agentCanExecuteGpuModelToolsNow=false')) {
 if (!scorecard.includes('nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools=3')) {
   fail('scorecard_missing_native_gpu_proof_ready_ref_count')
 }
+if (!scorecard.includes('modelWeightAdmissionReadyWithProvidedRefsTools=5')) {
+  fail('scorecard_missing_model_weight_proof_ready_ref_count')
+}
+if (!scorecard.includes('allGpuModelAdmissionReadyWithProvidedRefsTools=8')) {
+  fail('scorecard_missing_all_gpu_model_proof_ready_ref_count')
+}
 for (const toolId of gpuModelTools) {
   if (!JSON.stringify(docs).includes(`"${toolId}"`)) fail(`docs_json_missing_tool:${toolId}`)
   if (!docsMd.includes(`\`${toolId}\``)) fail(`docs_md_missing_tool:${toolId}`)
@@ -473,6 +563,12 @@ for (const toolId of nativeGpuProofOnlyTools) {
   const proofReadyMention = JSON.stringify(docs.proofReadyNativeOnlyResults ?? [])
   if (!proofReadyMention.includes(`"${toolId}"`)) {
     fail(`docs_json_missing_proof_ready_tool:${toolId}`)
+  }
+}
+for (const toolId of modelWeightManifestRequiredTools) {
+  const proofReadyMention = JSON.stringify(docs.proofReadyModelWeightResults ?? [])
+  if (!proofReadyMention.includes(`"${toolId}"`)) {
+    fail(`docs_json_missing_model_weight_proof_ready_tool:${toolId}`)
   }
 }
 
@@ -514,6 +610,10 @@ console.log(JSON.stringify({
     docs.counts.gpuModelRuntimeAdmissionBlockedTools,
   nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools:
     docs.counts.nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools,
+  modelWeightAdmissionReadyWithProvidedRefsTools:
+    docs.counts.modelWeightAdmissionReadyWithProvidedRefsTools,
+  allGpuModelAdmissionReadyWithProvidedRefsTools:
+    docs.counts.allGpuModelAdmissionReadyWithProvidedRefsTools,
   controlledCanonicalRouteExecutedTools:
     docs.counts.controlledCanonicalRouteExecutedTools,
   gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,

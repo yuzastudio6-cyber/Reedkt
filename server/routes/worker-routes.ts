@@ -14,6 +14,10 @@ import {
   RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_QUEUED_JOB_RUNTIME_ROUTE_INVOCATION_ROUTE_PATH,
   runGstreamerMkvtoolnixQueuedJobRuntimeRouteInvocation,
 } from '../services/rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-route-invocation-1'
+import {
+  RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_ROUTE_PATH,
+  runGstreamerMkvtoolnixPersistedJobRuntimeHandoff,
+} from '../services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-1'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
@@ -21,6 +25,7 @@ import {
   gstreamerMkvtoolnixGeneratedFixtureApprovedSnapshotJobQueueHandoffSchema,
   gstreamerMkvtoolnixGeneratedFixtureQueuedJobRuntimeRouteInvocationSchema,
   gstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridgeSchema,
+  gstreamerMkvtoolnixPersistedJobRuntimeHandoffSchema,
   probeMediaJobSchema,
   recordToolRuntimeCheckSchema,
   releaseWorkerJobSchema,
@@ -137,6 +142,23 @@ export function createWorkerRoutes(): Router {
         routeIdempotencyKey: getIdempotencyKey(request),
       })
       sendOk(response, { result }, [], result.ok ? 201 : 409)
+    }),
+  )
+
+  router.post(
+    RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_ROUTE_PATH,
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(
+        gstreamerMkvtoolnixPersistedJobRuntimeHandoffSchema,
+        request.body,
+      )
+      const result = await runGstreamerMkvtoolnixPersistedJobRuntimeHandoff({
+        ...body,
+        routeIdempotencyKey: getIdempotencyKey(request),
+      }, getServiceContext(request))
+      sendOk(response, { result }, result.warnings, result.ok ? 201 : 409)
     }),
   )
 

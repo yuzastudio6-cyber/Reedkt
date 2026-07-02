@@ -79,6 +79,7 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - Read the CPU/static exact execution-admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; exact request envelopes, approved plan snapshots, private artifact manifests, worker-accepted request schemas, and tool QA gates are accepted.
 - Read the CPU/static adapter-invocation and worker-enqueue admission proof for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; adapter envelopes and worker enqueue payloads are accepted, but live queue write, worker enqueue, worker dispatch, and tool execution remain blocked until the next gate passes.
 - Read the CPU/static non-production service-role queue-write smoke preflight for `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, and `viz_js`; the exact environment, server-only credential boundary, telemetry, cleanup, rollback, and saved-result requirements are prepared, but the smoke itself remains unrun and unapproved.
+- Prepare or explicitly run the guarded CPU/static non-production evidence sequence so queue-write proof is validated before worker claim and dispatch proof.
 - Read a saved CPU/static non-production service-role queue-write smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, worker claim and dispatch smoke proof, while direct agent execution remains blocked.
 - Read a saved CPU/static worker claim and dispatch smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, tool execution dry-run proof, while worker execution and tool execution remain blocked.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
@@ -123,8 +124,9 @@ Blocked now:
 12. `npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics`
 13. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics`
 14. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics`
-15. `npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics`
-16. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
+15. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence`
+16. `npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics`
+17. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 

@@ -380,6 +380,7 @@ const safeCommandsBeforeExecution = [
   'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics',
   'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics',
   'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics',
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence',
   'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics',
   'npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics',
 ]
@@ -395,10 +396,62 @@ const allowedPreExecutionActions = [
   'read CPU/static exact execution-admission evidence for the same five tools while preserving adapter, queue, worker, and tool execution blocks',
   'read CPU/static adapter-invocation and worker-enqueue admission evidence for the same five tools while preserving live queue, worker, and tool execution blocks',
   'read CPU/static non-production service-role queue-write smoke preflight evidence for the same five tools while preserving actual queue write, worker, and tool execution blocks',
+  'prepare or explicitly run the guarded CPU/static non-production evidence sequence so queue-write proof is validated before worker claim and dispatch proof',
   'read saved CPU/static non-production service-role queue-write smoke proof when provided, then keep worker claim, dispatch, and tool execution blocked until the next proof gate passes',
   'read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
+
+function safeNextCommand(input: {
+  cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
+  cpuStaticExactAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
+  cpuStaticAdapterInvocationEnqueueAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionRow
+  cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightRow?:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightRow
+  cpuStaticNonProductionServiceRoleQueueWriteSmokeProofRow?:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofRow
+  cpuStaticWorkerClaimAndDispatchSmokeProofRow?:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow
+}): string {
+  const adapterInvocationEnqueueAdmissionReady =
+    input.cpuStaticAdapterInvocationEnqueueAdmissionRow
+      ?.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence === true
+  const exactAdmissionReady =
+    input.cpuStaticExactAdmissionRow?.externalAgentExactRequestAdmittedWithProvidedEvidence ===
+    true
+  const cpuStaticProofPassed =
+    input.cpuStaticProofRow?.externalAgentLiveAdapterInvocationQueueWriteProofPassedWithProvidedEvidence ===
+    true
+  const serviceRoleQueueWriteSmokePreflightReady =
+    input.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightRow
+      ?.nonProductionServiceRoleQueueWriteSmokePreflightReady === true
+  const serviceRoleQueueWriteSmokeProofAccepted =
+    input.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofRow
+      ?.serviceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence === true
+  const workerClaimAndDispatchSmokeProofAccepted =
+    input.cpuStaticWorkerClaimAndDispatchSmokeProofRow
+      ?.workerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence === true
+
+  if (workerClaimAndDispatchSmokeProofAccepted) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
+  }
+  if (serviceRoleQueueWriteSmokeProofAccepted) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics'
+  }
+  if (serviceRoleQueueWriteSmokePreflightReady) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence'
+  }
+  if (cpuStaticProofPassed) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics'
+  }
+  if (adapterInvocationEnqueueAdmissionReady) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics'
+  }
+  if (exactAdmissionReady) {
+    return 'npm run ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics'
+  }
+  return 'npm run ai-graphics:external-agent-execution-gate'
+}
 
 const forbiddenRuntimeActions = [
   'agent/tool execution',
@@ -1410,7 +1463,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         cpuStaticNonProductionServiceRoleQueueWriteSmokeProofRow,
         cpuStaticWorkerClaimAndDispatchSmokeProofRow,
       }),
-      safeNextCommand: 'npm run ai-graphics:external-agent-execution-gate',
+      safeNextCommand: safeNextCommand({
+        cpuStaticProofRow,
+        cpuStaticExactAdmissionRow,
+        cpuStaticAdapterInvocationEnqueueAdmissionRow,
+        cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightRow,
+        cpuStaticNonProductionServiceRoleQueueWriteSmokeProofRow,
+        cpuStaticWorkerClaimAndDispatchSmokeProofRow,
+      }),
     }
   })
 

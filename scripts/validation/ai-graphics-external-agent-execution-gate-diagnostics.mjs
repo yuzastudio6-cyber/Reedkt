@@ -9,6 +9,12 @@ const runScriptCommand = 'tsx server/cli/ai-graphics-external-agent-execution-ga
 const diagnosticScriptName = 'ai-graphics:external-agent-execution-gate:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs'
+const evidenceSequenceCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence'
+const claimAndDispatchProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics'
+const toolExecutionDryRunProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
 const serviceRoleQueueWriteSmokeProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
 const workerClaimAndDispatchSmokeProofScriptName =
@@ -621,6 +627,8 @@ for (const phrase of [
   'CPU/static service-role queue-write smoke preflight accepted: `true`',
   'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`',
   'externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`',
+  'guarded CPU/static non-production evidence sequence',
+  evidenceSequenceCommand,
   'CPU/static saved service-role queue-write smoke proof accepted: `false`',
   'cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
   'cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools: `0`',
@@ -925,6 +933,13 @@ if (acceptedSourceReport.apiRouteMountedNowTools !== 0) {
 }
 assertToolCoverage('accepted_report', acceptedSourceReport.toolRows)
 assertRuntimeRows('accepted_report', acceptedSourceReport.toolRows)
+for (const row of acceptedSourceReport.toolRows.filter(
+  (tool) => tool.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReady === true,
+)) {
+  if (row.safeNextCommand !== evidenceSequenceCommand) {
+    fail(`accepted_report_${row.toolId}_safe_next_not_evidence_sequence`)
+  }
+}
 assertTrueBooleans('accepted_report', acceptedSourceReport.booleans)
 assertFalseBooleans('accepted_report', acceptedSourceReport.booleans)
 
@@ -1030,6 +1045,9 @@ if (!Array.isArray(acceptedProofRows) || acceptedProofRows.length !== 5) {
     }
     if (!row.requiredBeforeExecution?.some((item) => item.includes('worker claim and dispatch smoke proof must pass next'))) {
       fail(`accepted_proof_report_${row.toolId}_missing_worker_claim_dispatch_requirement`)
+    }
+    if (row.safeNextCommand !== claimAndDispatchProofCommand) {
+      fail(`accepted_proof_report_${row.toolId}_safe_next_not_claim_dispatch_proof`)
     }
     if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
       fail(`accepted_proof_report_${row.toolId}_runtime_gate_not_false`)
@@ -1140,6 +1158,9 @@ if (!Array.isArray(acceptedClaimDispatchRows) || acceptedClaimDispatchRows.lengt
     }
     if (!row.requiredBeforeExecution?.some((item) => item.includes('tool execution dry-run proof must pass next'))) {
       fail(`accepted_claim_dispatch_report_${row.toolId}_missing_tool_execution_dry_run_requirement`)
+    }
+    if (row.safeNextCommand !== toolExecutionDryRunProofCommand) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_safe_next_not_tool_execution_dry_run`)
     }
     if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
       fail(`accepted_claim_dispatch_report_${row.toolId}_runtime_gate_not_false`)

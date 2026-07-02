@@ -638,6 +638,7 @@
     "worker-runtime-jobs:sound-cpu-phase171-disabled-route-registration-source-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase171-disabled-route-registration-source-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase172-disabled-route-registry-index-export-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase172-disabled-route-registry-index-export-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase173-disabled-route-registry-index-export-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase173-disabled-route-registry-index-export-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase174-actual-disabled-route-registry-index-export-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase174-actual-disabled-route-registry-index-export-source-creation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

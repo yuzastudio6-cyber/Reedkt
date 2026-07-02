@@ -90,6 +90,26 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase174RegistryIndexExportEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase174-actual-disabled-route-registry-index-export-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase174-actual-disabled-route-registry-index-export-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase174_actual_disabled_route_registry_index_export_source_creation_completed_with_warnings_ready_for_registry_index_export_static_validation' &&
+    evidence.sourceChange?.indexExportAdded === true &&
+    evidence.sourceChange?.registrySourceChanged === false &&
+    evidence.sourceChange?.existingAdjacentExpressRouteMutated === false &&
+    evidence.sourceChange?.expressRouteRegistered === false &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false &&
+    evidence.sourceChange?.routeExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase168-disabled-route-registration-owner-review-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase169-actual-disabled-route-registration-source-creation'),
@@ -120,7 +140,10 @@ assert(!registrySource.includes('requireAuth'), 'registry must not import route 
 assert(!registrySource.includes('process.env.REEDITPRO_WORKER_EXECUTION_ENABLED = true'), 'registry must not enable worker env')
 assert(routeSource.includes('acceptedForDispatch: false'), 'route source must stay fail-closed')
 assert(indexText.includes("from './disabled-dispatch-route.ts'"), 'existing disabled route index export missing')
-assert(!indexText.includes('./disabled-route-registry.ts'), 'index export must not include registry in Phase169')
+assert(
+  !indexText.includes('./disabled-route-registry.ts') || phase174RegistryIndexExportEvidenceExists(),
+  'registry index export must not exist before Phase174 evidence',
+)
 assert(adjacentExpressRoute.includes('SOUND_CPU_WORKER_ROUTE_EXECUTION_ENABLED = false as const'), 'adjacent Express route must remain disabled')
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')

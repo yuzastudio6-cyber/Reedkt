@@ -36,6 +36,19 @@ export {
 } from './disabled-dispatch-route.ts'
 
 export {
+  SOUND_CPU_DISABLED_ROUTE_REGISTRY,
+  SOUND_CPU_DISABLED_ROUTE_REGISTRY_ENTRY,
+  SOUND_CPU_DISABLED_ROUTE_REGISTRY_EXECUTION_ENABLED,
+  SOUND_CPU_DISABLED_ROUTE_REGISTRY_NAME,
+  SOUND_CPU_DISABLED_ROUTE_REGISTRY_STATUS,
+  assertSoundCpuDisabledRouteRegistryExecutionBlocked,
+  createSoundCpuDisabledRouteRegistryResult,
+  getSoundCpuDisabledRouteRegistryEntry,
+  listSoundCpuDisabledRouteRegistry,
+  type SoundCpuDisabledRouteRegistryEntry,
+} from './disabled-route-registry.ts'
+
+export {
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_BLOCKED_REASON,
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_NAME,
   SOUND_CPU_OCR_CAPTION_RENDER_SAFE_ZONE_HOOK_SOURCE_STATUS,

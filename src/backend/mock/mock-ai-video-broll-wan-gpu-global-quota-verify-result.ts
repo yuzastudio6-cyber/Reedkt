@@ -1,5 +1,5 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
-  decision: 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready',
+  decision: 'ai_video_broll_wan_gpu_global_quota_verified_iap_oslogin_fix_required',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
@@ -32,7 +32,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     blocker: 'cleared',
   },
   noIdleLifecycleGate: {
-    readyForBrollNoIdleProofPrompt: true,
+    readyForBrollNoIdleProofPrompt: false,
+    readyForIapOsLoginAccessFixPrompt: true,
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
@@ -45,7 +46,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     runtimePromptRequiredBeforeVmCreate: true,
   },
   readyForExternalAgentExecutionNow: false,
-  readyForBrollNoIdleProofPrompt: true,
+  readyForBrollNoIdleProofPrompt: false,
+  readyForIapOsLoginAccessFixPrompt: true,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
   runtimeSideEffects: {
@@ -75,7 +77,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast2-a with mandatory cleanup, no model import/no inference',
+    'AI-VIDEO-BROLL-GEN-10Q-IAP-OSLOGIN-ACCESS-FIX: diagnose and plan no-public-IP IAP/OS Login access after northeast2-a VM create success and publickey failure, no GPU VM/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

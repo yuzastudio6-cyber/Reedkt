@@ -17,7 +17,7 @@ export type AiVideoBrollWanFastCacheManifestEntry = {
 
 export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   decision:
-    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10p_northeast2a_payload_install_proof',
+    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10q_iap_oslogin_access_fix',
   mode: 'stat_only_private_cache_readiness_check',
   toolId: 'ai_video_broll_generation_wan',
   modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
@@ -44,9 +44,10 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   sqlExecuted: false,
   creditMutationCreated: false,
   readyForExternalAgentExecutionNow: false,
-  readyForBoundedRetryAfterBlockerClears: true,
+  readyForBoundedRetryAfterBlockerClears: false,
+  readyForIapOsLoginAccessFixPrompt: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast2-a with mandatory cleanup, no model import/no inference',
+    'AI-VIDEO-BROLL-GEN-10Q-IAP-OSLOGIN-ACCESS-FIX: diagnose and plan no-public-IP IAP/OS Login access after northeast2-a VM create success and publickey failure, no GPU VM/no inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

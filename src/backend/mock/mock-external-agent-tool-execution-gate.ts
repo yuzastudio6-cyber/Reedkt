@@ -111,13 +111,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10L northamerica-northeast1-b payload/install readiness proof result must remain recorded as blocked by configuration availability before VM creation with cleanup verified',
         '10M no-VM strategy result must remain recorded with northamerica-northeast1-c selected as the next bounded no-idle payload/install readiness proof target',
         '10N northamerica-northeast1-c payload/install readiness proof result must remain recorded as blocked by resource availability before VM creation with cleanup verified',
-        '10O no-VM strategy prompt must choose the next safe path before any further VM attempt',
+        '10O no-VM strategy result must remain recorded with northamerica-northeast2-a selected as the next bounded no-idle payload/install readiness proof target',
+        '10P northamerica-northeast2-a payload/install readiness proof prompt must run before any further VM attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
       currentBlocker:
-        'bounded_no_idle_l4_payload_install_proof_northamerica_northeast1_c_resource_availability_failed_10o_strategy_required',
+        'bounded_no_idle_l4_payload_install_proof_northamerica_northeast2_a_required_after_10o_resource_availability_fix',
       safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10n-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-c-result',
+        'npm run smoke:ai-video-broll-gen-10o-payload-install-resource-availability-fix-result',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {

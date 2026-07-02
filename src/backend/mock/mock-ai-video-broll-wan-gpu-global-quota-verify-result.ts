@@ -4,8 +4,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
   projectId: 'reeditpro',
-  targetRegion: 'northamerica-northeast1',
-  targetZone: 'northamerica-northeast1-c',
+  targetRegion: 'northamerica-northeast2',
+  targetZone: 'northamerica-northeast2-a',
   selectedGpu: 'nvidia_l4',
   machineType: 'g2-standard-4',
   verificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
@@ -75,7 +75,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX: choose next approved no-idle payload/install-readiness strategy after northamerica-northeast1-c resource availability failure, no VM/no inference',
+    'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast2-a with mandatory cleanup, no model import/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

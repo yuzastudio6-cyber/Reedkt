@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10N attempted northamerica-northeast1-c after green preflight but GCP rejected the g2-standard-4 plus L4 resource pool at create time; the 10O no-VM resource-availability strategy prompt must run before another VM attempt',
+        'B-roll 10O selected northamerica-northeast2-a after 10L and 10N proved northamerica-northeast1 payload/install resource pools failed before VM creation; the 10P no-idle proof prompt must run before another VM attempt',
       afterBlockerClears:
-        'run the separate 10O no-VM resource-availability strategy prompt to choose the next no-idle payload/install proof path before any VM create retry',
+        'run the separate 10P no-idle payload/install proof prompt with fresh northeast2-a preflight and mandatory cleanup before any VM create retry',
     }
   }
 

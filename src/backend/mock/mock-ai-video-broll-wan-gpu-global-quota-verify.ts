@@ -15,8 +15,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY = {
   mode: 'read_only_broll_wan_gpu_global_quota_verify',
   toolId: 'ai_video_broll_generation_wan',
   projectId: 'reeditpro',
-  targetRegion: 'northamerica-northeast1',
-  targetZone: 'northamerica-northeast1-c',
+  targetRegion: 'northamerica-northeast2',
+  targetZone: 'northamerica-northeast2-a',
   selectedGpu: 'nvidia_l4',
   machineType: 'g2-standard-4',
   minimumGlobalGpusAllRegionsQuota: 1,
@@ -32,7 +32,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY = {
   nextActionIfQuotaBlocked:
     'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
   nextActionIfQuotaCleared:
-    'AI-VIDEO-BROLL-GEN-10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX: choose next approved no-idle payload/install-readiness strategy after northamerica-northeast1-c resource availability failure, no VM/no inference',
+    'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast2-a with mandatory cleanup, no model import/no inference',
   allowedReadOnlyCommands: [
     {
       id: 'gcloud_path',

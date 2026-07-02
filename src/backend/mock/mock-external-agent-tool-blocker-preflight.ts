@@ -26,8 +26,8 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
   },
   broll: {
     toolId: 'ai_video_broll_generation_wan',
-    targetRegion: 'northamerica-northeast1',
-    targetZone: 'northamerica-northeast1-c',
+    targetRegion: 'northamerica-northeast2',
+    targetZone: 'northamerica-northeast2-a',
     selectedGpu: 'nvidia_l4',
     minimumGlobalGpusAllRegionsQuota: 1,
     minimumRegionalL4Quota: 1,
@@ -38,7 +38,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfCleared:
-      'AI-VIDEO-BROLL-GEN-10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX: choose next approved no-idle payload/install-readiness strategy after northamerica-northeast1-c resource availability failure, no VM/no inference',
+      'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast2-a with mandatory cleanup, no model import/no inference',
   },
   allowedReadOnlyCommands: [
     {
@@ -155,7 +155,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
       id: 'broll_region_quota_describe',
       toolId: 'ai_video_broll_generation_wan',
       command: 'gcloud',
-      args: ['compute', 'regions', 'describe', 'northamerica-northeast1', '--project', 'reeditpro', '--format=json'],
+      args: ['compute', 'regions', 'describe', 'northamerica-northeast2', '--project', 'reeditpro', '--format=json'],
       purpose: 'read regional NVIDIA_L4_GPUS quota without creating resources',
       capturesTokenValue: false,
       mutatesCloud: false,

@@ -53,6 +53,17 @@ for (const file of [
   'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1.md',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-handoff-1-diagnostics.mjs',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/dry-run-envelope.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/readiness.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-packet-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-dry-run-1-diagnostics.mjs',
 ]) {
   allowedChangedFiles.add(file)
 }

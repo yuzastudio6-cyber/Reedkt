@@ -25,7 +25,9 @@
     "externalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequence": "ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_with_runtime_blocks",
     "externalBetaNativeGpuProofCollection": "ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks",
     "externalBetaNativeGpuProofOperatorScaffold": "ai_graphics_external_beta_native_gpu_proof_operator_scaffold_prepared_local_only",
-    "externalBetaNativeGpuProofCloudRunJobScaffold": "ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only"
+    "externalBetaNativeGpuProofCloudRunJobScaffold": "ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only",
+    "browserRuntimeProof": "ai_graphics_browser_runtime_proof_completed_with_warnings",
+    "satoriFontRuntimeProof": "ai_graphics_satori_font_runtime_proof_completed_with_warnings"
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -547,7 +549,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -688,7 +690,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:satori-font-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -829,7 +831,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -876,7 +878,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -923,7 +925,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -970,7 +972,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -1017,7 +1019,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -1064,7 +1066,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:browser-runtime-proof:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -1091,6 +1093,8 @@
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics",
     "npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics",
+    "npm run ai-graphics:browser-runtime-proof:diagnostics",
+    "npm run ai-graphics:satori-font-runtime-proof:diagnostics",
     "npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics",
     "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
     "npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics"
@@ -1109,6 +1113,8 @@
     "Prepare or explicitly run the guarded CPU/static non-production evidence sequence so queue-write proof is validated before worker claim and dispatch proof.",
     "read saved CPU/static non-production service-role queue-write smoke proof when provided, then keep worker claim, dispatch, and tool execution blocked until the next proof gate passes",
     "Read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only.",
+    "Read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks.",
+    "Read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks.",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job",
     "read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes"
   ],

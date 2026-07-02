@@ -83,6 +83,8 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - Read a saved CPU/static non-production service-role queue-write smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, worker claim and dispatch smoke proof, while direct agent execution remains blocked.
 - Read a saved CPU/static worker claim and dispatch smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, tool execution dry-run proof, while worker execution and tool execution remain blocked.
 - Read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only.
+- Read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks.
+- Read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
@@ -130,7 +132,9 @@ Blocked now:
 17. `npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics`
 18. `npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics`
 19. `npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics`
-20. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
+20. `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
+21. `npm run ai-graphics:browser-runtime-proof:diagnostics`
+22. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 

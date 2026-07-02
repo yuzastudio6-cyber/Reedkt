@@ -385,6 +385,8 @@ const safeCommandsBeforeExecution = [
   'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics',
   'npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics',
   'npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics',
+  'npm run ai-graphics:satori-font-runtime-proof:diagnostics',
+  'npm run ai-graphics:browser-runtime-proof:diagnostics',
   'npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics',
 ]
 
@@ -403,10 +405,23 @@ const allowedPreExecutionActions = [
   'read saved CPU/static non-production service-role queue-write smoke proof when provided, then keep worker claim, dispatch, and tool execution blocked until the next proof gate passes',
   'read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes',
   'read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only',
+  'read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks',
+  'read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
+const browserRuntimeProofTools = new Set<AiGraphicsCanonicalToolId>([
+  'echarts',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+])
+
 function safeNextCommand(input: {
+  toolId: AiGraphicsCanonicalToolId
   gpuRequiredForRuntime: boolean
   cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
   cpuStaticExactAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
@@ -457,6 +472,12 @@ function safeNextCommand(input: {
   }
   if (input.gpuRequiredForRuntime) {
     return 'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
+  }
+  if (input.toolId === 'satori') {
+    return 'npm run ai-graphics:satori-font-runtime-proof:diagnostics'
+  }
+  if (browserRuntimeProofTools.has(input.toolId)) {
+    return 'npm run ai-graphics:browser-runtime-proof:diagnostics'
   }
   return 'npm run ai-graphics:external-agent-execution-gate'
 }
@@ -1472,6 +1493,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         cpuStaticWorkerClaimAndDispatchSmokeProofRow,
       }),
       safeNextCommand: safeNextCommand({
+        toolId: tool.toolId,
         gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
         cpuStaticProofRow,
         cpuStaticExactAdmissionRow,

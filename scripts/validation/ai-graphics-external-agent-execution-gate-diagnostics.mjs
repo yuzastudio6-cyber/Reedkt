@@ -17,6 +17,10 @@ const toolExecutionDryRunProofCommand =
   'npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
 const nativeGpuProofCollectionCommand =
   'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
+const satoriFontProofCommand =
+  'npm run ai-graphics:satori-font-runtime-proof:diagnostics'
+const browserRuntimeProofCommand =
+  'npm run ai-graphics:browser-runtime-proof:diagnostics'
 const serviceRoleQueueWriteSmokeProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
 const workerClaimAndDispatchSmokeProofScriptName =
@@ -58,6 +62,16 @@ const gpuTools = new Set([
   'kornia',
   'rembg',
   'transparent_background',
+])
+
+const browserRuntimeProofTools = new Set([
+  'echarts',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
 ])
 
 const falseBooleanKeys = [
@@ -643,6 +657,10 @@ for (const phrase of [
   'toolExecutionDryRunProofRequiredTools: `0`',
   'native GPU proof collection',
   nativeGpuProofCollectionCommand,
+  'Satori font runtime proof diagnostics',
+  satoriFontProofCommand,
+  'browser runtime proof diagnostics',
+  browserRuntimeProofCommand,
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
   'CPU/static live-adapter queue-service proof accepted: `true`',
@@ -949,6 +967,17 @@ for (const row of acceptedSourceReport.toolRows.filter(
 )) {
   if (row.safeNextCommand !== nativeGpuProofCollectionCommand) {
     fail(`accepted_report_${row.toolId}_safe_next_not_native_gpu_proof_collection`)
+  }
+}
+const satoriRow = acceptedSourceReport.toolRows.find((tool) => tool.toolId === 'satori')
+if (satoriRow?.safeNextCommand !== satoriFontProofCommand) {
+  fail('accepted_report_satori_safe_next_not_satori_font_proof')
+}
+for (const row of acceptedSourceReport.toolRows.filter(
+  (tool) => browserRuntimeProofTools.has(tool.toolId),
+)) {
+  if (row.safeNextCommand !== browserRuntimeProofCommand) {
+    fail(`accepted_report_${row.toolId}_safe_next_not_browser_runtime_proof`)
   }
 }
 assertTrueBooleans('accepted_report', acceptedSourceReport.booleans)

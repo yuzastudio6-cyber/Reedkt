@@ -21,6 +21,7 @@
   "activeNativeContainerToolLaneCount": 3,
   "gpacMp4box": {
     "routeSource": "implemented_guarded_mock_queue_handoff_only",
+    "httpRouteInvocationProof": "passed_fail_closed_without_gate_and_confirmed_local_mock_queue_only_with_gate",
     "localMockQueueItem": "allowed_only_under_confirmation_gate",
     "workerSkeletonValidation": "allowed_only_under_confirmation_gate",
     "runtimeDispatch": "pending_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH_CONFIRMED_EXECUTION_1R",

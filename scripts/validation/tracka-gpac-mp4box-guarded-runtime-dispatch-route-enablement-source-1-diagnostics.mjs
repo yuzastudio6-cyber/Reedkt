@@ -144,6 +144,8 @@ for (const text of [
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
+  'HTTP route invocation proof',
+  'passed_fail_closed_without_gate_and_confirmed_local_mock_queue_only_with_gate',
 ]) {
   if (!corpus.includes(text)) fail(`missing required packet text: ${text}`)
 }
@@ -158,6 +160,12 @@ if (record.execution !== execution) fail('record execution mismatch')
 if (record.routePath !== routePath) fail('record route path mismatch')
 if (record.confirmationGate?.required !== gate) fail('record gate mismatch')
 if (record.activeNativeContainerToolLaneCount !== 3) fail('record active tool lane count mismatch')
+if (
+  record.gpacMp4box?.httpRouteInvocationProof !==
+  'passed_fail_closed_without_gate_and_confirmed_local_mock_queue_only_with_gate'
+) {
+  fail('record HTTP route invocation proof mismatch')
+}
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('record product-ready count mismatch')
 if (record.packageLock !== 'unchanged') fail('record package-lock status mismatch')
 if (record.generatedArtifactsCommitted !== 'none') fail('record generated artifacts status mismatch')
@@ -212,6 +220,8 @@ const smoke = read('server/smoke/tracka-gpac-mp4box-guarded-runtime-dispatch-rou
 for (const text of [
   'absent_confirmation_blocks',
   'confirmed_route_source_creates_local_mock_queue_only',
+  'express_route_registered_and_fails_closed_without_env_gate',
+  'express_route_confirmed_returns_local_mock_queue_only',
   'tool_execution_request_blocks',
   'unapproved_command_template_blocks',
 ]) {

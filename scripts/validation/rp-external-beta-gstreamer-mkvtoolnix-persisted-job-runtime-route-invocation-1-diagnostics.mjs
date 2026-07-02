@@ -25,6 +25,16 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1.md',
 ]
 
+const qaRollupFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1/route-invocation-evidence.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1/gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1.md',
+]
+
 const sourceFiles = [
   'server/services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1.ts',
   'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1-smoke.ts',
@@ -36,8 +46,10 @@ const sourceFiles = [
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...sourceFiles,
+  ...qaRollupFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-qa-rollup-1-diagnostics.mjs',
 ])
 
 const requiredText = [

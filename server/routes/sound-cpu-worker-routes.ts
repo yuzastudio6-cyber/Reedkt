@@ -28,7 +28,7 @@ export type SoundCpuWorkerRouteDisabledResponse = Readonly<{
   jobType?: CreateSoundCpuWorkerJobRouteInput['jobType']
   staticOnlyRuntimeFlags: typeof SOUND_CPU_WORKER_ROUTE_DISABLED_FLAGS
   ownerGateRequired: 'WORKER_RUNTIME_JOBS'
-  routeRegisteredInApp: false
+  routeRegisteredInApp: true
   workerDispatchStarted: false
   mediaProcessingStarted: false
   supabaseMutationStarted: false
@@ -51,7 +51,7 @@ export function createSoundCpuRouteDisabledResponse(
     jobType: input.jobType,
     staticOnlyRuntimeFlags: SOUND_CPU_WORKER_ROUTE_DISABLED_FLAGS,
     ownerGateRequired: 'WORKER_RUNTIME_JOBS',
-    routeRegisteredInApp: false,
+    routeRegisteredInApp: true,
     workerDispatchStarted: false,
     mediaProcessingStarted: false,
     supabaseMutationStarted: false,

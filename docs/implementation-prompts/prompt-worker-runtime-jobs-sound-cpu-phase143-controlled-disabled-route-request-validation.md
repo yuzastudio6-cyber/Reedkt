@@ -4,6 +4,7 @@
 {
   "label": "worker-runtime-jobs-sound-cpu-phase143-controlled-disabled-route-request-validation",
   "requiredSourceDecision": "worker_runtime_jobs_sound_cpu_phase142_disabled_route_owner_review_passed_with_warnings_ready_for_controlled_disabled_route_request_validation",
+  "requiredMetadataAlignmentDecision": "worker_runtime_jobs_sound_cpu_phase142_disabled_route_metadata_aligned_with_warnings_ready_for_controlled_disabled_route_request_validation",
   "expectedDecision": "worker_runtime_jobs_sound_cpu_phase143_controlled_disabled_route_request_validation_passed_with_warnings_ready_for_disabled_route_request_owner_review",
   "allowedValidation": {
     "localDisabledPostRequest": true,

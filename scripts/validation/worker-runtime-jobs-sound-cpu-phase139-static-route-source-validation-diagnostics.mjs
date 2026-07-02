@@ -163,7 +163,13 @@ const appSource = read(sourceFiles.app)
 
 assert(routeSource.includes('SOUND_CPU_WORKER_ROUTE_EXECUTION_ENABLED = false'), 'route disabled constant missing')
 assert(routeSource.includes('ROUTE_EXECUTION_NOT_ENABLED'), 'disabled error code missing')
-assert(routeSource.includes('routeRegisteredInApp: false'), 'route registered response missing')
+const phase142MetadataAligned = fs.existsSync(
+  path.join(process.cwd(), 'docs/worker-runtime-jobs-sound-cpu-phase142-disabled-route-metadata-alignment-result.md'),
+)
+assert(
+  routeSource.includes(phase142MetadataAligned ? 'routeRegisteredInApp: true' : 'routeRegisteredInApp: false'),
+  'route registered response metadata missing',
+)
 assert(routeSource.includes('workerDispatchStarted: false'), 'dispatch blocked missing')
 assert(routeSource.includes('supabaseMutationStarted: false'), 'Supabase blocked missing')
 assert(routeSource.includes('artifactCreated: false'), 'artifact blocked missing')
@@ -194,7 +200,7 @@ console.log(
       decision,
       sourcePr: 2148,
       staticValidationPassed: true,
-      routeRegisteredInApp: false,
+      routeRegisteredInApp: phase142MetadataAligned,
       routeExecutionEnabled: false,
       supabaseMutationEnabled: false,
       nextPrompt: 'WORKER_RUNTIME_JOBS-SOUND-CPU-PHASE139-STATIC-ROUTE-SOURCE-OWNER-REVIEW',

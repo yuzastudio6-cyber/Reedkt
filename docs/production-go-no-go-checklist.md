@@ -13,4 +13,4 @@ Before external beta, ReeditPro must have:
 - full E2E dry-run and local-dev fixture validation;
 - final delivery/share policy approval.
 
-M17 does not grant go approval.
+No milestone label grants go approval by itself. External beta, real-user-media beta, and paid production graduate only when the corresponding evidence-driven readiness gate has every required approval, blocker readback, rollback/monitoring path, and billing/privacy control recorded.

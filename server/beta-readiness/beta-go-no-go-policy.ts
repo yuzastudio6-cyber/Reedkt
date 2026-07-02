@@ -1,9 +1,11 @@
 import type { BetaGoNoGoDecision, BetaReadinessChecklistItem } from './beta-readiness-types'
+import { evaluateBetaReadinessGatePolicy } from './beta-readiness-gate-policy'
 
 export interface EvaluateBetaGoNoGoOptions {
   e2eDryRunPassed?: boolean
   safetyDocsExist?: boolean
   costDocsExist?: boolean
+  boundedToolExecutionReady?: boolean
   productionReadinessBlocked?: boolean
   deploymentApproved?: boolean
   securityApproved?: boolean
@@ -13,50 +15,72 @@ export interface EvaluateBetaGoNoGoOptions {
   monitoringApproved?: boolean
   supportApproved?: boolean
   realUserMediaBetaApproved?: boolean
+  privateMediaApproval?: boolean
+  artifactPrivacyEvidenceReady?: boolean
   paidProductionApproved?: boolean
+  productionDeploymentApproved?: boolean
+  billingLedgerPersistenceApproved?: boolean
+  costControlsApproved?: boolean
+  observabilityApproved?: boolean
+  incidentRunbookApproved?: boolean
+  finalDeliveryShareApproved?: boolean
+  hardLaunchBlockersPresent?: boolean
   checklist?: BetaReadinessChecklistItem[]
 }
 
 export function evaluateBetaGoNoGo(options: EvaluateBetaGoNoGoOptions = {}): BetaGoNoGoDecision {
-  const e2eDryRunPassed = options.e2eDryRunPassed ?? true
-  const safetyDocsExist = options.safetyDocsExist ?? true
-  const costDocsExist = options.costDocsExist ?? true
-  const productionReadinessBlocked = options.productionReadinessBlocked ?? true
   const requiredBlockedItems = (options.checklist ?? []).filter((item) => item.requiredForExternalBeta && item.status === 'blocked')
-  const internalDryRunTestingAllowed = e2eDryRunPassed && safetyDocsExist && costDocsExist
-  const missingApprovals = [
-    ...(options.deploymentApproved ? [] : ['Human-run deployment approval is missing.']),
-    ...(options.securityApproved ? [] : ['Security approval is missing.']),
-    ...(options.storageApproved ? [] : ['Storage/privacy approval is missing.']),
-    ...(options.modelLicensesApproved ? [] : ['Model weight and license approval is missing.']),
-    ...(options.legalApproved ? [] : ['Legal approval is missing.']),
-    ...(options.monitoringApproved ? [] : ['Monitoring/observability approval is missing.']),
-    ...(options.supportApproved ? [] : ['Support/incident-response approval is missing.']),
-  ]
+  const launchStageDecisions = evaluateBetaReadinessGatePolicy({
+    e2eDryRunPassed: options.e2eDryRunPassed,
+    safetyDocsExist: options.safetyDocsExist,
+    costDocsExist: options.costDocsExist,
+    boundedToolExecutionReady: options.boundedToolExecutionReady,
+    requiredChecklistBlocked: requiredBlockedItems.length > 0,
+    productionReadinessBlocked: options.productionReadinessBlocked,
+    deploymentApproved: options.deploymentApproved,
+    securityApproved: options.securityApproved,
+    storageApproved: options.storageApproved,
+    modelLicensesApproved: options.modelLicensesApproved,
+    legalApproved: options.legalApproved,
+    monitoringApproved: options.monitoringApproved,
+    supportApproved: options.supportApproved,
+    realUserMediaBetaApproved: options.realUserMediaBetaApproved,
+    privateMediaApproval: options.privateMediaApproval,
+    artifactPrivacyEvidenceReady: options.artifactPrivacyEvidenceReady,
+    paidProductionApproved: options.paidProductionApproved,
+    productionDeploymentApproved: options.productionDeploymentApproved,
+    billingLedgerPersistenceApproved: options.billingLedgerPersistenceApproved,
+    costControlsApproved: options.costControlsApproved,
+    observabilityApproved: options.observabilityApproved,
+    incidentRunbookApproved: options.incidentRunbookApproved,
+    finalDeliveryShareApproved: options.finalDeliveryShareApproved,
+    hardLaunchBlockersPresent: options.hardLaunchBlockersPresent,
+  })
+  const internalDryRunTestingAllowed = launchStageDecisions.internal_dry_run.allowed
+  const limitedLocalDevInternalTestingAllowed = launchStageDecisions.bounded_tool_execution.allowed
+  const externalBetaAllowed = launchStageDecisions.external_beta.allowed
+  const realUserMediaBetaAllowed = launchStageDecisions.real_user_media_beta.allowed
+  const paidProductionAllowed = launchStageDecisions.paid_production.allowed
   const blockers = [
-    ...(productionReadinessBlocked ? ['Production readiness summary remains blocked.'] : []),
     ...requiredBlockedItems.map((item) => `${item.label} blocks external beta.`),
-    ...missingApprovals,
+    ...launchStageDecisions.external_beta.blockers,
+    ...launchStageDecisions.real_user_media_beta.blockers,
+    ...launchStageDecisions.paid_production.blockers,
   ]
-  const externalBetaAllowed = internalDryRunTestingAllowed &&
-    !productionReadinessBlocked &&
-    requiredBlockedItems.length === 0 &&
-    missingApprovals.length === 0
-  const realUserMediaBetaAllowed = externalBetaAllowed && options.realUserMediaBetaApproved === true
-  const paidProductionAllowed = realUserMediaBetaAllowed && options.paidProductionApproved === true
 
   return {
     internalDryRunTestingAllowed,
-    limitedLocalDevInternalTestingAllowed: internalDryRunTestingAllowed,
+    limitedLocalDevInternalTestingAllowed,
     externalBetaAllowed,
     realUserMediaBetaAllowed,
     paidProductionAllowed,
-    blockers,
+    launchStageDecisions,
+    blockers: [...new Set(blockers)],
     warnings: [
       'Internal local-dev fixture testing must not use arbitrary user media.',
       externalBetaAllowed
         ? 'External beta gate is allowed only for the approved scope represented by the supplied evidence.'
-        : 'External beta and paid production remain blocked until human approvals pass.',
+        : 'External beta and paid production remain blocked until their named evidence and owner-approval gates pass.',
     ],
   }
 }

@@ -34,7 +34,15 @@ export interface BetaReadinessScopeApprovalEvidencePacket {
   }>
   approvals: {
     realUserMediaBetaApproved?: true
+    privateMediaApproval?: true
+    artifactPrivacyEvidenceReady?: true
     paidProductionApproved?: true
+    productionDeploymentApproved?: true
+    billingLedgerPersistenceApproved?: true
+    costControlsApproved?: true
+    observabilityApproved?: true
+    incidentRunbookApproved?: true
+    finalDeliveryShareApproved?: true
   }
 }
 
@@ -141,6 +149,8 @@ export function buildBetaReadinessScopeApprovalEvidencePacket(
       }],
       approvals: {
         realUserMediaBetaApproved: true,
+        privateMediaApproval: true,
+        artifactPrivacyEvidenceReady: true,
       },
     }
   }
@@ -168,6 +178,12 @@ export function buildBetaReadinessScopeApprovalEvidencePacket(
     }],
     approvals: {
       paidProductionApproved: true,
+      productionDeploymentApproved: true,
+      billingLedgerPersistenceApproved: true,
+      costControlsApproved: true,
+      observabilityApproved: true,
+      incidentRunbookApproved: true,
+      finalDeliveryShareApproved: true,
     },
   }
 }

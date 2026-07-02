@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import {
   buildBetaReadinessReport,
   buildBetaScenarioReadinessMatrix,
@@ -127,11 +128,77 @@ const approvalOnlyGate = evaluateBetaGoNoGo({
   monitoringApproved: true,
   supportApproved: true,
   realUserMediaBetaApproved: true,
+  privateMediaApproval: true,
+  artifactPrivacyEvidenceReady: true,
   paidProductionApproved: true,
+  productionDeploymentApproved: true,
+  billingLedgerPersistenceApproved: true,
+  costControlsApproved: true,
+  observabilityApproved: true,
+  incidentRunbookApproved: true,
+  finalDeliveryShareApproved: true,
+  hardLaunchBlockersPresent: false,
   checklist: [],
 })
 assert.equal(approvalOnlyGate.externalBetaAllowed, true, 'external beta gate should be evidence-driven, not hardcoded false')
 assert.equal(approvalOnlyGate.realUserMediaBetaAllowed, true, 'real user media beta should be evidence-driven, not hardcoded false')
 assert.equal(approvalOnlyGate.paidProductionAllowed, true, 'paid production should be evidence-driven, not hardcoded false')
+assert.equal(approvalOnlyGate.launchStageDecisions.paid_production.allowed, true, 'paid production launch stage should pass with complete evidence')
+
+const realUserMediaWithoutExternal = evaluateBetaGoNoGo({
+  e2eDryRunPassed: true,
+  safetyDocsExist: true,
+  costDocsExist: true,
+  productionReadinessBlocked: true,
+  realUserMediaBetaApproved: true,
+  privateMediaApproval: true,
+  artifactPrivacyEvidenceReady: true,
+  checklist: [],
+})
+assert.equal(realUserMediaWithoutExternal.externalBetaAllowed, false, 'external beta must stay blocked when production readiness is blocked')
+assert.equal(realUserMediaWithoutExternal.realUserMediaBetaAllowed, false, 'real-user-media beta cannot pass before external beta')
+
+const paidProductionWithoutBilling = evaluateBetaGoNoGo({
+  e2eDryRunPassed: true,
+  safetyDocsExist: true,
+  costDocsExist: true,
+  productionReadinessBlocked: false,
+  deploymentApproved: true,
+  securityApproved: true,
+  storageApproved: true,
+  modelLicensesApproved: true,
+  legalApproved: true,
+  monitoringApproved: true,
+  supportApproved: true,
+  realUserMediaBetaApproved: true,
+  privateMediaApproval: true,
+  artifactPrivacyEvidenceReady: true,
+  paidProductionApproved: true,
+  productionDeploymentApproved: true,
+  costControlsApproved: true,
+  observabilityApproved: true,
+  incidentRunbookApproved: true,
+  finalDeliveryShareApproved: true,
+  checklist: [],
+})
+assert.equal(paidProductionWithoutBilling.realUserMediaBetaAllowed, true, 'real-user-media beta should pass with its complete prerequisite evidence')
+assert.equal(paidProductionWithoutBilling.paidProductionAllowed, false, 'paid production must stay blocked when billing ledger persistence is missing')
+assert.ok(
+  paidProductionWithoutBilling.blockers.some((blocker) => blocker.includes('Billing ledger persistence approval is missing')),
+  'paid production blocker should name missing billing ledger persistence',
+)
+
+const betaReadinessSources = [
+  'server/beta-readiness/beta-readiness-report-builder.ts',
+  'server/beta-readiness/beta-go-no-go-policy.ts',
+  'server/beta-readiness/beta-scenario-readiness-matrix.ts',
+  'server/beta-readiness/platform-deployed-evidence-verifier.ts',
+]
+for (const source of betaReadinessSources) {
+  const contents = readFileSync(source, 'utf8')
+  assert.equal(contents.includes('externalBetaAllowed: false'), false, `${source} must not hardcode externalBetaAllowed false`)
+  assert.equal(contents.includes('paidProductionAllowed: false'), false, `${source} must not hardcode paidProductionAllowed false`)
+  assert.equal(contents.includes('productionReadinessBlocked: true'), false, `${source} must not hardcode productionReadinessBlocked true`)
+}
 
 console.log('beta-readiness-smoke passed')

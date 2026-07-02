@@ -1,3 +1,5 @@
+import type { BetaReadinessStageDecisions } from './beta-readiness-gate-policy'
+
 export type BetaReadinessStatus = 'passed' | 'warning' | 'blocked' | 'not_started'
 
 export interface BetaReadinessChecklistItem {
@@ -31,6 +33,7 @@ export interface BetaGoNoGoDecision {
   externalBetaAllowed: boolean
   realUserMediaBetaAllowed: boolean
   paidProductionAllowed: boolean
+  launchStageDecisions: BetaReadinessStageDecisions
   blockers: string[]
   warnings: string[]
 }
@@ -158,6 +161,7 @@ export interface BetaReadinessReport {
   scenarioMatrix: BetaScenarioReadiness[]
   toolExecutionReadiness: ToolBetaExecutionReadinessReport
   goNoGo: BetaGoNoGoDecision
+  launchStageDecisions: BetaReadinessStageDecisions
   blockers: string[]
   warnings: string[]
   nextActions: string[]

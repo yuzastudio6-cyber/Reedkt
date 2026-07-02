@@ -26,7 +26,16 @@ export interface BetaReadinessEvidencePacketInput {
     | 'monitoringApproved'
     | 'supportApproved'
     | 'realUserMediaBetaApproved'
+    | 'privateMediaApproval'
+    | 'artifactPrivacyEvidenceReady'
     | 'paidProductionApproved'
+    | 'productionDeploymentApproved'
+    | 'billingLedgerPersistenceApproved'
+    | 'costControlsApproved'
+    | 'observabilityApproved'
+    | 'incidentRunbookApproved'
+    | 'finalDeliveryShareApproved'
+    | 'hardLaunchBlockersPresent'
   >
 }
 

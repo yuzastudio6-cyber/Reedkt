@@ -187,8 +187,8 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Documentary/case-study context and evidence must be preserved unless user explicitly approves safe trimming.
 - Tutorial/product demo steps must not be removed if required for understanding.
 - User-marked important clips must not be cut without review.
-- Retake selection and meaning preservation are mock-only until real transcript/media workers exist.
-- Source cleanup is mock-only until real transcript/media analysis workers exist.
+- Retake selection and meaning preservation remain gated until real transcript/media worker evidence, approved-snapshot enforcement, credit reservation, and privacy gates pass; frontend/mock planning must not claim real execution.
+- Source cleanup remains gated until real transcript/media analysis worker evidence, approved-snapshot enforcement, credit reservation, and privacy gates pass; frontend/mock planning must not claim real execution.
 - Future workers must execute approved trim decisions from approved snapshots.
 - The editing agent must use a structured async work graph.
 - The edit must not stop globally while one asset is generating; independent work may continue when dependencies allow it.
@@ -291,7 +291,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - SFX provider integrations must remain behind backend/worker boundaries.
 - Never expose Mirelo or MMAudio provider keys to frontend code.
 - SFX workers must enforce edit plan approval and credit reservation before generation.
-- SFX worker skeletons are mock-only until explicit real integration.
+- SFX worker skeletons are blocked from live execution until explicit backend integration, provider-owner approval, approved-snapshot enforcement, credit reservation, and secret-safety gates pass.
 - Music must not overpower voice, and ducking should be planned when music is present under speech.
 - Audio planning should be deterministic and structured, not random.
 - Speech clarity beats music beat alignment.
@@ -301,7 +301,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Music ducking must protect voice clarity.
 - Documentary and case-study SoundSync timing should stay restrained unless the user requests otherwise.
 - Basic should use simple professional timing, not chaotic beat/SFX timing.
-- Beat grids are mock-only until a future AudioFlux worker exists.
+- Beat grids remain blocked from live audio analysis until an AudioFlux or approved equivalent worker passes source, install, execution, approved-snapshot, credit, and privacy gates.
 - No real audio analysis is implemented in frontend/mock milestones.
 - Future FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band workers may execute audio analysis or processing only after approval.
 - Launch audio analysis candidate is AudioFlux, not Essentia.
@@ -363,7 +363,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Never expose Lyria, Google, or service-role secrets to frontend code.
 - Never expose Google/Lyria API keys to Vite/browser code.
 - Lyria workers must enforce plan approval and credit reservation before generation.
-- Worker skeletons are mock-only until explicit real integration is requested.
+- Worker skeletons are blocked from live execution until explicit backend integration, approved-snapshot enforcement, credit reservation, provider/storage/privacy gates, and worker observability evidence pass.
 - Generated music starts as a project asset and must pass Music QA before preview/export use.
 - Real generation requires edit plan approval and credit reservation.
 - Lyria response parsing must handle text and audio parts in any order.

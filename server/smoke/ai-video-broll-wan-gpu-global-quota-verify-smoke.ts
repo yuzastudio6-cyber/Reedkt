@@ -89,7 +89,8 @@ for (const required of [
   '10H no-VM stockout-fix result selected `us-west4-c`',
   '10J bounded payload/install-readiness proof then stocked out',
   '10L bounded payload/install-readiness proof then failed in `northamerica-northeast1-b`',
-  'AI-VIDEO-BROLL-GEN-10N-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-C',
+  '10N bounded payload/install-readiness proof then failed in `northamerica-northeast1-c`',
+  'AI-VIDEO-BROLL-GEN-10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -123,7 +124,7 @@ assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
 assert.equal(
   spec.nextActionIfQuotaCleared.includes(
-    '10N-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-C',
+    '10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX',
   ),
   true,
 )

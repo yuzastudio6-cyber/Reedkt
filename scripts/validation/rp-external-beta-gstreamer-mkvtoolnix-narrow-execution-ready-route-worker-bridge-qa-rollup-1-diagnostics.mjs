@@ -22,10 +22,27 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-to-approved-snapshot-job-queue-handoff-1.md',
 ]
 
+const confirmedRuntimeExecutionPacketDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1'
+const confirmedRuntimeExecutionPacketFiles = [
+  `${confirmedRuntimeExecutionPacketDir}/source-audit.md`,
+  `${confirmedRuntimeExecutionPacketDir}/evidence-reconciliation.md`,
+  `${confirmedRuntimeExecutionPacketDir}/route-worker-runtime-evidence.md`,
+  `${confirmedRuntimeExecutionPacketDir}/readiness.md`,
+  `${confirmedRuntimeExecutionPacketDir}/safety-boundary.md`,
+  `${confirmedRuntimeExecutionPacketDir}/validation-results.md`,
+  `${confirmedRuntimeExecutionPacketDir}/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...confirmedRuntimeExecutionPacketFiles,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1-diagnostics.mjs',
 ])
 
 const requiredText = [

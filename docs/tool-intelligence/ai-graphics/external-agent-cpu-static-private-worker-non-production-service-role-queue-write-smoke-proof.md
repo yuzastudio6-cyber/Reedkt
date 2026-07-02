@@ -30,6 +30,58 @@ This packet validates a saved non-production service-role queue-write smoke resu
 
 - saved non-production service-role queue-write smoke result is missing
 
+## Operator Result Template
+
+- Template mode: `operator_must_execute_non_production_queue_write_then_fill_saved_result`
+- Source preflight accepted: `true`
+- Tools submitted: `5`
+- Expected queue rows written: `5`
+- Expected queue rows cleaned up: `5`
+- Expected queue rows persisted after cleanup: `0`
+- Local-only suggested result path: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json`
+- Validator command: `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof -- --external-agent-cpu-static-service-role-queue-write-smoke-result <local-result.json> --print-only`
+- Can be used as accepted result without live smoke: `false`
+
+| Tool | Production tool | Runtime target | Source enqueue payload | Backend queue adapter | Private manifest |
+| --- | --- | --- | --- | --- | --- |
+| `d3` | `d3` | `node_cpu_static` | `worker-enqueue-payload://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/d3/payload` | `backend-queue-adapter://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/d3/adapter` | `private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/d3/artifact-manifest` |
+| `vega_lite` | `vega_lite` | `node_cpu_static` | `worker-enqueue-payload://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega_lite/payload` | `backend-queue-adapter://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega_lite/adapter` | `private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/vega_lite/artifact-manifest` |
+| `vega` | `vega` | `node_cpu_static` | `worker-enqueue-payload://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega/payload` | `backend-queue-adapter://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega/adapter` | `private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/vega/artifact-manifest` |
+| `svgdotjs_svg_js` | `svgdotjs_svg_js` | `node_cpu_static` | `worker-enqueue-payload://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/svgdotjs_svg_js/payload` | `backend-queue-adapter://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/svgdotjs_svg_js/adapter` | `private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/svgdotjs_svg_js/artifact-manifest` |
+| `viz_js` | `viz_js` | `node_cpu_static` | `worker-enqueue-payload://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/viz_js/payload` | `backend-queue-adapter://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/viz_js/adapter` | `private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/viz_js/artifact-manifest` |
+
+Required saved-result fields:
+
+- `ok`
+- `decision`
+- `status`
+- `queueName`
+- `toolsSubmitted`
+- `toolsSubmittedIds`
+- `queueRowsWritten`
+- `queueRowsCleanedUp`
+- `queueRowsPersistedAfterCleanup`
+- `workerClaimsCreated`
+- `workerDispatchesPerformed`
+- `workerExecutionsPerformed`
+- `toolExecutionsPerformed`
+- `serviceRoleBoundaryRef`
+- `privateEvidenceRef`
+- `telemetryRef`
+- `cleanupProofRef`
+- `rollbackRef`
+- `sourcePreflightDecision`
+- `sourcePreflightAccepted`
+- `liveServiceRoleQueueWriteSmokeExecutedNow`
+- `liveSupabaseQueueWritesNow`
+- `publicArtifactCreated`
+- `signedUrlCreated`
+- `gpuRuntimeShouldStartNow`
+- `externalAgentExecutableNowTools`
+- `runtimeReadyNow`
+- `externalBetaReadyNow`
+- `productionReadyNow`
+
 ## Tool Rows
 
 | Tool | Runtime target | Proof status | Accepted evidence | Queue rows | Persisted after cleanup | Worker dispatch now | Tool execution now | Blocker |

@@ -79,6 +79,56 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
     AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeResult
 }
 
+export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeOperatorResultTemplate {
+  schemaVersion:
+    '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-operator-result-template'
+  templateMode:
+    'operator_must_execute_non_production_queue_write_then_fill_saved_result'
+  queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
+  sourcePreflightDecision: string | null
+  sourcePreflightAccepted: boolean
+  toolsSubmitted: 5
+  toolsSubmittedIds: AiGraphicsCanonicalToolId[]
+  expectedQueueRowsWritten: 5
+  expectedQueueRowsCleanedUp: 5
+  expectedQueueRowsPersistedAfterCleanup: 0
+  expectedWorkerClaimsCreated: 0
+  expectedWorkerDispatchesPerformed: 0
+  expectedWorkerExecutionsPerformed: 0
+  expectedToolExecutionsPerformed: 0
+  requiredEnvironment: string[]
+  requiredFlags: string[]
+  requiredResultFields: Array<
+    keyof AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeResult
+  >
+  perToolQueueRows: Array<{
+    toolId: AiGraphicsCanonicalToolId
+    productionToolId: ProductionToolId
+    workerType: ProductionRegistryWorkerType
+    runtimeTarget: AiGraphicsRuntimeTarget | 'deferred'
+    queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
+    sourcePreflightStatus: string | null
+    sourceWorkerEnqueuePayloadRef: string | null
+    sourceBackendQueueAdapterRef: string | null
+    privateArtifactManifestRef: string | null
+    expectedOutputVisibility: 'private_artifact_only'
+  }>
+  evidenceRefTemplate: {
+    serviceRoleBoundaryRef: string
+    privateEvidenceRef: string
+    telemetryRef: string
+    cleanupProofRef: string
+    rollbackRef: string
+  }
+  localOnlySuggestedResultPath: string
+  validatorCommand: string
+  canBeUsedAsAcceptedResultWithoutLiveSmoke: false
+  agentCanExecuteToolsNow: false
+  workerDispatchApprovedNow: false
+  toolExecutionApprovedNow: false
+  gpuRuntimeShouldStartNow: false
+}
+
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofRow {
   toolId: AiGraphicsCanonicalToolId
   productionToolId: ProductionToolId
@@ -140,6 +190,8 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServi
     cleanupMustPersistZeroRows: true
     nextGateRequiresWorkerClaimAndDispatchSmoke: true
   }
+  operatorResultTemplate:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeOperatorResultTemplate
   rejectionReasons: string[]
   rows: AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofRow[]
   counts: {
@@ -368,6 +420,109 @@ function reportStatus(input: {
     : 'rejected_saved_non_production_service_role_queue_write_smoke_result'
 }
 
+function operatorResultTemplateFor(input: {
+  sourcePreflightPacket:
+    | AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport
+    | undefined
+  sourceAccepted: boolean
+}): AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeOperatorResultTemplate {
+  const readyRows =
+    input.sourcePreflightPacket?.rows?.filter(
+      (row) =>
+        proofTools.includes(row.toolId) &&
+        row.nonProductionServiceRoleQueueWriteSmokePreflightReady === true,
+    ) ?? []
+  const firstContract = readyRows.find((row) => row.preflightContract)?.preflightContract
+  return {
+    schemaVersion:
+      '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-operator-result-template',
+    templateMode:
+      'operator_must_execute_non_production_queue_write_then_fill_saved_result',
+    queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
+    sourcePreflightDecision: input.sourcePreflightPacket?.decision ?? null,
+    sourcePreflightAccepted: input.sourceAccepted,
+    toolsSubmitted: 5,
+    toolsSubmittedIds: [...proofTools],
+    expectedQueueRowsWritten: 5,
+    expectedQueueRowsCleanedUp: 5,
+    expectedQueueRowsPersistedAfterCleanup: 0,
+    expectedWorkerClaimsCreated: 0,
+    expectedWorkerDispatchesPerformed: 0,
+    expectedWorkerExecutionsPerformed: 0,
+    expectedToolExecutionsPerformed: 0,
+    requiredEnvironment: [...(firstContract?.requiredEnvironment ?? [])],
+    requiredFlags: [...(firstContract?.requiredFlags ?? [])],
+    requiredResultFields: [
+      'ok',
+      'decision',
+      'status',
+      'queueName',
+      'toolsSubmitted',
+      'toolsSubmittedIds',
+      'queueRowsWritten',
+      'queueRowsCleanedUp',
+      'queueRowsPersistedAfterCleanup',
+      'workerClaimsCreated',
+      'workerDispatchesPerformed',
+      'workerExecutionsPerformed',
+      'toolExecutionsPerformed',
+      'serviceRoleBoundaryRef',
+      'privateEvidenceRef',
+      'telemetryRef',
+      'cleanupProofRef',
+      'rollbackRef',
+      'sourcePreflightDecision',
+      'sourcePreflightAccepted',
+      'liveServiceRoleQueueWriteSmokeExecutedNow',
+      'liveSupabaseQueueWritesNow',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'gpuRuntimeShouldStartNow',
+      'externalAgentExecutableNowTools',
+      'runtimeReadyNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ],
+    perToolQueueRows: readyRows.map((row) => ({
+      toolId: row.toolId,
+      productionToolId: row.productionToolId,
+      workerType: row.workerType,
+      runtimeTarget: row.runtimeTarget,
+      queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
+      sourcePreflightStatus: row.nonProductionServiceRoleQueueWriteSmokePreflightStatus,
+      sourceWorkerEnqueuePayloadRef:
+        row.preflightEvidence?.sourceWorkerEnqueuePayloadRef ?? null,
+      sourceBackendQueueAdapterRef:
+        row.preflightEvidence?.sourceBackendQueueAdapterRef ?? null,
+      privateArtifactManifestRef:
+        row.preflightEvidence?.privateArtifactManifestRef ?? null,
+      expectedOutputVisibility:
+        row.preflightEvidence?.expectedOutputVisibility ?? 'private_artifact_only',
+    })),
+    evidenceRefTemplate: {
+      serviceRoleBoundaryRef:
+        'service-role-boundary://ai-graphics/external-agent/cpu-static-service-role-queue-write-smoke/non-production',
+      privateEvidenceRef:
+        'private://ai-graphics/external-agent/cpu-static-service-role-queue-write-smoke/batch/evidence.json',
+      telemetryRef:
+        'private://ai-graphics/external-agent/cpu-static-service-role-queue-write-smoke/batch/telemetry.json',
+      cleanupProofRef:
+        'private://ai-graphics/external-agent/cpu-static-service-role-queue-write-smoke/batch/cleanup.json',
+      rollbackRef:
+        'private://ai-graphics/external-agent/cpu-static-service-role-queue-write-smoke/batch/rollback.json',
+    },
+    localOnlySuggestedResultPath:
+      '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json',
+    validatorCommand:
+      'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof -- --external-agent-cpu-static-service-role-queue-write-smoke-result <local-result.json> --print-only',
+    canBeUsedAsAcceptedResultWithoutLiveSmoke: false,
+    agentCanExecuteToolsNow: false,
+    workerDispatchApprovedNow: false,
+    toolExecutionApprovedNow: false,
+    gpuRuntimeShouldStartNow: false,
+  }
+}
+
 function buildRow(input: {
   toolId: AiGraphicsCanonicalToolId
   source?: AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightRow
@@ -486,6 +641,10 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerNonProducti
       cleanupMustPersistZeroRows: true,
       nextGateRequiresWorkerClaimAndDispatchSmoke: true,
     },
+    operatorResultTemplate: operatorResultTemplateFor({
+      sourcePreflightPacket: input.sourcePreflightPacket,
+      sourceAccepted,
+    }),
     rejectionReasons,
     rows,
     counts: {

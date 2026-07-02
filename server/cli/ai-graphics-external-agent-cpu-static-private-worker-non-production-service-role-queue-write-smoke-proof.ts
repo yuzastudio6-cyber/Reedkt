@@ -48,6 +48,14 @@ function makeMarkdown(report: Report): string {
   const rejectionReasons = report.rejectionReasons.length > 0
     ? report.rejectionReasons.map((reason) => `- ${reason}`).join('\n')
     : '- none'
+  const operatorRows = report.operatorResultTemplate.perToolQueueRows
+    .map((row) =>
+      `| \`${row.toolId}\` | \`${row.productionToolId}\` | \`${row.runtimeTarget}\` | \`${row.sourceWorkerEnqueuePayloadRef}\` | \`${row.sourceBackendQueueAdapterRef}\` | \`${row.privateArtifactManifestRef}\` |`,
+    )
+    .join('\n')
+  const requiredFields = report.operatorResultTemplate.requiredResultFields
+    .map((field) => `- \`${field}\``)
+    .join('\n')
 
   return `# AI Graphics External Agent CPU Static Private Worker Non-Production Service-Role Queue-Write Smoke Proof
 
@@ -80,6 +88,26 @@ This packet validates a saved non-production service-role queue-write smoke resu
 ## Rejection Reasons
 
 ${rejectionReasons}
+
+## Operator Result Template
+
+- Template mode: \`${report.operatorResultTemplate.templateMode}\`
+- Source preflight accepted: \`${report.operatorResultTemplate.sourcePreflightAccepted}\`
+- Tools submitted: \`${report.operatorResultTemplate.toolsSubmitted}\`
+- Expected queue rows written: \`${report.operatorResultTemplate.expectedQueueRowsWritten}\`
+- Expected queue rows cleaned up: \`${report.operatorResultTemplate.expectedQueueRowsCleanedUp}\`
+- Expected queue rows persisted after cleanup: \`${report.operatorResultTemplate.expectedQueueRowsPersistedAfterCleanup}\`
+- Local-only suggested result path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
+- Validator command: \`${report.operatorResultTemplate.validatorCommand}\`
+- Can be used as accepted result without live smoke: \`${report.operatorResultTemplate.canBeUsedAsAcceptedResultWithoutLiveSmoke}\`
+
+| Tool | Production tool | Runtime target | Source enqueue payload | Backend queue adapter | Private manifest |
+| --- | --- | --- | --- | --- | --- |
+${operatorRows}
+
+Required saved-result fields:
+
+${requiredFields}
 
 ## Tool Rows
 
@@ -126,6 +154,8 @@ function makePromptResult(report: Report): string {
 - Status: \`${report.status}\`
 - Source preflight ready tools: \`${report.counts.sourcePreflightReadyTools}\`
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
+- Operator result template rows: \`${report.operatorResultTemplate.perToolQueueRows.length}\`
+- Operator result template can be accepted without live smoke: \`${report.operatorResultTemplate.canBeUsedAsAcceptedResultWithoutLiveSmoke}\`
 - Queue rows persisted after cleanup: \`${report.counts.queueRowsPersistedAfterCleanup}\`
 - Worker dispatches performed now: \`${report.counts.workerDispatchesPerformedNow}\`
 - Tool executions performed now: \`${report.counts.toolExecutionsPerformedNow}\`
@@ -135,6 +165,8 @@ function makePromptResult(report: Report): string {
 ## Interpretation
 
 The proof validator is ready, but the repository packet remains blocked until an operator supplies a saved non-production service-role queue-write smoke result. That future result must cover exactly five CPU/static tools, leave zero queue rows after cleanup, and preserve all worker/tool/runtime gates as false.
+
+The packet now includes a first-class operator result template so the future non-production smoke has an exact local-only output shape and validator command. The template itself is not accepted as proof and cannot unlock execution without a real smoke result.
 
 ## No-Scope
 
@@ -161,10 +193,12 @@ Implemented the saved-result validator for the CPU/static private-worker non-pro
 - Status: \`${report.status}\`
 - Source preflight ready tools: \`${report.counts.sourcePreflightReadyTools}\`
 - Saved smoke result accepted tools with provided evidence: \`${report.counts.savedSmokeResultAcceptedToolsWithProvidedEvidence}\`
+- Operator result template rows: \`${report.operatorResultTemplate.perToolQueueRows.length}\`
+- Operator result template local-only output path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
 - External-agent executable now tools: \`${report.counts.externalAgentExecutableNowTools}\`
 - GPU runtime starts now: \`${report.counts.gpuRuntimeShouldStartNowTools}\`
 
-The validator is intentionally fail-closed until a saved non-production smoke result is supplied. It validates evidence only and does not perform live Supabase writes.
+The validator is intentionally fail-closed until a saved non-production smoke result is supplied. It validates evidence only and does not perform live Supabase writes. The operator result template documents the exact local-only result shape required after a real non-production queue-write smoke.
 `
 }
 

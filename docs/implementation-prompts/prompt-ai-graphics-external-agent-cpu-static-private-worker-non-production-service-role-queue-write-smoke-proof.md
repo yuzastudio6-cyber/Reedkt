@@ -12,7 +12,9 @@ Implemented the saved-result validator for the CPU/static private-worker non-pro
 - Status: `blocked_pending_saved_non_production_service_role_queue_write_smoke_result`
 - Source preflight ready tools: `5`
 - Saved smoke result accepted tools with provided evidence: `0`
+- Operator result template rows: `5`
+- Operator result template local-only output path: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-service-role-queue-write-smoke-result.json`
 - External-agent executable now tools: `0`
 - GPU runtime starts now: `0`
 
-The validator is intentionally fail-closed until a saved non-production smoke result is supplied. It validates evidence only and does not perform live Supabase writes.
+The validator is intentionally fail-closed until a saved non-production smoke result is supplied. It validates evidence only and does not perform live Supabase writes. The operator result template documents the exact local-only result shape required after a real non-production queue-write smoke.

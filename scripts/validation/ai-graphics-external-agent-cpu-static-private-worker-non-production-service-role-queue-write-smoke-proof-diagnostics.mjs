@@ -168,6 +168,134 @@ function validSmokeResult() {
   }
 }
 
+function assertOperatorTemplate(label, template) {
+  if (!template) {
+    fail(`${label}_operator_template_missing`)
+    return
+  }
+  if (
+    template.schemaVersion !==
+    '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-operator-result-template'
+  ) {
+    fail(`${label}_operator_template_schema_mismatch`)
+  }
+  if (
+    template.templateMode !==
+    'operator_must_execute_non_production_queue_write_then_fill_saved_result'
+  ) {
+    fail(`${label}_operator_template_mode_mismatch`)
+  }
+  if (template.queueName !== 'ai_graphics_external_agent_cpu_static_private_worker_queue') {
+    fail(`${label}_operator_template_queue_mismatch`)
+  }
+  if (template.sourcePreflightAccepted !== true) {
+    fail(`${label}_operator_template_source_not_accepted`)
+  }
+  if (template.toolsSubmitted !== 5) fail(`${label}_operator_template_tools_not_5`)
+  if (JSON.stringify([...template.toolsSubmittedIds].sort()) !== JSON.stringify([...proofTools].sort())) {
+    fail(`${label}_operator_template_tool_ids_mismatch`)
+  }
+  if (template.expectedQueueRowsWritten !== 5) {
+    fail(`${label}_operator_template_expected_writes_not_5`)
+  }
+  if (template.expectedQueueRowsCleanedUp !== 5) {
+    fail(`${label}_operator_template_expected_cleanup_not_5`)
+  }
+  if (template.expectedQueueRowsPersistedAfterCleanup !== 0) {
+    fail(`${label}_operator_template_expected_persisted_not_0`)
+  }
+  for (const [key, expected] of Object.entries({
+    expectedWorkerClaimsCreated: 0,
+    expectedWorkerDispatchesPerformed: 0,
+    expectedWorkerExecutionsPerformed: 0,
+    expectedToolExecutionsPerformed: 0,
+  })) {
+    if (template[key] !== expected) fail(`${label}_operator_template_${key}_mismatch`)
+  }
+  for (const env of [
+    'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE=true',
+    'REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE_ENV=non_production',
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'E2E_RUNTIME_MODE=local',
+    'WORKER_RUNTIME_MODE=mock',
+  ]) {
+    if (!template.requiredEnvironment?.includes(env)) {
+      fail(`${label}_operator_template_missing_env:${env}`)
+    }
+  }
+  for (const flag of [
+    '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke',
+    '--workspace-id',
+    '--project-id',
+    '--approved-plan-snapshot-id',
+    '--credit-reservation-id',
+    '--idempotency-prefix',
+    '--source-live-adapter-queue-write-proof-packet',
+    '--service-role-boundary-ref',
+    '--telemetry-ref',
+    '--cleanup-proof-ref',
+    '--rollback-ref',
+  ]) {
+    if (!template.requiredFlags?.includes(flag)) {
+      fail(`${label}_operator_template_missing_flag:${flag}`)
+    }
+  }
+  for (const field of [
+    'liveServiceRoleQueueWriteSmokeExecutedNow',
+    'liveSupabaseQueueWritesNow',
+    'queueRowsPersistedAfterCleanup',
+    'workerDispatchesPerformed',
+    'toolExecutionsPerformed',
+    'gpuRuntimeShouldStartNow',
+  ]) {
+    if (!template.requiredResultFields?.includes(field)) {
+      fail(`${label}_operator_template_missing_result_field:${field}`)
+    }
+  }
+  if (!Array.isArray(template.perToolQueueRows) || template.perToolQueueRows.length !== 5) {
+    fail(`${label}_operator_template_rows_not_5`)
+  } else {
+    for (const toolId of proofTools) {
+      const row = template.perToolQueueRows.find((candidate) => candidate.toolId === toolId)
+      if (!row) {
+        fail(`${label}_operator_template_missing_row:${toolId}`)
+        continue
+      }
+      if (row.queueName !== 'ai_graphics_external_agent_cpu_static_private_worker_queue') {
+        fail(`${label}_operator_template_row_queue_mismatch:${toolId}`)
+      }
+      if (!String(row.sourceWorkerEnqueuePayloadRef ?? '').startsWith('worker-enqueue-payload://')) {
+        fail(`${label}_operator_template_row_payload_ref_mismatch:${toolId}`)
+      }
+      if (!String(row.sourceBackendQueueAdapterRef ?? '').startsWith('backend-queue-adapter://')) {
+        fail(`${label}_operator_template_row_adapter_ref_mismatch:${toolId}`)
+      }
+      if (!String(row.privateArtifactManifestRef ?? '').startsWith('private://')) {
+        fail(`${label}_operator_template_row_manifest_ref_mismatch:${toolId}`)
+      }
+      if (row.expectedOutputVisibility !== 'private_artifact_only') {
+        fail(`${label}_operator_template_row_visibility_mismatch:${toolId}`)
+      }
+    }
+  }
+  if (!String(template.localOnlySuggestedResultPath ?? '').startsWith('.local-artifacts/')) {
+    fail(`${label}_operator_template_local_path_mismatch`)
+  }
+  if (!String(template.validatorCommand ?? '').includes(runScriptName)) {
+    fail(`${label}_operator_template_validator_command_mismatch`)
+  }
+  for (const key of [
+    'canBeUsedAsAcceptedResultWithoutLiveSmoke',
+    'agentCanExecuteToolsNow',
+    'workerDispatchApprovedNow',
+    'toolExecutionApprovedNow',
+    'gpuRuntimeShouldStartNow',
+  ]) {
+    if (template[key] !== false) fail(`${label}_operator_template_${key}_not_false`)
+  }
+}
+
 const requiredFiles = [
   'server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts',
   'server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts',
@@ -213,6 +341,7 @@ if (docs.counts?.savedSmokeResultAcceptedToolsWithProvidedEvidence !== 0) {
 }
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_zero')
 if (docs.counts?.gpuRuntimeShouldStartNowTools !== 0) fail('docs_gpu_start_now_not_zero')
+assertOperatorTemplate('docs', docs.operatorResultTemplate)
 if (!Array.isArray(docs.tools) || docs.tools.length !== 21) fail('docs_tools_not_21')
 for (const toolId of allTools) {
   if (!docs.tools?.includes(toolId)) fail(`docs_missing_tool:${toolId}`)
@@ -259,6 +388,9 @@ for (const phrase of [
   'noSupabaseMutationByValidator',
   'noWorkerDispatchByValidator',
   'noToolExecutionByValidator',
+  'Operator Result Template',
+  'operator_must_execute_non_production_queue_write_then_fill_saved_result',
+  'canBeUsedAsAcceptedResultWithoutLiveSmoke',
   'gpuRuntimeShouldStartNow=false',
 ]) {
   if (!source.includes(phrase) && !cli.includes(phrase) && !docsMd.includes(phrase)) {
@@ -301,6 +433,7 @@ if (acceptedOutput.booleans?.serviceRoleQueueWriteSmokeProofAcceptedWithProvided
 if (acceptedOutput.booleans?.agentCanExecuteToolsNow !== false) {
   fail('accepted_output_agent_execute_not_false')
 }
+assertOperatorTemplate('accepted_output', acceptedOutput.operatorResultTemplate)
 
 const unsafeResult = {
   ...validSmokeResult(),

@@ -6,6 +6,8 @@
 - Status: `blocked_pending_saved_non_production_service_role_queue_write_smoke_result`
 - Source preflight ready tools: `5`
 - Saved smoke result accepted tools with provided evidence: `0`
+- Operator result template rows: `5`
+- Operator result template can be accepted without live smoke: `false`
 - Queue rows persisted after cleanup: `0`
 - Worker dispatches performed now: `0`
 - Tool executions performed now: `0`
@@ -15,6 +17,8 @@
 ## Interpretation
 
 The proof validator is ready, but the repository packet remains blocked until an operator supplies a saved non-production service-role queue-write smoke result. That future result must cover exactly five CPU/static tools, leave zero queue rows after cleanup, and preserve all worker/tool/runtime gates as false.
+
+The packet now includes a first-class operator result template so the future non-production smoke has an exact local-only output shape and validator command. The template itself is not accepted as proof and cannot unlock execution without a real smoke result.
 
 ## No-Scope
 

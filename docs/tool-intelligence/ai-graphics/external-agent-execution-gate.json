@@ -3,7 +3,7 @@
   "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
   "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
   "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
-  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, and controlled on-demand status bridge evidence, and the disabled route can return per-request tool/capability planning and missing-proof details. The default route mount remains off and no direct agent, route, worker, provider, browser, GPU, artifact, beta, or production execution is allowed.",
+  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, and the route readiness probe that proves 13 controlled route-callable tools while keeping direct/global execution, GPU/model runtime, workers, providers, artifacts, beta, and production blocked.",
   "sourceEvidence": {
     "properInstallAudit": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
     "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",
@@ -33,7 +33,8 @@
     "sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted": false,
     "externalAgentCpuStaticPrivateWorkerControlledToolExecutionProof": "ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks",
     "sourceExternalAgentCpuStaticControlledToolExecutionProofDecision": null,
-    "sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted": false
+    "sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted": false,
+    "externalBetaToolCallRouteReadinessProbeSmoke": "ai_graphics_external_beta_tool_call_route_readiness_probe_smoke_passed"
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -42,7 +43,8 @@
     "module": "server/tool-registry/ai-graphics-external-agent-execution-gate.ts",
     "nonProductionEvidenceSequenceScript": "ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
     "toolExecutionDryRunProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics",
-    "controlledToolExecutionProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics"
+    "controlledToolExecutionProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics",
+    "routeReadinessProbeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics"
   },
   "counts": {
     "requireGoExitCodeWhenBlocked": 2,
@@ -104,7 +106,13 @@
     "apiRouteMountedNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0,
-    "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21
+    "disabledRouteBlockedDetailCasesWithProvidedEvidence": 21,
+    "externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence": 13,
+    "cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence": 6,
+    "browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence": 7,
+    "gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence": 8,
+    "gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence": 8,
+    "routeReadinessProbeGpuRuntimeShouldStartNowTools": 0
   },
   "tools": [
     {
@@ -1417,7 +1425,13 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
-    "signedUrlCreated": false
+    "signedUrlCreated": false,
+    "sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted": true,
+    "externalAgentCanExecuteControlledRouteToolsNow": true,
+    "routeReadinessProbeAcceptedWithProvidedEvidence": true,
+    "agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow": true,
+    "agentCanExecuteAll21ToolsNow": false,
+    "agentCanExecuteGpuModelToolsNow": false
   },
   "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF"
 }

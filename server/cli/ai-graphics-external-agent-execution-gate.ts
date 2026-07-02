@@ -3,6 +3,7 @@ import {
   buildAiGraphicsExternalAgentExecutionGate,
   type AiGraphics21ToolProperInstallAudit,
   type AiGraphicsExternalAgentExecutionGateInput,
+  type AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket,
 } from '../tool-registry/ai-graphics-external-agent-execution-gate'
 import type {
   AiGraphicsExternalBetaCallableRequestAdmission,
@@ -105,6 +106,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProofReport>>(
       '--external-agent-cpu-static-controlled-tool-execution-proof-packet',
     ),
+  sourceExternalBetaToolCallRouteReadinessProbeSmokePacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket>>(
+      '--external-beta-tool-call-route-readiness-probe-smoke-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -141,6 +146,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-agent-cpu-static-tool-execution-dry-run-proof-packet')),
     externalAgentCpuStaticControlledToolExecutionProofPacketRead:
       Boolean(valueAfterFlag('--external-agent-cpu-static-controlled-tool-execution-proof-packet')),
+    externalBetaToolCallRouteReadinessProbeSmokePacketRead:
+      Boolean(valueAfterFlag('--external-beta-tool-call-route-readiness-probe-smoke-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

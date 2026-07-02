@@ -4,9 +4,9 @@ Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_w
 
 Status: `external_agent_execution_gate_fail_closed_runtime_blocked`
 
-This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, and controlled on-demand status bridge evidence, then returns a clear no-go for direct execution until a later route, worker, and private runtime proof explicitly opens execution.
+This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, and route readiness probe evidence, then returns a clear no-go for direct/global execution until a later route, worker, and private runtime proof explicitly opens that broader execution path.
 
-The current block is intentional and temporary. It does not mean the 21 tools are rejected. It means the agent may plan with the tools, but actual execution stays blocked until the next required private queue, worker, and tool-specific proofs pass.
+The current global block is intentional and temporary. It does not mean the 21 tools are rejected. It means the agent may plan with the tools, and a controlled route readiness probe now proves 13 tools are callable through the mock/private route surface, while full direct execution, worker execution, GPU/model runtime, public artifacts, beta, and production stay blocked.
 
 ## Scope
 
@@ -71,6 +71,13 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools: `0`
 - cpuStaticPhase0ExecutionEvidenceAcceptedTools: `0`
 - Representative disabled route blocked-detail cases covered: `21`
+- Route readiness probe evidence is accepted: `true`
+- Controlled route-executable tools with readiness-probe evidence: `13`
+- CPU/static controlled route-executable tools with readiness-probe evidence: `6`
+- Browser runtime controlled route-executable tools with readiness-probe evidence: `7`
+- GPU/model route-admission blocked tools with readiness-probe evidence: `8`
+- GPU/model route-admission fail-closed evaluations with readiness-probe evidence: `8`
+- Route readiness probe GPU runtime should start now tools: `0`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
 - Route-mount-ready tools with provided evidence: `21`
@@ -100,6 +107,7 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - Read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only.
 - Read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks.
 - Read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks.
+- Read the route readiness probe showing 13 controlled route-callable tools while preserving direct/global execution, Worker execution, GPU/model runtime, public artifact, beta, and production blocks.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
@@ -152,6 +160,7 @@ Blocked now:
 22. `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
 23. `npm run ai-graphics:browser-runtime-proof:diagnostics`
 24. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
+25. `npm run ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -207,6 +216,12 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence=false`
 - `nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence=false`
 - `sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted=false`
+- `sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted=true`
+- `externalAgentCanExecuteControlledRouteToolsNow=true`
+- `routeReadinessProbeAcceptedWithProvidedEvidence=true`
+- `agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow=true`
+- `agentCanExecuteAll21ToolsNow=false`
+- `agentCanExecuteGpuModelToolsNow=false`
 - `allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence=false`

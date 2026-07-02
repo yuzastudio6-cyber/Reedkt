@@ -17,6 +17,8 @@ const toolExecutionDryRunProofCommand =
   'npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
 const controlledToolExecutionProofCommand =
   'npm run ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics'
+const routeReadinessProbeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics'
 const nativeGpuProofCollectionCommand =
   'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
 const satoriFontProofCommand =
@@ -122,6 +124,8 @@ const falseBooleanKeys = [
   'sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted',
   'allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence',
   'allFiveCpuStaticPhase0ExecutionEvidenceAccepted',
+  'agentCanExecuteAll21ToolsNow',
+  'agentCanExecuteGpuModelToolsNow',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
@@ -190,6 +194,10 @@ const trueBooleanKeys = [
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'agentCanSelectForPlanning',
+  'sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted',
+  'externalAgentCanExecuteControlledRouteToolsNow',
+  'routeReadinessProbeAcceptedWithProvidedEvidence',
+  'agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow',
 ]
 
 const requiredFiles = [
@@ -212,6 +220,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-controlled-tool-execution-proof.json',
   'docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-readiness-probe-smoke.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -760,6 +769,24 @@ if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
   fail('docs_disabled_route_blocked_detail_cases_not_21')
 }
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_0')
+if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
+  fail('docs_route_executable_with_readiness_probe_not_13')
+}
+if (docs.counts?.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
+  fail('docs_cpu_static_route_executable_with_readiness_probe_not_6')
+}
+if (docs.counts?.browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 7) {
+  fail('docs_browser_route_executable_with_readiness_probe_not_7')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 8) {
+  fail('docs_gpu_model_route_blocked_with_readiness_probe_not_8')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence !== 8) {
+  fail('docs_gpu_model_route_fail_closed_with_readiness_probe_not_8')
+}
+if (docs.counts?.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
+  fail('docs_route_readiness_probe_gpu_runtime_should_start_not_0')
+}
 if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
   fail('docs_route_mount_ready_tools_not_21')
 }
@@ -819,6 +846,12 @@ for (const phrase of [
   browserRuntimeProofCommand,
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
+  'Controlled route-executable tools with readiness-probe evidence: `13`',
+  'CPU/static controlled route-executable tools with readiness-probe evidence: `6`',
+  'Browser runtime controlled route-executable tools with readiness-probe evidence: `7`',
+  'GPU/model route-admission blocked tools with readiness-probe evidence: `8`',
+  'Route readiness probe evidence is accepted',
+  routeReadinessProbeCommand,
   'CPU/static live-adapter queue-service proof accepted: `true`',
   'CPU/static exact execution admission accepted: `true`',
   'CPU/static adapter/enqueue admission accepted: `true`',
@@ -935,6 +968,8 @@ for (const forbidden of [
   /"routeExecutionApprovedNow"\s*:\s*true/i,
   /"workerExecutionApprovedNow"\s*:\s*true/i,
   /"toolExecutionApprovedNow"\s*:\s*true/i,
+  /"agentCanExecuteAll21ToolsNow"\s*:\s*true/i,
+  /"agentCanExecuteGpuModelToolsNow"\s*:\s*true/i,
   /"gpuRuntimeShouldStartNow"\s*:\s*true/i,
   /"gpuRuntimePerformed"\s*:\s*true/i,
   /"runtimeReadyNow"\s*:\s*true/i,
@@ -981,6 +1016,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
   '--external-agent-cpu-static-non-production-evidence-sequence-packet',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json',
+  '--external-beta-tool-call-route-readiness-probe-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-readiness-probe-smoke.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -1137,6 +1174,27 @@ if (acceptedSourceReport.cpuStaticControlledToolExecutionProofAcceptedWithProvid
 }
 if (acceptedSourceReport.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 0) {
   fail('accepted_report_phase0_execution_evidence_not_0')
+}
+if (acceptedSourceReport.sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted !== true) {
+  fail('accepted_report_route_readiness_probe_source_not_true')
+}
+if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
+  fail('accepted_report_route_executable_with_readiness_probe_not_13')
+}
+if (acceptedSourceReport.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
+  fail('accepted_report_cpu_static_route_executable_with_readiness_probe_not_6')
+}
+if (acceptedSourceReport.browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 7) {
+  fail('accepted_report_browser_route_executable_with_readiness_probe_not_7')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 8) {
+  fail('accepted_report_gpu_model_route_blocked_with_readiness_probe_not_8')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence !== 8) {
+  fail('accepted_report_gpu_model_route_fail_closed_with_readiness_probe_not_8')
+}
+if (acceptedSourceReport.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
+  fail('accepted_report_route_readiness_probe_gpu_start_not_0')
 }
 if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
   fail('accepted_report_request_admission_tools_not_1')

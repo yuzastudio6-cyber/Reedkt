@@ -134,10 +134,7 @@ assert.match(packageJson, /"smoke:qwen-runtime-boundary": "tsx server\/smoke\/qw
 assert.match(packageJson, /"check:qwen-runtime-boundary": "node scripts\/check-qwen-runtime-boundary\.mjs"/)
 
 const migrationCount = readdirSync(join(repoRoot, 'supabase/migrations')).filter((file) => file.endsWith('.sql')).length
-assert.ok(
-  migrationCount === 26 || migrationCount === 27,
-  'Supabase migration count must remain at the approved baseline or include the additive public production gate migration.',
-)
+assert.equal(migrationCount, 23, 'Supabase migration count must remain at the approved RP-SKILLS target baseline.')
 
 console.log(JSON.stringify({
   smoke: 'qwen-runtime-boundary',

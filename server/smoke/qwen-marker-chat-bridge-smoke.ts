@@ -161,7 +161,7 @@ for (const doc of [
 }
 
 const migrationCount = readdirSync(join(repoRoot, 'supabase/migrations')).filter((file) => file.endsWith('.sql')).length
-assert.ok(migrationCount === 26 || migrationCount === 27, 'Supabase migration count must remain at the approved baseline or include the public production gate migration.')
+assert.equal(migrationCount, 23, 'Supabase migration count must remain at the approved RP-SKILLS target baseline.')
 
 console.log(JSON.stringify({
   smoke: 'qwen-marker-chat-bridge',

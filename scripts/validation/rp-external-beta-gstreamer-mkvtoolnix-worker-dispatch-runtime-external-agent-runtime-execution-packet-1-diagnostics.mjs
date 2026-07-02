@@ -34,12 +34,28 @@ const packetFiles = [
 
 const implementationFiles = [
   'package.json',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-packet-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const confirmedRuntimeExecutionPacketDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1'
+const confirmedRuntimeExecutionPacketFiles = [
+  `${confirmedRuntimeExecutionPacketDir}/source-audit.md`,
+  `${confirmedRuntimeExecutionPacketDir}/evidence-reconciliation.md`,
+  `${confirmedRuntimeExecutionPacketDir}/route-worker-runtime-evidence.md`,
+  `${confirmedRuntimeExecutionPacketDir}/readiness.md`,
+  `${confirmedRuntimeExecutionPacketDir}/safety-boundary.md`,
+  `${confirmedRuntimeExecutionPacketDir}/validation-results.md`,
+  `${confirmedRuntimeExecutionPacketDir}/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...confirmedRuntimeExecutionPacketFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

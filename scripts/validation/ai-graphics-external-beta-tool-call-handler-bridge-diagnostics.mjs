@@ -493,6 +493,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-browser-runtime-controlled-tool-call-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-browser-runtime-controlled-tool-call-route-smoke-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-tool-call-route-mock-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-mock-queue-admission-smoke.ts",',
   '+    "ai-graphics:external-beta-tool-call-route-mock-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-mock-queue-admission-smoke-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-mock-queue-worker-claim-smoke.ts",',
+  '+    "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-mock-queue-worker-claim-smoke-diagnostics.mjs",',
 ])
 const unexpectedPackageAdditions = packageDiff
   .split('\n')

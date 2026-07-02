@@ -614,6 +614,8 @@
     "worker-runtime-jobs:sound-cpu-phase151-dispatch-contract-index-export-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase151-dispatch-contract-index-export-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase152-dispatch-contract-index-export-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase152-dispatch-contract-index-export-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase153-actual-dispatch-contract-index-export-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase153-actual-dispatch-contract-index-export-source-creation-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase154-dispatch-contract-index-export-static-validation:proof": "tsx scripts/validation/worker-runtime-jobs-sound-cpu-phase154-dispatch-contract-index-export-static-validation-runner.ts",
+    "worker-runtime-jobs:sound-cpu-phase154-dispatch-contract-index-export-static-validation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase154-dispatch-contract-index-export-static-validation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

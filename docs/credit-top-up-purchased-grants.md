@@ -35,3 +35,6 @@ RP-STRIPE-TESTMODE-01 adds real Stripe test-mode customer, SetupIntent, Checkout
 ## Stripe Live Readiness Handoff
 
 RP-STRIPE-LIVE-READINESS-01 can report `ready_no_charge` for complete live configuration, but purchased credit grants still come only from mock/test flows. Live checkout, live webhook credit grants, production wallet mutation, production ledger writes, and export unlock remain future activation work. See `docs/stripe-live-readiness.md` and `smoke:stripe-live-readiness`.
+## RP-CREDITAUDIT-01 Note
+
+The Stripe trace and audit timeline show mock/test top-up intents and purchased grants using safe IDs, amounts, and billing-provider metadata. They do not run checkout, retry blocked flows, grant live credits, or mutate production wallets.

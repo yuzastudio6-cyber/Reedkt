@@ -23,3 +23,6 @@ RP-SETTLEMENT-01 is the first mock-safe terminal consumer of this hold. It settl
 RP-EXPORTLOCK-01 reads the post-settlement state. It allows export readiness for `settled` and `settled_with_absorbed_overage`, and blocks only `requires_top_up_before_export` with a local mock export lock. It does not mutate reservations, run checkout/top-up, or unlock export.
 
 RP-CREDITPURCHASE-01 can add purchased credits to the local mock wallet after an insufficient max-hold block. It does not automatically retry reservation; the caller must run the reservation route again after top-up. See `docs/credit-top-up-purchased-grants.md` and `smoke:credit-purchase`.
+## RP-CREDITAUDIT-01 Note
+
+The credit audit timeline reports max-hold reservation records and line-item evidence as read-only support context. It does not create, update, spend, release, refund, or persist reservations.

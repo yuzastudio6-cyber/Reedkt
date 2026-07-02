@@ -1162,6 +1162,259 @@ export interface CreditRefundRecord extends BaseRecord {
   ledgerEntryId?: ID
 }
 
+export const CREDIT_AUDIT_TIMELINE_EVENT_TYPES = [
+  'estimate_created',
+  'estimate_shown',
+  'estimate_approved',
+  'reservation_created',
+  'runtime_guard_ready',
+  'runtime_guard_paused_revised_credit',
+  'revision_action_created',
+  'revision_action_approved',
+  'revision_action_lower_cost_selected',
+  'revision_action_cancelled',
+  'tool_cost_billable',
+  'tool_cost_non_billable',
+  'settlement_settled',
+  'settlement_absorbed_overage',
+  'settlement_requires_top_up',
+  'export_allowed',
+  'export_locked_top_up_required',
+  'credit_top_up_intent_created',
+  'credit_top_up_completed',
+  'credit_grant_created',
+  'stripe_customer_linked',
+  'stripe_setup_intent_created',
+  'stripe_checkout_created',
+  'stripe_webhook_verified',
+  'stripe_webhook_processed',
+  'stripe_webhook_duplicate',
+  'stripe_live_readiness_checked',
+  'other',
+] as const
+
+export type CreditAuditTimelineEventType = typeof CREDIT_AUDIT_TIMELINE_EVENT_TYPES[number]
+
+export const CREDIT_AUDIT_EVENT_SEVERITIES = [
+  'info',
+  'warning',
+  'action_required',
+  'blocked',
+  'success',
+  'error',
+] as const
+
+export type CreditAuditEventSeverity = typeof CREDIT_AUDIT_EVENT_SEVERITIES[number]
+
+export const CREDIT_AUDIT_ACTOR_TYPES = [
+  'user',
+  'system',
+  'stripe',
+  'reeditpro',
+  'admin',
+  'unknown',
+] as const
+
+export type CreditAuditActorType = typeof CREDIT_AUDIT_ACTOR_TYPES[number]
+
+export interface CreditAuditTimelineEvent {
+  id: ID
+  workspaceId: ID
+  projectId?: ID | null
+  editPlanId?: ID | null
+  creditWalletId?: ID | null
+  creditEstimateId?: ID | null
+  creditReservationId?: ID | null
+  creditSettlementId?: ID | null
+  creditRevisionActionId?: ID | null
+  creditExportLockId?: ID | null
+  stripeEventId?: string | null
+  toolCostEventId?: ID | null
+  eventType: CreditAuditTimelineEventType
+  severity: CreditAuditEventSeverity
+  actorType: CreditAuditActorType
+  title: string
+  message: string
+  creditsDelta?: CreditAmount
+  availableCreditsAfter?: CreditAmount
+  reservedCreditsAfter?: CreditAmount
+  spentCreditsAfter?: CreditAmount
+  refundedCreditsAfter?: CreditAmount
+  amountCents?: number
+  toolUsageCategory?: string | null
+  billableToUser?: boolean | null
+  safePayload: JSONObject
+  redactionApplied: boolean
+  createdAt: ISODateString
+}
+
+export interface CreditAuditTimelineSummary {
+  estimateCount: number
+  reservationCount: number
+  revisionActionCount: number
+  billableToolEventCount: number
+  nonBillableToolEventCount: number
+  settlementCount: number
+  exportLockCount: number
+  topUpCount: number
+  stripeEventCount: number
+  totalReservedCredits: CreditAmount
+  totalSpentCredits: CreditAmount
+  totalReleasedCredits: CreditAmount
+  totalAbsorbedOverageCredits: CreditAmount
+  totalOutstandingCredits: CreditAmount
+  totalPurchasedCredits: CreditAmount
+}
+
+export interface CreditAuditTimeline {
+  workspaceId: ID
+  projectId?: ID | null
+  editPlanId?: ID | null
+  creditWalletId?: ID | null
+  events: CreditAuditTimelineEvent[]
+  summary: CreditAuditTimelineSummary
+  unresolvedActionRequiredCount: number
+  unresolvedExportLockCount: number
+  warnings: string[]
+}
+
+export interface CreditSupportReceiptToolCostBreakdown {
+  usageCategory: string
+  eventCount: number
+  billableEventCount: number
+  nonBillableEventCount: number
+  billableCredits: CreditAmount
+  billableCents: number
+  nonBillableCents: number
+  notes: string[]
+}
+
+export interface CreditSupportReceiptQuestion {
+  question: string
+  answer: string
+  evidenceEventIds: ID[]
+}
+
+export interface CreditSupportReceipt {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId?: ID | null
+  creditReservationId?: ID | null
+  creditSettlementId?: ID | null
+  userFacingReceipt: EditCreditCostSummary
+  supportSummary: {
+    approvedEstimateMinCredits: CreditAmount
+    approvedEstimateExpectedCredits: CreditAmount
+    approvedEstimateMaxCredits: CreditAmount
+    reservedCredits: CreditAmount
+    actualBillableToolCostCredits: CreditAmount
+    reeditproServiceFeeCredits: CreditAmount
+    finalChargeCredits: CreditAmount
+    releasedCredits: CreditAmount
+    absorbedOverageCredits: CreditAmount
+    outstandingCredits: CreditAmount
+    settlementStatus: string
+    settlementReason: string
+  }
+  toolCostBreakdown: CreditSupportReceiptToolCostBreakdown[]
+  supportQuestions: CreditSupportReceiptQuestion[]
+  warnings: string[]
+}
+
+export interface StripeBillingTraceCheckoutSessionSummary {
+  checkoutSessionId: string
+  stripeMode: 'test' | 'live'
+  creditPackId?: ID | null
+  credits?: CreditAmount | null
+  amountCents?: number | null
+  status: string
+  safeMetadata: JSONObject
+}
+
+export interface StripeBillingTraceWebhookEventSummary {
+  stripeEventId: string
+  stripeMode: 'test' | 'live'
+  eventType: string
+  status: string
+  idempotencyKey: string
+  processedAt?: ISODateString | null
+}
+
+export interface StripeBillingTraceCreditGrantSummary {
+  creditGrantId: ID
+  sourceType: string
+  originalAmount: CreditAmount
+  remainingAmount: CreditAmount
+  purchaseAmountCents?: number | null
+  billingProvider?: string | null
+  billingPaymentId?: string | null
+}
+
+export interface StripeBillingTraceSummary {
+  workspaceId: ID
+  userId?: ID | null
+  creditWalletId?: ID | null
+  stripeMode: 'disabled' | 'test' | 'live' | 'unknown'
+  customerLinked: boolean
+  paymentMethodLinked: boolean
+  checkoutSessions: StripeBillingTraceCheckoutSessionSummary[]
+  webhookEvents: StripeBillingTraceWebhookEventSummary[]
+  creditGrants: StripeBillingTraceCreditGrantSummary[]
+  redactionApplied: boolean
+  warnings: string[]
+}
+
+export const CREDIT_BETA_READINESS_EVIDENCE_STATUSES = [
+  'ready_for_mock_external_beta',
+  'blocked',
+  'warning',
+] as const
+
+export type CreditBetaReadinessEvidenceStatus = typeof CREDIT_BETA_READINESS_EVIDENCE_STATUSES[number]
+
+export const CREDIT_BETA_READINESS_CHECK_STATUSES = [
+  'passed',
+  'failed',
+  'warning',
+] as const
+
+export type CreditBetaReadinessCheckStatus = typeof CREDIT_BETA_READINESS_CHECK_STATUSES[number]
+
+export interface CreditBetaReadinessEvidenceCheck {
+  id: string
+  label: string
+  status: CreditBetaReadinessCheckStatus
+  evidence: string[]
+  remediation?: string
+}
+
+export interface CreditBetaReadinessEvidenceReport {
+  generatedAt: ISODateString
+  status: CreditBetaReadinessEvidenceStatus
+  checks: CreditBetaReadinessEvidenceCheck[]
+  requiredSmokes: string[]
+  knownNonBlockingGaps: string[]
+  blockingGaps: string[]
+}
+
+export interface CreditAuditTimelineResponse {
+  timeline: CreditAuditTimeline
+}
+
+export interface CreditSupportReceiptResponse {
+  receipt: CreditSupportReceipt | null
+  warnings: string[]
+}
+
+export interface StripeBillingTraceResponse {
+  stripeTrace: StripeBillingTraceSummary
+}
+
+export interface CreditBetaReadinessEvidenceResponse {
+  report: CreditBetaReadinessEvidenceReport
+}
+
 export interface CreditWalletBalanceViewRecord {
   creditWalletId: ID
   workspaceId: ID

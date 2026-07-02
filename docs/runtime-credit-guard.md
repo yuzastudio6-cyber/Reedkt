@@ -15,3 +15,6 @@ Boundaries: no live billing, no Stripe/payment, no Supabase migrations or writes
 RP-SETTLEMENT-01 runs after paid work is complete. Runtime guard still blocks new paid work unless the reservation is `reserved`; final settlement marks a reservation `spent`, releases unused mock hold, and does not call providers or render/export.
 
 RP-EXPORTLOCK-01 runs after settlement and does not affect runtime start. It allows export readiness for `settled` and absorbed-overage settlements, and blocks only approved-but-unfunded `requires_top_up_before_export` without starting checkout/top-up or export unlock.
+## RP-CREDITAUDIT-01 Note
+
+The audit timeline reports runtime guard pauses and projected-overage revised-credit actions as support evidence. It does not re-run the guard, start paid work, or emit tool-cost events.

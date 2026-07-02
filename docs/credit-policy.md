@@ -114,3 +114,6 @@ RP-CREDITPURCHASE-01 adds fixed mock purchased credit packs and purchased credit
 ## RP-STRIPE-TESTMODE-01 Stripe Test Checkout
 
 RP-STRIPE-TESTMODE-01 adds real Stripe test-mode customer, SetupIntent, Checkout Session, and verified webhook handling for credit packs. Verified test checkout grants purchased credits to the same local mock wallet/grant store idempotently. It remains test-only: no live Stripe, no production wallet mutation, no production ledger write, no Supabase write, no provider call, no render/export, and no export unlock.
+## RP-CREDITAUDIT-01 Note
+
+`docs/credit-audit-support-timeline.md` adds read-only support evidence for the policy chain from estimate to final charge. It reuses credit policy and service-fee math for explanation only; it does not charge, reserve, settle, mutate wallets, or write ledgers.

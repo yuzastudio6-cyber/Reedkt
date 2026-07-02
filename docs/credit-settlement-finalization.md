@@ -27,3 +27,6 @@ RP-SETTLEMENT-01 is local/mock only: no live billing, no Stripe/payment, no Supa
 RP-EXPORTLOCK-01 consumes this settlement state after completion. `settled` and `settled_with_absorbed_overage` are export-ready, while `requires_top_up_before_export` returns "Action required: add credits to export" and records only a local mock lock; there is still no checkout/top-up, render/export execution, production wallet mutation, production ledger write, Supabase write, or export unlock.
 
 RP-CREDITPURCHASE-01 can fund the local mock wallet after an approved-but-unfunded settlement. The settlement record is not rerun or mutated by top-up; the user must recheck the export gate after credits are added.
+## RP-CREDITAUDIT-01 Note
+
+The support receipt reuses `EditCreditCostSummary` and settlement records to explain actual billable tool cost, ReEditPro service/edit fee, final charge, returned credits, absorbed overage, and outstanding credits. It is read-only and does not execute settlement.

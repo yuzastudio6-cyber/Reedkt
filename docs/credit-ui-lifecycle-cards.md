@@ -25,3 +25,7 @@ Stripe secret keys and webhook secrets are never shown. The Stripe card displays
 The adapter in `src/lib/credit-ui-adapter.ts` transforms existing credit and Stripe payload shapes into browser-safe view models. Components under `src/components/credit/` render those view models and import only browser-safe code.
 
 The first integration surface is `/wallet`. Browser fetch/client helpers for the `/v1` credit and Stripe routes are deferred to a future UI-action milestone.
+
+## RP-CREDITAUDIT-01 Note
+
+The support audit timeline reads the same mock credit lifecycle evidence that these cards describe, but it remains server-side and read-only. The wallet UI stays fixture-driven and does not call audit routes, expose secrets, or enable live billing/export behavior.

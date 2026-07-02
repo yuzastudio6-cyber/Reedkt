@@ -108,3 +108,9 @@
 - Real: `/wallet` displays browser-safe fixture cards for the external-beta credit lifecycle and Stripe readiness.
 - Real: credit UI adapter formats existing credit/Stripe payload shapes and separates tool cost, ReEditPro service/edit fee, reserved credits, spent credits, returned credits, and outstanding credits.
 - Mock-only: no route call, live billing, Stripe payment, checkout, live webhook, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, production persistence, ledger write, or raw secret exposure is wired.
+
+## RP-CREDITAUDIT-01 Credit Audit Status
+
+- Real: authenticated mock/internal GET routes expose read-only credit audit timeline, support receipt, Stripe billing trace, and beta-readiness evidence.
+- Real: audit output redacts raw secrets, client secrets, authorization values, card numbers, and CVC/CVV fields while preserving safe IDs and amounts.
+- Mock-only: no live billing, Stripe charge, checkout/top-up execution, settlement execution, reservation spend/release/refund, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, ledger write, raw secret exposure, or card data exposure is wired.

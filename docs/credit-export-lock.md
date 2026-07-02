@@ -14,3 +14,6 @@ The mock lock record is created only for approved-but-unfunded settlement state.
 Render/export boundary wiring is deferred. Future export routes must call this gate before marking export-ready or unlocking delivery, but this milestone adds only the readiness contract, routes, validation, docs, and `smoke:credit-export-lock`.
 
 RP-CREDITPURCHASE-01 adds the mock purchased-credit top-up path for `requires_top_up_before_export`. Top-up only increases local mock available credits; it does not unlock export, run render/export, or silently recover the gate. The caller must retry the export gate explicitly after top-up.
+## RP-CREDITAUDIT-01 Note
+
+The audit timeline includes export-allowed and approved-but-unfunded export-lock evidence for support review. It does not unlock export or change export readiness.

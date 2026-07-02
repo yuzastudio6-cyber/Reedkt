@@ -47,3 +47,6 @@ Google Secret Manager is the preferred production source. Environment-variable s
 If live readiness must be disabled, set Stripe billing mode back to `disabled` or `test`, remove the live allow flag, and keep live webhook endpoint mode disabled or test-only. This reverts the runtime to non-live readiness without touching wallet, ledger, checkout, or export state.
 
 Future live activation requires a separate milestone that explicitly designs live Checkout, live webhook handling, production wallet persistence, monitoring, rollback, and operator approval.
+## RP-CREDITAUDIT-01 Note
+
+Credit beta-readiness evidence includes the Stripe live readiness gate as `ready_no_charge` support evidence only. The audit layer does not enable live Checkout Sessions, SetupIntents, PaymentIntents, live webhooks, live grants, or live Stripe calls.

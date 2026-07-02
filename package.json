@@ -583,6 +583,7 @@
     "worker-runtime-jobs:sound-cpu-phase134-private-media-manifest-retention-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase134-private-media-manifest-retention-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase135-worker-dispatch-claim-lease-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase135-worker-dispatch-claim-lease-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase135-worker-dispatch-claim-lease-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase135-worker-dispatch-claim-lease-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase136-route-execution-boundary-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase136-route-execution-boundary-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

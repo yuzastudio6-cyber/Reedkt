@@ -8,6 +8,9 @@ const knownChecklistItemIds = new Set<string>(betaReadinessChecklist.map((item) 
 const sourceShaSchema = z.string().regex(/^[0-9a-f]{7,40}$/i).optional()
 const noteSchema = z.string().trim().min(1).max(1_000)
 const sourceIdSchema = z.string().trim().min(1).max(200)
+const evidenceArtifactIdSchema = z.string().trim().min(1).max(240)
+const evidenceReviewerSchema = z.string().trim().min(1).max(160)
+const isoTimestampSchema = z.string().datetime({ offset: true })
 
 const checklistEvidenceSchema = z.object({
   itemId: z.string().min(1).refine((value) => knownChecklistItemIds.has(value), 'Unknown beta checklist item.'),
@@ -180,6 +183,9 @@ export const betaReadinessPlatformSupabaseDeployedProbeSchema = z.object({
 }).strict()
 
 const productionEvidenceNotesSchema = z.object({
+  evidenceArtifactId: evidenceArtifactIdSchema,
+  reviewedBy: evidenceReviewerSchema,
+  reviewedAt: isoTimestampSchema,
   notes: z.array(noteSchema).min(1).max(20),
 }).strict()
 

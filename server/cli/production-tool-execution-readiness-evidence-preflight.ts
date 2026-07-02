@@ -10,7 +10,10 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID?: string
   REEDITPRO_PRODUCTION_READINESS_PROJECT_ID?: string
   REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW?: string
+  REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY?: string
+  REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT?: string
   REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT?: string
+  REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED?: string
   REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED?: string
   REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED?: string
@@ -22,11 +25,13 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED?: string
   REEDITPRO_PRODUCTION_SUPABASE_STORAGE_POLICIES_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES?: string
+  REEDITPRO_PRODUCTION_TOOL_COST_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_TOOL_COST_EVENT_WRITE_VERIFIED?: string
   REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_APPEND_ONLY_VERIFIED?: string
   REEDITPRO_PRODUCTION_TOOL_COST_IDEMPOTENT_REPLAY_VERIFIED?: string
   REEDITPRO_PRODUCTION_TOOL_COST_SUMMARY_READBACK_VERIFIED?: string
   REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_NOTES?: string
+  REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_WALLET_RESERVATION_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED?: string
@@ -36,27 +41,32 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_NOTES?: string
+  REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_BILLING_OWNER_APPROVED?: string
   REEDITPRO_PRODUCTION_STRIPE_NO_TOOL_COST_SURFACE_CALLS?: string
   REEDITPRO_PRODUCTION_STRIPE_SERVICE_FEE_EXCLUDED?: string
   REEDITPRO_PRODUCTION_STRIPE_WEBHOOK_SEPARATED?: string
   REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_NOTES?: string
+  REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_OBSERVABILITY_DASHBOARDS_DEPLOYED?: string
   REEDITPRO_PRODUCTION_OBSERVABILITY_ALERTS_DEPLOYED?: string
   REEDITPRO_PRODUCTION_OBSERVABILITY_ALERT_ROUTING_VERIFIED?: string
   REEDITPRO_PRODUCTION_OBSERVABILITY_BILLING_QA_MONITORING_VERIFIED?: string
   REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES?: string
+  REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED?: string
   REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED?: string
   REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED?: string
   REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED?: string
   REEDITPRO_PRODUCTION_OPERATIONS_INCIDENT_RUNBOOK_APPROVED?: string
   REEDITPRO_PRODUCTION_OPERATIONS_NOTES?: string
+  REEDITPRO_PRODUCTION_TOOLS_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_TOOLS_SOURCE_ID?: string
   REEDITPRO_PRODUCTION_TOOLS_SOURCE_SHA?: string
   REEDITPRO_PRODUCTION_TOOLS_ALL_ACCEPTED?: string
   REEDITPRO_PRODUCTION_TOOLS_MODEL_LICENSE_APPROVED?: string
   REEDITPRO_PRODUCTION_TOOLS_NOTES?: string
+  REEDITPRO_PRODUCTION_HARD_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_HARD_APPROVED_SNAPSHOT_REQUIRED?: string
   REEDITPRO_PRODUCTION_HARD_CREDIT_ESTIMATE_RESERVATION_REQUIRED?: string
   REEDITPRO_PRODUCTION_HARD_IDEMPOTENCY_REQUIRED?: string
@@ -67,6 +77,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_HARD_LICENSE_MODEL_REVIEW_REQUIRED?: string
   REEDITPRO_PRODUCTION_HARD_SILENT_BILLING_BLOCKED?: string
   REEDITPRO_PRODUCTION_HARD_NOTES?: string
+  REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_OWNER_DEPLOYMENT_APPROVED?: string
   REEDITPRO_PRODUCTION_OWNER_SECURITY_APPROVED?: string
   REEDITPRO_PRODUCTION_OWNER_STORAGE_PRIVACY_APPROVED?: string
@@ -161,6 +172,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
     workspaceId: clean(env.REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID) ?? '',
     projectId: clean(env.REEDITPRO_PRODUCTION_READINESS_PROJECT_ID) ?? '',
     supabasePersistence: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID'),
       environment: clean(env.REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT) === 'production' ? 'production' : 'staging',
       toolCostEventsMigrationDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED),
       betaReadinessEvidenceMigrationDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED),
@@ -175,6 +187,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES),
     },
     toolCostLedger: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_TOOL_COST_EVIDENCE_ARTIFACT_ID'),
       toolCostEventWriteVerified: parseBoolean(env.REEDITPRO_PRODUCTION_TOOL_COST_EVENT_WRITE_VERIFIED),
       ledgerAppendOnlyVerified: parseBoolean(env.REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_APPEND_ONLY_VERIFIED),
       idempotentReplayVerified: parseBoolean(env.REEDITPRO_PRODUCTION_TOOL_COST_IDEMPOTENT_REPLAY_VERIFIED),
@@ -182,6 +195,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_NOTES),
     },
     walletSettlement: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID'),
       reservationVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_RESERVATION_VERIFIED),
       spendVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED),
       releaseVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED),
@@ -193,6 +207,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_WALLET_NOTES),
     },
     stripeBoundary: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID'),
       billingOwnerApproved: parseBoolean(env.REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_BILLING_OWNER_APPROVED),
       noStripeFromToolCostSurface: parseBoolean(env.REEDITPRO_PRODUCTION_STRIPE_NO_TOOL_COST_SURFACE_CALLS),
       serviceFeeExcludedFromToolEvents: parseBoolean(env.REEDITPRO_PRODUCTION_STRIPE_SERVICE_FEE_EXCLUDED),
@@ -200,6 +215,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_NOTES),
     },
     observability: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID'),
       dashboardsDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_OBSERVABILITY_DASHBOARDS_DEPLOYED),
       alertsDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_OBSERVABILITY_ALERTS_DEPLOYED),
       alertRoutingVerified: parseBoolean(env.REEDITPRO_PRODUCTION_OBSERVABILITY_ALERT_ROUTING_VERIFIED),
@@ -207,6 +223,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES),
     },
     operationsControls: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID'),
       rollbackPlanApproved: parseBoolean(env.REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED),
       killSwitchesVerified: parseBoolean(env.REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED),
       rateLimitsVerified: parseBoolean(env.REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED),
@@ -215,6 +232,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_OPERATIONS_NOTES),
     },
     toolEvidence: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_TOOLS_EVIDENCE_ARTIFACT_ID'),
       sourceId: clean(env.REEDITPRO_PRODUCTION_TOOLS_SOURCE_ID) ?? 'production-tool-execution-readiness-evidence-preflight:tools',
       sourceSha: clean(env.REEDITPRO_PRODUCTION_TOOLS_SOURCE_SHA),
       allProductionToolsAccepted: parseBoolean(env.REEDITPRO_PRODUCTION_TOOLS_ALL_ACCEPTED),
@@ -222,6 +240,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_TOOLS_NOTES),
     },
     hardSafety: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_HARD_EVIDENCE_ARTIFACT_ID'),
       approvedPlanSnapshotRequired: parseBoolean(env.REEDITPRO_PRODUCTION_HARD_APPROVED_SNAPSHOT_REQUIRED),
       creditEstimateAndReservationRequired: parseBoolean(env.REEDITPRO_PRODUCTION_HARD_CREDIT_ESTIMATE_RESERVATION_REQUIRED),
       idempotencyRequired: parseBoolean(env.REEDITPRO_PRODUCTION_HARD_IDEMPOTENCY_REQUIRED),
@@ -234,6 +253,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       notes: noteList(env.REEDITPRO_PRODUCTION_HARD_NOTES),
     },
     finalOwnerSignoff: {
+      ...evidenceReview(env, 'REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID'),
       deploymentOwnerApproved: parseBoolean(env.REEDITPRO_PRODUCTION_OWNER_DEPLOYMENT_APPROVED),
       securityOwnerApproved: parseBoolean(env.REEDITPRO_PRODUCTION_OWNER_SECURITY_APPROVED),
       storagePrivacyOwnerApproved: parseBoolean(env.REEDITPRO_PRODUCTION_OWNER_STORAGE_PRIVACY_APPROVED),
@@ -257,6 +277,19 @@ function evidenceValues(env: ProductionToolExecutionReadinessEvidencePreflightEn
     sourceSha: env.REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA,
     workspaceId: env.REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID,
     projectId: env.REEDITPRO_PRODUCTION_READINESS_PROJECT_ID,
+    reviewedBy: env.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY,
+    reviewedAt: env.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT,
+    artifactIds: [
+      env.REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_TOOL_COST_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_TOOLS_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_HARD_EVIDENCE_ARTIFACT_ID,
+      env.REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID,
+    ],
     notes: [
       env.REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES,
       env.REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_NOTES,
@@ -278,7 +311,10 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID', requiredFor: 'gate_identity' },
     { name: 'REEDITPRO_PRODUCTION_READINESS_PROJECT_ID', requiredFor: 'gate_identity' },
     { name: 'REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW', requiredFor: 'gate_identity' },
+    { name: 'REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED', requiredFor: 'production_evidence' },
@@ -290,11 +326,13 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_STORAGE_POLICIES_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_TOOL_COST_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOL_COST_EVENT_WRITE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_APPEND_ONLY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOL_COST_IDEMPOTENT_REPLAY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOL_COST_SUMMARY_READBACK_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_RESERVATION_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED', requiredFor: 'production_evidence' },
@@ -304,25 +342,30 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_BILLING_OWNER_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_STRIPE_NO_TOOL_COST_SURFACE_CALLS', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_STRIPE_SERVICE_FEE_EXCLUDED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_STRIPE_WEBHOOK_SEPARATED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OBSERVABILITY_DASHBOARDS_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OBSERVABILITY_ALERTS_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OBSERVABILITY_ALERT_ROUTING_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OBSERVABILITY_BILLING_QA_MONITORING_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OPERATIONS_INCIDENT_RUNBOOK_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OPERATIONS_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_TOOLS_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOLS_ALL_ACCEPTED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOLS_MODEL_LICENSE_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_TOOLS_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_HARD_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_HARD_APPROVED_SNAPSHOT_REQUIRED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_HARD_CREDIT_ESTIMATE_RESERVATION_REQUIRED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_HARD_IDEMPOTENCY_REQUIRED', requiredFor: 'production_evidence' },
@@ -333,6 +376,7 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_HARD_LICENSE_MODEL_REVIEW_REQUIRED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_HARD_SILENT_BILLING_BLOCKED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_HARD_NOTES', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OWNER_DEPLOYMENT_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OWNER_SECURITY_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_OWNER_STORAGE_PRIVACY_APPROVED', requiredFor: 'production_evidence' },
@@ -359,6 +403,17 @@ function noteList(value: string | undefined): string[] {
 
 function parseBoolean(value: string | undefined): boolean {
   return value === 'true' || value === '1'
+}
+
+function evidenceReview(
+  env: ProductionToolExecutionReadinessEvidencePreflightEnv,
+  artifactEnvName: keyof ProductionToolExecutionReadinessEvidencePreflightEnv,
+): { evidenceArtifactId: string; reviewedBy: string; reviewedAt: string } {
+  return {
+    evidenceArtifactId: clean(env[artifactEnvName]) ?? '',
+    reviewedBy: clean(env.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY) ?? '',
+    reviewedAt: clean(env.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT) ?? '',
+  }
 }
 
 function clean(value: string | undefined): string | undefined {

@@ -55,6 +55,19 @@ const refundBlocked = evaluateProductionToolExecutionReadinessGate({
 assert.equal(refundBlocked.productionToolExecutionAllowed, false, 'missing refund proof should block production')
 assert.ok(refundBlocked.blockers.some((blocker) => blocker.includes('wallet refund')), 'missing refund proof should be named')
 
+const provenanceBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  observability: {
+    ...completeEvidence.observability!,
+    evidenceArtifactId: '',
+  },
+})
+assert.equal(provenanceBlocked.productionToolExecutionAllowed, false, 'missing provenance should block production')
+assert.ok(
+  provenanceBlocked.blockers.some((blocker) => blocker.includes('Observability evidence artifact ID')),
+  'missing provenance should name the missing artifact ID',
+)
+
 assert.throws(
   () => evaluateProductionToolExecutionReadinessGate({
     ...completeEvidence,
@@ -74,18 +87,18 @@ console.log(JSON.stringify({
   defaultBlocked: defaultBlocked.blockers.length,
   stagingBlocked: stagingBlocked.blockers.length,
   refundBlocked: refundBlocked.blockers.length,
+  provenanceBlocked: provenanceBlocked.blockers.length,
   paidProductionAllowed: passingReport.paidProductionAllowed,
 }, null, 2))
 
 function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput {
-  const notes = (label: string) => [`${label} verified in production evidence fixture.`]
-
   return {
     sourceId: 'production-tool-execution-readiness-gate:complete-fixture',
     sourceSha: 'd34e82ea64822dbbda2b14e47563eb201f1962d6',
     workspaceId: 'workspace-production-readiness-smoke',
     projectId: 'project-production-readiness-smoke',
     supabasePersistence: {
+      ...reviewedEvidence('Supabase persistence'),
       environment: 'production',
       toolCostEventsMigrationDeployed: true,
       betaReadinessEvidenceMigrationDeployed: true,
@@ -97,16 +110,16 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       securityAdvisorReviewed: true,
       performanceAdvisorReviewed: true,
       storagePoliciesVerified: true,
-      notes: notes('Supabase persistence'),
     },
     toolCostLedger: {
+      ...reviewedEvidence('Tool cost ledger'),
       toolCostEventWriteVerified: true,
       ledgerAppendOnlyVerified: true,
       idempotentReplayVerified: true,
       projectSummaryReadbackVerified: true,
-      notes: notes('Tool cost ledger'),
     },
     walletSettlement: {
+      ...reviewedEvidence('Wallet settlement'),
       reservationVerified: true,
       spendVerified: true,
       releaseVerified: true,
@@ -115,38 +128,38 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       settlementRpcServiceRoleOnlyVerified: true,
       idempotentSettlementReplayVerified: true,
       noSilentChargeVerified: true,
-      notes: notes('Wallet settlement'),
     },
     stripeBoundary: {
+      ...reviewedEvidence('Stripe boundary'),
       billingOwnerApproved: true,
       noStripeFromToolCostSurface: true,
       serviceFeeExcludedFromToolEvents: true,
       stripeWebhookSeparatedFromToolLedger: true,
-      notes: notes('Stripe boundary'),
     },
     observability: {
+      ...reviewedEvidence('Observability and alerts'),
       dashboardsDeployed: true,
       alertsDeployed: true,
       alertRoutingVerified: true,
       billingQaMonitoringVerified: true,
-      notes: notes('Observability and alerts'),
     },
     operationsControls: {
+      ...reviewedEvidence('Operations controls'),
       rollbackPlanApproved: true,
       killSwitchesVerified: true,
       rateLimitsVerified: true,
       concurrencyLimitsVerified: true,
       incidentRunbookApproved: true,
-      notes: notes('Operations controls'),
     },
     toolEvidence: {
+      ...reviewedEvidence('Production tool evidence'),
       sourceId: 'production-tool-execution-readiness-gate:tool-evidence-fixture',
       sourceSha: 'd34e82ea64822dbbda2b14e47563eb201f1962d6',
       allProductionToolsAccepted: true,
       modelWeightLicenseReviewApproved: true,
-      notes: notes('Production tool evidence'),
     },
     hardSafety: {
+      ...reviewedEvidence('Hard safety invariants'),
       approvedPlanSnapshotRequired: true,
       creditEstimateAndReservationRequired: true,
       idempotencyRequired: true,
@@ -156,9 +169,9 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       frontendHeavyExecutionBlocked: true,
       licenseAndModelWeightReviewRequired: true,
       silentBillingBlocked: true,
-      notes: notes('Hard safety invariants'),
     },
     finalOwnerSignoff: {
+      ...reviewedEvidence('Final owner signoff'),
       deploymentOwnerApproved: true,
       securityOwnerApproved: true,
       storagePrivacyOwnerApproved: true,
@@ -171,7 +184,15 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       artifactPrivacyEvidenceReady: true,
       paidProductionApproved: true,
       finalDeliveryShareApproved: true,
-      notes: notes('Final owner signoff'),
     },
+  }
+}
+
+function reviewedEvidence(label: string) {
+  return {
+    evidenceArtifactId: `prod-readiness-artifact:${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    reviewedBy: 'production-readiness-smoke-reviewer',
+    reviewedAt: '2026-07-02T00:00:00.000Z',
+    notes: [`${label} verified in production evidence fixture.`],
   }
 }

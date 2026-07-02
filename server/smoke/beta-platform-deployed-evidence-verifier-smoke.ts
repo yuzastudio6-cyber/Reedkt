@@ -6,6 +6,7 @@ import {
   type BetaPlatformDeployedProbeId,
   type BetaPlatformDeployedProbeResult,
 } from '../beta-readiness'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 
 const allProbeIds: BetaPlatformDeployedProbeId[] = [
   'tool_cost_events_migration_deployed',
@@ -36,6 +37,7 @@ const input = {
   sourceSha: '4444444444444444444444444444444444444444',
   environment: 'staging' as const,
   ownerApprovals: approvals,
+  monitoringDeploymentEvidence: monitoringEvidenceFixture(),
   notes: ['Smoke fixture proves the deployed platform evidence verifier can build a complete packet without writing it.'],
 }
 
@@ -87,6 +89,16 @@ assert.equal(missingApprovalsReport.evidencePacket, undefined, 'missing owner ap
 assert.ok(missingApprovalsReport.ownerApprovalGaps.some((gap) => gap.includes('Legal')), 'legal approval gap should be named')
 assert.ok(missingApprovalsReport.ownerApprovalGaps.some((gap) => gap.includes('Support')), 'support approval gap should be named')
 
+const missingMonitoringCoverageReport = await runBetaPlatformDeployedEvidenceVerifier({
+  ...input,
+  monitoringDeploymentEvidence: undefined,
+}, passingProbes())
+assert.equal(missingMonitoringCoverageReport.evidencePacketReady, false, 'missing monitoring coverage evidence must fail closed')
+assert.ok(
+  missingMonitoringCoverageReport.missingEvidence.some((item) => item.includes('deployed monitoring coverage evidence is missing')),
+  'missing monitoring coverage report should name the coverage gap',
+)
+
 await assert.rejects(
   () => runBetaPlatformDeployedEvidenceVerifier({
     ...input,
@@ -102,6 +114,7 @@ console.log(JSON.stringify({
   evidencePacketReady: passingReport.evidencePacketReady,
   partialEvidencePacketReady: partialReport.evidencePacketReady,
   ownerApprovalGapsFailClosed: missingApprovalsReport.ownerApprovalGaps.length,
+  monitoringCoverageFailClosed: missingMonitoringCoverageReport.missingEvidence.length,
   platformBlockerClearedByCompletePacket: passingReport.evaluatedReadiness.toolExecutionReadiness.platformBlockers.length === 0,
   externalBetaAllowed: passingReport.externalBetaAllowed,
   productionAllowed: passingReport.productionAllowed,
@@ -117,5 +130,20 @@ function passingProbe(id: BetaPlatformDeployedProbeId): BetaPlatformDeployedProb
     status: 'passed',
     evidence: [`${id} passed in smoke fixture.`],
     nextAction: 'No action for smoke fixture.',
+  }
+}
+
+function monitoringEvidenceFixture() {
+  const alertRuleIds = alertRuleCatalog.map((rule) => rule.alertId)
+  return {
+    dashboardIds: ['tool-cost-billing-dashboard', 'worker-runtime-dashboard', 'readiness-gate-dashboard'],
+    alertRuleIds,
+    metricNames: productionMetricsCatalog.map((metric) => metric.metricName),
+    alertRoutingDestinations: ['on-call-ops-route', 'billing-owner-route'],
+    billingQaAlertRuleIds: alertRuleIds.filter((alertId) =>
+      alertId.includes('tool_cost') ||
+      alertId.includes('billing_qa') ||
+      alertId.includes('stripe'),
+    ),
   }
 }

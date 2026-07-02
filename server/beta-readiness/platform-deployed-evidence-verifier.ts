@@ -1,6 +1,7 @@
 import { buildBetaReadinessReport } from './beta-readiness-report-builder'
 import type { BetaReadinessEvidencePacketInput } from './beta-readiness-evidence-store'
 import type { BetaReadinessReport } from './beta-readiness-types'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
 export type BetaPlatformDeployedProbeId =
@@ -33,6 +34,14 @@ export interface BetaPlatformDeployedEvidenceOwnerApprovals {
   supportApproved: boolean
 }
 
+export interface BetaPlatformMonitoringDeploymentEvidence {
+  dashboardIds: string[]
+  alertRuleIds: string[]
+  metricNames: string[]
+  alertRoutingDestinations: string[]
+  billingQaAlertRuleIds: string[]
+}
+
 export interface BetaPlatformDeployedEvidenceVerifierInput {
   workspaceId: string
   projectId?: string
@@ -40,6 +49,7 @@ export interface BetaPlatformDeployedEvidenceVerifierInput {
   sourceSha?: string
   environment: 'staging' | 'production'
   ownerApprovals: BetaPlatformDeployedEvidenceOwnerApprovals
+  monitoringDeploymentEvidence?: BetaPlatformMonitoringDeploymentEvidence
   notes: string[]
 }
 
@@ -99,6 +109,7 @@ export async function runBetaPlatformDeployedEvidenceVerifier(
   const missingEvidence = checks
     .filter((check) => check.status !== 'passed')
     .map((check) => `${labelForProbe(check.id)}: ${check.nextAction}`)
+  missingEvidence.push(...monitoringDeploymentEvidenceGaps(input, checks))
   const ownerApprovalGaps = ownerApprovalGapsFor(input.ownerApprovals)
   const evidencePacketReady = missingEvidence.length === 0 && ownerApprovalGaps.length === 0
   const evidencePacket = evidencePacketReady ? buildEvidencePacket(input) : undefined
@@ -209,6 +220,43 @@ function ownerApprovalGapsFor(approvals: BetaPlatformDeployedEvidenceOwnerApprov
     ...(approvals.monitoringApproved ? [] : ['Monitoring owner approval is missing.']),
     ...(approvals.supportApproved ? [] : ['Support owner approval is missing.']),
   ]
+}
+
+function monitoringDeploymentEvidenceGaps(
+  input: BetaPlatformDeployedEvidenceVerifierInput,
+  checks: BetaPlatformDeployedProbeResult[],
+): string[] {
+  const monitoringProbePassed = checks.some((check) => check.id === 'monitoring_deployment_verified' && check.status === 'passed')
+  if (!monitoringProbePassed) return []
+
+  const evidence = input.monitoringDeploymentEvidence
+  if (!evidence) {
+    return ['monitoring deployment verified: deployed monitoring coverage evidence is missing.']
+  }
+
+  const gaps: string[] = []
+  const requiredAlertIds = alertRuleCatalog.map((rule) => rule.alertId)
+  const requiredMetricNames = productionMetricsCatalog.map((metric) => metric.metricName)
+  const requiredBillingAlertIds = requiredAlertIds.filter((alertId) =>
+    alertId.includes('tool_cost') ||
+    alertId.includes('billing_qa') ||
+    alertId.includes('stripe'),
+  )
+
+  if (evidence.dashboardIds.length === 0) gaps.push('monitoring deployment verified: dashboard IDs are missing.')
+  if (evidence.alertRoutingDestinations.length === 0) gaps.push('monitoring deployment verified: alert routing destinations are missing.')
+  gaps.push(...missingValues(requiredAlertIds, evidence.alertRuleIds)
+    .map((alertId) => `monitoring deployment verified: deployed alert rule ${alertId} is missing.`))
+  gaps.push(...missingValues(requiredMetricNames, evidence.metricNames)
+    .map((metricName) => `monitoring deployment verified: deployed metric ${metricName} is missing.`))
+  gaps.push(...missingValues(requiredBillingAlertIds, evidence.billingQaAlertRuleIds)
+    .map((alertId) => `monitoring deployment verified: billing QA alert ${alertId} is missing.`))
+  return gaps
+}
+
+function missingValues(required: string[], actual: string[]): string[] {
+  const actualValues = new Set(actual)
+  return required.filter((value) => !actualValues.has(value))
 }
 
 function assertNoSecretLikeVerifierInput(input: BetaPlatformDeployedEvidenceVerifierInput): void {

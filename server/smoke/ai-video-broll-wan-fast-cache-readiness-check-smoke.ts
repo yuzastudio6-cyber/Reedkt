@@ -93,7 +93,7 @@ assert.equal(cliSource.includes('stat-only cache readiness check'), true)
 const spec = AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC
 assert.equal(
   spec.decision,
-  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10m_config_availability_strategy',
+  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10n_payload_install_proof',
 )
 assert.equal(spec.mode, 'stat_only_private_cache_readiness_check')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
@@ -158,7 +158,7 @@ assert.equal(summary.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(summary.nextAction, spec.nextAction)
 assert.equal(
   summary.nextAction,
-  'AI-VIDEO-BROLL-GEN-10M-PAYLOAD-INSTALL-CONFIG-AVAILABILITY-FIX: choose next approved no-idle L4 payload/install-readiness proof strategy after northamerica-northeast1-b configuration availability failure, no VM/no inference',
+  'AI-VIDEO-BROLL-GEN-10N-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in northamerica-northeast1-c with mandatory cleanup, no model import/no inference',
 )
 
 for (const [flag, value] of Object.entries(summary.runtimeSideEffects as Record<string, boolean>)) {

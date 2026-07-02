@@ -56,7 +56,23 @@ const executionFiles = [
   'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...executionFiles])
+const threeToolHandoffDir = 'docs/external-beta/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1'
+const threeToolHandoffFiles = [
+  `${threeToolHandoffDir}/source-chain.md`,
+  `${threeToolHandoffDir}/handoff-contract.md`,
+  `${threeToolHandoffDir}/execution-readiness.md`,
+  `${threeToolHandoffDir}/artifact-manifest-policy.md`,
+  `${threeToolHandoffDir}/safety-boundary.md`,
+  `${threeToolHandoffDir}/validation-results.md`,
+  `${threeToolHandoffDir}/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-record.json`,
+  'docs/activation-phase-tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-controlled-generated-fixture-execution-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...executionFiles, ...threeToolHandoffFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

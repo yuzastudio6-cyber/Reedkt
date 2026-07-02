@@ -38,7 +38,24 @@ const implementationFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...sourceFiles, ...implementationFiles])
+const qaRollupDir =
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1'
+const qaRollupFiles = [
+  `${qaRollupDir}/source-audit.md`,
+  `${qaRollupDir}/evidence-matrix.md`,
+  `${qaRollupDir}/runtime-evidence.md`,
+  `${qaRollupDir}/readiness.md`,
+  `${qaRollupDir}/safety-boundary.md`,
+  `${qaRollupDir}/validation-results.md`,
+  `${qaRollupDir}/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-record.json`,
+  'docs/activation-phase-tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-runtime-ready-rollup-1.md',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...sourceFiles, ...implementationFiles, ...qaRollupFiles])
 const forbiddenChangedPaths = [
   /^package-lock\.json$/,
   /^docker\//,

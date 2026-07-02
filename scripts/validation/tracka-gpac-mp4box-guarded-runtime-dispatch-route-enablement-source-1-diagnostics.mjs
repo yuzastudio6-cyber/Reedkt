@@ -55,11 +55,28 @@ const downstreamExecutionReadyRouteWorkerBridgeFiles = [
   'server/smoke/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-smoke.ts',
 ]
 
+const downstreamExecutionReadyRouteWorkerBridgeQaRollupDir =
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1'
+const downstreamExecutionReadyRouteWorkerBridgeQaRollupFiles = [
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/source-audit.md`,
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/evidence-matrix.md`,
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/runtime-evidence.md`,
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/readiness.md`,
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/safety-boundary.md`,
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/validation-results.md`,
+  `${downstreamExecutionReadyRouteWorkerBridgeQaRollupDir}/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-record.json`,
+  'docs/activation-phase-tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-runtime-ready-rollup-1.md',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...implementationFiles,
   ...sourceFiles,
   ...downstreamExecutionReadyRouteWorkerBridgeFiles,
+  ...downstreamExecutionReadyRouteWorkerBridgeQaRollupFiles,
 ])
 const forbiddenChangedPaths = [
   /^package-lock\.json$/,
@@ -268,7 +285,12 @@ for (const file of uniqueChangedFiles) {
 }
 
 const changedCorpus = uniqueChangedFiles
-  .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
+  .filter(
+    (file) =>
+      fs.existsSync(file) &&
+      fs.statSync(file).isFile() &&
+      (packetFiles.includes(file) || downstreamExecutionReadyRouteWorkerBridgeFiles.includes(file) || file === 'package.json')
+  )
   .map(read)
   .join('\n')
 for (const pattern of forbiddenClaims) {

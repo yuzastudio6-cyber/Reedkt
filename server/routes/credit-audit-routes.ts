@@ -8,6 +8,7 @@ import {
   buildStripeBillingTraceSummary,
   CREDIT_AUDIT_ROUTE_WARNINGS,
 } from '../services/credit-audit-service'
+import { buildCreditExternalBetaLaunchGateReport } from '../services/credit-external-beta-launch-gate-service'
 import {
   sharedMockCreditDataStore,
   sharedMockCreditEstimateStore,
@@ -80,7 +81,8 @@ export function createCreditAuditRoutes(): Router {
   router.get('/v1/credit-audit/beta-readiness', requireAuth, asyncRoute(async (request, response) => {
     validateCreditAuditQuery(creditAuditBetaReadinessQuerySchema, request.query)
     const report = buildCreditBetaReadinessEvidenceReport()
-    sendOk(response, { report }, CREDIT_AUDIT_ROUTE_WARNINGS)
+    const launchGateReport = buildCreditExternalBetaLaunchGateReport({ generatedAt: report.generatedAt })
+    sendOk(response, { report, launchGateReport }, CREDIT_AUDIT_ROUTE_WARNINGS)
   }))
 
   return router

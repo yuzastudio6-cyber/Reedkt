@@ -37,3 +37,7 @@ This milestone is test-mode only: no live Stripe call, no live billing, no card 
 ## RP-CREDITAUDIT-01 Note
 
 The audit layer can trace Stripe test-mode checkout and webhook records to purchased mock credit grants. It keeps Stripe IDs and safe amounts only, and excludes raw webhook payloads, secrets, card numbers, and CVC.
+
+## RP-EXTERNALBETA-01 Note
+
+The external beta credit launch gate includes Stripe test-mode checkout and webhook idempotency as scenario evidence. It still requires verified test webhook completion before mock purchased credits are granted and does not enable live Stripe.

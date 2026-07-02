@@ -50,3 +50,7 @@ Future live activation requires a separate milestone that explicitly designs liv
 ## RP-CREDITAUDIT-01 Note
 
 Credit beta-readiness evidence includes the Stripe live readiness gate as `ready_no_charge` support evidence only. The audit layer does not enable live Checkout Sessions, SetupIntents, PaymentIntents, live webhooks, live grants, or live Stripe calls.
+
+## RP-EXTERNALBETA-01 Note
+
+The external beta credit launch gate reports live readiness as `blocked_for_live_external_beta` even when the no-charge live readiness check returns `ready_no_charge`. Live payment processing remains a future activation milestone.

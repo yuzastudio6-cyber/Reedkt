@@ -61,3 +61,7 @@ This milestone makes no live Stripe calls, creates no real Checkout Sessions, cr
 ## RP-CREDITAUDIT-01 Note
 
 The credit audit Stripe trace summarizes mock/test customer, setup, checkout, webhook, and grant evidence with redaction. It does not expose raw Stripe secrets, webhook payloads, card numbers, CVC, or live payment behavior.
+
+## RP-EXTERNALBETA-01 Note
+
+The external beta credit launch gate treats Stripe foundation evidence as config/readiness proof only. It does not create live Checkout Sessions, SetupIntents, PaymentIntents, webhook grants, or production wallet/ledger mutations.

@@ -1398,6 +1398,133 @@ export interface CreditBetaReadinessEvidenceReport {
   blockingGaps: string[]
 }
 
+export const CREDIT_EXTERNAL_BETA_SCENARIO_TYPES = [
+  'happy_path_normal',
+  'happy_path_premium',
+  'happy_path_ultra_premium',
+  'insufficient_credits_before_reservation',
+  'runtime_projected_overage',
+  'revised_credit_approved',
+  'lower_cost_selected',
+  'extra_work_cancelled',
+  'settled_with_unused_return',
+  'settled_with_absorbed_overage',
+  'approved_but_unfunded_export_lock',
+  'mock_credit_top_up',
+  'stripe_testmode_checkout_grant',
+  'stripe_live_readiness_no_charge',
+  'audit_support_trace',
+  'ui_lifecycle_display',
+] as const
+
+export type CreditExternalBetaScenarioType = typeof CREDIT_EXTERNAL_BETA_SCENARIO_TYPES[number]
+
+export const CREDIT_EXTERNAL_BETA_RESULT_STATUSES = [
+  'passed',
+  'failed',
+  'warning',
+  'blocked',
+] as const
+
+export type CreditExternalBetaResultStatus = typeof CREDIT_EXTERNAL_BETA_RESULT_STATUSES[number]
+
+export const CREDIT_EXTERNAL_BETA_LAUNCH_GATE_STATUSES = [
+  'ready_for_mock_external_beta',
+  'ready_for_stripe_testmode_beta',
+  'blocked_for_live_external_beta',
+  'blocked',
+] as const
+
+export type CreditExternalBetaLaunchGateStatus = typeof CREDIT_EXTERNAL_BETA_LAUNCH_GATE_STATUSES[number]
+
+export const CREDIT_EXTERNAL_BETA_EVIDENCE_SOURCES = [
+  'estimate',
+  'reservation',
+  'runtime_guard',
+  'revision_action',
+  'tool_cost',
+  'settlement',
+  'export_lock',
+  'top_up',
+  'stripe',
+  'ui',
+  'audit',
+  'smoke',
+  'doc',
+  'other',
+] as const
+
+export type CreditExternalBetaEvidenceSource = typeof CREDIT_EXTERNAL_BETA_EVIDENCE_SOURCES[number]
+
+export const CREDIT_EXTERNAL_BETA_STRIPE_MODES = [
+  'disabled',
+  'test',
+  'live',
+  'not_applicable',
+] as const
+
+export type CreditExternalBetaStripeMode = typeof CREDIT_EXTERNAL_BETA_STRIPE_MODES[number]
+
+export interface CreditExternalBetaScenarioEvidence {
+  id: ID
+  label: string
+  value: string
+  source: CreditExternalBetaEvidenceSource
+}
+
+export interface CreditExternalBetaScenario {
+  id: ID
+  name: string
+  description: string
+  scenarioType: CreditExternalBetaScenarioType
+  expectedStatus: CreditExternalBetaResultStatus
+  requiredSmokes: string[]
+  requiredEvidence: string[]
+  mockOnly: boolean
+  stripeMode: CreditExternalBetaStripeMode
+  liveBillingExpected: false
+  notes: string[]
+}
+
+export interface CreditExternalBetaScenarioResult {
+  scenarioId: ID
+  scenarioType: CreditExternalBetaScenarioType
+  status: CreditExternalBetaResultStatus
+  evidence: CreditExternalBetaScenarioEvidence[]
+  warnings: string[]
+  blockers: string[]
+}
+
+export interface CreditExternalBetaRequiredSmokeResult {
+  command: string
+  status: 'passed' | 'failed' | 'not_available' | 'skipped'
+  notes: string[]
+}
+
+export interface CreditExternalBetaSafetyCheck {
+  id: ID
+  label: string
+  status: CreditExternalBetaResultStatus
+  notes: string[]
+}
+
+export interface CreditExternalBetaLaunchGateReport {
+  generatedAt: ISODateString
+  status: CreditExternalBetaLaunchGateStatus
+  liveBetaStatus: CreditExternalBetaLaunchGateStatus
+  scenarios: CreditExternalBetaScenario[]
+  scenarioResults: CreditExternalBetaScenarioResult[]
+  requiredSmokeResults: CreditExternalBetaRequiredSmokeResult[]
+  safetyChecks: CreditExternalBetaSafetyCheck[]
+  mockBetaReady: boolean
+  stripeTestModeReady: boolean
+  liveModeReadyNoCharge: boolean
+  liveModeEnabled: false
+  blockingGaps: string[]
+  nonBlockingGaps: string[]
+  recommendedNextMilestone: string
+}
+
 export interface CreditAuditTimelineResponse {
   timeline: CreditAuditTimeline
 }
@@ -1413,6 +1540,11 @@ export interface StripeBillingTraceResponse {
 
 export interface CreditBetaReadinessEvidenceResponse {
   report: CreditBetaReadinessEvidenceReport
+  launchGateReport?: CreditExternalBetaLaunchGateReport
+}
+
+export interface CreditExternalBetaLaunchGateResponse {
+  launchGateReport: CreditExternalBetaLaunchGateReport
 }
 
 export interface CreditWalletBalanceViewRecord {

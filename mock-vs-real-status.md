@@ -114,3 +114,9 @@
 - Real: authenticated mock/internal GET routes expose read-only credit audit timeline, support receipt, Stripe billing trace, and beta-readiness evidence.
 - Real: audit output redacts raw secrets, client secrets, authorization values, card numbers, and CVC/CVV fields while preserving safe IDs and amounts.
 - Mock-only: no live billing, Stripe charge, checkout/top-up execution, settlement execution, reservation spend/release/refund, provider call, render/export execution, export unlock, Supabase write, production wallet mutation, ledger write, raw secret exposure, or card data exposure is wired.
+
+## RP-EXTERNALBETA-01 Credit Launch Gate Status
+
+- Real: `/v1/credit-audit/beta-readiness` now includes `launchGateReport` with mock/test scenario readiness, safety checks, and live-beta blocked status.
+- Real: mock external beta and Stripe test-mode beta can be reported ready when deterministic evidence passes.
+- Blocked by design: live external beta remains `blocked_for_live_external_beta`; no live billing, checkout/top-up execution, settlement execution, export unlock, production persistence, provider call, render/export execution, or raw secret/card exposure is wired.

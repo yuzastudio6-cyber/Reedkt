@@ -20,6 +20,7 @@ const RUNNER_DECISION =
 
 const executeFlag =
   '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke'
+const operatorPreflightFlag = '--operator-preflight'
 
 const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js'] as const
 
@@ -79,6 +80,7 @@ function preparedContract() {
     preparedScript:
       'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke',
     executeFlagRequired: executeFlag,
+    operatorPreflightFlag,
     sourcePreflightPacket: sourcePreflightPath,
     requiredEnv,
     requiredFlags,
@@ -118,6 +120,160 @@ function preparedContract() {
       explicitOperatorConfirmationRequired: true,
       cleanupRequired: true,
       savedResultMustBeValidatedSeparately: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      serviceRoleQueueWriteSmokeApprovedNow: false,
+      liveQueueWriteApprovedNow: false,
+      backendQueueSubmissionApprovedNow: false,
+      workerEnqueueApprovedNow: false,
+      workerClaimApprovedNow: false,
+      workerDispatchApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      serviceRoleQueueWriteSmokePerformed: false,
+      backendQueueSubmissionPerformed: false,
+      workerEnqueuePerformed: false,
+      workerClaimPerformed: false,
+      workerDispatchPerformed: false,
+      workerExecutionPerformed: false,
+      toolExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
+function splitRequiredEnv(entry: string): { name: string; expectedValue?: string } {
+  const separator = entry.indexOf('=')
+  if (separator === -1) return { name: entry }
+  return {
+    name: entry.slice(0, separator),
+    expectedValue: entry.slice(separator + 1),
+  }
+}
+
+function requiredFlagSatisfiedForOperatorPreflight(flag: string): boolean {
+  if (flag === executeFlag) return hasFlag(flag)
+  return hasFlag(flag) && Boolean(valueAfterFlag(flag))
+}
+
+function buildOperatorPreflightReport() {
+  const missingOrMismatchedEnv = requiredEnv
+    .map((entry) => {
+      const { name, expectedValue } = splitRequiredEnv(entry)
+      const actualValue = process.env[name]
+      if (expectedValue == null) {
+        return actualValue && actualValue.trim().length > 0
+          ? undefined
+          : { name, expectedValue: 'present', actualValue: actualValue ?? null }
+      }
+      return actualValue === expectedValue
+        ? undefined
+        : { name, expectedValue, actualValue: actualValue ?? null }
+    })
+    .filter((value): value is { name: string; expectedValue: string; actualValue: string | null } =>
+      Boolean(value),
+    )
+
+  const missingFlags = requiredFlags.filter(
+    (flag) => !requiredFlagSatisfiedForOperatorPreflight(flag),
+  )
+  const explicitSourcePreflightPath = valueAfterFlag(
+    '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+  )
+  const checkedSourcePreflightPath = explicitSourcePreflightPath ?? sourcePreflightPath
+  const sourcePreflightExists = fs.existsSync(checkedSourcePreflightPath)
+  let sourcePreflightAccepted = false
+  let sourcePreflightError: string | null = null
+
+  if (sourcePreflightExists) {
+    try {
+      const sourcePreflight = readJsonFile<
+        AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport
+      >(checkedSourcePreflightPath)
+      acceptedPreflightRows(sourcePreflight)
+      sourcePreflightAccepted = true
+    } catch (error) {
+      sourcePreflightError = error instanceof Error ? error.message : String(error)
+    }
+  } else {
+    sourcePreflightError = 'source preflight packet is missing'
+  }
+
+  const productionBlocked = hasFlag('--production') || process.env.NODE_ENV === 'production'
+  const canRunQueueWriteSmokeNow =
+    missingOrMismatchedEnv.length === 0 &&
+    missingFlags.length === 0 &&
+    sourcePreflightAccepted &&
+    productionBlocked === false
+
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_operator_preflight_completed_with_runtime_blocks',
+    status: canRunQueueWriteSmokeNow
+      ? 'external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_operator_preflight_ready_for_explicit_non_production_run'
+      : 'external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_operator_preflight_blocked_pending_runtime_prerequisites',
+    operatorPreflightOnly: true,
+    canRunQueueWriteSmokeNow,
+    preparedScript:
+      'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke',
+    executeFlagRequired: executeFlag,
+    sourcePreflightPacket: checkedSourcePreflightPath,
+    sourcePreflightChecks: {
+      sourcePreflightExists,
+      sourcePreflightAccepted,
+      sourcePreflightError,
+    },
+    missingOrMismatchedEnv,
+    missingFlags,
+    productionBlocked,
+    requiredEnv,
+    requiredFlags,
+    toolsSubmitted: 5,
+    toolsSubmittedIds: [...proofTools],
+    expectedQueueRowsWritten: 5,
+    expectedQueueRowsCleanedUp: 5,
+    expectedQueueRowsPersistedAfterCleanup: 0,
+    liveServiceRoleQueueWriteSmokeExecutedNow: false,
+    liveSupabaseQueueWritesNow: 0,
+    workerClaimsCreatedNow: 0,
+    workerDispatchesPerformedNow: 0,
+    workerExecutionsPerformedNow: 0,
+    toolExecutionsPerformedNow: 0,
+    agentCanExecuteToolsNow: false,
+    liveQueueWriteApprovedNow: false,
+    backendQueueSubmissionApprovedNow: false,
+    workerEnqueueApprovedNow: false,
+    workerClaimApprovedNow: false,
+    workerDispatchApprovedNow: false,
+    workerExecutionApprovedNow: false,
+    toolExecutionApprovedNow: false,
+    gpuRuntimeShouldStartNow: false,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+    booleans: {
+      operatorPreflightOnly: true,
+      canRunQueueWriteSmokeNow,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       serviceRoleQueueWriteSmokeApprovedNow: false,
@@ -418,6 +574,10 @@ async function executeSmoke(): Promise<AiGraphicsExternalAgentCpuStaticPrivateWo
 }
 
 async function main(): Promise<void> {
+  if (hasFlag(operatorPreflightFlag)) {
+    console.log(JSON.stringify(buildOperatorPreflightReport(), null, 2))
+    return
+  }
   if (!hasFlag(executeFlag)) {
     console.log(JSON.stringify(preparedContract(), null, 2))
     return

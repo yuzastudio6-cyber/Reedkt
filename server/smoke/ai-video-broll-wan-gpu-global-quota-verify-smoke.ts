@@ -69,27 +69,27 @@ for (const required of [
   'This packet records a read-only B-roll quota verification result',
   'Project: `reeditpro`',
   '`GPUS_ALL_REGIONS` limit',
-  '`NVIDIA_L4_GPUS` limit in `us-west4`',
+  '`NVIDIA_L4_GPUS` limit in `northamerica-northeast1`',
   'Quota is sufficient for one L4 VM',
   '9W create attempt in `us-east4-a` stocked out',
   'this result is not execution permission',
-	  'quota request created: false',
-	  'Compute Engine VM created: false',
-	  'model import/inference: false',
-	  'Supabase/SQL/storage/signed URLs: false',
-	  'beta/production unlock: false',
-	  '9Y create attempt in `us-east4-c` also stocked out',
-	  '9Z no-VM stockout-fix result selected `us-east1-b`',
-	  '10A no-idle transfer proof then stocked out in `us-east1-b`',
-	  '10B no-VM stockout-fix result selected `us-east1-c`',
-	  '10C no-idle transfer proof then stocked out in `us-east1-c`',
-	  '10D no-VM stockout-fix result selected `us-east1-d`',
-	  '10E no-idle transfer proof then stocked out in `us-east1-d`',
+  'quota request created: false',
+  'Compute Engine VM created: false',
+  'model import/inference: false',
+  'Supabase/SQL/storage/signed URLs: false',
+  'beta/production unlock: false',
+  '9Y create attempt in `us-east4-c` also stocked out',
+  '9Z no-VM stockout-fix result selected `us-east1-b`',
+  '10A no-idle transfer proof then stocked out in `us-east1-b`',
+  '10B no-VM stockout-fix result selected `us-east1-c`',
+  '10C no-idle transfer proof then stocked out in `us-east1-c`',
+  '10D no-VM stockout-fix result selected `us-east1-d`',
+  '10E no-idle transfer proof then stocked out in `us-east1-d`',
   '10G no-idle transfer proof then stocked out in `us-west4-a`',
   '10H no-VM stockout-fix result selected `us-west4-c`',
   '10J bounded payload/install-readiness proof then stocked out',
-  'AI-VIDEO-BROLL-GEN-10K-PAYLOAD-INSTALL-STOCKOUT-FIX',
-	]) {
+  'AI-VIDEO-BROLL-GEN-10L-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-B',
+]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
 
@@ -110,17 +110,22 @@ const resultSpec = AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT
 assert.equal(spec.decision, 'ai_video_broll_wan_gpu_global_quota_verify_read_only_probe_defined')
 assert.equal(spec.mode, 'read_only_broll_wan_gpu_global_quota_verify')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
-	assert.equal(spec.projectId, 'reeditpro')
-	assert.equal(spec.targetRegion, 'us-west4')
-assert.equal(spec.targetZone, 'us-west4-c')
+assert.equal(spec.projectId, 'reeditpro')
+assert.equal(spec.targetRegion, 'northamerica-northeast1')
+assert.equal(spec.targetZone, 'northamerica-northeast1-b')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.machineType, 'g2-standard-4')
 assert.equal(spec.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.minimumRegionalL4Quota, 1)
 assert.equal(spec.globalQuotaMetric, 'GPUS_ALL_REGIONS')
-	assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
-	assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
-assert.equal(spec.nextActionIfQuotaCleared.includes('10K-PAYLOAD-INSTALL-STOCKOUT-FIX'), true)
+assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
+assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
+assert.equal(
+  spec.nextActionIfQuotaCleared.includes(
+    '10L-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST1-B',
+  ),
+  true,
+)
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready')
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')
@@ -158,7 +163,12 @@ for (const command of spec.allowedReadOnlyCommands) {
 
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
 assert.equal(renderedCommands.includes('gcloud compute project-info describe --project reeditpro --format=json'), true)
-assert.equal(renderedCommands.includes('gcloud compute regions describe us-west4 --project reeditpro --format=json'), true)
+assert.equal(
+  renderedCommands.includes(
+    'gcloud compute regions describe northamerica-northeast1 --project reeditpro --format=json',
+  ),
+  true,
+)
 for (const forbiddenPattern of [
   /\bgcloud\s+compute\s+instances\s+(create|delete|start|stop)\b/i,
   /\bgcloud\s+compute\s+disks\s+(create|delete)\b/i,

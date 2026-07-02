@@ -85,12 +85,12 @@ assert.equal(
 const source = read(CLI_PATH)
 for (const required of [
   CONFIRM_ENV,
-	  'ai-video-broll-wan-gpu-global-quota-verify.ts',
-	  'ai-video-broll-wan-fast-cache-readiness-check.ts',
-	  'broll_gpus_all_regions_quota_not_sufficient',
-  'broll_no_idle_l4_payload_install_proof_us_west4_c_stockout_10k_strategy_required',
-	  'parseJsonOutput',
-	  'runtimeRunNow: false',
+  'ai-video-broll-wan-gpu-global-quota-verify.ts',
+  'ai-video-broll-wan-fast-cache-readiness-check.ts',
+  'broll_gpus_all_regions_quota_not_sufficient',
+  'broll_no_idle_l4_payload_install_proof_northamerica_northeast1_b_future_prompt_required',
+  'parseJsonOutput',
+  'runtimeRunNow: false',
   'computeVmCreated: false',
   'modelInferenceRun: false',
   'generatedAssetsCreated: false',

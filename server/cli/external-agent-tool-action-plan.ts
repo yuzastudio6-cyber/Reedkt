@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10J attempted the no-idle us-west4-c payload/install-readiness proof but stocked out before any VM existed; cleanup/absence is verified; the 10K no-VM capacity strategy prompt must run before another VM attempt',
+        'B-roll 10K selected northamerica-northeast1-b as the next no-idle payload/install-readiness proof target after the us-west4-c stockout; the 10L bounded proof prompt must run before another VM attempt',
       afterBlockerClears:
-        'run the separate 10K no-VM payload/install stockout-fix strategy prompt before any runtime action is considered',
+        'run the separate 10L no-idle payload/install proof prompt with repeated preflight, one prompt-scoped no-public-IP VM, and mandatory cleanup',
     }
   }
 

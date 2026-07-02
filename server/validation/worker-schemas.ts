@@ -184,3 +184,11 @@ export const gstreamerMkvtoolnixGeneratedFixtureApprovedSnapshotJobQueueHandoffS
   paidProductionUnlockRequestedNow: z.boolean().optional(),
   productionUnlockRequestedNow: z.boolean().optional(),
 }).strict()
+
+export const gstreamerMkvtoolnixGeneratedFixtureQueuedJobRuntimeRouteInvocationSchema =
+  gstreamerMkvtoolnixGeneratedFixtureApprovedSnapshotJobQueueHandoffSchema.extend({
+    invocationId: idSchema,
+    invocationIdempotencyKey: z.string().min(1),
+    invocationMode: z.literal('queued_job_payload_to_existing_runtime_route_delegate'),
+    runtimeRouteInvocationConfirmed: z.boolean(),
+  }).strict()

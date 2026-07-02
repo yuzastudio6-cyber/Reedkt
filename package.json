@@ -594,6 +594,7 @@
     "worker-runtime-jobs:sound-cpu-phase139-static-route-source-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase139-static-route-source-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase140-controlled-no-media-route-import-validation:proof": "tsx scripts/validation/worker-runtime-jobs-sound-cpu-phase140-controlled-no-media-route-import-validation-runner.ts",
     "worker-runtime-jobs:sound-cpu-phase140-controlled-no-media-route-import-validation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase140-controlled-no-media-route-import-validation-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase141-route-registration-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase141-route-registration-plan-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

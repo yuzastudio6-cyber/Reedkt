@@ -811,7 +811,7 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
   }
 }
 
-export function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
+export async function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
   request: AiGraphicsExternalBetaToolCallRequest,
   serviceContext: ServiceContext,
 ) {
@@ -834,6 +834,231 @@ export function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
 
   const details =
     buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails(request)
+  if (details.runtimeJobAdmissionReadyWithProvidedEvidence === true) {
+    if (!serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {
+      throw new ApiError(
+        'TOOL_NOT_READY',
+        'AI graphics GPU/model tool-call runtime has accepted required private proof refs, but mock queue admission is disabled.',
+        409,
+        {
+          ...details,
+          routeStatus:
+            'gpu_model_runtime_admission_ready_pending_mock_queue_admission',
+          workerEnqueueStillBlockedByCurrentLane: true,
+          mockQueueAdmissionRequiredBeforeExecution: true,
+          gpuRuntimeShouldStartNow: false,
+        },
+      )
+    }
+    if (!serviceContext.env.mockOnly) {
+      throw new ApiError(
+        'MOCK_ONLY',
+        'AI graphics GPU/model proof-ref queue admission requires explicit mock runtime mode; live service-role queue writes remain separately gated.',
+        409,
+        {
+          ...details,
+          routeStatus:
+            'gpu_model_runtime_admission_ready_live_queue_write_still_blocked',
+          liveQueueWriteApprovedNow: false,
+          workerDispatchApprovedNow: false,
+          toolExecutionApprovedNow: false,
+          gpuRuntimeShouldStartNow: false,
+        },
+      )
+    }
+
+    const readiness = getAiGraphicsToolCallReadiness(request.toolId)
+    if (!readiness?.productionToolId) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        `AI graphics canonical production mapping is missing for ${request.toolId}.`,
+        400,
+      )
+    }
+    if (!readiness.capabilities.includes(request.capabilityId)) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        `AI graphics capability ${request.capabilityId} is not valid for ${request.toolId}.`,
+        400,
+      )
+    }
+
+    const queueService = createAiGraphicsToolRuntimeQueueService(serviceContext)
+    const enqueue = await queueService.enqueueToolRuntimeJobs({
+      workspaceId: request.workspaceId,
+      projectId: `project-ai-graphics-external-beta-${request.workspaceId}`,
+      approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+      creditReservationId: request.creditReservationId,
+      idempotencyKey:
+        `ai-graphics-external-beta-gpu-model-proof-ref-route:${request.requestId}:${request.toolId}`,
+      batchName:
+        'AI graphics external beta GPU/model proof-ref route mock queue admission',
+      createdByAgent:
+        'ai_graphics_external_beta_gpu_model_proof_ref_tool_call_route',
+      jobs: [
+        {
+          toolId: request.toolId,
+          productionToolId: readiness.productionToolId,
+          workerType: readiness.productionWorkerType,
+          runtimeTarget: readiness.runtimeTarget,
+          capabilityIds: [request.capabilityId],
+          privateArtifactManifestRef: request.privateArtifactManifestRef,
+          idempotencyKey:
+            `ai-graphics-external-beta-gpu-model-proof-ref-route:${request.requestId}:${request.toolId}:job`,
+          priority: 'high',
+          maxAttempts: 1,
+          inputPayload: {
+            sourceRoute: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+            traceId: request.traceId,
+            toolRouteApprovalRef: request.toolRouteApprovalRef,
+            workerApprovalRef: request.workerApprovalRef,
+            runtimeEnqueueApprovalRef: request.runtimeEnqueueApprovalRef,
+            ownerRuntimeApprovalRef: request.ownerRuntimeApprovalRef,
+            nativeGpuRuntimeProofRef: request.nativeGpuRuntimeProofRef,
+            modelWeightManifestRef: request.modelWeightManifestRef,
+            payload: request.payload ?? {},
+            gpuModelProofRefMockQueueAdmissionOnly: true,
+            runtimeJobAdmissionReadyWithProvidedEvidence: true,
+            gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
+              details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+            gpuRuntimeOnDemandOnly: true,
+            noIdleGpuRuntimeApproved: true,
+            routeExecutionPerformed: true,
+            backendQueueSubmissionPerformed: false,
+            workerEnqueuePerformed: false,
+            workerDispatchPerformed: false,
+            toolExecutionPerformed: false,
+            gpuRuntimeShouldStartNow: false,
+            modelWeightsLoaded: false,
+            publicArtifactCreated: false,
+            signedUrlCreated: false,
+          },
+        },
+      ],
+    })
+    const queueResult = enqueue.queueResult as {
+      jobBatchId?: string
+      jobIds?: string[]
+      insertedJobCount?: number
+      mockOnly?: boolean
+      liveToolExecutionPerformed?: boolean
+    }
+
+    return {
+      routeDecision:
+        'ai_graphics_external_beta_tool_call_route_gpu_model_proof_ref_mock_queue_admission_accepted',
+      routeStatus:
+        'external_beta_tool_call_route_gpu_model_proof_ref_mock_queue_admission_accepted_runtime_still_blocked',
+      routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+      routeFlag:
+        AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
+      queueAdmissionFlag:
+        AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG,
+      workspaceId: request.workspaceId,
+      requestId: request.requestId,
+      toolId: request.toolId,
+      productionToolId: readiness.productionToolId,
+      capabilityId: request.capabilityId,
+      workerType: readiness.productionWorkerType,
+      runtimeTarget: readiness.runtimeTarget,
+      approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+      creditReservationId: request.creditReservationId,
+      privateArtifactManifestRef: request.privateArtifactManifestRef,
+      nativeGpuRuntimeProofRefAccepted: details.nativeGpuRuntimeProofRefAccepted,
+      modelWeightManifestRequired: details.modelWeightManifestRequired,
+      modelWeightManifestRefAccepted: details.modelWeightManifestRefAccepted,
+      runtimeJobAdmissionReadyWithProvidedEvidence: true,
+      gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
+        details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+      gpuRuntimeShouldStartNow: false,
+      queueName: 'ai_graphics_external_beta_tool_runtime',
+      queueAdmissionMode: 'mock_only_gpu_model_proof_ref',
+      queueResult: {
+        jobBatchId: queueResult.jobBatchId ?? null,
+        jobIds: Array.isArray(queueResult.jobIds) ? queueResult.jobIds : [],
+        insertedJobCount: queueResult.insertedJobCount ?? 0,
+        mockOnly: queueResult.mockOnly === true,
+        liveToolExecutionPerformed:
+          queueResult.liveToolExecutionPerformed === true,
+      },
+      onDemandRuntimeAdmission: details.onDemandRuntimeAdmission,
+      warnings: enqueue.warnings,
+      counts: {
+        totalAiGraphicsTools: 21,
+        totalProductFacingCapabilities: 12,
+        gpuModelProofRefMockQueueAdmissionAcceptedTools: 1,
+        gpuModelRuntimeAdmissionReadyWithProvidedEvidenceTools: 1,
+        scopedControlledToolsCallableNow: 13,
+        remainingGpuModelToolsRequiringProofRefs: 7,
+        liveQueueWritePerformedTools: 0,
+        workerDispatchPerformedTools: 0,
+        toolExecutionPerformedTools: 0,
+        gpuRuntimeShouldStartNowTools: 0,
+        modelWeightsLoadedTools: 0,
+        publicArtifactCreatedTools: 0,
+        signedUrlCreatedTools: 0,
+      },
+      booleans: {
+        externalBetaToolCallRouteGpuModelProofRefMockQueueAdmissionAccepted:
+          true,
+        routeSchemaAccepted: true,
+        approvedPlanSnapshotAccepted: true,
+        creditReservationAccepted: true,
+        privateArtifactManifestAccepted:
+          details.privateArtifactManifestAccepted,
+        nativeGpuRuntimeProofRefAccepted:
+          details.nativeGpuRuntimeProofRefAccepted,
+        modelWeightManifestRequired: details.modelWeightManifestRequired,
+        modelWeightManifestRefAccepted: details.modelWeightManifestRefAccepted,
+        runtimeJobAdmissionReadyWithProvidedEvidence: true,
+        gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
+          details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+        mockOnlyRuntimeModeEnforced: true,
+        gpuRuntimeOnDemandOnly: true,
+        noIdleGpuRuntimeApproved: true,
+        gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+        agentCanSelectForPlanning: true,
+        agentCanSubmitGpuModelToolCallToQueueAdmissionNow: true,
+        agentCanExecuteGpuModelToolsNow: false,
+        agentCanExecuteAll21ToolsNow: false,
+        agentCanExecuteToolsNow: false,
+        routeExecutionApprovedNow: true,
+        routeExecutionPerformed: true,
+        backendQueueSubmissionApprovedNow: false,
+        backendQueueSubmissionPerformed: false,
+        liveQueueWriteApprovedNow: false,
+        liveQueueWritePerformed: false,
+        workerExecutionApprovedNow: false,
+        workerExecutionPerformed: false,
+        workerEnqueueApprovedNow: false,
+        workerEnqueuePerformed: false,
+        workerDispatchApprovedNow: false,
+        workerDispatchPerformed: false,
+        toolExecutionApprovedNow: false,
+        toolExecutionPerformed: false,
+        providerRuntimeApprovedNow: false,
+        providerRuntimePerformed: false,
+        browserWebglCanvasRuntimeApprovedNow: false,
+        browserWebglCanvasRuntimePerformed: false,
+        gpuRuntimeApprovedNow: false,
+        gpuRuntimePerformed: false,
+        gpuRuntimeShouldStartNow: false,
+        modelWeightsDownloaded: false,
+        modelWeightsLoaded: false,
+        modelInferencePerformed: false,
+        mediaProcessingPerformed: false,
+        supabaseMutationPerformed: false,
+        gcsUploadPerformed: false,
+        publicArtifactCreated: false,
+        signedUrlCreated: false,
+        runtimeReadyNow: false,
+        internalBetaReadyNow: false,
+        externalBetaReadyNow: false,
+        productionReadyNow: false,
+      },
+    }
+  }
+
   const message = details.runtimeJobAdmissionReadyWithProvidedEvidence === true
     ? 'AI graphics GPU/model tool-call runtime has accepted required private proof refs, but live worker enqueue and GPU runtime execution remain blocked in this lane.'
     : 'AI graphics GPU/model tool-call runtime remains blocked until reviewed private model-weight evidence and native NVIDIA L4 runtime proof are accepted.'
@@ -1331,10 +1556,11 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
       serviceContext.env.aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled &&
       isAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionTool(body.toolId)
     ) {
-      admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
+      const admission = await admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
         body,
         serviceContext,
       )
+      sendOk(response, admission, admission.warnings, 202)
       return
     }
     if (serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {

@@ -1,0 +1,75 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-RUNTIME-HANDOFF-QA-ROLLUP-1",
+  "decision": "completed_gstreamer_mkvtoolnix_persisted_job_runtime_handoff_route_invocation_qa_rollup",
+  "execution": "completed_local_mock_persisted_job_service_handoff_route_invocation_no_runtime_execution",
+  "sourceChain": {
+    "runtimeRouteBridgePr": 2113,
+    "runtimeRouteBridgeMergeSha": "67602b088009779d45b0d1f26eabac65c48902fc",
+    "runtimeRouteBridgeQaRollupPr": 2115,
+    "runtimeRouteBridgeQaRollupMergeSha": "932cba325d9b82ea88bd2e753bb3ff92ad58cb78",
+    "approvedSnapshotQueueHandoffPr": 2120,
+    "approvedSnapshotQueueHandoffMergeSha": "d197af4b7acdaa331782d9329ab41f306288045e",
+    "queuedJobRuntimeRouteInvocationPr": 2122,
+    "queuedJobRuntimeRouteInvocationMergeSha": "1101d465ee8d79b893c3964dbfde9b9060b7a565",
+    "queuedJobRuntimeQaRollupPr": 2125,
+    "queuedJobRuntimeQaRollupMergeSha": "26ba53f12eee7b1bcce6786de5492a29f5a21930",
+    "persistedJobRuntimeHandoffPr": 2130,
+    "persistedJobRuntimeHandoffMergeSha": "8d74b8c9f9547ac68bfd6844d84b5e7d5c99794c",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "routeInvocation": {
+    "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-handoff",
+    "statusCode": 201,
+    "ok": true,
+    "status": "completed_persisted_job_runtime_handoff",
+    "runId": "2026-07-02T12-58-02-530Z-persisted-route",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/2026-07-02T12-58-02-530Z-persisted-route",
+    "jobType": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "runtimeInvocationBodyAccepted": true,
+    "localMockJobServiceHandoff": "completed"
+  },
+  "artifacts": [
+    {
+      "fileName": "persisted-job-runtime-handoff-route-invocation-report.json",
+      "bytes": 23894,
+      "sha256": "3a12e54606c79f9723c5765db2059a43d80c4ac07306077a2e24e7bbfa6611a2"
+    },
+    {
+      "fileName": "persisted-job-runtime-handoff-route-invocation-manifest.json",
+      "bytes": 1146,
+      "sha256": "8c6eb2369cb2aeea7bdcb16b66f7c1a0d9198316f8ccbcd3a9ef0dea760db417"
+    }
+  ],
+  "harnessCaveat": {
+    "firstAttempt": "failed_closed_confirmation_gates_not_set_in_process_env",
+    "sideEffects": "none",
+    "acceptedEvidence": "successful_process_env_gated_run"
+  },
+  "safety": {
+    "runtimeRouteInvocation": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-RUNTIME-ROUTE-INVOCATION-1"
+}

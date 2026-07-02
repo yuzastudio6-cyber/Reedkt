@@ -21,6 +21,11 @@ assert.ok(toolCallIntentPlan, 'mock edit plan should include a tool-call intent 
 assert.equal(toolCallIntentPlan?.planningOnly, true, 'tool-call intent plan must be planning-only')
 assert.equal(toolCallIntentPlan?.approvalRequiredBeforeExecution, true, 'tool-call intent plan must require approval before execution')
 assert.ok((toolCallIntentPlan?.intents.length ?? 0) >= 6, 'tool-call intent plan should include baseline and strategy-derived intents')
+assert.equal(toolCallIntentPlan?.creditGateSummary.executionAllowed, false, 'planning-only intent plan must not allow execution by default')
+assert.ok(
+  toolCallIntentPlan?.creditGateSummary.userFacingSummary.includes('Approval, estimate, and reservation'),
+  'tool-call plan should include user-facing approval/estimate/reservation summary',
+)
 
 const requiredToolIds = ['ffmpeg', 'opencv', 'opencolorio', 'remotion', 'faster_whisper']
 for (const toolId of requiredToolIds) {
@@ -34,7 +39,11 @@ for (const intent of toolCallIntentPlan?.intents ?? []) {
   assert.ok(intent.inputArtifactDependency.description.length > 20, `${intent.id} should include an input artifact dependency`)
   assert.ok(intent.expectedOutputArtifact.description.length > 20, `${intent.id} should include an expected output artifact`)
   assert.ok(Number.isInteger(intent.costEstimate.credits), `${intent.id} should include an integer credit estimate`)
+  assert.ok(Number.isInteger(intent.costEstimate.expectedCredits), `${intent.id} should include an expected credit estimate`)
+  assert.ok(Number.isInteger(intent.costEstimate.highCredits), `${intent.id} should include a high credit estimate`)
   assert.ok(intent.costEstimate.basis.length > 20, `${intent.id} should include a cost basis`)
+  assert.equal(intent.creditGate.executionBlocked, true, `${intent.id} should be blocked until snapshot/estimate/reservation exist`)
+  assert.ok(intent.creditGate.blockerReasons.length >= 3, `${intent.id} should list missing credit-gate prerequisites`)
   assert.ok(intent.fallback.strategy.length > 20, `${intent.id} should include a fallback strategy`)
   assert.equal(intent.approvalRequiredBeforeExecution, true, `${intent.id} should require approval before execution`)
   assert.equal(intent.frontendExecutionAllowed, false, `${intent.id} should forbid frontend execution`)
@@ -82,5 +91,6 @@ console.log(JSON.stringify({
   dryRunOnly: toolCallIntentPlan?.readinessCounts.dry_run_only,
   ownerGated: toolCallIntentPlan?.readinessCounts.blocked_by_owner_approval,
   totalEstimatedCredits: toolCallIntentPlan?.totalEstimatedCredits,
+  highEstimatedCredits: toolCallIntentPlan?.creditGateSummary.totalHighCredits,
   cardStatus: card?.status,
 }, null, 2))

@@ -19,6 +19,10 @@ import {
   type UnifiedSkillLaneStatus,
   type UnifiedToolId,
 } from './unified-skill-capability-registry'
+import {
+  buildToolCallIntentCreditGate,
+  summarizeToolCallCreditGate,
+} from './tool-call-credit-gate'
 
 type CreditImpact = ToolCallIntentCostEstimate['creditImpact']
 
@@ -173,7 +177,8 @@ export function createToolCallIntentPlan(params: CreateToolCallIntentPlanParams 
   for (const intent of intents) {
     readinessCounts[intent.readinessState] += 1
   }
-  const totalEstimatedCredits = intents.reduce((sum, intent) => sum + intent.costEstimate.credits, 0)
+  const creditGateSummary = summarizeToolCallCreditGate(intents)
+  const totalEstimatedCredits = creditGateSummary.totalExpectedCredits
 
   return {
     id: 'tool-call-intent-plan',
@@ -181,6 +186,7 @@ export function createToolCallIntentPlan(params: CreateToolCallIntentPlanParams 
     intents,
     readinessCounts,
     totalEstimatedCredits,
+    creditGateSummary,
     planningOnly: true,
     approvalRequiredBeforeExecution: true,
     notes: [
@@ -244,6 +250,7 @@ function buildIntent(seed: ToolCallIntentSeed, order: number): ToolCallIntent {
   const toolId = seed.toolId as UnifiedToolId
   const readinessState = readinessForTool(availability, toolId)
   const lane = laneForTool(availability, toolId, readinessState)
+  const costEstimate = costEstimateForSeed(seed)
 
   return {
     id: `tool-call-intent-${order}-${seed.capabilityId}-${seed.toolId}`.replace(/[^a-zA-Z0-9_-]/g, '-'),
@@ -257,7 +264,8 @@ function buildIntent(seed: ToolCallIntentSeed, order: number): ToolCallIntent {
     reason: seed.reason,
     inputArtifactDependency: inputDependencyForCapability(seed.capabilityId, seed.strategyItem),
     expectedOutputArtifact: expectedOutputForCapability(seed.capabilityId, seed.strategyItem),
-    costEstimate: costEstimateForSeed(seed),
+    costEstimate,
+    creditGate: buildToolCallIntentCreditGate({ costEstimate }),
     fallback: fallbackForSeed(seed, readinessState),
     approvalRequiredBeforeExecution: true,
     frontendExecutionAllowed: false,
@@ -521,9 +529,16 @@ function expectedOutputForCapability(
 
 function costEstimateForSeed(seed: ToolCallIntentSeed): ToolCallIntentCostEstimate {
   const credits = impactCredits[seed.creditImpact]
+  const lowCredits = credits === 0 ? 0 : Math.max(1, Math.floor(credits * 0.75))
+  const highCredits = credits === 0 ? 0 : Math.max(credits, Math.ceil(credits * 1.5))
 
   return {
     credits,
+    lowCredits,
+    expectedCredits: credits,
+    highCredits,
+    canRunWithinApprovedReservation: false,
+    revisedEstimateRequired: false,
     creditImpact: seed.creditImpact,
     basis: seed.strategyItem
       ? `${seed.strategyItem.label}: ${seed.strategyItem.creditImpact} tool strategy impact.`

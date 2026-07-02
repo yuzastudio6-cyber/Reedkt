@@ -27,6 +27,8 @@ const routeGpuModelRuntimeAdmissionSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics'
 const routeMockQueueWorkerClaimSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics'
+const externalAgentToolAdapterAuthorizationCommand =
+  'npm run ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics'
 const nativeGpuProofCollectionCommand =
   'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
 const satoriFontProofCommand =
@@ -135,6 +137,7 @@ const falseBooleanKeys = [
   'agentCanExecuteAll21ToolsNow',
   'agentCanExecuteGpuModelToolsNow',
   'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+  'externalAgentCanInvokeAdapterNow',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
   'browserWebglCanvasRuntimePerformed',
@@ -219,6 +222,11 @@ const trueBooleanKeys = [
   'all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence',
   'all21RouteAdmittedMockJobsClaimedWithProvidedEvidence',
   'mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked',
+  'sourceExternalAgentToolAdapterAuthorizationAccepted',
+  'externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence',
+  'all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks',
+  'all21ExternalAgentMappedProductionProfilesAccepted',
+  'externalAgentAdapterAuthorizationKeepsInvocationBlocked',
   'controlledRouteExecutionSmokeKeepsBroadExecutionBlocked',
   'gpuModelUnblockPlanAcceptedWithProvidedEvidence',
   'allEightGpuModelToolsHaveActionableUnblockPlan',
@@ -251,6 +259,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -856,6 +865,30 @@ if (docs.counts?.mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvid
 if (docs.counts?.mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
   fail('docs_mock_queue_worker_claim_gpu_runtime_start_not_0')
 }
+if (docs.counts?.externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_tool_adapter_authorization_accepted_not_21')
+}
+if (docs.counts?.externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools !== 21) {
+  fail('docs_tool_adapter_contracts_authorized_not_21')
+}
+if (docs.counts?.externalAgentAdapterCpuStaticContractsWithProvidedEvidence !== 6) {
+  fail('docs_tool_adapter_cpu_static_contracts_not_6')
+}
+if (docs.counts?.externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence !== 7) {
+  fail('docs_tool_adapter_browser_contracts_not_7')
+}
+if (docs.counts?.externalAgentAdapterGpuModelContractsWithProvidedEvidence !== 8) {
+  fail('docs_tool_adapter_gpu_contracts_not_8')
+}
+if (docs.counts?.externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_tool_adapter_mapped_profiles_not_21')
+}
+if (docs.counts?.externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_tool_adapter_invoke_now_not_0')
+}
+if (docs.counts?.externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_tool_adapter_gpu_start_not_0')
+}
 if (docs.counts?.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 8) {
   fail('docs_gpu_model_route_blocked_with_readiness_probe_not_8')
 }
@@ -968,6 +1001,16 @@ for (const phrase of [
   'mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence: `0`',
   'mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence: `0`',
   'mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  'External-agent tool-adapter authorization accepted: `true`',
+  'externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence: `21`',
+  'externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools: `21`',
+  'externalAgentAdapterCpuStaticContractsWithProvidedEvidence: `6`',
+  'externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence: `7`',
+  'externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`',
+  'externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`',
+  'externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`',
+  'externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  externalAgentToolAdapterAuthorizationCommand,
   routeMockQueueWorkerClaimSmokeCommand,
   routeCpuStaticControlledExecutionSmokeCommand,
   routeBrowserRuntimeControlledExecutionSmokeCommand,
@@ -1084,6 +1127,7 @@ if (!Array.isArray(blockedReadinessCases)) {
 
 for (const forbidden of [
   /"agentCanExecuteToolsNow"\s*:\s*true/i,
+  /"externalAgentCanInvokeAdapterNow"\s*:\s*true/i,
   /"externalAgentExecutionAllowedNow"\s*:\s*true/i,
   /"apiRouteMountedNow"\s*:\s*true/i,
   /"apiRouteExecutionApprovedNow"\s*:\s*true/i,
@@ -1148,6 +1192,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
   '--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
+  '--external-agent-tool-adapter-authorization-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -1388,6 +1434,33 @@ if (acceptedSourceReport.mockQueueWorkerClaimToolExecutionPerformedToolsWithProv
 }
 if (acceptedSourceReport.mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
   fail('accepted_report_mock_queue_worker_claim_gpu_runtime_start_not_0')
+}
+if (acceptedSourceReport.sourceExternalAgentToolAdapterAuthorizationAccepted !== true) {
+  fail('accepted_report_tool_adapter_authorization_source_not_true')
+}
+if (acceptedSourceReport.externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_tool_adapter_authorization_not_21')
+}
+if (acceptedSourceReport.externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools !== 21) {
+  fail('accepted_report_tool_adapter_contracts_authorized_not_21')
+}
+if (acceptedSourceReport.externalAgentAdapterCpuStaticContractsWithProvidedEvidence !== 6) {
+  fail('accepted_report_tool_adapter_cpu_static_contracts_not_6')
+}
+if (acceptedSourceReport.externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence !== 7) {
+  fail('accepted_report_tool_adapter_browser_contracts_not_7')
+}
+if (acceptedSourceReport.externalAgentAdapterGpuModelContractsWithProvidedEvidence !== 8) {
+  fail('accepted_report_tool_adapter_gpu_contracts_not_8')
+}
+if (acceptedSourceReport.externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence !== 21) {
+  fail('accepted_report_tool_adapter_mapped_profiles_not_21')
+}
+if (acceptedSourceReport.externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_tool_adapter_invoke_now_not_0')
+}
+if (acceptedSourceReport.externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_tool_adapter_gpu_start_not_0')
 }
 if (acceptedSourceReport.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 8) {
   fail('accepted_report_gpu_model_route_blocked_with_readiness_probe_not_8')

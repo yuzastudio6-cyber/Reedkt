@@ -4,9 +4,9 @@ Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_w
 
 Status: `external_agent_execution_gate_fail_closed_runtime_blocked`
 
-This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled canonical route execution-smoke evidence, and all-21 mock queue worker-claim smoke evidence, then returns a clear no-go for direct/global execution until a later live queue, worker dispatch, and private runtime proof explicitly opens that broader execution path.
+This packet gives an external agent a deterministic fail-closed gate for the 21 AI graphics tools. It consumes the 21-tool proper-install audit, sanitized external-beta callable request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled canonical route execution-smoke evidence, all-21 mock queue worker-claim smoke evidence, and all-21 external-agent tool-adapter authorization evidence, then returns a clear no-go for direct/global execution until a later live queue, worker dispatch, adapter invocation, and private runtime proof explicitly opens that broader execution path.
 
-The current global block is intentional and temporary. It does not mean the 21 tools are rejected. It means the agent may plan with the tools, controlled route smoke now proves 13 tools executed through the mock/private canonical route surface, and mock queue worker-claim smoke proves all 21 requests can reach a private mock worker lease shape. Full direct execution, live worker dispatch, GPU/model runtime, public artifacts, beta, and production stay blocked.
+The current global block is intentional and temporary. It does not mean the 21 tools are rejected. It means the agent may plan with the tools, controlled route smoke now proves 13 tools executed through the mock/private canonical route surface, mock queue worker-claim smoke proves all 21 requests can reach a private mock worker lease shape, and adapter authorization now proves all 21 mapped production adapter contracts are prepared with runtime blocks. Full direct execution, adapter invocation, live worker dispatch, GPU/model runtime, public artifacts, beta, and production stay blocked.
 
 ## Scope
 
@@ -93,6 +93,15 @@ The current global block is intentional and temporary. It does not mean the 21 t
 - mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence: `0`
 - mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence: `0`
 - mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
+- External-agent tool-adapter authorization accepted: `true`
+- externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence: `21`
+- externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools: `21`
+- externalAgentAdapterCpuStaticContractsWithProvidedEvidence: `6`
+- externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence: `7`
+- externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`
+- externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`
+- externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`
+- externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - GPU/model route-admission blocked tools with readiness-probe evidence: `8`
 - GPU/model route-admission fail-closed evaluations with readiness-probe evidence: `8`
 - Route readiness probe GPU runtime should start now tools: `0`
@@ -136,6 +145,7 @@ The current global block is intentional and temporary. It does not mean the 21 t
 - Read the browser/runtime controlled canonical route execution smoke showing 13 total controlled route-executed tools, including six CPU/static and seven browser/runtime tools, while public artifacts, signed URLs, workers, providers, GPU/model runtime, beta, and production remain blocked.
 - Read the GPU/model runtime admission smoke showing eight GPU/model tools evaluated fail-closed with zero GPU runtime starts and zero accepted GPU/model executions.
 - Read the mock queue worker-claim smoke showing all 21 canonical tool-call requests route into mock queue-admission shape and can be claimed by a private mock worker lease, while live queue writes, worker dispatch, tool execution, GPU startup, signed URLs, public artifacts, beta, and production remain blocked.
+- Read the external-agent tool-adapter authorization proof showing all 21 mapped production adapter contracts are prepared with runtime blocks: six CPU/static adapter contracts, seven browser/runtime adapter contracts, and eight GPU/model adapter contracts, while adapter invocation, worker execution, tool execution, GPU startup, public artifacts, beta, and production remain blocked.
 - Return per-request disabled route details for all 21 tools that include the requested tool, capability, planning acceptance, selected planning tools, missing proof, missing execution gates, and GPU on-demand status.
 - Return a fail-closed go/no-go decision for an external agent before any route, worker, provider, or tool call.
 - Preserve GPU startup as on-demand only for a later accepted worker/tool job.
@@ -193,6 +203,7 @@ Blocked now:
 27. `npm run ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics`
 28. `npm run ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics`
 29. `npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics`
+30. `npm run ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -231,6 +242,11 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence=true`
 - `all21RouteAdmittedMockJobsClaimedWithProvidedEvidence=true`
 - `mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked=true`
+- `sourceExternalAgentToolAdapterAuthorizationAccepted=true`
+- `externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence=true`
+- `all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks=true`
+- `all21ExternalAgentMappedProductionProfilesAccepted=true`
+- `externalAgentAdapterAuthorizationKeepsInvocationBlocked=true`
 - `controlledRouteExecutionSmokeKeepsBroadExecutionBlocked=true`
 - `cpuStaticLiveAdapterQueueServiceProofAccepted=true`
 - `allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence=true`
@@ -272,6 +288,7 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `agentCanExecuteAll21ToolsNow=false`
 - `agentCanExecuteGpuModelToolsNow=false`
 - `gpuModelToolsReadyForExecutionAfterCurrentEvidence=false`
+- `externalAgentCanInvokeAdapterNow=false`
 - `allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence=false`
@@ -308,4 +325,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now understands the saved non-production service-role queue-write smoke proof packet, the saved worker claim/dispatch smoke proof packet, the CPU/static tool execution dry-run proof packet, and the controlled private tool execution proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof, accepted claim/dispatch proof, accepted dry-run proof, and accepted controlled proof all remain `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. The route-readiness proof also exposes actionable unblock plans for all eight GPU/model tools: five model-weight tools require reviewed private model manifests/checksums before native GPU proof, and three foundation tools require native GPU proof only. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and require-go authorization, `satori` still needs the approved font fixture, all eight GPU/model tools still need accepted private/native evidence, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, followed by saved worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and native/private GPU evidence collection while keeping private queue/worker/tool execution blocked until each following proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now also accepts all-21 external-agent tool-adapter authorization evidence: six CPU/static adapter contracts, seven browser/runtime adapter contracts, eight GPU/model adapter contracts, and 21 mapped production profiles are prepared with runtime blocks while adapter invocation remains `0`. The gate understands the saved non-production service-role queue-write smoke proof packet, the saved worker claim/dispatch smoke proof packet, the CPU/static tool execution dry-run proof packet, and the controlled private tool execution proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof, accepted claim/dispatch proof, accepted dry-run proof, and accepted controlled proof all remain `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. The route-readiness proof also exposes actionable unblock plans for all eight GPU/model tools: five model-weight tools require reviewed private model manifests/checksums before native GPU proof, and three foundation tools require native GPU proof only. Actual direct execution is still blocked because install readiness and adapter authorization are not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and require-go authorization, `satori` still needs the approved font fixture, all eight GPU/model tools still need accepted private/native evidence, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, followed by saved worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and native/private GPU evidence collection while keeping private queue/worker/tool execution blocked until each following proof passes.

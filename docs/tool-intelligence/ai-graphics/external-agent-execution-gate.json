@@ -3,7 +3,7 @@
   "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
   "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
   "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
-  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled route execution-smoke evidence proving 13 controlled canonical route-executed tools, and all-21 mock queue worker-claim smoke evidence while keeping all-21 direct/global execution, GPU/model runtime, live queue writes, worker dispatch, providers, artifacts, beta, and production blocked.",
+  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, controlled route execution-smoke evidence proving 13 controlled canonical route-executed tools, all-21 mock queue worker-claim smoke evidence, and all-21 external-agent tool-adapter authorization contracts while keeping all-21 direct/global execution, adapter invocation, GPU/model runtime, live queue writes, worker dispatch, providers, artifacts, beta, and production blocked.",
   "sourceEvidence": {
     "properInstallAudit": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
     "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",
@@ -39,10 +39,13 @@
     "externalBetaToolCallRouteBrowserRuntimeControlledExecutionSmoke": "ai_graphics_external_beta_tool_call_route_browser_runtime_controlled_execution_smoke_passed",
     "externalBetaToolCallRouteGpuModelRuntimeAdmissionSmoke": "ai_graphics_external_beta_tool_call_route_gpu_model_runtime_admission_smoke_passed",
     "externalBetaToolCallRouteMockQueueWorkerClaimSmoke": "ai_graphics_external_beta_tool_call_route_mock_queue_worker_claim_smoke_passed",
+    "externalAgentToolAdapterAuthorization": "ai_graphics_external_agent_tool_adapter_authorization_prepared_with_runtime_blocks",
     "sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted": true,
     "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted": true,
     "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted": true,
-    "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted": true
+    "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted": true,
+    "sourceExternalAgentToolAdapterAuthorizationAccepted": true,
+    "sourceExternalAgentToolAdapterAuthorizationAccepted": true
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -56,7 +59,8 @@
     "routeCpuStaticControlledExecutionSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke:diagnostics",
     "routeBrowserRuntimeControlledExecutionSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics",
     "routeGpuModelRuntimeAdmissionSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics",
-    "routeMockQueueWorkerClaimSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics"
+    "routeMockQueueWorkerClaimSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics",
+    "externalAgentToolAdapterAuthorizationDiagnosticScript": "ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics"
   },
   "counts": {
     "requireGoExitCodeWhenBlocked": 2,
@@ -145,7 +149,15 @@
     "mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence": 0,
     "mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence": 0,
     "mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence": 0,
-    "mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence": 0
+    "mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence": 0,
+    "externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence": 21,
+    "externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools": 21,
+    "externalAgentAdapterCpuStaticContractsWithProvidedEvidence": 6,
+    "externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence": 7,
+    "externalAgentAdapterGpuModelContractsWithProvidedEvidence": 8,
+    "externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence": 21,
+    "externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence": 0,
+    "externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence": 0
   },
   "tools": [
     {
@@ -1438,6 +1450,7 @@
     "gpuModelToolsReadyForExecutionAfterCurrentEvidence": false,
     "agentCanExecuteAll21ToolsNow": false,
     "agentCanExecuteGpuModelToolsNow": false,
+    "externalAgentCanInvokeAdapterNow": false,
     "agentCanExecuteToolsNow": false,
     "externalAgentExecutionAllowedNow": false,
     "apiRouteMountedNow": false,
@@ -1474,6 +1487,7 @@
     "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted": true,
     "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted": true,
     "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted": true,
+    "sourceExternalAgentToolAdapterAuthorizationAccepted": true,
     "controlledCanonicalRouteExecutionSmokeAcceptedWithProvidedEvidence": true,
     "thirteenControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence": true,
     "sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence": true,
@@ -1482,6 +1496,10 @@
     "all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence": true,
     "all21RouteAdmittedMockJobsClaimedWithProvidedEvidence": true,
     "mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked": true,
+    "externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence": true,
+    "all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks": true,
+    "all21ExternalAgentMappedProductionProfilesAccepted": true,
+    "externalAgentAdapterAuthorizationKeepsInvocationBlocked": true,
     "controlledRouteExecutionSmokeKeepsBroadExecutionBlocked": true
   },
   "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF",
@@ -1520,8 +1538,10 @@
   "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeDecision": "ai_graphics_external_beta_tool_call_route_browser_runtime_controlled_execution_smoke_passed",
   "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeDecision": "ai_graphics_external_beta_tool_call_route_gpu_model_runtime_admission_smoke_passed",
   "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeDecision": "ai_graphics_external_beta_tool_call_route_mock_queue_worker_claim_smoke_passed",
+  "sourceExternalAgentToolAdapterAuthorizationDecision": "ai_graphics_external_agent_tool_adapter_authorization_prepared_with_runtime_blocks",
   "sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted": true,
   "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted": true,
   "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted": true,
-  "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted": true
+  "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted": true,
+  "sourceExternalAgentToolAdapterAuthorizationAccepted": true
 }

@@ -54,6 +54,10 @@ import {
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProofReport,
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProofRow,
 } from './ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof'
+import {
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_ADAPTER_AUTHORIZATION_DECISION,
+  type AiGraphicsExternalAgentToolAdapterAuthorizationReport,
+} from './ai-graphics-external-agent-tool-adapter-authorization'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
@@ -524,6 +528,8 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
     Partial<AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket>
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket?:
     Partial<AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket>
+  sourceExternalAgentToolAdapterAuthorizationPacket?:
+    Partial<AiGraphicsExternalAgentToolAdapterAuthorizationReport>
 }
 
 export interface AiGraphicsExternalAgentExecutionGateToolRow {
@@ -614,6 +620,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_SMOKE_DECISION | null
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeDecision:
     typeof AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_WORKER_CLAIM_SMOKE_DECISION | null
+  sourceExternalAgentToolAdapterAuthorizationDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_TOOL_ADAPTER_AUTHORIZATION_DECISION | null
   source21ToolProperInstallAuditAccepted: boolean
   sourceExternalBetaCallableRequestAdmissionAccepted: boolean
   sourceExternalBetaApiRouteMountReadinessAccepted: boolean
@@ -632,6 +640,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
   sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted: boolean
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
+  sourceExternalAgentToolAdapterAuthorizationAccepted: boolean
   readyForAnyExternalAgentExecutionNow: false
   executionAllowedNow: false
   requireGoExitCodeWhenBlocked: 2
@@ -708,6 +717,14 @@ export interface AiGraphicsExternalAgentExecutionGate {
   mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence: 0
   mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence: 0
   mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence: 0
+  externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence: 0 | 21
+  externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools: 0 | 21
+  externalAgentAdapterCpuStaticContractsWithProvidedEvidence: 0 | 6
+  externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence: 0 | 7
+  externalAgentAdapterGpuModelContractsWithProvidedEvidence: 0 | 8
+  externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: 0 | 21
+  externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: 0
+  externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: 0
   gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence: 0 | 8
   gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence: 0 | 8
   gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence: 0 | 8
@@ -745,6 +762,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted: boolean
     sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
+    sourceExternalAgentToolAdapterAuthorizationAccepted: boolean
     properInstallAuditAccepted: boolean
     all21ToolsProperlyInstalledForPlannedSurface: boolean
     installAuditSeparatesPlannedSurfaceFromRuntimeCallable: boolean
@@ -819,6 +837,10 @@ export interface AiGraphicsExternalAgentExecutionGate {
     all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence: boolean
     all21RouteAdmittedMockJobsClaimedWithProvidedEvidence: boolean
     mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked: boolean
+    externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence: boolean
+    all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks: boolean
+    all21ExternalAgentMappedProductionProfilesAccepted: boolean
+    externalAgentAdapterAuthorizationKeepsInvocationBlocked: boolean
     controlledRouteExecutionSmokeKeepsBroadExecutionBlocked: boolean
     gpuModelUnblockPlanAcceptedWithProvidedEvidence: boolean
     allEightGpuModelToolsHaveActionableUnblockPlan: boolean
@@ -827,6 +849,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     gpuModelToolsReadyForExecutionAfterCurrentEvidence: false
     agentCanExecuteAll21ToolsNow: false
     agentCanExecuteGpuModelToolsNow: false
+    externalAgentCanInvokeAdapterNow: false
     agentCanExecuteToolsNow: false
     externalAgentExecutionAllowedNow: false
     apiRouteMountedNow: false
@@ -1467,6 +1490,70 @@ function sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted(
     packet.booleans?.productionReadyNow === false &&
     packet.booleans?.dependencyInstallPerformed === false &&
     packet.booleans?.packageLockMutationPerformed === false
+}
+
+function sourceExternalAgentToolAdapterAuthorizationAccepted(
+  packet?: Partial<AiGraphicsExternalAgentToolAdapterAuthorizationReport>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision === AI_GRAPHICS_EXTERNAL_AGENT_TOOL_ADAPTER_AUTHORIZATION_DECISION &&
+    packet.status ===
+      'external_agent_tool_adapter_authorization_prepared_all_21_execution_blocked' &&
+    packet.counts?.sourceControlledDispatcherDryRunCompletedTools === 21 &&
+    packet.counts?.sourceAiGraphicsHandoffRouteTools === 21 &&
+    packet.counts?.adapterAuthorizationRows === 21 &&
+    packet.counts?.adapterContractsAuthorizedWithRuntimeBlocks === 21 &&
+    packet.counts?.cpuStaticToolAdapterContracts === 6 &&
+    packet.counts?.browserRuntimeToolAdapterContracts === 7 &&
+    packet.counts?.gpuModelToolAdapterContracts === 8 &&
+    packet.counts?.mappedProductionProfilesAccepted === 21 &&
+    packet.counts?.externalAgentCanInvokeAdapterNowTools === 0 &&
+    packet.counts?.externalAgentExecutableNowTools === 0 &&
+    packet.counts?.toolExecutionApprovedNowTools === 0 &&
+    packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
+    packet.booleans?.externalAgentToolAdapterAuthorizationPrepared === true &&
+    packet.booleans?.sourceControlledDispatcherDryRunAccepted === true &&
+    packet.booleans?.sourceAiGraphicsHandoffRoutesAccepted === true &&
+    packet.booleans?.all21ToolsCovered === true &&
+    packet.booleans?.all12CapabilitiesCovered === true &&
+    packet.booleans?.all21AdapterContractsAuthorizedWithRuntimeBlocks === true &&
+    packet.booleans?.all21MappedProductionProfilesAccepted === true &&
+    packet.booleans?.all8GpuToolsTargetOnDemandGpuRuntime === true &&
+    packet.booleans?.gpuRuntimeOnDemandOnly === true &&
+    packet.booleans?.noIdleGpuRuntimeApproved === true &&
+    packet.booleans?.gpuStartsOnlyForApprovedWorkerOrToolCall === true &&
+    packet.booleans?.adapterAuthorizationIsContractOnly === true &&
+    packet.booleans?.agentCanSelectForPlanning === true &&
+    packet.booleans?.externalAgentCanInvokeAdapterNow === false &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.routeExecutionApprovedNow === false &&
+    packet.booleans?.workerExecutionApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.providerRuntimeApprovedNow === false &&
+    packet.booleans?.browserWebglCanvasRuntimeApprovedNow === false &&
+    packet.booleans?.gpuRuntimeApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.runtimeReadyNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false &&
+    packet.booleans?.dependencyInstallPerformed === false &&
+    packet.booleans?.packageLockMutationPerformed === false &&
+    packet.booleans?.backendQueueSubmissionPerformed === false &&
+    packet.booleans?.liveQueueWritePerformed === false &&
+    packet.booleans?.workerEnqueuePerformed === false &&
+    packet.booleans?.workerDispatchPerformed === false &&
+    packet.booleans?.toolExecutionPerformed === false &&
+    packet.booleans?.routeExecutionPerformed === false &&
+    packet.booleans?.providerRuntimePerformed === false &&
+    packet.booleans?.browserWebglCanvasRuntimePerformed === false &&
+    packet.booleans?.gpuRuntimePerformed === false &&
+    packet.booleans?.modelWeightsDownloaded === false &&
+    packet.booleans?.modelWeightsLoaded === false &&
+    packet.booleans?.mediaProcessingPerformed === false &&
+    packet.booleans?.supabaseMutationPerformed === false &&
+    packet.booleans?.gcsUploadPerformed === false &&
+    packet.booleans?.publicArtifactCreated === false &&
+    packet.booleans?.signedUrlCreated === false
 }
 
 function sourceCpuStaticLiveAdapterQueueWriteProofAccepted(
@@ -2338,6 +2425,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket
   const sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmoke =
     input.sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket
+  const sourceExternalAgentToolAdapterAuthorization =
+    input.sourceExternalAgentToolAdapterAuthorizationPacket
   const installAccepted = sourceProperInstallAuditAccepted(sourceProperInstallAudit)
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
   const routeMountAccepted =
@@ -2399,6 +2488,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const routeMockQueueWorkerClaimSmokeAccepted =
     sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted(
       sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmoke,
+    )
+  const externalAgentToolAdapterAuthorizationAccepted =
+    sourceExternalAgentToolAdapterAuthorizationAccepted(
+      sourceExternalAgentToolAdapterAuthorization,
     )
   const controlledRouteExecutionSmokeAccepted =
     routeCpuStaticControlledExecutionSmokeAccepted &&
@@ -2768,6 +2861,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_WORKER_CLAIM_SMOKE_DECISION
         ? sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmoke.decision
         : null,
+    sourceExternalAgentToolAdapterAuthorizationDecision:
+      sourceExternalAgentToolAdapterAuthorization?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_TOOL_ADAPTER_AUTHORIZATION_DECISION
+        ? sourceExternalAgentToolAdapterAuthorization.decision
+        : null,
     source21ToolProperInstallAuditAccepted: installAccepted,
     sourceExternalBetaCallableRequestAdmissionAccepted: sourceAccepted,
     sourceExternalBetaApiRouteMountReadinessAccepted: routeMountAccepted,
@@ -2801,6 +2899,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       routeGpuModelRuntimeAdmissionSmokeAccepted,
     sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted:
       routeMockQueueWorkerClaimSmokeAccepted,
+    sourceExternalAgentToolAdapterAuthorizationAccepted:
+      externalAgentToolAdapterAuthorizationAccepted,
     readyForAnyExternalAgentExecutionNow: false,
     executionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
@@ -2936,6 +3036,20 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence: 0,
     mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence: 0,
     mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence: 0,
+    externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence:
+      externalAgentToolAdapterAuthorizationAccepted ? 21 : 0,
+    externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools:
+      externalAgentToolAdapterAuthorizationAccepted ? 21 : 0,
+    externalAgentAdapterCpuStaticContractsWithProvidedEvidence:
+      externalAgentToolAdapterAuthorizationAccepted ? 6 : 0,
+    externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence:
+      externalAgentToolAdapterAuthorizationAccepted ? 7 : 0,
+    externalAgentAdapterGpuModelContractsWithProvidedEvidence:
+      externalAgentToolAdapterAuthorizationAccepted ? 8 : 0,
+    externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence:
+      externalAgentToolAdapterAuthorizationAccepted ? 21 : 0,
+    externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: 0,
+    externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: 0,
     gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence:
       routeReadinessProbeAccepted ? 8 : 0,
     gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence:
@@ -3006,6 +3120,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         routeGpuModelRuntimeAdmissionSmokeAccepted,
       sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted:
         routeMockQueueWorkerClaimSmokeAccepted,
+      sourceExternalAgentToolAdapterAuthorizationAccepted:
+        externalAgentToolAdapterAuthorizationAccepted,
       properInstallAuditAccepted: installAccepted,
       all21ToolsProperlyInstalledForPlannedSurface: installAccepted,
       installAuditSeparatesPlannedSurfaceFromRuntimeCallable: installAccepted,
@@ -3137,6 +3253,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         routeMockQueueWorkerClaimSmokeAccepted,
       mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked:
         routeMockQueueWorkerClaimSmokeAccepted,
+      externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence:
+        externalAgentToolAdapterAuthorizationAccepted,
+      all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks:
+        externalAgentToolAdapterAuthorizationAccepted,
+      all21ExternalAgentMappedProductionProfilesAccepted:
+        externalAgentToolAdapterAuthorizationAccepted,
+      externalAgentAdapterAuthorizationKeepsInvocationBlocked:
+        externalAgentToolAdapterAuthorizationAccepted,
       controlledRouteExecutionSmokeKeepsBroadExecutionBlocked:
         controlledRouteExecutionSmokeAccepted,
       gpuModelUnblockPlanAcceptedWithProvidedEvidence:
@@ -3150,6 +3274,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       gpuModelToolsReadyForExecutionAfterCurrentEvidence: false,
       agentCanExecuteAll21ToolsNow: false,
       agentCanExecuteGpuModelToolsNow: false,
+      externalAgentCanInvokeAdapterNow: false,
       agentCanExecuteToolsNow: false,
       externalAgentExecutionAllowedNow: false,
       apiRouteMountedNow: false,

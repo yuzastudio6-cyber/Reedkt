@@ -10,6 +10,9 @@ import {
   type AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket,
 } from '../tool-registry/ai-graphics-external-agent-execution-gate'
 import type {
+  AiGraphicsExternalAgentToolAdapterAuthorizationReport,
+} from '../tool-registry/ai-graphics-external-agent-tool-adapter-authorization'
+import type {
   AiGraphicsExternalBetaCallableRequestAdmission,
 } from '../tool-registry/ai-graphics-external-beta-callable-request-admission'
 import type {
@@ -130,6 +133,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket>>(
       '--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet',
     ),
+  sourceExternalAgentToolAdapterAuthorizationPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentToolAdapterAuthorizationReport>>(
+      '--external-agent-tool-adapter-authorization-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -176,6 +183,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet')),
     externalBetaToolCallRouteMockQueueWorkerClaimSmokePacketRead:
       Boolean(valueAfterFlag('--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet')),
+    externalAgentToolAdapterAuthorizationPacketRead:
+      Boolean(valueAfterFlag('--external-agent-tool-adapter-authorization-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

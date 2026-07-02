@@ -1,0 +1,68 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-RUNTIME-READY-ROLLUP-1",
+  "decision": "completed_narrow_external_agent_runtime_ready_rollup_for_controlled_generated_fixture_path",
+  "execution": "completed_docs_only_runtime_ready_rollup_no_new_runtime_execution",
+  "sourceChain": {
+    "routeWorkerBridgeQaPr": 2113,
+    "routeWorkerBridgeQaMergeSha": "67602b088009779d45b0d1f26eabac65c48902fc",
+    "externalAgentExecutionQaPr": 2181,
+    "externalAgentExecutionQaMergeSha": "5621ee3cfb7146ee0ba13617b5c8d24f9ebf80d2",
+    "externalAgentRuntimeExecutionPacketPr": 2186,
+    "externalAgentRuntimeExecutionPacketMergeSha": "14045c17a99a826557033e4b572db1dd4855f1f9",
+    "confirmedRuntimeEvidenceReconciliationPr": 2192,
+    "confirmedRuntimeEvidenceReconciliationMergeSha": "73099b53cee52c61aca0ef72384051a8544a4885",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "acceptedRuntimeEvidence": {
+    "runId": "2026-07-02T12-00-03-397Z-aa991010",
+    "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute",
+    "httpStatus": 201,
+    "gstreamerExecution": "completed_controlled_generated_fixture_only",
+    "mkvtoolnixExecution": "completed_controlled_generated_fixture_only",
+    "mediaProcessing": "controlled_generated_fixture_only",
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false
+  },
+  "readiness": {
+    "gstreamer": "ready_for_narrow_external_agent_controlled_generated_fixture_runtime_path",
+    "mkvtoolnix": "ready_for_narrow_external_agent_controlled_generated_fixture_runtime_path",
+    "externalAgent": "ready_for_controlled_generated_fixture_runtime_handoff_only",
+    "approvedPathClass": "narrow_controlled_generated_fixture_runtime_path"
+  },
+  "blockedScope": {
+    "arbitraryPrivateMedia": true,
+    "userMedia": true,
+    "publicUrlMedia": true,
+    "signedUrlSourceOfTruth": true,
+    "broadServiceRoleHandlers": true,
+    "publicArtifacts": true,
+    "finalRenderExport": true,
+    "paidProduction": true,
+    "broadExternalBeta": true
+  },
+  "rollupPhaseSafety": {
+    "docsStatusDiagnosticsOnly": true,
+    "routeExecutionInThisRollupPhase": false,
+    "workerExecutionInThisRollupPhase": false,
+    "gstreamerExecutionInThisRollupPhase": false,
+    "mkvtoolnixExecutionInThisRollupPhase": false,
+    "ffmpegFfprobeExecutionInThisRollupPhase": false,
+    "dockerExecutionInThisRollupPhase": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-HANDOFF-1"
+}

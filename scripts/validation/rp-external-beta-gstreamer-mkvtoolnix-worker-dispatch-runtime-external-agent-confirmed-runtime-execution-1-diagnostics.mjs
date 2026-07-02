@@ -39,7 +39,20 @@ const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const readyRollupDir = 'docs/external-beta/gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1'
+const readyRollupFiles = [
+  `${readyRollupDir}/source-chain.md`,
+  `${readyRollupDir}/readiness-rollup.md`,
+  `${readyRollupDir}/external-agent-boundary.md`,
+  `${readyRollupDir}/tool-matrix.md`,
+  `${readyRollupDir}/validation-results.md`,
+  `${readyRollupDir}/gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-handoff-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...readyRollupFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

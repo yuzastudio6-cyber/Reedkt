@@ -31,6 +31,12 @@ import type {
 import type {
   AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
+import type {
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofReport,
+} from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof'
+import type {
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProofReport,
+} from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof'
 
 function valueAfterFlag(flag: string): string | undefined {
   const index = process.argv.indexOf(flag)
@@ -84,6 +90,14 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofReport>>(
       '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-proof-packet',
     ),
+  sourceExternalAgentCpuStaticToolExecutionDryRunProofPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProofReport>>(
+      '--external-agent-cpu-static-tool-execution-dry-run-proof-packet',
+    ),
+  sourceExternalAgentCpuStaticControlledToolExecutionProofPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProofReport>>(
+      '--external-agent-cpu-static-controlled-tool-execution-proof-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -114,6 +128,10 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet')),
     externalAgentCpuStaticWorkerClaimAndDispatchSmokeProofPacketRead:
       Boolean(valueAfterFlag('--external-agent-cpu-static-worker-claim-and-dispatch-smoke-proof-packet')),
+    externalAgentCpuStaticToolExecutionDryRunProofPacketRead:
+      Boolean(valueAfterFlag('--external-agent-cpu-static-tool-execution-dry-run-proof-packet')),
+    externalAgentCpuStaticControlledToolExecutionProofPacketRead:
+      Boolean(valueAfterFlag('--external-agent-cpu-static-controlled-tool-execution-proof-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

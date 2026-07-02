@@ -57,6 +57,13 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`
 - workerClaimAndDispatchSmokeProofRequiredTools: `0`
 - toolExecutionDryRunProofRequiredTools: `0`
+- CPU/static tool execution dry-run proof accepted: `false`
+- cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools: `0`
+- cpuStaticDryToolExecutionContractsPreparedTools: `0`
+- controlledToolExecutionProofRequiredTools: `0`
+- CPU/static controlled tool execution proof accepted: `false`
+- cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools: `0`
+- cpuStaticPhase0ExecutionEvidenceAcceptedTools: `0`
 - Representative disabled route blocked-detail cases covered: `21`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
@@ -82,6 +89,8 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - Prepare or explicitly run the guarded CPU/static non-production evidence sequence so queue-write proof is validated before worker claim and dispatch proof.
 - Read a saved CPU/static non-production service-role queue-write smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, worker claim and dispatch smoke proof, while direct agent execution remains blocked.
 - Read a saved CPU/static worker claim and dispatch smoke proof when supplied; if it is accepted, the same five tools advance to the next blocker, tool execution dry-run proof, while worker execution and tool execution remain blocked.
+- Read a CPU/static tool execution dry-run proof when supplied; if it is accepted, the same five tools advance to the next blocker, controlled private tool execution proof, while adapter invocation, worker execution, and tool execution remain blocked.
+- Read a CPU/static controlled tool execution proof when supplied; if it is accepted, the same five tools advance to exact execution-admission revalidation and require-go authorization, while direct execution remains blocked.
 - Read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only.
 - Read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks.
 - Read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks.
@@ -129,12 +138,14 @@ Blocked now:
 14. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics`
 15. `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence`
 16. `npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics`
-17. `npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics`
-18. `npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics`
-19. `npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics`
-20. `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
-21. `npm run ai-graphics:browser-runtime-proof:diagnostics`
-22. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
+17. `npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics`
+18. `npm run ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics`
+19. `npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics`
+20. `npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics`
+21. `npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics`
+22. `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
+23. `npm run ai-graphics:browser-runtime-proof:diagnostics`
+24. `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 The gate supports `--require-go`. While blocked, require-go mode exits with exit code `2`, so automation cannot accidentally treat the current state as executable.
 
@@ -197,6 +208,13 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution=false`
 - `workerClaimAndDispatchSmokeProofRequiredBeforeExecution=false`
 - `toolExecutionDryRunProofRequiredBeforeExecution=false`
+- `sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted=false`
+- `allFiveCpuStaticToolExecutionDryRunProofsPreparedWithProvidedEvidence=false`
+- `allFiveCpuStaticDryToolExecutionContractsPrepared=false`
+- `controlledToolExecutionProofRequiredBeforeExecution=false`
+- `sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted=false`
+- `allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence=false`
+- `allFiveCpuStaticPhase0ExecutionEvidenceAccepted=false`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
 - `externalAgentExecutionAllowedNow=false`
@@ -215,4 +233,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now also understands the saved non-production service-role queue-write smoke proof packet and the saved worker claim/dispatch smoke proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof and accepted claim/dispatch proof both remain `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim/dispatch smoke proof, and tool execution dry-run proof, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, followed by saved worker claim/dispatch smoke proof and tool execution dry-run proof while keeping private queue/worker/tool execution blocked until each following proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now understands the saved non-production service-role queue-write smoke proof packet, the saved worker claim/dispatch smoke proof packet, the CPU/static tool execution dry-run proof packet, and the controlled private tool execution proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof, accepted claim/dispatch proof, accepted dry-run proof, and accepted controlled proof all remain `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and require-go authorization, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, followed by saved worker claim/dispatch smoke proof, tool execution dry-run proof, and controlled private tool execution proof while keeping private queue/worker/tool execution blocked until each following proof passes.

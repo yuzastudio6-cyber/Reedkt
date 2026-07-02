@@ -27,14 +27,22 @@
     "externalBetaNativeGpuProofOperatorScaffold": "ai_graphics_external_beta_native_gpu_proof_operator_scaffold_prepared_local_only",
     "externalBetaNativeGpuProofCloudRunJobScaffold": "ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only",
     "browserRuntimeProof": "ai_graphics_browser_runtime_proof_completed_with_warnings",
-    "satoriFontRuntimeProof": "ai_graphics_satori_font_runtime_proof_completed_with_warnings"
+    "satoriFontRuntimeProof": "ai_graphics_satori_font_runtime_proof_completed_with_warnings",
+    "externalAgentCpuStaticPrivateWorkerToolExecutionDryRunProof": "ai_graphics_external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_with_runtime_blocks",
+    "sourceExternalAgentCpuStaticToolExecutionDryRunProofDecision": null,
+    "sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted": false,
+    "externalAgentCpuStaticPrivateWorkerControlledToolExecutionProof": "ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks",
+    "sourceExternalAgentCpuStaticControlledToolExecutionProofDecision": null,
+    "sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted": false
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
     "diagnosticScript": "ai-graphics:external-agent-execution-gate:diagnostics",
     "cli": "server/cli/ai-graphics-external-agent-execution-gate.ts",
     "module": "server/tool-registry/ai-graphics-external-agent-execution-gate.ts",
-    "nonProductionEvidenceSequenceScript": "ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence"
+    "nonProductionEvidenceSequenceScript": "ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
+    "toolExecutionDryRunProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics",
+    "controlledToolExecutionProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics"
   },
   "counts": {
     "totalAiGraphicsTools": 21,
@@ -84,7 +92,12 @@
     "cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools": 0,
     "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools": 0,
     "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools": 0,
-    "toolExecutionDryRunProofRequiredTools": 0
+    "toolExecutionDryRunProofRequiredTools": 0,
+    "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools": 0,
+    "cpuStaticDryToolExecutionContractsPreparedTools": 0,
+    "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools": 0,
+    "cpuStaticPhase0ExecutionEvidenceAcceptedTools": 0,
+    "controlledToolExecutionProofRequiredTools": 0
   },
   "tools": [
     {
@@ -132,7 +145,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "transformers",
@@ -179,7 +199,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "sam2",
@@ -226,7 +253,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "birefnet",
@@ -273,7 +307,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "real_esrgan",
@@ -320,7 +361,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "kornia",
@@ -367,7 +415,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "rembg",
@@ -414,7 +469,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "transparent_background",
@@ -461,7 +523,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "d3",
@@ -508,7 +577,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "echarts",
@@ -555,7 +631,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "vega_lite",
@@ -602,7 +685,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "vega",
@@ -649,7 +739,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "satori",
@@ -696,7 +793,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "svgdotjs_svg_js",
@@ -743,7 +847,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "viz_js",
@@ -790,7 +901,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "lottie_web",
@@ -837,7 +955,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "animejs",
@@ -884,7 +1009,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "three_js",
@@ -931,7 +1063,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "pixi_js",
@@ -978,7 +1117,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "konva",
@@ -1025,7 +1171,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     },
     {
       "toolId": "babylonjs",
@@ -1072,7 +1225,14 @@
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": 0,
       "cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": 0,
-      "toolExecutionDryRunProofRequired": false
+      "toolExecutionDryRunProofRequired": false,
+      "cpuStaticToolExecutionDryRunProofStatus": null,
+      "cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence": false,
+      "cpuStaticDryToolExecutionContractPrepared": false,
+      "cpuStaticControlledToolExecutionProofStatus": null,
+      "cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence": false,
+      "cpuStaticPhase0ExecutionEvidenceAccepted": false,
+      "controlledToolExecutionProofRequired": false
     }
   ],
   "safeCommandsBeforeExecution": [
@@ -1092,6 +1252,8 @@
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics",
+    "npm run ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics",
+    "npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics",
     "npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics",
     "npm run ai-graphics:browser-runtime-proof:diagnostics",
     "npm run ai-graphics:satori-font-runtime-proof:diagnostics",
@@ -1116,7 +1278,9 @@
     "Read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks.",
     "Read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks.",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job",
-    "read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes"
+    "read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes",
+    "read CPU/static tool execution dry-run proof when provided, then keep adapter invocation, worker execution, and tool execution blocked until controlled private tool execution proof passes",
+    "read CPU/static controlled tool execution proof when provided, then keep direct external-agent execution blocked until exact execution admission and require-go authorization are explicitly revalidated"
   ],
   "forbiddenRuntimeActions": [
     "agent/tool execution",
@@ -1235,7 +1399,14 @@
     "allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence": false,
     "allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence": false,
     "allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence": false,
-    "toolExecutionDryRunProofRequiredBeforeExecution": false
+    "toolExecutionDryRunProofRequiredBeforeExecution": false,
+    "sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted": false,
+    "allFiveCpuStaticToolExecutionDryRunProofsPreparedWithProvidedEvidence": false,
+    "allFiveCpuStaticDryToolExecutionContractsPrepared": false,
+    "controlledToolExecutionProofRequiredBeforeExecution": false,
+    "sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted": false,
+    "allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence": false,
+    "allFiveCpuStaticPhase0ExecutionEvidenceAccepted": false
   },
   "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF"
 }

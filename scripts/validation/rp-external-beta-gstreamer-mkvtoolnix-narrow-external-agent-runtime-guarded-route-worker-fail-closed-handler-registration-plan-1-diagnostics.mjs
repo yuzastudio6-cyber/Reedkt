@@ -30,11 +30,28 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1.md',
 ]
 
+const implementationDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1'
+const implementationFiles = [
+  `${implementationDir}/source-audit.md`,
+  `${implementationDir}/registration-source.md`,
+  `${implementationDir}/readiness.md`,
+  `${implementationDir}/safety-boundary.md`,
+  `${implementationDir}/validation-results.md`,
+  `${implementationDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-qa-rollup-1.md',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...implementationFiles,
+  'server/routes/gstreamer-mkvtoolnix-narrow-source-execution-boundary-handler-registration-source.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1-smoke.ts',
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-qa-rollup-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-implementation-1-diagnostics.mjs',
 ])
 
 const requiredText = [
@@ -72,7 +89,6 @@ const requiredText = [
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\//,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

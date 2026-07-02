@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10I passed no-idle us-west4-c IAP manifest transfer/readability with cleanup verified; the 10J bounded proof prompt must run before full wheelhouse payload transfer, dependency install readiness, model import, or inference; do not create VMs from this rollup',
+        'B-roll 10J attempted the no-idle us-west4-c payload/install-readiness proof but stocked out before any VM existed; cleanup/absence is verified; the 10K no-VM capacity strategy prompt must run before another VM attempt',
       afterBlockerClears:
-        'run the separate 10J bounded no-idle payload/install-readiness proof prompt before any runtime action is considered',
+        'run the separate 10K no-VM payload/install stockout-fix strategy prompt before any runtime action is considered',
     }
   }
 

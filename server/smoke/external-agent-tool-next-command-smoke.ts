@@ -278,11 +278,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'bounded_no_idle_l4_iap_wheelhouse_payload_install_proof_us_west4_c_future_prompt_required',
+  'bounded_no_idle_l4_payload_install_proof_us_west4_c_stockout_10k_strategy_required',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10i-no-idle-l4-iap-wheelhouse-transfer-proof-us-west4-c-result',
+  'npm run smoke:ai-video-broll-gen-10j-no-idle-l4-iap-wheelhouse-payload-install-proof-us-west4-c-result',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

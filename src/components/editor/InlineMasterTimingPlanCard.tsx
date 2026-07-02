@@ -45,7 +45,7 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? blocked}
       eyebrow="StoryTiming"
-      helper="ReeditPro plans captions, visuals, transitions, SFX, music, AI clips, and Remotion layers on a frame-accurate timeline."
+      helper="ReeditPro plans captions, visuals, transitions, SFX, music, AI clips, and renderer layers on a frame-accurate timeline."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Master timing"

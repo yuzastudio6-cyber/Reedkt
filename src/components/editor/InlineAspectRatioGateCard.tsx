@@ -18,7 +18,7 @@ const impactItems = [
   'speaker framing',
   'visual panels',
   'image/video prompts',
-  'Remotion composition',
+  'Renderer composition',
   'export settings',
 ]
 

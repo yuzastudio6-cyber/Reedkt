@@ -169,7 +169,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
             </div>
 
             <div className="layout-prompt-implication-list">
-              <strong>Remotion layer notes</strong>
+              <strong>Renderer layer notes</strong>
               {item.remotionLayerNotes.slice(0, 4).map((note) => (
                 <span key={note}>{note}</span>
               ))}

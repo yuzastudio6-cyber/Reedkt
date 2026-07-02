@@ -154,14 +154,14 @@ export function InlineColorPipelineCard({ descriptor, plan }: InlineColorPipelin
       </details>
 
       <details className="understanding-section">
-        <summary>Tool notes and limitations</summary>
+        <summary>Execution notes and limitations</summary>
         <div className="layout-mode-meta">
-          <span><strong>Tools</strong>{colorPipelinePlan.toolsPlanned.map(label).join(', ')}</span>
+          <span><strong>Controlled support</strong>{colorPipelinePlan.toolsPlanned.length} color/image capability group{colorPipelinePlan.toolsPlanned.length === 1 ? '' : 's'} planned</span>
           <span><strong>Tier notes</strong>{colorPipelinePlan.tierNotes.join(' ')}</span>
           <span><strong>Asset rules</strong>{colorPipelinePlan.generatedAssetRules.join(' ')}</span>
           <span><strong>Limitations</strong>{colorPipelinePlan.limitations.join(' ')}</span>
         </div>
-        <p className="color-tool-note">FFmpeg/OpenColorIO/OpenImageIO/OpenCV/Sharp are future-worker planning responsibilities only. No tools execute in this demo.</p>
+        <p className="color-tool-note">Color and image processing remains future-worker planning only in this demo. No media processing runs from the chat UI.</p>
       </details>
 
       <details className="understanding-section">

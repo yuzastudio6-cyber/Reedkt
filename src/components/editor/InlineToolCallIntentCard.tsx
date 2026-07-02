@@ -1,116 +1,133 @@
 import { Badge } from '../Badge'
-import type { ChatPlanningCardDescriptor, EditPlan } from '../../types/reeditpro'
-import type { ToolCallIntentReadinessState } from '../../types/tool-call-intents'
+import { buildChatToolActivityCards, type ChatToolActivityCardStatus } from '../../lib/chat-tool-activity-ux'
+import type { ChatPlanningCardDescriptor, ChatPlanningDisplayMode, EditPlan } from '../../types/reeditpro'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineToolCallIntentCardProps = {
   plan: EditPlan
   descriptor?: ChatPlanningCardDescriptor
+  approved?: boolean
+  displayMode?: ChatPlanningDisplayMode
+  previewReady?: boolean
+  progressStarted?: boolean
 }
 
-const readinessLabels: Record<ToolCallIntentReadinessState, string> = {
-  blocked_by_owner_approval: 'Owner gated',
-  blocked_by_provider_lane: 'Provider gated',
-  blocked_by_storage_billing: 'Storage/billing gated',
-  dry_run_only: 'Dry-run only',
-  ready_for_backend_execution: 'Backend candidate',
+const statusLabels: Record<ChatToolActivityCardStatus, string> = {
+  blocked: 'Blocked',
+  complete: 'Complete',
+  needs_approval: 'Needs approval',
+  ready: 'Ready',
+  running: 'Running',
+  waiting: 'Waiting',
+  warning: 'Needs review',
 }
 
-function label(value: string | undefined) {
-  return value?.replaceAll('_', ' ') ?? 'none'
-}
-
-function readinessAccent(readinessState: ToolCallIntentReadinessState) {
-  if (readinessState === 'ready_for_backend_execution') return 'success'
-  if (readinessState === 'dry_run_only') return 'warning'
+function statusAccent(status: ChatToolActivityCardStatus) {
+  if (status === 'blocked') return 'danger'
+  if (status === 'needs_approval' || status === 'warning') return 'warning'
+  if (status === 'running') return 'cyan'
+  if (status === 'complete' || status === 'ready') return 'success'
   return 'muted'
 }
 
-export function InlineToolCallIntentCard({ descriptor, plan }: InlineToolCallIntentCardProps) {
+export function InlineToolCallIntentCard({
+  approved = false,
+  descriptor,
+  displayMode = 'guided',
+  plan,
+  previewReady = false,
+  progressStarted = false,
+}: InlineToolCallIntentCardProps) {
   const toolCallIntentPlan = plan.toolCallIntentPlan
 
   if (!toolCallIntentPlan) {
     return null
   }
 
-  const creditGateSummary = toolCallIntentPlan.creditGateSummary
-  const visibleIntents = toolCallIntentPlan.intents.slice(0, 7)
-  const hiddenCount = Math.max(0, toolCallIntentPlan.intents.length - visibleIntents.length)
-  const gatedCount =
-    toolCallIntentPlan.readinessCounts.blocked_by_owner_approval +
-    toolCallIntentPlan.readinessCounts.blocked_by_provider_lane +
-    toolCallIntentPlan.readinessCounts.blocked_by_storage_billing
+  const activityCards = buildChatToolActivityCards({
+    approved,
+    displayMode,
+    plan,
+    previewReady,
+    progressStarted,
+  })
+  const planCard = activityCards.find((card) => card.kind === 'tool_plan')
+  const readinessCard = activityCards.find((card) => card.kind === 'tool_readiness')
+  const approvalCard = activityCards.find((card) => card.kind === 'approval_cost')
+  const blockerCard = activityCards.find((card) => card.kind === 'blocker_next_action')
 
   return (
     <InlinePlanCardShell
-      className="tool-call-intent-card"
+      className="tool-call-intent-card edit-activity-overview-card"
       compactSummary={(
         <div className="compact-summary-row">
-          <span className="compact-summary-chip">{toolCallIntentPlan.intents.length} planned calls</span>
-          <span className="compact-summary-chip">{toolCallIntentPlan.readinessCounts.ready_for_backend_execution} backend candidates</span>
-          <span className="compact-summary-chip">{toolCallIntentPlan.readinessCounts.dry_run_only} dry-run</span>
-          <span className="compact-summary-chip">{gatedCount} gated</span>
-          <span className="compact-summary-chip">{creditGateSummary.totalExpectedCredits} expected credits</span>
-          <span className="compact-summary-chip">{creditGateSummary.totalHighCredits} high credits</span>
+          {planCard?.chips.map((chip) => (
+            <span className="compact-summary-chip" key={`plan-${chip}`}>{chip}</span>
+          ))}
+          {readinessCard?.chips.slice(0, 1).map((chip) => (
+            <span className="compact-summary-chip" key={`ready-${chip}`}>{chip}</span>
+          ))}
+          {approvalCard?.chips.slice(1, 3).map((chip) => (
+            <span className="compact-summary-chip" key={`cost-${chip}`}>{chip}</span>
+          ))}
+          {blockerCard && <span className="compact-summary-chip">{blockerCard.chips[0]}</span>}
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? true}
-      eyebrow="Tool-call intent"
-      helper="These are the backend tool calls the edit plan expects after approval. They show dependencies, outputs, cost impact, readiness, and fallback before any tool runs."
+      eyebrow="Edit activity visibility"
+      helper="This summarizes the behind-the-scenes edit work in plain language. Exact execution names stay out of guided chat and are available only in developer review."
       priority={descriptor?.priority}
       status={descriptor?.status}
-      title="Planned tool calls"
+      title="What will happen in the edit"
     >
-      <p className="advanced-detail-note">{toolCallIntentPlan.summary}</p>
-      <p className="advanced-detail-note">{creditGateSummary.userFacingSummary}</p>
-
-      <div className="tool-chain-list">
-        {visibleIntents.map((intent) => {
-          const expectedCredits = intent.costEstimate.expectedCredits ?? intent.costEstimate.credits
-          const highCredits = intent.costEstimate.highCredits ?? expectedCredits
-
-          return (
-            <article className="tool-chain-item" key={intent.id}>
+      <div className="edit-activity-card-grid">
+        {activityCards.map((card) => (
+          <article className={`edit-activity-card edit-activity-card-${card.kind}`} key={card.kind}>
+            <div className="edit-activity-card-heading">
               <div>
-                <span className="section-eyebrow">{intent.capabilityLabel} / {label(intent.lane)}</span>
-                <h4>{intent.toolLabel}</h4>
-                <p>{intent.reason}</p>
+                <span className="section-eyebrow">{card.eyebrow}</span>
+                <h4>{card.title}</h4>
               </div>
+              <Badge accent={statusAccent(card.status)}>{statusLabels[card.status]}</Badge>
+            </div>
 
+            <p>{card.summary}</p>
+
+            {card.chips.length > 0 && (
               <div className="understanding-chip-row">
-                <Badge accent={readinessAccent(intent.readinessState)}>{readinessLabels[intent.readinessState]}</Badge>
-                <span className="tool-primary-badge">{expectedCredits} expected / {highCredits} high credits</span>
-                <span className="tool-planning-only-note">{label(intent.creditGate.status)}</span>
-                <span className="tool-planning-only-note">approval first</span>
-                <span className="tool-planning-only-note">backend only</span>
+                {card.chips.map((chip) => (
+                  <span className="tool-planning-only-note" key={`${card.kind}-${chip}`}>{chip}</span>
+                ))}
               </div>
+            )}
 
-              <div className="tool-chain-meta">
-                <span><strong>Input</strong>{intent.inputArtifactDependency.description}</span>
-                <span><strong>Output</strong>{intent.expectedOutputArtifact.description}</span>
-                <span><strong>Cost basis</strong>{intent.costEstimate.basis}</span>
-                <span><strong>Fallback</strong>{intent.fallback.strategy}</span>
-              </div>
+            <div className="edit-activity-item-list">
+              {card.items.slice(0, 5).map((item) => (
+                <div className="edit-activity-item" key={`${card.kind}-${item.label}`}>
+                  <strong>{item.label}</strong>
+                  <span>{item.detail}</span>
+                  {item.status && (
+                    <em>{statusLabels[item.status]}</em>
+                  )}
+                </div>
+              ))}
+            </div>
 
-              <p>{intent.readinessExplanation}</p>
+            {card.nextAction && (
+              <p className="edit-activity-next-action"><strong>Next action</strong>{card.nextAction}</p>
+            )}
 
-              {intent.fallback.fallbackToolIds.length > 0 && (
+            {card.developerDetails?.map((details) => (
+              <details className="edit-activity-developer-details" key={`${card.kind}-${details.label}`}>
+                <summary>{details.label}</summary>
                 <div className="understanding-chip-row">
-                  {intent.fallback.fallbackToolIds.map((toolId) => (
-                    <span className="tool-fallback-badge" key={`${intent.id}-${toolId}`}>Fallback: {label(toolId)}</span>
+                  {details.values.map((value) => (
+                    <span className="tool-fallback-badge" key={`${card.kind}-${details.label}-${value}`}>{value}</span>
                   ))}
                 </div>
-              )}
-            </article>
-          )
-        })}
-      </div>
-
-      {hiddenCount > 0 && <p className="advanced-detail-note">{hiddenCount} more planned tool-call intent{hiddenCount === 1 ? '' : 's'} are available in detailed/developer review.</p>}
-
-      <div className="understanding-chip-row">
-        {toolCallIntentPlan.notes.map((note) => (
-          <span className="tool-planning-only-note" key={note}>{note}</span>
+              </details>
+            ))}
+          </article>
         ))}
       </div>
     </InlinePlanCardShell>

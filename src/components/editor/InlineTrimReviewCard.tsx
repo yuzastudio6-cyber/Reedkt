@@ -5,6 +5,7 @@ import type {
   MeaningPreservationCheck,
   MeaningPreservationStatus,
 } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineTrimReviewCardProps = {
@@ -41,8 +42,8 @@ function MeaningCheckList({ checks }: { checks: MeaningPreservationCheck[] }) {
             <span className="meaning-preservation-status-badge">{statusLabel(check.status)}</span>
           </div>
           <span className="meaning-preservation-risk-badge">{statusLabel(check.category)}</span>
-          <small>{check.message}</small>
-          <em>{check.recommendation}</em>
+          <small>{toUserFacingToolCopy(check.message)}</small>
+          <em>{toUserFacingToolCopy(check.recommendation)}</em>
           {check.relatedClipIds.length > 0 && <small>Clips: {check.relatedClipIds.slice(0, 4).join(', ')}</small>}
         </article>
       ))}
@@ -101,7 +102,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
         <div className="trim-review-blocked-note">
           <strong>Approval locked</strong>
           {trimReviewPlan.approvalBlockReasons.slice(0, 5).map((reason) => (
-            <span key={reason}>{reason}</span>
+            <span key={reason}>{toUserFacingToolCopy(reason)}</span>
           ))}
         </div>
       )}
@@ -123,7 +124,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
               <span className="retake-strategy-badge">{statusLabel(item.strategy)}</span>
               <small>Selected: {item.selectedCandidateId ?? 'needs review'}</small>
               <small>Alternates: {item.alternateCandidateIds.join(', ') || 'none'}</small>
-              <em>{item.reason}</em>
+              <em>{toUserFacingToolCopy(item.reason)}</em>
               <small>{item.userReviewRequired ? 'User review required' : 'Selection is reviewable'}</small>
             </article>
           ))}
@@ -144,7 +145,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
                 <small>Suggested use: {statusLabel(candidate.suggestedUse)}</small>
                 <small>Strengths: {candidate.strengths.slice(0, 2).join(' ')}</small>
                 <small>Weaknesses: {candidate.weaknesses.slice(0, 2).join(' ')}</small>
-                <em>{candidate.reason}</em>
+                <em>{toUserFacingToolCopy(candidate.reason)}</em>
               </article>
             ))}
           </div>
@@ -161,7 +162,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
           <h4>User review questions</h4>
           <div className="trim-review-user-question-list">
             {trimReviewPlan.nextUserQuestions.slice(0, 5).map((question) => (
-              <span key={question}>{question}</span>
+              <span key={question}>{toUserFacingToolCopy(question)}</span>
             ))}
           </div>
         </div>
@@ -170,7 +171,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
       <div className="trim-review-mock-note">
         <strong>Mock-only review</strong>
         {trimReviewPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{toUserFacingToolCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

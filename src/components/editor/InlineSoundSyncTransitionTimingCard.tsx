@@ -47,7 +47,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? (blocked || hasRisk)}
       eyebrow="SoundSync"
-      helper="ReeditPro plans beat-aware transitions, SFX, and music ducking with speech-first timing. This is mock timing only; no real AudioFlux analysis has run."
+      helper="ReeditPro plans beat-aware transitions, SFX, and music ducking with speech-first timing. This is mock timing only; no real audio analysis has run."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="SoundSync + transition timing"
@@ -57,7 +57,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
         <Badge accent="violet">Speech first</Badge>
         <Badge accent="cyan">Beat aware</Badge>
         <Badge accent="blue">SFX justified</Badge>
-        <Badge accent="muted">AudioFlux planned</Badge>
+        <Badge accent="muted">Audio analysis planned</Badge>
         <Badge accent="muted">No real audio analysis</Badge>
       </div>
 

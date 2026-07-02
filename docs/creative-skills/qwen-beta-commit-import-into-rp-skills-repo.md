@@ -152,3 +152,17 @@ Validation after repair:
 Next step:
 
 `RP-BETA-INTEGRATION-28 - Final Beta Merge Readiness Review`
+
+## M. RP-BETA-INTEGRATION-28 Final Review
+
+RP-BETA-INTEGRATION-28 confirmed the Qwen import and RP-BETA-27 dependency completion are locally validation-ready for a later owner-approved merge prompt.
+
+Decision:
+
+- `final_beta_merge_ready_with_warnings_for_owner_merge_approval`
+
+Validation after final review passed for build, Qwen checks/smokes, Supabase-command safety checks/smokes, existing beta/API smokes, and sound/music smokes.
+
+Next step:
+
+`RP-BETA-INTEGRATION-29 - Owner-Approved Local Merge Execution`

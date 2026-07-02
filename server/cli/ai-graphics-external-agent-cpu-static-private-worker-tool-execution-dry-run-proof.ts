@@ -23,6 +23,10 @@ function stringFlag(flag: string): string | undefined {
   return process.argv[index + 1]
 }
 
+const claimAndDispatchSourcePath = stringFlag(
+  '--source-worker-claim-and-dispatch-smoke-proof-packet',
+)
+
 function readJson(file: string): JsonRecord {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as JsonRecord
 }
@@ -39,7 +43,7 @@ function makeMarkdown(
   const preparedTools = report.rows
     .filter((row) => row.dryToolExecutionProofPrepared)
     .map((row) => `\`${row.toolId}\``)
-    .join(', ')
+    .join(', ') || 'none'
   const rows = report.rows
     .map(
       (row) =>
@@ -60,7 +64,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This packet prepares exact dry-run tool execution contracts for the five CPU/static tools that already have accepted private worker dispatch smoke proof. It validates adapter payload shape, private output manifest contract, tool result schema contract, and tool-specific QA gate references without invoking an adapter, executing a tool, dispatching a worker, creating artifacts, creating signed URLs, or starting browser/GPU/runtime resources.
+This packet prepares exact dry-run tool execution contracts for the five CPU/static tools only after accepted worker claim/dispatch smoke proof is provided. It validates adapter payload shape, private output manifest contract, tool result schema contract, and tool-specific QA gate references without invoking an adapter, executing a tool, dispatching a worker, creating artifacts, creating signed URLs, or starting browser/GPU/runtime resources.
 
 ## Source Evidence
 
@@ -176,11 +180,12 @@ function makeImplementationPrompt(
 ): string {
   return `# AI Graphics External Agent CPU Static Private Worker Tool Execution Dry-Run Proof Implementation Record
 
-Implemented the private worker tool execution dry-run proof contract from accepted dispatch smoke evidence.
+Implemented the private worker tool execution dry-run proof contract from accepted worker claim/dispatch evidence.
 
 ## Accepted Source
 
 - Private worker dispatch smoke-proof packet: \`${sourceDispatchSmokeProofPath}\`
+- Worker claim/dispatch smoke-proof packet: \`${claimAndDispatchSourcePath ?? 'not provided; checked-in record remains blocked'}\`
 
 ## Result
 
@@ -201,9 +206,6 @@ Implemented the private worker tool execution dry-run proof contract from accept
 
 async function main() {
   const source = readJson(sourceDispatchSmokeProofPath)
-  const claimAndDispatchSourcePath = stringFlag(
-    '--source-worker-claim-and-dispatch-smoke-proof-packet',
-  )
   const claimAndDispatchSource = claimAndDispatchSourcePath
     ? readJson(claimAndDispatchSourcePath)
     : undefined
@@ -221,13 +223,15 @@ async function main() {
     report.counts.totalAiGraphicsTools === 21,
     'Private worker tool execution dry-run proof must cover all 21 tools',
   )
+  const expectedPreparedTools =
+    report.booleans.sourceWorkerClaimAndDispatchSmokeProofAccepted === true ? 5 : 0
   assert(
-    report.counts.toolExecutionDryRunProofPreparedTools === 5,
-    'Expected five tool execution dry-run proofs',
+    report.counts.toolExecutionDryRunProofPreparedTools === expectedPreparedTools,
+    `Expected ${expectedPreparedTools} tool execution dry-run proofs`,
   )
   assert(
-    report.counts.dryToolExecutionContractsPreparedTools === 5,
-    'Expected five dry tool execution contracts',
+    report.counts.dryToolExecutionContractsPreparedTools === expectedPreparedTools,
+    `Expected ${expectedPreparedTools} dry tool execution contracts`,
   )
   assert(
     report.counts.satoriBlockedPendingApprovedFontFixtureTools === 1,
@@ -246,8 +250,9 @@ async function main() {
     'Source dispatch smoke proof was not accepted',
   )
   assert(
-    report.booleans.allFiveCpuStaticToolExecutionDryRunProofsPrepared === true,
-    'Five CPU/static tool execution dry-run proofs must be prepared',
+    report.booleans.allFiveCpuStaticToolExecutionDryRunProofsPrepared ===
+      (expectedPreparedTools === 5),
+    'Five CPU/static tool execution dry-run proof state does not match source evidence',
   )
   assert(report.booleans.agentCanExecuteToolsNow === false, 'Agent execution must remain false')
   assert(report.booleans.externalAgentCanInvokeAdapterNow === false, 'Adapter invocation must remain false')

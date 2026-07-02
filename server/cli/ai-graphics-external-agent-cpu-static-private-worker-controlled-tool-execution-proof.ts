@@ -46,7 +46,7 @@ function makeMarkdown(
   const acceptedTools = report.rows
     .filter((row) => row.controlledToolExecutionProofAccepted)
     .map((row) => `\`${row.toolId}\``)
-    .join(', ')
+    .join(', ') || 'none'
   const evidenceRows = report.rows
     .filter((row) => row.controlledToolExecutionEvidence)
     .map((row) => {
@@ -67,7 +67,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This packet binds accepted CPU/static Phase 0 local execution evidence to the exact private-worker tool execution dry-run contracts for five tools. It proves the request/result/output/QA contract can be traced for the external-agent path without rerunning tools, invoking adapters, dispatching workers, writing queues, creating public artifacts, creating signed URLs, or starting browser/GPU/runtime resources.
+This packet binds accepted CPU/static Phase 0 local execution evidence to exact private-worker tool execution dry-run contracts only when the dry-run packet preserves worker claim/dispatch lineage. It proves the request/result/output/QA contract can be traced for the external-agent path without rerunning tools, invoking adapters, dispatching workers, writing queues, creating public artifacts, creating signed URLs, or starting browser/GPU/runtime resources.
 
 ## Source Evidence
 
@@ -85,7 +85,7 @@ This packet binds accepted CPU/static Phase 0 local execution evidence to the ex
 - Controlled tool execution proofs accepted: \`${report.counts.controlledToolExecutionProofAcceptedTools}\` tools: ${acceptedTools}
 - Source tool execution dry-run proofs prepared: \`${report.counts.sourceToolExecutionDryRunProofPreparedTools}\`
 - Source worker claim/dispatch smoke proof accepted tools: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`
-- Claim/dispatch-source preservation note: the checked-in default dry-run packet still uses dispatch-smoke lineage; the diagnostic verifies the alternate worker claim/dispatch-sourced dry-run path preserves \`5/5\` newer lineage refs without enabling execution.
+- Claim/dispatch-source preservation note: the checked-in default packet remains blocked until worker claim/dispatch smoke proof is provided; the diagnostic verifies an accepted worker claim/dispatch-sourced dry-run path preserves \`5/5\` lineage refs without enabling execution.
 - Source Phase 0 proof-passed tools: \`${report.counts.sourcePhase0ProofPassedTools}\`
 - Exact request contracts accepted: \`${report.counts.exactRequestContractsAcceptedTools}\`
 - Private output manifests accepted: \`${report.counts.privateOutputManifestAcceptedTools}\`
@@ -155,7 +155,7 @@ function makePromptResult(
 - Controlled tool execution proofs accepted: \`${report.counts.controlledToolExecutionProofAcceptedTools}\`
 - Source tool execution dry-run proofs prepared: \`${report.counts.sourceToolExecutionDryRunProofPreparedTools}\`
 - Source worker claim/dispatch smoke proof accepted tools: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`
-- Claim/dispatch-source preservation note: default checked-in source remains dispatch-smoke lineage; diagnostic verifies \`5/5\` preservation for the alternate worker claim/dispatch-sourced dry-run packet.
+- Claim/dispatch-source preservation note: default checked-in source remains blocked until worker claim/dispatch lineage is supplied; diagnostic verifies \`5/5\` preservation for an accepted worker claim/dispatch-sourced dry-run packet.
 - Source Phase 0 proof-passed tools: \`${report.counts.sourcePhase0ProofPassedTools}\`
 - Exact request contracts accepted: \`${report.counts.exactRequestContractsAcceptedTools}\`
 - Private output manifests accepted: \`${report.counts.privateOutputManifestAcceptedTools}\`
@@ -205,7 +205,7 @@ Decision: \`${report.decision}\`
 ## Result
 
 - \`${report.counts.controlledToolExecutionProofAcceptedTools}\` CPU/static tools have controlled proof accepted from Phase 0 local execution evidence.
-- Source worker claim/dispatch smoke proof accepted tools in the checked-in default dry-run source: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`. The diagnostic verifies the alternate newer worker claim/dispatch-sourced dry-run path preserves \`5/5\` lineage refs without approving execution.
+- Source worker claim/dispatch smoke proof accepted tools in the checked-in default dry-run source: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`. The diagnostic verifies the accepted worker claim/dispatch-sourced dry-run path preserves \`5/5\` lineage refs without approving execution.
 - \`${report.counts.exactRequestContractsAcceptedTools}\` exact request contracts preserve approved plan snapshot fixture refs, credit reservation fixture refs, private artifact manifest refs, queue idempotency keys, dry dispatch idempotency keys, dry tool execution idempotency keys, controlled tool execution idempotency keys, source dispatch refs, adapter dry-run refs, input contract refs, output contract refs, result schema refs, QA gate refs, and private artifact visibility.
 - \`${report.counts.satoriBlockedPendingApprovedFontFixtureTools}\` Satori remains blocked pending approved font fixture proof.
 - \`${report.counts.nonCpuStaticDeferredTools}\` browser/GPU/model tools remain deferred by runtime boundary.
@@ -241,13 +241,15 @@ async function main() {
     report.counts.totalAiGraphicsTools === 21,
     'Controlled tool execution proof must cover all 21 tools',
   )
+  const expectedAcceptedTools =
+    report.booleans.sourceWorkerClaimAndDispatchSmokeProofAccepted === true ? 5 : 0
   assert(
-    report.counts.controlledToolExecutionProofAcceptedTools === 5,
-    'Expected five controlled tool execution proofs',
+    report.counts.controlledToolExecutionProofAcceptedTools === expectedAcceptedTools,
+    `Expected ${expectedAcceptedTools} controlled tool execution proofs`,
   )
   assert(
-    report.counts.exactRequestContractsAcceptedTools === 5,
-    'Expected five exact request contracts',
+    report.counts.exactRequestContractsAcceptedTools === expectedAcceptedTools,
+    `Expected ${expectedAcceptedTools} exact request contracts`,
   )
   assert(
     report.counts.satoriBlockedPendingApprovedFontFixtureTools === 1,
@@ -263,8 +265,9 @@ async function main() {
     'GPU runtime must not start now',
   )
   assert(
-    report.booleans.sourceToolExecutionDryRunProofAccepted === true,
-    'Source tool execution dry-run proof was not accepted',
+    report.booleans.sourceToolExecutionDryRunProofAccepted ===
+      (expectedAcceptedTools === 5),
+    'Source tool execution dry-run proof state does not match worker claim/dispatch evidence',
   )
   assert(
     report.booleans.sourcePhase0ExecutionProofAccepted === true,

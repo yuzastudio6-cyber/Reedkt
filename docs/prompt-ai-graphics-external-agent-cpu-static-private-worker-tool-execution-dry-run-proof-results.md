@@ -4,11 +4,11 @@
 - Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/862
 - Draft status: open/draft/CLEAN at the latest recorded push.
 - Decision: `ai_graphics_external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_with_runtime_blocks`
-- Tool execution dry-run proofs prepared: `5`
-- Dry tool execution contracts prepared: `5`
-- Adapter payload shapes validated: `5`
-- Private output manifest contracts validated: `5`
-- Tool result schemas validated: `5`
+- Tool execution dry-run proofs prepared: `0`
+- Dry tool execution contracts prepared: `0`
+- Adapter payload shapes validated: `0`
+- Private output manifest contracts validated: `0`
+- Tool result schemas validated: `0`
 - Satori block: pending approved font fixture proof.
 - Non-CPU/static deferred tools: `15`
 - External-agent adapter invocations approved now: `0`

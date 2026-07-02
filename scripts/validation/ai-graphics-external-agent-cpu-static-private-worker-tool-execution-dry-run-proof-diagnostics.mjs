@@ -8,6 +8,8 @@ const decision =
   'ai_graphics_external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_with_runtime_blocks'
 const acceptedStatus =
   'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_five_with_runtime_blocks'
+const blockedStatus =
+  'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_blocked_pending_worker_claim_and_dispatch_smoke_proof'
 const sourceDecision =
   'ai_graphics_external_agent_cpu_static_private_worker_dispatch_smoke_proof_prepared_with_runtime_blocks'
 const runScriptName =
@@ -73,11 +75,11 @@ const dryRunPreparedTools = [
 
 const expectedCounts = {
   totalAiGraphicsTools: 21,
-  toolExecutionDryRunProofPreparedTools: 5,
-  dryToolExecutionContractsPreparedTools: 5,
-  adapterPayloadShapeValidatedTools: 5,
-  privateOutputManifestContractValidatedTools: 5,
-  toolResultSchemaValidatedTools: 5,
+  toolExecutionDryRunProofPreparedTools: 0,
+  dryToolExecutionContractsPreparedTools: 0,
+  adapterPayloadShapeValidatedTools: 0,
+  privateOutputManifestContractValidatedTools: 0,
+  toolResultSchemaValidatedTools: 0,
   sourceDispatchSmokeProofAcceptedTools: 5,
   sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: 0,
   satoriBlockedPendingApprovedFontFixtureTools: 1,
@@ -103,15 +105,8 @@ const trueKeys = [
   'sourceDispatchSmokeProofAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'allFiveCpuStaticToolExecutionDryRunProofsPrepared',
-  'allFiveDryToolExecutionContractsPrepared',
-  'allFiveAdapterPayloadShapesValidated',
-  'allFivePrivateOutputManifestContractsValidated',
-  'allFiveToolResultSchemasValidated',
   'satoriBlockedPendingApprovedFontFixture',
   'fifteenRuntimeDeferredToolsPreserved',
-  'sourceDispatchSmokeEvidenceRefsPreserved',
-  'sourceWorkerClaimAndDispatchEvidenceRefsPreserved',
   'privateArtifactOnlyPolicyAccepted',
   'noAdapterInvocationByDryRun',
   'noToolExecutionByDryRun',
@@ -123,6 +118,14 @@ const trueKeys = [
 ]
 
 const falseKeys = [
+  'sourceWorkerClaimAndDispatchSmokeProofAccepted',
+  'allFiveCpuStaticToolExecutionDryRunProofsPrepared',
+  'allFiveDryToolExecutionContractsPrepared',
+  'allFiveAdapterPayloadShapesValidated',
+  'allFivePrivateOutputManifestContractsValidated',
+  'allFiveToolResultSchemasValidated',
+  'sourceDispatchSmokeEvidenceRefsPreserved',
+  'sourceWorkerClaimAndDispatchEvidenceRefsPreserved',
   'externalAgentCanDispatchPrivateWorkerJobNow',
   'externalAgentCanSubmitPrivateWorkerQueueNow',
   'externalAgentCanRequestPrivateWorkerHandoffNow',
@@ -505,7 +508,7 @@ function checkContract(label, toolId, contract) {
   }
 }
 
-function checkRows(label, rows) {
+function checkRows(label, rows, expectPrepared = false) {
   if (!Array.isArray(rows)) {
     fail(`${label}_rows_not_array`)
     return
@@ -518,13 +521,15 @@ function checkRows(label, rows) {
       continue
     }
     if (dryRunPreparedTools.includes(toolId)) {
-      if (
-        row.toolExecutionDryRunStatus !==
-        'private_worker_tool_execution_dry_run_proof_prepared_execution_blocked'
-      ) {
+      const expectedStatus = expectPrepared
+        ? 'private_worker_tool_execution_dry_run_proof_prepared_execution_blocked'
+        : 'private_worker_tool_execution_dry_run_proof_blocked_missing_worker_claim_and_dispatch_smoke_proof'
+      if (row.toolExecutionDryRunStatus !== expectedStatus) {
         fail(`${label}_dry_run_status_mismatch:${toolId}:${row.toolExecutionDryRunStatus}`)
       }
-      if (row.queueName !== queueName) fail(`${label}_queue_name_mismatch:${toolId}`)
+      if (row.queueName !== (expectPrepared ? queueName : null)) {
+        fail(`${label}_queue_name_mismatch:${toolId}`)
+      }
       if (row.sourceDispatchSmokeProofAccepted !== true) {
         fail(`${label}_source_dispatch_smoke_not_accepted:${toolId}`)
       }
@@ -538,9 +543,21 @@ function checkRows(label, rows) {
         'privateOutputManifestContractValidated',
         'toolResultSchemaValidated',
       ]) {
-        if (row[field] !== true) fail(`${label}_row_field_not_true:${toolId}:${field}`)
+        if (row[field] !== expectPrepared) {
+          fail(`${label}_row_field_mismatch:${toolId}:${field}:${row[field]}`)
+        }
       }
-      checkContract(label, toolId, row.dryRunContract)
+      if (row.sourceWorkerClaimAndDispatchSmokeProofAccepted !== expectPrepared) {
+        fail(`${label}_source_claim_dispatch_mismatch:${toolId}`)
+      }
+      if (row.sourceWorkerClaimAndDispatchEvidenceAccepted !== expectPrepared) {
+        fail(`${label}_source_claim_dispatch_evidence_mismatch:${toolId}`)
+      }
+      if (expectPrepared) {
+        checkContract(label, toolId, row.dryRunContract)
+      } else if (row.dryRunContract !== null) {
+        fail(`${label}_unexpected_contract:${toolId}`)
+      }
     }
     if (toolId === 'satori') {
       if (
@@ -640,7 +657,7 @@ const indexSource = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
-if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
+if (docs.status !== blockedStatus) fail('docs_status_mismatch')
 if (docs.sourceDispatchSmokeProofDecision !== sourceDecision) {
   fail('docs_source_decision_mismatch')
 }
@@ -667,7 +684,9 @@ if (
 }
 for (const key of [
   'sourceDispatchSmokeProofRequired',
+  'sourceWorkerClaimAndDispatchSmokeProofRequired',
   'validatesProvidedDispatchSmokeEvidence',
+  'validatesProvidedWorkerClaimAndDispatchEvidence',
   'adapterPayloadShapeRequired',
   'privateOutputManifestContractRequired',
   'toolResultSchemaRequired',
@@ -707,7 +726,7 @@ for (const required of [
   '--source-worker-claim-and-dispatch-smoke-proof-packet',
   'buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionDryRunProof',
   '--write-records',
-  'report.counts.toolExecutionDryRunProofPreparedTools === 5',
+  'expectedPreparedTools',
   'report.booleans.agentCanExecuteToolsNow === false',
   'report.booleans.externalAgentCanInvokeAdapterNow === false',
 ]) {
@@ -734,7 +753,7 @@ try {
 }
 
 if (cliReport.decision !== decision) fail('cli_decision_mismatch')
-if (cliReport.status !== acceptedStatus) fail('cli_status_mismatch')
+if (cliReport.status !== blockedStatus) fail('cli_status_mismatch')
 checkList('cli_tools', cliReport.tools, tools)
 checkList('cli_capabilities', cliReport.capabilities, capabilities)
 checkCounts('cli', cliReport.counts)
@@ -788,7 +807,7 @@ if (claimAndDispatchSourceCliReport.booleans?.toolExecutionApprovedNow !== false
 if (claimAndDispatchSourceCliReport.booleans?.gpuRuntimeShouldStartNow !== false) {
   fail('claim_dispatch_source_cli_gpu_start_not_false')
 }
-checkRows('claim_dispatch_source_cli', claimAndDispatchSourceCliReport.rows)
+checkRows('claim_dispatch_source_cli', claimAndDispatchSourceCliReport.rows, true)
 for (const toolId of dryRunPreparedTools) {
   const row = claimAndDispatchSourceCliReport.rows?.find((entry) => entry.toolId === toolId)
   const contract = row?.dryRunContract
@@ -817,7 +836,7 @@ for (const fileText of [JSON.stringify(docs), docsMd, promptResult, implementati
 
 for (const required of [
   decision,
-  acceptedStatus,
+  blockedStatus,
   queueName,
   'externalAgentCanInvokeAdapterNow=false',
   'toolExecutionApprovedNow=false',
@@ -825,6 +844,7 @@ for (const required of [
   'gpuRuntimeShouldStartNow=false',
   'Private worker dispatch smoke-proof packet',
   'Tool execution dry-run proofs prepared',
+  'Source worker claim/dispatch smoke proof accepted tools',
 ]) {
   if (!docsMd.includes(required)) fail(`docs_md_missing:${required}`)
 }
@@ -832,9 +852,9 @@ for (const required of [
 for (const required of [
   'AI Graphics External Agent CPU Static Private Worker Tool Execution Dry-Run Proof',
   decision,
-  'toolExecutionDryRunProofPreparedTools=5',
-  'dryToolExecutionContractsPreparedTools=5',
-  'adapterPayloadShapeValidatedTools=5',
+  'toolExecutionDryRunProofPreparedTools=0',
+  'dryToolExecutionContractsPreparedTools=0',
+  'adapterPayloadShapeValidatedTools=0',
   'externalAgentCanInvokeAdapterNowTools=0',
   'toolExecutionApprovedNowTools=0',
   'gpuRuntimeShouldStartNowTools=0',
@@ -887,7 +907,7 @@ console.log(
     {
       ok: true,
       decision,
-      acceptedStatus,
+      acceptedStatus: docs.status,
       toolExecutionDryRunProofPreparedTools:
         docs.counts.toolExecutionDryRunProofPreparedTools,
       agentCanExecuteToolsNow: docs.booleans.agentCanExecuteToolsNow,

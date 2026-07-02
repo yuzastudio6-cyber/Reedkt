@@ -8,6 +8,8 @@ const decision =
   'ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks'
 const acceptedStatus =
   'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_five_with_runtime_blocks'
+const blockedStatus =
+  'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_blocked_pending_worker_claim_and_dispatch_smoke_proof'
 const sourceDryRunDecision =
   'ai_graphics_external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_with_runtime_blocks'
 const sourcePhase0Decision =
@@ -20,6 +22,12 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof-diagnostics.mjs'
+const sourceQueueProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
+const claimAndDispatchProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
+const dryRunProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof'
 const queueName = 'ai_graphics_external_agent_cpu_static_private_worker_queue'
 
 const tools = [
@@ -71,15 +79,15 @@ const controlledProofTools = [
 
 const expectedCounts = {
   totalAiGraphicsTools: 21,
-  controlledToolExecutionProofAcceptedTools: 5,
-  sourceToolExecutionDryRunProofPreparedTools: 5,
+  controlledToolExecutionProofAcceptedTools: 0,
+  sourceToolExecutionDryRunProofPreparedTools: 0,
   sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: 0,
   sourcePhase0ProofPassedTools: 5,
-  exactRequestContractsAcceptedTools: 5,
-  privateOutputManifestAcceptedTools: 5,
-  toolResultSchemaAcceptedTools: 5,
-  toolSpecificQaGateAcceptedTools: 5,
-  phase0LocalArtifactEvidenceAcceptedTools: 5,
+  exactRequestContractsAcceptedTools: 0,
+  privateOutputManifestAcceptedTools: 0,
+  toolResultSchemaAcceptedTools: 0,
+  toolSpecificQaGateAcceptedTools: 0,
+  phase0LocalArtifactEvidenceAcceptedTools: 0,
   satoriBlockedPendingApprovedFontFixtureTools: 1,
   nonCpuStaticDeferredTools: 15,
   externalAgentCanDispatchPrivateWorkerJobNowTools: 0,
@@ -100,20 +108,11 @@ const expectedCounts = {
 
 const trueKeys = [
   'externalAgentCpuStaticPrivateWorkerControlledToolExecutionProofCompleted',
-  'sourceToolExecutionDryRunProofAccepted',
   'sourcePhase0ExecutionProofAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
-  'allFiveControlledToolExecutionProofsAccepted',
-  'allFiveSourceDryRunContractsAccepted',
-  'allFivePhase0ExecutionEvidenceAccepted',
-  'allFivePrivateOutputManifestsAccepted',
-  'allFiveToolResultSchemasAccepted',
-  'allFiveToolSpecificQaGatesAccepted',
   'satoriBlockedPendingApprovedFontFixture',
   'fifteenRuntimeDeferredToolsPreserved',
-  'sourceDryRunContractRefsPreserved',
-  'phase0LocalArtifactPolicyAccepted',
   'privateArtifactOnlyPolicyAccepted',
   'noNewToolExecutionByControlledProof',
   'noAdapterInvocationByControlledProof',
@@ -125,8 +124,17 @@ const trueKeys = [
 ]
 
 const falseKeys = [
+  'sourceToolExecutionDryRunProofAccepted',
   'sourceWorkerClaimAndDispatchSmokeProofAccepted',
+  'allFiveControlledToolExecutionProofsAccepted',
+  'allFiveSourceDryRunContractsAccepted',
+  'allFivePhase0ExecutionEvidenceAccepted',
+  'allFivePrivateOutputManifestsAccepted',
+  'allFiveToolResultSchemasAccepted',
+  'allFiveToolSpecificQaGatesAccepted',
+  'sourceDryRunContractRefsPreserved',
   'sourceWorkerClaimAndDispatchEvidenceRefsPreserved',
+  'phase0LocalArtifactPolicyAccepted',
   'externalAgentCanDispatchPrivateWorkerJobNow',
   'externalAgentCanSubmitPrivateWorkerQueueNow',
   'externalAgentCanRequestPrivateWorkerHandoffNow',
@@ -287,6 +295,111 @@ function exec(command) {
   })
 }
 
+function writeJson(filePath, value) {
+  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`)
+}
+
+function runJson(scriptName, args) {
+  return JSON.parse(
+    childProcess.execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
+      cwd: root,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 80 * 1024 * 1024,
+    }),
+  )
+}
+
+function acceptedQueueWriteSmokeResult() {
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_passed_with_cleanup',
+    status:
+      'non_production_service_role_queue_write_smoke_passed_with_cleanup_no_worker_dispatch_or_tool_execution',
+    queueName,
+    toolsSubmitted: 5,
+    toolsSubmittedIds: controlledProofTools,
+    queueRowsWritten: 5,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    workerClaimsCreated: 0,
+    workerDispatchesPerformed: 0,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/telemetry.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/rollback.md',
+    sourcePreflightDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_prepared_with_runtime_blocks',
+    sourcePreflightAccepted: true,
+    liveServiceRoleQueueWriteSmokeExecutedNow: true,
+    liveSupabaseQueueWritesNow: 5,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }
+}
+
+function acceptedClaimAndDispatchSmokeResult() {
+  return {
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_passed_with_cleanup',
+    status:
+      'non_production_worker_claim_and_dispatch_smoke_passed_with_cleanup_no_tool_execution',
+    queueName,
+    toolsClaimed: 5,
+    toolsClaimedIds: controlledProofTools,
+    queueRowsRead: 5,
+    workerClaimsCreated: 5,
+    workerDispatchHandoffsCreated: 5,
+    workerDispatchLeasesReleased: 5,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-claim-dispatch-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/telemetry.json',
+    leaseAuditRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/lease-audit.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/rollback.md',
+    sourceQueueWriteSmokeProofDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_validator_prepared_with_runtime_blocks',
+    sourceQueueWriteSmokeProofAccepted: true,
+    liveWorkerClaimAndDispatchSmokeExecutedNow: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }
+}
+
 function checkList(label, list, expected) {
   if (!Array.isArray(list)) {
     fail(`${label}_not_array`)
@@ -395,7 +508,7 @@ function checkEvidence(label, toolId, evidence) {
   }
 }
 
-function checkRows(label, rows) {
+function checkRows(label, rows, expectAccepted = false) {
   if (!Array.isArray(rows)) {
     fail(`${label}_rows_not_array`)
     return
@@ -408,10 +521,10 @@ function checkRows(label, rows) {
       continue
     }
     if (controlledProofTools.includes(toolId)) {
-      if (
-        row.controlledToolExecutionProofStatus !==
-        'controlled_private_tool_execution_proof_accepted_with_phase0_evidence_execution_blocked'
-      ) {
+      const expectedStatus = expectAccepted
+        ? 'controlled_private_tool_execution_proof_accepted_with_phase0_evidence_execution_blocked'
+        : 'controlled_private_tool_execution_proof_blocked_missing_tool_execution_dry_run_proof'
+      if (row.controlledToolExecutionProofStatus !== expectedStatus) {
         fail(`${label}_controlled_status_mismatch:${toolId}:${row.controlledToolExecutionProofStatus}`)
       }
       for (const field of [
@@ -424,13 +537,17 @@ function checkRows(label, rows) {
         'toolResultSchemaAccepted',
         'toolSpecificQaGateAccepted',
       ]) {
-        if (row[field] !== true) fail(`${label}_row_field_not_true:${toolId}:${field}`)
+        if (row[field] !== expectAccepted) {
+          fail(`${label}_row_field_mismatch:${toolId}:${field}:${row[field]}`)
+        }
       }
       for (const field of [
         'sourceWorkerClaimAndDispatchSmokeProofAccepted',
         'sourceWorkerClaimAndDispatchEvidenceAccepted',
       ]) {
-        if (row[field] !== false) fail(`${label}_row_field_not_false:${toolId}:${field}`)
+        if (row[field] !== expectAccepted) {
+          fail(`${label}_row_field_mismatch:${toolId}:${field}:${row[field]}`)
+        }
       }
       if (row.phase0Status !== 'proof_passed') fail(`${label}_phase0_status_mismatch:${toolId}`)
       if (row.phase0ImportStatus !== 'passed') fail(`${label}_phase0_import_mismatch:${toolId}`)
@@ -438,8 +555,14 @@ function checkRows(label, rows) {
       if (row.phase0OutputContractStatus !== 'checked') {
         fail(`${label}_phase0_output_contract_mismatch:${toolId}`)
       }
-      if (row.queueName !== queueName) fail(`${label}_queue_name_mismatch:${toolId}`)
-      checkEvidence(label, toolId, row.controlledToolExecutionEvidence)
+      if (row.queueName !== (expectAccepted ? queueName : null)) {
+        fail(`${label}_queue_name_mismatch:${toolId}`)
+      }
+      if (expectAccepted) {
+        checkEvidence(label, toolId, row.controlledToolExecutionEvidence)
+      } else if (row.controlledToolExecutionEvidence !== null) {
+        fail(`${label}_unexpected_controlled_evidence:${toolId}`)
+      }
     }
     if (toolId === 'satori') {
       if (
@@ -542,7 +665,7 @@ const indexSource = read('server/tool-registry/index.ts')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
-if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
+if (docs.status !== blockedStatus) fail('docs_status_mismatch')
 if (docs.sourceToolExecutionDryRunProofDecision !== sourceDryRunDecision) {
   fail('docs_source_dry_run_decision_mismatch')
 }
@@ -553,7 +676,7 @@ if (docs.queueName !== queueName) fail('docs_queue_name_mismatch')
 if (sourceDryRun.decision !== sourceDryRunDecision) fail('source_dry_run_decision_mismatch')
 if (
   sourceDryRun.status !==
-  'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_prepared_five_with_runtime_blocks'
+  'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_blocked_pending_worker_claim_and_dispatch_smoke_proof'
 ) {
   fail('source_dry_run_status_mismatch')
 }
@@ -636,34 +759,35 @@ for (const text of [docsMd, promptResult, implementationPrompt, scorecard]) {
 }
 
 function makeClaimDispatchSourcedDryRunPacket() {
-  const report = JSON.parse(JSON.stringify(sourceDryRun))
-  report.sourceWorkerClaimAndDispatchSmokeProofDecision =
-    'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_validator_prepared_with_runtime_blocks'
-  report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools = 5
-  report.booleans.sourceWorkerClaimAndDispatchSmokeProofAccepted = true
-  report.booleans.sourceWorkerClaimAndDispatchEvidenceRefsPreserved = true
-  for (const toolId of controlledProofTools) {
-    const row = report.rows?.find((candidate) => candidate.toolId === toolId)
-    if (!row || !row.dryRunContract) {
-      fail(`claim_dispatch_fixture_missing_row:${toolId}`)
-      continue
-    }
-    row.sourceWorkerClaimAndDispatchSmokeProofStatus =
-      'accepted_saved_worker_claim_and_dispatch_smoke_result_execution_blocked'
-    row.sourceWorkerClaimAndDispatchSmokeProofAccepted = true
-    row.sourceWorkerClaimAndDispatchEvidenceAccepted = true
-    row.dryRunContract.sourceWorkerDispatchAttemptRef =
-      `worker-claim-dispatch://ai-graphics/external-agent/cpu-static-private-worker-claim-and-dispatch-smoke-proof/${toolId}/handoff`
-    row.dryRunContract.workerDispatchSmokeEvidenceRef =
-      `private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/${toolId}/evidence.json`
-    row.dryRunContract.workerDispatchSmokeTelemetryRef =
-      `private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/${toolId}/telemetry.json`
-  }
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), 'reeditpro-controlled-tool-exec-claim-dispatch-'),
   )
+  const queueResultPath = path.join(tempDir, 'accepted-queue-write-smoke-result.json')
+  writeJson(queueResultPath, acceptedQueueWriteSmokeResult())
+  const sourceQueueProof = runJson(sourceQueueProofScriptName, [
+    '--external-agent-cpu-static-service-role-queue-write-smoke-result',
+    queueResultPath,
+    '--print-only',
+  ])
+  const sourceQueueProofPath = path.join(tempDir, 'accepted-queue-write-smoke-proof.json')
+  writeJson(sourceQueueProofPath, sourceQueueProof)
+  const claimResultPath = path.join(tempDir, 'accepted-claim-dispatch-smoke-result.json')
+  writeJson(claimResultPath, acceptedClaimAndDispatchSmokeResult())
+  const claimProof = runJson(claimAndDispatchProofScriptName, [
+    '--source-service-role-queue-write-smoke-proof-packet',
+    sourceQueueProofPath,
+    '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-result',
+    claimResultPath,
+    '--print-only',
+  ])
+  const claimProofPath = path.join(tempDir, 'accepted-claim-dispatch-smoke-proof.json')
+  writeJson(claimProofPath, claimProof)
+  const dryRunProof = runJson(dryRunProofScriptName, [
+    '--source-worker-claim-and-dispatch-smoke-proof-packet',
+    claimProofPath,
+  ])
   const packetPath = path.join(tempDir, 'claim-dispatch-sourced-dry-run.json')
-  fs.writeFileSync(packetPath, `${JSON.stringify(report, null, 2)}\n`)
+  writeJson(packetPath, dryRunProof)
   return packetPath
 }
 
@@ -692,8 +816,8 @@ if (exec('git diff --cached --name-only -- .local-artifacts').trim()) fail('loca
 
 const cliOutput = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 if (cliOutput.decision !== decision) fail('cli_decision_mismatch')
-if (cliOutput.acceptedStatus !== acceptedStatus) fail('cli_status_mismatch')
-if (cliOutput.controlledToolExecutionProofAcceptedTools !== 5) fail('cli_count_mismatch')
+if (cliOutput.acceptedStatus !== blockedStatus) fail('cli_status_mismatch')
+if (cliOutput.controlledToolExecutionProofAcceptedTools !== 0) fail('cli_count_mismatch')
 if (cliOutput.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools !== 0) {
   fail('cli_default_claim_dispatch_source_count_not_0')
 }
@@ -713,6 +837,9 @@ const claimDispatchSourceCliOutput = JSON.parse(exec([
 ].join(' ')))
 if (claimDispatchSourceCliOutput.decision !== decision) {
   fail('claim_dispatch_source_cli_decision_mismatch')
+}
+if (claimDispatchSourceCliOutput.acceptedStatus !== acceptedStatus) {
+  fail('claim_dispatch_source_cli_status_mismatch')
 }
 if (claimDispatchSourceCliOutput.controlledToolExecutionProofAcceptedTools !== 5) {
   fail('claim_dispatch_source_cli_count_mismatch')
@@ -746,7 +873,7 @@ console.log(
     {
       ok: true,
       decision,
-      acceptedStatus,
+      acceptedStatus: docs.status,
       controlledToolExecutionProofAcceptedTools:
         docs.counts.controlledToolExecutionProofAcceptedTools,
       agentCanExecuteToolsNow: docs.booleans.agentCanExecuteToolsNow,

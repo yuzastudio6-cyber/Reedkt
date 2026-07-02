@@ -155,7 +155,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExec
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProofReport {
   schemaVersion: '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-controlled-tool-execution-proof'
   decision: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CONTROLLED_TOOL_EXECUTION_PROOF_DECISION
-  status: 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_five_with_runtime_blocks'
+  status:
+    | 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_five_with_runtime_blocks'
+    | 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_blocked_pending_worker_claim_and_dispatch_smoke_proof'
   sourceToolExecutionDryRunProofDecision: string | null
   sourcePhase0Decision: string | null
   totalAiGraphicsTools: 21
@@ -308,6 +310,7 @@ function sourceToolExecutionDryRunProofAccepted(
     report.counts.adapterPayloadShapeValidatedTools === 5 &&
     report.counts.privateOutputManifestContractValidatedTools === 5 &&
     report.counts.toolResultSchemaValidatedTools === 5 &&
+    report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools === 5 &&
     report.counts.satoriBlockedPendingApprovedFontFixtureTools === 1 &&
     report.counts.nonCpuStaticDeferredTools === 15 &&
     report.counts.externalAgentExecutableNowTools === 0 &&
@@ -317,6 +320,8 @@ function sourceToolExecutionDryRunProofAccepted(
     report.counts.gpuRuntimeShouldStartNowTools === 0 &&
     report.booleans.allFiveCpuStaticToolExecutionDryRunProofsPrepared === true &&
     report.booleans.allFiveDryToolExecutionContractsPrepared === true &&
+    report.booleans.sourceWorkerClaimAndDispatchSmokeProofAccepted === true &&
+    report.booleans.sourceWorkerClaimAndDispatchEvidenceRefsPreserved === true &&
     report.booleans.privateArtifactOnlyPolicyAccepted === true &&
     report.booleans.noAdapterInvocationByDryRun === true &&
     report.booleans.noToolExecutionByDryRun === true &&
@@ -332,6 +337,8 @@ function sourceToolExecutionDryRunProofAccepted(
         row.adapterPayloadShapeValidated === true &&
         row.privateOutputManifestContractValidated === true &&
         row.toolResultSchemaValidated === true &&
+        row.sourceWorkerClaimAndDispatchSmokeProofAccepted === true &&
+        row.sourceWorkerClaimAndDispatchEvidenceAccepted === true &&
         row.dryRunContract?.queueName ===
           AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME &&
         row.dryRunContract.toolExecutionDryRunMode ===
@@ -619,7 +626,9 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledTool
     decision:
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CONTROLLED_TOOL_EXECUTION_PROOF_DECISION,
     status:
-      'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_five_with_runtime_blocks',
+      acceptedRows.length === 5 && workerClaimAndDispatchSourceAccepted
+        ? 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_five_with_runtime_blocks'
+        : 'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_blocked_pending_worker_claim_and_dispatch_smoke_proof',
     sourceToolExecutionDryRunProofDecision:
       input.sourceToolExecutionDryRunProofReport?.decision ?? null,
     sourcePhase0Decision: input.sourcePhase0Report?.decision ?? null,

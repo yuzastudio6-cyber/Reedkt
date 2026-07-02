@@ -527,6 +527,8 @@ function verifyPackageJson() {
     '+    "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-runtime-admission-smoke.ts",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-runtime-admission-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-readiness-probe-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-readiness-probe-smoke-diagnostics.mjs",',
     '+    "ai-graphics:production-launch-controls": "tsx server/cli/ai-graphics-production-launch-controls.ts",',
     '+    "ai-graphics:production-launch-controls:diagnostics": "node scripts/validation/ai-graphics-production-launch-controls-diagnostics.mjs",',
     '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',

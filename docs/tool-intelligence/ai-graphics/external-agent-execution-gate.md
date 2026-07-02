@@ -78,6 +78,11 @@ The current global block is intentional and temporary. It does not mean the 21 t
 - GPU/model route-admission blocked tools with readiness-probe evidence: `8`
 - GPU/model route-admission fail-closed evaluations with readiness-probe evidence: `8`
 - Route readiness probe GPU runtime should start now tools: `0`
+- GPU/model unblock plans exposed with readiness-probe evidence: `8`
+- GPU/model native GPU proof required with readiness-probe evidence: `8`
+- GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`
+- GPU/model native GPU proof-only required with readiness-probe evidence: `3`
+- GPU/model tools ready for execution after current evidence: `0`
 - External-beta callable candidates with provided evidence: `21`
 - Request-admission candidates with provided evidence: `1`
 - Route-mount-ready tools with provided evidence: `21`
@@ -105,6 +110,7 @@ The current global block is intentional and temporary. It does not mean the 21 t
 - Read a CPU/static tool execution dry-run proof when supplied; if it is accepted, the same five tools advance to the next blocker, controlled private tool execution proof, while adapter invocation, worker execution, and tool execution remain blocked.
 - Read a CPU/static controlled tool execution proof when supplied; if it is accepted, the same five tools advance to exact execution-admission revalidation and require-go authorization, while direct execution remains blocked.
 - Read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only.
+- Read the GPU/model unblock plan exposed by the route readiness probe: five model-weight tools require reviewed private model-weight manifests/checksums plus native GPU proof, three foundation GPU tools require native GPU proof only, GPU remains on-demand, and zero GPU/model tools are executable with the current evidence.
 - Read Satori font runtime proof diagnostics for text-to-SVG layout readiness while preserving artifact and route execution blocks.
 - Read browser runtime proof diagnostics for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js while preserving browser/WebGL/canvas runtime execution blocks.
 - Read the route readiness probe showing 13 controlled route-callable tools while preserving direct/global execution, Worker execution, GPU/model runtime, public artifact, beta, and production blocks.
@@ -220,8 +226,13 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `externalAgentCanExecuteControlledRouteToolsNow=true`
 - `routeReadinessProbeAcceptedWithProvidedEvidence=true`
 - `agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow=true`
+- `gpuModelUnblockPlanAcceptedWithProvidedEvidence=true`
+- `allEightGpuModelToolsHaveActionableUnblockPlan=true`
+- `fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof=true`
+- `threeFoundationGpuToolsRequireNativeGpuProofOnly=true`
 - `agentCanExecuteAll21ToolsNow=false`
 - `agentCanExecuteGpuModelToolsNow=false`
+- `gpuModelToolsReadyForExecutionAfterCurrentEvidence=false`
 - `allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence=false`
@@ -258,4 +269,4 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 
 ## Result
 
-The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now understands the saved non-production service-role queue-write smoke proof packet, the saved worker claim/dispatch smoke proof packet, the CPU/static tool execution dry-run proof packet, and the controlled private tool execution proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof, accepted claim/dispatch proof, accepted dry-run proof, and accepted controlled proof all remain `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and require-go authorization, `satori` still needs the approved font fixture, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, followed by saved worker claim/dispatch smoke proof, tool execution dry-run proof, and controlled private tool execution proof while keeping private queue/worker/tool execution blocked until each following proof passes.
+The 21 tools are organized for external-agent planning, the proper-install audit confirms all tools are installed for their planned surfaces, request-admission evidence has reached the fail-closed gate, route-mount readiness evidence is accepted, controlled on-demand worker-path readiness is recorded with provided evidence for all 21 tools, and five CPU/static tools have exact execution-admission evidence, adapter/enqueue admission evidence, mock-only live-adapter queue-service validation, and non-production service-role queue-write smoke preflight evidence. The central gate now understands the saved non-production service-role queue-write smoke proof packet, the saved worker claim/dispatch smoke proof packet, the CPU/static tool execution dry-run proof packet, and the controlled private tool execution proof packet, but the checked-in packet has no saved smoke result yet, so accepted queue-write proof, accepted claim/dispatch proof, accepted dry-run proof, and accepted controlled proof all remain `0`. The disabled route returns tool/capability-specific blocked details from the plan evaluator, so an external agent can see exactly why a request is not executable yet. The route-readiness proof also exposes actionable unblock plans for all eight GPU/model tools: five model-weight tools require reviewed private model manifests/checksums before native GPU proof, and three foundation tools require native GPU proof only. Actual direct execution is still blocked because install readiness is not direct agent execution, the default route-mount flag is off, the five CPU/static tools still need a saved non-production service-role queue-write smoke result, worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and require-go authorization, `satori` still needs the approved font fixture, all eight GPU/model tools still need accepted private/native evidence, and no direct route/worker/tool runtime execution is approved. The next aligned step is saved non-production service-role queue-write smoke proof for the five CPU/static tools, followed by saved worker claim/dispatch smoke proof, tool execution dry-run proof, controlled private tool execution proof, and native/private GPU evidence collection while keeping private queue/worker/tool execution blocked until each following proof passes.

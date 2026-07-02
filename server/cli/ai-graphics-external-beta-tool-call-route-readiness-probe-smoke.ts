@@ -66,6 +66,22 @@ interface RouteReadinessTool {
   externalAgentCanExecuteThisToolNow: boolean
   routeCanEvaluateFailClosedGpuModelAdmissionNow: boolean
   modelWeightManifestRequired: boolean
+  gpuModelUnblockPlan: null | {
+    status: string
+    nextExternalAgentAction: string
+    requiredEvidence: string[]
+    nextProofCommands: string[]
+    localEvidenceRoot: string
+    modelWeightPrivateEvidenceRequired: boolean
+    modelWeightPrivateEvidenceAccepted: boolean
+    nativeGpuRuntimeProofRequired: boolean
+    nativeGpuRuntimeProofAccepted: boolean
+    externalBetaPerToolRuntimeProofRecheckRequired: boolean
+    externalBetaPerToolRuntimeProofRecheckAccepted: boolean
+    gpuRuntimeStartPolicy: string
+    gpuRuntimeShouldStartNow: boolean
+    routeAdmissionIfCalledNow: string
+  }
   gpuRuntimeShouldStartNow: boolean
   httpOutcomeIfCalledNow: {
     statusCode: number
@@ -156,6 +172,19 @@ function summarizeTool(tool: RouteReadinessTool) {
     routeCanEvaluateFailClosedGpuModelAdmissionNow:
       tool.routeCanEvaluateFailClosedGpuModelAdmissionNow,
     modelWeightManifestRequired: tool.modelWeightManifestRequired,
+    gpuModelUnblockPlanStatus: tool.gpuModelUnblockPlan?.status ?? null,
+    nextExternalAgentAction:
+      tool.gpuModelUnblockPlan?.nextExternalAgentAction ?? null,
+    requiredEvidenceCount: tool.gpuModelUnblockPlan?.requiredEvidence.length ?? 0,
+    nextProofCommandCount: tool.gpuModelUnblockPlan?.nextProofCommands.length ?? 0,
+    nativeGpuRuntimeProofRequired:
+      tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofRequired ?? false,
+    nativeGpuRuntimeProofAccepted:
+      tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofAccepted ?? false,
+    modelWeightPrivateEvidenceRequired:
+      tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceRequired ?? false,
+    modelWeightPrivateEvidenceAccepted:
+      tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceAccepted ?? false,
     httpStatusIfCalledNow: tool.httpOutcomeIfCalledNow.statusCode,
     httpRouteStatusIfCalledNow: tool.httpOutcomeIfCalledNow.status,
     gpuRuntimeShouldStartNow: tool.gpuRuntimeShouldStartNow,
@@ -228,6 +257,32 @@ function validateReadiness(report: RouteReadinessReport) {
     )
     assert(tool.httpOutcomeIfCalledNow.statusCode === 409, `${toolId} should map to HTTP 409`)
     assert(tool.gpuRuntimeShouldStartNow === false, `${toolId} should not start GPU runtime`)
+    assert(tool.gpuModelUnblockPlan, `${toolId} should expose GPU/model unblock plan`)
+    assert(
+      tool.gpuModelUnblockPlan.nativeGpuRuntimeProofRequired === true,
+      `${toolId} should require native GPU runtime proof`,
+    )
+    assert(
+      tool.gpuModelUnblockPlan.nativeGpuRuntimeProofAccepted === false,
+      `${toolId} native GPU proof should not be accepted yet`,
+    )
+    assert(
+      tool.gpuModelUnblockPlan.nextProofCommands.some((command) => (
+        command.includes('ai-graphics:external-beta-native-gpu-proof-collection:diagnostics')
+      )),
+      `${toolId} missing native GPU collection proof command`,
+    )
+    assert(
+      tool.gpuModelUnblockPlan.nextProofCommands.some((command) => (
+        command.includes('ai-graphics:external-beta-per-tool-runtime-proof')
+      )),
+      `${toolId} missing per-tool runtime proof recheck command`,
+    )
+    assert(
+      tool.gpuModelUnblockPlan.gpuRuntimeStartPolicy ===
+        'on_demand_only_after_accepted_external_beta_worker_or_tool_call_job',
+      `${toolId} GPU start policy mismatch`,
+    )
     assert(
       tool.blockersBeforeExecution.some((blocker) => /NVIDIA L4 runtime proof/.test(blocker)),
       `${toolId} missing native GPU proof blocker`,
@@ -241,6 +296,25 @@ function validateReadiness(report: RouteReadinessReport) {
         tool.blockersBeforeExecution.some((blocker) => /model-weight manifest/.test(blocker)),
         `${toolId} missing model-weight manifest blocker`,
       )
+      assert(
+        tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired === true,
+        `${toolId} private model evidence should be required`,
+      )
+      assert(
+        tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceAccepted === false,
+        `${toolId} private model evidence should not be accepted yet`,
+      )
+      assert(
+        tool.gpuModelUnblockPlan.nextProofCommands.some((command) => (
+          command.includes('ai-graphics:model-weight-private-evidence-intake')
+        )),
+        `${toolId} missing private evidence intake command`,
+      )
+    } else {
+      assert(
+        tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired === false,
+        `${toolId} private model evidence should not be required`,
+      )
     }
   }
 
@@ -252,6 +326,11 @@ function validateReadiness(report: RouteReadinessReport) {
     browserRuntimeControlledExecutableNowTools: 7,
     gpuModelRuntimeAdmissionBlockedTools: 8,
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8,
+    gpuModelRuntimeUnblockPlanExposedTools: 8,
+    gpuModelNativeGpuProofRequiredTools: 8,
+    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools: 5,
+    gpuModelNativeGpuProofOnlyRequiredTools: 3,
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence: 0,
     modelWeightManifestRequiredTools: 5,
     gpuRuntimeShouldStartNowTools: 0,
     workerDispatchApprovedNowTools: 0,
@@ -271,12 +350,17 @@ function validateReadiness(report: RouteReadinessReport) {
     'agentCanSelectForPlanning',
     'externalAgentCanExecuteSomeToolsNow',
     'agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow',
+    'gpuModelUnblockPlanExposed',
+    'allEightGpuModelToolsHaveActionableUnblockPlan',
+    'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
+    'threeFoundationGpuToolsRequireNativeGpuProofOnly',
   ]) {
     assert(report.booleans[key] === true, `${key} should be true`)
   }
   for (const key of [
     'agentCanExecuteAll21ToolsNow',
     'agentCanExecuteGpuModelToolsNow',
+    'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
     'routeExecutionPerformedByReadinessProbe',
     'workerExecutionApprovedNow',
     'workerDispatchApprovedNow',
@@ -325,7 +409,7 @@ function buildReport(routeReadiness: RouteReadinessReport) {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolSummary
     .map((tool) => (
-      `| \`${tool.toolId}\` | \`${tool.canonicalRouteMode}\` | \`${tool.externalAgentCanExecuteThisToolNow}\` | \`${tool.httpStatusIfCalledNow}\` | \`${tool.httpRouteStatusIfCalledNow}\` | \`${tool.gpuRuntimeShouldStartNow}\` |`
+      `| \`${tool.toolId}\` | \`${tool.canonicalRouteMode}\` | \`${tool.externalAgentCanExecuteThisToolNow}\` | \`${tool.httpStatusIfCalledNow}\` | \`${tool.httpRouteStatusIfCalledNow}\` | \`${tool.gpuRuntimeShouldStartNow}\` | \`${tool.gpuModelUnblockPlanStatus ?? 'not_required'}\` | \`${tool.nextExternalAgentAction ?? 'not_required'}\` |`
     ))
     .join('\n')
 
@@ -339,8 +423,8 @@ This smoke proves the canonical external-beta tool-call route exposes a safe rea
 
 ## Per-Tool Route Readiness
 
-| Tool | Route mode | Agent can execute this tool now | HTTP status if called now | Route status if called now | GPU starts now |
-| --- | --- | --- | --- | --- | --- |
+| Tool | Route mode | Agent can execute this tool now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts

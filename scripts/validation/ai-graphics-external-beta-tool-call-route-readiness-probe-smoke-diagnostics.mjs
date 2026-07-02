@@ -230,10 +230,33 @@ function checkReport(label, report) {
       fail(`${label}_${toolId}_gpu_admission_not_evaluated`)
     }
     if (row.httpStatusIfCalledNow !== 409) fail(`${label}_${toolId}_status_not_409`)
+    if (!row.gpuModelUnblockPlanStatus) {
+      fail(`${label}_${toolId}_missing_gpu_unblock_plan_status`)
+    }
+    if (!row.nextExternalAgentAction) {
+      fail(`${label}_${toolId}_missing_next_external_agent_action`)
+    }
+    if (row.nativeGpuRuntimeProofRequired !== true) {
+      fail(`${label}_${toolId}_native_gpu_proof_not_required`)
+    }
+    if (row.nativeGpuRuntimeProofAccepted !== false) {
+      fail(`${label}_${toolId}_native_gpu_proof_unexpectedly_accepted`)
+    }
+    if (!Number.isInteger(row.nextProofCommandCount) || row.nextProofCommandCount < 3) {
+      fail(`${label}_${toolId}_next_proof_commands_missing`)
+    }
     if (modelWeightManifestRequiredTools.includes(toolId)) {
       if (row.modelWeightManifestRequired !== true) {
         fail(`${label}_${toolId}_model_manifest_not_required`)
       }
+      if (row.modelWeightPrivateEvidenceRequired !== true) {
+        fail(`${label}_${toolId}_private_model_evidence_not_required`)
+      }
+      if (row.modelWeightPrivateEvidenceAccepted !== false) {
+        fail(`${label}_${toolId}_private_model_evidence_unexpectedly_accepted`)
+      }
+    } else if (row.modelWeightPrivateEvidenceRequired !== false) {
+      fail(`${label}_${toolId}_private_model_evidence_unexpectedly_required`)
     }
   }
 
@@ -246,6 +269,11 @@ function checkReport(label, report) {
     browserRuntimeControlledExecutableNowTools: 7,
     gpuModelRuntimeAdmissionBlockedTools: 8,
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8,
+    gpuModelRuntimeUnblockPlanExposedTools: 8,
+    gpuModelNativeGpuProofRequiredTools: 8,
+    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools: 5,
+    gpuModelNativeGpuProofOnlyRequiredTools: 3,
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence: 0,
     modelWeightManifestRequiredTools: 5,
     gpuRuntimeShouldStartNowTools: 0,
     workerDispatchApprovedNowTools: 0,
@@ -266,12 +294,17 @@ function checkReport(label, report) {
     'agentCanSelectForPlanning',
     'externalAgentCanExecuteSomeToolsNow',
     'agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow',
+    'gpuModelUnblockPlanExposed',
+    'allEightGpuModelToolsHaveActionableUnblockPlan',
+    'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
+    'threeFoundationGpuToolsRequireNativeGpuProofOnly',
   ]) {
     if (booleans[key] !== true) fail(`${label}_${key}_not_true`)
   }
   for (const key of [
     'agentCanExecuteAll21ToolsNow',
     'agentCanExecuteGpuModelToolsNow',
+    'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
     'routeExecutionPerformedByReadinessProbe',
     'workerExecutionApprovedNow',
     'workerDispatchApprovedNow',
@@ -332,6 +365,10 @@ for (const phrase of [
   'buildAiGraphicsExternalBetaToolCallRouteReadiness',
   'externalAgentCanExecuteThisToolNow',
   'gpu_model_runtime_admission_blocked',
+  'buildAiGraphicsGpuModelUnblockPlan',
+  'AI_GRAPHICS_GPU_MODEL_PRIVATE_EVIDENCE_COMMANDS',
+  'AI_GRAPHICS_GPU_MODEL_NATIVE_PROOF_COMMANDS',
+  'AI_GRAPHICS_GPU_MODEL_PER_TOOL_RECHECK_COMMANDS',
   "router.get(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_READINESS_ROUTE_PATH",
 ]) {
   if (!routeSource.includes(phrase)) fail(`route_missing:${phrase}`)
@@ -340,6 +377,8 @@ for (const phrase of [
   'expected 21 tools',
   'expectedCounts',
   'externalAgentCanExecuteThisToolNow',
+  'nextExternalAgentAction',
+  'nativeGpuRuntimeProofRequired',
   'GPU/model tools remain on-demand only',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
@@ -365,6 +404,12 @@ if (!scorecard.includes('agentCanExecuteAll21ToolsNow=false')) {
 }
 if (!scorecard.includes('gpuRuntimeShouldStartNow=false')) {
   fail('scorecard_missing_gpu_runtime_false')
+}
+if (!JSON.stringify(docs).includes('gpuModelUnblockPlanStatus')) {
+  fail('docs_json_missing_gpu_unblock_plan_status')
+}
+if (!docsMd.includes('GPU/model unblock plan')) {
+  fail('docs_md_missing_gpu_unblock_plan_column')
 }
 for (const toolId of allTools) {
   if (!JSON.stringify(docs).includes(`"${toolId}"`)) fail(`docs_json_missing_tool:${toolId}`)

@@ -193,6 +193,11 @@ export interface AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket {
     browserRuntimeControlledExecutableNowTools: 7
     gpuModelRuntimeAdmissionBlockedTools: 8
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8
+    gpuModelRuntimeUnblockPlanExposedTools?: 8
+    gpuModelNativeGpuProofRequiredTools?: 8
+    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools?: 5
+    gpuModelNativeGpuProofOnlyRequiredTools?: 3
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence?: 0
     modelWeightManifestRequiredTools: 5
     gpuRuntimeShouldStartNowTools: 0
     workerDispatchApprovedNowTools: 0
@@ -208,6 +213,11 @@ export interface AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket {
     agentCanSelectForPlanning: true
     externalAgentCanExecuteSomeToolsNow: true
     agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow: true
+    gpuModelUnblockPlanExposed?: true
+    allEightGpuModelToolsHaveActionableUnblockPlan?: true
+    fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof?: true
+    threeFoundationGpuToolsRequireNativeGpuProofOnly?: true
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence?: false
     agentCanExecuteAll21ToolsNow: false
     agentCanExecuteGpuModelToolsNow: false
     routeExecutionPerformedByReadinessProbe: false
@@ -246,6 +256,12 @@ export interface AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket {
       | 'gpu_model_runtime_admission_blocked'
     externalAgentCanExecuteThisToolNow: boolean
     routeCanEvaluateFailClosedGpuModelAdmissionNow: boolean
+    gpuModelUnblockPlanStatus?: string | null
+    nextExternalAgentAction?: string | null
+    nativeGpuRuntimeProofRequired?: boolean
+    nativeGpuRuntimeProofAccepted?: boolean
+    modelWeightPrivateEvidenceRequired?: boolean
+    modelWeightPrivateEvidenceAccepted?: boolean
     gpuRuntimeShouldStartNow: false
   }>
 }
@@ -433,6 +449,11 @@ export interface AiGraphicsExternalAgentExecutionGate {
   browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence: 0 | 7
   gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence: 0 | 8
   gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence: 0 | 8
+  gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence: 0 | 8
+  gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence: 0 | 8
+  gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence: 0 | 5
+  gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence: 0 | 3
+  gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: 0
   routeReadinessProbeGpuRuntimeShouldStartNowTools: 0
   apiRouteMountReadyToolsWithProvidedEvidence: 0 | 21
   apiRouteMountedNowTools: 0
@@ -525,6 +546,11 @@ export interface AiGraphicsExternalAgentExecutionGate {
     externalAgentCanExecuteControlledRouteToolsNow: boolean
     routeReadinessProbeAcceptedWithProvidedEvidence: boolean
     agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow: boolean
+    gpuModelUnblockPlanAcceptedWithProvidedEvidence: boolean
+    allEightGpuModelToolsHaveActionableUnblockPlan: boolean
+    fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof: boolean
+    threeFoundationGpuToolsRequireNativeGpuProofOnly: boolean
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence: false
     agentCanExecuteAll21ToolsNow: false
     agentCanExecuteGpuModelToolsNow: false
     agentCanExecuteToolsNow: false
@@ -884,7 +910,19 @@ function sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted(
   const gpuBlockedRows = toolSummary.filter(
     (row) => row.canonicalRouteMode === 'gpu_model_runtime_admission_blocked' &&
       row.routeCanEvaluateFailClosedGpuModelAdmissionNow === true &&
-      row.externalAgentCanExecuteThisToolNow === false,
+      row.externalAgentCanExecuteThisToolNow === false &&
+      typeof row.gpuModelUnblockPlanStatus === 'string' &&
+      typeof row.nextExternalAgentAction === 'string' &&
+      row.nativeGpuRuntimeProofRequired === true &&
+      row.nativeGpuRuntimeProofAccepted === false,
+  )
+  const gpuModelWeightRows = gpuBlockedRows.filter(
+    (row) => row.modelWeightPrivateEvidenceRequired === true &&
+      row.modelWeightPrivateEvidenceAccepted === false,
+  )
+  const gpuNativeOnlyRows = gpuBlockedRows.filter(
+    (row) => row.modelWeightPrivateEvidenceRequired === false &&
+      row.nativeGpuRuntimeProofRequired === true,
   )
   return Boolean(packet) &&
     packet?.decision ===
@@ -898,6 +936,11 @@ function sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted(
     packet.counts?.browserRuntimeControlledExecutableNowTools === 7 &&
     packet.counts?.gpuModelRuntimeAdmissionBlockedTools === 8 &&
     packet.counts?.gpuModelRuntimeAdmissionEvaluatedFailClosedTools === 8 &&
+    packet.counts?.gpuModelRuntimeUnblockPlanExposedTools === 8 &&
+    packet.counts?.gpuModelNativeGpuProofRequiredTools === 8 &&
+    packet.counts?.gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools === 5 &&
+    packet.counts?.gpuModelNativeGpuProofOnlyRequiredTools === 3 &&
+    packet.counts?.gpuModelToolsReadyForExecutionAfterCurrentEvidence === 0 &&
     packet.counts?.modelWeightManifestRequiredTools === 5 &&
     packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
     packet.counts?.workerDispatchApprovedNowTools === 0 &&
@@ -911,6 +954,11 @@ function sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted(
     packet.booleans?.externalAgentCanExecuteSomeToolsNow === true &&
     packet.booleans?.agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow ===
       true &&
+    packet.booleans?.gpuModelUnblockPlanExposed === true &&
+    packet.booleans?.allEightGpuModelToolsHaveActionableUnblockPlan === true &&
+    packet.booleans?.fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof === true &&
+    packet.booleans?.threeFoundationGpuToolsRequireNativeGpuProofOnly === true &&
+    packet.booleans?.gpuModelToolsReadyForExecutionAfterCurrentEvidence === false &&
     packet.booleans?.agentCanExecuteAll21ToolsNow === false &&
     packet.booleans?.agentCanExecuteGpuModelToolsNow === false &&
     packet.booleans?.routeExecutionPerformedByReadinessProbe === false &&
@@ -923,6 +971,8 @@ function sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted(
     toolSummary.length === 21 &&
     executableToolRows.length === 13 &&
     gpuBlockedRows.length === 8 &&
+    gpuModelWeightRows.length === 5 &&
+    gpuNativeOnlyRows.length === 3 &&
     toolSummary.every((row) => row.gpuRuntimeShouldStartNow === false)
 }
 
@@ -2313,6 +2363,15 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       routeReadinessProbeAccepted ? 8 : 0,
     gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence:
       routeReadinessProbeAccepted ? 8 : 0,
+    gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence:
+      routeReadinessProbeAccepted ? 8 : 0,
+    gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence:
+      routeReadinessProbeAccepted ? 8 : 0,
+    gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence:
+      routeReadinessProbeAccepted ? 5 : 0,
+    gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence:
+      routeReadinessProbeAccepted ? 3 : 0,
+    gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: 0,
     routeReadinessProbeGpuRuntimeShouldStartNowTools: 0,
     apiRouteMountReadyToolsWithProvidedEvidence:
       routeMountAccepted ? 21 : 0,
@@ -2477,6 +2536,15 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       routeReadinessProbeAcceptedWithProvidedEvidence: routeReadinessProbeAccepted,
       agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow:
         routeReadinessProbeAccepted,
+      gpuModelUnblockPlanAcceptedWithProvidedEvidence:
+        routeReadinessProbeAccepted,
+      allEightGpuModelToolsHaveActionableUnblockPlan:
+        routeReadinessProbeAccepted,
+      fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof:
+        routeReadinessProbeAccepted,
+      threeFoundationGpuToolsRequireNativeGpuProofOnly:
+        routeReadinessProbeAccepted,
+      gpuModelToolsReadyForExecutionAfterCurrentEvidence: false,
       agentCanExecuteAll21ToolsNow: false,
       agentCanExecuteGpuModelToolsNow: false,
       agentCanExecuteToolsNow: false,

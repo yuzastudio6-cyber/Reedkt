@@ -117,6 +117,26 @@ const aiGraphicsModelWeightManifestRequiredToolIds = new Set<string>([
   'transparent_background',
 ])
 
+const AI_GRAPHICS_GPU_MODEL_PRIVATE_EVIDENCE_COMMANDS = [
+  'npm run --silent ai-graphics:model-weight-checksum-evidence-scaffold -- --out-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence',
+  'npm run --silent ai-graphics:model-weight-checksum-evidence:validate -- --evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence',
+  'npm run --silent ai-graphics:model-weight-manifest-authoring -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --out-dir .local-artifacts/ai-graphics/model-weight-manifests',
+  'npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
+  'npm run --silent ai-graphics:model-weight-private-evidence-intake -- --checksum-evidence-dir .local-artifacts/ai-graphics/model-weight-checksum-evidence --manifest-supplement-dir .local-artifacts/ai-graphics/model-weight-manifest-supplements --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests',
+] as const
+
+const AI_GRAPHICS_GPU_MODEL_NATIVE_PROOF_COMMANDS = [
+  'npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh',
+  'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
+  'npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results',
+  'npm run --silent ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector -- --source-cloud-run-job-scaffold-packet docs/tool-intelligence/ai-graphics/external-beta-native-gpu-proof-cloud-run-job-scaffold.json --logs-dir .local-artifacts/ai-graphics/cloud-run-native-gpu-proof/profile-results --out-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results/cloud-run-extracted-profile-results',
+  'npm run --silent ai-graphics:external-beta-native-gpu-proof-collection:diagnostics',
+] as const
+
+const AI_GRAPHICS_GPU_MODEL_PER_TOOL_RECHECK_COMMANDS = [
+  'npm run --silent ai-graphics:external-beta-per-tool-runtime-proof -- --external-beta-tool-route-runtime-proof-packet docs/tool-intelligence/ai-graphics/external-beta-tool-route-runtime-proof.json --node-runtime-proof-packet docs/tool-intelligence/ai-graphics/node-runtime-proof.json --browser-runtime-proof-packet docs/tool-intelligence/ai-graphics/browser-runtime-proof.json --satori-font-runtime-proof-packet docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json --gpu-runtime-proof-result-packet .local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu-runtime-proof-result-packet.json --external-beta-per-tool-runtime-proof-policy-ref private://ai-graphics/external-beta/per-tool-runtime-proof/policy --external-beta-per-tool-runtime-proof-schema-ref private://ai-graphics/external-beta/per-tool-runtime-proof/schema --external-beta-runtime-proof-evidence-ref private://ai-graphics/external-beta/per-tool-runtime-proof/evidence --external-beta-runtime-proof-telemetry-ref private://ai-graphics/external-beta/per-tool-runtime-proof/telemetry --external-beta-runtime-proof-rollback-ref private://ai-graphics/external-beta/per-tool-runtime-proof/rollback',
+] as const
+
 export function isAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionTool(
   toolId: string,
 ) {
@@ -832,6 +852,69 @@ function getAiGraphicsExternalBetaToolCallRouteMode(toolId: string) {
   return 'not_mapped_to_canonical_route'
 }
 
+function buildAiGraphicsGpuModelUnblockPlan(
+  toolId: string,
+  modelWeightManifestRequired: boolean,
+) {
+  const requiredEvidence = [
+    ...(modelWeightManifestRequired
+      ? [
+          'reviewed private model-weight manifest',
+          'private checksum evidence',
+        ]
+      : []),
+    'native linux/amd64 NVIDIA L4 runtime proof result',
+    'external-beta per-tool runtime proof recheck with accepted GPU evidence',
+  ]
+  const nextProofCommands = [
+    ...(modelWeightManifestRequired
+      ? AI_GRAPHICS_GPU_MODEL_PRIVATE_EVIDENCE_COMMANDS
+      : []),
+    ...AI_GRAPHICS_GPU_MODEL_NATIVE_PROOF_COMMANDS,
+    ...AI_GRAPHICS_GPU_MODEL_PER_TOOL_RECHECK_COMMANDS,
+  ]
+
+  return {
+    status: modelWeightManifestRequired
+      ? 'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof'
+      : 'blocked_pending_native_gpu_runtime_proof',
+    toolId,
+    nextExternalAgentAction: modelWeightManifestRequired
+      ? 'provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result'
+      : 'provide_native_gpu_runtime_result',
+    requiredEvidence,
+    nextProofCommands,
+    localEvidenceRoot: '.local-artifacts/ai-graphics',
+    modelWeightPrivateEvidenceRequired: modelWeightManifestRequired,
+    modelWeightPrivateEvidenceAccepted: false,
+    nativeGpuRuntimeProofRequired: true,
+    nativeGpuRuntimeProofAccepted: false,
+    externalBetaPerToolRuntimeProofRecheckRequired: true,
+    externalBetaPerToolRuntimeProofRecheckAccepted: false,
+    gpuRuntimeStartPolicy:
+      'on_demand_only_after_accepted_external_beta_worker_or_tool_call_job',
+    gpuRuntimeShouldStartNow: false,
+    routeAdmissionIfCalledNow:
+      'fail_closed_http_409_until_required_evidence_is_accepted',
+    booleans: {
+      actionableUnblockPlanExposed: true,
+      modelWeightPrivateEvidenceRequired: modelWeightManifestRequired,
+      modelWeightPrivateEvidenceAccepted: false,
+      nativeGpuRuntimeProofRequired: true,
+      nativeGpuRuntimeProofAccepted: false,
+      externalBetaPerToolRuntimeProofRecheckRequired: true,
+      externalBetaPerToolRuntimeProofRecheckAccepted: false,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      gpuRuntimeShouldStartNow: false,
+      agentCanExecuteGpuModelToolNow: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+    },
+  }
+}
+
 export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
   serviceContext: ServiceContext,
 ) {
@@ -902,6 +985,13 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
           'GPU runtime may start only on demand for a future accepted worker/tool-call job',
         ]
       : []
+    const gpuModelUnblockPlan =
+      mode === 'gpu_model_runtime_admission_blocked'
+        ? buildAiGraphicsGpuModelUnblockPlan(
+            toolId,
+            modelWeightManifestRequired,
+          )
+        : null
 
     const httpOutcomeIfCalledNow = routeCanExecuteNow
       ? {
@@ -949,6 +1039,7 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
       gpuRequiredForRuntime: readiness.gpuRequiredForRuntime,
       gpuRuntimeOnDemandOnly: readiness.gpuRequiredForRuntime,
       gpuRuntimeShouldStartNow: false,
+      gpuModelUnblockPlan,
       httpOutcomeIfCalledNow,
       blockersBeforeExecution: [
         ...disabledBlockers,
@@ -1047,6 +1138,24 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
         gpuAdmissionTools.filter(
           (tool) => tool.routeCanEvaluateFailClosedGpuModelAdmissionNow,
         ).length,
+      gpuModelRuntimeUnblockPlanExposedTools:
+        gpuAdmissionTools.filter((tool) => tool.gpuModelUnblockPlan).length,
+      gpuModelNativeGpuProofRequiredTools:
+        gpuAdmissionTools.filter(
+          (tool) => tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofRequired,
+        ).length,
+      gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools:
+        gpuAdmissionTools.filter(
+          (tool) => tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceRequired,
+        ).length,
+      gpuModelNativeGpuProofOnlyRequiredTools:
+        gpuAdmissionTools.filter(
+          (tool) => (
+            tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofRequired &&
+            !tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceRequired
+          ),
+        ).length,
+      gpuModelToolsReadyForExecutionAfterCurrentEvidence: 0,
       modelWeightManifestRequiredTools:
         toolReadiness.filter((tool) => tool.modelWeightManifestRequired).length,
       gpuRuntimeShouldStartNowTools:
@@ -1066,6 +1175,21 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
       externalAgentCanExecuteSomeToolsNow: executableTools.length > 0,
       agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow:
         executableTools.length === 13,
+      gpuModelUnblockPlanExposed: gpuAdmissionTools.length === 8,
+      allEightGpuModelToolsHaveActionableUnblockPlan:
+        gpuAdmissionTools.every((tool) => tool.gpuModelUnblockPlan !== null),
+      fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof:
+        gpuAdmissionTools.filter(
+          (tool) => tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceRequired,
+        ).length === 5,
+      threeFoundationGpuToolsRequireNativeGpuProofOnly:
+        gpuAdmissionTools.filter(
+          (tool) => (
+            tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofRequired &&
+            !tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceRequired
+          ),
+        ).length === 3,
+      gpuModelToolsReadyForExecutionAfterCurrentEvidence: false,
       agentCanExecuteAll21ToolsNow: false,
       agentCanExecuteGpuModelToolsNow: false,
       routeExecutionPerformedByReadinessProbe: false,

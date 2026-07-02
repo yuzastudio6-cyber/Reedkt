@@ -1,0 +1,70 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-WORKER-DISPATCH-CLAIM-LEASE-QA-ROLLUP-1",
+  "decision": "completed_gstreamer_mkvtoolnix_persisted_job_worker_claim_lease_qa_rollup",
+  "execution": "completed_guarded_local_mock_worker_claim_lease_route_evidence_no_worker_execution",
+  "sourceChain": {
+    "persistedJobRuntimeRouteInvocationQaRollupPr": 2139,
+    "persistedJobWorkerClaimLeasePr": 2142,
+    "persistedJobWorkerClaimLeaseMergeSha": "c4985403f580def679842ff7b4898399e1d6caa6",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "routeInvocation": {
+    "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-claim-lease",
+    "statusCode": 201,
+    "ok": true,
+    "status": "completed_persisted_job_worker_claim_lease_boundary",
+    "runId": "2026-07-02T13-37-20-344Z-claim-lease",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-qa-rollup-1/2026-07-02T13-37-20-344Z-claim-lease",
+    "reportPath": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-qa-rollup-1/2026-07-02T13-37-20-344Z-claim-lease/persisted-job-worker-claim-lease-report.json",
+    "manifestPath": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-qa-rollup-1/2026-07-02T13-37-20-344Z-claim-lease/persisted-job-worker-claim-lease-manifest.json",
+    "workerLeaseClaim": "completed_local_mock_claim_only",
+    "remoteWorkerClaim": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "mediaProcessing": false
+  },
+  "artifacts": [
+    {
+      "fileName": "persisted-job-worker-claim-lease-report.json",
+      "bytes": 3889,
+      "sha256": "4f1b7e6153f93fca1963b5a4b1e57d8aa71d5057cd1faca0299cea51635041b0"
+    },
+    {
+      "fileName": "persisted-job-worker-claim-lease-manifest.json",
+      "bytes": 1128,
+      "sha256": "bf268addb5d879b75fc3076e16bebee1140b47ceb24174f0af55739da4838ec2"
+    }
+  ],
+  "safety": {
+    "remoteWorkerClaim": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "persistentJobQueueWrite": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-OWNER-GATE-1"
+}

@@ -16,7 +16,8 @@ export type AiVideoBrollWanFastCacheManifestEntry = {
 }
 
 export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
-  decision: 'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_quota_cleared_10f_us_west4_a_selected',
+  decision:
+    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_quota_cleared_10g_us_west4_a_stockout',
   mode: 'stat_only_private_cache_readiness_check',
   toolId: 'ai_video_broll_generation_wan',
   modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
@@ -45,7 +46,7 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   readyForExternalAgentExecutionNow: false,
   readyForBoundedRetryAfterBlockerClears: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-10G-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-WEST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-west4-a and mandatory cleanup, no model inference',
+    'AI-VIDEO-BROLL-GEN-10H-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-west4-a stockout, no VM/no inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

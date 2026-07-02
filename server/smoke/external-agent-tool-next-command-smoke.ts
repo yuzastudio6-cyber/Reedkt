@@ -88,6 +88,10 @@ assert.equal(
   'npm run external-agent-tool-blockers:preflight',
 )
 assert.equal(
+  spec.nextCommandRules.whenBrollQuotaNeedsVerification,
+  'npm run ai-video-broll-wan-gpu-global-quota:verify',
+)
+assert.equal(
   spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
   QWEN_RESULT_REVIEW_PROMPT,
 )
@@ -272,22 +276,9 @@ const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') 
 }
 assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
-assert.equal(brollGateSummary.currentBlocker, 'gpus_all_regions_quota_zero_or_unverified')
-assert.equal(brollGateSummary.safeNextCommand, 'npm run external-agent-tool-blockers:preflight')
-assert.equal(brollGateSummary.manualBlockerActions.length, 1)
-assert.equal(brollGateSummary.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(brollGateSummary.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].runsModel, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].createsAssets, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].changesQuotaRequest, true)
-assert.equal(
-  brollGateSummary.manualBlockerActions[0].afterCompletionCommand,
-  'npm run external-agent-tool-blockers:preflight',
-)
+assert.equal(brollGateSummary.currentBlocker, 'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference')
+assert.equal(brollGateSummary.safeNextCommand, 'npm run ai-video-broll-wan-gpu-global-quota:verify')
+assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateSummary.noIdleLifecycleGate.noPublicIpRequired, true)
 assert.equal(brollGateSummary.noIdleLifecycleGate.externalIpAllowed, false)

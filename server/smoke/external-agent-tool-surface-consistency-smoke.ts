@@ -13,7 +13,7 @@ const ROOT = process.cwd()
 const QWEN_TOOL_ID = 'qwen2_5_vl_7b_instruct'
 const BROLL_TOOL_ID = 'ai_video_broll_generation_wan'
 const EXPECTED_QWEN_MANUAL_ACTION_IDS: string[] = []
-const EXPECTED_BROLL_MANUAL_ACTION_IDS = ['request_gpus_all_regions_quota_in_console']
+const EXPECTED_BROLL_MANUAL_ACTION_IDS: string[] = []
 
 function runJsonCli(script: string): JsonObject {
   const output = execFileSync('npx', ['tsx', script], {
@@ -100,14 +100,18 @@ function assertSameManualActions(
 
 function assertManualActionSafety(actions: ExternalAgentManualBlockerAction[], label: string): void {
   for (const action of actions) {
+    const expectedAfterCompletionCommand =
+      action.id === 'request_gpus_all_regions_quota_in_console'
+        ? 'npm run ai-video-broll-wan-gpu-global-quota:verify'
+        : 'npm run external-agent-tool-blockers:preflight'
     assert.equal(action.runInsideCodex, false, `${label}.${action.id} must remain outside Codex`)
     assert.equal(action.mutatesRuntime, false, `${label}.${action.id} must not mutate runtime`)
     assert.equal(action.runsModel, false, `${label}.${action.id} must not run models`)
     assert.equal(action.createsAssets, false, `${label}.${action.id} must not create assets`)
     assert.equal(
       action.afterCompletionCommand,
-      'npm run external-agent-tool-blockers:preflight',
-      `${label}.${action.id} must route back through read-only blocker preflight`,
+      expectedAfterCompletionCommand,
+      `${label}.${action.id} must route back through its read-only verification command`,
     )
   }
 }
@@ -132,10 +136,12 @@ function assertQwenManualActions(actions: ExternalAgentManualBlockerAction[], la
 function assertBrollManualActions(actions: ExternalAgentManualBlockerAction[], label: string): void {
   assertExpectedManualActionIds(actions, EXPECTED_BROLL_MANUAL_ACTION_IDS, label)
   assertManualActionSafety(actions, label)
-  assert.equal(actions[0].mutatesCloud, true, `${label}.request_gpus_all_regions_quota_in_console must be cloud-owner work`)
-  assert.equal(actions[0].mutatesLocalGcloudAuth, false, `${label}.request_gpus_all_regions_quota_in_console must not touch auth`)
-  assert.equal(actions[0].mutatesLocalGcloudConfig, false, `${label}.request_gpus_all_regions_quota_in_console must not touch config`)
-  assert.equal(actions[0].changesQuotaRequest, true, `${label}.request_gpus_all_regions_quota_in_console must identify quota request`)
+  for (const action of actions) {
+    assert.equal(action.mutatesCloud, true, `${label}.${action.id} must identify cloud-owner work`)
+    assert.equal(action.mutatesLocalGcloudAuth, false, `${label}.${action.id} must not touch auth`)
+    assert.equal(action.mutatesLocalGcloudConfig, false, `${label}.${action.id} must not touch config`)
+    assert.equal(action.changesQuotaRequest, true, `${label}.${action.id} must identify quota request`)
+  }
 }
 
 function assertAllRuntimeFlagsFalse(value: unknown, label: string): void {
@@ -208,6 +214,7 @@ const actionPlan = runJsonCli('server/cli/external-agent-tool-action-plan.ts')
 const readiness = runJsonCli('server/cli/external-agent-tool-readiness-check.ts')
 const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.ts')
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
+const brollQuotaVerify = runJsonCli('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts')
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
 const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
 const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
@@ -307,6 +314,10 @@ assertAllRuntimeFlagsFalse(executionGate.runtimeSideEffects, 'executionGate.runt
 assert.equal(blockerPreflight.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(blockerPreflight.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(blockerPreflight.runtimeSideEffects, 'blockerPreflight.runtimeSideEffects')
+
+assert.equal(brollQuotaVerify.readyForExternalAgentExecutionNow, false)
+assert.equal(brollQuotaVerify.runtimeGatesAllFalse, true)
+assertAllRuntimeFlagsFalse(brollQuotaVerify.runtimeSideEffects, 'brollQuotaVerify.runtimeSideEffects')
 
 assert.equal(
   nextCommand.executionAllowedNow,
@@ -535,6 +546,7 @@ const normalizedSurfaceData = {
     actionPlan: actionPlan.runtimeSideEffects,
     executionGate: executionGate.runtimeSideEffects,
     blockerPreflight: blockerPreflight.runtimeSideEffects,
+    brollQuotaVerify: brollQuotaVerify.runtimeSideEffects,
     nextCommand: nextCommand.runtimeSideEffects,
   },
   qwenExecutionWrapper: {
@@ -586,14 +598,15 @@ console.log(
         'external-agent-tool-readiness:check',
         'external-agent-tool-execution-gate',
         'external-agent-tool-blockers:preflight',
+        'ai-video-broll-wan-gpu-global-quota:verify',
         'external-agent-tool-next-command',
         'external-agent-tool-execute-qwen',
         'external-agent-tool-execute-broll-wan',
         'external-agent-tool-execute-sound',
         'external-agent-tool-execute-supabase-harness',
       ],
-      qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
-      brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),
+      qwenManualBlockerActionIds: normalizeManualActions(rollupQwenActions).map((action) => action.id),
+      brollManualBlockerActionIds: normalizeManualActions(rollupBrollActions).map((action) => action.id),
       runtimeGatesAllFalse: true,
       staticQwenReadyForExplicitGate: nextCommand.staticExplicitToolGateReady === true,
       liveQwenPreflightPassed: nextCommand.qwenLivePreflightPassed,

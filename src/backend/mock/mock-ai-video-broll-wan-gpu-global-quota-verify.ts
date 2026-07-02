@@ -1,0 +1,156 @@
+export type AiVideoBrollWanGpuGlobalQuotaVerifyCommand = {
+  id: string
+  command: 'which' | 'gcloud'
+  args: string[]
+  purpose: string
+  capturesTokenValue: false
+  mutatesCloud: false
+  createsComputeVm: false
+  requestsQuota: false
+  runsInference: false
+}
+
+export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY = {
+  decision: 'ai_video_broll_wan_gpu_global_quota_verify_read_only_probe_defined',
+  mode: 'read_only_broll_wan_gpu_global_quota_verify',
+  toolId: 'ai_video_broll_generation_wan',
+  projectId: 'reeditpro',
+  targetRegion: 'us-central1',
+  targetZone: 'us-central1-b',
+  selectedGpu: 'nvidia_l4',
+  machineType: 'g2-standard-4',
+  minimumGlobalGpusAllRegionsQuota: 1,
+  minimumRegionalL4Quota: 1,
+  globalQuotaMetric: 'GPUS_ALL_REGIONS',
+  regionalQuotaMetric: 'NVIDIA_L4_GPUS',
+  preemptibleRegionalQuotaMetric: 'PREEMPTIBLE_NVIDIA_L4_GPUS',
+  blockerIfAuthUnavailable: 'gcloud_auth_unavailable_for_broll_quota_verify',
+  blockerIfQuotaInsufficient: 'gpus_all_regions_quota_zero_or_unverified',
+  blockerIfRegionalL4Insufficient: 'regional_l4_quota_zero_or_unverified',
+  nextActionIfAuthBlocked:
+    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run ai-video-broll-wan-gpu-global-quota:verify',
+  nextActionIfQuotaBlocked:
+    'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
+  nextActionIfQuotaCleared:
+    'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt',
+  allowedReadOnlyCommands: [
+    {
+      id: 'gcloud_path',
+      command: 'which',
+      args: ['gcloud'],
+      purpose: 'locate local gcloud binary before quota verification',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+    {
+      id: 'gcloud_all_paths',
+      command: 'which',
+      args: ['-a', 'gcloud'],
+      purpose: 'list visible gcloud candidates for path diagnostics',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+    {
+      id: 'gcloud_version',
+      command: 'gcloud',
+      args: ['--version'],
+      purpose: 'read local gcloud version without cloud mutation',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+    {
+      id: 'gcloud_project',
+      command: 'gcloud',
+      args: ['config', 'get-value', 'project'],
+      purpose: 'read active gcloud project',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+    {
+      id: 'gcloud_access_token_refresh_suppressed',
+      command: 'gcloud',
+      args: ['auth', 'print-access-token', '--quiet'],
+      purpose: 'verify non-interactive gcloud auth while suppressing token stdout',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+    {
+      id: 'project_gpu_quota_describe',
+      command: 'gcloud',
+      args: ['compute', 'project-info', 'describe', '--project', 'reeditpro', '--format=json'],
+      purpose: 'read project-level GPUS_ALL_REGIONS quota without requesting quota',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+    {
+      id: 'regional_l4_quota_describe',
+      command: 'gcloud',
+      args: ['compute', 'regions', 'describe', 'us-central1', '--project', 'reeditpro', '--format=json'],
+      purpose: 'read regional NVIDIA_L4_GPUS quota without creating resources',
+      capturesTokenValue: false,
+      mutatesCloud: false,
+      createsComputeVm: false,
+      requestsQuota: false,
+      runsInference: false,
+    },
+  ] satisfies AiVideoBrollWanGpuGlobalQuotaVerifyCommand[],
+  noIdleLifecycleGate: {
+    noPublicIpRequired: true,
+    externalIpAllowed: false,
+    bootDiskAutoDeleteRequired: true,
+    preExistingResourceCheckRequired: true,
+    deleteOnlyResourcesCreatedByPrompt: true,
+    cleanupVerificationRequired: true,
+    idleGpuAllowed: false,
+    vmCreateAllowedNow: false,
+    modelInferenceAllowedNow: false,
+    runtimePromptRequiredBeforeVmCreate: true,
+  },
+  runtimeSideEffects: {
+    gcloudConfigMutated: false,
+    quotaRequestCreated: false,
+    computeVmCreated: false,
+    diskCreated: false,
+    staticAddressCreated: false,
+    firewallMutated: false,
+    serviceAccountCreated: false,
+    cloudRunServiceMutated: false,
+    cloudRunJobExecuted: false,
+    dockerRun: false,
+    modelImportRun: false,
+    modelInferenceRun: false,
+    generatedVideoCreated: false,
+    generatedAssetsCreated: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    storageObjectsCreated: false,
+    signedUrlsCreated: false,
+    publicArtifactsCreated: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+  },
+} as const
+
+export type AiVideoBrollWanGpuGlobalQuotaVerify =
+  typeof AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY

@@ -85,7 +85,7 @@ assert.equal(
 const source = read(CLI_PATH)
 for (const required of [
   CONFIRM_ENV,
-  'external-agent-tool-blocker-preflight.ts',
+  'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'broll_gpus_all_regions_quota_not_sufficient',
   'broll_vm_execution_requires_future_no_idle_proof_prompt',

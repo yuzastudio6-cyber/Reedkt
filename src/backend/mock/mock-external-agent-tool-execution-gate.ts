@@ -46,6 +46,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'npm run external-agent-tool-blockers:preflight',
     'npm run external-agent-gcloud-session:diagnostic',
     'npm run ai-video-broll-wan-fast-cache-readiness:check',
+    'npm run ai-video-broll-wan-gpu-global-quota:verify',
     'npm run external-agent-tool-execute-broll-wan',
     'npm run external-agent-tool-execute-sound',
     'npm run external-agent-tool-execute-supabase-harness',
@@ -81,8 +82,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'controlled GPU proof must use a future bounded execution gate',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'gpus_all_regions_quota_zero_or_unverified',
-      safeNextCommand: 'npm run external-agent-tool-blockers:preflight',
+      currentBlocker: 'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference',
+      safeNextCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {

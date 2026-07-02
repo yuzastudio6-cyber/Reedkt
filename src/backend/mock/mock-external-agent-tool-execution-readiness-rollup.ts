@@ -56,7 +56,7 @@ export type ExternalAgentToolNoIdleLifecycleGate = {
   modelInferenceAllowedNow: false
   runtimePromptRequiredBeforeVmCreate: true
   cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check'
-  quotaVerificationCommand: 'npm run external-agent-tool-blockers:preflight'
+  quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify'
   nextActionAfterQuotaClears: string
 }
 
@@ -84,7 +84,8 @@ export const QWEN2_5_VL_58DQ_AUTH_USER_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
-  decision: 'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_blocked',
+  decision:
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -175,6 +176,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       createsAssets: false,
       purpose:
         'Read-only live preflight to see whether Qwen gcloud auth/service/job visibility and B-roll GPU quota blockers have cleared.',
+    },
+    {
+      id: 'broll_gpu_global_quota_verify',
+      command: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'B-roll-specific read-only verifier for GPUS_ALL_REGIONS and regional L4 quota after the manual quota request path.',
     },
     {
       id: 'gcloud_session_diagnostic',
@@ -294,16 +305,17 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
-      status: 'blocked_external_state',
+      status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_private_proof_quota_blocked_after_private_cache_runner_fast_cache_readiness_and_wrapper_blocked_result_evidence',
+        'controlled_l4_private_proof_quota_verified_after_private_cache_runner_fast_cache_readiness_and_external_agent_quota_verify_result',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
-      readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'gpus_all_regions_quota_zero_or_unverified',
+      readyForBoundedRetryAfterBlockerClears: false,
+      primaryBlocker: 'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference',
       evidence: [
+        'docs/ai-video-broll-wan-gpu-global-quota-verify-result.md',
         'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
         'docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md',
         'docs/ai-video-broll-generation-gpu-global-quota-fix-result.md',
@@ -312,33 +324,21 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/ai-video-broll-generation-gcp-private-diffusers-cache-manifest.md',
         'src/backend/mock/mock-ai-video-broll-wan-external-agent-wrapper-blocked-result.ts',
         'src/backend/mock/mock-ai-video-broll-wan-fast-cache-readiness.ts',
+        'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify.ts',
+        'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify-result.ts',
         'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
         'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts',
+        'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts',
         'server/cli/external-agent-tool-blocker-preflight.ts',
         'server/smoke/ai-video-broll-wan-external-agent-wrapper-blocked-result-smoke.ts',
         'server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts',
+        'server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
       nextAction:
-        'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
-      manualBlockerActions: [
-        {
-          id: 'request_gpus_all_regions_quota_in_console',
-          label: 'Request GPUS_ALL_REGIONS quota increase outside Codex',
-          runInsideCodex: false,
-          mutatesRuntime: false,
-          runsModel: false,
-          createsAssets: false,
-          mutatesCloud: true,
-          mutatesLocalGcloudAuth: false,
-          mutatesLocalGcloudConfig: false,
-          changesQuotaRequest: true,
-          purpose:
-            'Raise GPUS_ALL_REGIONS to at least 1 through the cloud owner/user path before any bounded no-idle L4 VM proof can be planned.',
-          afterCompletionCommand: 'npm run external-agent-tool-blockers:preflight',
-        },
-      ],
+        'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt',
+      manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
         selectedGpu: 'nvidia_l4',
@@ -358,9 +358,9 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         modelInferenceAllowedNow: false,
         runtimePromptRequiredBeforeVmCreate: true,
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
-        quotaVerificationCommand: 'npm run external-agent-tool-blockers:preflight',
+        quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-VERIFY: verify GPUS_ALL_REGIONS quota increase and regional L4 quota before any bounded no-idle VM prompt',
+          'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt',
       },
     },
     {

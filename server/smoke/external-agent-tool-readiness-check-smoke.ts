@@ -98,7 +98,7 @@ assert.equal(
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('ai_video_broll_generation_wan'),
-  true,
+  false,
 )
 assert.deepEqual(summary.noIdleLifecycleGateToolIds, ['ai_video_broll_generation_wan'])
 assert.equal(summary.noIdleLifecycleGates.length, 1)
@@ -113,7 +113,7 @@ assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, t
 assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
-assert.deepEqual(summary.manualBlockerActionToolIds, ['ai_video_broll_generation_wan'])
+assert.deepEqual(summary.manualBlockerActionToolIds, [])
 
 const blockersByTool = new Map(
   summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),
@@ -134,20 +134,7 @@ const brollBlocker = blockersByTool.get('ai_video_broll_generation_wan') as {
     afterCompletionCommand: string
   }>
 }
-assert.equal(brollBlocker.manualBlockerActions.length, 1)
-assert.equal(brollBlocker.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(brollBlocker.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(brollBlocker.manualBlockerActions[0].runsModel, false)
-assert.equal(brollBlocker.manualBlockerActions[0].createsAssets, false)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
-assert.equal(brollBlocker.manualBlockerActions[0].changesQuotaRequest, true)
-assert.equal(
-  brollBlocker.manualBlockerActions[0].afterCompletionCommand,
-  'npm run external-agent-tool-blockers:preflight',
-)
+assert.equal(brollBlocker.manualBlockerActions.length, 0)
 
 for (const blocker of summary.blockers as Array<{
   toolId: string

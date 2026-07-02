@@ -42,12 +42,13 @@ function actionForTool(toolId: string) {
       immediateSafeActions: [
         ...externalAgentPreExecutionActions,
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
+        'npm run ai-video-broll-wan-gpu-global-quota:verify',
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console; do not create VMs or request quota from this repo',
+        'bounded no-idle L4 proof prompt is required before any VM or inference path; do not create VMs from this rollup',
       afterBlockerClears:
-        'verify quota increase, then require bounded no-idle L4 proof cleanup before any inference path',
+        'prepare a separate bounded no-idle L4 proof prompt with mandatory cleanup before any inference path',
     }
   }
 

@@ -96,10 +96,10 @@ function runReadOnlyCommand(
 }
 
 function parseJson<T>(result: CommandResult): T | undefined {
-  if (!result.ok || !result.stdout) return undefined
+  if (!result.ok || !result.rawStdout) return undefined
 
   try {
-    return JSON.parse(result.stdout) as T
+    return JSON.parse(result.rawStdout) as T
   } catch {
     return undefined
   }

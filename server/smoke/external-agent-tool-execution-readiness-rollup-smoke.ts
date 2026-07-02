@@ -65,15 +65,14 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
   'ready for explicit external-agent gate',
-  'auth-readable live preflight now reads GPU quota',
-  'confirmed wrapper execution mode reads quota and cache readiness',
-  '`GPUS_ALL_REGIONS` remains insufficient',
+  '`GPUS_ALL_REGIONS=1` and regional `NVIDIA_L4_GPUS=1` are verified',
+  'B-roll still requires a future bounded no-idle proof prompt',
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
@@ -101,7 +100,7 @@ for (const required of [
   '`npm run smoke:external-agent-tool-surface-consistency` compares those surfaces',
   '`runInsideCodex=false`',
   '`mutatesRuntime=false`',
-  'B-roll `GPUS_ALL_REGIONS` quota request is explicitly outside Codex',
+  'historical B-roll `GPUS_ALL_REGIONS` quota request is now superseded',
   'distinguishes `staticExplicitToolGatePrepared` from `staticExecutionGateAllowed`',
   'prepared static evidence can be true while runtime execution remains false',
   'includes `executionGateToolSummaries`',
@@ -122,6 +121,7 @@ for (const required of [
   '`npm run external-agent-gcloud-session:diagnostic`',
   'read-only local gcloud session/config diagnostic',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
+  '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
   '`broll_gpus_all_regions_quota_not_sufficient`',
@@ -143,7 +143,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_blocked',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -154,7 +154,7 @@ assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
-assert.equal(rollup.safeNextCommands.length, 11)
+assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -186,6 +186,12 @@ assert.equal(
 assert.equal(
   rollup.safeNextCommands.some(
     (command) => command.command === 'npm run ai-video-broll-wan-fast-cache-readiness:check',
+  ),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some(
+    (command) => command.command === 'npm run ai-video-broll-wan-gpu-global-quota:verify',
   ),
   true,
 )
@@ -391,14 +397,18 @@ assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-d
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
-assert.equal(broll?.status, 'blocked_external_state')
+assert.equal(broll?.status, 'auth_verified_runtime_blocked')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, false)
-assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
+assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'gpus_all_regions_quota_zero_or_unverified',
+  'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference',
+)
+assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-wan-gpu-global-quota-verify-result.md'),
+  true,
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md'),
@@ -421,6 +431,18 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify-result.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-wan-external-agent-wrapper-blocked-result-smoke.ts'),
   true,
 )
@@ -428,22 +450,13 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts'),
   true,
 )
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts'),
+  true,
+)
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
-assert.equal(broll?.manualBlockerActions?.length, 1)
-assert.equal(broll?.manualBlockerActions?.[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(broll?.manualBlockerActions?.[0].runInsideCodex, false)
-assert.equal(broll?.manualBlockerActions?.[0].mutatesRuntime, false)
-assert.equal(broll?.manualBlockerActions?.[0].runsModel, false)
-assert.equal(broll?.manualBlockerActions?.[0].createsAssets, false)
-assert.equal(broll?.manualBlockerActions?.[0].mutatesCloud, true)
-assert.equal(broll?.manualBlockerActions?.[0].mutatesLocalGcloudAuth, false)
-assert.equal(broll?.manualBlockerActions?.[0].mutatesLocalGcloudConfig, false)
-assert.equal(broll?.manualBlockerActions?.[0].changesQuotaRequest, true)
-assert.equal(
-  broll?.manualBlockerActions?.[0].afterCompletionCommand,
-  'npm run external-agent-tool-blockers:preflight',
-)
+assert.equal(broll?.manualBlockerActions?.length, 0)
 assert.equal(broll?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(broll?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
@@ -465,9 +478,12 @@ assert.equal(
   broll?.noIdleLifecycleGate?.cacheReadinessCommand,
   'npm run ai-video-broll-wan-fast-cache-readiness:check',
 )
-assert.equal(broll?.noIdleLifecycleGate?.quotaVerificationCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(
-  broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears.includes('GPU-GLOBAL-QUOTA-VERIFY'),
+  broll?.noIdleLifecycleGate?.quotaVerificationCommand,
+  'npm run ai-video-broll-wan-gpu-global-quota:verify',
+)
+assert.equal(
+  broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears.includes('NO-IDLE-L4-PROOF-PROMPT'),
   true,
 )
 

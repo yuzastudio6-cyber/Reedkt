@@ -147,7 +147,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
-    whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
+    whenBrollQuotaNeedsVerification: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
   },
   manualActionRules: {

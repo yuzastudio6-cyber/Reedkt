@@ -6,10 +6,10 @@ import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-ex
 type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
-const BLOCKER_PREFLIGHT_SCRIPT = 'server/cli/external-agent-tool-blocker-preflight.ts'
+const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const NEXT_AFTER_QUOTA =
-  'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-VERIFY: verify GPUS_ALL_REGIONS quota increase and regional L4 quota before any bounded no-idle VM prompt'
+  'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -68,20 +68,20 @@ function main() {
     return
   }
 
-  const preflight = runJson('broll_live_quota_preflight', 'npx', ['tsx', BLOCKER_PREFLIGHT_SCRIPT])
+  const quota = runJson('broll_live_quota_verify', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
   const cache = runJson('broll_private_cache_readiness', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
-  const blockers = validateReadiness(preflight.json, cache.json)
+  const blockers = validateReadiness(quota.json, cache.json)
 
   print({
     ok: false,
     mode: 'external_agent_broll_wan_execution_preflight_result',
     status: 'blocked',
     blockers,
-    brollQuota: summarizeBrollPreflight(preflight.json),
+    brollQuota: summarizeBrollQuota(quota.json),
     cacheReadiness: summarizeCacheReadiness(cache.json),
     nextPrompt:
       blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
-      blockers.includes('broll_live_quota_preflight_missing')
+      blockers.includes('broll_live_quota_verify_missing')
         ? 'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
         : NEXT_AFTER_QUOTA,
     runtimeRunNow: false,
@@ -100,15 +100,14 @@ function main() {
   })
 }
 
-function validateReadiness(preflight: JsonRecord | undefined, cache: JsonRecord | undefined): string[] {
+function validateReadiness(quota: JsonRecord | undefined, cache: JsonRecord | undefined): string[] {
   const blockers: string[] = []
-  const broll = asRecord(preflight?.broll)
 
-  if (!preflight || preflight.ok !== true) blockers.push('broll_live_quota_preflight_missing')
+  if (!quota || quota.ok !== true) blockers.push('broll_live_quota_verify_missing')
   if (!cache || cache.ok !== true) blockers.push('broll_private_cache_readiness_missing')
-  if (broll.quotaSufficientForOneL4Vm !== true) blockers.push('broll_gpus_all_regions_quota_not_sufficient')
-  if (broll.projectQuotaReadPassed !== true) blockers.push('broll_project_quota_read_not_passed')
-  if (broll.regionQuotaReadPassed !== true) blockers.push('broll_region_quota_read_not_passed')
+  if (quota?.quotaSufficientForOneL4Vm !== true) blockers.push('broll_gpus_all_regions_quota_not_sufficient')
+  if (quota?.projectQuotaReadPassed !== true) blockers.push('broll_project_quota_read_not_passed')
+  if (quota?.regionQuotaReadPassed !== true) blockers.push('broll_region_quota_read_not_passed')
   if (cache?.cachePathExists !== true) blockers.push('broll_private_cache_path_missing')
   if (cache?.aggregateBytesMatches !== true) blockers.push('broll_private_cache_bytes_mismatch')
   if (cache?.modelIndexClassNameMatches !== true) blockers.push('broll_private_cache_model_index_mismatch')
@@ -118,16 +117,17 @@ function validateReadiness(preflight: JsonRecord | undefined, cache: JsonRecord 
   return Array.from(new Set(blockers))
 }
 
-function summarizeBrollPreflight(document: JsonRecord | undefined) {
-  const broll = asRecord(document?.broll)
+function summarizeBrollQuota(document: JsonRecord | undefined) {
+  const quota = asRecord(document)
   return {
-    projectQuotaReadPassed: broll.projectQuotaReadPassed,
-    regionQuotaReadPassed: broll.regionQuotaReadPassed,
-    quotaSufficientForOneL4Vm: broll.quotaSufficientForOneL4Vm,
-    blocker: broll.blocker,
-    selectedGpu: broll.selectedGpu,
-    targetRegion: broll.targetRegion,
-    targetZone: broll.targetZone,
+    projectQuotaReadPassed: quota.projectQuotaReadPassed,
+    regionQuotaReadPassed: quota.regionQuotaReadPassed,
+    quotaSufficientForOneL4Vm: quota.quotaSufficientForOneL4Vm,
+    blocker: quota.blocker,
+    selectedGpu: quota.selectedGpu,
+    targetRegion: quota.targetRegion,
+    targetZone: quota.targetZone,
+    readyForBrollNoIdleProofPrompt: quota.readyForBrollNoIdleProofPrompt,
   }
 }
 

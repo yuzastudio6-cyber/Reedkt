@@ -115,6 +115,11 @@ assert.equal(
   true,
   'CLI must derive active account domain before sanitizing account output',
 )
+assert.equal(
+  cliSource.includes('JSON.parse(result.rawStdout)'),
+  true,
+  'CLI must parse raw captured JSON internally before emitting sanitized summaries',
+)
 assert.equal(cliSource.includes('spawnSync'), true)
 for (const forbiddenSource of [
   'execSync',
@@ -140,7 +145,7 @@ const plan = JSON.parse(planOutput)
 assert.equal(plan.ok, true)
 assert.equal(plan.liveReadOnlyChecksRun, false)
 assert.equal(plan.allowedReadOnlyCommands.length, spec.allowedReadOnlyCommands.length)
-assert.deepEqual(plan.manualBlockerActionToolIds, ['ai_video_broll_generation_wan'])
+assert.deepEqual(plan.manualBlockerActionToolIds, [])
 
 const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -155,23 +160,13 @@ assert.equal(live.runtimeGatesAllFalse, true)
 assert.equal(live.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
 assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
-assert.deepEqual(live.manualBlockerActionToolIds, ['ai_video_broll_generation_wan'])
+assert.deepEqual(live.manualBlockerActionToolIds, [])
 assert.equal(live.qwen.manualBlockerActions.length, 0)
 assert.equal(live.qwen.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
 assert.equal(live.qwen.manualBlockerActions.every((action: { mutatesRuntime: boolean }) => action.mutatesRuntime === false), true)
 assert.equal(live.qwen.manualBlockerActions.every((action: { runsModel: boolean }) => action.runsModel === false), true)
 assert.equal(live.qwen.manualBlockerActions.every((action: { createsAssets: boolean }) => action.createsAssets === false), true)
-assert.equal(live.broll.manualBlockerActions.length, 1)
-assert.equal(live.broll.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(live.broll.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(live.broll.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(live.broll.manualBlockerActions[0].runsModel, false)
-assert.equal(live.broll.manualBlockerActions[0].createsAssets, false)
-assert.equal(live.broll.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(live.broll.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
-assert.equal(live.broll.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
-assert.equal(live.broll.manualBlockerActions[0].changesQuotaRequest, true)
-assert.equal(live.broll.manualBlockerActions[0].afterCompletionCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(live.broll.manualBlockerActions.length, 0)
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(live.commandSummaries.length > 0, true)
 assert.equal(Array.isArray(live.skippedCommandSummaries), true)

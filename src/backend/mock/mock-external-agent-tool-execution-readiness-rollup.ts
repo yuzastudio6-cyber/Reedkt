@@ -41,7 +41,7 @@ export type ExternalAgentToolNoIdleLifecycleGate = {
   proofVmName: string
   selectedGpu: 'nvidia_l4'
   machineType: 'g2-standard-4'
-  targetRegion: 'us-central1' | 'us-west1' | 'us-east4' | 'us-east1'
+  targetRegion: 'us-central1' | 'us-west1' | 'us-east4' | 'us-east1' | 'us-west4'
   targetZone:
     | 'us-central1-a'
     | 'us-central1-b'
@@ -54,6 +54,8 @@ export type ExternalAgentToolNoIdleLifecycleGate = {
     | 'us-east1-b'
     | 'us-east1-c'
     | 'us-east1-d'
+    | 'us-west4-a'
+    | 'us-west4-c'
   minimumGlobalGpusAllRegionsQuota: 1
   minimumRegionalL4Quota: 1
   noPublicIpRequired: true
@@ -141,10 +143,12 @@ export const AI_VIDEO_BROLL_GEN_10E_NO_IDLE_L4_IAP_WHEELHOUSE_TRANSFER_PROOF_US_
   'AI-VIDEO-BROLL-GEN-10E-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-D: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east1-d and mandatory cleanup, no model inference' as const
 export const AI_VIDEO_BROLL_GEN_10F_IAP_WHEELHOUSE_TRANSFER_STOCKOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10F-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-east1-d stockout, no VM/no inference' as const
+export const AI_VIDEO_BROLL_GEN_10G_NO_IDLE_L4_IAP_WHEELHOUSE_TRANSFER_PROOF_US_WEST4_A_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10G-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-WEST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-west4-a and mandatory cleanup, no model inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10e_us_east1_d_stockout_future_prompt_required',
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10f_us_west4_a_selected_future_prompt_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -369,15 +373,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_no_idle_iap_wheelhouse_transfer_us_east1_d_stockout_cleanup_verified',
+        'controlled_l4_no_idle_iap_wheelhouse_transfer_us_west4_a_selected_no_vm_no_inference',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
       primaryBlocker:
-        'bounded_no_idle_l4_iap_wheelhouse_transfer_us_east1_d_stocked_out_before_vm_created_capacity_strategy_required',
+        'bounded_no_idle_l4_iap_wheelhouse_transfer_us_west4_a_selected_future_transfer_proof_required',
       evidence: [
+        'docs/ai-video-broll-gen-10f-iap-wheelhouse-transfer-stockout-fix-result.md',
         'docs/ai-video-broll-gen-10e-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-d-result.md',
         'docs/ai-video-broll-gen-10d-iap-wheelhouse-transfer-stockout-fix-result.md',
         'docs/ai-video-broll-gen-10c-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-c-result.md',
@@ -419,6 +424,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10d-iap-wheelhouse-transfer-stockout-fix.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10e-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-d.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10f-iap-wheelhouse-transfer-stockout-fix.md',
+        'docs/implementation-prompts/prompt-ai-video-broll-gen-10g-no-idle-l4-iap-wheelhouse-transfer-proof-us-west4-a.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-9n-no-idle-l4-proof-execute-us-central1-c.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-9m-no-idle-l4-proof-execute-us-central1-a.md',
         'docs/ai-video-broll-wan-gpu-global-quota-verify-result.md',
@@ -433,6 +439,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify.ts',
         'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-9k-no-idle-l4-proof-prompt.ts',
+        'src/backend/mock/mock-ai-video-broll-gen-10f-iap-wheelhouse-transfer-stockout-fix-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-10e-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-d-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-10d-iap-wheelhouse-transfer-stockout-fix-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-10c-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-c-result.ts',
@@ -463,6 +470,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts',
         'server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts',
         'server/smoke/ai-video-broll-gen-9k-no-idle-l4-proof-prompt-smoke.ts',
+        'server/smoke/ai-video-broll-gen-10f-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts',
         'server/smoke/ai-video-broll-gen-10e-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-d-result-smoke.ts',
         'server/smoke/ai-video-broll-gen-10d-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts',
         'server/smoke/ai-video-broll-gen-10c-no-idle-l4-iap-wheelhouse-transfer-proof-us-east1-c-result-smoke.ts',
@@ -489,14 +497,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_10F_IAP_WHEELHOUSE_TRANSFER_STOCKOUT_FIX_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_10G_NO_IDLE_L4_IAP_WHEELHOUSE_TRANSFER_PROOF_US_WEST4_A_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
         selectedGpu: 'nvidia_l4',
         machineType: 'g2-standard-4',
-        targetRegion: 'us-east1',
-        targetZone: 'us-east1-d',
+        targetRegion: 'us-west4',
+        targetZone: 'us-west4-a',
         minimumGlobalGpusAllRegionsQuota: 1,
         minimumRegionalL4Quota: 1,
         noPublicIpRequired: true,
@@ -512,7 +520,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_10F_IAP_WHEELHOUSE_TRANSFER_STOCKOUT_FIX_PROMPT,
+          AI_VIDEO_BROLL_GEN_10G_NO_IDLE_L4_IAP_WHEELHOUSE_TRANSFER_PROOF_US_WEST4_A_PROMPT,
       },
     },
     {
@@ -564,7 +572,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       nextAction: 'use as source-of-truth evidence only; do not mutate live Supabase from this rollup',
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
-  recommendedNextPrompt: AI_VIDEO_BROLL_GEN_10F_IAP_WHEELHOUSE_TRANSFER_STOCKOUT_FIX_PROMPT,
+  recommendedNextPrompt:
+    AI_VIDEO_BROLL_GEN_10G_NO_IDLE_L4_IAP_WHEELHOUSE_TRANSFER_PROOF_US_WEST4_A_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

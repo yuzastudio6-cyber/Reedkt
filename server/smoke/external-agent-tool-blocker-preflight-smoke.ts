@@ -78,11 +78,11 @@ assert.equal(spec.qwen.nextActionIfCleared.includes('58DQ-AUTH-REFRESH-VERIFY'),
 assert.equal(spec.qwen.nextActionIfCleared.includes('58DW-PRIVATE'), false)
 assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
-assert.equal(spec.broll.targetRegion, 'us-east1')
-assert.equal(spec.broll.targetZone, 'us-east1-d')
+assert.equal(spec.broll.targetRegion, 'us-west4')
+assert.equal(spec.broll.targetZone, 'us-west4-a')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
-assert.equal(spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-10F'), true)
+assert.equal(spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-10G'), true)
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
 
 for (const command of spec.allowedReadOnlyCommands) {
@@ -94,7 +94,7 @@ for (const command of spec.allowedReadOnlyCommands) {
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
 assert.equal(renderedCommands.includes('which -a gcloud'), true)
 assert.equal(
-  renderedCommands.includes('gcloud compute regions describe us-east1 --project reeditpro --format=json'),
+  renderedCommands.includes('gcloud compute regions describe us-west4 --project reeditpro --format=json'),
   true,
 )
 for (const forbiddenPattern of [

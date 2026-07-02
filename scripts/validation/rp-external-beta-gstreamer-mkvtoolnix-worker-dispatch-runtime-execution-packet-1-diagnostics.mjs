@@ -2,31 +2,33 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-DRY-RUN-1'
-const dir = 'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1'
-const recordPath = `${dir}/gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-record.json`
-const decision = 'completed_gstreamer_mkvtoolnix_worker_dispatch_runtime_dry_run'
-const execution = 'completed_confirmation_gated_worker_dispatch_dry_run_no_worker_start_or_tool_execution'
-const servicePath = 'server/services/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1.ts'
-const smokePath = 'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-smoke.ts'
-const runnerPath = 'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1.ts'
-const diagnosticsPath = 'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-diagnostics.mjs'
-const confirmEnv = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_WORKER_DISPATCH_RUNTIME_DRY_RUN'
+const packet = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-EXECUTION-PACKET-1'
+const dir = 'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1'
+const recordPath = `${dir}/gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-record.json`
+const decision = 'completed_gstreamer_mkvtoolnix_worker_dispatch_runtime_execution_packet'
+const execution = 'completed_confirmation_gated_worker_dispatch_runtime_execution_packet_existing_guarded_route_delegate'
+const servicePath = 'server/services/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1.ts'
+const smokePath = 'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-smoke.ts'
+const runnerPath = 'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1.ts'
+const diagnosticsPath = 'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-diagnostics.mjs'
+const confirmEnv = 'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_WORKER_DISPATCH_RUNTIME_EXECUTION_PACKET'
 const sourceGateMergeSha = '488df755ef9f9954e8696ed336f9106bada06319'
-const claimLeaseMergeSha = '1cd82653c437bcc5082ec7b54eb4d06098554a6c'
-const claimLeaseRunId = '2026-07-02T15-13-58-300Z-7afbfde3'
-const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-EXECUTION-PACKET-1'
+const dryRunMergeSha = 'ef5b15adcf5de407f3083abb64ffc14b298692cc'
+const dryRunRunId = '2026-07-02T16-10-17-014Z-eec19f59'
+const runId = '2026-07-02T16-27-38-186Z-1ce73813'
+const runtimeDelegateRunId = '2026-07-02T16-27-38-291Z-a5f6a279'
+const nextMilestone = 'RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-EXECUTION-QA-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const packetFiles = [
   `${dir}/source-audit.md`,
-  `${dir}/worker-dispatch-runtime-dry-run.md`,
+  `${dir}/worker-dispatch-runtime-execution-packet.md`,
   `${dir}/artifact-manifest-summary.md`,
   `${dir}/safety-boundary.md`,
   `${dir}/validation-results.md`,
   recordPath,
-  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-results.md',
-  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1.md',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-qa-1.md',
 ]
 
 const sourceFiles = [
@@ -37,21 +39,15 @@ const sourceFiles = [
 ]
 
 const allowedChangedPatterns = [
-  /^docs\/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-results\.md$/,
   /^docs\/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-results\.md$/,
-  /^docs\/external-beta\/gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1\//,
   /^docs\/external-beta\/gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1\//,
-  /^docs\/implementation-prompts\/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1\.md$/,
   /^docs\/implementation-prompts\/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-qa-1\.md$/,
   /^package\.json$/,
   /^scripts\/validation\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-source-gate-1-diagnostics\.mjs$/,
-  /^scripts\/validation\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1\.ts$/,
   /^scripts\/validation\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-diagnostics\.mjs$/,
   /^scripts\/validation\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1\.ts$/,
   /^scripts\/validation\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-diagnostics\.mjs$/,
-  /^server\/services\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1\.ts$/,
   /^server\/services\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1\.ts$/,
-  /^server\/smoke\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1-smoke\.ts$/,
   /^server\/smoke\/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1-smoke\.ts$/,
 ]
 
@@ -76,8 +72,8 @@ const forbiddenClaims = [
   /\bready_for_paid_production\b/i,
   /\bready_for_production\b/i,
   /\bready_for_final_delivery\b/i,
-  /"routeHandlerInvocation"\s*:\s*true/i,
-  /routeHandlerInvocation:\s*true/i,
+  /"realWorkerDispatch"\s*:\s*true/i,
+  /realWorkerDispatch:\s*true/i,
   /"workerDispatch"\s*:\s*true/i,
   /workerDispatch:\s*true/i,
   /"workerExecution"\s*:\s*true/i,
@@ -88,14 +84,10 @@ const forbiddenClaims = [
   /workerLeaseMutation:\s*true/i,
   /"persistentJobQueueWrite"\s*:\s*true/i,
   /persistentJobQueueWrite:\s*true/i,
-  /"gstreamerExecution"\s*:\s*true/i,
-  /gstreamerExecution:\s*true/i,
-  /"mkvtoolnixExecution"\s*:\s*true/i,
-  /mkvtoolnixExecution:\s*true/i,
   /"ffmpegFfprobeExecution"\s*:\s*true/i,
   /ffmpegFfprobeExecution:\s*true/i,
-  /"dockerExecution"\s*:\s*true/i,
-  /dockerExecution:\s*true/i,
+  /"dockerPushDeploy"\s*:\s*true/i,
+  /dockerPushDeploy:\s*true/i,
   /"remotionExecution"\s*:\s*true/i,
   /remotionExecution:\s*true/i,
   /"privateMediaProcessing"\s*:\s*true/i,
@@ -108,6 +100,8 @@ const forbiddenClaims = [
   /sqlExecution:\s*true/i,
   /"secretPayloadAccess"\s*:\s*true/i,
   /secretPayloadAccess:\s*true/i,
+  /"serviceRoleSecretPayloadAccess"\s*:\s*true/i,
+  /serviceRoleSecretPayloadAccess:\s*true/i,
   /"signedUrlCreation"\s*:\s*true/i,
   /signedUrlCreation:\s*true/i,
   /"publicArtifactCreation"\s*:\s*true/i,
@@ -128,28 +122,26 @@ const requiredText = [
   execution,
   confirmEnv,
   sourceGateMergeSha,
-  claimLeaseMergeSha,
-  claimLeaseRunId,
+  dryRunMergeSha,
+  dryRunRunId,
+  runId,
+  runtimeDelegateRunId,
   'Reeditpro',
   'wmyyttnynmteqgcdishd',
   'staging',
+  '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute',
+  'server/workers/gstreamer-mkvtoolnix-narrow-source-execution-worker-not-registered.ts',
   'quality_check',
   'gstreamer_mkvtoolnix_generated_fixture_runtime',
   'gstreamer_mkvtoolnix_generated_fixture_worker',
   'remote_supabase_worker_claim_lease_no_worker_execution',
-  'claimedJobCannotBeReclaimedBeforeDispatch',
-  'rollbackResidueVerified',
-  'source_gate_ready_for_confirmation_gated_dispatch_dry_run',
-  'worker_dispatch_handoff_dry_run_no_worker_start',
   'dry_run_dispatch_envelope_no_route_no_worker_start',
-  'routeHandlerInvocation: false',
-  'workerDispatch: false',
-  'workerExecution: false',
-  'workerProcessStart: false',
-  'workerLeaseMutation: false',
-  'persistentJobQueueWrite: false',
-  'gstreamerExecution: false',
-  'mkvtoolnixExecution: false',
+  'completed_guarded_route_handler',
+  'completed_existing_guarded_route_delegate',
+  'completed_controlled_generated_fixture_only',
+  'completed_local_image_only_network_disabled_no_push_no_deploy',
+  'rollback-remote-claim-lease-already-verified-no-persistent-dispatch-residue',
+  'cleanup-tmp-evidence-only-no-persistent-public-artifacts',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
   'Generated artifacts committed: `none`',
@@ -184,17 +176,17 @@ for (const file of [...packetFiles, ...sourceFiles]) read(file)
 
 const packageJson = json('package.json')
 if (
-  packageJson.scripts?.['smoke:rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1'] !==
+  packageJson.scripts?.['smoke:rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1'] !==
   `tsx ${smokePath}`
-) fail('missing dry-run smoke package script')
+) fail('missing execution packet smoke package script')
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1'] !==
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1'] !==
   `tsx ${runnerPath}`
-) fail('missing dry-run runner package script')
+) fail('missing execution packet runner package script')
 if (
-  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1:diagnostics'] !==
+  packageJson.scripts?.['rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-execution-packet-1:diagnostics'] !==
   `node ${diagnosticsPath}`
-) fail('missing dry-run diagnostics package script')
+) fail('missing execution packet diagnostics package script')
 
 const corpus = [...packetFiles, ...sourceFiles].map(read).join('\n')
 for (const text of requiredText) {
@@ -206,35 +198,34 @@ for (const pattern of forbiddenClaims) {
 
 const service = read(servicePath)
 for (const text of [
-  'runGstreamerMkvtoolnixWorkerDispatchRuntimeSourceGate',
-  'blocked_missing_worker_dispatch_runtime_dry_run_confirmation',
-  'blocked_invalid_worker_dispatch_runtime_dry_run_source_gate',
-  'blocked_unsafe_worker_dispatch_runtime_dry_run_request',
-  'dry_run_dispatch_envelope_no_route_no_worker_start',
-  'routeHandlerInvocation: false',
-  'workerDispatch: false',
+  'runGstreamerMkvtoolnixWorkerDispatchRuntimeDryRun',
+  'runGstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridge',
+  'blocked_missing_worker_dispatch_runtime_execution_packet_confirmation',
+  'blocked_invalid_worker_dispatch_runtime_execution_packet_dry_run_source',
+  'blocked_worker_dispatch_runtime_execution_packet_route_delegate_safety_invalid',
+  'confirmed_worker_dispatch_runtime_execution_packet_existing_guarded_route_delegate',
+  'routeHandlerInvocationRequestedNow',
+  'runtimeRouteDelegateRequestedNow',
+  'realWorkerDispatch: false',
   'workerExecution: false',
-  'workerProcessStart: false',
   'workerLeaseMutation: false',
   'persistentJobQueueWrite: false',
-  'gstreamerExecution: false',
-  'mkvtoolnixExecution: false',
   'supabaseMutation: false',
   'sqlExecution: false',
 ]) {
-  if (!service.includes(text)) fail(`service missing required dry-run text: ${text}`)
+  if (!service.includes(text)) fail(`service missing required execution packet text: ${text}`)
 }
 
 const smoke = read(smokePath)
 for (const text of [
-  'confirmation_gate_blocks_worker_dispatch_runtime_dry_run',
-  'dry_run_accepts_only_2158_source_gate_evidence',
-  'dry_run_dispatch_envelope_created_metadata_only',
-  'invalid_source_gate_blocks',
-  'invalid_dry_run_mode_blocks',
+  'confirmation_gate_blocks_before_route_delegate',
+  'execution_packet_accepts_only_2158_2162_source_evidence',
+  'route_path_worker_source_idempotency_cleanup_and_evidence_are_recorded',
+  'fake_route_delegate_success_path_records_controlled_generated_fixture_runtime_only',
+  'invalid_dry_run_source_blocks',
   'idempotency_mismatch_blocks',
   'worker_dispatch_request_blocks',
-  'tool_execution_request_blocks',
+  'unsafe_route_delegate_safety_blocks',
 ]) {
   if (!smoke.includes(text)) fail(`smoke missing required check: ${text}`)
 }
@@ -245,61 +236,63 @@ if (record.decision !== decision) fail('record decision mismatch')
 if (record.execution !== execution) fail('record execution mismatch')
 if (record.confirmationGate !== confirmEnv) fail('record confirmation gate mismatch')
 if (record.sourceChain?.sourceGateMergeSha !== sourceGateMergeSha) fail('record source-gate merge SHA mismatch')
-if (record.sourceChain?.remoteClaimLeaseValidationMergeSha !== claimLeaseMergeSha) fail('record claim lease merge SHA mismatch')
-if (record.sourceChain?.remoteClaimLeaseValidationRunId !== claimLeaseRunId) fail('record claim lease run ID mismatch')
+if (record.sourceChain?.dryRunMergeSha !== dryRunMergeSha) fail('record dry-run merge SHA mismatch')
+if (record.sourceChain?.dryRunRunId !== dryRunRunId) fail('record dry-run run ID mismatch')
 if (record.target?.projectRef !== 'wmyyttnynmteqgcdishd') fail('record target mismatch')
+if (record.routePath !== '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute') {
+  fail('record route path mismatch')
+}
+if (record.workerSourcePath !== 'server/workers/gstreamer-mkvtoolnix-narrow-source-execution-worker-not-registered.ts') {
+  fail('record worker source path mismatch')
+}
 if (record.persistedJobType !== 'quality_check') fail('record job type mismatch')
 if (record.persistedJobPayloadKind !== 'gstreamer_mkvtoolnix_generated_fixture_runtime') fail('record payload kind mismatch')
-if (record.claimLeaseMode !== 'remote_supabase_worker_claim_lease_no_worker_execution') fail('record claim mode mismatch')
-if (record.dryRunMode !== 'worker_dispatch_handoff_dry_run_no_worker_start') fail('record dry-run mode mismatch')
+if (record.claimLeaseMode !== 'remote_supabase_worker_claim_lease_no_worker_execution') fail('record claim lease mode mismatch')
 if (record.dryRunDispatchEnvelopeMode !== 'dry_run_dispatch_envelope_no_route_no_worker_start') fail('record dry-run envelope mismatch')
-if (record.productReadyEndToEndLocalOssTools !== 0) fail('record product-ready count must remain 0')
-if (record.packageLock !== 'unchanged') fail('record package-lock status mismatch')
-if (record.generatedArtifactsCommitted !== 'none') fail('record generated artifact status mismatch')
-if (record.nextMilestone !== nextMilestone) fail('record next milestone mismatch')
-
-for (const [key, value] of Object.entries(record)) {
-  if (
-    [
-      'routeHandlerInvocation',
-      'workerDispatch',
-      'workerExecution',
-      'workerProcessStart',
-      'workerLeaseMutation',
-      'persistentJobQueueWrite',
-      'gstreamerExecution',
-      'mkvtoolnixExecution',
-      'ffmpegFfprobeExecution',
-      'dockerExecution',
-      'remotionExecution',
-      'mediaProcessing',
-      'privateMediaProcessing',
-      'userMediaProcessing',
-      'supabaseMutation',
-      'sqlExecution',
-      'secretPayloadAccess',
-      'serviceRoleSecretPayloadAccess',
-      'signedUrlCreation',
-      'publicArtifactCreation',
-      'finalRenderExport',
-      'externalBetaUnlock',
-      'paidProductionUnlock',
-      'productionUnlock',
-    ].includes(key) &&
-    value !== false
-  ) {
-    fail(`record ${key} must remain false`)
-  }
+if (record.runtimeRouteDelegate?.runnerRunId !== runtimeDelegateRunId) fail('record runtime delegate run ID mismatch')
+if (record.routeHandlerInvocation !== 'completed_guarded_route_handler') fail('route handler invocation status mismatch')
+if (record.gstreamerExecution !== 'completed_controlled_generated_fixture_only') fail('gstreamer controlled execution status mismatch')
+if (record.mkvtoolnixExecution !== 'completed_controlled_generated_fixture_only') fail('mkvtoolnix controlled execution status mismatch')
+if (record.mediaProcessing !== 'controlled_generated_fixture_only') fail('media processing controlled fixture status mismatch')
+if (record.dockerExecution !== 'completed_local_image_only_network_disabled_no_push_no_deploy') fail('docker execution status mismatch')
+for (const key of [
+  'realWorkerDispatch',
+  'workerExecution',
+  'workerProcessStart',
+  'workerLeaseMutation',
+  'persistentJobQueueWrite',
+  'privateMediaProcessing',
+  'userMediaProcessing',
+  'ffmpegFfprobeExecution',
+  'dockerPushDeploy',
+  'remotionExecution',
+  'supabaseMutation',
+  'sqlExecution',
+  'secretPayloadAccess',
+  'serviceRoleSecretPayloadAccess',
+  'signedUrlCreation',
+  'publicArtifactCreation',
+  'finalRenderExport',
+  'externalBetaUnlock',
+  'paidProductionUnlock',
+  'productionUnlock',
+]) {
+  if (record[key] !== false) fail(`record safety key must be false: ${key}`)
 }
+if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count must remain 0')
+if (record.packageLock !== 'unchanged') fail('package-lock must remain unchanged')
+if (record.generatedArtifactsCommitted !== 'none') fail('generated artifacts must remain none')
+if (record.nextMilestone !== nextMilestone) fail('record next milestone mismatch')
 
 const changedFiles = [
   ...gitLines(['diff', '--name-only', 'HEAD']),
   ...gitLines(['diff', '--cached', '--name-only']),
+  ...gitLines(['ls-files', '--others', '--exclude-standard']),
 ]
 const uniqueChangedFiles = [...new Set(changedFiles)]
 for (const file of uniqueChangedFiles) {
   if (!allowedChangedPatterns.some((pattern) => pattern.test(file))) {
-    fail(`changed file outside allowed dry-run scope: ${file}`)
+    fail(`changed file outside allowed execution-packet scope: ${file}`)
   }
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) {
     fail(`forbidden changed path: ${file}`)
@@ -319,5 +312,6 @@ console.log(JSON.stringify({
   packet,
   decision,
   execution,
+  runId,
   changedFiles: uniqueChangedFiles,
 }, null, 2))

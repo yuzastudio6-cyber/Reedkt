@@ -162,15 +162,61 @@ function checkReport(label, report) {
     ) {
       fail(`${label}_${toolId}_missing_native_gpu_proof_gate`)
     }
+    if (!row.gpuModelUnblockPlan || typeof row.gpuModelUnblockPlan !== 'object') {
+      fail(`${label}_${toolId}_missing_gpu_model_unblock_plan`)
+    }
+    if (row.nativeGpuRuntimeProofRequired !== true) {
+      fail(`${label}_${toolId}_native_gpu_runtime_proof_required_not_true`)
+    }
+    if (row.nativeGpuRuntimeProofAccepted !== false) {
+      fail(`${label}_${toolId}_native_gpu_runtime_proof_accepted_not_false`)
+    }
+    if (row.externalBetaPerToolRuntimeProofRecheckRequired !== true) {
+      fail(`${label}_${toolId}_per_tool_recheck_required_not_true`)
+    }
+    if (row.externalBetaPerToolRuntimeProofRecheckAccepted !== false) {
+      fail(`${label}_${toolId}_per_tool_recheck_accepted_not_false`)
+    }
     if (modelWeightManifestRequiredTools.includes(toolId)) {
       if (row.modelWeightManifestRequired !== true) {
         fail(`${label}_${toolId}_model_weight_manifest_not_required`)
+      }
+      if (row.modelWeightPrivateEvidenceRequired !== true) {
+        fail(`${label}_${toolId}_private_evidence_required_not_true`)
+      }
+      if (row.modelWeightPrivateEvidenceAccepted !== false) {
+        fail(`${label}_${toolId}_private_evidence_accepted_not_false`)
+      }
+      if (
+        row.gpuModelExternalBetaReadinessBlocker !==
+        'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof'
+      ) {
+        fail(`${label}_${toolId}_private_plus_gpu_blocker_mismatch`)
+      }
+      if (
+        row.nextExternalAgentAction !==
+        'provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result'
+      ) {
+        fail(`${label}_${toolId}_next_action_mismatch`)
       }
       if (!row.missingRuntimeProofGates.some((gate) => /model-weight manifest/.test(gate))) {
         fail(`${label}_${toolId}_missing_model_weight_manifest_gate`)
       }
     } else if (row.modelWeightManifestRequired !== false) {
       fail(`${label}_${toolId}_unexpected_model_weight_manifest_required`)
+    } else {
+      if (row.modelWeightPrivateEvidenceRequired !== false) {
+        fail(`${label}_${toolId}_unexpected_private_evidence_required`)
+      }
+      if (
+        row.gpuModelExternalBetaReadinessBlocker !==
+        'blocked_pending_native_gpu_runtime_proof'
+      ) {
+        fail(`${label}_${toolId}_native_gpu_only_blocker_mismatch`)
+      }
+      if (row.nextExternalAgentAction !== 'provide_native_gpu_runtime_result') {
+        fail(`${label}_${toolId}_next_action_mismatch`)
+      }
     }
     for (const key of [
       'gpuRuntimeShouldStartNow',
@@ -190,7 +236,10 @@ function checkReport(label, report) {
     controlledCanonicalRouteExecutedTools: 13,
     gpuModelRuntimeAdmissionEvaluatedTools: 8,
     gpuModelRuntimeAdmissionBlockedTools: 8,
+    gpuModelUnblockPlanExposedTools: 8,
     modelWeightManifestRequiredTools: 5,
+    privateEvidenceAndNativeGpuProofRequiredTools: 5,
+    nativeGpuProofOnlyRequiredTools: 3,
     nativeGpuRuntimeProofRequiredTools: 8,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 0,
     gpuRuntimeShouldStartNowTools: 0,
@@ -210,6 +259,10 @@ function checkReport(label, report) {
     'canonicalToolCallRouteGpuModelRuntimeAdmissionEvaluated',
     'eightGpuModelToolsEvaluatedByCanonicalRouteNow',
     'eightGpuModelToolsRemainFailClosed',
+    'allGpuModelToolsExposeActionableUnblockPlan',
+    'fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker',
+    'threeFoundationGpuToolsExposeNativeGpuOnlyBlocker',
+    'noGpuModelToolReportsAcceptedEvidenceNow',
     'allGpuModelToolsReportNativeGpuProofMissing',
     'allModelWeightToolsReportManifestMissing',
     'gpuRuntimeOnDemandOnly',
@@ -284,13 +337,19 @@ for (const phrase of [
   'evaluateAiGraphicsOnDemandRuntimeAdmission',
   'admitAiGraphicsExternalBetaToolCallGpuModelRuntime',
   'buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails',
+  'buildAiGraphicsGpuModelUnblockPlan',
+  'gpuModelExternalBetaReadinessBlocker',
+  'nextExternalAgentAction',
   'gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence',
 ]) {
   if (!routeSource.includes(phrase)) fail(`route_missing:${phrase}`)
 }
 for (const phrase of [
   'Expected eight GPU/model cases',
+  'allGpuModelToolsExposeActionableUnblockPlan',
   'allModelWeightToolsReportManifestMissing',
+  'blocked_pending_native_gpu_runtime_proof',
+  'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)

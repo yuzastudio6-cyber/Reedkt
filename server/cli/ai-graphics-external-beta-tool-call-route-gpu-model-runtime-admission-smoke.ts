@@ -50,6 +50,15 @@ interface GpuModelRuntimeAdmissionBlockedResult {
   runtimeTarget: string | null
   workerType: string | null
   modelWeightManifestRequired: boolean
+  gpuModelExternalBetaReadinessBlocker: string | null
+  nextExternalAgentAction: string | null
+  modelWeightPrivateEvidenceRequired: boolean
+  modelWeightPrivateEvidenceAccepted: boolean
+  nativeGpuRuntimeProofRequired: boolean
+  nativeGpuRuntimeProofAccepted: boolean
+  externalBetaPerToolRuntimeProofRecheckRequired: boolean
+  externalBetaPerToolRuntimeProofRecheckAccepted: boolean
+  gpuModelUnblockPlan: Record<string, any> | null
   missingRuntimeJobGates: string[]
   missingRuntimeProofGates: string[]
   missingPrivateModelWeightEvidence: string[]
@@ -178,6 +187,30 @@ async function runBlockedCase(
       typeof details.runtimeTarget === 'string' ? details.runtimeTarget : null,
     workerType: typeof details.workerType === 'string' ? details.workerType : null,
     modelWeightManifestRequired: details.modelWeightManifestRequired === true,
+    gpuModelExternalBetaReadinessBlocker:
+      typeof details.gpuModelExternalBetaReadinessBlocker === 'string'
+        ? details.gpuModelExternalBetaReadinessBlocker
+        : null,
+    nextExternalAgentAction:
+      typeof details.nextExternalAgentAction === 'string'
+        ? details.nextExternalAgentAction
+        : null,
+    modelWeightPrivateEvidenceRequired:
+      details.modelWeightPrivateEvidenceRequired === true,
+    modelWeightPrivateEvidenceAccepted:
+      details.modelWeightPrivateEvidenceAccepted === true,
+    nativeGpuRuntimeProofRequired:
+      details.nativeGpuRuntimeProofRequired === true,
+    nativeGpuRuntimeProofAccepted:
+      details.nativeGpuRuntimeProofAccepted === true,
+    externalBetaPerToolRuntimeProofRecheckRequired:
+      details.externalBetaPerToolRuntimeProofRecheckRequired === true,
+    externalBetaPerToolRuntimeProofRecheckAccepted:
+      details.externalBetaPerToolRuntimeProofRecheckAccepted === true,
+    gpuModelUnblockPlan:
+      details.gpuModelUnblockPlan && typeof details.gpuModelUnblockPlan === 'object'
+        ? details.gpuModelUnblockPlan
+        : null,
     missingRuntimeJobGates: asArray(details.missingRuntimeJobGates),
     missingRuntimeProofGates: asArray(details.missingRuntimeProofGates),
     missingPrivateModelWeightEvidence:
@@ -217,8 +250,20 @@ function buildReport(
       gpuModelRuntimeAdmissionEvaluatedTools: blockedResults.length,
       gpuModelRuntimeAdmissionBlockedTools:
         blockedResults.filter((item) => item.blocked).length,
+      gpuModelUnblockPlanExposedTools:
+        blockedResults.filter((item) => item.gpuModelUnblockPlan !== null).length,
       modelWeightManifestRequiredTools:
         blockedResults.filter((item) => item.modelWeightManifestRequired).length,
+      privateEvidenceAndNativeGpuProofRequiredTools:
+        blockedResults.filter((item) => (
+          item.gpuModelExternalBetaReadinessBlocker ===
+          'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof'
+        )).length,
+      nativeGpuProofOnlyRequiredTools:
+        blockedResults.filter((item) => (
+          item.gpuModelExternalBetaReadinessBlocker ===
+          'blocked_pending_native_gpu_runtime_proof'
+        )).length,
       nativeGpuRuntimeProofRequiredTools:
         blockedResults.filter((item) => (
           item.missingRuntimeProofGates.some((gate) => /native NVIDIA GPU runtime proof/.test(gate))
@@ -245,6 +290,24 @@ function buildReport(
       canonicalToolCallRouteGpuModelRuntimeAdmissionEvaluated: true,
       eightGpuModelToolsEvaluatedByCanonicalRouteNow: blockedResults.length === 8,
       eightGpuModelToolsRemainFailClosed: blockedResults.every((item) => item.blocked),
+      allGpuModelToolsExposeActionableUnblockPlan:
+        blockedResults.every((item) => item.gpuModelUnblockPlan !== null),
+      fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker:
+        blockedResults.filter((item) => (
+          item.gpuModelExternalBetaReadinessBlocker ===
+          'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof'
+        )).length === 5,
+      threeFoundationGpuToolsExposeNativeGpuOnlyBlocker:
+        blockedResults.filter((item) => (
+          item.gpuModelExternalBetaReadinessBlocker ===
+          'blocked_pending_native_gpu_runtime_proof'
+        )).length === 3,
+      noGpuModelToolReportsAcceptedEvidenceNow:
+        blockedResults.every((item) => (
+          item.modelWeightPrivateEvidenceAccepted === false &&
+          item.nativeGpuRuntimeProofAccepted === false &&
+          item.externalBetaPerToolRuntimeProofRecheckAccepted === false
+        )),
       allGpuModelToolsReportNativeGpuProofMissing:
         blockedResults.every((item) => (
           item.missingRuntimeProofGates.some((gate) => /native NVIDIA GPU runtime proof/.test(gate))
@@ -292,7 +355,7 @@ function buildReport(
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.blockedResults
     .map((item) => (
-      `| \`${item.toolId}\` | \`${item.capabilityId}\` | \`${item.statusCode}\` | \`${item.runtimeTarget}\` | \`${item.modelWeightManifestRequired}\` | \`${item.admissionDecision}\` | \`${item.gpuRuntimeStartupAuthorization}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
+      `| \`${item.toolId}\` | \`${item.capabilityId}\` | \`${item.statusCode}\` | \`${item.runtimeTarget}\` | \`${item.gpuModelExternalBetaReadinessBlocker}\` | \`${item.nextExternalAgentAction}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
     ))
     .join('\n')
 
@@ -306,8 +369,8 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 
 ## GPU/Model Admission Results
 
-| Tool | Capability | HTTP status | Runtime target | Model manifest required | Admission decision | GPU startup authorization | GPU starts now |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| Tool | Capability | HTTP status | Runtime target | Readiness blocker | Next external-agent action | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts
@@ -359,10 +422,59 @@ async function main() {
     )
     if (modelWeightManifestRequiredTools.includes(result.toolId)) {
       assert(
+        result.gpuModelExternalBetaReadinessBlocker ===
+          'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof',
+        `${result.toolId} should require private model evidence and native GPU proof`,
+      )
+      assert(
+        result.nextExternalAgentAction ===
+          'provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result',
+        `${result.toolId} next action mismatch`,
+      )
+      assert(
+        result.modelWeightPrivateEvidenceRequired === true,
+        `${result.toolId} should require private model evidence`,
+      )
+      assert(
         result.missingRuntimeProofGates.some((gate) => /model-weight manifest/.test(gate)),
         `${result.toolId} missing model-weight manifest blocker`,
       )
+    } else {
+      assert(
+        result.gpuModelExternalBetaReadinessBlocker ===
+          'blocked_pending_native_gpu_runtime_proof',
+        `${result.toolId} should require native GPU proof only`,
+      )
+      assert(
+        result.nextExternalAgentAction === 'provide_native_gpu_runtime_result',
+        `${result.toolId} next action mismatch`,
+      )
+      assert(
+        result.modelWeightPrivateEvidenceRequired === false,
+        `${result.toolId} should not require private model evidence`,
+      )
     }
+    assert(result.gpuModelUnblockPlan !== null, `${result.toolId} missing unblock plan`)
+    assert(
+      result.nativeGpuRuntimeProofRequired === true,
+      `${result.toolId} should require native GPU proof`,
+    )
+    assert(
+      result.modelWeightPrivateEvidenceAccepted === false,
+      `${result.toolId} unexpectedly accepted private model evidence`,
+    )
+    assert(
+      result.nativeGpuRuntimeProofAccepted === false,
+      `${result.toolId} unexpectedly accepted native GPU proof`,
+    )
+    assert(
+      result.externalBetaPerToolRuntimeProofRecheckRequired === true,
+      `${result.toolId} should require external-beta per-tool proof recheck`,
+    )
+    assert(
+      result.externalBetaPerToolRuntimeProofRecheckAccepted === false,
+      `${result.toolId} unexpectedly accepted per-tool proof recheck`,
+    )
     assert(result.gpuRuntimeShouldStartNow === false, `${result.toolId} started GPU runtime`)
     assert(result.workerDispatchPerformed === false, `${result.toolId} dispatched worker`)
     assert(result.toolExecutionPerformed === false, `${result.toolId} executed tool`)

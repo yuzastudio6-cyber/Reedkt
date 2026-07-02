@@ -8,16 +8,16 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 
 ## GPU/Model Admission Results
 
-| Tool | Capability | HTTP status | Runtime target | Model manifest required | Admission decision | GPU startup authorization | GPU starts now |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `torch_torchvision` | `model_runtime_foundation` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `false` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `transformers` | `model_runtime_foundation` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `false` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `sam2` | `subject_segmentation` | `409` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `true` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `birefnet` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_birefnet_runtime` | `true` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `real_esrgan` | `upscaling` | `409` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` | `true` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `kornia` | `tensor_image_ops` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `false` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `rembg` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `true` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
-| `transparent_background` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `true` | `runtime_job_blocked` | `blocked_missing_runtime_job_gates` | `false` |
+| Tool | Capability | HTTP status | Runtime target | Readiness blocker | Next external-agent action | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `model_runtime_foundation` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` | `false` |
+| `transformers` | `model_runtime_foundation` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` | `false` |
+| `sam2` | `subject_segmentation` | `409` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
+| `birefnet` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_birefnet_runtime` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
+| `real_esrgan` | `upscaling` | `409` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
+| `kornia` | `tensor_image_ops` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` | `false` |
+| `rembg` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
+| `transparent_background` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
 
 ## Counts
 
@@ -25,7 +25,10 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 - `controlledCanonicalRouteExecutedTools`: 13
 - `gpuModelRuntimeAdmissionEvaluatedTools`: 8
 - `gpuModelRuntimeAdmissionBlockedTools`: 8
+- `gpuModelUnblockPlanExposedTools`: 8
 - `modelWeightManifestRequiredTools`: 5
+- `privateEvidenceAndNativeGpuProofRequiredTools`: 5
+- `nativeGpuProofOnlyRequiredTools`: 3
 - `nativeGpuRuntimeProofRequiredTools`: 8
 - `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
@@ -41,6 +44,10 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 - `canonicalToolCallRouteGpuModelRuntimeAdmissionEvaluated`: true
 - `eightGpuModelToolsEvaluatedByCanonicalRouteNow`: true
 - `eightGpuModelToolsRemainFailClosed`: true
+- `allGpuModelToolsExposeActionableUnblockPlan`: true
+- `fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker`: true
+- `threeFoundationGpuToolsExposeNativeGpuOnlyBlocker`: true
+- `noGpuModelToolReportsAcceptedEvidenceNow`: true
 - `allGpuModelToolsReportNativeGpuProofMissing`: true
 - `allModelWeightToolsReportManifestMissing`: true
 - `gpuRuntimeOnDemandOnly`: true

@@ -657,6 +657,10 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
   })
   const modelWeightManifestRequired =
     aiGraphicsModelWeightManifestRequiredToolIds.has(request.toolId)
+  const gpuModelUnblockPlan = buildAiGraphicsGpuModelUnblockPlan(
+    request.toolId,
+    modelWeightManifestRequired,
+  )
 
   return {
     routeDecision:
@@ -674,6 +678,20 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     runtimeTarget: admission.selectedTool?.runtimeTarget ?? null,
     gpuRequiredForRuntime: admission.selectedTool?.gpuRequiredForRuntime === true,
     modelWeightManifestRequired,
+    gpuModelExternalBetaReadinessBlocker: gpuModelUnblockPlan.status,
+    nextExternalAgentAction: gpuModelUnblockPlan.nextExternalAgentAction,
+    modelWeightPrivateEvidenceRequired:
+      gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired,
+    modelWeightPrivateEvidenceAccepted:
+      gpuModelUnblockPlan.modelWeightPrivateEvidenceAccepted,
+    nativeGpuRuntimeProofRequired:
+      gpuModelUnblockPlan.nativeGpuRuntimeProofRequired,
+    nativeGpuRuntimeProofAccepted:
+      gpuModelUnblockPlan.nativeGpuRuntimeProofAccepted,
+    externalBetaPerToolRuntimeProofRecheckRequired:
+      gpuModelUnblockPlan.externalBetaPerToolRuntimeProofRecheckRequired,
+    externalBetaPerToolRuntimeProofRecheckAccepted:
+      gpuModelUnblockPlan.externalBetaPerToolRuntimeProofRecheckAccepted,
     admissionDecision: admission.decision,
     gpuRuntimeStartupAuthorization: admission.gpuRuntimeStartupAuthorization,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -695,6 +713,7 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
       'rerun external-beta per-tool runtime proof with accepted private evidence',
       'only then allow worker enqueue to start GPU on demand for an accepted job',
     ],
+    gpuModelUnblockPlan,
     onDemandRuntimeAdmission: admission,
     counts: {
       totalAiGraphicsTools: 21,

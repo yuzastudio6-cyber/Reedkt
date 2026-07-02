@@ -152,7 +152,7 @@ for (const file of SOURCE_FILES) read(file);
 const dockerfile = read(DOCKERFILE_PATH);
 assert(dockerfile.includes('SOUND-RUNTIME-MEDIA-GATE-1G source-only Dockerfile'), 'Dockerfile missing Gate 1G source-only comment');
 assert(dockerfile.includes('No Docker build has been run'), 'Dockerfile missing no-build comment');
-assert(dockerfile.includes('FROM python:3.13-slim'), 'Dockerfile base image mismatch');
+assert(/^FROM(?:\s+--platform=linux\/amd64)?\s+python:3\.13-slim\s*$/m.test(dockerfile), 'Dockerfile base image mismatch');
 assert(dockerfile.includes(`COPY ${REQUIREMENTS_PATH} ./requirements.sound-oss-tools.txt`), 'Dockerfile must copy only approved requirements source');
 assert(dockerfile.includes('pip install --no-cache-dir --requirement ./requirements.sound-oss-tools.txt'), 'Dockerfile pip install layer mismatch');
 assert(dockerfile.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), 'Dockerfile missing sound runtime disabled env');

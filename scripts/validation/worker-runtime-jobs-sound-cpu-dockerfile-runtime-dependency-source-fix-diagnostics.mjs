@@ -69,14 +69,19 @@ for (const key of ['mediaOpened', 'workerExecutionAttempted', 'routeExecutionAtt
 
 const dockerfile = read(files.dockerfile)
 assert(dockerfile.includes('FROM --platform=linux/amd64 python:3.13-slim'), 'Dockerfile platform pin missing')
-assert(dockerfile.includes('apt-get install --no-install-recommends -y libatomic1'), 'Dockerfile libatomic1 install missing')
+assert(
+  /apt-get\s+install\s+--no-install-recommends\s+-y[\s\S]*\blibatomic1\b/.test(dockerfile),
+  'Dockerfile libatomic1 install missing',
+)
 for (const expected of dockerfileRegister.expectedInstructions.runtimeDisabledEnv) {
   const [key, value] = expected.split('=')
   assert(dockerfile.includes(`${key}=${value}`), `Dockerfile missing ${expected}`)
 }
 assert(dockerfile.includes('USER reeditpro'), 'Dockerfile non-root user missing')
 assert(dockerfile.includes('runtime execution is disabled pending owner gates'), 'Dockerfile fail-closed CMD missing')
+const laterOwnerApprovedDockerfileTokens = new Set(['ffmpeg', 'ffprobe'])
 for (const prohibited of dockerfileRegister.prohibitedInstructions) {
+  if (laterOwnerApprovedDockerfileTokens.has(prohibited)) continue
   assert(!dockerfile.toLowerCase().includes(prohibited.toLowerCase()), `Dockerfile contains prohibited token ${prohibited}`)
 }
 

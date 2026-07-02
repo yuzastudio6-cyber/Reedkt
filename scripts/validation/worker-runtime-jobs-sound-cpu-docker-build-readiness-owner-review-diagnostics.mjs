@@ -389,7 +389,7 @@ assert(proofOwnerPrompt.acceptedForDockerRunToday === false, 'proof owner prompt
 assertNoop(proofOwnerPrompt.supabaseClassification, 'proof owner prompt');
 
 const dockerfile = read(DOCKERFILE_PATH);
-assert(dockerfile.includes('FROM python:3.13-slim'), 'Dockerfile base image missing');
+assert(/^FROM(?:\s+--platform=linux\/amd64)?\s+python:3\.13-slim\s*$/m.test(dockerfile), 'Dockerfile base image missing');
 assert(dockerfile.includes(`COPY ${REQUIREMENTS_PATH} ./requirements.sound-oss-tools.txt`), 'Dockerfile requirements copy mismatch');
 assert(dockerfile.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), 'Dockerfile runtime disabled flag missing');
 assert(dockerfile.includes('REEDITPRO_WORKER_EXECUTION_ENABLED=0'), 'Dockerfile worker disabled flag missing');

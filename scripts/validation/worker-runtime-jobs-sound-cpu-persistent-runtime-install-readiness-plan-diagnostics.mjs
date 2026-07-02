@@ -108,7 +108,7 @@ assert(dockerReview.ownerReviewResult.acceptedForDockerRunToday === false, 'Dock
 assert(approvalRefresh.approvalGateRefresh.persistentRuntimeInstallReadyCount === 0, 'approval refresh persistent install must be zero')
 
 const dockerfile = read(files.dockerfile)
-assert(dockerfile.includes('FROM python:3.13-slim'), 'Dockerfile must use Python 3.13 slim')
+assert(/^FROM(?:\s+--platform=linux\/amd64)?\s+python:3\.13-slim\s*$/m.test(dockerfile), 'Dockerfile must use Python 3.13 slim')
 assert(dockerfile.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), 'Dockerfile must disable SOUND CPU runtime')
 assert(dockerfile.includes('REEDITPRO_WORKER_EXECUTION_ENABLED=0'), 'Dockerfile must disable worker execution')
 assert(dockerfile.includes('REEDITPRO_MEDIA_PROCESSING_ENABLED=0'), 'Dockerfile must disable media processing')

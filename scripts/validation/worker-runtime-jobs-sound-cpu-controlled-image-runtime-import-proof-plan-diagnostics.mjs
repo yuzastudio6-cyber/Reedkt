@@ -139,13 +139,13 @@ assert(approvalRefresh.approvalGateRefresh.toolCallExecutionReadyCount === 0, 'a
 
 const dockerfile = read(files.dockerfile)
 for (const expected of [
-  'FROM python:3.13-slim',
   'requirements.sound-oss-tools.txt',
   'REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0',
   'REEDITPRO_WORKER_EXECUTION_ENABLED=0',
   'REEDITPRO_MEDIA_PROCESSING_ENABLED=0',
   'USER reeditpro'
 ]) assert(dockerfile.includes(expected), `Dockerfile missing ${expected}`)
+assert(/^FROM(?:\s+--platform=linux\/amd64)?\s+python:3\.13-slim\s*$/m.test(dockerfile), 'Dockerfile missing approved Python 3.13 slim base image')
 
 const packageJson = JSON.parse(read(files.packageJson))
 assert(

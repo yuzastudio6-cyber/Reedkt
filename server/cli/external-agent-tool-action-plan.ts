@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10K selected northamerica-northeast1-b as the next no-idle payload/install-readiness proof target after the us-west4-c stockout; the 10L bounded proof prompt must run before another VM attempt',
+        'B-roll 10L attempted northamerica-northeast1-b after green preflight but GCP rejected the g2-standard-4 plus L4 configuration at create time; the 10M no-VM strategy prompt must run before another VM attempt',
       afterBlockerClears:
-        'run the separate 10L no-idle payload/install proof prompt with repeated preflight, one prompt-scoped no-public-IP VM, and mandatory cleanup',
+        'run the separate 10M no-VM config-availability fix prompt to choose the next no-idle payload/install proof strategy before any VM create retry',
     }
   }
 

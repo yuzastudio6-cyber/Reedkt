@@ -41,7 +41,22 @@ const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const executionDir = 'docs/external-beta/gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-execution-1'
+const executionFiles = [
+  `${executionDir}/source-chain.md`,
+  `${executionDir}/execution-gate.md`,
+  `${executionDir}/evidence-manifest-requirements.md`,
+  `${executionDir}/safety-boundary.md`,
+  `${executionDir}/blocked-result.md`,
+  `${executionDir}/validation-results.md`,
+  `${executionDir}/gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-execution-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-execution-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-confirmed-execution-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-execution-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...executionFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

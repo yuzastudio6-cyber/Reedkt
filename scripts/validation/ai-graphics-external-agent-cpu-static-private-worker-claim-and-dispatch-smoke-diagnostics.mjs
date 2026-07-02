@@ -92,6 +92,26 @@ function runPrepared() {
   return JSON.parse(output)
 }
 
+function runOperatorPreflightProbe() {
+  const output = execFileSync('npm', ['run', '--silent', runScriptName, '--', '--operator-preflight'], {
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE:
+        '',
+      REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE_ENV:
+        '',
+      SUPABASE_URL: '',
+      SUPABASE_SERVICE_ROLE_KEY: '',
+      E2E_RUNTIME_MODE: '',
+      WORKER_RUNTIME_MODE: '',
+    },
+  })
+  return JSON.parse(output)
+}
+
 function runRejectedExecutionProbe() {
   try {
     execFileSync(
@@ -162,6 +182,14 @@ for (const phrase of [
   '--source-exact-execution-admission-packet',
   '--lease-audit-ref',
   '--output-result',
+  '--operator-preflight',
+  'buildOperatorPreflightReport',
+  'operatorPreflightOnly',
+  'canRunClaimAndDispatchSmokeNow',
+  'missingOrMismatchedEnv',
+  'missingFlags',
+  'sourceQueueWriteSmokeProofChecks',
+  'sourceExactExecutionAdmissionChecks',
   'createAiGraphicsToolRuntimeQueueService',
   'createSupabaseAdminClient',
   'enqueueToolRuntimeJobs',
@@ -216,6 +244,9 @@ if (prepared.liveWorkerClaimAndDispatchSmokeExecutedNow !== false) {
 if (prepared.liveSupabaseQueueWritesNow !== 0) fail('prepared_live_writes_not_0')
 if (prepared.liveWorkerClaimsNow !== 0) fail('prepared_worker_claims_not_0')
 if (prepared.liveWorkerDispatchHandoffsNow !== 0) fail('prepared_worker_handoffs_not_0')
+if (prepared.operatorPreflightFlag !== '--operator-preflight') {
+  fail('prepared_missing_operator_preflight_flag')
+}
 for (const key of falseBooleanKeys) {
   if (prepared.booleans?.[key] !== false) fail(`prepared_false_gate_not_false:${key}`)
 }
@@ -240,6 +271,74 @@ for (const flag of [
   if (!prepared.requiredFlags?.includes(flag)) fail(`prepared_missing_flag:${flag}`)
 }
 
+const operatorPreflight = runOperatorPreflightProbe()
+if (operatorPreflight.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_operator_preflight_completed_with_runtime_blocks') {
+  fail(`operator_preflight_decision_mismatch:${operatorPreflight.decision}`)
+}
+if (operatorPreflight.operatorPreflightOnly !== true) fail('operator_preflight_only_not_true')
+if (operatorPreflight.canRunClaimAndDispatchSmokeNow !== false) {
+  fail('operator_preflight_unexpectedly_ready_without_env_or_flags')
+}
+if (operatorPreflight.liveWorkerClaimAndDispatchSmokeExecutedNow !== false) {
+  fail('operator_preflight_live_smoke_not_false')
+}
+if (operatorPreflight.liveSupabaseQueueWritesNow !== 0) fail('operator_preflight_live_writes_not_0')
+if (operatorPreflight.liveWorkerClaimsNow !== 0) fail('operator_preflight_worker_claims_not_0')
+if (operatorPreflight.liveWorkerDispatchHandoffsNow !== 0) {
+  fail('operator_preflight_worker_handoffs_not_0')
+}
+if (operatorPreflight.workerExecutionsPerformedNow !== 0) {
+  fail('operator_preflight_worker_executions_not_0')
+}
+if (operatorPreflight.toolExecutionsPerformedNow !== 0) {
+  fail('operator_preflight_tool_executions_not_0')
+}
+if (operatorPreflight.agentCanExecuteToolsNow !== false) {
+  fail('operator_preflight_agent_execute_not_false')
+}
+if (operatorPreflight.gpuRuntimeShouldStartNow !== false) {
+  fail('operator_preflight_gpu_should_start_not_false')
+}
+if (operatorPreflight.sourceQueueWriteSmokeProofChecks?.sourceQueueWriteSmokeProofExists !== true) {
+  fail('operator_preflight_source_queue_write_smoke_proof_missing')
+}
+if (operatorPreflight.sourceExactExecutionAdmissionChecks?.sourceExactExecutionAdmissionExists !== true) {
+  fail('operator_preflight_source_exact_execution_admission_missing')
+}
+for (const envName of [
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE',
+  'REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE_ENV',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'E2E_RUNTIME_MODE',
+  'WORKER_RUNTIME_MODE',
+]) {
+  if (!operatorPreflight.missingOrMismatchedEnv?.some((entry) => entry.name === envName)) {
+    fail(`operator_preflight_missing_env_blocker:${envName}`)
+  }
+}
+for (const flag of [
+  '--execute-ai-graphics-external-agent-cpu-static-worker-claim-and-dispatch-smoke',
+  '--workspace-id',
+  '--project-id',
+  '--approved-plan-snapshot-id',
+  '--credit-reservation-id',
+  '--idempotency-prefix',
+  '--source-service-role-queue-write-smoke-proof-packet',
+  '--source-exact-execution-admission-packet',
+  '--service-role-boundary-ref',
+  '--private-evidence-ref',
+  '--telemetry-ref',
+  '--lease-audit-ref',
+  '--cleanup-proof-ref',
+  '--rollback-ref',
+  '--output-result',
+]) {
+  if (!operatorPreflight.missingFlags?.includes(flag)) {
+    fail(`operator_preflight_missing_flag_blocker:${flag}`)
+  }
+}
+
 const rejected = runRejectedExecutionProbe()
 if (!/REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE=true/.test(rejected)) {
   fail('execution_probe_missing_confirmation_rejection')
@@ -247,8 +346,12 @@ if (!/REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_D
 
 if (!proofSource.includes('operatorResultTemplate')) fail('proof_source_missing_operator_template')
 if (!proofSource.includes('runnerCommand')) fail('proof_source_missing_runner_command')
+if (!proofSource.includes('operatorPreflightCommand')) fail('proof_source_missing_preflight_command')
 if (!proofSource.includes(runScriptName)) fail('proof_source_missing_runner_script_name')
 if (!proofCli.includes('## Operator Runner')) fail('proof_cli_missing_operator_runner_markdown')
+if (proofDocs.operatorResultTemplate?.operatorPreflightCommand?.includes('--operator-preflight') !== true) {
+  fail('proof_docs_missing_operator_preflight_command')
+}
 if (!proofDocs.operatorResultTemplate?.runnerCommand?.includes(runScriptName)) {
   fail('proof_docs_missing_runner_command')
 }
@@ -268,6 +371,7 @@ if (!proofDocs.safeCommands?.some((command) => command.includes(diagnosticScript
   fail('proof_docs_missing_runner_diagnostic_safe_command')
 }
 if (!proofMd.includes('## Operator Runner')) fail('proof_md_missing_operator_runner_section')
+if (!proofMd.includes('Operator preflight command')) fail('proof_md_missing_operator_preflight_command')
 if (!proofMd.includes(runScriptName)) fail('proof_md_missing_runner_script_name')
 
 const proofOutput = execFileSync(
@@ -282,6 +386,9 @@ const proofOutput = execFileSync(
 const proofPrint = JSON.parse(proofOutput)
 if (!proofPrint.operatorResultTemplate?.runnerCommand?.includes(runScriptName)) {
   fail('proof_print_missing_runner_command')
+}
+if (proofPrint.operatorResultTemplate?.operatorPreflightCommand?.includes('--operator-preflight') !== true) {
+  fail('proof_print_missing_operator_preflight_command')
 }
 if (proofPrint.booleans?.agentCanExecuteToolsNow !== false) {
   fail('proof_print_agent_execute_not_false')

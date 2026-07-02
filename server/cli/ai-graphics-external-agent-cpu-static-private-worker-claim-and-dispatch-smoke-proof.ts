@@ -89,6 +89,7 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 
 ## Operator Runner
 
+- Operator preflight command: \`${report.operatorResultTemplate.operatorPreflightCommand}\`
 - Runner command: \`${report.operatorResultTemplate.runnerCommand}\`
 - Local-only suggested result path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
 - Validator command: \`${report.operatorResultTemplate.validatorCommand}\`
@@ -185,6 +186,8 @@ Implemented the saved-result validator for the CPU/static private-worker claim a
 - GPU runtime starts now: \`${report.counts.gpuRuntimeShouldStartNowTools}\`
 
 The validator is intentionally fail-closed until a saved queue-write smoke proof and saved worker claim/dispatch smoke result are supplied. It validates evidence only and does not perform live Supabase writes, worker claims, worker dispatches, worker execution, or tool execution.
+
+The operator preflight command can be run before the live smoke to verify source packets, required flags, and required non-production environment without creating queue rows, worker claims, dispatch handoffs, worker executions, tool executions, GPU runtime, public artifacts, or signed URLs.
 `
 }
 

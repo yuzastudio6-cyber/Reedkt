@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -7,6 +8,8 @@ const decision =
   'ai_graphics_external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_with_runtime_blocks'
 const acceptedStatus =
   'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_five_with_runtime_blocks'
+const blockedStatus =
+  'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_blocked_pending_exact_execution_admission'
 const sourceExactDecision =
   'ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks'
 const runScriptName =
@@ -295,6 +298,10 @@ function exec(command) {
   })
 }
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`
+}
+
 function checkList(label, list, expected) {
   if (!Array.isArray(list)) {
     fail(`${label}_not_array`)
@@ -403,6 +410,108 @@ function checkEvidence(toolId, evidence, row) {
   }
 }
 
+function makeAcceptedExactAdmissionFixture(source) {
+  const fixture = JSON.parse(JSON.stringify(source))
+  fixture.status =
+    'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks'
+  fixture.counts = {
+    ...fixture.counts,
+    exactExecutionAdmissionReadyTools: 5,
+    sourceControlledToolExecutionProofAcceptedTools: 5,
+    exactRequestEnvelopeAcceptedTools: 5,
+    approvedPlanSnapshotAcceptedTools: 5,
+    creditReservationAcceptedTools: 5,
+    privateArtifactManifestAcceptedTools: 5,
+    workerAcceptedRequestSchemaAcceptedTools: 5,
+    toolSpecificQaGateAcceptedTools: 5,
+    satoriBlockedPendingApprovedFontFixtureTools: 1,
+    nonCpuStaticDeferredTools: 15,
+    externalAgentExactRequestAdmittedWithProvidedEvidenceTools: 5,
+    externalAgentCanInvokeAdapterNowTools: 0,
+    workerEnqueueApprovedNowTools: 0,
+    toolExecutionApprovedNowTools: 0,
+    gpuRuntimeShouldStartNowTools: 0,
+  }
+  fixture.booleans = {
+    ...fixture.booleans,
+    sourceControlledToolExecutionProofAccepted: true,
+    allFiveExactExecutionAdmissionsReady: true,
+    allFiveSourceControlledProofsAccepted: true,
+    allFiveExactRequestEnvelopesAccepted: true,
+    allFiveApprovedPlanSnapshotsAccepted: true,
+    allFiveCreditReservationsAccepted: true,
+    allFivePrivateArtifactManifestsAccepted: true,
+    allFiveWorkerAcceptedRequestSchemasAccepted: true,
+    allFiveToolSpecificQaGatesAccepted: true,
+    exactExecutionAdmissionRefsPreserved: true,
+    noLiveQueueWriteByAdmission: true,
+    noAdapterInvocationByAdmission: true,
+    noToolExecutionByAdmission: true,
+    agentCanExecuteToolsNow: false,
+    gpuRuntimeShouldStartNow: false,
+  }
+  fixture.rows = fixture.rows.map((row) => {
+    if (!admittedTools.includes(row.toolId)) return row
+    const base =
+      `ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/${row.toolId}`
+    return {
+      ...row,
+      queueName,
+      sourceControlledToolExecutionProofStatus:
+        'controlled_private_tool_execution_proof_accepted_with_phase0_evidence_execution_blocked',
+      sourceControlledToolExecutionProofAccepted: true,
+      exactExecutionAdmissionStatus:
+        'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked',
+      exactExecutionAdmissionReady: true,
+      exactRequestEnvelopeAccepted: true,
+      approvedPlanSnapshotAccepted: true,
+      creditReservationAccepted: true,
+      privateArtifactManifestAccepted: true,
+      sourceControlledEvidenceAccepted: true,
+      workerAcceptedRequestSchemaAccepted: true,
+      toolSpecificQaGateAccepted: true,
+      exactExecutionAdmissionEvidence: {
+        queueName,
+        exactExecutionAdmissionMode:
+          'admit_exact_private_worker_request_without_live_queue_or_adapter_execution',
+        approvedPlanSnapshotRef: `approved-plan-snapshot://${base}/snapshot`,
+        creditReservationRef: `credit-reservation://${base}/reservation`,
+        privateArtifactManifestRef: `private://${base}/manifest`,
+        queuePayloadIdempotencyKey: `queue-payload-idempotency://${base}`,
+        controlledToolExecutionIdempotencyKey:
+          `controlled-tool-execution-idempotency://${base}`,
+        exactExecutionAdmissionIdempotencyKey:
+          `exact-execution-admission://${base}/idempotency`,
+        sourceControlledToolExecutionEvidenceRef:
+          `controlled-tool-execution-proof://${base}/source`,
+        sourcePhase0LocalArtifactEvidenceRef:
+          `phase0-local-artifact-evidence://${base}/source`,
+        sourceAdapterInvocationDryRunRef: `adapter-dry-run://${base}/adapter`,
+        externalAgentExactRequestEnvelopeRef:
+          `exact-request-envelope://${base}/request`,
+        externalAgentAdmissionDecisionRef:
+          `exact-execution-admission://${base}/decision`,
+        workerAcceptedRequestSchemaRef:
+          `worker-accepted-request-schema://${base}/schema`,
+        privateOutputManifestRef: `private-output-contract://${base}/output`,
+        toolResultSchemaRef: `tool-result-schema://${base}/result`,
+        toolSpecificQaGateRef: `tool-qa-gate://${base}/qa`,
+        executionUnlockConditionRef:
+          `execution-unlock-condition://${base}/adapter-worker-enqueue`,
+        expectedOutputVisibility: 'private_artifact_only',
+      },
+      externalAgentExactRequestAdmittedWithProvidedEvidence: true,
+      externalAgentCanInvokeAdapterNow: false,
+      workerEnqueueApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      blocker:
+        'exact admission accepted from fixture source; adapter invocation remains execution-blocked',
+    }
+  })
+  return fixture
+}
+
 for (const file of requiredFiles) read(file)
 
 const report = json(
@@ -451,7 +560,7 @@ for (const toolId of admittedTools) {
     row.adapterInvocationEnqueueAdmissionStatus !==
     'adapter_invocation_enqueue_admission_ready_execution_still_blocked'
   ) {
-    fail(`admitted_tool_status_mismatch:${toolId}:${row.adapterInvocationEnqueueAdmissionStatus}`)
+    fail(`cpu_static_tool_status_mismatch:${toolId}:${row.adapterInvocationEnqueueAdmissionStatus}`)
   }
   for (const key of [
     'sourceExactExecutionAdmissionAccepted',
@@ -473,7 +582,7 @@ for (const toolId of admittedTools) {
     'idempotencyAccepted',
     'externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence',
   ]) {
-    if (row[key] !== true) fail(`admitted_tool_boolean_not_true:${toolId}:${key}`)
+    if (row[key] !== true) fail(`cpu_static_tool_boolean_not_true:${toolId}:${key}`)
   }
   for (const key of [
     'externalAgentCanInvokeAdapterNow',
@@ -489,7 +598,7 @@ for (const toolId of admittedTools) {
     'toolExecutionApprovedNow',
     'gpuRuntimeShouldStartNow',
   ]) {
-    if (row[key] !== false) fail(`admitted_tool_boolean_not_false:${toolId}:${key}`)
+    if (row[key] !== false) fail(`cpu_static_tool_boolean_not_false:${toolId}:${key}`)
   }
   checkEvidence(toolId, row.adapterInvocationEnqueueEvidence, row)
 }
@@ -511,6 +620,56 @@ for (const row of rows.filter((candidate) => !admittedTools.includes(candidate.t
     fail(`deferred_status_mismatch:${row.toolId}:${row.adapterInvocationEnqueueAdmissionStatus}`)
   }
   if (row.adapterInvocationEnqueueAdmissionReady !== false) fail(`deferred_ready_not_false:${row.toolId}`)
+}
+
+const acceptedFixtureDir = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'ai-graphics-adapter-enqueue-admission-'),
+)
+const acceptedFixturePath = path.join(acceptedFixtureDir, 'accepted-exact-admission.json')
+fs.writeFileSync(
+  acceptedFixturePath,
+  `${JSON.stringify(makeAcceptedExactAdmissionFixture(sourceExact), null, 2)}\n`,
+)
+try {
+  const acceptedOutput = JSON.parse(
+    exec(
+      `${runScriptCommand} --source-exact-execution-admission-packet ${shellQuote(
+        acceptedFixturePath,
+      )}`,
+    ),
+  )
+  if (acceptedOutput.acceptedStatus !== acceptedStatus) {
+    fail(`accepted_fixture_status_mismatch:${acceptedOutput.acceptedStatus}`)
+  }
+  if (acceptedOutput.adapterInvocationEnqueueAdmissionReadyTools !== 5) {
+    fail(
+      `accepted_fixture_ready_mismatch:${acceptedOutput.adapterInvocationEnqueueAdmissionReadyTools}`,
+    )
+  }
+  if (acceptedOutput.productionWorkerJobPayloadAcceptedTools !== 5) {
+    fail(
+      `accepted_fixture_payload_mismatch:${acceptedOutput.productionWorkerJobPayloadAcceptedTools}`,
+    )
+  }
+  if (acceptedOutput.agentCanExecuteToolsNow !== false) {
+    fail('accepted_fixture_agent_execution_not_false')
+  }
+  if (acceptedOutput.externalAgentCanInvokeAdapterNow !== false) {
+    fail('accepted_fixture_adapter_invocation_not_false')
+  }
+  if (acceptedOutput.workerEnqueueApprovedNow !== false) {
+    fail('accepted_fixture_worker_enqueue_not_false')
+  }
+  if (acceptedOutput.toolExecutionApprovedNow !== false) {
+    fail('accepted_fixture_tool_execution_not_false')
+  }
+  if (acceptedOutput.gpuRuntimeShouldStartNow !== false) {
+    fail('accepted_fixture_gpu_runtime_not_false')
+  }
+} catch (error) {
+  fail(`accepted_fixture_cli_failed:${error.message}`)
+} finally {
+  fs.rmSync(acceptedFixtureDir, { recursive: true, force: true })
 }
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) fail('package_run_script_missing')

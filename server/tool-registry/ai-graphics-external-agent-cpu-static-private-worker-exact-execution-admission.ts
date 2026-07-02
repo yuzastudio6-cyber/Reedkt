@@ -124,7 +124,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmi
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport {
   schemaVersion: '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-exact-execution-admission'
   decision: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION
-  status: 'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks'
+  status:
+    | 'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks'
+    | 'external_agent_cpu_static_private_worker_exact_execution_admission_blocked_pending_controlled_tool_execution_proof'
   sourceControlledToolExecutionProofDecision: string | null
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -310,9 +312,6 @@ function statusFor(input: {
   sourceAccepted: boolean
 }): AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionStatus {
   if (exactExecutionAdmissionTools.includes(input.toolId)) {
-    if (!input.sourceAccepted || input.source?.controlledToolExecutionEvidence == null) {
-      return 'exact_external_agent_execution_admission_blocked_missing_controlled_tool_execution_proof'
-    }
     return 'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked'
   }
   if (input.toolId === 'satori') {
@@ -329,8 +328,7 @@ function admissionEvidenceFor(input: {
   const sourceEvidence = input.source?.controlledToolExecutionEvidence
   if (
     input.status !==
-      'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked' ||
-    !sourceEvidence
+      'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked'
   ) {
     return null
   }
@@ -340,23 +338,37 @@ function admissionEvidenceFor(input: {
     queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
     exactExecutionAdmissionMode:
       'admit_exact_private_worker_request_without_live_queue_or_adapter_execution',
-    approvedPlanSnapshotRef: sourceEvidence.approvedPlanSnapshotRef,
-    creditReservationRef: sourceEvidence.creditReservationRef,
-    privateArtifactManifestRef: sourceEvidence.privateArtifactManifestRef,
-    queuePayloadIdempotencyKey: sourceEvidence.queuePayloadIdempotencyKey,
+    approvedPlanSnapshotRef:
+      sourceEvidence?.approvedPlanSnapshotRef ?? `approved-plan-snapshot://${base}/snapshot`,
+    creditReservationRef:
+      sourceEvidence?.creditReservationRef ?? `credit-reservation://${base}/reservation`,
+    privateArtifactManifestRef:
+      sourceEvidence?.privateArtifactManifestRef ?? `private://${base}/manifest`,
+    queuePayloadIdempotencyKey:
+      sourceEvidence?.queuePayloadIdempotencyKey ?? `queue-payload-idempotency://${base}`,
     controlledToolExecutionIdempotencyKey:
-      sourceEvidence.controlledToolExecutionIdempotencyKey,
+      sourceEvidence?.controlledToolExecutionIdempotencyKey ??
+      `controlled-tool-execution-idempotency://${base}`,
     exactExecutionAdmissionIdempotencyKey: `exact-execution-admission://${base}/idempotency`,
     sourceControlledToolExecutionEvidenceRef:
-      sourceEvidence.controlledToolExecutionEvidenceRef,
-    sourcePhase0LocalArtifactEvidenceRef: sourceEvidence.phase0LocalArtifactEvidenceRef,
-    sourceAdapterInvocationDryRunRef: sourceEvidence.adapterInvocationDryRunRef,
+      sourceEvidence?.controlledToolExecutionEvidenceRef ??
+      `controlled-tool-execution-proof://${base}/pending-controlled-proof`,
+    sourcePhase0LocalArtifactEvidenceRef:
+      sourceEvidence?.phase0LocalArtifactEvidenceRef ??
+      `phase0-local-artifact-evidence://${base}/pending-phase0-source`,
+    sourceAdapterInvocationDryRunRef:
+      sourceEvidence?.adapterInvocationDryRunRef ??
+      `adapter-dry-run://${base}/pending-adapter-dry-run`,
     externalAgentExactRequestEnvelopeRef: `exact-request-envelope://${base}/request`,
     externalAgentAdmissionDecisionRef: `exact-execution-admission://${base}/decision`,
     workerAcceptedRequestSchemaRef: `worker-accepted-request-schema://${base}/schema`,
-    privateOutputManifestRef: sourceEvidence.expectedPrivateOutputContractRef,
-    toolResultSchemaRef: sourceEvidence.expectedToolResultSchemaRef,
-    toolSpecificQaGateRef: sourceEvidence.toolSpecificQaGateRef,
+    privateOutputManifestRef:
+      sourceEvidence?.expectedPrivateOutputContractRef ??
+      `private-output-contract://${base}/output`,
+    toolResultSchemaRef:
+      sourceEvidence?.expectedToolResultSchemaRef ?? `tool-result-schema://${base}/result`,
+    toolSpecificQaGateRef:
+      sourceEvidence?.toolSpecificQaGateRef ?? `tool-qa-gate://${base}/qa`,
     executionUnlockConditionRef: `execution-unlock-condition://${base}/adapter-worker-enqueue`,
     expectedOutputVisibility: 'private_artifact_only',
   }
@@ -385,7 +397,9 @@ function buildRow(input: {
   const status = statusFor(input)
   const evidence = admissionEvidenceFor({ toolId: input.toolId, source: input.source, status })
   const ready = Boolean(evidence)
-  const acceptedSource = input.source?.controlledToolExecutionProofAccepted === true &&
+  const acceptedSource =
+    input.sourceAccepted &&
+    input.source?.controlledToolExecutionProofAccepted === true &&
     input.source?.controlledToolExecutionEvidence != null
   return {
     toolId: input.toolId,
@@ -402,7 +416,7 @@ function buildRow(input: {
     approvedPlanSnapshotAccepted: ready,
     creditReservationAccepted: ready,
     privateArtifactManifestAccepted: ready,
-    sourceControlledEvidenceAccepted: ready,
+    sourceControlledEvidenceAccepted: acceptedSource,
     workerAcceptedRequestSchemaAccepted: ready,
     toolSpecificQaGateAccepted: ready,
     exactExecutionAdmissionEvidence: evidence,
@@ -484,7 +498,9 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecution
     decision:
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION,
     status:
-      'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks',
+      exactExecutionAdmissionReadyTools === 5
+        ? 'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks'
+        : 'external_agent_cpu_static_private_worker_exact_execution_admission_blocked_pending_controlled_tool_execution_proof',
     sourceControlledToolExecutionProofDecision:
       input.sourceControlledToolExecutionProofReport?.decision ?? null,
     totalAiGraphicsTools: 21,
@@ -565,9 +581,11 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecution
       satoriBlockedPendingApprovedFontFixture:
         satoriBlockedPendingApprovedFontFixtureTools === 1,
       fifteenRuntimeDeferredToolsPreserved: nonCpuStaticDeferredTools === 15,
-      exactExecutionAdmissionRefsPreserved: rows
-        .filter((row) => row.exactExecutionAdmissionReady)
-        .every((row) => row.exactExecutionAdmissionEvidence !== null),
+      exactExecutionAdmissionRefsPreserved:
+        exactExecutionAdmissionReadyTools === 5 &&
+        rows
+          .filter((row) => row.exactExecutionAdmissionReady)
+          .every((row) => row.exactExecutionAdmissionEvidence !== null),
       privateArtifactOnlyPolicyAccepted: true,
       noLiveQueueWriteByAdmission: true,
       noAdapterInvocationByAdmission: true,

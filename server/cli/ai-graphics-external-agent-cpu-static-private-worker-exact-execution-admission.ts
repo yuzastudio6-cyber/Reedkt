@@ -4,7 +4,7 @@ import {
   buildAiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmission,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-exact-execution-admission'
 
-const sourceControlledProofPath =
+const defaultSourceControlledProofPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-controlled-tool-execution-proof.json'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json'
@@ -19,6 +19,15 @@ type Report = ReturnType<
   typeof buildAiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmission
 >
 
+function valueAfterFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  return index >= 0 ? process.argv[index + 1] : undefined
+}
+
+const sourceControlledProofPath =
+  valueAfterFlag('--source-controlled-tool-execution-proof-packet') ??
+  defaultSourceControlledProofPath
+
 function readJson(file: string): Record<string, any> {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, any>
 }
@@ -31,7 +40,7 @@ function makeMarkdown(report: Report): string {
   const admittedTools = report.rows
     .filter((row) => row.exactExecutionAdmissionReady)
     .map((row) => `\`${row.toolId}\``)
-    .join(', ')
+    .join(', ') || 'none'
   const evidenceRows = report.rows
     .filter((row) => row.exactExecutionAdmissionEvidence)
     .map((row) => {
@@ -52,7 +61,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This packet admits exact request envelopes for the first five CPU/static tools that already have controlled private-worker proof. It is a request-admission gate only: it does not write queues, invoke adapters, enqueue workers, dispatch workers, execute tools, create artifacts, create signed URLs, start GPU runtime, or unlock external beta/production traffic.
+This packet admits exact request envelopes for the first five CPU/static tools only when they already have accepted controlled private-worker proof. With the checked-in blocked source packet, it remains fail-closed. It is a request-admission gate only: it does not write queues, invoke adapters, enqueue workers, dispatch workers, execute tools, create artifacts, create signed URLs, start GPU runtime, or unlock external beta/production traffic.
 
 ## Source Evidence
 
@@ -82,7 +91,7 @@ This packet admits exact request envelopes for the first five CPU/static tools t
 
 ## Exact Admission Evidence Refs
 
-${evidenceRows}
+${evidenceRows || 'none'}
 
 ## Tool Rows
 
@@ -195,6 +204,7 @@ async function main() {
     'unexpected exact execution admission decision',
   )
   assert(report.counts.exactExecutionAdmissionReadyTools === 5, 'expected five admissions')
+  assert(report.counts.exactRequestEnvelopeAcceptedTools === 5, 'expected five exact request envelopes')
   assert(report.counts.externalAgentExecutableNowTools === 0, 'execution must remain blocked')
   assert(report.booleans.agentCanExecuteToolsNow === false, 'agent execution must remain false')
   assert(report.booleans.externalAgentCanInvokeAdapterNow === false, 'adapter invocation must remain false')

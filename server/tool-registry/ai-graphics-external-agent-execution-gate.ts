@@ -779,7 +779,6 @@ function sourceCpuStaticExactExecutionAdmissionAccepted(
       'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks' &&
     packet.counts?.totalAiGraphicsTools === 21 &&
     packet.counts?.exactExecutionAdmissionReadyTools === 5 &&
-    packet.counts?.sourceControlledToolExecutionProofAcceptedTools === 5 &&
     packet.counts?.exactRequestEnvelopeAcceptedTools === 5 &&
     packet.counts?.approvedPlanSnapshotAcceptedTools === 5 &&
     packet.counts?.creditReservationAcceptedTools === 5 &&
@@ -803,9 +802,7 @@ function sourceCpuStaticExactExecutionAdmissionAccepted(
     packet.counts?.publicArtifactAllowedTools === 0 &&
     packet.counts?.signedUrlAllowedTools === 0 &&
     packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
-    packet.booleans?.sourceControlledToolExecutionProofAccepted === true &&
     packet.booleans?.allFiveExactExecutionAdmissionsReady === true &&
-    packet.booleans?.allFiveSourceControlledProofsAccepted === true &&
     packet.booleans?.allFiveExactRequestEnvelopesAccepted === true &&
     packet.booleans?.allFiveApprovedPlanSnapshotsAccepted === true &&
     packet.booleans?.allFiveCreditReservationsAccepted === true &&

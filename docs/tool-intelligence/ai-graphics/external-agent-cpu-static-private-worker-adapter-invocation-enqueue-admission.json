@@ -643,12 +643,12 @@
         "sourceExactRequestEnvelopeRef": "exact-request-envelope://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/request",
         "sourceExactAdmissionDecisionRef": "exact-execution-admission://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/decision",
         "sourceWorkerAcceptedRequestSchemaRef": "worker-accepted-request-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/schema",
-        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/d3/output",
-        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/d3/result",
-        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/d3/qa",
-        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/d3/snapshot-fixture",
-        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/d3/reservation-fixture",
-        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/d3/artifact-manifest",
+        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/output",
+        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/result",
+        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/qa",
+        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/snapshot",
+        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/reservation",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/manifest",
         "adapterInvocationEnvelopeRef": "adapter-invocation-envelope://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/d3/adapter-request",
         "adapterInvocationAuthorizationRef": "adapter-invocation-authorization://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/d3/authorization",
         "adapterInvocationIdempotencyKey": "adapter-invocation://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/d3/idempotency",
@@ -667,12 +667,12 @@
           "jobId": "external-agent-cpu-static-private-worker-d3-adapter-enqueue-admission",
           "workspaceId": "external-agent-ai-graphics-workspace",
           "projectId": "external-agent-ai-graphics-project",
-          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/d3/snapshot-fixture",
+          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/snapshot",
           "editPlanId": "external-agent-ai-graphics-edit-plan",
           "toolExecutionPlanId": "external-agent-cpu-static-private-worker-d3",
           "workerType": "render_worker",
           "executionMode": "production_blocked",
-          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-d3:render_worker:b3998f89aec9954d52ddf36d",
+          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-d3:render_worker:820774e51a8fb43edc417fca",
           "attempt": 1,
           "maxAttempts": 1,
           "requestedToolIds": [
@@ -682,9 +682,9 @@
             "ai_graphics_external_agent_cpu_static_d3_chart_overlay"
           ],
           "storageReferenceIds": [
-            "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/d3/artifact-manifest"
+            "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/manifest"
           ],
-          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/d3/reservation-fixture",
+          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/d3/reservation",
           "requiredQualityGateTypes": [
             "render_asset_integrity"
           ],
@@ -842,12 +842,12 @@
         "sourceExactRequestEnvelopeRef": "exact-request-envelope://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/request",
         "sourceExactAdmissionDecisionRef": "exact-execution-admission://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/decision",
         "sourceWorkerAcceptedRequestSchemaRef": "worker-accepted-request-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/schema",
-        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/vega_lite/output",
-        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/vega_lite/result",
-        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/vega_lite/qa",
-        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega_lite/snapshot-fixture",
-        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega_lite/reservation-fixture",
-        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/vega_lite/artifact-manifest",
+        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/output",
+        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/result",
+        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/qa",
+        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/snapshot",
+        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/reservation",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/manifest",
         "adapterInvocationEnvelopeRef": "adapter-invocation-envelope://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega_lite/adapter-request",
         "adapterInvocationAuthorizationRef": "adapter-invocation-authorization://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega_lite/authorization",
         "adapterInvocationIdempotencyKey": "adapter-invocation://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega_lite/idempotency",
@@ -866,12 +866,12 @@
           "jobId": "external-agent-cpu-static-private-worker-vega_lite-adapter-enqueue-admission",
           "workspaceId": "external-agent-ai-graphics-workspace",
           "projectId": "external-agent-ai-graphics-project",
-          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega_lite/snapshot-fixture",
+          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/snapshot",
           "editPlanId": "external-agent-ai-graphics-edit-plan",
           "toolExecutionPlanId": "external-agent-cpu-static-private-worker-vega_lite",
           "workerType": "cpu_analysis_worker",
           "executionMode": "production_blocked",
-          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-vega_lite:cpu_analysis_worker:fca72f8e35365824dc5745bf",
+          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-vega_lite:cpu_analysis_worker:a60c3393aaa2f6622c4ab3e5",
           "attempt": 1,
           "maxAttempts": 1,
           "requestedToolIds": [
@@ -881,9 +881,9 @@
             "ai_graphics_external_agent_cpu_static_vega_lite_compile"
           ],
           "storageReferenceIds": [
-            "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/vega_lite/artifact-manifest"
+            "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/manifest"
           ],
-          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega_lite/reservation-fixture",
+          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega_lite/reservation",
           "requiredQualityGateTypes": [
             "render_asset_integrity"
           ],
@@ -978,12 +978,12 @@
         "sourceExactRequestEnvelopeRef": "exact-request-envelope://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/request",
         "sourceExactAdmissionDecisionRef": "exact-execution-admission://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/decision",
         "sourceWorkerAcceptedRequestSchemaRef": "worker-accepted-request-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/schema",
-        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/vega/output",
-        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/vega/result",
-        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/vega/qa",
-        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega/snapshot-fixture",
-        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega/reservation-fixture",
-        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/vega/artifact-manifest",
+        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/output",
+        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/result",
+        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/qa",
+        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/snapshot",
+        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/reservation",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/manifest",
         "adapterInvocationEnvelopeRef": "adapter-invocation-envelope://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega/adapter-request",
         "adapterInvocationAuthorizationRef": "adapter-invocation-authorization://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega/authorization",
         "adapterInvocationIdempotencyKey": "adapter-invocation://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/vega/idempotency",
@@ -1002,12 +1002,12 @@
           "jobId": "external-agent-cpu-static-private-worker-vega-adapter-enqueue-admission",
           "workspaceId": "external-agent-ai-graphics-workspace",
           "projectId": "external-agent-ai-graphics-project",
-          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega/snapshot-fixture",
+          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/snapshot",
           "editPlanId": "external-agent-ai-graphics-edit-plan",
           "toolExecutionPlanId": "external-agent-cpu-static-private-worker-vega",
           "workerType": "cpu_analysis_worker",
           "executionMode": "production_blocked",
-          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-vega:cpu_analysis_worker:7456aa970fc38412f882f68e",
+          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-vega:cpu_analysis_worker:861953008d8858ab740c6431",
           "attempt": 1,
           "maxAttempts": 1,
           "requestedToolIds": [
@@ -1017,9 +1017,9 @@
             "ai_graphics_external_agent_cpu_static_vega_parse"
           ],
           "storageReferenceIds": [
-            "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/vega/artifact-manifest"
+            "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/manifest"
           ],
-          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/vega/reservation-fixture",
+          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/vega/reservation",
           "requiredQualityGateTypes": [
             "render_asset_integrity"
           ],
@@ -1177,12 +1177,12 @@
         "sourceExactRequestEnvelopeRef": "exact-request-envelope://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/request",
         "sourceExactAdmissionDecisionRef": "exact-execution-admission://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/decision",
         "sourceWorkerAcceptedRequestSchemaRef": "worker-accepted-request-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/schema",
-        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/svgdotjs_svg_js/output",
-        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/svgdotjs_svg_js/result",
-        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/svgdotjs_svg_js/qa",
-        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/svgdotjs_svg_js/snapshot-fixture",
-        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/svgdotjs_svg_js/reservation-fixture",
-        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/svgdotjs_svg_js/artifact-manifest",
+        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/output",
+        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/result",
+        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/qa",
+        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/snapshot",
+        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/reservation",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/manifest",
         "adapterInvocationEnvelopeRef": "adapter-invocation-envelope://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/svgdotjs_svg_js/adapter-request",
         "adapterInvocationAuthorizationRef": "adapter-invocation-authorization://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/svgdotjs_svg_js/authorization",
         "adapterInvocationIdempotencyKey": "adapter-invocation://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/svgdotjs_svg_js/idempotency",
@@ -1201,12 +1201,12 @@
           "jobId": "external-agent-cpu-static-private-worker-svgdotjs_svg_js-adapter-enqueue-admission",
           "workspaceId": "external-agent-ai-graphics-workspace",
           "projectId": "external-agent-ai-graphics-project",
-          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/svgdotjs_svg_js/snapshot-fixture",
+          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/snapshot",
           "editPlanId": "external-agent-ai-graphics-edit-plan",
           "toolExecutionPlanId": "external-agent-cpu-static-private-worker-svgdotjs_svg_js",
           "workerType": "render_worker",
           "executionMode": "production_blocked",
-          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-svgdotjs_svg_js:render_worker:80dd9b9798d3af2d813b2b3b",
+          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-svgdotjs_svg_js:render_worker:f8e47d83cea000c5ace6e4b8",
           "attempt": 1,
           "maxAttempts": 1,
           "requestedToolIds": [
@@ -1216,9 +1216,9 @@
             "ai_graphics_external_agent_cpu_static_svg_construction"
           ],
           "storageReferenceIds": [
-            "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/svgdotjs_svg_js/artifact-manifest"
+            "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/manifest"
           ],
-          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/svgdotjs_svg_js/reservation-fixture",
+          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/svgdotjs_svg_js/reservation",
           "requiredQualityGateTypes": [
             "render_asset_integrity"
           ],
@@ -1313,12 +1313,12 @@
         "sourceExactRequestEnvelopeRef": "exact-request-envelope://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/request",
         "sourceExactAdmissionDecisionRef": "exact-execution-admission://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/decision",
         "sourceWorkerAcceptedRequestSchemaRef": "worker-accepted-request-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/schema",
-        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/viz_js/output",
-        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/viz_js/result",
-        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-tool-execution-dry-run-proof/viz_js/qa",
-        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/viz_js/snapshot-fixture",
-        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/viz_js/reservation-fixture",
-        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/viz_js/artifact-manifest",
+        "sourcePrivateOutputManifestRef": "private-output-contract://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/output",
+        "sourceToolResultSchemaRef": "tool-result-schema://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/result",
+        "sourceToolSpecificQaGateRef": "tool-qa-gate://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/qa",
+        "approvedPlanSnapshotRef": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/snapshot",
+        "creditReservationRef": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/reservation",
+        "privateArtifactManifestRef": "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/manifest",
         "adapterInvocationEnvelopeRef": "adapter-invocation-envelope://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/viz_js/adapter-request",
         "adapterInvocationAuthorizationRef": "adapter-invocation-authorization://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/viz_js/authorization",
         "adapterInvocationIdempotencyKey": "adapter-invocation://ai-graphics/external-agent/cpu-static-private-worker-adapter-invocation-enqueue-admission/viz_js/idempotency",
@@ -1337,12 +1337,12 @@
           "jobId": "external-agent-cpu-static-private-worker-viz_js-adapter-enqueue-admission",
           "workspaceId": "external-agent-ai-graphics-workspace",
           "projectId": "external-agent-ai-graphics-project",
-          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/viz_js/snapshot-fixture",
+          "approvedSnapshotId": "approved-plan-snapshot://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/snapshot",
           "editPlanId": "external-agent-ai-graphics-edit-plan",
           "toolExecutionPlanId": "external-agent-cpu-static-private-worker-viz_js",
           "workerType": "render_worker",
           "executionMode": "production_blocked",
-          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-viz_js:render_worker:b952bb5434ebce7387ceb52d",
+          "idempotencyKey": "prod-worker:external-agent-ai-graphics-workspace:external-agent-ai-graphics-project:external-agent-cpu-static-private-worker-viz_js:render_worker:134ae97ff128b3b54f3a7c1a",
           "attempt": 1,
           "maxAttempts": 1,
           "requestedToolIds": [
@@ -1352,9 +1352,9 @@
             "ai_graphics_external_agent_cpu_static_dot_diagram"
           ],
           "storageReferenceIds": [
-            "private://ai-graphics/external-agent/cpu-static-private-worker-handoff-admission/viz_js/artifact-manifest"
+            "private://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/manifest"
           ],
-          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-queue-dry-admission/viz_js/reservation-fixture",
+          "creditReservationId": "credit-reservation://ai-graphics/external-agent/cpu-static-private-worker-exact-execution-admission/viz_js/reservation",
           "requiredQualityGateTypes": [
             "render_asset_integrity"
           ],

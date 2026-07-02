@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -7,6 +8,8 @@ const decision =
   'ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks'
 const acceptedStatus =
   'external_agent_cpu_static_private_worker_exact_execution_admission_prepared_five_with_runtime_blocks'
+const blockedStatus =
+  'external_agent_cpu_static_private_worker_exact_execution_admission_blocked_pending_controlled_tool_execution_proof'
 const sourceControlledDecision =
   'ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks'
 const runScriptName =
@@ -69,7 +72,7 @@ const admittedTools = [
 const expectedCounts = {
   totalAiGraphicsTools: 21,
   exactExecutionAdmissionReadyTools: 5,
-  sourceControlledToolExecutionProofAcceptedTools: 5,
+  sourceControlledToolExecutionProofAcceptedTools: 0,
   exactRequestEnvelopeAcceptedTools: 5,
   approvedPlanSnapshotAcceptedTools: 5,
   creditReservationAcceptedTools: 5,
@@ -97,11 +100,9 @@ const expectedCounts = {
 
 const trueKeys = [
   'externalAgentCpuStaticPrivateWorkerExactExecutionAdmissionCompleted',
-  'sourceControlledToolExecutionProofAccepted',
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'allFiveExactExecutionAdmissionsReady',
-  'allFiveSourceControlledProofsAccepted',
   'allFiveExactRequestEnvelopesAccepted',
   'allFiveApprovedPlanSnapshotsAccepted',
   'allFiveCreditReservationsAccepted',
@@ -123,6 +124,8 @@ const trueKeys = [
 ]
 
 const falseKeys = [
+  'sourceControlledToolExecutionProofAccepted',
+  'allFiveSourceControlledProofsAccepted',
   'externalAgentCanDispatchPrivateWorkerJobNow',
   'externalAgentCanSubmitPrivateWorkerQueueNow',
   'externalAgentCanRequestPrivateWorkerHandoffNow',
@@ -282,6 +285,10 @@ function exec(command) {
   })
 }
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`
+}
+
 function checkList(label, list, expected) {
   if (!Array.isArray(list)) {
     fail(`${label}_not_array`)
@@ -362,6 +369,105 @@ function checkEvidence(toolId, evidence) {
   }
 }
 
+function makeAcceptedControlledFixture(source) {
+  const fixture = JSON.parse(JSON.stringify(source))
+  fixture.status =
+    'external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_five_with_runtime_blocks'
+  fixture.counts = {
+    ...fixture.counts,
+    controlledToolExecutionProofAcceptedTools: 5,
+    sourceToolExecutionDryRunProofPreparedTools: 5,
+    sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: 5,
+    sourcePhase0ProofPassedTools: 5,
+    exactRequestContractsAcceptedTools: 5,
+    privateOutputManifestAcceptedTools: 5,
+    toolResultSchemaAcceptedTools: 5,
+    toolSpecificQaGateAcceptedTools: 5,
+    phase0LocalArtifactEvidenceAcceptedTools: 5,
+    satoriBlockedPendingApprovedFontFixtureTools: 1,
+    nonCpuStaticDeferredTools: 15,
+    externalAgentCanInvokeAdapterNowTools: 0,
+    externalAgentExecutableNowTools: 0,
+    workerDispatchApprovedNowTools: 0,
+    toolExecutionApprovedNowTools: 0,
+    gpuRuntimeShouldStartNowTools: 0,
+  }
+  fixture.booleans = {
+    ...fixture.booleans,
+    sourceToolExecutionDryRunProofAccepted: true,
+    sourceWorkerClaimAndDispatchSmokeProofAccepted: true,
+    allFiveControlledToolExecutionProofsAccepted: true,
+    allFiveSourceDryRunContractsAccepted: true,
+    allFivePhase0ExecutionEvidenceAccepted: true,
+    allFiveExactRequestContractsAccepted: true,
+    allFivePrivateOutputManifestsAccepted: true,
+    allFiveToolResultSchemasAccepted: true,
+    allFiveToolSpecificQaGatesAccepted: true,
+    exactRequestContractRefsPreserved: true,
+    privateArtifactOnlyPolicyAccepted: true,
+    noNewToolExecutionByControlledProof: true,
+    noAdapterInvocationByControlledProof: true,
+    nextGateRequiresExactExternalAgentExecutionAdmission: true,
+    agentCanExecuteToolsNow: false,
+  }
+  fixture.rows = fixture.rows.map((row) => {
+    if (!admittedTools.includes(row.toolId)) return row
+    const base =
+      `ai-graphics/external-agent/cpu-static-private-worker-controlled-tool-execution-proof/${row.toolId}`
+    return {
+      ...row,
+      queueName,
+      sourceToolExecutionDryRunStatus:
+        'private_worker_tool_execution_dry_run_proof_prepared_with_worker_claim_and_dispatch_lineage_execution_blocked',
+      sourceToolExecutionDryRunProofPrepared: true,
+      sourceDryRunContractAccepted: true,
+      sourceWorkerClaimAndDispatchSmokeProofStatus:
+        'private_worker_claim_and_dispatch_smoke_proof_accepted_execution_blocked',
+      sourceWorkerClaimAndDispatchSmokeProofAccepted: true,
+      sourceWorkerClaimAndDispatchEvidenceAccepted: true,
+      phase0Status: 'proof_passed',
+      phase0ImportStatus: 'passed',
+      phase0FixtureStatus: 'executed',
+      phase0OutputContractStatus: 'checked',
+      controlledToolExecutionProofStatus:
+        'controlled_private_tool_execution_proof_accepted_with_phase0_evidence_execution_blocked',
+      controlledToolExecutionProofAccepted: true,
+      phase0ExecutionEvidenceAccepted: true,
+      exactRequestContractAccepted: true,
+      privateOutputManifestAccepted: true,
+      toolResultSchemaAccepted: true,
+      toolSpecificQaGateAccepted: true,
+      controlledToolExecutionEvidence: {
+        queueName,
+        controlledToolExecutionMode:
+          'bind_phase0_evidence_to_exact_private_worker_tool_contract_without_new_execution',
+        approvedPlanSnapshotRef: `approved-plan-snapshot://${base}/snapshot`,
+        creditReservationRef: `credit-reservation://${base}/reservation`,
+        privateArtifactManifestRef: `private://${base}/manifest`,
+        queuePayloadIdempotencyKey: `queue-payload-idempotency://${base}`,
+        dryDispatchIdempotencyKey: `dry-dispatch-idempotency://${base}`,
+        dryToolExecutionIdempotencyKey: `dry-tool-execution-idempotency://${base}`,
+        controlledToolExecutionIdempotencyKey: `controlled-tool-execution-idempotency://${base}`,
+        sourceDispatchEvidenceRef: `worker-claim-dispatch-smoke-proof://${base}/dispatch`,
+        controlledToolExecutionEvidenceRef: `controlled-tool-execution-proof://${base}/evidence`,
+        phase0LocalArtifactEvidenceRef: `phase0-local-artifact-evidence://${base}/source`,
+        adapterInvocationDryRunRef: `adapter-dry-run://${base}/adapter`,
+        toolInputContractRef: `tool-input-contract://${base}/input`,
+        expectedPrivateOutputContractRef: `private-output-contract://${base}/output`,
+        expectedToolResultSchemaRef: `tool-result-schema://${base}/result`,
+        toolSpecificQaGateRef: `tool-qa-gate://${base}/qa`,
+        expectedOutputVisibility: 'private_artifact_only',
+      },
+      externalAgentCanInvokeAdapterNow: false,
+      toolExecutionApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      blocker:
+        'controlled proof accepted from fixture source; exact execution admission still blocks execution',
+    }
+  })
+  return fixture
+}
+
 for (const file of requiredFiles) read(file)
 
 const report = json(
@@ -388,7 +494,7 @@ checkCounts('report', report.counts)
 checkBooleans('report', report.booleans)
 
 if (sourceControlled.decision !== sourceControlledDecision) fail('source_controlled_decision_missing')
-if (sourceControlled.counts?.controlledToolExecutionProofAcceptedTools !== 5) {
+if (sourceControlled.counts?.controlledToolExecutionProofAcceptedTools !== 0) {
   fail('source_controlled_count_mismatch')
 }
 
@@ -405,21 +511,25 @@ for (const toolId of admittedTools) {
     row.exactExecutionAdmissionStatus !==
     'exact_external_agent_execution_admission_ready_for_private_worker_request_execution_still_blocked'
   ) {
-    fail(`admitted_tool_status_mismatch:${toolId}:${row.exactExecutionAdmissionStatus}`)
+    fail(`cpu_static_tool_status_mismatch:${toolId}:${row.exactExecutionAdmissionStatus}`)
   }
   for (const key of [
     'sourceControlledToolExecutionProofAccepted',
+    'sourceControlledEvidenceAccepted',
+  ]) {
+    if (row[key] !== false) fail(`cpu_static_tool_controlled_boolean_not_false:${toolId}:${key}`)
+  }
+  for (const key of [
     'exactExecutionAdmissionReady',
     'exactRequestEnvelopeAccepted',
     'approvedPlanSnapshotAccepted',
     'creditReservationAccepted',
     'privateArtifactManifestAccepted',
-    'sourceControlledEvidenceAccepted',
     'workerAcceptedRequestSchemaAccepted',
     'toolSpecificQaGateAccepted',
     'externalAgentExactRequestAdmittedWithProvidedEvidence',
   ]) {
-    if (row[key] !== true) fail(`admitted_tool_boolean_not_true:${toolId}:${key}`)
+    if (row[key] !== true) fail(`cpu_static_tool_boolean_not_true:${toolId}:${key}`)
   }
   for (const key of [
     'externalAgentCanDispatchPrivateWorkerJobNow',
@@ -437,7 +547,7 @@ for (const toolId of admittedTools) {
     'toolExecutionApprovedNow',
     'gpuRuntimeShouldStartNow',
   ]) {
-    if (row[key] !== false) fail(`admitted_tool_boolean_not_false:${toolId}:${key}`)
+    if (row[key] !== false) fail(`cpu_static_tool_boolean_not_false:${toolId}:${key}`)
   }
   checkEvidence(toolId, row.exactExecutionAdmissionEvidence)
 }
@@ -459,6 +569,46 @@ for (const row of rows.filter((candidate) => !admittedTools.includes(candidate.t
     fail(`deferred_status_mismatch:${row.toolId}:${row.exactExecutionAdmissionStatus}`)
   }
   if (row.exactExecutionAdmissionReady !== false) fail(`deferred_ready_not_false:${row.toolId}`)
+}
+
+const acceptedFixtureDir = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'ai-graphics-exact-execution-admission-'),
+)
+const acceptedFixturePath = path.join(acceptedFixtureDir, 'accepted-controlled-proof.json')
+fs.writeFileSync(
+  acceptedFixturePath,
+  `${JSON.stringify(makeAcceptedControlledFixture(sourceControlled), null, 2)}\n`,
+)
+try {
+  const acceptedOutput = JSON.parse(
+    exec(
+      `${runScriptCommand} --source-controlled-tool-execution-proof-packet ${shellQuote(
+        acceptedFixturePath,
+      )}`,
+    ),
+  )
+  if (acceptedOutput.acceptedStatus !== acceptedStatus) {
+    fail(`accepted_fixture_status_mismatch:${acceptedOutput.acceptedStatus}`)
+  }
+  if (acceptedOutput.exactExecutionAdmissionReadyTools !== 5) {
+    fail(`accepted_fixture_ready_mismatch:${acceptedOutput.exactExecutionAdmissionReadyTools}`)
+  }
+  if (acceptedOutput.agentCanExecuteToolsNow !== false) {
+    fail('accepted_fixture_agent_execution_not_false')
+  }
+  if (acceptedOutput.externalAgentCanInvokeAdapterNow !== false) {
+    fail('accepted_fixture_adapter_invocation_not_false')
+  }
+  if (acceptedOutput.toolExecutionApprovedNow !== false) {
+    fail('accepted_fixture_tool_execution_not_false')
+  }
+  if (acceptedOutput.gpuRuntimeShouldStartNow !== false) {
+    fail('accepted_fixture_gpu_runtime_not_false')
+  }
+} catch (error) {
+  fail(`accepted_fixture_cli_failed:${error.message}`)
+} finally {
+  fs.rmSync(acceptedFixtureDir, { recursive: true, force: true })
 }
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) fail('package_run_script_missing')

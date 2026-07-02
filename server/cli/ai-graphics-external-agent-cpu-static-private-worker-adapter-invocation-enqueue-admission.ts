@@ -4,7 +4,7 @@ import {
   buildAiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmission,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'
 
-const sourceExactAdmissionPath =
+const defaultSourceExactAdmissionPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json'
@@ -19,6 +19,15 @@ type Report = ReturnType<
   typeof buildAiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmission
 >
 
+function valueAfterFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  return index >= 0 ? process.argv[index + 1] : undefined
+}
+
+const sourceExactAdmissionPath =
+  valueAfterFlag('--source-exact-execution-admission-packet') ??
+  defaultSourceExactAdmissionPath
+
 function readJson(file: string): Record<string, any> {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, any>
 }
@@ -31,7 +40,7 @@ function makeMarkdown(report: Report): string {
   const admittedTools = report.rows
     .filter((row) => row.adapterInvocationEnqueueAdmissionReady)
     .map((row) => `\`${row.toolId}\``)
-    .join(', ')
+    .join(', ') || 'none'
   const evidenceRows = report.rows
     .filter((row) => row.adapterInvocationEnqueueEvidence)
     .map((row) => {
@@ -53,7 +62,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This packet prepares adapter-invocation envelopes and private worker enqueue payload contracts for the five exact-admitted CPU/static tools. It does not call an adapter, submit a backend queue item, write a live queue, enqueue a worker, dispatch a worker, execute a tool, create artifacts, create signed URLs, start GPU runtime, or unlock external beta/production traffic.
+This packet prepares adapter-invocation envelopes and private worker enqueue payload contracts only when the source exact-admission packet has accepted exact CPU/static request envelopes. With the checked-in blocked source packet, it remains fail-closed. It does not call an adapter, submit a backend queue item, write a live queue, enqueue a worker, dispatch a worker, execute a tool, create artifacts, create signed URLs, start GPU runtime, or unlock external beta/production traffic.
 
 ## Source Evidence
 
@@ -86,7 +95,7 @@ This packet prepares adapter-invocation envelopes and private worker enqueue pay
 
 ## Adapter And Enqueue Evidence
 
-${evidenceRows}
+${evidenceRows || 'none'}
 
 ## Tool Rows
 
@@ -199,8 +208,16 @@ async function main() {
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_ADAPTER_INVOCATION_ENQUEUE_ADMISSION_DECISION,
     'unexpected adapter invocation enqueue admission decision',
   )
-  assert(report.counts.adapterInvocationEnqueueAdmissionReadyTools === 5, 'expected five admissions')
-  assert(report.counts.productionWorkerJobPayloadAcceptedTools === 5, 'expected five worker payloads')
+  const expectedAdmissions =
+    report.booleans.sourceExactExecutionAdmissionAccepted === true ? 5 : 0
+  assert(
+    report.counts.adapterInvocationEnqueueAdmissionReadyTools === expectedAdmissions,
+    `expected ${expectedAdmissions} admissions`,
+  )
+  assert(
+    report.counts.productionWorkerJobPayloadAcceptedTools === expectedAdmissions,
+    `expected ${expectedAdmissions} worker payloads`,
+  )
   assert(report.counts.externalAgentExecutableNowTools === 0, 'execution must remain blocked')
   assert(report.booleans.agentCanExecuteToolsNow === false, 'agent execution must remain false')
   assert(report.booleans.externalAgentCanInvokeAdapterNow === false, 'adapter invocation must remain false')

@@ -148,7 +148,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationE
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionReport {
   schemaVersion: '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission'
   decision: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_ADAPTER_INVOCATION_ENQUEUE_ADMISSION_DECISION
-  status: 'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_five_with_runtime_blocks'
+  status:
+    | 'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_five_with_runtime_blocks'
+    | 'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_blocked_pending_exact_execution_admission'
   sourceExactExecutionAdmissionDecision: string | null
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
@@ -555,6 +557,7 @@ function buildRow(input: {
     sourceExactExecutionAdmissionStatus:
       input.source?.exactExecutionAdmissionStatus ?? null,
     sourceExactExecutionAdmissionAccepted:
+      input.sourceAccepted &&
       input.source?.exactExecutionAdmissionReady === true &&
       input.source.exactExecutionAdmissionEvidence != null,
     adapterInvocationEnqueueAdmissionStatus: status,
@@ -649,7 +652,9 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocat
     decision:
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_ADAPTER_INVOCATION_ENQUEUE_ADMISSION_DECISION,
     status:
-      'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_five_with_runtime_blocks',
+      sourceAccepted && readyTools === 5
+        ? 'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_prepared_five_with_runtime_blocks'
+        : 'external_agent_cpu_static_private_worker_adapter_invocation_enqueue_admission_blocked_pending_exact_execution_admission',
     sourceExactExecutionAdmissionDecision:
       input.sourceExactExecutionAdmissionReport?.decision ?? null,
     totalAiGraphicsTools: 21,
@@ -766,9 +771,12 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocat
         satoriBlockedPendingApprovedFontFixtureTools === 1,
       fifteenRuntimeDeferredToolsPreserved: nonCpuStaticDeferredTools === 15,
       privateArtifactOnlyPolicyAccepted: true,
-      adapterInvocationEnqueueRefsPreserved: rows
-        .filter((row) => row.adapterInvocationEnqueueAdmissionReady)
-        .every((row) => row.adapterInvocationEnqueueEvidence !== null),
+      adapterInvocationEnqueueRefsPreserved:
+        sourceAccepted &&
+        readyTools === 5 &&
+        rows
+          .filter((row) => row.adapterInvocationEnqueueAdmissionReady)
+          .every((row) => row.adapterInvocationEnqueueEvidence !== null),
       noAdapterInvocationByAdmission: true,
       noBackendQueueSubmissionByAdmission: true,
       noLiveQueueWriteByAdmission: true,

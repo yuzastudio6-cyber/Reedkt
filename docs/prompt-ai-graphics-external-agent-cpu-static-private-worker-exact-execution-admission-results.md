@@ -5,7 +5,7 @@
 - Decision: `ai_graphics_external_agent_cpu_static_private_worker_exact_execution_admission_prepared_with_runtime_blocks`
 - Exact execution admissions ready: `5`
 - Exact request envelopes accepted: `5`
-- Source controlled proofs accepted: `5`
+- Source controlled proofs accepted: `0`
 - Satori blocked pending approved font fixture: `1`
 - Non-CPU/static deferred tools: `15`
 - External-agent executable tools now: `0`

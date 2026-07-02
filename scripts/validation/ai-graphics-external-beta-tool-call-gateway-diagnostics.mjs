@@ -1206,6 +1206,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-agent-execution-gate:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-cpu-static-controlled-tool-call-route-smoke": "tsx server/cli/ai-graphics-external-beta-cpu-static-controlled-tool-call-route-smoke.ts",',
   '+    "ai-graphics:external-beta-cpu-static-controlled-tool-call-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-controlled-tool-call-route-smoke-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-browser-runtime-controlled-tool-call-route-smoke": "tsx server/cli/ai-graphics-external-beta-browser-runtime-controlled-tool-call-route-smoke.ts",',
+  '+    "ai-graphics:external-beta-browser-runtime-controlled-tool-call-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-browser-runtime-controlled-tool-call-route-smoke-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-mount-feature-flag:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-mount-feature-flag-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-boundary": "tsx server/cli/ai-graphics-external-beta-api-route-boundary.ts",',
   '+    "ai-graphics:external-beta-api-route-boundary:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-boundary-diagnostics.mjs",',

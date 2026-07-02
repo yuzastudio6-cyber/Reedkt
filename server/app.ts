@@ -6,6 +6,7 @@ import { createSupabasePublicClient } from './supabase/public-client'
 import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
+import { createAiGraphicsExternalBetaBrowserRuntimeControlledToolCallRoutes } from './routes/ai-graphics-external-beta-browser-runtime-controlled-tool-call-routes'
 import { createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes } from './routes/ai-graphics-external-beta-cpu-static-controlled-tool-call-routes'
 import { createAiGraphicsExternalBetaToolCallRoutes } from './routes/ai-graphics-external-beta-tool-call-routes'
 import { createChatRoutes } from './routes/chat-routes'
@@ -55,6 +56,9 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   }
   if (env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled) {
     app.use(createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes())
+  }
+  if (env.aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled) {
+    app.use(createAiGraphicsExternalBetaBrowserRuntimeControlledToolCallRoutes())
   }
 
   app.use(errorHandlerMiddleware)

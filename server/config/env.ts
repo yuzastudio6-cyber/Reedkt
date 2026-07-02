@@ -35,6 +35,7 @@ export interface RuntimeEnv {
   workerClaimLeaseSeconds: number
   aiGraphicsExternalBetaToolCallRouteMountEnabled: boolean
   aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled: boolean
+  aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled: boolean
   strictToolReadiness: boolean
   toolCheckTimeoutMs: number
   ffmpegBin: string
@@ -80,6 +81,7 @@ const envSchema = z.object({
   WORKER_CLAIM_LEASE_SECONDS: z.coerce.number().int().positive().max(86400).default(300),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
   STRICT_TOOL_READINESS: z.string().optional(),
   TOOL_CHECK_TIMEOUT_MS: z.coerce.number().int().positive().max(120000).default(10000),
   FFMPEG_BIN: z.string().default('ffmpeg'),
@@ -153,6 +155,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED),
     aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED),
+    aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED),
     strictToolReadiness: parseBoolean(parsed.STRICT_TOOL_READINESS),
     toolCheckTimeoutMs: parsed.TOOL_CHECK_TIMEOUT_MS,
     ffmpegBin: parsed.FFMPEG_BIN,
@@ -215,6 +219,8 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
         env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
       aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
         env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled,
+      aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:
+        env.aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled,
       strictToolReadiness: env.strictToolReadiness,
       toolCheckTimeoutMs: env.toolCheckTimeoutMs,
       ffmpegBinConfigured: Boolean(env.ffmpegBin),

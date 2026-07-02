@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-CREDITAUDIT-01
+
+Status: mock-safe support/admin credit audit evidence.
+
+The repository now includes read-only audit timeline, support receipt, Stripe billing trace, redaction, beta-readiness evidence, and mock/internal support routes for the external-beta credit lifecycle.
+
+It does not call Stripe, run checkout/top-up execution, reserve/spend/release/refund credits, execute settlement, unlock export, write Supabase data, mutate production wallets, write ledgers, call providers, run workers, run render/export, expose raw secrets/card data, or change package-lock.
+
 ## RP-CREDITUI-01
 
 Status: mock-safe user-facing credit lifecycle UI.

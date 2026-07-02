@@ -35,3 +35,6 @@ RP-SETTLEMENT-01 consumes the resulting approved hold only after completed work.
 RP-EXPORTLOCK-01 runs after final settlement. Approved-but-unfunded settlement is the only export lock state; lower-cost or cancelled revision paths still require a new plan/estimate/settlement path before export readiness can be allowed.
 
 RP-CREDITPURCHASE-01 can add purchased credits to the local mock wallet when Approve & Continue needs an additional hold but available credits are insufficient. It does not automatically approve the revised action or resume paid work; callers must retry the revised-credit approval and then pass the runtime guard again.
+## RP-CREDITAUDIT-01 Note
+
+The audit timeline reports action-required, approved, lower-cost, and cancelled revised-credit action states for support review. It does not approve, cancel, reserve additional hold, or resume paid work.

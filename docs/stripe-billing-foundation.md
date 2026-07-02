@@ -58,3 +58,6 @@ The older `/api/stripe/*` route registry entries remain disabled future live met
 ## Boundaries
 
 This milestone makes no live Stripe calls, creates no real Checkout Sessions, creates no real SetupIntents, creates no real PaymentIntents, charges no cards, grants no credits from webhooks, performs no checkout/top-up live behavior, writes no Supabase data, has no production wallet mutation, writes no production ledger, calls no providers, and runs no render/export work. See `smoke:stripe-foundation`.
+## RP-CREDITAUDIT-01 Note
+
+The credit audit Stripe trace summarizes mock/test customer, setup, checkout, webhook, and grant evidence with redaction. It does not expose raw Stripe secrets, webhook payloads, card numbers, CVC, or live payment behavior.

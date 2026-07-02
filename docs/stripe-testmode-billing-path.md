@@ -34,3 +34,6 @@ RP-STRIPE-LIVE-READINESS-01 keeps live readiness separate from this test-mode pa
 ## Boundaries
 
 This milestone is test-mode only: no live Stripe call, no live billing, no card charge outside Stripe test mode, no Supabase write, no production wallet mutation, no production ledger write, no provider call, no render/export execution, no export unlock, and no production persistence. See `smoke:stripe-testmode`.
+## RP-CREDITAUDIT-01 Note
+
+The audit layer can trace Stripe test-mode checkout and webhook records to purchased mock credit grants. It keeps Stripe IDs and safe amounts only, and excludes raw webhook payloads, secrets, card numbers, and CVC.

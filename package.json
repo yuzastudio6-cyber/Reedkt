@@ -72,6 +72,7 @@
     "smoke:ai-video-broll-gen-9w-no-idle-l4-iap-wheelhouse-transfer-proof-us-east4-a-result": "tsx server/smoke/ai-video-broll-gen-9w-no-idle-l4-iap-wheelhouse-transfer-proof-us-east4-a-result-smoke.ts",
     "smoke:ai-video-broll-gen-9x-iap-wheelhouse-transfer-stockout-fix-result": "tsx server/smoke/ai-video-broll-gen-9x-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts",
     "smoke:ai-video-broll-gen-9y-no-idle-l4-iap-wheelhouse-transfer-proof-us-east4-c-result": "tsx server/smoke/ai-video-broll-gen-9y-no-idle-l4-iap-wheelhouse-transfer-proof-us-east4-c-result-smoke.ts",
+    "smoke:ai-video-broll-gen-9z-iap-wheelhouse-transfer-stockout-fix-result": "tsx server/smoke/ai-video-broll-gen-9z-iap-wheelhouse-transfer-stockout-fix-result-smoke.ts",
     "ai-video-broll-gen-9j-vm-preflight-2:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-2-diagnostics.mjs",
     "ai-video-broll-gen-9j-gcp-iap-egress-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-gcp-iap-egress-fix-diagnostics.mjs",
     "ai-video-broll-gen-9j-vm-preflight-3:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-3-diagnostics.mjs",

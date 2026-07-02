@@ -65,11 +65,11 @@ const doc = read(DOC_PATH)
 for (const required of [
   '# AI Video B-roll Wan GPU Global Quota Verify Result',
   'Decision: `ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready`',
-  'Recorded at: `2026-07-02T12:42:00Z`',
+  'Recorded at: `2026-07-02T13:09:27Z`',
   'This packet records a read-only B-roll quota verification result',
   'Project: `reeditpro`',
   '`GPUS_ALL_REGIONS` limit',
-  '`NVIDIA_L4_GPUS` limit in `us-east4`',
+  '`NVIDIA_L4_GPUS` limit in `us-east1`',
   'Quota is sufficient for one L4 VM',
   '9W create attempt in `us-east4-a` stocked out',
   'this result is not execution permission',
@@ -79,7 +79,8 @@ for (const required of [
 	  'Supabase/SQL/storage/signed URLs: false',
 	  'beta/production unlock: false',
 	  '9Y create attempt in `us-east4-c` also stocked out',
-	  'AI-VIDEO-BROLL-GEN-9Z-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX',
+	  '9Z no-VM stockout-fix result selected `us-east1-b`',
+	  'AI-VIDEO-BROLL-GEN-10A-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-B',
 	]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -102,8 +103,8 @@ assert.equal(spec.decision, 'ai_video_broll_wan_gpu_global_quota_verify_read_onl
 assert.equal(spec.mode, 'read_only_broll_wan_gpu_global_quota_verify')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
 	assert.equal(spec.projectId, 'reeditpro')
-	assert.equal(spec.targetRegion, 'us-east4')
-	assert.equal(spec.targetZone, 'us-east4-c')
+	assert.equal(spec.targetRegion, 'us-east1')
+	assert.equal(spec.targetZone, 'us-east1-b')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.machineType, 'g2-standard-4')
 assert.equal(spec.minimumGlobalGpusAllRegionsQuota, 1)
@@ -111,11 +112,11 @@ assert.equal(spec.minimumRegionalL4Quota, 1)
 assert.equal(spec.globalQuotaMetric, 'GPUS_ALL_REGIONS')
 	assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 	assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
-assert.equal(spec.nextActionIfQuotaCleared.includes('9Z-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX'), true)
+assert.equal(spec.nextActionIfQuotaCleared.includes('10A-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-B'), true)
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready')
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')
-assert.equal(resultSpec.recordedAt, '2026-07-02T12:42:00Z')
+assert.equal(resultSpec.recordedAt, '2026-07-02T13:09:27Z')
 assert.equal(resultSpec.toolId, spec.toolId)
 assert.equal(resultSpec.projectId, spec.projectId)
 assert.equal(resultSpec.targetRegion, spec.targetRegion)
@@ -149,7 +150,7 @@ for (const command of spec.allowedReadOnlyCommands) {
 
 const renderedCommands = spec.allowedReadOnlyCommands.map((command) => [command.command, ...command.args].join(' '))
 assert.equal(renderedCommands.includes('gcloud compute project-info describe --project reeditpro --format=json'), true)
-assert.equal(renderedCommands.includes('gcloud compute regions describe us-east4 --project reeditpro --format=json'), true)
+assert.equal(renderedCommands.includes('gcloud compute regions describe us-east1 --project reeditpro --format=json'), true)
 for (const forbiddenPattern of [
   /\bgcloud\s+compute\s+instances\s+(create|delete|start|stop)\b/i,
   /\bgcloud\s+compute\s+disks\s+(create|delete)\b/i,

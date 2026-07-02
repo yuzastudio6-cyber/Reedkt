@@ -15,6 +15,7 @@ import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
+import { createToolExecutionGatewayRoutes } from './routes/tool-execution-gateway-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { RuntimeRequest, RuntimeState } from './types'
@@ -49,6 +50,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
   app.use(createToolCostRoutes())
+  app.use(createToolExecutionGatewayRoutes())
   app.use(createProviderGatewayRoutes())
 
   app.use(errorHandlerMiddleware)

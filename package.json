@@ -192,6 +192,7 @@
     "smoke:stripe-live-readiness": "tsx server/smoke/stripe-live-readiness-smoke.ts",
     "smoke:credit-ui": "tsx server/smoke/credit-ui-smoke.ts",
     "smoke:credit-audit": "tsx server/smoke/credit-audit-smoke.ts",
+    "smoke:external-beta-credit": "tsx server/smoke/external-beta-credit-smoke.ts",
     "smoke:edit-level-surface-audit": "tsx server/smoke/edit-level-surface-audit-smoke.ts",
     "smoke:edit-level-architecture": "tsx server/smoke/edit-level-architecture-smoke.ts",
     "smoke:edit-level-types": "tsx server/smoke/edit-level-types-smoke.ts",

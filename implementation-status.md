@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-EXTERNALBETA-01
+
+Status: mock/test-safe external beta credit launch gate.
+
+The repository now includes an end-to-end credit scenario matrix and launch-gate report over the merged credit, Stripe, UI, and audit foundations. The existing `/v1/credit-audit/beta-readiness` route returns the audit readiness report plus `launchGateReport`.
+
+It does not enable live billing, live Stripe payments, checkout/top-up execution, settlement execution, reservation spend/release/refund, export unlock, production persistence, provider calls, workers, render/export, raw secret/card exposure, or package-lock changes.
+
 ## RP-CREDITAUDIT-01
 
 Status: mock-safe support/admin credit audit evidence.

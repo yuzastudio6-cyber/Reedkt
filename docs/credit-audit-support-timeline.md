@@ -32,3 +32,7 @@ Support payloads redact keys such as `secret`, `apiKey`, `token`, `authorization
 ## Validation
 
 Use `npm run smoke:credit-audit` for focused coverage. The smoke seeds isolated mock stores and proves timeline coverage, support receipt answers, Stripe trace redaction, beta-readiness evidence, route read-only shape, and no live side effects.
+
+## RP-EXTERNALBETA-01 Note
+
+The beta-readiness route now returns `launchGateReport` beside the existing audit readiness report. The launch gate reuses audit evidence for the external-beta credit scenario matrix and keeps production admin/support authorization deferred beyond `requireAuth`.

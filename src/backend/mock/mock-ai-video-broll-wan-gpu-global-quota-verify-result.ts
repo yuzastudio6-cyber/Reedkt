@@ -1,11 +1,11 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   decision: 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
-  recordedAt: '2026-07-02T00:08:57Z',
+  recordedAt: '2026-07-02T12:42:00Z',
   toolId: 'ai_video_broll_generation_wan',
   projectId: 'reeditpro',
-  targetRegion: 'us-central1',
-  targetZone: 'us-central1-b',
+  targetRegion: 'us-east4',
+  targetZone: 'us-east4-a',
   selectedGpu: 'nvidia_l4',
   machineType: 'g2-standard-4',
   verificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
@@ -75,7 +75,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt',
+    'AI-VIDEO-BROLL-GEN-9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east4-a and mandatory cleanup, no model inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

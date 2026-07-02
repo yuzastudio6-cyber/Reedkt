@@ -16,7 +16,7 @@ export type AiVideoBrollWanFastCacheManifestEntry = {
 }
 
 export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
-  decision: 'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_quota_blocked',
+  decision: 'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_quota_cleared_9w_selected',
   mode: 'stat_only_private_cache_readiness_check',
   toolId: 'ai_video_broll_generation_wan',
   modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
@@ -26,7 +26,7 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   runtimeEssentialFileCount: 19,
   aggregateBytes: 28928887859,
   expectedModelIndexClassName: 'WanPipeline',
-  quotaBlocker: 'gpus_all_regions_quota_zero',
+  quotaBlocker: 'cleared',
   selectedGpu: 'nvidia_l4',
   statOnly: true,
   hashesComputed: false,
@@ -45,7 +45,7 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   readyForExternalAgentExecutionNow: false,
   readyForBoundedRetryAfterBlockerClears: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
+    'AI-VIDEO-BROLL-GEN-9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east4-a and mandatory cleanup, no model inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

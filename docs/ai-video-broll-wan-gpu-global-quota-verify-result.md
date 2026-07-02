@@ -2,15 +2,15 @@
 
 Decision: `ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready`.
 
-Recorded at: `2026-07-02T00:08:57Z`.
+Recorded at: `2026-07-02T12:42:00Z`.
 
 This packet records a read-only B-roll quota verification result for the Wan/Wan2.1 controlled L4 proof path. It does not request quota, create a VM, create disks, mutate firewall/IAM/networking, run Docker, import models, run inference, create generated video, touch Supabase, execute SQL, create storage objects, create signed URLs, mutate credits, unlock beta, unlock production, claim `dry_run_passed`, or claim `generated_local_fixture_passed`.
 
 ## Verified Target
 
 - Project: `reeditpro`
-- Region: `us-central1`
-- Zone: `us-central1-b`
+- Region: `us-east4`
+- Zone: `us-east4-a`
 - GPU: `nvidia_l4`
 - Future machine shape: `g2-standard-4`
 - Verification command: `npm run ai-video-broll-wan-gpu-global-quota:verify`
@@ -26,10 +26,10 @@ This packet records a read-only B-roll quota verification result for the Wan/Wan
 | Regional quota read | passed |
 | `GPUS_ALL_REGIONS` limit | `1` |
 | `GPUS_ALL_REGIONS` usage | `0` |
-| `NVIDIA_L4_GPUS` limit in `us-central1` | `1` |
-| `NVIDIA_L4_GPUS` usage in `us-central1` | `0` |
-| `PREEMPTIBLE_NVIDIA_L4_GPUS` limit in `us-central1` | `1` |
-| `PREEMPTIBLE_NVIDIA_L4_GPUS` usage in `us-central1` | `0` |
+| `NVIDIA_L4_GPUS` limit in `us-east4` | `1` |
+| `NVIDIA_L4_GPUS` usage in `us-east4` | `0` |
+| `PREEMPTIBLE_NVIDIA_L4_GPUS` limit in `us-east4` | `1` |
+| `PREEMPTIBLE_NVIDIA_L4_GPUS` usage in `us-east4` | `0` |
 | Quota sufficient for one L4 VM | yes |
 
 ## Runtime Boundary
@@ -64,4 +64,4 @@ All runtime side-effect gates remained false:
 
 ## Recommended Next Prompt
 
-`AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt`
+`AI-VIDEO-BROLL-GEN-9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east4-a and mandatory cleanup, no model inference`

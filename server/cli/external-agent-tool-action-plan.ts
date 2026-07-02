@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 9U attempted the bounded no-idle us-west1-c IAP wheelhouse transfer proof after fresh preflight; Google Cloud returned resource-pool exhaustion before a VM existed, so a 9V no-VM capacity strategy prompt is required before another transfer proof VM attempt, dependency install, or inference; do not create VMs from this rollup',
+        'B-roll 9V selected us-east4-a as the next bounded no-idle IAP wheelhouse transfer proof target after cleanup-verified us-west1-c stockout; the 9W prompt must repeat fresh preflight before any transfer proof VM attempt, dependency install, or inference; do not create VMs from this rollup',
       afterBlockerClears:
-        'run the separate 9V no-VM capacity strategy prompt before selecting any further bounded transfer proof target',
+        'run the separate 9W bounded no-idle us-east4-a transfer proof prompt before any VM attempt',
     }
   }
 

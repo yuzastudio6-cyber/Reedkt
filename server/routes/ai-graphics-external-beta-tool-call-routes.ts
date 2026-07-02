@@ -11,6 +11,7 @@ import {
   isAiGraphicsExternalAgentBrowserRuntimeControlledAdapterTool,
 } from '../tool-registry/ai-graphics-external-agent-browser-runtime-controlled-adapter'
 import { listAiGraphicsToolCallHandoffTools } from '../tool-registry/ai-graphics-tool-call-handoff'
+import { evaluateAiGraphicsOnDemandRuntimeAdmission } from '../tool-registry/ai-graphics-on-demand-runtime-admission'
 import { evaluateAiGraphicsToolCallPlan } from '../tool-registry/ai-graphics-tool-call-plan-evaluator'
 import { getAiGraphicsToolCallReadiness } from '../tool-registry/ai-graphics-tool-call-readiness'
 import type { ServiceContext } from '../types'
@@ -28,6 +29,9 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXE
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED'
+
+export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG =
+  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWARE = [
   'requireAuth',
@@ -87,6 +91,31 @@ const aiGraphicsCapabilitySchema = z.enum([
 ])
 
 const privateRefSchema = z.string().min(1).regex(/^private:\/\//)
+
+const aiGraphicsGpuModelRuntimeAdmissionToolIds = new Set<string>([
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const aiGraphicsModelWeightManifestRequiredToolIds = new Set<string>([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
+
+export function isAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionTool(
+  toolId: string,
+) {
+  return aiGraphicsGpuModelRuntimeAdmissionToolIds.has(toolId)
+}
 
 export const aiGraphicsExternalBetaToolCallRequestSchema = z.object({
   workspaceId: z.string().min(1),
@@ -584,6 +613,149 @@ export async function executeAiGraphicsExternalBetaToolCallBrowserRuntimeControl
   }
 }
 
+export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails(
+  request: AiGraphicsExternalBetaToolCallRequest,
+) {
+  const admission = evaluateAiGraphicsOnDemandRuntimeAdmission({
+    capabilityId: request.capabilityId,
+    requestedToolId: request.toolId,
+    executionRequested: true,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    artifactBoundaryApproved: true,
+    toolRouteApprovalRef: request.toolRouteApprovalRef,
+    workerApprovalRef: request.workerApprovalRef,
+    runtimeEnqueueApprovalRef: request.runtimeEnqueueApprovalRef,
+    ownerRuntimeApprovalRef: request.ownerRuntimeApprovalRef,
+    privateArtifactManifestRef: request.privateArtifactManifestRef,
+  })
+  const modelWeightManifestRequired =
+    aiGraphicsModelWeightManifestRequiredToolIds.has(request.toolId)
+
+  return {
+    routeDecision:
+      'ai_graphics_external_beta_tool_call_route_gpu_model_runtime_admission_blocked',
+    routeStatus:
+      'gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence',
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routeFlag:
+      AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
+    requestId: request.requestId,
+    toolId: request.toolId,
+    capabilityId: request.capabilityId,
+    productionToolId: admission.selectedTool?.productionToolId ?? null,
+    workerType: admission.selectedTool?.workerType ?? null,
+    runtimeTarget: admission.selectedTool?.runtimeTarget ?? null,
+    gpuRequiredForRuntime: admission.selectedTool?.gpuRequiredForRuntime === true,
+    modelWeightManifestRequired,
+    admissionDecision: admission.decision,
+    gpuRuntimeStartupAuthorization: admission.gpuRuntimeStartupAuthorization,
+    gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
+      admission.gpuRuntimeStartAllowedForAcceptedJob,
+    gpuRuntimeShouldStartNow: false,
+    missingRuntimeJobGates: admission.missingRuntimeJobGates,
+    missingRuntimeProofGates: admission.missingRuntimeProofGates,
+    missingPrivateModelWeightEvidence: modelWeightManifestRequired
+      ? [
+          'reviewed private model-weight manifest reference is missing',
+          'private checksum evidence is missing',
+          'native NVIDIA L4 model/runtime proof is missing',
+        ]
+      : ['native NVIDIA L4 runtime proof is missing'],
+    nextRequiredProofs: [
+      'collect reviewed private checksum evidence for model-weight tools',
+      'validate reviewed private model-weight manifests for tools that require weights',
+      'run native linux/amd64 NVIDIA L4 runtime proof on an approved GPU host',
+      'rerun external-beta per-tool runtime proof with accepted private evidence',
+      'only then allow worker enqueue to start GPU on demand for an accepted job',
+    ],
+    onDemandRuntimeAdmission: admission,
+    counts: {
+      totalAiGraphicsTools: 21,
+      gpuModelRuntimeAdmissionBlockedTools: 8,
+      gpuRuntimeShouldStartNowTools: 0,
+      modelWeightManifestRequiredTools: 5,
+      nativeGpuRuntimeProofRequiredTools: 8,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+    },
+    booleans: {
+      externalBetaToolCallRouteGpuModelRuntimeAdmissionEvaluated: true,
+      gpuModelRuntimeAdmissionFailClosed: true,
+      approvedPlanSnapshotAccepted: true,
+      creditReservationAccepted: true,
+      privateArtifactManifestAccepted: admission.privateArtifactManifestAccepted,
+      onDemandRuntimeAdmissionApplied: true,
+      modelWeightManifestRequired,
+      nativeGpuRuntimeProofRequired: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      agentCanExecuteAll21ToolsNow: false,
+      routeExecutionApprovedNow: false,
+      routeExecutionPerformed: true,
+      workerExecutionApprovedNow: false,
+      workerExecutionPerformed: false,
+      workerDispatchApprovedNow: false,
+      workerDispatchPerformed: false,
+      toolExecutionApprovedNow: false,
+      toolExecutionPerformed: false,
+      providerRuntimeApprovedNow: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimePerformed: false,
+      gpuRuntimeShouldStartNow: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+    },
+  }
+}
+
+export function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
+  request: AiGraphicsExternalBetaToolCallRequest,
+  serviceContext: ServiceContext,
+) {
+  if (!serviceContext.env.aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta canonical tool-call GPU/model runtime admission is disabled.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+  if (!isAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionTool(request.toolId)) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta canonical tool-call GPU/model runtime admission applies only to the eight GPU/model tools.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+
+  throw new ApiError(
+    'TOOL_NOT_READY',
+    'AI graphics GPU/model tool-call runtime remains blocked until reviewed private model-weight evidence and native NVIDIA L4 runtime proof are accepted.',
+    409,
+    buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails(request),
+  )
+}
+
 function buildRepresentativeToolCallRequest(
   toolId: string,
   capabilityId: string,
@@ -658,6 +830,16 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
           serviceContext,
         )
       sendOk(response, execution, [], 200)
+      return
+    }
+    if (
+      serviceContext.env.aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled &&
+      isAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionTool(body.toolId)
+    ) {
+      admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
+        body,
+        serviceContext,
+      )
       return
     }
     if (serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {

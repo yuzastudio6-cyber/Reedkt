@@ -37,6 +37,7 @@ export interface RuntimeEnv {
   aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled: boolean
   aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled: boolean
   aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled: boolean
   aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled: boolean
   aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled: boolean
   strictToolReadiness: boolean
@@ -86,6 +87,7 @@ const envSchema = z.object({
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
   STRICT_TOOL_READINESS: z.string().optional(),
@@ -165,6 +167,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED),
     aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled:
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED),
     aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED),
     aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:
@@ -235,6 +239,8 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
         env.aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled,
       aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled:
         env.aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled,
+      aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled,
       aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
         env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled,
       aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:

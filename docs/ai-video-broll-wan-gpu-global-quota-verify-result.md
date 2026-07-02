@@ -34,7 +34,7 @@ This packet records a read-only B-roll quota verification result for the Wan/Wan
 
 ## Runtime Boundary
 
-Quota is sufficient to plan the next bounded no-idle L4 proof prompt, but this result is not execution permission. A future prompt must still prove the no-idle lifecycle before any VM action:
+Quota is sufficient for one L4 VM, but this result is not execution permission. The latest 9W create attempt in `us-east4-a` stocked out before any VM existed, so the next step is a no-VM stockout-fix strategy prompt before any further VM action:
 
 - no public IP;
 - prompt-scoped VM only;
@@ -64,4 +64,4 @@ All runtime side-effect gates remained false:
 
 ## Recommended Next Prompt
 
-`AI-VIDEO-BROLL-GEN-9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east4-a and mandatory cleanup, no model inference`
+`AI-VIDEO-BROLL-GEN-9X-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-east4-a stockout, no VM/no inference`

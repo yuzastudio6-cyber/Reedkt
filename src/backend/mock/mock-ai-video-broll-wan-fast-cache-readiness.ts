@@ -45,7 +45,7 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   readyForExternalAgentExecutionNow: false,
   readyForBoundedRetryAfterBlockerClears: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east4-a and mandatory cleanup, no model inference',
+    'AI-VIDEO-BROLL-GEN-9X-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-east4-a stockout, no VM/no inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

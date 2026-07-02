@@ -70,14 +70,15 @@ for (const required of [
   'Project: `reeditpro`',
   '`GPUS_ALL_REGIONS` limit',
   '`NVIDIA_L4_GPUS` limit in `us-east4`',
-  'Quota is sufficient to plan the next bounded no-idle L4 proof prompt',
+  'Quota is sufficient for one L4 VM',
+  '9W create attempt in `us-east4-a` stocked out',
   'this result is not execution permission',
   'quota request created: false',
   'Compute Engine VM created: false',
   'model import/inference: false',
   'Supabase/SQL/storage/signed URLs: false',
   'beta/production unlock: false',
-  'AI-VIDEO-BROLL-GEN-9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A',
+  'AI-VIDEO-BROLL-GEN-9X-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -109,7 +110,7 @@ assert.equal(spec.minimumRegionalL4Quota, 1)
 assert.equal(spec.globalQuotaMetric, 'GPUS_ALL_REGIONS')
 assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
-assert.equal(spec.nextActionIfQuotaCleared.includes('9W-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-A'), true)
+assert.equal(spec.nextActionIfQuotaCleared.includes('9X-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX'), true)
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready')
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')

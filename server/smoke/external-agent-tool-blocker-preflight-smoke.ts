@@ -82,7 +82,7 @@ assert.equal(spec.broll.targetRegion, 'us-east4')
 assert.equal(spec.broll.targetZone, 'us-east4-c')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
-assert.equal(spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-9Y'), true)
+assert.equal(spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-9Z'), true)
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
 
 for (const command of spec.allowedReadOnlyCommands) {

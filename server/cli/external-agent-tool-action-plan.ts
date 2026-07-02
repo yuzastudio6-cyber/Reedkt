@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 9X selected us-east4-c as the next no-idle transfer proof target after the 9W us-east4-a stockout; the 9Y prompt must repeat preflight before any VM attempt, dependency install, or inference; do not create VMs from this rollup',
+        'B-roll 9Y attempted us-east4-c after the 9X selection and stocked out before any VM existed; the 9Z prompt must choose the next no-idle strategy before any VM attempt, dependency install, or inference; do not create VMs from this rollup',
       afterBlockerClears:
-        'run the separate 9Y bounded no-idle transfer proof prompt before any VM attempt',
+        'run the separate 9Z stockout-fix strategy prompt before any VM attempt',
     }
   }
 

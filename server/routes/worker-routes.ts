@@ -22,6 +22,10 @@ import {
   RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_ROUTE_INVOCATION_ROUTE_PATH,
   runGstreamerMkvtoolnixPersistedJobRuntimeRouteInvocation,
 } from '../services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-route-invocation-1'
+import {
+  RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_ROUTE_PATH,
+  runGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLease,
+} from '../services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
@@ -31,6 +35,7 @@ import {
   gstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridgeSchema,
   gstreamerMkvtoolnixPersistedJobRuntimeHandoffSchema,
   gstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationSchema,
+  gstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseSchema,
   probeMediaJobSchema,
   recordToolRuntimeCheckSchema,
   releaseWorkerJobSchema,
@@ -181,6 +186,23 @@ export function createWorkerRoutes(): Router {
         routeIdempotencyKey: getIdempotencyKey(request),
       })
       sendOk(response, { result }, [], result.ok ? 201 : 409)
+    }),
+  )
+
+  router.post(
+    RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_ROUTE_PATH,
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(
+        gstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLeaseSchema,
+        request.body,
+      )
+      const result = await runGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLease({
+        ...body,
+        routeIdempotencyKey: getIdempotencyKey(request),
+      }, getServiceContext(request))
+      sendOk(response, { result }, result.warnings, result.ok ? 201 : 409)
     }),
   )
 

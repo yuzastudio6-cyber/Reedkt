@@ -26,6 +26,9 @@ import type {
   AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight'
 import type {
+  AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePacket,
+} from '../tool-registry/ai-graphics-external-agent-execution-gate'
+import type {
   AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
 import type {
@@ -82,6 +85,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport>>(
       '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
     ),
+  sourceExternalAgentCpuStaticNonProductionEvidenceSequencePacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePacket>>(
+      '--external-agent-cpu-static-non-production-evidence-sequence-packet',
+    ),
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofPacket:
     readJsonFile<Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport>>(
       '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
@@ -124,6 +131,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet')),
     externalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightPacketRead:
       Boolean(valueAfterFlag('--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet')),
+    externalAgentCpuStaticNonProductionEvidenceSequencePacketRead:
+      Boolean(valueAfterFlag('--external-agent-cpu-static-non-production-evidence-sequence-packet')),
     externalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofPacketRead:
       Boolean(valueAfterFlag('--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet')),
     externalAgentCpuStaticWorkerClaimAndDispatchSmokeProofPacketRead:

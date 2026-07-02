@@ -118,6 +118,7 @@ const falseBooleanKeys = [
   'allFiveCpuStaticToolExecutionDryRunProofsPreparedWithProvidedEvidence',
   'allFiveCpuStaticDryToolExecutionContractsPrepared',
   'controlledToolExecutionProofRequiredBeforeExecution',
+  'liveEvidenceSequenceExecutedNow',
   'sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted',
   'allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence',
   'allFiveCpuStaticPhase0ExecutionEvidenceAccepted',
@@ -144,6 +145,7 @@ const trueBooleanKeys = [
   'sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted',
   'sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted',
   'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted',
+  'sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared',
   'properInstallAuditAccepted',
   'all21ToolsProperlyInstalledForPlannedSurface',
   'installAuditSeparatesPlannedSurfaceFromRuntimeCallable',
@@ -175,6 +177,8 @@ const trueBooleanKeys = [
   'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted',
   'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady',
   'allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence',
+  'allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks',
+  'nonProductionEvidenceSequenceKeepsRuntimeBlocks',
   'satoriRemainsBlockedPendingApprovedFontFixture',
   'fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes',
   'nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution',
@@ -202,6 +206,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.json',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.json',
@@ -635,6 +640,24 @@ if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyT
 if (docs.counts?.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
   fail('docs_external_agent_service_role_queue_write_smoke_preflight_evidence_not_5')
 }
+if (docs.counts?.cpuStaticNonProductionEvidenceSequencePreparedTools !== 5) {
+  fail('docs_cpu_static_non_production_evidence_sequence_prepared_not_5')
+}
+if (docs.counts?.externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools !== 5) {
+  fail('docs_external_agent_non_production_evidence_sequence_prepared_not_5')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceExecutedNowTools !== 0) {
+  fail('docs_non_production_evidence_sequence_executed_now_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow !== 0) {
+  fail('docs_non_production_evidence_sequence_live_queue_writes_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow !== 0) {
+  fail('docs_non_production_evidence_sequence_live_worker_claims_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow !== 0) {
+  fail('docs_non_production_evidence_sequence_live_worker_dispatches_not_0')
+}
 if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
   fail('docs_cpu_static_service_role_queue_write_smoke_proof_not_0')
 }
@@ -727,6 +750,9 @@ for (const phrase of [
   'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`',
   'externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`',
   'guarded CPU/static non-production evidence sequence',
+  'cpuStaticNonProductionEvidenceSequencePreparedTools: `5`',
+  'externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools: `5`',
+  'cpuStaticNonProductionEvidenceSequenceExecutedNowTools: `0`',
   evidenceSequenceCommand,
   'CPU/static saved service-role queue-write smoke proof accepted: `false`',
   'cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
@@ -912,6 +938,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
   '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-evidence-sequence-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -990,6 +1018,27 @@ if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflig
 }
 if (acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
   fail('accepted_report_service_role_queue_write_smoke_preflight_evidence_not_5')
+}
+if (acceptedSourceReport.sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared !== true) {
+  fail('accepted_report_source_non_production_evidence_sequence_not_true')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequencePreparedTools !== 5) {
+  fail('accepted_report_non_production_evidence_sequence_prepared_not_5')
+}
+if (acceptedSourceReport.externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools !== 5) {
+  fail('accepted_report_external_agent_non_production_evidence_sequence_prepared_not_5')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceExecutedNowTools !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_executed_now_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_live_queue_writes_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_live_worker_claims_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_live_worker_dispatches_not_0')
 }
 if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
   fail('accepted_report_service_role_queue_write_smoke_proof_not_0')

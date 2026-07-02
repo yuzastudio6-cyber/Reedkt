@@ -41,6 +41,12 @@ The current block is intentional and temporary. It does not mean the 21 tools ar
 - CPU/static service-role queue-write smoke preflight accepted: `true`
 - cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`
 - externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`
+- cpuStaticNonProductionEvidenceSequencePreparedTools: `5`
+- externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools: `5`
+- cpuStaticNonProductionEvidenceSequenceExecutedNowTools: `0`
+- cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow: `0`
+- cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow: `0`
+- cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow: `0`
 - CPU/static saved service-role queue-write smoke proof accepted: `false`
 - cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: `0`
 - cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools: `0`
@@ -193,6 +199,10 @@ The gate supports `--require-go`. While blocked, require-go mode exits with exit
 - `cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted=true`
 - `allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady=true`
 - `allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence=true`
+- `sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared=true`
+- `allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks=true`
+- `nonProductionEvidenceSequenceKeepsRuntimeBlocks=true`
+- `liveEvidenceSequenceExecutedNow=false`
 - `allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence=false`
 - `allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence=false`
 - `nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence=false`

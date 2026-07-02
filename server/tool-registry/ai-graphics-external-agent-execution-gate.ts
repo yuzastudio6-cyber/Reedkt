@@ -59,6 +59,8 @@ export const AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_DECISION =
   'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
 export const AI_GRAPHICS_21_TOOL_PROPER_INSTALL_AUDIT_DECISION =
   'ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks'
+export const AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_EVIDENCE_SEQUENCE_DECISION =
+  'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_with_runtime_blocks'
 
 export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'missing_21_tool_proper_install_audit'
@@ -77,6 +79,7 @@ export type AiGraphicsExternalAgentExecutionGateStatus =
   | 'external_agent_cpu_static_private_worker_live_adapter_invocation_queue_write_proof_rejected'
   | 'missing_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight'
   | 'external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_rejected'
+  | 'external_agent_cpu_static_private_worker_non_production_evidence_sequence_rejected'
   | 'external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_rejected'
   | 'external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_rejected'
   | 'external_agent_cpu_static_private_worker_tool_execution_dry_run_proof_rejected'
@@ -126,6 +129,55 @@ export interface AiGraphics21ToolProperInstallAudit {
   }>
 }
 
+export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePacket {
+  decision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_EVIDENCE_SEQUENCE_DECISION
+  status:
+    'external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_not_executed'
+  toolsCovered: 5
+  toolsCoveredIds: AiGraphicsCanonicalToolId[]
+  liveEvidenceSequenceExecutedNow: false
+  liveSupabaseQueueWritesNow: 0
+  liveWorkerClaimsNow: 0
+  liveWorkerDispatchHandoffsNow: 0
+  toolExecutionsPerformedNow: 0
+  agentCanExecuteToolsNow: false
+  gpuRuntimeShouldStartNow: false
+  runtimeReadyNow: false
+  externalBetaReadyNow: false
+  productionReadyNow: false
+  booleans?: {
+    externalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePrepared?: true
+    exactFiveCpuStaticToolsOnly?: true
+    serverOnlyServiceRoleCredentialsRequired?: true
+    nonProductionEnvironmentRequired?: true
+    explicitOperatorConfirmationRequired?: true
+    queueWriteSmokeRunsFirst?: true
+    queueWriteProofMustValidateBeforeClaimDispatch?: true
+    claimDispatchSmokeRunsSecond?: true
+    claimDispatchProofMustValidateBeforeExecutionGate?: true
+    localArtifactsOnly?: true
+    cleanupRequired?: true
+    noToolExecutionBySequence?: true
+    agentCanSelectForPlanning?: true
+    agentCanExecuteToolsNow?: false
+    liveQueueWriteApprovedNow?: false
+    workerClaimApprovedNow?: false
+    workerDispatchApprovedNow?: false
+    workerExecutionApprovedNow?: false
+    toolExecutionApprovedNow?: false
+    gpuRuntimeShouldStartNow?: false
+    runtimeReadyNow?: false
+    externalBetaReadyNow?: false
+    productionReadyNow?: false
+    dependencyInstallPerformed?: false
+    packageLockMutationPerformed?: false
+    supabaseMutationPerformed?: false
+    publicArtifactCreated?: false
+    signedUrlCreated?: false
+  }
+}
+
 export interface AiGraphicsExternalAgentExecutionGateInput {
   source21ToolProperInstallAuditPacket?: Partial<AiGraphics21ToolProperInstallAudit>
   sourceExternalBetaCallableRequestAdmissionPacket?: Partial<AiGraphicsExternalBetaCallableRequestAdmission>
@@ -139,6 +191,8 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
     Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionReport>
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightPacket?:
     Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokePreflightReport>
+  sourceExternalAgentCpuStaticNonProductionEvidenceSequencePacket?:
+    Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePacket>
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofPacket?:
     Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport>
   sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofPacket?:
@@ -217,6 +271,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_ADAPTER_INVOCATION_ENQUEUE_ADMISSION_DECISION | null
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightDecision:
     typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PREFLIGHT_DECISION | null
+  sourceExternalAgentCpuStaticNonProductionEvidenceSequenceDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_EVIDENCE_SEQUENCE_DECISION | null
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofDecision:
     typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION | null
   sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofDecision:
@@ -233,6 +289,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
   sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted: boolean
   sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted: boolean
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted: boolean
+  sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared: boolean
   sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted: boolean
   sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted: boolean
   sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted: boolean
@@ -266,6 +323,12 @@ export interface AiGraphicsExternalAgentExecutionGate {
   externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools: 0 | 5
   cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: 0 | 5
   externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: 0 | 5
+  cpuStaticNonProductionEvidenceSequencePreparedTools: 0 | 5
+  externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools: 0 | 5
+  cpuStaticNonProductionEvidenceSequenceExecutedNowTools: 0
+  cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow: 0
+  cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow: 0
+  cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow: 0
   cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: 0 | 5
   cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools: 0 | 5
   nonProductionServiceRoleQueueRowsPersistedAfterCleanup: 0
@@ -307,6 +370,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted: boolean
     sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted: boolean
     sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted: boolean
+    sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared: boolean
     sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted: boolean
     sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted: boolean
     sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted: boolean
@@ -343,6 +407,9 @@ export interface AiGraphicsExternalAgentExecutionGate {
     cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted: boolean
     allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady: boolean
     allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence: boolean
+    allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks: boolean
+    nonProductionEvidenceSequenceKeepsRuntimeBlocks: boolean
+    liveEvidenceSequenceExecutedNow: false
     allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence: boolean
     allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence: boolean
     nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence: boolean
@@ -570,6 +637,12 @@ const cpuStaticExactAdmissionTools = new Set<AiGraphicsCanonicalToolId>([
   'svgdotjs_svg_js',
   'viz_js',
 ])
+
+function exactCpuStaticToolSet(toolIds?: AiGraphicsCanonicalToolId[]): boolean {
+  return Array.isArray(toolIds) &&
+    toolIds.length === cpuStaticExactAdmissionTools.size &&
+    toolIds.every((toolId) => cpuStaticExactAdmissionTools.has(toolId))
+}
 
 function sourceAdmissionAccepted(
   packet?: Partial<AiGraphicsExternalBetaCallableRequestAdmission>,
@@ -1045,6 +1118,58 @@ function sourceCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted
     })
 }
 
+function sourceCpuStaticNonProductionEvidenceSequencePrepared(
+  packet?:
+    Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePacket>,
+): boolean {
+  return Boolean(packet) &&
+    packet?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_EVIDENCE_SEQUENCE_DECISION &&
+    packet.status ===
+      'external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_not_executed' &&
+    packet.toolsCovered === 5 &&
+    exactCpuStaticToolSet(packet.toolsCoveredIds) &&
+    packet.liveEvidenceSequenceExecutedNow === false &&
+    packet.liveSupabaseQueueWritesNow === 0 &&
+    packet.liveWorkerClaimsNow === 0 &&
+    packet.liveWorkerDispatchHandoffsNow === 0 &&
+    packet.toolExecutionsPerformedNow === 0 &&
+    packet.agentCanExecuteToolsNow === false &&
+    packet.gpuRuntimeShouldStartNow === false &&
+    packet.runtimeReadyNow === false &&
+    packet.externalBetaReadyNow === false &&
+    packet.productionReadyNow === false &&
+    packet.booleans?.externalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequencePrepared ===
+      true &&
+    packet.booleans?.exactFiveCpuStaticToolsOnly === true &&
+    packet.booleans?.serverOnlyServiceRoleCredentialsRequired === true &&
+    packet.booleans?.nonProductionEnvironmentRequired === true &&
+    packet.booleans?.explicitOperatorConfirmationRequired === true &&
+    packet.booleans?.queueWriteSmokeRunsFirst === true &&
+    packet.booleans?.queueWriteProofMustValidateBeforeClaimDispatch === true &&
+    packet.booleans?.claimDispatchSmokeRunsSecond === true &&
+    packet.booleans?.claimDispatchProofMustValidateBeforeExecutionGate === true &&
+    packet.booleans?.localArtifactsOnly === true &&
+    packet.booleans?.cleanupRequired === true &&
+    packet.booleans?.noToolExecutionBySequence === true &&
+    packet.booleans?.agentCanSelectForPlanning === true &&
+    packet.booleans?.agentCanExecuteToolsNow === false &&
+    packet.booleans?.liveQueueWriteApprovedNow === false &&
+    packet.booleans?.workerClaimApprovedNow === false &&
+    packet.booleans?.workerDispatchApprovedNow === false &&
+    packet.booleans?.workerExecutionApprovedNow === false &&
+    packet.booleans?.toolExecutionApprovedNow === false &&
+    packet.booleans?.gpuRuntimeShouldStartNow === false &&
+    packet.booleans?.runtimeReadyNow === false &&
+    packet.booleans?.externalBetaReadyNow === false &&
+    packet.booleans?.productionReadyNow === false &&
+    packet.booleans?.dependencyInstallPerformed === false &&
+    packet.booleans?.packageLockMutationPerformed === false &&
+    packet.booleans?.supabaseMutationPerformed === false &&
+    packet.booleans?.publicArtifactCreated === false &&
+    packet.booleans?.signedUrlCreated === false
+}
+
 function sourceCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted(
   packet?:
     Partial<AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport>,
@@ -1333,6 +1458,8 @@ function statusFromInput(input: {
   cpuStaticLiveAdapterQueueWriteProofAccepted: boolean
   hasCpuStaticNonProductionServiceRoleQueueWriteSmokePreflight: boolean
   cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted: boolean
+  hasCpuStaticNonProductionEvidenceSequence: boolean
+  cpuStaticNonProductionEvidenceSequencePrepared: boolean
   hasCpuStaticNonProductionServiceRoleQueueWriteSmokeProof: boolean
   cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted: boolean
   hasCpuStaticWorkerClaimAndDispatchSmokeProof: boolean
@@ -1389,6 +1516,12 @@ function statusFromInput(input: {
   }
   if (!input.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted) {
     return 'external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_rejected'
+  }
+  if (
+    input.hasCpuStaticNonProductionEvidenceSequence &&
+    !input.cpuStaticNonProductionEvidenceSequencePrepared
+  ) {
+    return 'external_agent_cpu_static_private_worker_non_production_evidence_sequence_rejected'
   }
   if (
     input.hasCpuStaticNonProductionServiceRoleQueueWriteSmokeProof &&
@@ -1501,6 +1634,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionPacket
   const sourceCpuStaticNonProductionServiceRoleQueueWriteSmokePreflight =
     input.sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightPacket
+  const sourceCpuStaticNonProductionEvidenceSequence =
+    input.sourceExternalAgentCpuStaticNonProductionEvidenceSequencePacket
   const sourceCpuStaticNonProductionServiceRoleQueueWriteSmokeProof =
     input.sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofPacket
   const sourceCpuStaticWorkerClaimAndDispatchSmokeProof =
@@ -1530,6 +1665,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted =
     sourceCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted(
       sourceCpuStaticNonProductionServiceRoleQueueWriteSmokePreflight,
+    )
+  const cpuStaticNonProductionEvidenceSequencePrepared =
+    sourceCpuStaticNonProductionEvidenceSequencePrepared(
+      sourceCpuStaticNonProductionEvidenceSequence,
     )
   const cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted =
     sourceCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted(
@@ -1802,6 +1941,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         Boolean(sourceCpuStaticNonProductionServiceRoleQueueWriteSmokePreflight),
       cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted:
         cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted,
+      hasCpuStaticNonProductionEvidenceSequence:
+        Boolean(sourceCpuStaticNonProductionEvidenceSequence),
+      cpuStaticNonProductionEvidenceSequencePrepared:
+        cpuStaticNonProductionEvidenceSequencePrepared,
       hasCpuStaticNonProductionServiceRoleQueueWriteSmokeProof:
         Boolean(sourceCpuStaticNonProductionServiceRoleQueueWriteSmokeProof),
       cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted:
@@ -1856,6 +1999,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PREFLIGHT_DECISION
         ? sourceCpuStaticNonProductionServiceRoleQueueWriteSmokePreflight.decision
         : null,
+    sourceExternalAgentCpuStaticNonProductionEvidenceSequenceDecision:
+      sourceCpuStaticNonProductionEvidenceSequence?.decision ===
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_EVIDENCE_SEQUENCE_DECISION
+        ? sourceCpuStaticNonProductionEvidenceSequence.decision
+        : null,
     sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofDecision:
       sourceCpuStaticNonProductionServiceRoleQueueWriteSmokeProof?.decision ===
       AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION
@@ -1889,6 +2037,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       cpuStaticAdapterInvocationEnqueueAdmissionAccepted,
     sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted:
       cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted,
+    sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared:
+      cpuStaticNonProductionEvidenceSequencePrepared,
     sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted:
       cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted,
     sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted:
@@ -1944,6 +2094,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted ? 5 : 0,
     externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools:
       cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted ? 5 : 0,
+    cpuStaticNonProductionEvidenceSequencePreparedTools:
+      cpuStaticNonProductionEvidenceSequencePrepared ? 5 : 0,
+    externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools:
+      cpuStaticNonProductionEvidenceSequencePrepared ? 5 : 0,
+    cpuStaticNonProductionEvidenceSequenceExecutedNowTools: 0,
+    cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow: 0,
+    cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow: 0,
+    cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow: 0,
     cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools:
       cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted ? 5 : 0,
     cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools:
@@ -2027,6 +2185,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         cpuStaticAdapterInvocationEnqueueAdmissionAccepted,
       sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted:
         cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted,
+      sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared:
+        cpuStaticNonProductionEvidenceSequencePrepared,
       sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted:
         cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted,
       sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted:
@@ -2089,6 +2249,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted,
       allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence:
         cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted,
+      allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks:
+        cpuStaticNonProductionEvidenceSequencePrepared,
+      nonProductionEvidenceSequenceKeepsRuntimeBlocks:
+        cpuStaticNonProductionEvidenceSequencePrepared,
+      liveEvidenceSequenceExecutedNow: false,
       allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence:
         cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted,
       allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence:

@@ -1073,6 +1073,24 @@ Summary:
 
 Recommended next prompt: `RP-BETA-INTEGRATION-30 - Remote Push and Deployment Owner Approval Packet`.
 
+## RP-BETA-INTEGRATION-30B Non-Identical Duplicate Artifact Review And Cleanup
+
+`RP-BETA-INTEGRATION-30B` creates [non-identical-duplicate-artifact-review-and-cleanup.md](non-identical-duplicate-artifact-review-and-cleanup.md) and [non-identical-duplicate-artifact-review-and-cleanup-checklist.md](non-identical-duplicate-artifact-review-and-cleanup-checklist.md).
+
+Decision: `post_merge_duplicate_cleanup_validation_passed_with_warnings`.
+
+Summary:
+
+- Rebuilt the untracked duplicate inventory after RP-BETA-INTEGRATION-30A.
+- Deleted `405` approved duplicate-suffixed artifacts by exact path only.
+- Included `11` credential/secret-named duplicates only after byte-for-byte proof against tracked bases.
+- Reviewed the four non-identical Creative Skill docs and kept the tracked base docs authoritative because the duplicate copies were stale and lacked RP-BETA-INTEGRATION-29 completion sections.
+- Preserved `supabase/.branches/` and `supabase/.temp/`.
+- Diff check, lint, build, Qwen checks/smokes, Supabase-command safety checks/smokes, beta/API smokes, and sound/music smokes passed after cleanup.
+- No push, deploy, merge, remote Supabase, provider call, worker execution, package edit, migration edit, manifest edit, or Qwen clone mutation occurred.
+
+Recommended next prompt: `RP-BETA-INTEGRATION-31 - Remote Push and Deployment Owner Approval Packet`.
+
 ## Scope Boundary
 
 Allowed in this audit:

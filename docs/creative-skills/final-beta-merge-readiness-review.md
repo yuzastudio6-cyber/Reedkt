@@ -220,3 +220,23 @@ Remaining warnings:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-30 - Remote Push and Deployment Owner Approval Packet`
+
+## O. RP-BETA-INTEGRATION-30B Cleanup Result
+
+RP-BETA-INTEGRATION-30B removed the duplicate-suffixed untracked artifacts that blocked final post-merge validation.
+
+Result:
+
+- Deleted `405` duplicate-suffixed artifacts after verification and review.
+- Preserved only `supabase/.branches/` and `supabase/.temp/` as local side artifacts.
+- Qwen secret leakage check now passes.
+- Full post-cleanup validation passed.
+- Protected migrations, Supabase config, Creative Skill manifest/contracts/mocks, package files, and tracked Qwen runtime/type support files remained unchanged.
+
+Updated decision:
+
+- `post_merge_duplicate_cleanup_validation_passed_with_warnings`
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-31 - Remote Push and Deployment Owner Approval Packet`

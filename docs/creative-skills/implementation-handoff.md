@@ -3809,3 +3809,38 @@ Boundaries:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-30 - Remote Push and Deployment Owner Approval Packet`
+
+## RP-BETA-INTEGRATION-30B Completion
+
+RP-BETA-INTEGRATION-30B completed the duplicate artifact review and cleanup that followed the RP-BETA-INTEGRATION-29 local merge.
+
+Created docs:
+
+- `docs/creative-skills/non-identical-duplicate-artifact-review-and-cleanup.md`
+- `docs/creative-skills/non-identical-duplicate-artifact-review-and-cleanup-checklist.md`
+
+Decision:
+
+- `post_merge_duplicate_cleanup_validation_passed_with_warnings`
+
+Cleanup details:
+
+- Deleted `405` duplicate-suffixed `" 2"` artifacts by exact path only.
+- Deleted `401` byte-identical duplicates after hash proof.
+- Included `11` credential/secret-named duplicates only after byte-for-byte proof.
+- Reviewed and deleted four stale non-identical duplicate docs because tracked bases contain the authoritative RP-BETA-INTEGRATION-29 completion sections.
+- Preserved `supabase/.branches/` and `supabase/.temp/`.
+
+Validation:
+
+- Diff check, lint, build, Qwen checks/smokes, Supabase-command safety checks/smokes, beta/API smokes, and sound/music smokes passed after cleanup.
+- Protected hashes for migrations, Supabase config, Creative Skill manifest/contracts/mocks, package files, and tracked Qwen runtime/type support files remained unchanged.
+- RP-BETA-INTEGRATION-17 remains the Creative Skill catalog local database verification baseline.
+
+Boundaries:
+
+- No push, deploy, merge, remote Supabase, provider call, worker execution, package edit, migration edit, manifest edit, app behavior change, or Qwen clone mutation occurred.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-31 - Remote Push and Deployment Owner Approval Packet`

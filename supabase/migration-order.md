@@ -138,3 +138,12 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Creates: `tool_cost_events`, a unique idempotency key, workspace/project summary indexes, credit reservation index, comments, RLS, and authenticated select policy scoped to workspace/project members.
 - Does not create: remote Supabase deployment, wallet spend/release/refund settlement, Stripe, production billing, provider calls, tool execution, worker dispatch, render/export charging, or public product readiness.
 - Notes: Insert/update/delete remain service-role/backend only. ReEditPro service/edit fees are intentionally excluded from tool events.
+
+## 16. Beta And Production Readiness Evidence Packets
+
+- Files: `migrations/202606270002_beta_readiness_evidence_packets.sql`, `migrations/20260702221112_production_tool_execution_readiness_evidence_packets.sql`
+- Purpose: Adds backend-only append-only packet tables for beta readiness evidence and final paid-production tool execution readiness evidence.
+- Depends on: backend service-role route enforcement, idempotency keys, readiness evidence validators, and production owner review artifacts.
+- Creates: `beta_readiness_evidence_packets`, `production_tool_execution_readiness_evidence_packets`, workspace/idempotency uniqueness for production evidence, comments, RLS, and explicit service-role `select, insert` grants with anon/authenticated access revoked.
+- Does not create: external beta activation, paid production approval, Supabase deployment, tool execution, media processing, wallet mutation, Stripe integration, provider calls, worker dispatch, public artifacts, signed URLs, or production billing.
+- Notes: Evidence packet storage is durable source-of-truth readback only. The production evidence table stores passing all-up readiness evidence and the resulting gate report, but it does not enable production by itself.

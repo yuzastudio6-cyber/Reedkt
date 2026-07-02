@@ -21,6 +21,7 @@ const server = app.listen(0)
 try {
   const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
   const route = `${baseUrl}/v1/beta-readiness/production-tool-execution-readiness/evaluate`
+  const evidenceRoute = `${baseUrl}/v1/beta-readiness/production-tool-execution-readiness/evidence`
 
   const missingEvidence = await requestJson(route, {
     method: 'POST',
@@ -83,6 +84,60 @@ try {
   assert.equal(secretLike.error.code, 'VALIDATION_FAILED', 'secret-like evidence should fail validation')
   assert.match(secretLike.error.message, /secret-like/, 'secret-like evidence error should explain the secret safety block')
 
+  const secretLikeRecord = await requestJson(evidenceRoute, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'production-readiness-api-smoke-secret-like-record' },
+    body: JSON.stringify({
+      ...completeEvidence,
+      observability: {
+        ...completeEvidence.observability!,
+        notes: ['operator pasted service_role_key by accident'],
+      },
+    }),
+  }, 400)
+  assert.equal(secretLikeRecord.error.code, 'VALIDATION_FAILED', 'secret-like production evidence should not record')
+  assert.match(secretLikeRecord.error.message, /secret-like/, 'secret-like production evidence record error should explain the secret safety block')
+
+  const blockedRecord = await requestJson(evidenceRoute, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'production-readiness-api-smoke-blocked-record' },
+    body: JSON.stringify({
+      sourceId: 'production-tool-execution-readiness-api-smoke:blocked-record',
+      workspaceId: 'workspace-production-readiness-api-smoke',
+      projectId: 'project-production-readiness-api-smoke',
+    }),
+  }, 400)
+  assert.equal(blockedRecord.error.code, 'VALIDATION_FAILED', 'blocked production evidence should not record')
+  assert.ok(
+    blockedRecord.error.details.blockers.some((blocker: string) => blocker.includes('Supabase production persistence')),
+    'blocked record response should include production gate blockers',
+  )
+
+  const recorded = await requestJson(evidenceRoute, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'production-readiness-api-smoke-record' },
+    body: JSON.stringify(completeEvidence),
+  }, 201)
+  assert.equal(recorded.ok, true, 'complete production evidence should record')
+  assert.equal(recorded.data.replayed, false, 'first production evidence record should not be replayed')
+  assert.equal(recorded.data.report.productionToolExecutionAllowed, true, 'recorded production evidence should include passing report')
+  assert.equal(recorded.data.packet.workspaceId, completeEvidence.workspaceId, 'recorded packet should keep workspace id')
+
+  const replayed = await requestJson(evidenceRoute, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'production-readiness-api-smoke-record' },
+    body: JSON.stringify(completeEvidence),
+  })
+  assert.equal(replayed.data.replayed, true, 'duplicate production evidence record should replay')
+  assert.equal(replayed.data.packet.id, recorded.data.packet.id, 'idempotent replay should return original production evidence packet')
+
+  const readback = await requestJson(`${evidenceRoute}?workspaceId=${encodeURIComponent(completeEvidence.workspaceId)}`, {
+    method: 'GET',
+  })
+  assert.equal(readback.ok, true, 'production evidence readback should return ok')
+  assert.equal(readback.data.evidencePacketCount, 1, 'production evidence readback should include one idempotent packet')
+  assert.equal(readback.data.latestReport.productionToolExecutionAllowed, true, 'production evidence readback should include latest passing report')
+
   console.log(JSON.stringify({
     ok: true,
     route: 'POST /v1/beta-readiness/production-tool-execution-readiness/evaluate',
@@ -90,6 +145,10 @@ try {
     passingStatus: passing.data.report.status,
     stagingBlocked: staging.data.report.blockers.length,
     secretSafetyRejected: secretLike.error.code,
+    secretSafetyRecordRejected: secretLikeRecord.error.code,
+    recordedEvidencePacket: recorded.data.packet.id,
+    idempotentEvidenceReplay: replayed.data.replayed,
+    readbackEvidencePacketCount: readback.data.evidencePacketCount,
   }, null, 2))
 } finally {
   await new Promise<void>((resolve, reject) => {

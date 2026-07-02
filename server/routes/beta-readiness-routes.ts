@@ -21,6 +21,7 @@ import {
 } from '../beta-readiness/platform-supabase-deployed-evidence-transport'
 import { buildBetaReadinessBackendOperatorStatus } from '../beta-readiness/beta-readiness-operator-status'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
+import { createProductionToolExecutionReadinessEvidenceService } from '../beta-readiness/production-tool-execution-readiness-evidence-service'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
   betaReadinessCoreRealCheckEvidenceSchema,
@@ -128,6 +129,34 @@ export function createBetaReadinessRoutes(): Router {
       }
       throw error
     }
+  }))
+
+  router.get('/v1/beta-readiness/production-tool-execution-readiness/evidence', requireAuth, asyncRoute(async (request, response) => {
+    const workspaceId = stringQueryValue(request.query.workspaceId)
+    if (!workspaceId) {
+      throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required for production readiness evidence readback.', 400)
+    }
+
+    const result = await createProductionToolExecutionReadinessEvidenceService(getServiceContext(request)).listEvidence(workspaceId)
+    sendOk(response, {
+      packets: result.packets,
+      latestReport: result.latestReport,
+      evidencePacketCount: result.evidencePacketCount,
+    }, result.warnings)
+  }))
+
+  router.post('/v1/beta-readiness/production-tool-execution-readiness/evidence', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(productionToolExecutionReadinessGateSchema, request.body)
+    const result = await createProductionToolExecutionReadinessEvidenceService(getServiceContext(request))
+      .recordEvidence(body, getIdempotencyKey(request))
+    sendOk(response, {
+      packet: result.packet,
+      replayed: result.replayed,
+      report: result.report,
+    }, [
+      ...result.warnings,
+      'Production readiness evidence recording does not deploy, run tools, process media, call Stripe, mutate wallets, or enable production by itself.',
+    ], result.replayed ? 200 : 201)
   }))
 
   router.post('/v1/beta-readiness/platform-billing-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {

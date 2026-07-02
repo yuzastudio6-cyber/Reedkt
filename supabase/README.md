@@ -385,6 +385,8 @@ The table is append-only from the user/API perspective. No authenticated insert,
 
 `migrations/202606270003_tool_cost_wallet_settlement_rpc.sql` adds wallet settlement rows and the `settle_tool_cost_event` RPC. The settlement table explicitly grants authenticated `select` through RLS and service-role `select, insert`. The security-definer RPC revokes default public/anon/authenticated execution and grants execute only to service-role.
 
+`migrations/20260702221112_production_tool_execution_readiness_evidence_packets.sql` adds a backend-only append-only packet table for the final paid-production tool execution readiness evidence and report. It explicitly grants service-role `select, insert`, revokes anon/authenticated access, creates no authenticated RLS policy, and keeps idempotent replay scoped by workspace plus idempotency key.
+
 These migrations have not been run in staging or production. They do not connect to Supabase remotely, settle wallet charges in a deployed project, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
 
 ## Future Migrations

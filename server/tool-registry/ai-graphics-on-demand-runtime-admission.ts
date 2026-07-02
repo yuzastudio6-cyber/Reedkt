@@ -141,6 +141,11 @@ function privateArtifactManifestAccepted(value?: string): boolean {
   return /^(private:\/\/|reeditpro-private:\/\/|reeditpro-private-artifact-ref-)/.test(value.trim())
 }
 
+function privateRuntimeProofRefAccepted(value?: string): boolean {
+  if (typeof value !== 'string' || value.trim().length === 0) return false
+  return value.trim().startsWith('private://')
+}
+
 function missingRuntimeJobGates(input: AiGraphicsOnDemandRuntimeAdmissionInput): string[] {
   return [
     !hasValue(input.approvedPlanSnapshotId) ? 'approved plan snapshot is missing' : undefined,
@@ -166,31 +171,34 @@ function missingRuntimeProofGates(
   const gates: string[] = []
 
   if (tool.gpuRequiredForRuntime) {
-    if (!hasValue(input.nativeGpuRuntimeProofRef)) {
-      gates.push('native NVIDIA GPU runtime proof reference is missing')
+    if (!privateRuntimeProofRefAccepted(input.nativeGpuRuntimeProofRef)) {
+      gates.push('native NVIDIA GPU runtime proof reference is missing or not private-scoped')
     }
     if (
       modelWeightManifestRequiredTools.has(tool.toolId) &&
-      !hasValue(input.modelWeightManifestRef)
+      !privateRuntimeProofRefAccepted(input.modelWeightManifestRef)
     ) {
-      gates.push('reviewed model-weight manifest reference is missing')
+      gates.push('reviewed model-weight manifest reference is missing or not private-scoped')
     }
     return gates
   }
 
-  if (tool.runtimeTarget === 'node_cpu_static' && !hasValue(input.nodeRuntimeProofRef)) {
-    gates.push('Node CPU/static runtime proof reference is missing')
+  if (
+    tool.runtimeTarget === 'node_cpu_static' &&
+    !privateRuntimeProofRefAccepted(input.nodeRuntimeProofRef)
+  ) {
+    gates.push('Node CPU/static runtime proof reference is missing or not private-scoped')
   }
 
-  if (tool.toolId === 'satori' && !hasValue(input.satoriFontRuntimeProofRef)) {
-    gates.push('Satori approved font runtime proof reference is missing')
+  if (tool.toolId === 'satori' && !privateRuntimeProofRefAccepted(input.satoriFontRuntimeProofRef)) {
+    gates.push('Satori approved font runtime proof reference is missing or not private-scoped')
   }
 
   if (
     tool.runtimeTarget.startsWith('browser_') &&
-    !hasValue(input.browserRuntimeProofRef)
+    !privateRuntimeProofRefAccepted(input.browserRuntimeProofRef)
   ) {
-    gates.push('browser/canvas/WebGL runtime proof reference is missing')
+    gates.push('browser/canvas/WebGL runtime proof reference is missing or not private-scoped')
   }
 
   return gates

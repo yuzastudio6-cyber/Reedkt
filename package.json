@@ -52,6 +52,8 @@
     "ai-graphics:tool-call-handoff:diagnostics": "node scripts/validation/ai-graphics-tool-call-handoff-diagnostics.mjs",
     "ai-graphics:tool-call-plan-evaluator:diagnostics": "node scripts/validation/ai-graphics-tool-call-plan-evaluator-diagnostics.mjs",
     "ai-graphics:on-demand-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-on-demand-runtime-admission-diagnostics.mjs",
+    "ai-graphics:on-demand-runtime-admission-private-proof-ref-smoke": "tsx server/cli/ai-graphics-on-demand-runtime-admission-private-proof-ref-smoke.ts",
+    "ai-graphics:on-demand-runtime-admission-private-proof-ref-smoke:diagnostics": "node scripts/validation/ai-graphics-on-demand-runtime-admission-private-proof-ref-smoke-diagnostics.mjs",
     "ai-graphics:beta-readiness-gate:diagnostics": "node scripts/validation/ai-graphics-beta-readiness-gate-diagnostics.mjs",
     "ai-graphics:beta-readiness-gate:evaluate": "tsx server/cli/ai-graphics-beta-readiness-gate-evaluate.ts",
     "ai-graphics:external-beta-evidence-scaffold": "tsx server/cli/ai-graphics-external-beta-evidence-scaffold.ts",

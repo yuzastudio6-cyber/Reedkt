@@ -85,6 +85,23 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase159RouteSourceEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase159-actual-disabled-dispatch-route-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase159-actual-disabled-dispatch-route-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase159_actual_disabled_dispatch_route_source_creation_completed_with_warnings_ready_for_disabled_route_static_validation' &&
+    evidence.sourceChange?.routeSourceCreated === true &&
+    evidence.sourceChange?.routeRegisteredToday === false &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase157-disabled-dispatch-route-owner-review-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase158-disabled-dispatch-route-source-creation-plan'),
@@ -99,7 +116,10 @@ const parsed = {
 
 for (const file of Object.values(docs).filter((file) => file.endsWith('.md'))) assertNoUnsafeTrueClaims(file)
 
-assert(!fs.existsSync(path.join(process.cwd(), futureRoutePath)), 'future route source must not exist in Phase158')
+assert(
+  !fs.existsSync(path.join(process.cwd(), futureRoutePath)) || phase159RouteSourceEvidenceExists(),
+  'future route source must not exist before Phase159 evidence',
+)
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')
 assert(parsed.source.ownerReviewResult.routeSourceCreationPlanningMayProceed === true, 'source planning not accepted')

@@ -3,6 +3,9 @@ import {
   buildAiGraphicsExternalAgentExecutionGate,
   type AiGraphics21ToolProperInstallAudit,
   type AiGraphicsExternalAgentExecutionGateInput,
+  type AiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket,
+  type AiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket,
+  type AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket,
 } from '../tool-registry/ai-graphics-external-agent-execution-gate'
 import type {
@@ -110,6 +113,18 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket>>(
       '--external-beta-tool-call-route-readiness-probe-smoke-packet',
     ),
+  sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket>>(
+      '--external-beta-tool-call-route-cpu-static-controlled-execution-smoke-packet',
+    ),
+  sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket>>(
+      '--external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-packet',
+    ),
+  sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket>>(
+      '--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -148,6 +163,12 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-agent-cpu-static-controlled-tool-execution-proof-packet')),
     externalBetaToolCallRouteReadinessProbeSmokePacketRead:
       Boolean(valueAfterFlag('--external-beta-tool-call-route-readiness-probe-smoke-packet')),
+    externalBetaToolCallRouteCpuStaticControlledExecutionSmokePacketRead:
+      Boolean(valueAfterFlag('--external-beta-tool-call-route-cpu-static-controlled-execution-smoke-packet')),
+    externalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacketRead:
+      Boolean(valueAfterFlag('--external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-packet')),
+    externalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacketRead:
+      Boolean(valueAfterFlag('--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet')),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

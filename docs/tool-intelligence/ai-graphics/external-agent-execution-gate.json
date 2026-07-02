@@ -3,7 +3,7 @@
   "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
   "status": "external_agent_execution_gate_fail_closed_runtime_blocked",
   "mode": "fail_closed_ai_graphics_external_agent_execution_gate",
-  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, and the route readiness probe that proves 13 controlled route-callable tools while keeping direct/global execution, GPU/model runtime, workers, providers, artifacts, beta, and production blocked.",
+  "summary": "Fail-closed external-agent execution gate for all 21 AI graphics tools. It accepts the 21-tool proper-install audit, sanitized request-admission evidence, route-mount readiness evidence, controlled on-demand status bridge evidence, route readiness probe evidence, and controlled route execution-smoke evidence proving 13 controlled canonical route-executed tools while keeping all-21 direct/global execution, GPU/model runtime, workers, providers, artifacts, beta, and production blocked.",
   "sourceEvidence": {
     "properInstallAudit": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
     "externalBetaCallableRequestAdmission": "ai_graphics_external_beta_callable_request_admission_prepared_with_runtime_blocks",
@@ -34,7 +34,13 @@
     "externalAgentCpuStaticPrivateWorkerControlledToolExecutionProof": "ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks",
     "sourceExternalAgentCpuStaticControlledToolExecutionProofDecision": null,
     "sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted": false,
-    "externalBetaToolCallRouteReadinessProbeSmoke": "ai_graphics_external_beta_tool_call_route_readiness_probe_smoke_passed"
+    "externalBetaToolCallRouteReadinessProbeSmoke": "ai_graphics_external_beta_tool_call_route_readiness_probe_smoke_passed",
+    "externalBetaToolCallRouteCpuStaticControlledExecutionSmoke": "ai_graphics_external_beta_tool_call_route_cpu_static_controlled_execution_smoke_passed",
+    "externalBetaToolCallRouteBrowserRuntimeControlledExecutionSmoke": "ai_graphics_external_beta_tool_call_route_browser_runtime_controlled_execution_smoke_passed",
+    "externalBetaToolCallRouteGpuModelRuntimeAdmissionSmoke": "ai_graphics_external_beta_tool_call_route_gpu_model_runtime_admission_smoke_passed",
+    "sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted": true,
+    "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted": true,
+    "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted": true
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -44,7 +50,10 @@
     "nonProductionEvidenceSequenceScript": "ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
     "toolExecutionDryRunProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics",
     "controlledToolExecutionProofDiagnosticScript": "ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics",
-    "routeReadinessProbeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics"
+    "routeReadinessProbeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics",
+    "routeCpuStaticControlledExecutionSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke:diagnostics",
+    "routeBrowserRuntimeControlledExecutionSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics",
+    "routeGpuModelRuntimeAdmissionSmokeDiagnosticScript": "ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics"
   },
   "counts": {
     "requireGoExitCodeWhenBlocked": 2,
@@ -117,7 +126,15 @@
     "gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence": 8,
     "gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence": 5,
     "gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence": 3,
-    "gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence": 0
+    "gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence": 0,
+    "controlledCanonicalRouteExecutedToolsWithProvidedEvidence": 13,
+    "cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence": 6,
+    "browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence": 7,
+    "localControlledPackageExecutionPerformedToolsWithProvidedEvidence": 13,
+    "controlledAdapterExecutedToolsWithProvidedEvidence": 13,
+    "gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence": 8,
+    "gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence": 8,
+    "gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence": 0
   },
   "tools": [
     {
@@ -1441,7 +1458,16 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false,
     "publicArtifactCreated": false,
-    "signedUrlCreated": false
+    "signedUrlCreated": false,
+    "sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted": true,
+    "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted": true,
+    "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted": true,
+    "controlledCanonicalRouteExecutionSmokeAcceptedWithProvidedEvidence": true,
+    "thirteenControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence": true,
+    "sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence": true,
+    "sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence": true,
+    "eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence": true,
+    "controlledRouteExecutionSmokeKeepsBroadExecutionBlocked": true
   },
   "recommendedNextPrompt": "AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF",
   "source21ToolProperInstallAuditDecision": "ai_graphics_21_tool_proper_install_audit_completed_with_runtime_blocks",
@@ -1474,5 +1500,11 @@
   "sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted": true,
   "readyForAnyExternalAgentExecutionNow": false,
   "executionAllowedNow": false,
-  "requireGoExitCodeWhenBlocked": 2
+  "requireGoExitCodeWhenBlocked": 2,
+  "sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeDecision": "ai_graphics_external_beta_tool_call_route_cpu_static_controlled_execution_smoke_passed",
+  "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeDecision": "ai_graphics_external_beta_tool_call_route_browser_runtime_controlled_execution_smoke_passed",
+  "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeDecision": "ai_graphics_external_beta_tool_call_route_gpu_model_runtime_admission_smoke_passed",
+  "sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted": true,
+  "sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted": true,
+  "sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted": true
 }

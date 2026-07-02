@@ -41,12 +41,24 @@ const requiredExistingFiles = [
 
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/source-chain.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/execution-runner.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/evidence-manifest-policy.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/blocked-result.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/safety-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1/gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-record.json',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-results.md',
   'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tool-lane-matrix.md',
   'docs/external-beta/tracka-tool-lane-ownership-realignment-1/next-action-plan.md',
   'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tracka-tool-lane-ownership-realignment-record.json',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
+  'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs',
   'package.json',
 ])
 

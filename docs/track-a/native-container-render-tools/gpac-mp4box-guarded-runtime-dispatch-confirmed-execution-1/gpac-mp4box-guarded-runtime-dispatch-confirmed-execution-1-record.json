@@ -1,0 +1,82 @@
+{
+  "packet": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1",
+  "decision": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation",
+  "execution": "blocked_confirmation_absent_no_route_worker_or_tool_execution",
+  "runnerStatus": "confirmed_execution_runner_added_fail_closed",
+  "integrationBase": "a0ce0ef0af160c1c0307360a881b718980cec3e6",
+  "sourceChain": {
+    "toolLaneRealignmentMergeSha": "c76b98c63773687a9c5588e15443b60b9b719e3f",
+    "gpacDispatchScaffoldConfirmedMergeSha": "89fe680d4b9b40fde95cd9cdf310eb587856b5f9",
+    "gstreamerMkvtoolnixExternalAgentGateMergeSha": "a0ce0ef0af160c1c0307360a881b718980cec3e6",
+    "excludedRemotionPr": "#577 open/draft/blocked/excluded"
+  },
+  "confirmationGate": {
+    "name": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH",
+    "required": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true",
+    "observed": "absent"
+  },
+  "route": {
+    "routeId": "render.gpacMp4box.serviceRolePackageMock",
+    "path": "/api/render/gpac-mp4box/package/mock",
+    "owner": "backend_service_role_only",
+    "currentSourceStatus": "disabled"
+  },
+  "worker": {
+    "skeletonId": "worker.gpacMp4box.packageValidation.mock",
+    "workerKind": "render_export",
+    "currentSourceStatus": "disabled_mock_worker_skeleton_only"
+  },
+  "fixture": {
+    "approvedSnapshotId": "approvedSnapshot.gpacMp4box.generatedSubtitleOnly.v1",
+    "privateInputManifestId": "manifest.gpacMp4box.privateInput.generatedSubtitleOnly.v1",
+    "privateArtifactManifestId": "manifest.gpacMp4box.privateArtifact.generatedSubtitleOnly.v1",
+    "cleanupPolicyId": "cleanup.gpacMp4box.workerTemp.generatedSubtitleOnly.v1",
+    "priorAcceptedInputSha256": "8070a36d0b5f724e75512fa1ab2f722b75aaba91ec46a37936d38cb6fa9f42ea",
+    "priorAcceptedOutputSha256": "afc4c7fc017f5d41d817284aa633355d587958416df02a71c0fdd66df7829bb8"
+  },
+  "commandTemplateAllowlist": [
+    "mp4box_add_generated_subtitle_only_v1",
+    "mp4box_info_generated_subtitle_only_v1",
+    "mp4box_package_validation_metadata_v1"
+  ],
+  "futureConfirmedGateBehavior": {
+    "absentGate": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation",
+    "presentGateWithCurrentDisabledSource": "blocked_gpac_mp4box_route_handler_not_enabled_for_confirmed_dispatch",
+    "requiredBeforeAcceptedDispatch": [
+      "approved snapshot",
+      "approval record",
+      "credit reservation",
+      "job id",
+      "worker lease",
+      "idempotency key",
+      "private manifests",
+      "QA report",
+      "cleanup policy",
+      "rollback policy",
+      "residue readback"
+    ]
+  },
+  "currentPhaseExecution": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "storageTransfer": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ROUTE-ENABLEMENT-SOURCE-1"
+}

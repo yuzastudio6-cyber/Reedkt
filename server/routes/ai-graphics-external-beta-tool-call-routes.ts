@@ -155,6 +155,8 @@ export const aiGraphicsExternalBetaToolCallRequestSchema = z.object({
   workerApprovalRef: privateRefSchema,
   runtimeEnqueueApprovalRef: privateRefSchema,
   ownerRuntimeApprovalRef: privateRefSchema,
+  nativeGpuRuntimeProofRef: privateRefSchema.optional(),
+  modelWeightManifestRef: privateRefSchema.optional(),
   traceId: z.string().min(1),
   payload: z.record(z.string(), z.unknown()).optional(),
 })
@@ -162,6 +164,10 @@ export const aiGraphicsExternalBetaToolCallRequestSchema = z.object({
 export type AiGraphicsExternalBetaToolCallRequest = z.infer<
   typeof aiGraphicsExternalBetaToolCallRequestSchema
 >
+
+function hasAcceptedPrivateRef(value?: string): boolean {
+  return privateRefSchema.safeParse(value).success
+}
 
 export function buildAiGraphicsExternalBetaToolCallBlockedDetails(
   request: AiGraphicsExternalBetaToolCallRequest,
@@ -642,6 +648,12 @@ export async function executeAiGraphicsExternalBetaToolCallBrowserRuntimeControl
 export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails(
   request: AiGraphicsExternalBetaToolCallRequest,
 ) {
+  const modelWeightManifestRequired =
+    aiGraphicsModelWeightManifestRequiredToolIds.has(request.toolId)
+  const nativeGpuRuntimeProofRefAccepted =
+    hasAcceptedPrivateRef(request.nativeGpuRuntimeProofRef)
+  const modelWeightManifestRefAccepted =
+    modelWeightManifestRequired && hasAcceptedPrivateRef(request.modelWeightManifestRef)
   const admission = evaluateAiGraphicsOnDemandRuntimeAdmission({
     capabilityId: request.capabilityId,
     requestedToolId: request.toolId,
@@ -654,13 +666,39 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     runtimeEnqueueApprovalRef: request.runtimeEnqueueApprovalRef,
     ownerRuntimeApprovalRef: request.ownerRuntimeApprovalRef,
     privateArtifactManifestRef: request.privateArtifactManifestRef,
+    nativeGpuRuntimeProofRef: nativeGpuRuntimeProofRefAccepted
+      ? request.nativeGpuRuntimeProofRef
+      : undefined,
+    modelWeightManifestRef: modelWeightManifestRefAccepted
+      ? request.modelWeightManifestRef
+      : undefined,
   })
-  const modelWeightManifestRequired =
-    aiGraphicsModelWeightManifestRequiredToolIds.has(request.toolId)
   const gpuModelUnblockPlan = buildAiGraphicsGpuModelUnblockPlan(
     request.toolId,
     modelWeightManifestRequired,
   )
+  const runtimeJobAdmissionReadyWithProvidedEvidence =
+    admission.runtimeJobAdmissionReadyWithProvidedEvidence === true
+  const gpuModelAdmissionEvidenceState =
+    runtimeJobAdmissionReadyWithProvidedEvidence
+      ? 'proof_refs_accepted_pending_live_worker_enqueue'
+      : gpuModelUnblockPlan.status
+  const nextExternalAgentAction = runtimeJobAdmissionReadyWithProvidedEvidence
+    ? 'wait_for_live_worker_enqueue_authorization_or_submit_to_approved_worker_lane'
+    : gpuModelUnblockPlan.nextExternalAgentAction
+  const missingPrivateModelWeightEvidence = admission.missingRuntimeProofGates.length === 0
+    ? []
+    : [
+        ...(modelWeightManifestRequired && !modelWeightManifestRefAccepted
+          ? [
+              'reviewed private model-weight manifest reference is missing',
+              'private checksum evidence is missing',
+            ]
+          : []),
+        ...(!nativeGpuRuntimeProofRefAccepted
+          ? ['native NVIDIA L4 model/runtime proof is missing']
+          : []),
+      ]
 
   return {
     routeDecision:
@@ -679,19 +717,22 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     gpuRequiredForRuntime: admission.selectedTool?.gpuRequiredForRuntime === true,
     modelWeightManifestRequired,
     gpuModelExternalBetaReadinessBlocker: gpuModelUnblockPlan.status,
-    nextExternalAgentAction: gpuModelUnblockPlan.nextExternalAgentAction,
+    gpuModelAdmissionEvidenceState,
+    nextExternalAgentAction,
     modelWeightPrivateEvidenceRequired:
       gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired,
-    modelWeightPrivateEvidenceAccepted:
-      gpuModelUnblockPlan.modelWeightPrivateEvidenceAccepted,
+    modelWeightPrivateEvidenceAccepted: modelWeightManifestRefAccepted,
+    modelWeightManifestRefAccepted,
     nativeGpuRuntimeProofRequired:
       gpuModelUnblockPlan.nativeGpuRuntimeProofRequired,
-    nativeGpuRuntimeProofAccepted:
-      gpuModelUnblockPlan.nativeGpuRuntimeProofAccepted,
+    nativeGpuRuntimeProofAccepted: nativeGpuRuntimeProofRefAccepted,
+    nativeGpuRuntimeProofRefAccepted,
     externalBetaPerToolRuntimeProofRecheckRequired:
       gpuModelUnblockPlan.externalBetaPerToolRuntimeProofRecheckRequired,
     externalBetaPerToolRuntimeProofRecheckAccepted:
       gpuModelUnblockPlan.externalBetaPerToolRuntimeProofRecheckAccepted,
+    runtimeJobAdmissionReadyWithProvidedEvidence,
+    workerEnqueueStillBlockedByCurrentLane: true,
     admissionDecision: admission.decision,
     gpuRuntimeStartupAuthorization: admission.gpuRuntimeStartupAuthorization,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -699,13 +740,7 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     gpuRuntimeShouldStartNow: false,
     missingRuntimeJobGates: admission.missingRuntimeJobGates,
     missingRuntimeProofGates: admission.missingRuntimeProofGates,
-    missingPrivateModelWeightEvidence: modelWeightManifestRequired
-      ? [
-          'reviewed private model-weight manifest reference is missing',
-          'private checksum evidence is missing',
-          'native NVIDIA L4 model/runtime proof is missing',
-        ]
-      : ['native NVIDIA L4 runtime proof is missing'],
+    missingPrivateModelWeightEvidence,
     nextRequiredProofs: [
       'collect reviewed private checksum evidence for model-weight tools',
       'validate reviewed private model-weight manifests for tools that require weights',
@@ -732,6 +767,10 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
       privateArtifactManifestAccepted: admission.privateArtifactManifestAccepted,
       onDemandRuntimeAdmissionApplied: true,
       modelWeightManifestRequired,
+      modelWeightManifestRefAccepted,
+      nativeGpuRuntimeProofRefAccepted,
+      runtimeJobAdmissionReadyWithProvidedEvidence,
+      workerEnqueueStillBlockedByCurrentLane: true,
       nativeGpuRuntimeProofRequired: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
@@ -793,11 +832,17 @@ export function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
     )
   }
 
+  const details =
+    buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails(request)
+  const message = details.runtimeJobAdmissionReadyWithProvidedEvidence === true
+    ? 'AI graphics GPU/model tool-call runtime has accepted required private proof refs, but live worker enqueue and GPU runtime execution remain blocked in this lane.'
+    : 'AI graphics GPU/model tool-call runtime remains blocked until reviewed private model-weight evidence and native NVIDIA L4 runtime proof are accepted.'
+
   throw new ApiError(
     'TOOL_NOT_READY',
-    'AI graphics GPU/model tool-call runtime remains blocked until reviewed private model-weight evidence and native NVIDIA L4 runtime proof are accepted.',
+    message,
     409,
-    buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails(request),
+    details,
   )
 }
 

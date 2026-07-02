@@ -35,6 +35,12 @@ const modelWeightManifestRequiredTools = [
   'transparent_background',
 ]
 
+const nativeGpuProofOnlyTools = [
+  'torch_torchvision',
+  'transformers',
+  'kornia',
+]
+
 const requiredFiles = [
   'server/config/env.ts',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
@@ -242,6 +248,10 @@ function checkReport(label, report) {
     nativeGpuProofOnlyRequiredTools: 3,
     nativeGpuRuntimeProofRequiredTools: 8,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 0,
+    nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools: 3,
+    proofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 3,
+    proofReadyWorkerEnqueueStillBlockedTools: 3,
+    proofReadyGpuRuntimeShouldStartNowTools: 0,
     gpuRuntimeShouldStartNowTools: 0,
     workerDispatchPerformedTools: 0,
     toolExecutionPerformedTools: 0,
@@ -262,6 +272,9 @@ function checkReport(label, report) {
     'allGpuModelToolsExposeActionableUnblockPlan',
     'fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker',
     'threeFoundationGpuToolsExposeNativeGpuOnlyBlocker',
+    'nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission',
+    'proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue',
+    'proofReadyGpuToolsDoNotStartGpuRuntime',
     'noGpuModelToolReportsAcceptedEvidenceNow',
     'allGpuModelToolsReportNativeGpuProofMissing',
     'allModelWeightToolsReportManifestMissing',
@@ -299,6 +312,64 @@ function checkReport(label, report) {
     'packageLockMutationPerformed',
   ]) {
     if (booleans[key] !== false) fail(`${label}_${key}_not_false`)
+  }
+
+  const proofReadyRows = report.proofReadyNativeOnlyResults
+  if (!Array.isArray(proofReadyRows) || proofReadyRows.length !== 3) {
+    fail(`${label}_proof_ready_native_rows_count_mismatch`)
+    return
+  }
+  for (const toolId of nativeGpuProofOnlyTools) {
+    const row = proofReadyRows.find((item) => item.toolId === toolId)
+    if (!row) {
+      fail(`${label}_missing_proof_ready_native_tool:${toolId}`)
+      continue
+    }
+    if (row.statusCode !== 409) fail(`${label}_${toolId}_proof_ready_status_not_409`)
+    if (row.blocked !== true) fail(`${label}_${toolId}_proof_ready_not_blocked`)
+    if (row.admissionDecision !== 'runtime_job_admission_ready_for_worker_enqueue') {
+      fail(`${label}_${toolId}_proof_ready_admission_decision_mismatch`)
+    }
+    if (row.runtimeJobAdmissionReadyWithProvidedEvidence !== true) {
+      fail(`${label}_${toolId}_proof_ready_runtime_job_not_ready`)
+    }
+    if (
+      row.gpuModelAdmissionEvidenceState !==
+      'proof_refs_accepted_pending_live_worker_enqueue'
+    ) {
+      fail(`${label}_${toolId}_proof_ready_evidence_state_mismatch`)
+    }
+    if (row.nativeGpuRuntimeProofRefAccepted !== true) {
+      fail(`${label}_${toolId}_native_gpu_proof_ref_not_accepted`)
+    }
+    if (row.nativeGpuRuntimeProofAccepted !== true) {
+      fail(`${label}_${toolId}_native_gpu_proof_not_accepted`)
+    }
+    if (row.modelWeightManifestRequired !== false) {
+      fail(`${label}_${toolId}_unexpected_model_weight_manifest_required`)
+    }
+    if (row.modelWeightManifestRefAccepted !== false) {
+      fail(`${label}_${toolId}_unexpected_model_weight_manifest_ref_accepted`)
+    }
+    if (!Array.isArray(row.missingRuntimeProofGates) || row.missingRuntimeProofGates.length !== 0) {
+      fail(`${label}_${toolId}_proof_ready_missing_runtime_proof_gates_not_empty`)
+    }
+    if (row.workerEnqueueStillBlockedByCurrentLane !== true) {
+      fail(`${label}_${toolId}_worker_enqueue_not_blocked_by_lane`)
+    }
+    if (row.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== true) {
+      fail(`${label}_${toolId}_gpu_start_not_allowed_after_accepted_job`)
+    }
+    for (const key of [
+      'gpuRuntimeShouldStartNow',
+      'workerDispatchPerformed',
+      'toolExecutionPerformed',
+      'modelWeightsLoaded',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) {
+      if (row[key] !== false) fail(`${label}_${toolId}_proof_ready_${key}_not_false`)
+    }
   }
 }
 
@@ -338,6 +409,10 @@ for (const phrase of [
   'admitAiGraphicsExternalBetaToolCallGpuModelRuntime',
   'buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlockedDetails',
   'buildAiGraphicsGpuModelUnblockPlan',
+  'nativeGpuRuntimeProofRef',
+  'modelWeightManifestRef',
+  'runtimeJobAdmissionReadyWithProvidedEvidence',
+  'proof_refs_accepted_pending_live_worker_enqueue',
   'gpuModelExternalBetaReadinessBlocker',
   'nextExternalAgentAction',
   'gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence',
@@ -348,6 +423,8 @@ for (const phrase of [
   'Expected eight GPU/model cases',
   'allGpuModelToolsExposeActionableUnblockPlan',
   'allModelWeightToolsReportManifestMissing',
+  'nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission',
+  'proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue',
   'blocked_pending_native_gpu_runtime_proof',
   'blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
@@ -385,9 +462,18 @@ if (
 if (!scorecard.includes('agentCanExecuteGpuModelToolsNow=false')) {
   fail('scorecard_missing_gpu_model_execution_false')
 }
+if (!scorecard.includes('nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools=3')) {
+  fail('scorecard_missing_native_gpu_proof_ready_ref_count')
+}
 for (const toolId of gpuModelTools) {
   if (!JSON.stringify(docs).includes(`"${toolId}"`)) fail(`docs_json_missing_tool:${toolId}`)
   if (!docsMd.includes(`\`${toolId}\``)) fail(`docs_md_missing_tool:${toolId}`)
+}
+for (const toolId of nativeGpuProofOnlyTools) {
+  const proofReadyMention = JSON.stringify(docs.proofReadyNativeOnlyResults ?? [])
+  if (!proofReadyMention.includes(`"${toolId}"`)) {
+    fail(`docs_json_missing_proof_ready_tool:${toolId}`)
+  }
 }
 
 for (const [label, text] of [
@@ -426,6 +512,8 @@ console.log(JSON.stringify({
     docs.counts.gpuModelRuntimeAdmissionEvaluatedTools,
   gpuModelRuntimeAdmissionBlockedTools:
     docs.counts.gpuModelRuntimeAdmissionBlockedTools,
+  nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools:
+    docs.counts.nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools,
   controlledCanonicalRouteExecutedTools:
     docs.counts.controlledCanonicalRouteExecutedTools,
   gpuRuntimeShouldStartNow: docs.booleans.gpuRuntimeShouldStartNow,

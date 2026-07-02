@@ -39,6 +39,12 @@ const modelWeightManifestRequiredTools = [
   'transparent_background',
 ]
 
+const nativeGpuProofOnlyTools = [
+  'torch_torchvision',
+  'transformers',
+  'kornia',
+]
+
 interface GpuModelRuntimeAdmissionBlockedResult {
   toolId: string
   capabilityId: string
@@ -51,13 +57,18 @@ interface GpuModelRuntimeAdmissionBlockedResult {
   workerType: string | null
   modelWeightManifestRequired: boolean
   gpuModelExternalBetaReadinessBlocker: string | null
+  gpuModelAdmissionEvidenceState: string | null
   nextExternalAgentAction: string | null
   modelWeightPrivateEvidenceRequired: boolean
   modelWeightPrivateEvidenceAccepted: boolean
+  modelWeightManifestRefAccepted: boolean
   nativeGpuRuntimeProofRequired: boolean
   nativeGpuRuntimeProofAccepted: boolean
+  nativeGpuRuntimeProofRefAccepted: boolean
   externalBetaPerToolRuntimeProofRecheckRequired: boolean
   externalBetaPerToolRuntimeProofRecheckAccepted: boolean
+  runtimeJobAdmissionReadyWithProvidedEvidence: boolean
+  workerEnqueueStillBlockedByCurrentLane: boolean
   gpuModelUnblockPlan: Record<string, any> | null
   missingRuntimeJobGates: string[]
   missingRuntimeProofGates: string[]
@@ -161,6 +172,32 @@ function normalizeRequest(
   }
 }
 
+function normalizeProofReadyNativeGpuOnlyRequest(
+  request: AiGraphicsExternalBetaToolCallRequest,
+): AiGraphicsExternalBetaToolCallRequest {
+  const normalized = normalizeRequest(request)
+  return {
+    ...normalized,
+    requestId: normalized.requestId.replace(
+      'gpu-model-admission-',
+      'gpu-model-admission-proof-ready-',
+    ),
+    traceId: normalized.traceId.replace(
+      'gpu-model-admission',
+      'gpu-model-admission-proof-ready',
+    ),
+    nativeGpuRuntimeProofRef:
+      `private://ai-graphics/external-beta/native-gpu-proof/${request.toolId}/accepted-result`,
+    payload: {
+      ...(normalized.payload ?? {}),
+      gpuModelRuntimeAdmissionProofRefsProvided: true,
+      nativeGpuRuntimeProofRefProvided: true,
+      modelWeightManifestRefProvided: false,
+      workerEnqueueStillBlockedByCurrentLane: true,
+    },
+  }
+}
+
 function asArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
@@ -191,6 +228,10 @@ async function runBlockedCase(
       typeof details.gpuModelExternalBetaReadinessBlocker === 'string'
         ? details.gpuModelExternalBetaReadinessBlocker
         : null,
+    gpuModelAdmissionEvidenceState:
+      typeof details.gpuModelAdmissionEvidenceState === 'string'
+        ? details.gpuModelAdmissionEvidenceState
+        : null,
     nextExternalAgentAction:
       typeof details.nextExternalAgentAction === 'string'
         ? details.nextExternalAgentAction
@@ -199,14 +240,22 @@ async function runBlockedCase(
       details.modelWeightPrivateEvidenceRequired === true,
     modelWeightPrivateEvidenceAccepted:
       details.modelWeightPrivateEvidenceAccepted === true,
+    modelWeightManifestRefAccepted:
+      details.modelWeightManifestRefAccepted === true,
     nativeGpuRuntimeProofRequired:
       details.nativeGpuRuntimeProofRequired === true,
     nativeGpuRuntimeProofAccepted:
       details.nativeGpuRuntimeProofAccepted === true,
+    nativeGpuRuntimeProofRefAccepted:
+      details.nativeGpuRuntimeProofRefAccepted === true,
     externalBetaPerToolRuntimeProofRecheckRequired:
       details.externalBetaPerToolRuntimeProofRecheckRequired === true,
     externalBetaPerToolRuntimeProofRecheckAccepted:
       details.externalBetaPerToolRuntimeProofRecheckAccepted === true,
+    runtimeJobAdmissionReadyWithProvidedEvidence:
+      details.runtimeJobAdmissionReadyWithProvidedEvidence === true,
+    workerEnqueueStillBlockedByCurrentLane:
+      details.workerEnqueueStillBlockedByCurrentLane === true,
     gpuModelUnblockPlan:
       details.gpuModelUnblockPlan && typeof details.gpuModelUnblockPlan === 'object'
         ? details.gpuModelUnblockPlan
@@ -234,6 +283,7 @@ async function runBlockedCase(
 function buildReport(
   routeMountedButAdmissionDisabledStatus: number,
   blockedResults: GpuModelRuntimeAdmissionBlockedResult[],
+  proofReadyNativeOnlyResults: GpuModelRuntimeAdmissionBlockedResult[],
 ) {
   return {
     schemaVersion:
@@ -244,6 +294,7 @@ function buildReport(
     routeFlag: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
     routeMountedButAdmissionDisabledStatus,
     blockedResults,
+    proofReadyNativeOnlyResults,
     counts: {
       totalAiGraphicsTools: 21,
       controlledCanonicalRouteExecutedTools: 13,
@@ -272,6 +323,22 @@ function buildReport(
         blockedResults.filter((item) => (
           item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob
         )).length,
+      nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools:
+        proofReadyNativeOnlyResults.filter((item) => (
+          item.runtimeJobAdmissionReadyWithProvidedEvidence &&
+          item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue'
+        )).length,
+      proofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools:
+        proofReadyNativeOnlyResults.filter((item) => (
+          item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob
+        )).length,
+      proofReadyWorkerEnqueueStillBlockedTools:
+        proofReadyNativeOnlyResults.filter((item) => (
+          item.workerEnqueueStillBlockedByCurrentLane
+        )).length,
+      proofReadyGpuRuntimeShouldStartNowTools:
+        proofReadyNativeOnlyResults.filter((item) => item.gpuRuntimeShouldStartNow)
+          .length,
       gpuRuntimeShouldStartNowTools:
         blockedResults.filter((item) => item.gpuRuntimeShouldStartNow).length,
       workerDispatchPerformedTools:
@@ -302,6 +369,32 @@ function buildReport(
           item.gpuModelExternalBetaReadinessBlocker ===
           'blocked_pending_native_gpu_runtime_proof'
         )).length === 3,
+      nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission:
+        proofReadyNativeOnlyResults.length === 3 &&
+        proofReadyNativeOnlyResults.every((item) => (
+          nativeGpuProofOnlyTools.includes(item.toolId) &&
+          item.blocked === true &&
+          item.statusCode === 409 &&
+          item.runtimeJobAdmissionReadyWithProvidedEvidence === true &&
+          item.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue' &&
+          item.nativeGpuRuntimeProofRefAccepted === true &&
+          item.modelWeightManifestRefAccepted === false
+        )),
+      proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue:
+        proofReadyNativeOnlyResults.length === 3 &&
+        proofReadyNativeOnlyResults.every((item) => (
+          item.blocked === true &&
+          item.workerEnqueueStillBlockedByCurrentLane === true &&
+          item.workerDispatchPerformed === false &&
+          item.toolExecutionPerformed === false
+        )),
+      proofReadyGpuToolsDoNotStartGpuRuntime:
+        proofReadyNativeOnlyResults.length === 3 &&
+        proofReadyNativeOnlyResults.every((item) => (
+          item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true &&
+          item.gpuRuntimeShouldStartNow === false &&
+          item.modelWeightsLoaded === false
+        )),
       noGpuModelToolReportsAcceptedEvidenceNow:
         blockedResults.every((item) => (
           item.modelWeightPrivateEvidenceAccepted === false &&
@@ -358,6 +451,11 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
       `| \`${item.toolId}\` | \`${item.capabilityId}\` | \`${item.statusCode}\` | \`${item.runtimeTarget}\` | \`${item.gpuModelExternalBetaReadinessBlocker}\` | \`${item.nextExternalAgentAction}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
     ))
     .join('\n')
+  const proofReadyRows = report.proofReadyNativeOnlyResults
+    .map((item) => (
+      `| \`${item.toolId}\` | \`${item.statusCode}\` | \`${item.admissionDecision}\` | \`${item.gpuModelAdmissionEvidenceState}\` | \`${item.workerEnqueueStillBlockedByCurrentLane}\` | \`${item.gpuRuntimeStartAllowedForAcceptedExternalBetaJob}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
+    ))
+    .join('\n')
 
   return `# AI Graphics External Beta Canonical Tool-Call GPU Model Runtime Admission Smoke
 
@@ -372,6 +470,14 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 | Tool | Capability | HTTP status | Runtime target | Readiness blocker | Next external-agent action | GPU starts now |
 | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
+
+## Native-GPU Proof Ref Admission Results
+
+These rows prove the canonical route now preserves accepted private native GPU proof refs for the three native-GPU-only tools. The route can mark those requests as ready for future worker enqueue, but the current lane still returns \`409\`, does not enqueue a live worker, does not dispatch, and does not start GPU runtime.
+
+| Tool | HTTP status | Admission decision | Evidence state | Worker enqueue still blocked | GPU start allowed after accepted job | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- |
+${proofReadyRows}
 
 ## Counts
 
@@ -391,8 +497,15 @@ async function main() {
   const cases = listAiGraphicsExternalBetaToolCallBlockedReadinessCases()
     .filter((item) => gpuModelTools.includes(item.request.toolId))
     .map((item) => normalizeRequest(item.request))
+  const proofReadyNativeOnlyCases = listAiGraphicsExternalBetaToolCallBlockedReadinessCases()
+    .filter((item) => nativeGpuProofOnlyTools.includes(item.request.toolId))
+    .map((item) => normalizeProofReadyNativeGpuOnlyRequest(item.request))
 
   assert(cases.length === 8, `Expected eight GPU/model cases, got ${cases.length}`)
+  assert(
+    proofReadyNativeOnlyCases.length === 3,
+    `Expected three native-GPU proof-ready cases, got ${proofReadyNativeOnlyCases.length}`,
+  )
 
   const disabledStatus = await withServer(false, async (baseUrl) => {
     const { response } = await postToolCall(baseUrl, cases[0])
@@ -402,6 +515,13 @@ async function main() {
   const blockedResults = await withServer(true, async (baseUrl) => {
     const results: GpuModelRuntimeAdmissionBlockedResult[] = []
     for (const request of cases) {
+      results.push(await runBlockedCase(baseUrl, request))
+    }
+    return results
+  })
+  const proofReadyNativeOnlyResults = await withServer(true, async (baseUrl) => {
+    const results: GpuModelRuntimeAdmissionBlockedResult[] = []
+    for (const request of proofReadyNativeOnlyCases) {
       results.push(await runBlockedCase(baseUrl, request))
     }
     return results
@@ -464,8 +584,16 @@ async function main() {
       `${result.toolId} unexpectedly accepted private model evidence`,
     )
     assert(
+      result.modelWeightManifestRefAccepted === false,
+      `${result.toolId} unexpectedly accepted model-weight manifest ref`,
+    )
+    assert(
       result.nativeGpuRuntimeProofAccepted === false,
       `${result.toolId} unexpectedly accepted native GPU proof`,
+    )
+    assert(
+      result.nativeGpuRuntimeProofRefAccepted === false,
+      `${result.toolId} unexpectedly accepted native GPU proof ref`,
     )
     assert(
       result.externalBetaPerToolRuntimeProofRecheckRequired === true,
@@ -483,7 +611,68 @@ async function main() {
     assert(result.signedUrlCreated === false, `${result.toolId} created signed URL`)
   }
 
-  const report = buildReport(disabledStatus, blockedResults)
+  for (const result of proofReadyNativeOnlyResults) {
+    assert(result.statusCode === 409, `${result.toolId} proof-ready response should return 409`)
+    assert(result.blocked === true, `${result.toolId} proof-ready response should remain blocked`)
+    assert(
+      result.admissionDecision === 'runtime_job_admission_ready_for_worker_enqueue',
+      `${result.toolId} proof-ready admission decision mismatch`,
+    )
+    assert(
+      result.runtimeJobAdmissionReadyWithProvidedEvidence === true,
+      `${result.toolId} should accept provided proof refs for admission`,
+    )
+    assert(
+      result.gpuModelAdmissionEvidenceState ===
+        'proof_refs_accepted_pending_live_worker_enqueue',
+      `${result.toolId} proof-ready evidence state mismatch`,
+    )
+    assert(
+      result.nextExternalAgentAction ===
+        'wait_for_live_worker_enqueue_authorization_or_submit_to_approved_worker_lane',
+      `${result.toolId} proof-ready next action mismatch`,
+    )
+    assert(
+      result.nativeGpuRuntimeProofRefAccepted === true,
+      `${result.toolId} should accept the native GPU proof ref`,
+    )
+    assert(
+      result.nativeGpuRuntimeProofAccepted === true,
+      `${result.toolId} should report native GPU proof accepted`,
+    )
+    assert(
+      result.modelWeightManifestRequired === false,
+      `${result.toolId} should not require model-weight manifest ref`,
+    )
+    assert(
+      result.modelWeightManifestRefAccepted === false,
+      `${result.toolId} unexpectedly accepted a model-weight manifest ref`,
+    )
+    assert(
+      result.missingRuntimeProofGates.length === 0,
+      `${result.toolId} should not report missing runtime proof gates`,
+    )
+    assert(
+      result.workerEnqueueStillBlockedByCurrentLane === true,
+      `${result.toolId} should keep worker enqueue blocked in this lane`,
+    )
+    assert(
+      result.gpuRuntimeStartAllowedForAcceptedExternalBetaJob === true,
+      `${result.toolId} should mark GPU start allowed only after an accepted job`,
+    )
+    assert(result.gpuRuntimeShouldStartNow === false, `${result.toolId} started GPU runtime`)
+    assert(result.workerDispatchPerformed === false, `${result.toolId} dispatched worker`)
+    assert(result.toolExecutionPerformed === false, `${result.toolId} executed tool`)
+    assert(result.modelWeightsLoaded === false, `${result.toolId} loaded model weights`)
+    assert(result.publicArtifactCreated === false, `${result.toolId} created public artifact`)
+    assert(result.signedUrlCreated === false, `${result.toolId} created signed URL`)
+  }
+
+  const report = buildReport(
+    disabledStatus,
+    blockedResults,
+    proofReadyNativeOnlyResults,
+  )
   if (process.argv.includes('--write-records')) {
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)
     fs.writeFileSync(outputMdPath, makeMarkdown(report))

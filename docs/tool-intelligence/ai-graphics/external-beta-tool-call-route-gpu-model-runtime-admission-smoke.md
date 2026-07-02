@@ -19,6 +19,16 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 | `rembg` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
 | `transparent_background` | `background_removal` | `409` | `native_linux_amd64_nvidia_l4_gpu_worker` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` | `false` |
 
+## Native-GPU Proof Ref Admission Results
+
+These rows prove the canonical route now preserves accepted private native GPU proof refs for the three native-GPU-only tools. The route can mark those requests as ready for future worker enqueue, but the current lane still returns `409`, does not enqueue a live worker, does not dispatch, and does not start GPU runtime.
+
+| Tool | HTTP status | Admission decision | Evidence state | Worker enqueue still blocked | GPU start allowed after accepted job | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `false` |
+| `transformers` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `false` |
+| `kornia` | `409` | `runtime_job_admission_ready_for_worker_enqueue` | `proof_refs_accepted_pending_live_worker_enqueue` | `true` | `true` | `false` |
+
 ## Counts
 
 - `totalAiGraphicsTools`: 21
@@ -31,6 +41,10 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 - `nativeGpuProofOnlyRequiredTools`: 3
 - `nativeGpuRuntimeProofRequiredTools`: 8
 - `gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 0
+- `nativeGpuProofOnlyAdmissionReadyWithProvidedRefsTools`: 3
+- `proofReadyGpuRuntimeStartAllowedForAcceptedExternalBetaJobTools`: 3
+- `proofReadyWorkerEnqueueStillBlockedTools`: 3
+- `proofReadyGpuRuntimeShouldStartNowTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
 - `workerDispatchPerformedTools`: 0
 - `toolExecutionPerformedTools`: 0
@@ -47,6 +61,9 @@ This smoke proves the canonical external-beta tool-call route now handles the ei
 - `allGpuModelToolsExposeActionableUnblockPlan`: true
 - `fiveModelWeightToolsExposePrivateEvidenceAndNativeGpuBlocker`: true
 - `threeFoundationGpuToolsExposeNativeGpuOnlyBlocker`: true
+- `nativeGpuProofOnlyToolsAcceptPrivateProofRefsForAdmission`: true
+- `proofReadyGpuToolsStillFailClosedBeforeWorkerEnqueue`: true
+- `proofReadyGpuToolsDoNotStartGpuRuntime`: true
 - `noGpuModelToolReportsAcceptedEvidenceNow`: true
 - `allGpuModelToolsReportNativeGpuProofMissing`: true
 - `allModelWeightToolsReportManifestMissing`: true

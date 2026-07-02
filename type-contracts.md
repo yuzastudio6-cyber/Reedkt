@@ -590,3 +590,7 @@ RP-BETA-INTEGRATION-29 performed the owner-approved local-only merge into `codex
 ## RP-BETA-INTEGRATION-30B Note
 
 RP-BETA-INTEGRATION-30B cleaned untracked duplicate-suffixed artifacts after verification and recorded `post_merge_duplicate_cleanup_validation_passed_with_warnings`. It did not change TypeScript contracts, Creative Skill migrations, manifest files, Creative Skill mock fixtures, Supabase config, package files, runtime providers, workers, remote Supabase, push, merge, or deployment behavior.
+
+## RP-BETA-INTEGRATION-31 Note
+
+RP-BETA-INTEGRATION-31 created the docs-only remote push and deployment owner approval packet and recorded `remote_push_owner_approval_packet_ready_with_warnings`. It did not change TypeScript contracts, Creative Skill migrations, manifest files, Creative Skill mock fixtures, Supabase config, package files, runtime providers, workers, remote Supabase, push, merge, or deployment behavior.

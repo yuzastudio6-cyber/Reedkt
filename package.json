@@ -49,6 +49,7 @@
     "smoke:unified-skill-capability-registry": "tsx server/smoke/unified-skill-capability-registry-smoke.ts",
     "smoke:tool-call-intent-planner": "tsx server/smoke/tool-call-intent-planner-smoke.ts",
     "smoke:tool-call-cost-credit-gate": "tsx server/smoke/tool-call-cost-credit-gate-smoke.ts",
+    "smoke:tool-execution-gateway": "tsx server/smoke/tool-execution-gateway-smoke.ts",
     "smoke:tool-beta-execution-readiness": "tsx server/smoke/tool-beta-execution-readiness-smoke.ts",
     "smoke:beta-readiness-api": "tsx server/smoke/beta-readiness-api-smoke.ts",
     "smoke:beta-readiness": "tsx server/smoke/beta-readiness-smoke.ts",

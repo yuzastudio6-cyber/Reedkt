@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10B selected us-east1-c after the cleanup-verified 10A us-east1-b stockout; the 10C future prompt must run before any next VM attempt, dependency install, or inference; do not create VMs from this rollup',
+        'B-roll 10C stocked out in us-east1-c before any VM existed; the 10D no-VM stockout-fix prompt must choose the next capacity strategy before any next VM attempt, dependency install, or inference; do not create VMs from this rollup',
       afterBlockerClears:
-        'run the separate 10C no-idle transfer proof prompt only after fresh preflight passes',
+        'run the separate 10D no-VM stockout-fix prompt before any additional no-idle transfer proof prompt is selected',
     }
   }
 

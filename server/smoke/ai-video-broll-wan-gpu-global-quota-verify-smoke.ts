@@ -82,7 +82,8 @@ for (const required of [
 	  '9Z no-VM stockout-fix result selected `us-east1-b`',
 	  '10A no-idle transfer proof then stocked out in `us-east1-b`',
 	  '10B no-VM stockout-fix result selected `us-east1-c`',
-	  'AI-VIDEO-BROLL-GEN-10C-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-C',
+	  '10C no-idle transfer proof then stocked out in `us-east1-c`',
+	  'AI-VIDEO-BROLL-GEN-10D-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX',
 	]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -114,7 +115,7 @@ assert.equal(spec.minimumRegionalL4Quota, 1)
 assert.equal(spec.globalQuotaMetric, 'GPUS_ALL_REGIONS')
 	assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 	assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
-assert.equal(spec.nextActionIfQuotaCleared.includes('10C-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-C'), true)
+assert.equal(spec.nextActionIfQuotaCleared.includes('10D-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX'), true)
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready')
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')

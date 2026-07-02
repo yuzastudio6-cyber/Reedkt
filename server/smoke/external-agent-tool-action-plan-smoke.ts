@@ -174,7 +174,7 @@ assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-executi
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
-assert.equal(broll.externalManualBlocker.includes('us-east1-b'), true)
+assert.equal(broll.externalManualBlocker.includes('us-east1-c'), true)
 assert.equal(broll.externalManualBlocker.includes('do not create VMs'), true)
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

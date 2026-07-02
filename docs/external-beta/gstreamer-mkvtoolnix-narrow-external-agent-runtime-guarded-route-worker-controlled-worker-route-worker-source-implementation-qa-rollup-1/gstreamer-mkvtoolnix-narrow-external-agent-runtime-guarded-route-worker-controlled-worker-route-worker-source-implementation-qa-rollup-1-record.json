@@ -75,14 +75,7 @@
   "productReadyEndToEndLocalOssTools": 0,
   "packageLock": "unchanged",
   "generatedArtifactsCommitted": "none",
-  "validation": "blocked_host_resource_limit_no_space_left_on_device_during_npm_ci",
-  "blocker": {
-    "code": "blocked_host_resource_limit_no_space_left_on_device_during_npm_ci",
-    "attemptedCommand": "npm ci --no-audit --no-fund --progress=false",
-    "observedError": "ENOSPC while creating node_modules/.bin",
-    "validationVolume": "/Volumes/backup",
-    "observedFreeSpace": "about 12GiB",
-    "requiredFollowup": "rerun dependency validation on a larger validation environment before claiming full validation"
-  },
+  "validation": "passed",
+  "hostResourceBlocker": "closed_after_larger_validation_clone_passed",
   "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXTERNAL-AGENT-RUNTIME-GUARDED-ROUTE-WORKER-CONTROLLED-WORKER-ROUTE-WORKER-SOURCE-REGISTRATION-PLAN-1"
 }

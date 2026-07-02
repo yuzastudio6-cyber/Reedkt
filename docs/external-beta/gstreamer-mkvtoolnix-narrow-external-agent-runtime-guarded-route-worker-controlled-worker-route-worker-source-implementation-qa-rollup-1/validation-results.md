@@ -1,19 +1,14 @@
 # Validation Results
 
-Validation status: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation status: `passed`
 
-Attempted commands:
+Host-resource blocker: `closed`
+
+Initial `/Volumes/backup` dependency validation failed with `ENOSPC` while creating `node_modules/.bin`. Full validation was rerun and passed in a clean larger validation clone under `/Users/macuser/codex-worktrees/`.
+
+Commands passed:
 
 - `npm ci --no-audit --no-fund --progress=false`
-
-Result:
-
-- `npm ci --no-audit --no-fund --progress=false` failed with `ENOSPC` while creating `node_modules/.bin`.
-- Validation volume: `/Volumes/backup` had about `12GiB` free and could not complete dependency hydration.
-- Local partial `node_modules` from the failed attempt was removed and was not committed.
-
-Skipped pending larger validation environment:
-
 - `git diff --check`
 - `npm run smoke:rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-route-worker-source-implementation-1`
 - `npm run --silent rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-route-worker-source-implementation-1:diagnostics`

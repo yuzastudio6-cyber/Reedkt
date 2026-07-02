@@ -6,9 +6,9 @@ Decision: `qa_passed_gstreamer_mkvtoolnix_narrow_route_worker_source_implementat
 
 Execution: `completed_docs_only_narrow_route_worker_source_implementation_qa_rollup_no_route_worker_tool_or_media_execution`
 
-Validation: `blocked_host_resource_limit_no_space_left_on_device_during_npm_ci`
+Validation: `passed`
 
-Blocker: `npm ci --no-audit --no-fund --progress=false` failed with `ENOSPC` while creating `node_modules/.bin` on `/Volumes/backup`; the volume had about `12GiB` free and requires a larger validation environment before full dependency validation can be claimed.
+Host-resource blocker: `closed`; initial `/Volumes/backup` dependency validation failed with `ENOSPC`, then full validation passed in a clean larger validation clone under `/Users/macuser/codex-worktrees/`.
 
 Accepted source implementation: `#2089`
 

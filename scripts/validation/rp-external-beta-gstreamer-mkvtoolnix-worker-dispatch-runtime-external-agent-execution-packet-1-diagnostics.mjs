@@ -37,6 +37,20 @@ const implementationFiles = [
 ]
 
 const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+for (const file of [
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/qa-review.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/evidence-matrix.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/readiness.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1-diagnostics.mjs',
+]) {
+  allowedChangedFiles.add(file)
+}
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

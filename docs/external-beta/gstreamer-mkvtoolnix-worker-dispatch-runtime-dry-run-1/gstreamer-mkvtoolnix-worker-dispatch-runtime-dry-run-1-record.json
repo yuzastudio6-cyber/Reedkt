@@ -1,0 +1,71 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-DRY-RUN-1",
+  "decision": "completed_gstreamer_mkvtoolnix_worker_dispatch_runtime_dry_run",
+  "execution": "completed_confirmation_gated_worker_dispatch_dry_run_no_worker_start_or_tool_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_WORKER_DISPATCH_RUNTIME_DRY_RUN",
+  "sourceChain": {
+    "sourceGatePr": 2158,
+    "sourceGateMergeSha": "488df755ef9f9954e8696ed336f9106bada06319",
+    "sourceGateDecision": "completed_gstreamer_mkvtoolnix_worker_dispatch_runtime_source_gate",
+    "sourceGateDispatchEnvelopeMode": "source_gate_ready_for_confirmation_gated_dispatch_dry_run",
+    "remoteClaimLeaseValidationPr": 2155,
+    "remoteClaimLeaseValidationMergeSha": "1cd82653c437bcc5082ec7b54eb4d06098554a6c",
+    "remoteClaimLeaseValidationRunId": "2026-07-02T15-13-58-300Z-7afbfde3",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "class": "staging"
+  },
+  "persistedJobType": "quality_check",
+  "persistedJobPayloadKind": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+  "workerType": "gstreamer_mkvtoolnix_generated_fixture_worker",
+  "claimLeaseMode": "remote_supabase_worker_claim_lease_no_worker_execution",
+  "claimedJobCannotBeReclaimedBeforeDispatch": true,
+  "rollbackResidueVerified": true,
+  "dryRunMode": "worker_dispatch_handoff_dry_run_no_worker_start",
+  "dryRunDispatchEnvelopeMode": "dry_run_dispatch_envelope_no_route_no_worker_start",
+  "confirmedRun": {
+    "runId": "2026-07-02T16-10-17-014Z-eec19f59",
+    "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-dry-run-1/2026-07-02T16-10-17-014Z-eec19f59",
+    "report": {
+      "fileName": "worker-dispatch-runtime-dry-run-report.json",
+      "bytes": 6395,
+      "sha256": "cddb88cd6e719d0cefcd58171c9d87bcc2b470110fb4099ccf4300bec111cc9c"
+    },
+    "manifest": {
+      "fileName": "worker-dispatch-runtime-dry-run-manifest.json",
+      "bytes": 1965,
+      "sha256": "c2883167cef0a8a175c07298091bec2480a99ba547b7b8002b161825bd58d8d1"
+    }
+  },
+  "routeHandlerInvocation": false,
+  "workerDispatch": false,
+  "workerExecution": false,
+  "workerProcessStart": false,
+  "workerLeaseMutation": false,
+  "persistentJobQueueWrite": false,
+  "gstreamerExecution": false,
+  "mkvtoolnixExecution": false,
+  "ffmpegFfprobeExecution": false,
+  "dockerExecution": false,
+  "remotionExecution": false,
+  "mediaProcessing": false,
+  "privateMediaProcessing": false,
+  "userMediaProcessing": false,
+  "supabaseMutation": false,
+  "sqlExecution": false,
+  "secretPayloadAccess": false,
+  "serviceRoleSecretPayloadAccess": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "finalRenderExport": false,
+  "externalBetaUnlock": false,
+  "paidProductionUnlock": false,
+  "productionUnlock": false,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-EXECUTION-PACKET-1"
+}

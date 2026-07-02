@@ -1,7 +1,7 @@
 {
   "decision": "ai_graphics_external_beta_cpu_static_controlled_tool_call_route_smoke_passed",
-  "status": "controlled_cpu_static_route_smoke_passed_for_five_tools",
-  "summary": "The external-beta CPU/static controlled route is mounted behind a dedicated flag and executes five proven CPU/static tools through the installed package adapter. The remaining sixteen AI graphics tools stay blocked for runtime.",
+  "status": "controlled_cpu_static_route_smoke_passed_for_six_tools",
+  "summary": "The external-beta CPU/static controlled route is mounted behind a dedicated flag and executes six proven CPU/static tools through the installed package adapter, including Satori with the locked font fixture proof. The remaining fifteen AI graphics tools stay blocked for runtime.",
   "route": {
     "path": "/api/ai-graphics/external-beta/cpu-static/controlled-tool-call",
     "flag": "AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED",
@@ -12,9 +12,9 @@
   },
   "counts": {
     "all21ToolsInLane": 21,
-    "controlledCpuStaticRouteCallableNowTools": 5,
-    "controlledAdapterExecutedTools": 5,
-    "remainingToolsStillBlockedForRuntime": 16,
+    "controlledCpuStaticRouteCallableNowTools": 6,
+    "controlledAdapterExecutedTools": 6,
+    "remainingToolsStillBlockedForRuntime": 15,
     "gpuRuntimeShouldStartNowTools": 0,
     "publicArtifactCreatedTools": 0,
     "signedUrlCreatedTools": 0
@@ -38,6 +38,13 @@
       "toolId": "vega",
       "capabilityId": "data_visualization",
       "runtimeTarget": "node_cpu_static",
+      "routeCallableNow": true,
+      "adapterExecutedNow": true
+    },
+    {
+      "toolId": "satori",
+      "capabilityId": "svg_graphics",
+      "runtimeTarget": "node_cpu_static_svg_layout_locked_font_fixture",
       "routeCallableNow": true,
       "adapterExecutedNow": true
     },
@@ -92,10 +99,6 @@
     {
       "toolId": "echarts",
       "blocker": "browser chart runtime sandbox proof pending"
-    },
-    {
-      "toolId": "satori",
-      "blocker": "approved font fixture required before text SVG layout execution"
     },
     {
       "toolId": "lottie_web",

@@ -17,6 +17,7 @@ const cpuStaticControlledToolIdSchema = z.enum([
   'd3',
   'vega_lite',
   'vega',
+  'satori',
   'svgdotjs_svg_js',
   'viz_js',
 ])
@@ -52,6 +53,7 @@ const capabilityByTool = {
   d3: 'chart_overlay',
   vega_lite: 'data_visualization',
   vega: 'data_visualization',
+  satori: 'svg_graphics',
   svgdotjs_svg_js: 'svg_graphics',
   viz_js: 'diagram_graphics',
 } as const
@@ -112,9 +114,9 @@ export function createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes():
       capabilityId: body.capabilityId,
       externalAgentCanExecuteCpuStaticControlledToolsNow: true,
       controlledCpuStaticRouteExecutionPerformed: true,
-      controlledCpuStaticToolsCallableNow: 5,
+      controlledCpuStaticToolsCallableNow: 6,
       all21ToolsCoveredByAiGraphicsLane: 21,
-      remainingToolsStillBlockedForRuntime: 16,
+      remainingToolsStillBlockedForRuntime: 15,
       gpuRuntimeShouldStartNow: false,
       externalBetaReadyNow: false,
       productionReadyNow: false,

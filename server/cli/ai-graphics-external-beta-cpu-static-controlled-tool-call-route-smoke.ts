@@ -154,7 +154,7 @@ async function main() {
 
   const report = {
     decision,
-    status: 'controlled_cpu_static_route_smoke_passed_for_five_tools',
+    status: 'controlled_cpu_static_route_smoke_passed_for_six_tools',
     routePath: AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_PATH,
     routeFlag: AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_FLAG,
     disabledRouteStatus: disabledStatus,
@@ -164,7 +164,7 @@ async function main() {
     ).length,
     controlledAdapterExecutedTools: routeResults.filter((result) => result.adapterExecutedNow).length,
     all21ToolsInLane: 21,
-    remainingToolsStillBlockedForRuntime: 16,
+    remainingToolsStillBlockedForRuntime: 21 - routeResults.length,
     gpuRuntimeShouldStartNowTools: routeResults.filter((result) => result.gpuRuntimeShouldStartNow)
       .length,
     publicArtifactCreatedTools: routeResults.filter((result) => result.publicArtifactCreated)

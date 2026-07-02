@@ -1,14 +1,17 @@
 import { createHash } from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_CONTROLLED_ADAPTER_DECISION =
-  'ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks'
+  'ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_CONTROLLED_ADAPTER_TOOL_IDS = [
   'd3',
   'vega_lite',
   'vega',
+  'satori',
   'svgdotjs_svg_js',
   'viz_js',
 ] as const satisfies readonly AiGraphicsCanonicalToolId[]
@@ -122,6 +125,14 @@ const defaultFixtures = {
       },
     ],
   },
+  satori: {
+    width: 640,
+    height: 360,
+    fontFamily: 'KenPixel',
+    text: 'CPU Static',
+    subtitle: 'Satori controlled adapter proof',
+    fontRelativePath: 'node_modules/three/examples/fonts/ttf/kenpixel.ttf',
+  },
   svgdotjs_svg_js: {
     width: 320,
     height: 180,
@@ -133,8 +144,12 @@ const defaultFixtures = {
   },
 } as const
 
-function sha256(value: string): string {
+function sha256(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function countMatches(input: string, pattern: RegExp): number {
+  return Array.from(input.matchAll(pattern)).length
 }
 
 function privateOutput(
@@ -273,6 +288,89 @@ async function runVega(payload: unknown): Promise<AiGraphicsExternalAgentCpuStat
   )
 }
 
+async function runSatori(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
+  const satoriModule = await importRuntimeModule('satori')
+  const render = satoriModule.default ?? satoriModule
+  if (typeof render !== 'function') throw new Error('satori render API is unavailable')
+
+  const input = { ...defaultFixtures.satori, ...asObject(payload) } as any
+  const width = positiveNumber(input.width, defaultFixtures.satori.width)
+  const height = positiveNumber(input.height, defaultFixtures.satori.height)
+  const text = typeof input.text === 'string' ? input.text : defaultFixtures.satori.text
+  const subtitle = typeof input.subtitle === 'string'
+    ? input.subtitle
+    : defaultFixtures.satori.subtitle
+  const fontRelativePath = defaultFixtures.satori.fontRelativePath
+  const fontPath = path.join(process.cwd(), fontRelativePath)
+  const fontData = fs.readFileSync(fontPath)
+  const fontHash = sha256(fontData)
+
+  const fixtureNode = {
+    type: 'div',
+    props: {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+        background: '#ffffff',
+        color: '#111827',
+        fontFamily: defaultFixtures.satori.fontFamily,
+        fontSize: 34,
+        padding: 32,
+        lineHeight: 1.2,
+      },
+      children: [
+        text,
+        {
+          type: 'span',
+          props: {
+            style: {
+              display: 'block',
+              marginTop: 18,
+              fontSize: 18,
+              color: '#374151',
+            },
+            children: subtitle,
+          },
+        },
+      ],
+    },
+  }
+
+  const renderOptions = {
+    width,
+    height,
+    fonts: [
+      {
+        name: defaultFixtures.satori.fontFamily,
+        data: fontData,
+        weight: 400,
+        style: 'normal',
+      },
+    ],
+  }
+  const firstSvg = await render(fixtureNode, renderOptions)
+  const secondSvg = await render(fixtureNode, renderOptions)
+  const deterministic = sha256(firstSvg) === sha256(secondSvg)
+
+  return privateOutput(firstSvg, 'svg_private_artifact_candidate', 'image/svg+xml', '.svg', {
+    svgLength: firstSvg.length,
+    hasSvgRoot: firstSvg.startsWith('<svg'),
+    hasExpectedViewBox: firstSvg.includes(`viewBox="0 0 ${width} ${height}"`),
+    pathCount: countMatches(firstSvg, /<path\b/g),
+    deterministic,
+    fontFixtureSource: 'locked_three_package_example_font',
+    fontRelativePath,
+    fontFamily: defaultFixtures.satori.fontFamily,
+    fontSha256: fontHash,
+    fontByteLength: fontData.byteLength,
+    svgArtifactCommitted: false,
+    publicArtifactCreated: false,
+  })
+}
+
 async function runSvgdotjs(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
   const svgdotjs = await importRuntimeModule('@svgdotjs/svg.js')
   const jsdom = await importRuntimeModule('jsdom')
@@ -351,7 +449,7 @@ export async function executeAiGraphicsExternalAgentCpuStaticControlledAdapter(
       privateArtifactManifestRef: request.privateArtifactManifestRef,
       output: null,
       blockersBeforeExternalRouteExecution: [
-        'tool is not in the five-tool CPU/static controlled adapter cohort',
+        'tool is not in the six-tool CPU/static controlled adapter cohort',
       ],
     }
   }
@@ -360,6 +458,7 @@ export async function executeAiGraphicsExternalAgentCpuStaticControlledAdapter(
     d3: runD3,
     vega_lite: runVegaLite,
     vega: runVega,
+    satori: runSatori,
     svgdotjs_svg_js: runSvgdotjs,
     viz_js: runVizJs,
   } satisfies Record<

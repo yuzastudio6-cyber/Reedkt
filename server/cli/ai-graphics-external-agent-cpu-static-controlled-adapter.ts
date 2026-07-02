@@ -39,7 +39,7 @@ function summarize(results: AiGraphicsExternalAgentCpuStaticControlledAdapterRes
     schemaVersion: '2026-07-02.ai-graphics.external-agent-cpu-static-controlled-adapter',
     decision: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_CONTROLLED_ADAPTER_DECISION,
     status:
-      'controlled_cpu_static_adapter_executed_five_private_outputs_external_route_blocked',
+      'controlled_cpu_static_adapter_executed_six_private_outputs_external_route_blocked',
     generatedAt: new Date().toISOString(),
     tools: [...AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_CONTROLLED_ADAPTER_TOOL_IDS],
     results,
@@ -71,9 +71,9 @@ function summarize(results: AiGraphicsExternalAgentCpuStaticControlledAdapterRes
     booleans: {
       cpuStaticControlledAdapterImplemented: true,
       cpuStaticControlledAdapterSmokeExecuted: true,
-      fiveCpuStaticToolsControlledAdapterExecutable: executed.length === 5,
-      fiveCpuStaticToolsControlledAdapterExecuted: executed.length === 5,
-      fivePrivateOutputCandidatesReady: results.every((result) => Boolean(result.output)),
+      sixCpuStaticToolsControlledAdapterExecutable: executed.length === 6,
+      sixCpuStaticToolsControlledAdapterExecuted: executed.length === 6,
+      sixPrivateOutputCandidatesReady: results.every((result) => Boolean(result.output)),
       localCpuStaticPackageExecutionPerformed: true,
       externalAgentCanExecuteViaMountedRouteNow: false,
       agentCanExecuteToolsNow: false,
@@ -96,7 +96,7 @@ function summarize(results: AiGraphicsExternalAgentCpuStaticControlledAdapterRes
       gcsUploadPerformed: false,
     },
     nextMilestone:
-      'bind controlled CPU/static adapter to private worker queue/claim/dispatch proof, then promote mounted external-beta route for the five-tool cohort',
+      'bind controlled CPU/static adapter to private worker queue/claim/dispatch proof, then promote mounted external-beta route for the six-tool cohort',
   }
 }
 
@@ -114,7 +114,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This packet is the first real execution bridge after the proof-heavy gate work. It invokes the five CPU/static tools that already passed Phase 0 evidence through a server-side controlled adapter and records sanitized private-output hashes only. It does not mount external-agent execution and does not write public artifacts.
+This packet is the first real execution bridge after the proof-heavy gate work. It invokes the six CPU/static tools that already passed Phase 0 or Satori font-fixture evidence through a server-side controlled adapter and records sanitized private-output hashes only. It does not mount broad external-agent execution and does not write public artifacts.
 
 ## Tool Results
 
@@ -132,7 +132,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 ## Boundary
 
-The controlled adapter is executable for the five CPU/static tools only: \`${report.tools.join('`, `')}\`. External route execution, worker execution, public artifact creation, signed URLs, browser/WebGL/canvas runtime, GPU runtime, beta, and production all remain blocked until their specific proofs pass.
+The controlled adapter is executable for the six CPU/static tools only: \`${report.tools.join('`, `')}\`. Broad external route execution, worker execution, public artifact creation, signed URLs, browser/WebGL/canvas runtime, GPU runtime, beta, and production all remain blocked until their specific proofs pass.
 
 ## Next Milestone
 
@@ -155,7 +155,7 @@ function makePromptResult(report: ReturnType<typeof summarize>): string {
 
 ## No-Scope
 
-No external mounted route execution, Worker execution, provider/model runtime, browser/WebGL/canvas runtime, GPU runtime, Supabase/GCS mutation, signed URL, public artifact, external beta unlock, production unlock, dependency add/remove, or package-lock mutation was performed. This worktree used \`npm ci\` from the existing lockfile so the packages were actually present locally.
+No broad external mounted route execution, Worker execution, provider/model runtime, browser/WebGL/canvas runtime, GPU runtime, Supabase/GCS mutation, signed URL, public artifact, external beta unlock, production unlock, dependency add/remove, or package-lock mutation was performed. This worktree used \`npm ci\` from the existing lockfile so the packages were actually present locally.
 
 ## Next Prompt
 
@@ -166,11 +166,11 @@ No external mounted route execution, Worker execution, provider/model runtime, b
 function makeImplementationPrompt(report: ReturnType<typeof summarize>): string {
   return `# AI Graphics External Agent CPU Static Controlled Adapter Implementation Record
 
-Implemented a server-side controlled adapter that actually invokes the five CPU/static packages from the existing lockfile install:
+Implemented a server-side controlled adapter that actually invokes the six CPU/static packages from the existing lockfile install:
 
 ${report.results.map((result) => `- \`${result.toolId}\`: ${result.status}, outputHash=\`${result.output?.privateArtifactSha256 ?? 'n/a'}\``).join('\n')}
 
-The mounted external-beta route remains blocked until the private queue/worker proof chain is complete.
+The scoped external-beta CPU/static route can execute this six-tool cohort behind its dedicated flag. The broad all-tools external-beta route remains blocked until the private queue/worker proof chain is complete.
 `
 }
 
@@ -181,12 +181,12 @@ async function main() {
   }
   const report = summarize(results)
 
-  assert(report.counts.controlledAdapterExecutableTools === 5, 'Expected five controlled adapter executable tools')
-  assert(report.counts.controlledAdapterExecutedTools === 5, 'Expected five controlled adapter executed tools')
+  assert(report.counts.controlledAdapterExecutableTools === 6, 'Expected six controlled adapter executable tools')
+  assert(report.counts.controlledAdapterExecutedTools === 6, 'Expected six controlled adapter executed tools')
   assert(report.counts.externalAgentRouteExecutableNowTools === 0, 'Mounted route must remain blocked')
   assert(report.counts.workerExecutionApprovedNowTools === 0, 'Worker execution must remain blocked')
   assert(report.counts.gpuRuntimeShouldStartNowTools === 0, 'GPU runtime must not start')
-  assert(report.booleans.fivePrivateOutputCandidatesReady === true, 'Expected private output candidates for all five tools')
+  assert(report.booleans.sixPrivateOutputCandidatesReady === true, 'Expected private output candidates for all six tools')
 
   if (process.argv.includes('--write-records')) {
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)

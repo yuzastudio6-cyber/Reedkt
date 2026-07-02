@@ -4,9 +4,9 @@ import path from 'node:path'
 
 const root = process.cwd()
 const decision =
-  'ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks'
+  'ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks'
 const status =
-  'controlled_cpu_static_adapter_executed_five_private_outputs_external_route_blocked'
+  'controlled_cpu_static_adapter_executed_six_private_outputs_external_route_blocked'
 const runScriptName =
   'ai-graphics:external-agent-cpu-static-controlled-adapter'
 const runScriptCommand =
@@ -16,7 +16,7 @@ const diagnosticsScriptName =
 const diagnosticsScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-cpu-static-controlled-adapter-diagnostics.mjs'
 
-const tools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
+const tools = ['d3', 'vega_lite', 'vega', 'satori', 'svgdotjs_svg_js', 'viz_js']
 
 const requiredFiles = [
   'server/tool-registry/ai-graphics-external-agent-cpu-static-controlled-adapter.ts',
@@ -94,7 +94,7 @@ function exec(command) {
 function checkReport(label, report) {
   if (report.decision !== decision) fail(`${label}_decision_mismatch`)
   if (report.status !== status) fail(`${label}_status_mismatch`)
-  if (!Array.isArray(report.tools) || report.tools.length !== 5) {
+  if (!Array.isArray(report.tools) || report.tools.length !== 6) {
     fail(`${label}_tool_count_mismatch`)
   }
   for (const toolId of tools) {
@@ -139,10 +139,10 @@ function checkReport(label, report) {
   }
   const counts = report.counts ?? {}
   const expectedCounts = {
-    controlledAdapterExecutableTools: 5,
-    controlledAdapterExecutedTools: 5,
-    localCpuStaticPackageExecutionPerformedTools: 5,
-    privateOutputCandidatesReadyTools: 5,
+    controlledAdapterExecutableTools: 6,
+    controlledAdapterExecutedTools: 6,
+    localCpuStaticPackageExecutionPerformedTools: 6,
+    privateOutputCandidatesReadyTools: 6,
     externalAgentRouteExecutableNowTools: 0,
     routeExecutionApprovedNowTools: 0,
     workerExecutionApprovedNowTools: 0,
@@ -158,9 +158,9 @@ function checkReport(label, report) {
   for (const key of [
     'cpuStaticControlledAdapterImplemented',
     'cpuStaticControlledAdapterSmokeExecuted',
-    'fiveCpuStaticToolsControlledAdapterExecutable',
-    'fiveCpuStaticToolsControlledAdapterExecuted',
-    'fivePrivateOutputCandidatesReady',
+    'sixCpuStaticToolsControlledAdapterExecutable',
+    'sixCpuStaticToolsControlledAdapterExecuted',
+    'sixPrivateOutputCandidatesReady',
     'localCpuStaticPackageExecutionPerformed',
     'npmCiFromExistingLockfilePerformedInWorktree',
   ]) {
@@ -217,7 +217,7 @@ if (packageJson.scripts?.[diagnosticsScriptName] !== diagnosticsScriptCommand) {
 if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-static-controlled-adapter'")) {
   fail('index_export_missing')
 }
-for (const packageName of ['d3', 'vega-lite', 'vega', '@svgdotjs/svg.js', 'jsdom', '@viz-js/viz']) {
+for (const packageName of ['d3', 'vega-lite', 'vega', 'satori', '@svgdotjs/svg.js', 'jsdom', '@viz-js/viz']) {
   if (
     !moduleSource.includes(`import('${packageName}')`) &&
     !moduleSource.includes(`importRuntimeModule('${packageName}')`)
@@ -235,20 +235,24 @@ for (const phrase of [
   if (!moduleSource.includes(phrase)) fail(`module_missing_phrase:${phrase}`)
 }
 for (const phrase of [
-  'Controlled adapter executable tools: `5`',
+  'Controlled adapter executable tools: `6`',
   'External route executable tools now: `0`',
-  'No external mounted route execution',
+  'No broad external mounted route execution',
 ]) {
   if (!promptResult.includes(phrase)) fail(`prompt_result_missing:${phrase}`)
 }
 for (const phrase of [
   'first real execution bridge',
-  'controlled adapter is executable for the five CPU/static tools',
-  'External route execution',
+  'controlled adapter is executable for the six CPU/static tools',
+  'Broad external route execution',
 ]) {
   if (!docsMd.includes(phrase)) fail(`docs_md_missing:${phrase}`)
 }
-for (const phrase of ['outputHash=', 'mounted external-beta route remains blocked']) {
+for (const phrase of [
+  'outputHash=',
+  'scoped external-beta CPU/static route can execute this six-tool cohort',
+  'broad all-tools external-beta route remains blocked',
+]) {
   if (!implementationPrompt.includes(phrase)) fail(`implementation_prompt_missing:${phrase}`)
 }
 
@@ -294,7 +298,7 @@ if (failures.length > 0) {
 console.log(JSON.stringify({
   status: 'passed',
   decision,
-  controlledAdapterExecutableTools: 5,
-  controlledAdapterExecutedTools: 5,
+  controlledAdapterExecutableTools: 6,
+  controlledAdapterExecutedTools: 6,
   externalAgentRouteExecutableNowTools: 0,
 }, null, 2))

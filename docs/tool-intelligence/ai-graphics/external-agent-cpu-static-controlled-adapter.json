@@ -1,18 +1,19 @@
 {
   "schemaVersion": "2026-07-02.ai-graphics.external-agent-cpu-static-controlled-adapter",
-  "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks",
-  "status": "controlled_cpu_static_adapter_executed_five_private_outputs_external_route_blocked",
-  "generatedAt": "2026-07-02T11:49:07.182Z",
+  "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
+  "status": "controlled_cpu_static_adapter_executed_six_private_outputs_external_route_blocked",
+  "generatedAt": "2026-07-02T12:17:41.189Z",
   "tools": [
     "d3",
     "vega_lite",
     "vega",
+    "satori",
     "svgdotjs_svg_js",
     "viz_js"
   ],
   "results": [
     {
-      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks",
+      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
       "status": "controlled_cpu_static_adapter_executed_private_output_ready",
       "requestId": "controlled-adapter-d3",
       "traceId": "trace-ai-graphics-cpu-static-controlled-adapter-d3",
@@ -55,7 +56,7 @@
       ]
     },
     {
-      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks",
+      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
       "status": "controlled_cpu_static_adapter_executed_private_output_ready",
       "requestId": "controlled-adapter-vega_lite",
       "traceId": "trace-ai-graphics-cpu-static-controlled-adapter-vega_lite",
@@ -97,7 +98,7 @@
       ]
     },
     {
-      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks",
+      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
       "status": "controlled_cpu_static_adapter_executed_private_output_ready",
       "requestId": "controlled-adapter-vega",
       "traceId": "trace-ai-graphics-cpu-static-controlled-adapter-vega",
@@ -139,7 +140,57 @@
       ]
     },
     {
-      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks",
+      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
+      "status": "controlled_cpu_static_adapter_executed_private_output_ready",
+      "requestId": "controlled-adapter-satori",
+      "traceId": "trace-ai-graphics-cpu-static-controlled-adapter-satori",
+      "toolId": "satori",
+      "controlledAdapterExecutableNow": true,
+      "controlledAdapterExecutedNow": true,
+      "localCpuStaticPackageExecutionPerformed": true,
+      "externalAgentCanExecuteViaMountedRouteNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "browserWebglCanvasRuntimeApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "providerRuntimeApprovedNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "privateArtifactManifestRef": "private://ai-graphics/cpu-static-controlled-adapter/satori/artifact-manifest",
+      "output": {
+        "outputKind": "svg_private_artifact_candidate",
+        "mediaType": "image/svg+xml",
+        "privateArtifactExtension": ".svg",
+        "privateArtifactBytes": 6879,
+        "privateArtifactSha256": "5373ceb763423c434287d19f3ca4eddfa4faafb9c973d73b8cb333daf14edf9b",
+        "summary": {
+          "svgLength": 6879,
+          "hasSvgRoot": true,
+          "hasExpectedViewBox": true,
+          "pathCount": 2,
+          "deterministic": true,
+          "fontFixtureSource": "locked_three_package_example_font",
+          "fontRelativePath": "node_modules/three/examples/fonts/ttf/kenpixel.ttf",
+          "fontFamily": "KenPixel",
+          "fontSha256": "fd42226067fc44707d41ef9f43597574c6a0fd415249416b38cf93371a7a611a",
+          "fontByteLength": 18068,
+          "svgArtifactCommitted": false,
+          "publicArtifactCreated": false
+        }
+      },
+      "blockersBeforeExternalRouteExecution": [
+        "mounted external-beta route still requires queue/worker execution approval",
+        "private worker queue write and claim/dispatch proof must pass before external route execution",
+        "private artifact persistence must be bound by backend worker before user-visible output"
+      ]
+    },
+    {
+      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
       "status": "controlled_cpu_static_adapter_executed_private_output_ready",
       "requestId": "controlled-adapter-svgdotjs_svg_js",
       "traceId": "trace-ai-graphics-cpu-static-controlled-adapter-svgdotjs_svg_js",
@@ -182,7 +233,7 @@
       ]
     },
     {
-      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_five_with_route_worker_blocks",
+      "decision": "ai_graphics_external_agent_cpu_static_controlled_adapter_executable_six_with_route_worker_blocks",
       "status": "controlled_cpu_static_adapter_executed_private_output_ready",
       "requestId": "controlled-adapter-viz_js",
       "traceId": "trace-ai-graphics-cpu-static-controlled-adapter-viz_js",
@@ -224,10 +275,10 @@
     }
   ],
   "counts": {
-    "controlledAdapterExecutableTools": 5,
-    "controlledAdapterExecutedTools": 5,
-    "localCpuStaticPackageExecutionPerformedTools": 5,
-    "privateOutputCandidatesReadyTools": 5,
+    "controlledAdapterExecutableTools": 6,
+    "controlledAdapterExecutedTools": 6,
+    "localCpuStaticPackageExecutionPerformedTools": 6,
+    "privateOutputCandidatesReadyTools": 6,
     "externalAgentRouteExecutableNowTools": 0,
     "routeExecutionApprovedNowTools": 0,
     "workerExecutionApprovedNowTools": 0,
@@ -239,9 +290,9 @@
   "booleans": {
     "cpuStaticControlledAdapterImplemented": true,
     "cpuStaticControlledAdapterSmokeExecuted": true,
-    "fiveCpuStaticToolsControlledAdapterExecutable": true,
-    "fiveCpuStaticToolsControlledAdapterExecuted": true,
-    "fivePrivateOutputCandidatesReady": true,
+    "sixCpuStaticToolsControlledAdapterExecutable": true,
+    "sixCpuStaticToolsControlledAdapterExecuted": true,
+    "sixPrivateOutputCandidatesReady": true,
     "localCpuStaticPackageExecutionPerformed": true,
     "externalAgentCanExecuteViaMountedRouteNow": false,
     "agentCanExecuteToolsNow": false,
@@ -263,5 +314,5 @@
     "supabaseMutationPerformed": false,
     "gcsUploadPerformed": false
   },
-  "nextMilestone": "bind controlled CPU/static adapter to private worker queue/claim/dispatch proof, then promote mounted external-beta route for the five-tool cohort"
+  "nextMilestone": "bind controlled CPU/static adapter to private worker queue/claim/dispatch proof, then promote mounted external-beta route for the six-tool cohort"
 }

@@ -24,6 +24,7 @@ const requiredFiles = [
   'server/config/env.ts',
   'docs/tool-intelligence/ai-graphics/external-beta-cpu-static-controlled-tool-call-route-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-cpu-static-controlled-tool-call-route-smoke.md',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
   'docs/production-beta-readiness-scorecard.md',
   'package.json',
 ]
@@ -32,6 +33,7 @@ const executableTools = [
   'd3',
   'vega_lite',
   'vega',
+  'satori',
   'svgdotjs_svg_js',
   'viz_js',
 ]
@@ -46,7 +48,6 @@ const blockedTools = [
   'rembg',
   'transparent_background',
   'echarts',
-  'satori',
   'lottie_web',
   'animejs',
   'three_js',
@@ -127,6 +128,7 @@ const appSource = read('server/app.ts')
 const envSource = read('server/config/env.ts')
 const adapterSource = read('server/tool-registry/ai-graphics-external-agent-cpu-static-controlled-adapter.ts')
 const doc = json('docs/tool-intelligence/ai-graphics/external-beta-cpu-static-controlled-tool-call-route-smoke.json')
+const satoriFontProof = json('docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json')
 const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 for (const token of [
@@ -163,10 +165,10 @@ if (!scorecard.includes('AI Graphics External Beta CPU Static Controlled Tool Ca
 const smoke = runJson(runScriptName)
 if (smoke.decision !== decision) fail('smoke_decision_mismatch')
 if (smoke.disabledRouteStatus !== 404) fail('disabled_route_not_404')
-if (smoke.controlledCpuStaticRouteExecutedTools !== 5) fail('route_executed_tools_not_5')
-if (smoke.controlledCpuStaticRouteCallableNowTools !== 5) fail('callable_tools_not_5')
-if (smoke.controlledAdapterExecutedTools !== 5) fail('adapter_executed_tools_not_5')
-if (smoke.remainingToolsStillBlockedForRuntime !== 16) fail('remaining_blocked_tools_not_16')
+if (smoke.controlledCpuStaticRouteExecutedTools !== 6) fail('route_executed_tools_not_6')
+if (smoke.controlledCpuStaticRouteCallableNowTools !== 6) fail('callable_tools_not_6')
+if (smoke.controlledAdapterExecutedTools !== 6) fail('adapter_executed_tools_not_6')
+if (smoke.remainingToolsStillBlockedForRuntime !== 15) fail('remaining_blocked_tools_not_15')
 if (smoke.gpuRuntimeShouldStartNowTools !== 0) fail('gpu_started_now')
 if (smoke.publicArtifactCreatedTools !== 0) fail('public_artifacts_created')
 if (smoke.signedUrlCreatedTools !== 0) fail('signed_urls_created')
@@ -178,6 +180,12 @@ if (smoke.booleans?.agentCanExecuteAll21ToolsNow !== false) {
 }
 if (smoke.booleans?.externalBetaReadyNow !== false) fail('external_beta_ready_true')
 if (smoke.booleans?.productionReadyNow !== false) fail('production_ready_true')
+if (satoriFontProof.decision !== 'ai_graphics_satori_font_runtime_proof_completed_with_warnings') {
+  fail('satori_font_proof_decision_mismatch')
+}
+if (satoriFontProof.tool?.status !== 'satori_font_fixture_svg_layout_proof_passed') {
+  fail('satori_font_proof_status_mismatch')
+}
 
 for (const result of smoke.routeResults ?? []) {
   if (result.statusCode !== 200) fail(`tool_status_not_200:${result.toolId}`)

@@ -607,6 +607,7 @@
     "worker-runtime-jobs:sound-cpu-phase145-dispatch-contract-source-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase145-dispatch-contract-source-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase146-dispatch-source-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase146-dispatch-source-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase147-dispatch-contract-source-creation-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase147-dispatch-contract-source-creation-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase148-actual-dispatch-contract-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase148-actual-dispatch-contract-source-creation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

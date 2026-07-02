@@ -41,7 +41,26 @@ const implementationFiles = [
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...sourceFiles])
+const downstreamExecutionReadyRouteWorkerBridgeFiles = [
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-1/source-chain.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-1/route-worker-bridge.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-1/safety-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-1/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-1/gpac-mp4box-execution-ready-route-worker-bridge-1-record.json',
+  'docs/activation-phase-tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1.md',
+  'scripts/validation/tracka-gpac-mp4box-generated-fixture-runtime-execution-1.mjs',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-diagnostics.mjs',
+  'server/services/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1.ts',
+  'server/smoke/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-smoke.ts',
+]
+
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...sourceFiles,
+  ...downstreamExecutionReadyRouteWorkerBridgeFiles,
+])
 const forbiddenChangedPaths = [
   /^package-lock\.json$/,
   /^docker\//,

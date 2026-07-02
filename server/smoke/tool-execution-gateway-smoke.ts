@@ -397,6 +397,7 @@ function productionEvidenceFixture(
       environment: 'production',
       toolCostEventsMigrationDeployed: true,
       betaReadinessEvidenceMigrationDeployed: true,
+      productionReadinessEvidenceMigrationDeployed: true,
       serviceRoleWritePathVerified: true,
       rlsMemberReadPathVerified: true,
       explicitDataApiGrantsVerified: true,

@@ -16,6 +16,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID?: string
   REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED?: string
   REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED?: string
+  REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED?: string
   REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED?: string
@@ -176,6 +177,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       environment: clean(env.REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT) === 'production' ? 'production' : 'staging',
       toolCostEventsMigrationDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED),
       betaReadinessEvidenceMigrationDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED),
+      productionReadinessEvidenceMigrationDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED),
       serviceRoleWritePathVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED),
       rlsMemberReadPathVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED),
       explicitDataApiGrantsVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED),
@@ -317,6 +319,7 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED', requiredFor: 'production_evidence' },

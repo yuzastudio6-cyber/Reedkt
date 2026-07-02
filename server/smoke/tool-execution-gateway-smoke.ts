@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 
+import type { ProductionToolExecutionReadinessGateInput } from '../beta-readiness'
 import { createToolExecutionGatewayService } from '../services/tool-execution-gateway-service'
 import type { ServiceContext } from '../types'
 import type { ToolExecutionGatewayDispatchBody } from '../validation/tool-execution-gateway-schemas'
@@ -145,6 +146,59 @@ assert.ok(
   'reserved router metadata should identify adapter metadata blocker',
 )
 
+const productionReadyMissingEvidence = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-missing-evidence',
+  executionMode: 'production_ready',
+})
+assert.equal(productionReadyMissingEvidence.gateway.status, 'blocked', 'production_ready dispatch should require production readiness evidence')
+assert.equal(productionReadyMissingEvidence.workerResult, undefined, 'production_ready without readiness evidence should not dispatch a worker')
+assert.ok(
+  productionReadyMissingEvidence.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_GATE_REQUIRED'),
+  'production_ready without readiness evidence should identify the production readiness gate',
+)
+
+const productionReadyBlockedEvidence = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-blocked-evidence',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: {
+    sourceId: 'tool-execution-gateway-smoke:blocked-production-readiness',
+    workspaceId: baseInput.workspaceId,
+    projectId: baseInput.projectId,
+  },
+})
+assert.equal(productionReadyBlockedEvidence.gateway.status, 'blocked', 'incomplete production readiness evidence should block production_ready dispatch')
+assert.equal(productionReadyBlockedEvidence.productionReadinessReport?.status, 'blocked', 'blocked production evidence should include a blocked report')
+assert.ok(
+  productionReadyBlockedEvidence.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_GATE_BLOCKED'),
+  'incomplete production readiness evidence should identify the production readiness gate blocker',
+)
+
+const productionReadyMismatchedEvidence = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-mismatched-evidence',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: productionEvidenceFixture('other-workspace', baseInput.projectId),
+})
+assert.equal(productionReadyMismatchedEvidence.gateway.status, 'blocked', 'production readiness evidence must match the gateway workspace/project')
+assert.equal(productionReadyMismatchedEvidence.productionReadinessReport?.status, 'ready_for_paid_production', 'matching is enforced by the gateway in addition to the gate report')
+assert.ok(
+  productionReadyMismatchedEvidence.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_WORKSPACE_MISMATCH'),
+  'mismatched production evidence should identify workspace mismatch',
+)
+
+const productionReadyDispatch = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-dispatch',
+  executionMode: 'production_ready',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+})
+assert.equal(productionReadyDispatch.gateway.status, 'dispatched', 'complete production readiness evidence should allow the backend gateway path')
+assert.equal(productionReadyDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'dispatched production_ready request should include the passing readiness report')
+assert.equal(productionReadyDispatch.workerResult?.status, 'completed', 'complete production readiness evidence should reach only the placeholder worker route')
+assert.equal(productionReadyDispatch.workerResult?.output?.mockOnly, true, 'production_ready smoke must still use the mock-safe placeholder output')
+
 await assert.rejects(
   () => createToolExecutionGatewayService({
     ...context,
@@ -166,5 +220,107 @@ console.log(JSON.stringify({
     unsafeArtifact.gateway.blockers[0]?.gateName,
     rawMetadata.gateway.blockers[0]?.gateName,
     reservedRouterMetadata.gateway.blockers[0]?.gateName,
+    productionReadyMissingEvidence.gateway.blockers[0]?.gateName,
+    productionReadyBlockedEvidence.gateway.blockers[0]?.gateName,
+    productionReadyMismatchedEvidence.gateway.blockers[0]?.gateName,
   ],
 }, null, 2))
+
+function productionEvidenceFixture(
+  workspaceId: string,
+  projectId: string,
+): ProductionToolExecutionReadinessGateInput {
+  const notes = (label: string) => [`${label} verified in tool execution gateway smoke fixture.`]
+
+  return {
+    sourceId: 'tool-execution-gateway-smoke:complete-production-readiness',
+    sourceSha: '82f60e0a4d5d4707543a29f026a30f77c75b61fa',
+    workspaceId,
+    projectId,
+    supabasePersistence: {
+      environment: 'production',
+      toolCostEventsMigrationDeployed: true,
+      betaReadinessEvidenceMigrationDeployed: true,
+      serviceRoleWritePathVerified: true,
+      rlsMemberReadPathVerified: true,
+      backupPitrApproved: true,
+      securityAdvisorReviewed: true,
+      performanceAdvisorReviewed: true,
+      storagePoliciesVerified: true,
+      notes: notes('Supabase persistence'),
+    },
+    toolCostLedger: {
+      toolCostEventWriteVerified: true,
+      ledgerAppendOnlyVerified: true,
+      idempotentReplayVerified: true,
+      projectSummaryReadbackVerified: true,
+      notes: notes('Tool cost ledger'),
+    },
+    walletSettlement: {
+      reservationVerified: true,
+      spendVerified: true,
+      releaseVerified: true,
+      refundVerified: true,
+      settlementRpcVerified: true,
+      idempotentSettlementReplayVerified: true,
+      noSilentChargeVerified: true,
+      notes: notes('Wallet settlement'),
+    },
+    stripeBoundary: {
+      billingOwnerApproved: true,
+      noStripeFromToolCostSurface: true,
+      serviceFeeExcludedFromToolEvents: true,
+      stripeWebhookSeparatedFromToolLedger: true,
+      notes: notes('Stripe boundary'),
+    },
+    observability: {
+      dashboardsDeployed: true,
+      alertsDeployed: true,
+      alertRoutingVerified: true,
+      billingQaMonitoringVerified: true,
+      notes: notes('Observability and alerts'),
+    },
+    operationsControls: {
+      rollbackPlanApproved: true,
+      killSwitchesVerified: true,
+      rateLimitsVerified: true,
+      concurrencyLimitsVerified: true,
+      incidentRunbookApproved: true,
+      notes: notes('Operations controls'),
+    },
+    toolEvidence: {
+      sourceId: 'tool-execution-gateway-smoke:tool-evidence',
+      sourceSha: '82f60e0a4d5d4707543a29f026a30f77c75b61fa',
+      allProductionToolsAccepted: true,
+      modelWeightLicenseReviewApproved: true,
+      notes: notes('Production tool evidence'),
+    },
+    hardSafety: {
+      approvedPlanSnapshotRequired: true,
+      creditEstimateAndReservationRequired: true,
+      idempotencyRequired: true,
+      rawPromptsRejected: true,
+      secretsRejected: true,
+      temporaryAccessLinksRejectedAsSourceTruth: true,
+      frontendHeavyExecutionBlocked: true,
+      licenseAndModelWeightReviewRequired: true,
+      silentBillingBlocked: true,
+      notes: notes('Hard safety invariants'),
+    },
+    finalOwnerSignoff: {
+      deploymentOwnerApproved: true,
+      securityOwnerApproved: true,
+      storagePrivacyOwnerApproved: true,
+      legalOwnerApproved: true,
+      supportOwnerApproved: true,
+      billingOwnerApproved: true,
+      operationsOwnerApproved: true,
+      realUserMediaBetaApproved: true,
+      privateMediaApproval: true,
+      artifactPrivacyEvidenceReady: true,
+      paidProductionApproved: true,
+      finalDeliveryShareApproved: true,
+      notes: notes('Final owner signoff'),
+    },
+  }
+}

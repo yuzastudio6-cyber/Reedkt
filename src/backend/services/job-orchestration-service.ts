@@ -12,8 +12,48 @@ import type {
 } from '../../types'
 import type { CreateJobBatchRequest, CreateJobRequest } from '../contracts/job-contracts'
 import type { MockDatabase } from '../mock/mock-database'
+import type { JobRuntimeQueueItem, JobWorkerKind } from '../../types/job-runtime'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import { checkWorkerJobCreditGate } from './generation-credit-gate-service'
+import { queueMockJob } from './job-queue-runtime-service'
+
+export interface CreateLyriaGenerationJobInput {
+  workspaceId: string
+  projectId: string
+  jobBatchId?: string
+  editPlanId?: string
+  creditEstimateId?: string
+  creditReservationId: string
+  generationRequestId?: string
+  musicCueId?: string
+  lyriaPromptPlanId?: string
+}
+
+export interface LyriaWorkerJobDependencyChain {
+  jobBatch: JobBatchRecord
+  jobs: JobRecord[]
+  dependencies: JobDependencyRecord[]
+}
+
+export interface CreateSFXGenerationJobInput {
+  workspaceId: string
+  projectId: string
+  jobBatchId?: string
+  editPlanId?: string
+  creditEstimateId?: string
+  creditReservationId: string
+  generationRequestId?: string
+  sfxEventPlanId?: string
+  sfxPromptPlanId?: string
+  sfxProviderRouteId?: string
+}
+
+export interface SFXWorkerJobDependencyChain {
+  jobBatch: JobBatchRecord
+  jobs: JobRecord[]
+  dependencies: JobDependencyRecord[]
+}
 
 export function createJobBatch(
   db: MockDatabase,
@@ -45,6 +85,17 @@ export function createJobBatch(
 }
 
 export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceResult<JobRecord> {
+  const creditGateResult = isGenerationOrRenderJob(input.jobType) && input.editPlanId && input.creditEstimateId
+    ? checkWorkerJobCreditGate(db, {
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        editPlanId: input.editPlanId,
+        creditEstimateId: input.creditEstimateId,
+        creditReservationId: input.creditReservationId,
+        estimatedCredits: estimateCreditsForJob(input.jobType),
+        requiresApproval: true,
+      })
+    : undefined
   const job: JobRecord = {
     id: createMockId('job'),
     jobBatchId: input.jobBatchId,
@@ -54,7 +105,11 @@ export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceRes
     creditEstimateId: input.creditEstimateId,
     creditReservationId: input.creditReservationId,
     jobType: input.jobType,
-    status: input.creditReservationId || !isGenerationOrRenderJob(input.jobType) ? 'queued' : 'waiting_credit_reservation',
+    status: !isGenerationOrRenderJob(input.jobType)
+      ? 'queued'
+      : creditGateResult?.ok
+        ? 'queued'
+        : 'waiting_credit_reservation',
     priority: 'normal',
     workerTarget: workerForJob(input.jobType),
     runtimeType: 'frontend_mock',
@@ -70,10 +125,89 @@ export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceRes
     progressPercent: 0,
     createdAt: nowIso(),
     updatedAt: nowIso(),
-    metadata: { mockOnly: true },
+    metadata: {
+      mockOnly: true,
+      creditGateDecision: creditGateResult?.decision ?? 'not_checked',
+      creditGateMessage: creditGateResult?.message ?? 'Credit gate not required for this mock job.',
+    },
   }
 
   return ok(insertMockRecord(db, 'jobs', job))
+}
+
+export function createLyriaGenerationJob(
+  db: MockDatabase,
+  input: CreateLyriaGenerationJobInput,
+): ServiceResult<JobRecord> {
+  const jobResult = createJob(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    jobBatchId: input.jobBatchId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    jobType: 'soundsync_generation',
+    jobName: 'Mock Lyria Pro generation worker',
+  })
+
+  if (!jobResult.ok) {
+    return jobResult
+  }
+
+  const job = jobResult.data
+  job.workerTarget = 'soundsync_worker'
+  job.runtimeType = 'cloud_run_job'
+  job.jobDescription = 'Future Google Cloud Lyria worker skeleton. Mock-only in this repo.'
+  job.inputPayload = {
+    mockOnly: true,
+    generationRequestId: input.generationRequestId ?? '',
+    musicCueId: input.musicCueId ?? '',
+    lyriaPromptPlanId: input.lyriaPromptPlanId ?? '',
+  }
+  job.metadata = {
+    mockOnly: true,
+    noCloudDeployment: true,
+  }
+
+  return ok(job)
+}
+
+export function createSFXGenerationJob(
+  db: MockDatabase,
+  input: CreateSFXGenerationJobInput,
+): ServiceResult<JobRecord> {
+  const jobResult = createJob(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    jobBatchId: input.jobBatchId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    jobType: 'soundsync_generation',
+    jobName: 'Mock SFX generation worker',
+  })
+
+  if (!jobResult.ok) {
+    return jobResult
+  }
+
+  const job = jobResult.data
+  job.workerTarget = 'soundsync_worker'
+  job.runtimeType = 'cloud_run_job'
+  job.jobDescription = 'Future Google Cloud SFX worker skeleton. Mock-only in this repo.'
+  job.inputPayload = {
+    mockOnly: true,
+    generationRequestId: input.generationRequestId ?? '',
+    sfxEventPlanId: input.sfxEventPlanId ?? '',
+    sfxPromptPlanId: input.sfxPromptPlanId ?? '',
+    sfxProviderRouteId: input.sfxProviderRouteId ?? '',
+  }
+  job.metadata = {
+    mockOnly: true,
+    noCloudDeployment: true,
+  }
+
+  return ok(job)
 }
 
 export function createJobDependency(
@@ -98,6 +232,214 @@ export function createJobDependency(
   return ok(insertMockRecord(db, 'jobDependencies', dependency))
 }
 
+export function createLyriaWorkerJobDependencyChain(
+  db: MockDatabase,
+  input: {
+    workspaceId: string
+    projectId: string
+    editPlanId?: string
+    creditEstimateId?: string
+    creditReservationId: string
+    generationRequestId?: string
+    musicCueId?: string
+    lyriaPromptPlanId?: string
+  },
+): ServiceResult<LyriaWorkerJobDependencyChain> {
+  const batchResult = createJobBatch(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    batchName: 'Mock SoundSync Lyria worker dependency chain',
+  })
+
+  if (!batchResult.ok) {
+    return batchResult
+  }
+
+  const batch = batchResult.data
+  const jobs: JobRecord[] = []
+  const dependencies: JobDependencyRecord[] = []
+  const jobSpecs: Array<{ jobType: JobRecord['jobType']; jobName: string; lyria?: boolean }> = [
+    { jobType: 'music_planning', jobName: 'music_cue_sheet_created' },
+    { jobType: 'music_planning', jobName: 'lyria_prompt_plan_created' },
+    { jobType: 'credit_estimation', jobName: 'credit_estimate_approved' },
+    { jobType: 'credit_reservation', jobName: 'credit_reserved' },
+    { jobType: 'generation_orchestration', jobName: 'generation_request_created' },
+    { jobType: 'soundsync_generation', jobName: 'lyria_generation_job', lyria: true },
+    { jobType: 'quality_check', jobName: 'music_qa_job' },
+    { jobType: 'audio_analysis', jobName: 'mix_plan_job' },
+  ]
+
+  for (const spec of jobSpecs) {
+    const result = spec.lyria
+      ? createLyriaGenerationJob(db, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          jobBatchId: batch.id,
+          editPlanId: input.editPlanId,
+          creditEstimateId: input.creditEstimateId,
+          creditReservationId: input.creditReservationId,
+          generationRequestId: input.generationRequestId,
+          musicCueId: input.musicCueId,
+          lyriaPromptPlanId: input.lyriaPromptPlanId,
+        })
+      : createJob(db, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          jobBatchId: batch.id,
+          editPlanId: input.editPlanId,
+          creditEstimateId: input.creditEstimateId,
+          creditReservationId: input.creditReservationId,
+          jobType: spec.jobType,
+          jobName: spec.jobName,
+        })
+
+    if (!result.ok) {
+      return result
+    }
+
+    jobs.push(result.data)
+  }
+
+  for (let index = 1; index < jobs.length; index += 1) {
+    const dependency = createJobDependency(
+      db,
+      jobs[index].id,
+      jobs[index - 1].id,
+      input.workspaceId,
+      input.projectId,
+    )
+
+    if (!dependency.ok) {
+      return dependency
+    }
+
+    dependencies.push(dependency.data)
+  }
+
+  batch.batchPurpose =
+    'music_cue_sheet_created -> lyria_prompt_plan_created -> credit_estimate_approved -> credit_reserved -> generation_request_created -> lyria_generation_job -> music_qa_job -> mix_plan_job'
+  batch.outputPayload = {
+    mockOnly: true,
+    dependencyLabels: jobs.map((job) => job.jobName ?? job.jobType),
+  }
+  batch.updatedAt = nowIso()
+
+  return ok({
+    jobBatch: batch,
+    jobs,
+    dependencies,
+  })
+}
+
+export function createSFXWorkerJobDependencyChain(
+  db: MockDatabase,
+  input: {
+    workspaceId: string
+    projectId: string
+    editPlanId?: string
+    creditEstimateId?: string
+    creditReservationId: string
+    generationRequestId?: string
+    sfxEventPlanId?: string
+    sfxPromptPlanId?: string
+    sfxProviderRouteId?: string
+  },
+): ServiceResult<SFXWorkerJobDependencyChain> {
+  const batchResult = createJobBatch(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    batchName: 'Mock SoundSync SFX worker dependency chain',
+  })
+
+  if (!batchResult.ok) {
+    return batchResult
+  }
+
+  const batch = batchResult.data
+  const jobs: JobRecord[] = []
+  const dependencies: JobDependencyRecord[] = []
+  const jobSpecs: Array<{ jobType: JobRecord['jobType']; jobName: string; sfx?: boolean }> = [
+    { jobType: 'sfx_planning', jobName: 'sfx_event_plan_created' },
+    { jobType: 'sfx_planning', jobName: 'sfx_prompt_plan_created' },
+    { jobType: 'credit_estimation', jobName: 'credit_estimate_approved' },
+    { jobType: 'credit_reservation', jobName: 'credit_reserved' },
+    { jobType: 'generation_orchestration', jobName: 'generation_request_created' },
+    { jobType: 'soundsync_generation', jobName: 'sfx_generation_job', sfx: true },
+    { jobType: 'audio_analysis', jobName: 'sfx_trim_alignment_job' },
+    { jobType: 'audio_analysis', jobName: 'sfx_mix_job' },
+    { jobType: 'quality_check', jobName: 'sfx_qa_job' },
+    { jobType: 'sfx_planning', jobName: 'sfx_usage_library_job' },
+  ]
+
+  for (const spec of jobSpecs) {
+    const result = spec.sfx
+      ? createSFXGenerationJob(db, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          jobBatchId: batch.id,
+          editPlanId: input.editPlanId,
+          creditEstimateId: input.creditEstimateId,
+          creditReservationId: input.creditReservationId,
+          generationRequestId: input.generationRequestId,
+          sfxEventPlanId: input.sfxEventPlanId,
+          sfxPromptPlanId: input.sfxPromptPlanId,
+          sfxProviderRouteId: input.sfxProviderRouteId,
+        })
+      : createJob(db, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          jobBatchId: batch.id,
+          editPlanId: input.editPlanId,
+          creditEstimateId: input.creditEstimateId,
+          creditReservationId: input.creditReservationId,
+          jobType: spec.jobType,
+          jobName: spec.jobName,
+        })
+
+    if (!result.ok) {
+      return result
+    }
+
+    jobs.push(result.data)
+  }
+
+  for (let index = 1; index < jobs.length; index += 1) {
+    const dependency = createJobDependency(
+      db,
+      jobs[index].id,
+      jobs[index - 1].id,
+      input.workspaceId,
+      input.projectId,
+    )
+
+    if (!dependency.ok) {
+      return dependency
+    }
+
+    dependencies.push(dependency.data)
+  }
+
+  batch.batchPurpose =
+    'sfx_event_plan_created -> sfx_prompt_plan_created -> credit_estimate_approved -> credit_reserved -> generation_request_created -> sfx_generation_job -> sfx_trim_alignment_job -> sfx_mix_job -> sfx_qa_job -> sfx_usage_library_job'
+  batch.outputPayload = {
+    mockOnly: true,
+    dependencyLabels: jobs.map((job) => job.jobName ?? job.jobType),
+  }
+  batch.updatedAt = nowIso()
+
+  return ok({
+    jobBatch: batch,
+    jobs,
+    dependencies,
+  })
+}
+
 export function canRunJob(db: MockDatabase, jobId: string): ServiceResult<boolean> {
   const job = findMockRecord(db, 'jobs', jobId)
 
@@ -117,6 +459,22 @@ export function canRunJob(db: MockDatabase, jobId: string): ServiceResult<boolea
 
   if (isGenerationOrRenderJob(job.jobType) && !job.creditReservationId) {
     return fail('CREDITS_NOT_RESERVED', 'Generation and render jobs require reserved credits.')
+  }
+
+  if (isGenerationOrRenderJob(job.jobType) && job.editPlanId && job.creditEstimateId) {
+    const gate = checkWorkerJobCreditGate(db, {
+      workspaceId: job.workspaceId,
+      projectId: job.projectId,
+      editPlanId: job.editPlanId,
+      creditEstimateId: job.creditEstimateId,
+      creditReservationId: job.creditReservationId,
+      estimatedCredits: estimateCreditsForJob(job.jobType),
+      requiresApproval: true,
+    })
+
+    if (!gate.ok) {
+      return fail('GENERATION_NOT_ALLOWED', gate.message, gate)
+    }
   }
 
   return ok(true)
@@ -249,6 +607,33 @@ export function createAgentOutput(
   return ok(insertMockRecord(db, 'agentOutputs', output))
 }
 
+export function createJobRuntimeQueueItemFromJobRecord(
+  db: MockDatabase,
+  job: JobRecord,
+): JobRuntimeQueueItem {
+  return queueMockJob(db, {
+    workspaceId: job.workspaceId,
+    projectId: job.projectId,
+    editPlanId: job.editPlanId,
+    creditEstimateId: job.creditEstimateId,
+    creditReservationId: job.creditReservationId,
+    jobBatchId: job.jobBatchId,
+    jobId: job.id,
+    workerKind: workerKindForRuntime(job.jobType),
+    requiresEditPlanApproval: isGenerationOrRenderJob(job.jobType),
+    requiresCreditEstimateApproval: isGenerationOrRenderJob(job.jobType),
+    requiresCreditReservation: isGenerationOrRenderJob(job.jobType),
+    requiresGenerationRequest: job.jobType === 'generation' || job.jobType === 'soundsync_generation',
+    requiresProvider: job.jobType === 'generation' || job.jobType === 'soundsync_generation',
+    providerRuntimeMode: 'mock',
+    mockSafe: true,
+    payload: {
+      existingJobRecordId: job.id,
+      bridgeSource: 'job-orchestration-service',
+    },
+  })
+}
+
 function isGenerationOrRenderJob(jobType: JobRecord['jobType']): boolean {
   return ['generation', 'stroke_motion_generation', 'graphic_design_generation', 'real_motion_generation', 'soundsync_generation', 'render_preview', 'export'].includes(jobType)
 }
@@ -275,6 +660,30 @@ function workerForJob(jobType: JobRecord['jobType']): AgentType {
   }
 
   return 'chat_intent_agent'
+}
+
+function estimateCreditsForJob(jobType: JobRecord['jobType']): number {
+  if (jobType === 'render_preview') return 8
+  if (jobType === 'export') return 16
+  if (jobType === 'soundsync_generation') return 12
+  if (jobType === 'stroke_motion_generation') return 12
+  if (jobType === 'graphic_design_generation') return 8
+  if (jobType === 'real_motion_generation') return 20
+  if (jobType === 'generation') return 12
+  return 1
+}
+
+function workerKindForRuntime(jobType: JobRecord['jobType']): JobWorkerKind {
+  if (jobType === 'soundsync_generation') return 'music_generation'
+  if (jobType === 'stroke_motion_generation') return 'stroke_motion_generation'
+  if (jobType === 'graphic_design_generation') return 'graphic_design_generation'
+  if (jobType === 'real_motion_generation') return 'real_motion_generation'
+  if (jobType === 'render_preview') return 'render_preview'
+  if (jobType === 'export') return 'render_export'
+  if (jobType === 'quality_check') return 'qa'
+  if (jobType === 'credit_estimation' || jobType === 'credit_reservation') return 'credit'
+  if (jobType === 'generation') return 'video_generation'
+  return 'planning_agent'
 }
 
 function statusToEventType(status: JobStatus): JobEventType {

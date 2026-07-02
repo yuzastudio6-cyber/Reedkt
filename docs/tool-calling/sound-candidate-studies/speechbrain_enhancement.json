@@ -1,0 +1,120 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "speechbrain_enhancement",
+  "displayName": "SpeechBrain Enhancement",
+  "aliases": [
+    "speechbrain",
+    "speechbrain_enhancement"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "denoise",
+  "runtimeResolution": {
+    "status": "blocked_pending_model_weight",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Model/provenance-sensitive enhancement component."
+  },
+  "operations": [
+    {
+      "operationId": "audio.cleanup",
+      "supportLevel": "future",
+      "bestFor": [
+        "future speech enhancement planning",
+        "model provenance and runtime review"
+      ],
+      "notFor": [
+        "model execution",
+        "provider or worker execution now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "audio",
+        "analysis_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "deepfilternet",
+        "rnnoise"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future speech enhancement planning",
+    "model provenance and runtime review"
+  ],
+  "notFor": [
+    "model execution",
+    "provider or worker execution now"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "audio",
+    "analysis_report"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "deepfilternet",
+    "rnnoise"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "model weights or provider provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Dialogue enhancement study",
+    "Audio cleanup model comparison"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-model-weight-gpu-policy-plan.md",
+      "summary": "Owner evidence for SpeechBrain Enhancement from PR #636 docs/sound-runtime-media-gate-0-model-weight-gpu-policy-plan.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_model_weight_owner_review",
+  "futurePromotionRequirements": [
+    "SOUND-RUNTIME-MEDIA-GATE-2 model weight, license, and provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:speechbrain_enhancement:owner_gate_pending",
+    "benchmark:speechbrain_enhancement:latency_pending",
+    "benchmark:speechbrain_enhancement:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:speechbrain_enhancement:candidate_review_count",
+    "telemetry:speechbrain_enhancement:owner_gate_outcomes",
+    "telemetry:speechbrain_enhancement:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

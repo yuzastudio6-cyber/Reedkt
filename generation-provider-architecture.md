@@ -1,4 +1,4 @@
-# Generation Provider Architecture
+﻿# Generation Provider Architecture
 
 ## Purpose
 
@@ -8,7 +8,9 @@ This document defines the future generation provider abstraction for ReeditPro. 
 
 ReeditPro must not hard-code one provider. Different systems may use different providers:
 
+- GPT-Image-2.
 - Wan.
+- Hailuo.
 - Veo.
 - Kling.
 - Remotion/SVG/Lottie renderer.
@@ -16,6 +18,26 @@ ReeditPro must not hard-code one provider. Different systems may use different p
 - Other AI animation, video, image, or audio providers.
 
 Providers are tools. ReeditPro owns the edit plan, timing, exact text, captions, overlay placement, credits, approval, and QA.
+
+## Launch Model Routing Policy
+
+The launch router is constrained by `model-routing-policy.md`.
+
+- GPT-Image-2 is primary for images, stills, keyframes, cards, graphic frames, start frames, and end frames.
+- Wan is the primary low-cost animation/video generation family.
+- Hailuo is the normal fallback/alternate animation family.
+- Veo 3.1 Lite is Premium-only and final fallback/rescue only.
+- Seedance 1.5 Pro is not part of the launch router.
+- Basic and Pro must never route to Veo.
+- Veo must never be the default primary model.
+- Default generated video output is 720P-class: Wan 720P, Hailuo 768P, Veo 720P.
+- ReeditPro should never default generated AI video to 1080P.
+
+## Frame And Background Policy
+
+ReeditPro's editor/compositor owns the final canvas. AI video generation should default to matching white, near-white, or custom frame panels defined by the approved frame layout. Do not depend on transparent AI video backgrounds as the default.
+
+Transparent overlays remain valid for deterministic renderer routes such as SVG, Lottie, Remotion, or other controlled systems when the edit plan explicitly needs inspectable transparent output.
 
 ## RP-DB-09 Migration Shape
 
@@ -58,7 +80,8 @@ Provider selection should consider:
 
 - Signature system.
 - Edit level.
-- Transparent overlay need.
+- Frame template and panel background.
+- Transparent overlay need only for controlled renderer routes.
 - Timing precision need.
 - Duration.
 - Resolution.
@@ -79,12 +102,12 @@ Stroke Motion should prefer controlled animation systems:
 Reasons:
 
 - Word-level timing.
-- Transparent overlays.
+- Optional transparent overlays for controlled renderers.
 - Repeatable render output.
 - Easier revision.
 - Better alignment to transcript and StoryTiming.
 
-AI video models such as Wan, Veo, or Kling may help with concept generation or advanced animation, but ReeditPro should not depend only on full AI video generation for Stroke Motion.
+AI video models such as Wan, Hailuo, or Premium-only Veo final fallback may help with approved animation beats, but ReeditPro should not depend only on full AI video generation for Stroke Motion. AI video output should be planned inside matching frame panels by default.
 
 ## Graphic Design / VisualExplain Strategy
 
@@ -120,6 +143,24 @@ SoundSync provider work may include:
 - Transition sound design.
 
 Basic edits should avoid heavy SFX unless appropriate and approved.
+
+## SFX Provider Strategy
+
+SFX provider routing is future worker-only and must stay behind approval, credit reservation, and QA gates. Mirelo SFX V1.5 is the planned production SFX provider for important final polish moments such as premium transitions, Stroke Motion completion, Graphic Design reveals, Real Motion object sounds, title/chapter hits, and signature edits. MMAudio V2 is the planned cheap/draft/Basic/Pro fallback and video-synced helper for quick timing experiments, draft movement sounds, ambience prototypes, and lower-cost SFX.
+
+Provider prompts should use dedicated adapters instead of one universal prompt. MMAudio prompts should usually be short and focused on target source, texture, and intensity. Mirelo prompting needs a future test matrix before production use, with simple keyword, short phrase, tag list, and structured sentence styles compared against QA results.
+
+No SFX provider integration is implemented in this milestone. Provider secrets must stay outside source control, frontend code, and database rows; database records may store secret reference names only.
+
+RP-SFX-11 adds a mock SFX worker skeleton that routes through internal library, Mirelo, MMAudio, or no-SFX branches only after edit approval and credit reservation gates pass. It returns mock provider metadata and worker events, but still does not call providers, read Secret Manager, upload files, process audio, or spend credits.
+
+RP-SFX-12 adds the first mock-first SFX provider adapter layer. It defines ReeditPro-owned request/response contracts, mock clients, response parsing, safety gates, disabled real-client placeholders, and worker integration. It still does not call Mirelo or MMAudio, invent undocumented provider schemas, import provider SDKs, read secrets, or make network requests.
+
+RP-FIX-09 adds shared credit gate helpers for provider-style generation requests. Provider generation, music generation, SFX generation, signature-system generation, render jobs, and worker jobs must pass approved-plan, approved-estimate, and reservation checks before any real provider call can be queued. The current implementation is mock-only and does not call providers.
+
+RP-FIX-10 adds job runtime gates and mock worker dispatch around those provider routes. Provider routes remain disabled/backend-required unless a future backend worker validates the job gate, loads secrets server-side, and records job events.
+
+RP-FIX-11 adds runtime envelopes, worker leases, heartbeat handling, stale recovery, and idempotency helpers around future provider workers. These are mock-only contracts. Real provider execution still requires backend/cloud runtime, server-side secrets, transactional lease claims, and idempotency checks before retry.
 
 ## Lyria Pro Music Generation
 

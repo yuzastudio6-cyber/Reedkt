@@ -1,0 +1,203 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "rubber_band",
+  "displayName": "Rubber Band",
+  "aliases": [
+    "rubber_band"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "rubber_band",
+    "reason": "Rubber Band is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "audio.loudness.normalize",
+      "supportLevel": "future",
+      "bestFor": [
+        "Research comparison",
+        "Future legal/product review"
+      ],
+      "notFor": [
+        "Launch default",
+        "Paid production before license review"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "processed_audio",
+        "qa_report"
+      ],
+      "validators": [
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "signalsmith_stretch",
+        "soundtouch"
+      ],
+      "notes": [
+        "Rubber Band is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "Research comparison",
+        "Future legal/product review"
+      ],
+      "notFor": [
+        "Launch default",
+        "Paid production before license review"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "signalsmith_stretch",
+        "soundtouch"
+      ],
+      "notes": [
+        "Rubber Band is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "qa.final_delivery",
+      "supportLevel": "validator",
+      "bestFor": [
+        "Research comparison",
+        "Future legal/product review"
+      ],
+      "notFor": [
+        "Launch default",
+        "Paid production before license review"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "qa_report"
+      ],
+      "validators": [
+        "final_delivery",
+        "export_codec_format",
+        "export_duration_sync",
+        "audio_loudness",
+        "render_timeline_integrity"
+      ],
+      "fallbackToolIds": [
+        "signalsmith_stretch",
+        "soundtouch"
+      ],
+      "notes": [
+        "Rubber Band is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Research comparison",
+    "Future legal/product review"
+  ],
+  "notFor": [
+    "Launch default",
+    "Paid production before license review"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "processed_audio",
+    "qa_report"
+  ],
+  "validators": [
+    "audio_naturalness",
+    "audio_sync"
+  ],
+  "fallbackToolIds": [
+    "signalsmith_stretch",
+    "soundtouch"
+  ],
+  "resourceProfile": {
+    "workerType": "cpu_analysis_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "evaluation_only"
+  },
+  "qualityProfile": {
+    "productionStatus": "needs_license_review",
+    "adoptionStage": "needs_license_review",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "high",
+    "commercialUseStatus": "needs_review"
+  },
+  "knownFailureModes": [
+    "evaluation-only registry status prevents production execution",
+    "license or commercial-use review blocks execution",
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Research comparison",
+    "Future legal/product review"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:rubber_band:latency_pending",
+    "benchmark:rubber_band:quality_pending",
+    "benchmark:rubber_band:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:rubber_band:selection_count",
+    "telemetry:rubber_band:fallback_count",
+    "telemetry:rubber_band:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems.",
+    "Rubber Band remains needs_license_review; do not enable production execution from this card."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Rubber Band is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/cpu-worker/requirements.cpu.txt",
+      "summary": "Rubber Band has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/cpu-worker/requirements.cpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/qa-worker/requirements.qa.txt",
+      "summary": "Rubber Band has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/qa-worker/requirements.qa.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/cross-chat/SOUND_MUSIC_AUDIO.md",
+      "summary": "Rubber Band has related repo-local owner, readiness, Docker, or lane evidence in docs/cross-chat/SOUND_MUSIC_AUDIO.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-audio-sound-foundation.md",
+      "summary": "Rubber Band has related repo-local owner, readiness, Docker, or lane evidence in docs/production-audio-sound-foundation.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

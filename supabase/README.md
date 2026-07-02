@@ -1,4 +1,4 @@
-# Supabase
+﻿# Supabase
 
 This repository targets the Supabase project named `reeditpro`.
 
@@ -241,6 +241,53 @@ The review confirms the current schema sequence supports the chat-native path fr
 
 The mock scenario is local-only. It uses placeholder UUIDs and requires a matching local `auth.users` row before inserting `user_profiles`, because Supabase Auth owns profile identity. It does not deploy migrations, connect to remote Supabase, add credentials, call providers, integrate Stripe, upload files, render video, or create mobile screens.
 
+### RP-SFX-03: SoundSync SFX Director Tables
+
+`migrations/202605190001_sfx_director_tables.sql` creates the SoundSync SFX Director database layer:
+
+- SFX event plans
+- SFX provider routes
+- SFX prompt plans
+- generated SFX asset metadata
+- SFX trim plans
+- SFX timing alignments
+- SFX mix plans
+- SFX QA reports and issues
+- SFX library candidates
+- SFX usage records
+- SFX prompt adapter tests
+- a simple SFX event summary view
+
+SFX is planned before generation. By default, ReeditPro SFX supports ReeditPro-created edit layers such as transitions, title/chapter cards, Graphic Design / VisualExplain reveals, Stroke Motion moments, Real Motion object movement, CTA reveals, montage hits, and ambient bridges. It does not add fake SFX for every source-footage action.
+
+Mirelo SFX V1.5 is modeled as the future production SFX provider. MMAudio V2 is modeled as the future draft, Basic/Pro fallback, and video-synced helper. ReeditPro internal library and no-SFX routes are also modeled. Provider prompts are stored as planning records only and do not execute provider calls.
+
+Generated SFX should be longer than the final needed sound, then trimmed, hit-aligned, faded, normalized, voice-first mixed, and QA-checked before preview/export use. Generated SFX starts project-only; library promotion requires QA, provenance, privacy, and licensing review.
+
+This migration includes RLS, indexes, updated-at triggers, comments, and safe generic prompt-adapter seed rows. It does not integrate Mirelo or MMAudio, add API keys or provider secrets, connect to Supabase remotely, deploy Google Cloud, generate sound, render media, upload files, integrate Stripe, or build mobile screens.
+
+### RP-TIMING-03: StoryTiming Master Tables
+
+`migrations/202605190002_storytiming_master_tables.sql` creates the StoryTiming master coordination database layer:
+
+- master timing maps
+- story timing segments
+- timing anchors
+- timing events
+- timing dependencies
+- timing conflicts
+- timing conflict resolutions
+- StoryTiming QA checks
+- render timing manifests
+- structured render manifest tracks and events
+- simple latest/open-conflict/render-ready views
+
+Timing already exists across edit plan segments, story beats, pacing, cuts, transitions, captions, Stroke Motion, music plans, SFX timing, render inputs, QA, and review comments. StoryTiming does not replace those records. It coordinates them through master maps, source references, anchors, events, dependencies, conflicts, QA checks, and render-ready manifests.
+
+The migration uses safe direct foreign keys for core workspace/project/chat/edit-plan/render relationships and uses `source_system`, `source_record_id`, and `source_table_name` for distributed timing systems whose native tables may evolve independently.
+
+This migration includes enum types, structured tables, indexes, updated-at triggers, RLS policies, comments, and local views. It does not connect to Supabase remotely, run remote migrations, call AI/provider APIs, integrate Lyria/Mirelo/MMAudio, render media, deploy Google Cloud, add secrets, integrate Stripe, or build frontend/mobile UI.
+
 ### RP-AUDIO-01: SoundSync Music Intelligence Architecture
 
 RP-AUDIO-01 adds documentation-only architecture for SoundSync Music Intelligence, Reference Music DNA, Lyria Pro prompt planning, generated music asset strategy, SFX licensing, and the audio milestone roadmap.
@@ -297,14 +344,66 @@ ReeditPro must never start expensive AI editing, animation generation, rendering
 4. The user approves the plan and credits.
 5. Credits are reserved.
 
+### RP-FIX-07: Storage Upload Pipeline Readiness
+
+`migrations/202605200001_storage_upload_pipeline_readiness.sql` is a local-only readiness migration for the RP-FIX-07 upload path convention.
+
+It keeps the active bucket ids from RP-DATA-04:
+
+- `source-media`
+- `generated-assets`
+- `processed-media`
+- `previews`
+- `exports`
+- `thumbnails`
+- `qa-artifacts`
+- `worker-temp`
+
+It adds conservative storage object policies for `workspace/{workspace_id}/project/{project_id}/...` paths. Direct browser writes remain limited to source media and thumbnails for project editors. Generated assets, previews, exports, QA artifacts, worker temp files, profile assets, and brand assets should use backend workers or signed upload routes until production policies are validated.
+
+This migration has not been run locally, in staging, or in production.
+
+### RP-FIX-11: Worker Leases Runtime Transport
+
+`migrations/202605200002_worker_leases_runtime_transport.sql` is a local-only readiness migration for backend runtime transport and worker lease ownership.
+
+It creates:
+
+- `worker_leases`
+- `backend_runtime_messages`
+- `job_claim_attempts`
+
+The migration is conservative: authenticated users can read records for workspaces/projects they belong to, while insert/update/delete are reserved for future service-role backend workers. It has not been run locally, in staging, or in production.
+
+### RP-E2E-READY-01: Runtime Database Foundation
+
+`migrations/202605210001_e2e_runtime_readiness_tables.sql` is a local/review-ready runtime foundation for real end-to-end editing tests after staging validation.
+
+It extends the existing `approved_plan_snapshots` table and adds:
+
+- `api_idempotency_keys`
+- `upload_intents`
+- `storage_object_records`
+- `signed_url_events`
+- `worker_job_claims`
+- `tool_runtime_checks`
+- `provider_request_attempts`
+- `provider_webhook_events`
+
+The migration adds helper functions for approved snapshot readiness and worker claim safety, enables RLS on the new tables, and keeps privileged writes reserved for future service-role backend/worker paths. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL.
+
+This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
+
 ## Future Migrations
 
 Later migrations should add, in order:
 
-- backend API skeleton and Supabase client wiring
-- Google Cloud worker scaffolding for generation and rendering
+- local/staging application and verification of RP-E2E-READY-01 runtime readiness tables
+- backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
+- signed storage route wiring
+- Cloud Run worker scaffolding for generation, media tools, QA, and rendering
 - Stripe and billing integration after the credit service boundary is implemented
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-DB-10 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, RP-FIX-11, and RP-E2E-READY-01 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

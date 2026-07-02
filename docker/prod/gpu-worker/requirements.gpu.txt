@@ -1,0 +1,20 @@
+# ReeditPro M11 GPU worker Python requirements.
+# These are container image declarations only. Codex must not install them on the host.
+# No model weights are fetched by this file.
+
+torch
+torchvision
+ctranslate2
+faster-whisper
+kornia
+opencv-python-headless
+deepfilternet
+demucs
+
+# optional_planned: paddleocr
+# optional_planned: paddlepaddle-gpu
+
+# pending_source_install_review: BiRefNet
+# pending_source_install_review: SAM2
+# pending_source_install_review: Real-ESRGAN
+# pending_source_install_review: FILM frame interpolation

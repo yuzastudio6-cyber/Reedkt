@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reeditpro.synthetic-fixture-dry-run.v1",
+  "title": "Reeditpro Synthetic Fixture Dry Run v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dryRunId",
+    "sourceFixturePlanId",
+    "toolId",
+    "operationId",
+    "commandIntentId",
+    "fixtureIds",
+    "artifacts",
+    "validationSummary",
+    "generatedJsonOnly",
+    "binaryMediaGenerated",
+    "fixtureGenerationPerformed",
+    "toolExecutionPerformed",
+    "shellExecutionPerformed",
+    "mediaProcessingPerformed",
+    "workerExecutionPerformed",
+    "providerCallsPerformed",
+    "supabaseMutationPerformed",
+    "sqlExecuted",
+    "executesTools"
+  ],
+  "properties": {
+    "dryRunId": {
+      "type": "string",
+      "pattern": "^synthetic_fixture_dry_run_[a-z0-9_]+$"
+    },
+    "sourceFixturePlanId": {
+      "type": "string"
+    },
+    "toolId": {
+      "type": "string"
+    },
+    "operationId": {
+      "type": "string"
+    },
+    "commandIntentId": {
+      "type": "string"
+    },
+    "fixtureIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "validationSummary": {
+      "$ref": "#/$defs/validationSummary"
+    },
+    "generatedJsonOnly": {
+      "const": true
+    },
+    "binaryMediaGenerated": {
+      "const": false
+    },
+    "fixtureGenerationPerformed": {
+      "const": true
+    },
+    "toolExecutionPerformed": {
+      "const": false
+    },
+    "shellExecutionPerformed": {
+      "const": false
+    },
+    "mediaProcessingPerformed": {
+      "const": false
+    },
+    "workerExecutionPerformed": {
+      "const": false
+    },
+    "providerCallsPerformed": {
+      "const": false
+    },
+    "supabaseMutationPerformed": {
+      "const": false
+    },
+    "sqlExecuted": {
+      "const": false
+    },
+    "executesTools": {
+      "const": false
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "dryRunArtifactId",
+        "fixtureId",
+        "fixtureKind",
+        "artifactType",
+        "storageBucketPurpose",
+        "sourceFixturePlanId",
+        "sourceCommandPlanId",
+        "sourceToolId",
+        "sourceOperationId",
+        "sourceCommandIntentId",
+        "payloadKind",
+        "payloadJson",
+        "checksum",
+        "sizeBytes",
+        "privateByDefault",
+        "sourceOfTruth",
+        "signedUrlAllowed",
+        "localPathAllowed",
+        "binaryMediaGenerated",
+        "toolExecutionPerformed",
+        "mediaProcessingPerformed",
+        "workerExecutionPerformed"
+      ],
+      "properties": {
+        "dryRunArtifactId": {
+          "type": "string",
+          "pattern": "^synthetic_fixture_dry_run_artifact_[a-z0-9_]+$"
+        },
+        "fixtureId": {
+          "type": "string"
+        },
+        "fixtureKind": {
+          "enum": [
+            "synthetic_video",
+            "synthetic_audio",
+            "synthetic_image",
+            "synthetic_timeline",
+            "synthetic_caption_segments",
+            "synthetic_mask",
+            "synthetic_json",
+            "synthetic_render_manifest"
+          ]
+        },
+        "artifactType": {
+          "type": "string"
+        },
+        "storageBucketPurpose": {
+          "type": "string"
+        },
+        "sourceFixturePlanId": {
+          "type": "string"
+        },
+        "sourceCommandPlanId": {
+          "type": "string"
+        },
+        "sourceToolId": {
+          "type": "string"
+        },
+        "sourceOperationId": {
+          "type": "string"
+        },
+        "sourceCommandIntentId": {
+          "type": "string"
+        },
+        "payloadKind": {
+          "enum": [
+            "descriptor_json",
+            "timeline_json",
+            "transcript_json",
+            "caption_segments_json",
+            "render_manifest_json",
+            "mask_descriptor_json",
+            "final_delivery_manifest_json"
+          ]
+        },
+        "payloadJson": {
+          "type": "object"
+        },
+        "checksum": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "privateByDefault": {
+          "const": true
+        },
+        "sourceOfTruth": {
+          "const": true
+        },
+        "signedUrlAllowed": {
+          "const": false
+        },
+        "localPathAllowed": {
+          "const": false
+        },
+        "binaryMediaGenerated": {
+          "const": false
+        },
+        "toolExecutionPerformed": {
+          "const": false
+        },
+        "mediaProcessingPerformed": {
+          "const": false
+        },
+        "workerExecutionPerformed": {
+          "const": false
+        }
+      }
+    },
+    "validationSummary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok",
+        "dryRunResultCount",
+        "dryRunArtifactCount",
+        "forbiddenFieldsFound",
+        "unsafeStringValues",
+        "missingArtifactFields",
+        "invalidPayloadKinds",
+        "pendingExternalToolsUsed",
+        "generatedJsonOnly",
+        "binaryMediaGenerated",
+        "fixtureGenerationPerformed",
+        "toolExecutionPerformed",
+        "shellExecutionPerformed",
+        "mediaProcessingPerformed",
+        "workerExecutionPerformed",
+        "providerCallsPerformed",
+        "supabaseMutationPerformed",
+        "sqlExecuted",
+        "executesTools"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "dryRunResultCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dryRunArtifactCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "forbiddenFieldsFound": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unsafeStringValues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missingArtifactFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invalidPayloadKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pendingExternalToolsUsed": {
+          "const": false
+        },
+        "generatedJsonOnly": {
+          "const": true
+        },
+        "binaryMediaGenerated": {
+          "const": false
+        },
+        "fixtureGenerationPerformed": {
+          "const": true
+        },
+        "toolExecutionPerformed": {
+          "const": false
+        },
+        "shellExecutionPerformed": {
+          "const": false
+        },
+        "mediaProcessingPerformed": {
+          "const": false
+        },
+        "workerExecutionPerformed": {
+          "const": false
+        },
+        "providerCallsPerformed": {
+          "const": false
+        },
+        "supabaseMutationPerformed": {
+          "const": false
+        },
+        "sqlExecuted": {
+          "const": false
+        },
+        "executesTools": {
+          "const": false
+        }
+      }
+    }
+  }
+}

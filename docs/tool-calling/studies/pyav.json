@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "pyav",
+  "displayName": "PyAV",
+  "aliases": ["pyav"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "pyav",
+    "reason": "PyAV is a first-class ProductionToolId for Python-side frame and stream planning."
+  },
+  "operations": [
+    {"operationId": "media.inspect", "supportLevel": "secondary", "bestFor": ["Python stream inspection"], "notFor": ["final delivery conformance"], "inputArtifacts": ["source_media", "proxy_media", "video", "audio"], "outputArtifacts": ["analysis_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["ffprobe", "ffmpeg"], "notes": ["Useful when analysis workers need Python-native media metadata."]},
+    {"operationId": "media.proxy.create", "supportLevel": "fallback", "bestFor": ["Python decode and proxy handoff planning"], "notFor": ["production transcode defaults"], "inputArtifacts": ["source_media", "video"], "outputArtifacts": ["proxy_video", "qa_report"], "validators": ["render_asset_integrity", "export_duration_sync"], "fallbackToolIds": ["ffmpeg", "vapoursynth"], "notes": ["Fallback candidate when ffmpeg is unavailable."]},
+    {"operationId": "media.audio.extract", "supportLevel": "secondary", "bestFor": ["Python audio stream extraction planning"], "notFor": ["audio cleanup"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["extracted_audio", "audio", "qa_report"], "validators": ["audio_sync", "render_asset_integrity"], "fallbackToolIds": ["ffmpeg"], "notes": ["Supports transcript pipeline planning."]},
+    {"operationId": "video.frame.sample", "supportLevel": "primary", "bestFor": ["representative frame extraction for analysis"], "notFor": ["style compositing"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["image_asset", "representative_frame", "analysis_report"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["opencv", "ffmpeg", "sharp"], "notes": ["Useful for frame sampling before visual analysis."]},
+    {"operationId": "thumbnail.generate", "supportLevel": "secondary", "bestFor": ["timeline-derived still extraction"], "notFor": ["thumbnail graphic design"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["image_asset", "representative_frame", "qa_report"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["sharp", "ffmpeg", "opencv"], "notes": ["Can feed thumbnail selection planning."]}
+  ],
+  "bestFor": ["Python media decode", "frame sampling", "analysis handoff"],
+  "notFor": ["final muxing", "GPU segmentation", "provider calls"],
+  "inputArtifacts": ["source_media", "proxy_media", "video", "audio"],
+  "outputArtifacts": ["analysis_report", "json_spec", "image_asset", "representative_frame", "extracted_audio", "proxy_video"],
+  "validators": ["render_asset_integrity", "export_duration_sync", "audio_sync", "caption_safe_zone"],
+  "fallbackToolIds": ["ffmpeg", "ffprobe", "opencv", "sharp"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["codec support gap", "large-frame memory pressure", "timestamp rounding mismatch"],
+  "professionalEditingUses": ["keyframe sampling", "audio extraction fallback", "Python analysis preparation"],
+  "benchmarkPlaceholders": ["benchmark:pyav:frame_sample_latency_pending", "benchmark:pyav:decode_reliability_pending"],
+  "telemetryPlaceholders": ["telemetry:pyav:selection_count", "telemetry:pyav:fallback_count"],
+  "readinessNotes": ["Study card only; runtime execution remains governed by existing registry and worker policies."]
+}

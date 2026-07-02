@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "faster_whisper",
+  "displayName": "faster-whisper",
+  "aliases": ["faster_whisper"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "faster_whisper",
+    "reason": "faster-whisper is the first-class ProductionToolId for speech transcription, word alignment, and caption-generation evidence planning."
+  },
+  "operations": [
+    {"operationId": "audio.transcribe", "supportLevel": "primary", "bestFor": ["speech-to-transcript planning"], "notFor": ["caption visual styling"], "inputArtifacts": ["audio", "extracted_audio", "source_media"], "outputArtifacts": ["transcript_json", "analysis_report"], "validators": ["transcript_alignment"], "fallbackToolIds": ["whisper_cpp"], "notes": ["Primary speech transcription planning candidate."]},
+    {"operationId": "audio.word_align", "supportLevel": "primary", "bestFor": ["word timestamps and token timing"], "notFor": ["burning captions into video"], "inputArtifacts": ["audio", "extracted_audio", "transcript_json"], "outputArtifacts": ["word_timestamps_json", "caption_segments_json", "analysis_report"], "validators": ["transcript_alignment", "caption_timing"], "fallbackToolIds": ["whisper_cpp"], "notes": ["Feeds caption timing plans."]},
+    {"operationId": "caption.generate", "supportLevel": "primary", "bestFor": ["caption segment draft from transcript and aligned words"], "notFor": ["caption layout"], "inputArtifacts": ["transcript_json", "word_timestamps_json"], "outputArtifacts": ["caption_segments_json", "caption_segments"], "validators": ["transcript_alignment", "caption_timing"], "fallbackToolIds": ["whisper_cpp", "remotion", "libass"], "notes": ["Generates planned caption segments, not rendered captions."]}
+  ],
+  "bestFor": ["speech transcription", "word alignment", "caption segment generation"],
+  "notFor": ["audio denoise", "caption rendering", "timeline validation"],
+  "inputArtifacts": ["audio", "extracted_audio", "source_media", "transcript_json", "word_timestamps_json"],
+  "outputArtifacts": ["transcript_json", "word_timestamps_json", "caption_segments_json", "caption_segments", "analysis_report"],
+  "validators": ["transcript_alignment", "caption_timing"],
+  "fallbackToolIds": ["whisper_cpp", "remotion", "libass"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "launch_core", "adoptionStage": "launch_core", "launchCore": true, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["noisy audio lowers confidence", "speaker overlap affects word timing", "model-weight policy can block execution"],
+  "professionalEditingUses": ["talking-head captions", "speech-led smart cuts", "caption timing QA"],
+  "benchmarkPlaceholders": ["benchmark:faster_whisper:transcript_accuracy_pending", "benchmark:faster_whisper:alignment_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:faster_whisper:selection_count", "telemetry:faster_whisper:transcript_gate_outcomes"],
+  "readinessNotes": ["Planning metadata only; model invocation remains outside this milestone."]
+}

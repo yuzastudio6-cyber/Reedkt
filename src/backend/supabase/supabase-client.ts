@@ -1,14 +1,44 @@
-export interface SupabaseClientPlaceholder {
-  readonly configured: false
-  readonly projectName: 'reeditpro'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { getSupabasePublicConfig, isSupabaseConfigured } from './supabase-config'
+
+export type ReeditProSupabaseClient = SupabaseClient
+
+export interface SupabaseClientStatus {
+  configured: boolean
+  projectName: 'reeditpro'
+  missingEnvKeys: string[]
+  message: string
 }
 
-export function getSupabaseClient(): SupabaseClientPlaceholder {
-  throw new Error(
-    'Supabase client is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY later for the reeditpro project.',
-  )
+let browserClient: ReeditProSupabaseClient | null = null
+
+export function getSupabaseClientStatus(): SupabaseClientStatus {
+  const config = getSupabasePublicConfig()
+
+  return {
+    configured: config.configured,
+    projectName: 'reeditpro',
+    missingEnvKeys: [...config.missingEnvKeys],
+    message: config.message,
+  }
 }
 
-export function isSupabaseConfigured(): boolean {
-  return false
+export function getSupabaseClient(): ReeditProSupabaseClient | null {
+  const config = getSupabasePublicConfig()
+
+  if (!config.configured || !config.url || !config.anonKey) {
+    return null
+  }
+
+  browserClient ??= createClient(config.url, config.anonKey, {
+    auth: {
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      persistSession: true,
+    },
+  })
+
+  return browserClient
 }
+
+export { isSupabaseConfigured }

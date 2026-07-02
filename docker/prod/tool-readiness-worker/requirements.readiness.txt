@@ -1,0 +1,10 @@
+# ReeditPro M10 tool-readiness worker Python requirements.
+# The readiness worker may import safe CPU/render packages only. It must not
+# download models, process media, or run provider/GPU tooling.
+
+av
+scenedetect
+opencv-python-headless
+duckdb
+polars
+opentimelineio

@@ -10,6 +10,10 @@ Subscription is software access. Reedit Credits pay for AI generation, rendering
 
 The system must not treat `$10/week` or `$20/week` as unlimited AI editing.
 
+## RP-FIX-11 Runtime Note
+
+Worker leases and idempotency keys are now represented in mock runtime services. Production credit spend/refund must remain transactionally tied to job completion/failure and idempotency records so a retried or duplicated worker cannot spend credits twice.
+
 ## Required Tables
 
 ### `credit_wallets`
@@ -154,3 +158,18 @@ Real Motion is premium and credit-heavy because it can require:
 
 The estimate must make Real Motion cost visible before approval.
 
+## RP-FIX-09 Runtime Skeleton
+
+RP-FIX-09 introduces mock runtime services around the ledger model:
+
+- estimate creation for edit plans, music, SFX, signature systems, render/export, and demo/free cases;
+- approval gate checks for edit-plan approval, estimate approval, reservation status, reservation scope, and available credits;
+- mock reservation records after estimate approval;
+- mock spend, release, and refund ledger entries;
+- generation/render/provider/worker gate helpers that block expensive work without a valid reservation.
+
+The existing credit tables remain the target schema. The skeleton does not add migrations, integrate Stripe, deploy backend code, or mutate remote data. A production implementation still needs transactional backend handlers so reservation, spend, release, and refund cannot be bypassed or double-applied.
+
+## RP-FIX-10 Job Recovery Link
+
+RP-FIX-10 connects mock job completion/failure flows to the RP-FIX-09 credit skeleton. Successful mock jobs can spend a reserved credit record. Failed mock jobs can release or refund reserved credits. Production behavior still requires transactional backend enforcement around job status and ledger mutation.

@@ -1,0 +1,184 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "lottie",
+  "displayName": "Lottie",
+  "aliases": [
+    "lottie"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "lottie",
+    "reason": "Lottie is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Vector animation",
+        "Icon/status motion",
+        "Reusable brand motion"
+      ],
+      "notFor": [
+        "Realistic video generation",
+        "Unlicensed marketplace animations"
+      ],
+      "inputArtifacts": [
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "preview_video"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "pixijs"
+      ],
+      "notes": [
+        "Lottie is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "render.preview",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Vector animation",
+        "Icon/status motion",
+        "Reusable brand motion"
+      ],
+      "notFor": [
+        "Realistic video generation",
+        "Unlicensed marketplace animations"
+      ],
+      "inputArtifacts": [
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "preview_video"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion",
+        "pixijs"
+      ],
+      "notes": [
+        "Lottie is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Vector animation",
+    "Icon/status motion",
+    "Reusable brand motion"
+  ],
+  "notFor": [
+    "Realistic video generation",
+    "Unlicensed marketplace animations"
+  ],
+  "inputArtifacts": [
+    "json_data",
+    "render_manifest"
+  ],
+  "outputArtifacts": [
+    "image_asset",
+    "preview_video",
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "caption_safe_zone"
+  ],
+  "fallbackToolIds": [
+    "remotion",
+    "pixijs"
+  ],
+  "resourceProfile": {
+    "workerType": "render_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "render_pipeline"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Vector animation",
+    "Icon/status motion",
+    "Reusable brand motion"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:lottie:latency_pending",
+    "benchmark:lottie:quality_pending",
+    "benchmark:lottie:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:lottie:selection_count",
+    "telemetry:lottie:fallback_count",
+    "telemetry:lottie:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Lottie is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "Lottie has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/render-worker/requirements.render.txt",
+      "summary": "Lottie has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/render-worker/requirements.render.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Lottie has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "Lottie has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Lottie has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Lottie has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

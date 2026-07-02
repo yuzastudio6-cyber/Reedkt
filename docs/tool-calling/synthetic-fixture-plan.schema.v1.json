@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-calling/synthetic-fixture-plan.schema.v1.json",
+  "title": "Reeditpro Synthetic Fixture Plan v1",
+  "type": "object",
+  "required": [
+    "fixturePlanId",
+    "sourceCommandPlanId",
+    "adapterPlanId",
+    "toolId",
+    "operationId",
+    "commandIntentId",
+    "fixtureIds",
+    "fixtureDefinitions",
+    "expectedInputArtifacts",
+    "expectedOutputArtifacts",
+    "requiredQualityGates",
+    "validationPolicy",
+    "resourceLimits",
+    "generatedInFutureOnly",
+    "fixtureGenerationAllowedNow",
+    "toolExecutionAllowedNow",
+    "mediaProcessingAllowedNow",
+    "workerExecutionAllowedNow",
+    "privateArtifactRefsOnly",
+    "signedUrlsAllowed",
+    "rawPromptAllowed",
+    "executesTools"
+  ],
+  "properties": {
+    "fixturePlanId": { "type": "string", "minLength": 1 },
+    "sourceCommandPlanId": { "type": "string", "minLength": 1 },
+    "adapterPlanId": { "type": "string", "minLength": 1 },
+    "toolId": { "type": "string", "minLength": 1 },
+    "operationId": { "type": "string", "minLength": 1 },
+    "commandIntentId": { "type": "string", "minLength": 1 },
+    "fixtureIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "fixtureDefinitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/syntheticFixtureDefinition" }
+    },
+    "expectedInputArtifacts": { "type": "array", "minItems": 1 },
+    "expectedOutputArtifacts": { "type": "array", "minItems": 1 },
+    "requiredQualityGates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "validationPolicy": { "$ref": "#/$defs/validationPolicy" },
+    "resourceLimits": { "type": "object" },
+    "generatedInFutureOnly": { "const": true },
+    "fixtureGenerationAllowedNow": { "const": false },
+    "toolExecutionAllowedNow": { "const": false },
+    "mediaProcessingAllowedNow": { "const": false },
+    "workerExecutionAllowedNow": { "const": false },
+    "privateArtifactRefsOnly": { "const": true },
+    "signedUrlsAllowed": { "const": false },
+    "rawPromptAllowed": { "const": false },
+    "executesTools": { "const": false }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "syntheticFixtureDefinition": {
+      "type": "object",
+      "required": [
+        "fixtureId",
+        "fixtureKind",
+        "description",
+        "applicableOperationIds",
+        "applicableCommandIntentIds",
+        "applicableToolIds",
+        "generatedInFutureOnly",
+        "fixtureGenerationAllowedNow",
+        "toolExecutionAllowedNow",
+        "mediaProcessingAllowedNow",
+        "workerExecutionAllowedNow",
+        "privateArtifactRefsOnly",
+        "signedUrlsAllowed",
+        "rawPromptAllowed",
+        "expectedArtifactTypes",
+        "expectedStorageBucketPurposes",
+        "expectedSignals",
+        "requiredQualityGates",
+        "validationPolicy",
+        "safetyNotes"
+      ],
+      "properties": {
+        "fixtureId": { "type": "string", "minLength": 1 },
+        "fixtureKind": {
+          "enum": [
+            "synthetic_video",
+            "synthetic_audio",
+            "synthetic_image",
+            "synthetic_timeline",
+            "synthetic_caption_segments",
+            "synthetic_mask",
+            "synthetic_json",
+            "synthetic_render_manifest"
+          ]
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "applicableOperationIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "applicableCommandIntentIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "applicableToolIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "generatedInFutureOnly": { "const": true },
+        "fixtureGenerationAllowedNow": { "const": false },
+        "toolExecutionAllowedNow": { "const": false },
+        "mediaProcessingAllowedNow": { "const": false },
+        "workerExecutionAllowedNow": { "const": false },
+        "privateArtifactRefsOnly": { "const": true },
+        "signedUrlsAllowed": { "const": false },
+        "rawPromptAllowed": { "const": false },
+        "maxDurationSeconds": { "type": "number", "exclusiveMinimum": 0 },
+        "maxWidth": { "type": "integer", "exclusiveMinimum": 0 },
+        "maxHeight": { "type": "integer", "exclusiveMinimum": 0 },
+        "maxFrameCount": { "type": "integer", "exclusiveMinimum": 0 },
+        "maxBytes": { "type": "integer", "exclusiveMinimum": 0 },
+        "expectedArtifactTypes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "expectedStorageBucketPurposes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "expectedSignals": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "requiredQualityGates": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "validationPolicy": { "$ref": "#/$defs/validationPolicy" },
+        "safetyNotes": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "validationPolicy": {
+      "type": "object",
+      "required": [
+        "rejectForbiddenFieldNames",
+        "rejectAbsoluteLocalPaths",
+        "rejectHttpUrls",
+        "rejectShellMetacharacters",
+        "requireFutureOnly",
+        "requirePrivateArtifactRefs",
+        "requireStorageBucketPurposes",
+        "requireQualityGates"
+      ],
+      "properties": {
+        "rejectForbiddenFieldNames": { "const": true },
+        "rejectAbsoluteLocalPaths": { "const": true },
+        "rejectHttpUrls": { "const": true },
+        "rejectShellMetacharacters": { "const": true },
+        "requireFutureOnly": { "const": true },
+        "requirePrivateArtifactRefs": { "const": true },
+        "requireStorageBucketPurposes": { "const": true },
+        "requireQualityGates": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  }
+}

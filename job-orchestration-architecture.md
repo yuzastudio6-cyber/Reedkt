@@ -18,6 +18,10 @@ The orchestrator controls:
 - Worker assignment.
 - Audit logs.
 
+RP-FIX-09 adds a mock-safe credit gate service that job orchestration can call before generation, render, provider, music, SFX, or worker jobs move from waiting/queued metadata into executable work. Real job queueing and ledger mutation remain backend-only.
+
+RP-FIX-10 adds a mock-safe job runtime layer for queue items, dependency chains, worker dispatch placeholders, job events, retry plans, and chat summaries. It does not deploy a queue or worker runtime. Real Cloud Run, provider, render, and service-role job mutation remain backend-required.
+
 ## Required Tables
 
 ### `jobs`
@@ -260,3 +264,14 @@ Every job should include:
 
 Failed jobs should create targeted repair instructions where possible instead of restarting the whole edit.
 
+## RP-FIX-11 Runtime Transport And Leases
+
+RP-FIX-11 adds the first mock runtime transport and worker lease skeleton:
+
+- runtime envelopes for API, worker, provider, render, storage, credit, and custom targets;
+- mock transport acknowledgement with backend HTTP, Supabase Edge, Cloud Run, Cloud Run Job, and Pub/Sub placeholders;
+- mock lease claim, heartbeat, renew, release, complete, fail, cancel, and stale recovery;
+- idempotency helpers for job dispatch, provider requests, render jobs, and credit spend;
+- worker runtime registry metadata.
+
+The layer is mock-only. Production still needs backend service-role handlers, transactional lease claims, durable idempotency storage, Cloud Run/PubSub deployment, and worker-side provider/render execution.

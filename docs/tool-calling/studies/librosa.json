@@ -1,0 +1,142 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "librosa",
+  "displayName": "librosa",
+  "aliases": [
+    "librosa"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "librosa",
+    "reason": "librosa is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "Audio feature analysis",
+        "Research metrics",
+        "Prototype timing features"
+      ],
+      "notFor": [
+        "Launch SoundSync default",
+        "Final mix/mastering"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "audioflux"
+      ],
+      "notes": [
+        "librosa is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Audio feature analysis",
+    "Research metrics",
+    "Prototype timing features"
+  ],
+  "notFor": [
+    "Launch SoundSync default",
+    "Final mix/mastering"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "json_spec",
+    "qa_report"
+  ],
+  "validators": [
+    "audio_sync",
+    "music_over_voice"
+  ],
+  "fallbackToolIds": [
+    "audioflux"
+  ],
+  "resourceProfile": {
+    "workerType": "cpu_analysis_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Audio feature analysis",
+    "Research metrics",
+    "Prototype timing features"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:librosa:latency_pending",
+    "benchmark:librosa:quality_pending",
+    "benchmark:librosa:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:librosa:selection_count",
+    "telemetry:librosa:fallback_count",
+    "telemetry:librosa:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems.",
+    "librosa remains future; do not enable production execution from this card."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "librosa is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/cpu-worker/requirements.cpu.txt",
+      "summary": "librosa has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/cpu-worker/requirements.cpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/qa-worker/requirements.qa.txt",
+      "summary": "librosa has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/qa-worker/requirements.qa.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/cross-chat/SOUND_MUSIC_AUDIO.md",
+      "summary": "librosa has related repo-local owner, readiness, Docker, or lane evidence in docs/cross-chat/SOUND_MUSIC_AUDIO.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-audio-sound-foundation.md",
+      "summary": "librosa has related repo-local owner, readiness, Docker, or lane evidence in docs/production-audio-sound-foundation.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

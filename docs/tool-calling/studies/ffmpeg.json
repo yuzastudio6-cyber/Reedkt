@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "ffmpeg",
+  "displayName": "FFmpeg",
+  "aliases": ["ffmpeg"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "ffmpeg",
+    "reason": "FFmpeg is a first-class ProductionToolId for media transforms, muxing, caption burn-in fallback, and export QA planning."
+  },
+  "operations": [
+    {"operationId": "media.proxy.create", "supportLevel": "primary", "bestFor": ["edit-friendly proxy generation"], "notFor": ["semantic scene understanding"], "inputArtifacts": ["source_media", "video"], "outputArtifacts": ["proxy_video", "qa_report"], "validators": ["render_asset_integrity", "export_duration_sync"], "fallbackToolIds": ["pyav", "vapoursynth"], "notes": ["Plan proxy settings and duration checks without executing ffmpeg."]},
+    {"operationId": "media.audio.extract", "supportLevel": "primary", "bestFor": ["extracting audio streams for speech and cleanup planning"], "notFor": ["speech recognition"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["extracted_audio", "audio", "qa_report"], "validators": ["audio_sync", "render_asset_integrity"], "fallbackToolIds": ["pyav"], "notes": ["Use for extraction planning before transcription or loudness operations."]},
+    {"operationId": "audio.loudness.normalize", "supportLevel": "primary", "bestFor": ["loudness normalization and sync-preserving audio transforms"], "notFor": ["neural denoising"], "inputArtifacts": ["audio", "extracted_audio", "processed_audio"], "outputArtifacts": ["processed_audio", "qa_report"], "validators": ["audio_loudness", "audio_sync"], "fallbackToolIds": ["rnnoise", "signalsmith_stretch"], "notes": ["Plan normalization parameters and QA gates only."]},
+    {"operationId": "caption.burn_in", "supportLevel": "fallback", "bestFor": ["subtitle burn-in fallback when libass or remotion are not selected"], "notFor": ["caption copy generation"], "inputArtifacts": ["caption_segments", "caption_segments_json", "render_manifest", "video"], "outputArtifacts": ["processed_video", "final_export", "qa_report"], "validators": ["caption_readability", "caption_timing", "caption_safe_zone", "render_asset_integrity"], "fallbackToolIds": ["libass", "remotion"], "notes": ["Use as a deterministic fallback planning candidate."]},
+    {"operationId": "export.mux", "supportLevel": "primary", "bestFor": ["final container muxing and transcode planning"], "notFor": ["timeline authoring"], "inputArtifacts": ["render_manifest", "processed_video", "processed_audio", "video", "audio"], "outputArtifacts": ["final_export", "qa_report"], "validators": ["export_codec_format", "export_duration_sync", "audio_sync"], "fallbackToolIds": ["libass", "vapoursynth"], "notes": ["Selected only as a first-class runtime ID; no mux is executed here."]},
+    {"operationId": "export.validate", "supportLevel": "secondary", "bestFor": ["container sanity checks and duration comparison"], "notFor": ["deep metadata-only reports"], "inputArtifacts": ["final_export", "video", "audio"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["export_codec_format", "export_duration_sync", "final_delivery"], "fallbackToolIds": ["ffprobe", "opentimelineio"], "notes": ["Pairs with ffprobe for export validation planning."]},
+    {"operationId": "thumbnail.generate", "supportLevel": "secondary", "bestFor": ["still extraction for thumbnail candidate planning"], "notFor": ["image compositing polish"], "inputArtifacts": ["source_media", "proxy_media", "video"], "outputArtifacts": ["image_asset", "representative_frame", "qa_report"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["sharp", "pyav", "opencv"], "notes": ["Prefer sharp or pyav for image-specific processing when available."]}
+  ],
+  "bestFor": ["codec-aware media transforms", "audio extraction", "final mux planning", "delivery validation"],
+  "notFor": ["semantic editing decisions", "OCR", "model-based enhancement"],
+  "inputArtifacts": ["source_media", "proxy_media", "video", "audio", "render_manifest", "processed_video", "processed_audio", "caption_segments_json"],
+  "outputArtifacts": ["proxy_video", "extracted_audio", "processed_audio", "processed_video", "final_export", "image_asset", "qa_report", "analysis_report"],
+  "validators": ["render_asset_integrity", "export_duration_sync", "audio_sync", "audio_loudness", "export_codec_format", "final_delivery"],
+  "fallbackToolIds": ["ffprobe", "pyav", "libass", "vapoursynth"],
+  "resourceProfile": {"workerType": "render_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "launch_core", "adoptionStage": "launch_core", "launchCore": true, "modelWeightsRequired": false, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["codec option mismatch", "unexpected stream layout", "duration drift after transcode"],
+  "professionalEditingUses": ["proxy creation", "audio extraction", "caption burn-in fallback", "final muxing"],
+  "benchmarkPlaceholders": ["benchmark:ffmpeg:proxy_latency_pending", "benchmark:ffmpeg:mux_quality_pending"],
+  "telemetryPlaceholders": ["telemetry:ffmpeg:selection_count", "telemetry:ffmpeg:fallback_count", "telemetry:ffmpeg:qa_gate_outcomes"],
+  "readinessNotes": ["Planning card enriches registry metadata only; adapter execution remains out of scope."]
+}

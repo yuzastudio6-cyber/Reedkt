@@ -321,6 +321,8 @@ export function getDefaultBrowserStyleForCategory(params: {
     case 'custom_let_ai_decide':
       return 'custom'
   }
+
+  return 'custom'
 }
 
 export function getDefaultCaptureModeForVisualType(browserVisualType: BrowserVisualType): BrowserCaptureMode {

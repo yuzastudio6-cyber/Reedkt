@@ -186,17 +186,20 @@ export const mockLakeComoReferenceMusicDNA: ReferenceMusicDNARecord = {
     'Dialogue bed remains instrumental only.',
     'Scenic breathing moments can use instrumental ambience instead of a full song.',
   ],
-  dialogueDuckingBehavior:
+  dialogueDuckingBehavior: [
     'Music ducks under voice, avoids lead melodies, and leaves ambience/room tone intact where it supports realism.',
+  ],
   introMusicBehavior: 'Coming-up teaser may hit stronger, then drop into a calmer arrival or dialogue-safe bed.',
   montageMusicBehavior:
     'Montage sections can use more rhythmic, stylish cues with light vocal texture only during non-speaking footage.',
-  chapterTitleAudioBehavior:
+  chapterTitleAudioBehavior: [
     'Chapter/title cards can use short music hits or owned SFX accents, never loud effects over speech.',
+  ],
   outroResolveBehavior: 'Outro should fade or resolve musically, not cut off mid-loop.',
-  sfxBehavior: 'Soft whooshes, light hits, and ambient bridges support transitions, title cards, and movement shots.',
-  ambienceBehavior:
+  sfxBehavior: ['Soft whooshes, light hits, and ambient bridges support transitions, title cards, and movement shots.'],
+  ambienceBehavior: [
     'Boat, water, villa, restaurant, and group ambience should be preserved when it adds place and personality.',
+  ],
   adaptationRules: [
     'Adapt cue structure, energy arcs, and ambience relationship.',
     'Use Italian or European luxury influence only when supported by footage, user intent, or audience.',
@@ -898,6 +901,10 @@ export const mockMusicQAReport: MusicQAReportRecord = {
   moodFitScore: 0.94,
   mixReadinessScore: 0.91,
   issues: [],
+  passedChecks: ['speech_safety', 'context_fit', 'mood_fit', 'mix_readiness'],
+  warningChecks: [],
+  failedChecks: [],
+  summary: 'Instrumental-only bed fits the dialogue cue and is approved for project use.',
   recommendedAction: 'approve_for_project',
   requiresRegeneration: false,
   requiresMixAdjustment: false,

@@ -1,0 +1,384 @@
+import { createHash } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
+import { tsImport } from 'tsx/esm/api'
+
+function check(condition, message) {
+  if (!condition) {
+    throw new Error(message)
+  }
+}
+
+function runGit(args) {
+  const env = { ...process.env }
+  delete env.DEVELOPER_DIR
+
+  return execFileSync('git', args, {
+    cwd: process.cwd(),
+    env,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim()
+}
+
+function hashContent(content) {
+  return createHash('sha256').update(content).digest('hex')
+}
+
+function hasKeyDeep(value, keyName) {
+  if (!value || typeof value !== 'object') return false
+  if (Object.prototype.hasOwnProperty.call(value, keyName)) return true
+  if (Array.isArray(value)) return value.some((item) => hasKeyDeep(item, keyName))
+  return Object.values(value).some((item) => hasKeyDeep(item, keyName))
+}
+
+const {
+  DEFAULT_RANKING_WEIGHTS,
+  INITIAL_PIPELINE_PATTERN_IDS,
+  buildToolCallingPlan,
+  findToolsForOperation,
+  listExpandedToolCapabilityCards,
+  listExplicitToolStudyCards,
+  listOperationDefinitions,
+  listRuntimeIdReconciliationResults,
+  listToolCapabilityCards,
+} = await tsImport('../../server/tool-calling/index.ts', import.meta.url)
+
+const {
+  PRODUCTION_TOOL_IDS,
+} = await tsImport('../../server/tool-registry/index.ts', import.meta.url)
+
+const productionToolIds = new Set(PRODUCTION_TOOL_IDS)
+const cards = listToolCapabilityCards()
+const expandedCards = listExpandedToolCapabilityCards()
+const explicitStudyCards = listExplicitToolStudyCards()
+const runtimeIdReconciliationResults = listRuntimeIdReconciliationResults()
+const pendingProductionToolRegistryExpansion = runtimeIdReconciliationResults
+  .filter((result) => result.status === 'pending_production_tool_registry_expansion')
+  .map((result) => ({
+    inputToolId: result.inputToolId,
+    externalToolId: result.externalToolId,
+    reason: result.reason,
+  }))
+
+const trackBPromotedProductionToolIds = [
+  'mediainfo',
+  'exiftool',
+  'tesseract',
+  'imagemagick',
+]
+
+const newlyCoveredFirstClassToolIds = [
+  'audioflux',
+  'babylon_js',
+  'cesium_js',
+  'd3',
+  'deck_gl',
+  'demucs',
+  'duckdb',
+  'echarts',
+  'essentia',
+  'hyperframe',
+  'konva',
+  'kornia',
+  'librosa',
+  'lottie',
+  'maplibre',
+  'mediapipe',
+  'pixijs',
+  'playwright',
+  'polars',
+  'rembg',
+  'revideo',
+  'rnnoise',
+  'rubber_band',
+  'signalsmith_stretch',
+  'soundtouch',
+  'three_js',
+  'transparent_background',
+  'turf',
+  'vapoursynth',
+  'vega_lite',
+  'whisper_cpp',
+]
+
+const explicitFirstClassStudyCards = explicitStudyCards
+  .filter((card) => Boolean(card.toolId))
+const explicitPendingExternalStudyCards = explicitStudyCards
+  .filter((card) => Boolean(card.externalToolId))
+const explicitFirstClassStudyToolIds = new Set(explicitFirstClassStudyCards.map((card) => card.toolId))
+const firstClassToolIdsMissingExplicitStudy = PRODUCTION_TOOL_IDS
+  .filter((toolId) => !explicitFirstClassStudyToolIds.has(toolId))
+const sourceEvidenceRequiredToolIds = [
+  ...newlyCoveredFirstClassToolIds,
+  ...trackBPromotedProductionToolIds,
+]
+const newlyCoveredStudyCardsMissingSourceEvidence = sourceEvidenceRequiredToolIds
+  .filter((toolId) => {
+    const studyCard = explicitFirstClassStudyCards.find((card) => card.toolId === toolId)
+    return !studyCard?.sourceEvidence || studyCard.sourceEvidence.length === 0
+  })
+const governanceSensitiveNewStudyCards = explicitFirstClassStudyCards
+  .filter((card) => sourceEvidenceRequiredToolIds.includes(card.toolId))
+  .filter((card) => (
+    card.qualityProfile.productionStatus === 'evaluation_only' ||
+    card.qualityProfile.productionStatus === 'needs_license_review' ||
+    card.qualityProfile.productionStatus === 'future' ||
+    card.qualityProfile.modelWeightsRequired === true
+  ))
+const governanceSensitiveCardsMissingPlanningOnlyNotes = governanceSensitiveNewStudyCards
+  .filter((card) => !card.readinessNotes.some((note) => /do not enable production execution|no execution|planning/i.test(note)))
+
+const generatedFallbackCardCount = cards
+  .filter((card) => card.capabilitySource === 'generated_registry_profile')
+  .length
+const pendingExternalToolIds = new Set(
+  expandedCards
+    .filter((card) => card.selectableAsRuntimeTool === false)
+    .map((card) => card.externalToolId),
+)
+const graphicsMagickResolution = runtimeIdReconciliationResults.find((result) => result.inputToolId === 'graphicsmagick')
+const trackBPromotedToolIdsMissingProductionId = trackBPromotedProductionToolIds
+  .filter((toolId) => !productionToolIds.has(toolId))
+const trackBPromotedToolIdsMissingStudyCard = trackBPromotedProductionToolIds
+  .filter((toolId) => !explicitFirstClassStudyToolIds.has(toolId))
+const trackBPromotedToolIdsMissingAdapterEvidence = trackBPromotedProductionToolIds
+  .filter((toolId) => !cards.some((card) => card.toolId === toolId && card.capabilitySource === 'explicit_study_card'))
+
+check(cards.length === productionToolIds.size, 'Capability cards must map the existing production registry one-to-one.')
+check(explicitFirstClassStudyCards.length === productionToolIds.size, 'Every first-class ProductionToolId must have an explicit study card.')
+check(firstClassToolIdsMissingExplicitStudy.length === 0, `Missing explicit first-class study cards: ${firstClassToolIdsMissingExplicitStudy.join(', ')}`)
+check(explicitPendingExternalStudyCards.length === 0, 'Track B registry expansion should leave no pending external study cards on the current base.')
+check(pendingProductionToolRegistryExpansion.length === 1, 'Only GraphicsMagick should remain pending after Track B registry expansion.')
+check(pendingProductionToolRegistryExpansion[0]?.externalToolId === 'graphicsmagick', 'GraphicsMagick must be the remaining pending external runtime identity.')
+check(explicitStudyCards.length === productionToolIds.size, 'Explicit study card count must equal first-class production tools after Track B promotion.')
+check(expandedCards.length === productionToolIds.size, 'Expanded capability cards must contain only first-class runtime cards after Track B promotion.')
+check(generatedFallbackCardCount === 0, 'No first-class ProductionToolId should rely on generated fallback cards after full coverage expansion.')
+check(newlyCoveredStudyCardsMissingSourceEvidence.length === 0, `New first-class study cards missing sourceEvidence: ${newlyCoveredStudyCardsMissingSourceEvidence.join(', ')}`)
+check(governanceSensitiveCardsMissingPlanningOnlyNotes.length === 0, `Governance-sensitive cards missing planning-only readiness notes: ${governanceSensitiveCardsMissingPlanningOnlyNotes.map((card) => card.toolId).join(', ')}`)
+check(trackBPromotedToolIdsMissingProductionId.length === 0, `Track B promoted tools missing ProductionToolId: ${trackBPromotedToolIdsMissingProductionId.join(', ')}`)
+check(trackBPromotedToolIdsMissingStudyCard.length === 0, `Track B promoted tools missing study cards: ${trackBPromotedToolIdsMissingStudyCard.join(', ')}`)
+check(trackBPromotedToolIdsMissingAdapterEvidence.length === 0, `Track B promoted tools missing explicit capability cards: ${trackBPromotedToolIdsMissingAdapterEvidence.join(', ')}`)
+check(!productionToolIds.has('graphicsmagick'), 'GraphicsMagick must not be a first-class ProductionToolId in this milestone.')
+check(Boolean(graphicsMagickResolution), 'GraphicsMagick must be represented in runtime ID reconciliation.')
+check(graphicsMagickResolution?.status === 'pending_production_tool_registry_expansion', 'GraphicsMagick must remain pending production registry expansion.')
+check(graphicsMagickResolution?.selectableAsRuntimeTool === false, 'GraphicsMagick must remain non-selectable.')
+check(runtimeIdReconciliationResults.length === 13, 'Runtime ID alias table must include 13 aliases after Track B expansion.')
+
+const requiredStudyCardFields = [
+  'schema',
+  'displayName',
+  'aliases',
+  'runtimeResolution',
+  'operations',
+  'bestFor',
+  'notFor',
+  'inputArtifacts',
+  'outputArtifacts',
+  'validators',
+  'fallbackToolIds',
+  'resourceProfile',
+  'qualityProfile',
+  'knownFailureModes',
+  'professionalEditingUses',
+  'benchmarkPlaceholders',
+  'telemetryPlaceholders',
+  'readinessNotes',
+]
+
+const requiredStudyOperationFields = [
+  'operationId',
+  'supportLevel',
+  'bestFor',
+  'notFor',
+  'inputArtifacts',
+  'outputArtifacts',
+  'validators',
+  'fallbackToolIds',
+  'notes',
+]
+
+for (const studyCard of explicitStudyCards) {
+  for (const requiredField of requiredStudyCardFields) {
+    check(
+      Object.prototype.hasOwnProperty.call(studyCard, requiredField),
+      `${studyCard.displayName} study card is missing required field: ${requiredField}`,
+    )
+  }
+
+  check(
+    Boolean(studyCard.toolId) !== Boolean(studyCard.externalToolId),
+    `${studyCard.displayName} must include exactly one of toolId or externalToolId.`,
+  )
+  check(studyCard.operations.length > 0, `${studyCard.displayName} must map to at least one operation.`)
+
+  for (const operation of studyCard.operations) {
+    for (const requiredField of requiredStudyOperationFields) {
+      check(
+        Object.prototype.hasOwnProperty.call(operation, requiredField),
+        `${studyCard.displayName} ${operation.operationId} is missing required field: ${requiredField}`,
+      )
+    }
+  }
+}
+
+for (const toolId of productionToolIds) {
+  const card = cards.find((candidate) => candidate.toolId === toolId)
+  check(Boolean(card), `${toolId} must have an explicit study card.`)
+  check(card.capabilitySource === 'explicit_study_card', `${toolId} must be an explicit study card after first-class coverage expansion.`)
+}
+
+for (const result of runtimeIdReconciliationResults) {
+  check(
+    result.status === 'alias_resolved_to_production_tool_id' ||
+      result.status === 'first_class_production_tool_id' ||
+      result.status === 'pending_production_tool_registry_expansion',
+    `${result.inputToolId} alias must resolve or remain pending registry expansion.`,
+  )
+  if (result.status !== 'pending_production_tool_registry_expansion') {
+    check(Boolean(result.toolId), `${result.inputToolId} resolved alias must include toolId.`)
+    check(productionToolIds.has(result.toolId), `${result.inputToolId} resolved alias must target ProductionToolId.`)
+  }
+}
+
+const operationCoverageSummary = listOperationDefinitions().map((operation) => {
+  const firstClassCandidates = findToolsForOperation(operation.operationId)
+  const pendingCandidates = expandedCards
+    .filter((card) => card.selectableAsRuntimeTool === false && card.operations.includes(operation.operationId))
+    .map((card) => card.externalToolId)
+    .sort()
+
+  check(
+    firstClassCandidates.length > 0 || operation.futureAllowed,
+    `${operation.operationId} must have a first-class runtime candidate or be explicitly futureAllowed.`,
+  )
+
+  return {
+    operationId: operation.operationId,
+    futureAllowed: operation.futureAllowed,
+    firstClassCandidateCount: firstClassCandidates.length,
+    pendingExternalCandidateIds: pendingCandidates,
+  }
+})
+
+const duplicateSystemPaths = [
+  'server/tool-calling/production-tool-registry.ts',
+  'server/tool-calling/tool-registry.ts',
+  'server/tool-calling/tool-qa-policy.ts',
+  'server/tool-calling/tool-fallback-policy.ts',
+  'server/tool-calling/production-worker-router.ts',
+]
+
+for (const filePath of duplicateSystemPaths) {
+  check(!existsSync(filePath), `Duplicate production system file must not exist: ${filePath}`)
+}
+
+const rankingDimensionNames = Object.keys(DEFAULT_RANKING_WEIGHTS)
+const coordinationLabelPattern = /track\s+[ab]/i
+check(
+  rankingDimensionNames.every((dimensionName) => !coordinationLabelPattern.test(dimensionName)),
+  'Ranking dimensions must not use coordination labels.',
+)
+
+const plans = INITIAL_PIPELINE_PATTERN_IDS.map((patternId) => buildToolCallingPlan({
+  projectId: `diagnostics_${patternId}`,
+  mode: patternId === 'final_export_validation' ? 'final_export' : 'preview',
+  qualityTarget: 'balanced',
+  requestedPatternId: patternId,
+  userPreferenceTags: ['professional', 'safe'],
+  mediaContext: {
+    mediaTypes: ['video', 'audio'],
+    hasAudio: true,
+    hasSpeech: true,
+    hasMotion: true,
+  },
+}))
+
+let selectedToolsAreFirstClassProductionToolIds = true
+let pendingExternalToolsSelected = false
+
+for (const plan of plans) {
+  check(plan.executesTools === false, `${plan.planId} must be planning-only.`)
+  check(plan.diagnostics.executesTools === false, `${plan.planId} diagnostics must be planning-only.`)
+  check(plan.pipeline.steps.length > 0, `${plan.planId} must include pipeline steps.`)
+  check(!hasKeyDeep(plan, 'rawPrompt'), `${plan.planId} must not contain rawPrompt.`)
+  check(!JSON.stringify(plan).includes('rawPrompt'), `${plan.planId} must not serialize rawPrompt.`)
+
+  for (const step of plan.pipeline.steps) {
+    check(Boolean(step.operationId), `${step.stepId} must include an operationId.`)
+    check(Boolean(step.selectedToolId), `${step.stepId} must include a selectedToolId.`)
+    check(Array.isArray(step.fallbackToolIds), `${step.stepId} must include fallbackToolIds.`)
+    check(step.expectedInputArtifacts.length > 0, `${step.stepId} must include expected input artifacts.`)
+    check(step.expectedOutputArtifacts.length > 0, `${step.stepId} must include expected output artifacts.`)
+    check(step.requiredQualityGates.length > 0, `${step.stepId} must include quality gates.`)
+    check(step.executionMode === 'planning_only', `${step.stepId} must be planning_only.`)
+    check(productionToolIds.has(step.selectedToolId), `${step.stepId} selected tool must exist in production registry.`)
+    selectedToolsAreFirstClassProductionToolIds = selectedToolsAreFirstClassProductionToolIds &&
+      productionToolIds.has(step.selectedToolId)
+    pendingExternalToolsSelected = pendingExternalToolsSelected || pendingExternalToolIds.has(step.selectedToolId)
+  }
+}
+
+check(selectedToolsAreFirstClassProductionToolIds, 'Selected tools must all be first-class ProductionToolId values.')
+check(!pendingExternalToolsSelected, 'Pending external tools must not be selected as selectedToolId.')
+
+const stagedFiles = runGit(['diff', '--cached', '--name-only']).split('\n').filter(Boolean)
+const packageLockStaged = stagedFiles.includes('package-lock.json')
+check(!packageLockStaged, 'package-lock.json must not be staged by this milestone.')
+
+const packageLock = await readFile('package-lock.json', 'utf8')
+const packageLockSha256 = hashContent(packageLock)
+const expectedPackageLockSha256 = process.env.EXPECTED_PACKAGE_LOCK_SHA256
+if (expectedPackageLockSha256) {
+  check(
+    packageLockSha256 === expectedPackageLockSha256,
+    `package-lock.json hash changed: expected ${expectedPackageLockSha256}, got ${packageLockSha256}`,
+  )
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  patternCount: plans.length,
+  patterns: plans.map((plan) => ({
+    patternId: plan.pipeline.patternId,
+    planId: plan.planId,
+    operationCount: plan.operations.length,
+    stepCount: plan.pipeline.steps.length,
+    selectedTools: plan.selectedTools,
+    qualityGateCount: plan.qualityGatePlan.gateTypes.length,
+    executesTools: plan.executesTools,
+  })),
+  capabilityCardCount: cards.length,
+  firstClassProductionToolCount: productionToolIds.size,
+  productionRegistryToolCount: productionToolIds.size,
+  explicitStudyCardCount: explicitStudyCards.length,
+  explicitFirstClassStudyCardCount: explicitFirstClassStudyCards.length,
+  pendingExternalStudyCardCount: explicitPendingExternalStudyCards.length,
+  generatedFallbackCardCount,
+  firstClassToolIdsMissingExplicitStudy,
+  newlyCoveredStudyCardsMissingSourceEvidence,
+  governanceSensitiveNewStudyCardCount: governanceSensitiveNewStudyCards.length,
+  expandedCapabilityCardCount: expandedCards.length,
+  runtimeIdAliasesCount: runtimeIdReconciliationResults.length,
+  pendingProductionToolRegistryExpansion,
+  trackBPromotedProductionToolIds,
+  trackBPromotedToolIdsMissingProductionId,
+  trackBPromotedToolIdsMissingStudyCard,
+  trackBPromotedToolIdsMissingAdapterEvidence,
+  graphicsMagickCounted: false,
+  graphicsMagickRuntimeResolution: graphicsMagickResolution,
+  operationCoverageSummary,
+  selectedToolsAreFirstClassProductionToolIds,
+  pendingExternalToolsSelected,
+  refreshGateRequiredBeforeFutureMilestones: true,
+  duplicateSystemsCreated: false,
+  executesTools: false,
+  rankingDimensions: rankingDimensionNames,
+  coordinationLabelsUsedForRanking: false,
+  packageLock: {
+    sha256: packageLockSha256,
+    matchesExpected: expectedPackageLockSha256 ? packageLockSha256 === expectedPackageLockSha256 : null,
+    staged: packageLockStaged,
+  },
+}, null, 2))

@@ -1,0 +1,28 @@
+# RP-RENDER-03A mock-only Remotion Cloud Run Job container.
+# This image validates render payloads and returns sanitized JSON.
+# It does not install Remotion, @remotion/renderer, Chromium, FFmpeg, GCS clients, provider SDKs, or Secret Manager clients.
+
+FROM node:22-slim AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY tsconfig*.json ./
+COPY vite.remotion-worker.config.ts ./
+COPY src ./src
+
+RUN npm run build:remotion-worker:mock
+
+FROM node:22-slim AS runtime
+
+WORKDIR /app
+
+ENV PROJECT_ID=reeditpro
+ENV RUNTIME_REGION=us-east1
+ENV SERVER_RUNTIME_MODE=mock
+
+COPY --from=build /app/dist-remotion-worker ./dist-remotion-worker
+
+CMD ["node", "dist-remotion-worker/remotion-worker-cli.js"]

@@ -363,6 +363,14 @@ begin
     'commissioned',
     'stock_licensed',
     'reference_only',
+    'mock_generated',
+    'provider_generated',
+    'project_generated',
+    'internal_library',
+    'workspace_library',
+    'manual_upload',
+    'source_audio',
+    'licensed_library',
     'unknown'
   );
 exception
@@ -379,6 +387,9 @@ begin
     'commercial_allowed',
     'ads_allowed',
     'requires_review',
+    'approved_internal_library',
+    'terms_review_required',
+    'blocked_from_reuse',
     'unknown'
   );
 exception
@@ -390,9 +401,13 @@ begin
   create type public.audio_usage_type as enum (
     'project_preview',
     'final_export',
+    'preview',
+    'export',
     'revision_preview',
     'internal_library_preview',
     'reference_analysis_only',
+    'library_audit',
+    'manual_review',
     'other'
   );
 exception
@@ -413,6 +428,48 @@ begin
     'light_hit',
     'success_chime',
     'paper_swipe',
+    'transition_soft_whoosh',
+    'transition_camera_swipe',
+    'transition_air_pass',
+    'transition_light_riser',
+    'transition_ambient_bridge',
+    'transition_subtle_cut_accent',
+    'transition_dip_to_black_swell',
+    'stroke_draw',
+    'stroke_line_trace',
+    'stroke_soft_pencil_draw',
+    'stroke_sketch_texture',
+    'stroke_symbol_pop',
+    'stroke_circle_complete',
+    'stroke_line_crack',
+    'stroke_line_reconnect',
+    'stroke_light_shimmer',
+    'graphic_card_reveal',
+    'graphic_label_pop',
+    'graphic_diagram_trace',
+    'graphic_line_draw',
+    'graphic_list_item_tick',
+    'graphic_data_point_reveal',
+    'graphic_subtle_click',
+    'real_motion_object_enter',
+    'real_motion_object_settle',
+    'real_motion_soft_impact',
+    'real_motion_paper_movement',
+    'real_motion_glass_movement',
+    'real_motion_wood_movement',
+    'real_motion_cloth_movement',
+    'lifestyle_travel_whoosh',
+    'lifestyle_camera_shutter',
+    'lifestyle_water_boat_ambience',
+    'lifestyle_restaurant_ambience_bridge',
+    'cta_success_chime',
+    'cta_light_tap',
+    'cta_clean_resolve_hit',
+    'cta_subtle_shimmer',
+    'montage_beat_accent',
+    'ambient_soft_bridge',
+    'source_footage_repair',
+    'none',
     'custom'
   );
 exception

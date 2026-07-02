@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-calling/safe-command-plan.schema.v1.json",
+  "title": "Reeditpro Safe Command Plan v1",
+  "type": "object",
+  "required": [
+    "commandPlanId",
+    "adapterPlanId",
+    "toolId",
+    "operationId",
+    "commandIntentId",
+    "workerType",
+    "executionMode",
+    "allowedParameterSchema",
+    "parameterDefaults",
+    "inputArtifactRequirements",
+    "outputArtifactExpectations",
+    "requiredQualityGates",
+    "fallbackToolIds",
+    "resourceLimits",
+    "sandboxProfile",
+    "validationPolicy",
+    "approvedSnapshotRequired",
+    "privateArtifactRefsOnly",
+    "rawPromptAllowed",
+    "signedUrlAllowed",
+    "arbitraryArgsAllowed",
+    "commandExecutionAllowed",
+    "mediaProcessingAllowed",
+    "executesTools"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "commandPlanId": { "type": "string", "minLength": 1 },
+    "adapterPlanId": { "type": "string", "minLength": 1 },
+    "toolId": { "type": "string", "minLength": 1 },
+    "operationId": { "type": "string", "minLength": 1 },
+    "commandIntentId": { "type": "string", "minLength": 1 },
+    "workerType": { "type": "string", "minLength": 1 },
+    "executionMode": { "const": "planning_only" },
+    "allowedParameterSchema": {
+      "type": "object",
+      "required": ["schemaId", "parameters", "additionalParametersAllowed"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaId": { "type": "string" },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["parameterName", "valueType", "required", "description"],
+            "additionalProperties": true,
+            "properties": {
+              "parameterName": { "type": "string" },
+              "valueType": { "enum": ["boolean", "number", "string_enum"] },
+              "required": { "type": "boolean" },
+              "enumValues": { "type": "array", "items": { "type": "string" } },
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "additionalParametersAllowed": { "const": false }
+      }
+    },
+    "parameterDefaults": { "type": "object" },
+    "inputArtifactRequirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifactType", "artifactRefId", "source", "storageReferenceRequired", "privateArtifactRefsOnly"],
+        "additionalProperties": false,
+        "properties": {
+          "artifactType": { "type": "string" },
+          "artifactRefId": { "type": "string" },
+          "source": { "type": "string" },
+          "storageReferenceRequired": { "const": true },
+          "privateArtifactRefsOnly": { "const": true }
+        }
+      }
+    },
+    "outputArtifactExpectations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifactType", "storageBucketPurpose", "storageReferenceRequired"],
+        "additionalProperties": false,
+        "properties": {
+          "artifactType": { "type": "string" },
+          "storageBucketPurpose": { "type": "string" },
+          "storageReferenceRequired": { "const": true }
+        }
+      }
+    },
+    "requiredQualityGates": { "type": "array", "items": { "type": "string" } },
+    "fallbackToolIds": { "type": "array", "items": { "type": "string" } },
+    "resourceLimits": {
+      "type": "object",
+      "required": ["timeoutMs", "gpuAllowed", "networkAllowed", "writeAccess", "privateStorageOnly"],
+      "additionalProperties": true,
+      "properties": {
+        "timeoutMs": { "type": "number" },
+        "gpuAllowed": { "type": "boolean" },
+        "networkAllowed": { "const": false },
+        "writeAccess": { "enum": ["worker_temp_only", "none"] },
+        "privateStorageOnly": { "const": true }
+      }
+    },
+    "sandboxProfile": {
+      "type": "object",
+      "required": ["networkAllowed", "signedUrlsAllowed", "rawPromptAllowed", "arbitraryArgsAllowed", "privateArtifactRefsOnly"],
+      "additionalProperties": false,
+      "properties": {
+        "networkAllowed": { "const": false },
+        "signedUrlsAllowed": { "const": false },
+        "rawPromptAllowed": { "const": false },
+        "arbitraryArgsAllowed": { "const": false },
+        "privateArtifactRefsOnly": { "const": true }
+      }
+    },
+    "validationPolicy": { "type": "object" },
+    "approvedSnapshotRequired": { "const": true },
+    "privateArtifactRefsOnly": { "const": true },
+    "rawPromptAllowed": { "const": false },
+    "signedUrlAllowed": { "const": false },
+    "arbitraryArgsAllowed": { "const": false },
+    "commandExecutionAllowed": { "const": false },
+    "mediaProcessingAllowed": { "const": false },
+    "executesTools": { "const": false }
+  }
+}

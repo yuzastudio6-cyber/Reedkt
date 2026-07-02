@@ -107,7 +107,7 @@ export function checkCulturePolicy(input: ValidateLyriaPromptPlanInput): LyriaPr
   const text = [
     promptPlan.prompt,
     promptPlan.negativePrompt,
-    ...promptPlan.cultureContextInstructions,
+    ...(promptPlan.cultureContextInstructions ?? []),
     ...(languageContexts ?? []).flatMap((context) => context.stereotypeAvoidanceNotes),
   ].join(' ').toLowerCase()
 
@@ -160,6 +160,7 @@ export function checkDurationPolicy(promptPlan: LyriaPromptPlanRecord): LyriaPro
 export function checkPromptSpecificity(promptPlan: LyriaPromptPlanRecord): LyriaPromptValidationWarning[] {
   const warnings: LyriaPromptValidationWarning[] = []
   const promptText = promptPlan.prompt.toLowerCase()
+  const durationSeconds = promptPlan.durationSeconds ?? 0
 
   if (promptPlan.prompt.length < 180 || promptText === 'create cinematic music.' || promptText === 'cinematic music') {
     warnings.push(createWarning(
@@ -188,7 +189,7 @@ export function checkPromptSpecificity(promptPlan: LyriaPromptPlanRecord): Lyria
     ))
   }
 
-  if (!promptText.includes(promptPlan.durationSeconds.toString())) {
+  if (!durationSeconds || !promptText.includes(durationSeconds.toString())) {
     warnings.push(createWarning(
       'missing_duration',
       'Prompt does not include the numeric duration.',

@@ -16,7 +16,7 @@ export interface JSONObject {
   [key: string]: JSONValue
 }
 
-export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | 'let_ai_decide'
+export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | '4:3' | 'let_ai_decide'
 
 export type TargetPlatform =
   | 'tiktok_reels_shorts'

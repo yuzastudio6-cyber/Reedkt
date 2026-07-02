@@ -1,0 +1,1732 @@
+{
+  "schema": "reeditpro.soundGate1AMergedReconciliationMatrix.v1",
+  "evidenceSummary": {
+    "sourcePr": 647,
+    "sourceMilestone": "SOUND-RUNTIME-MEDIA-GATE-1A",
+    "sourceDecision": "sound_runtime_media_gate_1a_merged_as_owner_source_evidence_only",
+    "prMerged": true,
+    "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+    "evidenceIsFinalSourceOfTruth": true,
+    "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+    "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+    "metadataChecksPassed": 13,
+    "metadataChecksFailed": 0,
+    "importChecksPassed": 14,
+    "importChecksFailed": 0,
+    "importChecksInclude": [
+      "scipy.signal"
+    ],
+    "failedImports": [],
+    "python3Observed": "3.13.13",
+    "pythonUnavailable": true,
+    "tempVenvRemoved": true,
+    "directPinnedPackageCount": 13,
+    "aliasCoveredToolCount": 2,
+    "gate1RowCount": 29,
+    "noImportsRunByToolCalling": true,
+    "adaptersAdded": 0,
+    "commandIntentsAdded": 0,
+    "probesAdded": 0,
+    "nextOwnerPrompts": [
+      "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "SOUND-RUNTIME-MEDIA-GATE-2",
+      "SOUND-RUNTIME-MEDIA-GATE-3"
+    ]
+  },
+  "rows": [
+    {
+      "normalizedToolId": "librosa",
+      "displayName": "librosa",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "first_class_production_tool_id"
+      ],
+      "packageName": "librosa==0.11.0",
+      "aliasFor": null,
+      "productionToolId": "librosa",
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+        "server/tool-registry"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_controlled_import_probe_planning",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "librosa has merged Gate 1A owner proof, but this milestone adds no import probe or execution; existing first-class runtime selectability is unchanged.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "audioread",
+      "displayName": "audioread",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "candidate_study_card_only",
+        "blocked_media_policy"
+      ],
+      "packageName": "audioread==3.1.0",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": "audioread",
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #641 sound candidate study cards",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": true,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "blocked_pending_media_policy",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-3",
+      "toolCallingPendingAction": "wait_for_media_policy_handoff",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "audioread has merged Gate 1A package proof where applicable, but media/file-open policy remains blocked until SOUND-RUNTIME-MEDIA-GATE-3.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "pydub",
+      "displayName": "pydub",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "candidate_study_card_only",
+        "blocked_media_policy"
+      ],
+      "packageName": "pydub==0.25.1",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": "pydub",
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #641 sound candidate study cards",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": true,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "blocked_pending_media_policy",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-3",
+      "toolCallingPendingAction": "wait_for_media_policy_handoff",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "pydub has merged Gate 1A package proof where applicable, but media/file-open policy remains blocked until SOUND-RUNTIME-MEDIA-GATE-3.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "scipy",
+      "displayName": "SciPy",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "scipy==1.15.3",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "SciPy has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "resampy",
+      "displayName": "resampy",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "resampy==0.4.3",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "resampy has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "pyloudnorm",
+      "displayName": "pyloudnorm",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "candidate_study_card_only"
+      ],
+      "packageName": "pyloudnorm==0.2.0",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": "pyloudnorm",
+      "soundCategory": "loudness_qa",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #641 sound candidate study cards",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": true,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "pyloudnorm has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "audioflux",
+      "displayName": "audioFlux",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "first_class_production_tool_id"
+      ],
+      "packageName": "audioflux==0.1.9",
+      "aliasFor": null,
+      "productionToolId": "audioflux",
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+        "server/tool-registry"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_controlled_import_probe_planning",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "audioFlux has merged Gate 1A owner proof, but this milestone adds no import probe or execution; existing first-class runtime selectability is unchanged.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "music21",
+      "displayName": "music21",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "music21==10.3.0",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "music_sync",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "music21 has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "pretty_midi",
+      "displayName": "pretty_midi",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "pretty_midi==0.2.11",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "music_sync",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "pretty_midi has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "mido",
+      "displayName": "mido",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "mido==1.3.3",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "music_sync",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "mido has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "noisereduce",
+      "displayName": "noisereduce",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "noisereduce==3.0.3",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "denoise",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "noisereduce has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "pedalboard",
+      "displayName": "Pedalboard",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "pedalboard==0.9.23",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "Pedalboard has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "mir_eval",
+      "displayName": "mir_eval",
+      "gate1EvidenceStatus": [
+        "direct_pinned_package",
+        "owner_inventory_only"
+      ],
+      "packageName": "mir_eval==0.8.2",
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "mir_eval has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "pydub_effects",
+      "displayName": "pydub effects",
+      "gate1EvidenceStatus": [
+        "alias_covered_tool",
+        "blocked_media_policy"
+      ],
+      "packageName": "pydub==0.25.1",
+      "aliasFor": "pydub",
+      "productionToolId": null,
+      "candidateStudyCardId": "pydub",
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #641 sound candidate study cards"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": true,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "blocked_pending_media_policy",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-3",
+      "toolCallingPendingAction": "wait_for_media_policy_handoff",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "pydub effects has merged Gate 1A package proof where applicable, but media/file-open policy remains blocked until SOUND-RUNTIME-MEDIA-GATE-3.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "ebu_r128_pyloudnorm",
+      "displayName": "EBU R128 pyloudnorm",
+      "gate1EvidenceStatus": [
+        "alias_covered_tool",
+        "candidate_study_card_only"
+      ],
+      "packageName": "pyloudnorm==0.2.0",
+      "aliasFor": "pyloudnorm",
+      "productionToolId": null,
+      "candidateStudyCardId": "pyloudnorm",
+      "soundCategory": "loudness_qa",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #641 sound candidate study cards",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": true,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_registry_expansion_after_owner_proof",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "EBU R128 pyloudnorm has merged Gate 1A owner proof but remains candidate-only and non-selectable until a future registry expansion milestone.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "signalsmith_stretch",
+      "displayName": "Signalsmith Stretch",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only",
+        "first_class_production_tool_id"
+      ],
+      "packageName": "signalsmith_stretch",
+      "aliasFor": null,
+      "productionToolId": "signalsmith_stretch",
+      "candidateStudyCardId": null,
+      "soundCategory": "time_stretch",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1",
+        "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+        "server/tool-registry"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "gate_1a_merged_controlled_install_proof",
+      "executionGate": "planning_only",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1A",
+      "toolCallingPendingAction": "future_controlled_import_probe_planning",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "Signalsmith Stretch has merged Gate 1A owner proof, but this milestone adds no import probe or execution; existing first-class runtime selectability is unchanged.",
+      "gate1aEvidenceStatus": [
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "deepfilternet",
+      "displayName": "DeepFilterNet",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_model_gpu"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "deepfilternet",
+      "candidateStudyCardId": null,
+      "soundCategory": "denoise",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 blocked exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_model_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-2",
+      "toolCallingPendingAction": "wait_for_model_weight_review",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "DeepFilterNet remains blocked by model/GPU/provenance review; Gate 1A CPU install proof does not authorize model execution.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "demucs",
+      "displayName": "Demucs",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_model_gpu"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "demucs",
+      "candidateStudyCardId": null,
+      "soundCategory": "stem_separation",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 blocked exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_model_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-2",
+      "toolCallingPendingAction": "wait_for_model_weight_review",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "Demucs remains blocked by model/GPU/provenance review; Gate 1A CPU install proof does not authorize model execution.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "rnnoise",
+      "displayName": "RNNoise",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_system_binary_runtime_handoff"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "rnnoise",
+      "candidateStudyCardId": null,
+      "soundCategory": "denoise",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 system/binary exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_no_execution",
+      "futureOwnerPrompt": "none",
+      "toolCallingPendingAction": "do_not_duplicate_owner_lane",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "RNNoise stays first-class planning metadata only; Gate 1A does not approve system binary runtime handoff.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "rubber_band",
+      "displayName": "Rubber Band",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_system_binary_runtime_handoff"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "rubber_band",
+      "candidateStudyCardId": null,
+      "soundCategory": "time_stretch",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 system/binary exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_no_execution",
+      "futureOwnerPrompt": "none",
+      "toolCallingPendingAction": "do_not_duplicate_owner_lane",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "Rubber Band stays first-class planning metadata only; Gate 1A does not approve system binary runtime handoff.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "soundtouch",
+      "displayName": "SoundTouch",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_system_binary_runtime_handoff"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "soundtouch",
+      "candidateStudyCardId": null,
+      "soundCategory": "time_stretch",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 system/binary exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_no_execution",
+      "futureOwnerPrompt": "none",
+      "toolCallingPendingAction": "do_not_duplicate_owner_lane",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "SoundTouch stays first-class planning metadata only; Gate 1A does not approve system binary runtime handoff.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "essentia",
+      "displayName": "Essentia",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_system_binary_runtime_handoff"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "essentia",
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 system/binary exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_no_execution",
+      "futureOwnerPrompt": "none",
+      "toolCallingPendingAction": "do_not_duplicate_owner_lane",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "Essentia stays first-class planning metadata only; Gate 1A does not approve system binary runtime handoff.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "whisper_cpp",
+      "displayName": "whisper.cpp",
+      "gate1EvidenceStatus": [
+        "first_class_production_tool_id",
+        "blocked_model_gpu"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": "whisper_cpp",
+      "candidateStudyCardId": null,
+      "soundCategory": "speech_audio_support",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "server/tool-registry",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1 blocked exclusions"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": true,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": true,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": true,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_model_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-2",
+      "toolCallingPendingAction": "wait_for_model_weight_review",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "whisper.cpp remains blocked by model/GPU/provenance review; Gate 1A CPU install proof does not authorize model execution.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "sound-cpu-analysis-worker",
+      "displayName": "sound-cpu-analysis-worker",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_gate_1b_worker_contract_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "toolCallingPendingAction": "wait_for_sound_gate_1b",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "sound-cpu-analysis-worker remains a planning-only worker/job surface pending SOUND-RUNTIME-MEDIA-GATE-1B worker contract reconciliation.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "sound-audio-metadata-worker",
+      "displayName": "sound-audio-metadata-worker",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_gate_1b_worker_contract_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "toolCallingPendingAction": "wait_for_sound_gate_1b",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "sound-audio-metadata-worker remains a planning-only worker/job surface pending SOUND-RUNTIME-MEDIA-GATE-1B worker contract reconciliation.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "package_import_smoke_job_type",
+      "displayName": "package import smoke job type",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_gate_1b_worker_contract_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "toolCallingPendingAction": "wait_for_sound_gate_1b",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "package import smoke job type remains a planning-only worker/job surface pending SOUND-RUNTIME-MEDIA-GATE-1B worker contract reconciliation.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "numeric_array_analysis_job_type",
+      "displayName": "numeric array analysis job type",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "audio_analysis",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_gate_1b_worker_contract_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "toolCallingPendingAction": "wait_for_sound_gate_1b",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "numeric array analysis job type remains a planning-only worker/job surface pending SOUND-RUNTIME-MEDIA-GATE-1B worker contract reconciliation.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "symbolic_midi_analysis_job_type",
+      "displayName": "symbolic MIDI analysis job type",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "music_sync",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_gate_1b_worker_contract_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "toolCallingPendingAction": "wait_for_sound_gate_1b",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "symbolic MIDI analysis job type remains a planning-only worker/job surface pending SOUND-RUNTIME-MEDIA-GATE-1B worker contract reconciliation.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    },
+    {
+      "normalizedToolId": "loudness_synthetic_analysis_job_type",
+      "displayName": "loudness synthetic analysis job type",
+      "gate1EvidenceStatus": [
+        "approved_plan_covered_planning_only"
+      ],
+      "packageName": null,
+      "aliasFor": null,
+      "productionToolId": null,
+      "candidateStudyCardId": null,
+      "soundCategory": "loudness_qa",
+      "sourceEvidence": [
+        "PR #647 SOUND-RUNTIME-MEDIA-GATE-1A merged owner source evidence",
+        "PR #647 merge commit 0126327c19f1af18bb1ca040c31d06736693d1b6",
+        "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py",
+        "PR #640 SOUND-RUNTIME-MEDIA-GATE-1"
+      ],
+      "currentToolCallingCoverage": {
+        "hasFirstClassStudyCard": false,
+        "hasCandidateStudyCard": false,
+        "hasAdapterContract": false,
+        "hasSafeCommandIntent": false,
+        "hasFixturePlan": false,
+        "hasControlledProbe": false
+      },
+      "selectableAsRuntimeTool": false,
+      "installProofStatus": "not_applicable",
+      "executionGate": "blocked_pending_gate_1b_worker_contract_review",
+      "futureOwnerPrompt": "SOUND-RUNTIME-MEDIA-GATE-1B",
+      "toolCallingPendingAction": "wait_for_sound_gate_1b",
+      "duplicateRisk": "do_not_duplicate_owner_lane",
+      "notes": "loudness synthetic analysis job type remains a planning-only worker/job surface pending SOUND-RUNTIME-MEDIA-GATE-1B worker contract reconciliation.",
+      "gate1aEvidenceStatus": [
+        "blocked_by_owner_gate",
+        "merged_owner_source_evidence"
+      ],
+      "prNumber": 647,
+      "prMerged": true,
+      "mergeCommit": "0126327c19f1af18bb1ca040c31d06736693d1b6",
+      "evidenceIsFinalSourceOfTruth": true,
+      "gate1aReportedResult": {
+        "metadataChecksPassed": 13,
+        "metadataChecksFailed": 0,
+        "importChecksPassed": 14,
+        "importChecksFailed": 0,
+        "importChecksInclude": [
+          "scipy.signal"
+        ],
+        "failedImports": [],
+        "python3Observed": "3.13.13",
+        "pythonUnavailable": true,
+        "tempVenvRemoved": true,
+        "requirementsPath": "server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt",
+        "proofRunnerPath": "scripts/validation/sound-runtime-media-gate-1a-controlled-cpu-install-proof-runner.py"
+      }
+    }
+  ]
+}

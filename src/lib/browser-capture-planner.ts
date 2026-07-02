@@ -70,7 +70,7 @@ function combinedPlanningText(params: {
     ...(params.videoUnderstandingReport?.notes ?? []),
     ...(params.adaptiveEditStrategyPlan?.toolHints ?? []),
     ...(params.adaptiveEditStrategyPlan?.visualOpportunities ?? []),
-    ...(params.visualAssetPlan?.flatMap((item) => [item.title, item.visualType, ...item.notes]) ?? []),
+    ...(params.visualAssetPlan?.flatMap((item) => [item.title, item.visualType, ...(item.notes ?? [])]) ?? []),
   ]
     .join(' ')
     .toLowerCase()
@@ -206,11 +206,11 @@ function creditImpactFor(visualType: BrowserVisualType, editLevel: EditLevel, pr
   }
 
   if (privacyRisk === 'high') {
-    return editLevel === 'advanced_viral' ? 'premium' : 'high'
+    return editLevel === 'premium' ? 'premium' : 'high'
   }
 
   if (visualType === 'before_after_website_comparison' || visualType === 'scroll_sequence' || visualType === 'tutorial_screen_step') {
-    return editLevel === 'advanced_viral' ? 'high' : 'medium'
+    return editLevel === 'premium' ? 'high' : 'medium'
   }
 
   if (visualType === 'saas_dashboard_capture' || visualType === 'ui_highlight_zoom' || visualType === 'selector_focus') {

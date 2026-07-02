@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "sam2",
+  "displayName": "SAM 2",
+  "aliases": ["sam2"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "sam2",
+    "reason": "SAM 2 is a first-class ProductionToolId for segmentation and mask refinement planning."
+  },
+  "operations": [
+    {"operationId": "mask.generate", "supportLevel": "secondary", "bestFor": ["object and subject segmentation planning"], "notFor": ["final compositing"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["mask_image", "mask_sequence", "image_asset", "qa_report"], "validators": ["mask_edge_quality", "mask_subject_coverage"], "fallbackToolIds": ["birefnet", "rembg", "transparent_background", "opencv"], "notes": ["Good for object-oriented segmentation plans."]},
+    {"operationId": "mask.refine", "supportLevel": "primary", "bestFor": ["mask repair and temporal refinement"], "notFor": ["caption safe-zone only"], "inputArtifacts": ["mask", "mask_image", "mask_sequence", "image", "video", "frame_sequence"], "outputArtifacts": ["mask_image", "mask_sequence", "qa_report", "json_spec"], "validators": ["mask_edge_quality", "mask_temporal_stability", "mask_subject_coverage"], "fallbackToolIds": ["kornia", "opencv", "birefnet"], "notes": ["Primary planning candidate for mask refinement where model policy allows."]},
+    {"operationId": "background.remove", "supportLevel": "secondary", "bestFor": ["subject segmentation for background removal"], "notFor": ["simple still cutouts when BiRefNet is enough"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["mask_image", "mask_sequence", "image_asset", "processed_video", "qa_report"], "validators": ["mask_edge_quality", "mask_subject_coverage", "mask_temporal_stability"], "fallbackToolIds": ["birefnet", "rembg", "transparent_background", "opencv"], "notes": ["Candidate when object specificity matters."]}
+  ],
+  "bestFor": ["object segmentation", "mask refinement", "temporal mask planning"],
+  "notFor": ["audio", "OCR", "final muxing"],
+  "inputArtifacts": ["mask", "mask_image", "mask_sequence", "image", "video", "frame_sequence"],
+  "outputArtifacts": ["mask_image", "mask_sequence", "image_asset", "processed_video", "qa_report", "json_spec"],
+  "validators": ["mask_edge_quality", "mask_temporal_stability", "mask_subject_coverage"],
+  "fallbackToolIds": ["birefnet", "rembg", "transparent_background", "opencv", "kornia"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": false, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["prompt or seed dependency", "temporal drift", "model-weight review may block execution"],
+  "professionalEditingUses": ["text-behind-subject", "object masking", "advanced background removal"],
+  "benchmarkPlaceholders": ["benchmark:sam2:mask_temporal_stability_pending", "benchmark:sam2:subject_coverage_pending"],
+  "telemetryPlaceholders": ["telemetry:sam2:selection_count", "telemetry:sam2:mask_gate_outcomes"],
+  "readinessNotes": ["Planning card only; no segmentation model is invoked."]
+}

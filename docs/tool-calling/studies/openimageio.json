@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "openimageio",
+  "displayName": "OpenImageIO",
+  "aliases": ["openimageio"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "openimageio",
+    "reason": "OpenImageIO is a first-class ProductionToolId for image IO, color analysis, and frame-quality planning."
+  },
+  "operations": [
+    {"operationId": "color.exposure.correct", "supportLevel": "secondary", "bestFor": ["image sequence color and exposure evidence"], "notFor": ["managed color authority"], "inputArtifacts": ["source_media", "proxy_media", "image", "video"], "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report"], "validators": ["color_exposure", "color_export_space"], "fallbackToolIds": ["opencolorio", "ffmpeg", "opencv"], "notes": ["Complements OpenColorIO with image IO evidence."]},
+    {"operationId": "color.shot_match", "supportLevel": "secondary", "bestFor": ["image-level shot comparison evidence"], "notFor": ["timeline retiming"], "inputArtifacts": ["source_media", "proxy_media", "image", "video"], "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report"], "validators": ["color_shot_match", "color_skin_tone", "color_export_space"], "fallbackToolIds": ["opencolorio", "opencv", "ffmpeg"], "notes": ["Useful for frame/image analysis in shot matching."]},
+    {"operationId": "thumbnail.generate", "supportLevel": "fallback", "bestFor": ["image format handling for representative stills"], "notFor": ["video extraction"], "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence"], "outputArtifacts": ["image_asset", "representative_frame", "qa_report"], "validators": ["render_asset_integrity", "caption_safe_zone"], "fallbackToolIds": ["sharp", "pyav", "ffmpeg"], "notes": ["Fallback for image IO-heavy thumbnail planning."]}
+  ],
+  "bestFor": ["image IO", "image-level color evidence", "thumbnail format fallback"],
+  "notFor": ["audio", "caption burn-in", "segmentation"],
+  "inputArtifacts": ["source_media", "proxy_media", "image", "video", "frame_sequence"],
+  "outputArtifacts": ["processed_video", "image_asset", "qa_report", "analysis_report", "representative_frame"],
+  "validators": ["color_exposure", "color_export_space", "color_shot_match", "color_skin_tone", "render_asset_integrity", "caption_safe_zone"],
+  "fallbackToolIds": ["opencolorio", "ffmpeg", "opencv", "sharp", "pyav"],
+  "resourceProfile": {"workerType": "cpu_analysis_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": false, "licenseRisk": "low", "commercialUseStatus": "allowed"},
+  "knownFailureModes": ["format plugin gaps", "color profile interpretation mismatch", "large image sequence IO cost"],
+  "professionalEditingUses": ["color evidence", "image sequence QA", "thumbnail image handling"],
+  "benchmarkPlaceholders": ["benchmark:openimageio:image_io_latency_pending", "benchmark:openimageio:color_metadata_coverage_pending"],
+  "telemetryPlaceholders": ["telemetry:openimageio:selection_count", "telemetry:openimageio:color_gate_outcomes"],
+  "readinessNotes": ["Alias `openimageio` resolves to first-class runtime ID `openimageio` on this base."]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "ffprobe",
+  "displayName": "FFprobe",
+  "aliases": ["ffprobe"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "ffprobe",
+    "reason": "FFprobe is a first-class ProductionToolId for media inspection and export validation planning."
+  },
+  "operations": [
+    {"operationId": "media.inspect", "supportLevel": "primary", "bestFor": ["stream metadata", "duration and codec readiness"], "notFor": ["visual quality scoring"], "inputArtifacts": ["source_media", "proxy_media", "video", "audio"], "outputArtifacts": ["analysis_report", "qa_report", "json_spec"], "validators": ["render_asset_integrity"], "fallbackToolIds": ["ffmpeg", "pyav", "opencv"], "notes": ["Use as the default media inspection planning candidate."]},
+    {"operationId": "export.validate", "supportLevel": "primary", "bestFor": ["final export stream and duration validation"], "notFor": ["rendering or muxing"], "inputArtifacts": ["final_export", "video", "audio"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["export_codec_format", "export_duration_sync", "final_delivery"], "fallbackToolIds": ["ffmpeg", "opentimelineio"], "notes": ["Pairs with final delivery QA gates."]},
+    {"operationId": "qa.final_delivery", "supportLevel": "validator", "bestFor": ["container metadata evidence for final delivery"], "notFor": ["timeline repair"], "inputArtifacts": ["final_export", "qa_report"], "outputArtifacts": ["qa_report", "analysis_report", "json_spec"], "validators": ["final_delivery", "export_codec_format", "export_duration_sync"], "fallbackToolIds": ["ffmpeg", "opentimelineio"], "notes": ["Provides metadata evidence for delivery QA planning."]}
+  ],
+  "bestFor": ["metadata inspection", "stream validation", "duration evidence"],
+  "notFor": ["media transforms", "caption rendering", "AI analysis"],
+  "inputArtifacts": ["source_media", "proxy_media", "video", "audio", "final_export"],
+  "outputArtifacts": ["analysis_report", "qa_report", "json_spec"],
+  "validators": ["render_asset_integrity", "export_codec_format", "export_duration_sync", "final_delivery"],
+  "fallbackToolIds": ["ffmpeg", "pyav", "opentimelineio"],
+  "resourceProfile": {"workerType": "qa_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "qa_only"},
+  "qualityProfile": {"productionStatus": "launch_core", "adoptionStage": "launch_core", "launchCore": true, "modelWeightsRequired": false, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["container metadata unavailable", "malformed media stream", "codec tag ambiguity"],
+  "professionalEditingUses": ["source ingest QA", "export conformance checks", "duration drift detection"],
+  "benchmarkPlaceholders": ["benchmark:ffprobe:inspect_latency_pending", "benchmark:ffprobe:metadata_coverage_pending"],
+  "telemetryPlaceholders": ["telemetry:ffprobe:selection_count", "telemetry:ffprobe:validation_failures"],
+  "readinessNotes": ["Inspection is planned only; no media probing is executed by the brain."]
+}

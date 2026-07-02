@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-calling/controlled-low-risk-tool-execution.v1.json",
+  "title": "Reeditpro Tool Calling Controlled Low-Risk Probe Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "probeRunId",
+    "probeId",
+    "toolId",
+    "probeKind",
+    "status",
+    "startedAt",
+    "completedAt",
+    "durationMs",
+    "executableFound",
+    "issues",
+    "warnings",
+    "networkUsed",
+    "stdinUsed",
+    "shellUsed",
+    "arbitraryArgsUsed",
+    "mediaInputUsed",
+    "realUserMediaUsed",
+    "fixtureInputUsed",
+    "workerExecutionPerformed",
+    "providerCallsPerformed",
+    "supabaseMutationPerformed",
+    "sqlExecuted",
+    "signedUrlsUsed",
+    "publicArtifactsCreated",
+    "packageLockMutated",
+    "betaProductionUnlocked",
+    "executesTools",
+    "mediaProcessingPerformed"
+  ],
+  "properties": {
+    "probeRunId": {
+      "type": "string",
+      "pattern": "^controlled_low_risk_probe_run_[a-z0-9_]+$"
+    },
+    "probeId": {
+      "enum": [
+        "ffmpeg_version_probe",
+        "ffprobe_version_probe",
+        "remotion_package_resolution_probe",
+        "sharp_package_resolution_probe"
+      ]
+    },
+    "toolId": {
+      "enum": [
+        "ffmpeg",
+        "ffprobe",
+        "remotion",
+        "sharp"
+      ]
+    },
+    "probeKind": {
+      "enum": [
+        "version_probe",
+        "package_resolution_probe"
+      ]
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "unavailable",
+        "skipped_by_policy",
+        "failed_closed"
+      ]
+    },
+    "startedAt": {
+      "type": "string"
+    },
+    "completedAt": {
+      "type": "string"
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "executableFound": {
+      "type": "boolean"
+    },
+    "packageResolved": {
+      "type": "boolean"
+    },
+    "versionSummary": {
+      "type": "string"
+    },
+    "sanitizedStdoutSummary": {
+      "type": "string"
+    },
+    "sanitizedStderrSummary": {
+      "type": "string"
+    },
+    "exitCode": {
+      "type": "integer"
+    },
+    "signal": {
+      "type": "string"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "networkUsed": {
+      "const": false
+    },
+    "stdinUsed": {
+      "const": false
+    },
+    "shellUsed": {
+      "const": false
+    },
+    "arbitraryArgsUsed": {
+      "const": false
+    },
+    "mediaInputUsed": {
+      "const": false
+    },
+    "realUserMediaUsed": {
+      "const": false
+    },
+    "fixtureInputUsed": {
+      "const": false
+    },
+    "workerExecutionPerformed": {
+      "const": false
+    },
+    "providerCallsPerformed": {
+      "const": false
+    },
+    "supabaseMutationPerformed": {
+      "const": false
+    },
+    "sqlExecuted": {
+      "const": false
+    },
+    "signedUrlsUsed": {
+      "const": false
+    },
+    "publicArtifactsCreated": {
+      "const": false
+    },
+    "packageLockMutated": {
+      "const": false
+    },
+    "betaProductionUnlocked": {
+      "const": false
+    },
+    "executesTools": {
+      "const": true
+    },
+    "mediaProcessingPerformed": {
+      "const": false
+    }
+  }
+}

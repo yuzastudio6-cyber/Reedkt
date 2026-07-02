@@ -1,0 +1,151 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "pydub",
+  "displayName": "pydub",
+  "aliases": [
+    "pydub"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "audio_cleanup",
+  "runtimeResolution": {
+    "status": "blocked_pending_media_policy",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Pinned package evidence exists, but pydub media operations remain blocked by FFmpeg/avconv policy."
+  },
+  "operations": [
+    {
+      "operationId": "audio.cleanup",
+      "supportLevel": "future",
+      "bestFor": [
+        "future simple audio segment manipulation planning",
+        "private audio media-policy handoff tracking"
+      ],
+      "notFor": [
+        "file-open execution before media policy",
+        "FFmpeg-backed media operation now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "audio",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    },
+    {
+      "operationId": "media.audio.extract",
+      "supportLevel": "future",
+      "bestFor": [
+        "future simple audio segment manipulation planning",
+        "private audio media-policy handoff tracking"
+      ],
+      "notFor": [
+        "file-open execution before media policy",
+        "FFmpeg-backed media operation now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "audio",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "ffmpeg"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future simple audio segment manipulation planning",
+    "private audio media-policy handoff tracking"
+  ],
+  "notFor": [
+    "file-open execution before media policy",
+    "FFmpeg-backed media operation now"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "audio",
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "ffmpeg"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "media/file-open policy may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Audio segment planning",
+    "SOUND media-policy candidate study"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+      "summary": "Owner evidence for pydub from PR #636 docs/sound-runtime-media-gate-0-install-strategy.md."
+    },
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-media-runtime-policy-plan.md",
+      "summary": "Owner evidence for pydub from PR #636 docs/sound-runtime-media-gate-0-media-runtime-policy-plan.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_media_policy_owner_handoff",
+  "futurePromotionRequirements": [
+    "SOUND-RUNTIME-MEDIA-GATE-3 private media/file-open policy handoff",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:pydub:owner_gate_pending",
+    "benchmark:pydub:latency_pending",
+    "benchmark:pydub:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:pydub:candidate_review_count",
+    "telemetry:pydub:owner_gate_outcomes",
+    "telemetry:pydub:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-calling/binary-fixture-generation.v1.json",
+  "title": "Reeditpro Tool Calling Binary Fixture Generation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "generationResultId",
+    "generationPlanId",
+    "sourceDryRunId",
+    "sourceFixturePlanId",
+    "toolId",
+    "operationId",
+    "commandIntentId",
+    "fixtureIds",
+    "artifactSummaries",
+    "tempWorkspaceCreated",
+    "tempWorkspaceCleanedUp",
+    "tempPathExposed",
+    "generatedFileCount",
+    "generatedBinaryCount",
+    "generatedJsonCount",
+    "descriptorOnlyCount",
+    "videoBinaryDeferredCount",
+    "writesCommittedArtifacts",
+    "externalToolExecutionPerformed",
+    "shellExecutionPerformed",
+    "workerExecutionPerformed",
+    "mediaProcessingPerformed",
+    "providerCallsPerformed",
+    "supabaseMutationPerformed",
+    "sqlExecuted",
+    "signedUrlsCreated",
+    "packageLockMutated",
+    "executesTools"
+  ],
+  "properties": {
+    "generationResultId": {
+      "type": "string",
+      "pattern": "^binary_fixture_generation_result_[a-z0-9_]+$"
+    },
+    "generationPlanId": {
+      "type": "string",
+      "pattern": "^binary_fixture_generation_plan_[a-z0-9_]+$"
+    },
+    "sourceDryRunId": {
+      "type": "string"
+    },
+    "sourceFixturePlanId": {
+      "type": "string"
+    },
+    "toolId": {
+      "type": "string"
+    },
+    "operationId": {
+      "type": "string"
+    },
+    "commandIntentId": {
+      "type": "string"
+    },
+    "fixtureIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "artifactSummaries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifactSummaryId",
+          "sourceDryRunArtifactId",
+          "fixtureId",
+          "fixtureKind",
+          "artifactType",
+          "storageBucketPurpose",
+          "toolId",
+          "operationId",
+          "commandIntentId",
+          "contentType",
+          "generatorName",
+          "payloadKind",
+          "checksum",
+          "sizeBytes",
+          "generatedBy",
+          "generatedBinary",
+          "descriptorOnly",
+          "videoBinaryDeferred",
+          "binaryMediaGenerated",
+          "privateByDefault",
+          "sourceOfTruth",
+          "signedUrlAllowed",
+          "tempPathExposed",
+          "committedToRepo",
+          "externalToolExecutionPerformed",
+          "shellExecutionPerformed",
+          "workerExecutionPerformed",
+          "mediaProcessingPerformed"
+        ],
+        "properties": {
+          "artifactSummaryId": {
+            "type": "string",
+            "pattern": "^binary_fixture_artifact_[a-z0-9_]+$"
+          },
+          "sourceDryRunArtifactId": {
+            "type": "string"
+          },
+          "fixtureId": {
+            "type": "string"
+          },
+          "fixtureKind": {
+            "enum": [
+              "synthetic_video",
+              "synthetic_audio",
+              "synthetic_image",
+              "synthetic_timeline",
+              "synthetic_caption_segments",
+              "synthetic_mask",
+              "synthetic_json",
+              "synthetic_render_manifest"
+            ]
+          },
+          "artifactType": {
+            "type": "string"
+          },
+          "storageBucketPurpose": {
+            "type": "string"
+          },
+          "toolId": {
+            "type": "string"
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "commandIntentId": {
+            "type": "string"
+          },
+          "contentType": {
+            "enum": [
+              "application/json",
+              "audio/wav",
+              "image/png"
+            ]
+          },
+          "generatorName": {
+            "enum": [
+              "json_buffer_generator",
+              "wav_pcm_generator",
+              "png_rgba_generator",
+              "video_descriptor_json_generator"
+            ]
+          },
+          "payloadKind": {
+            "type": "string"
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "generatedBy": {
+            "const": "node_standard_library"
+          },
+          "generatedBinary": {
+            "type": "boolean"
+          },
+          "descriptorOnly": {
+            "type": "boolean"
+          },
+          "videoBinaryDeferred": {
+            "type": "boolean"
+          },
+          "binaryMediaGenerated": {
+            "type": "boolean"
+          },
+          "privateByDefault": {
+            "const": true
+          },
+          "sourceOfTruth": {
+            "const": true
+          },
+          "signedUrlAllowed": {
+            "const": false
+          },
+          "tempPathExposed": {
+            "const": false
+          },
+          "committedToRepo": {
+            "const": false
+          },
+          "externalToolExecutionPerformed": {
+            "const": false
+          },
+          "shellExecutionPerformed": {
+            "const": false
+          },
+          "workerExecutionPerformed": {
+            "const": false
+          },
+          "mediaProcessingPerformed": {
+            "const": false
+          }
+        }
+      }
+    },
+    "tempWorkspaceCreated": {
+      "const": true
+    },
+    "tempWorkspaceCleanedUp": {
+      "const": true
+    },
+    "tempPathExposed": {
+      "const": false
+    },
+    "generatedFileCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "generatedBinaryCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "generatedJsonCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "descriptorOnlyCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "videoBinaryDeferredCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "writesCommittedArtifacts": {
+      "const": false
+    },
+    "externalToolExecutionPerformed": {
+      "const": false
+    },
+    "shellExecutionPerformed": {
+      "const": false
+    },
+    "workerExecutionPerformed": {
+      "const": false
+    },
+    "mediaProcessingPerformed": {
+      "const": false
+    },
+    "providerCallsPerformed": {
+      "const": false
+    },
+    "supabaseMutationPerformed": {
+      "const": false
+    },
+    "sqlExecuted": {
+      "const": false
+    },
+    "signedUrlsCreated": {
+      "const": false
+    },
+    "packageLockMutated": {
+      "const": false
+    },
+    "executesTools": {
+      "const": false
+    }
+  }
+}

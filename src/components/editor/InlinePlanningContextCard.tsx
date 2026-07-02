@@ -1,83 +1,142 @@
 import { Badge } from '../Badge'
-import type { EditPlan, ReferenceAdaptationFocus, ReferenceVideoPlan } from '../../types/reeditpro'
+import { frameLayoutTemplates } from '../../lib/frame-layouts'
+import { editLevelDefinitions, launchEditingCategories } from '../../lib/product-taxonomy'
+import { getSourceSequenceModeLabel } from '../../lib/source-sequence'
+import { visualPreferenceOptions } from '../../lib/workflow-profiles'
+import type {
+  AspectRatio,
+  ClipSource,
+  EditLevel,
+  EditingCategory,
+  FrameTemplateType,
+  SourceSequenceMode,
+  TargetPlatform,
+  VisualPreference,
+} from '../../types/reeditpro'
 
 type InlinePlanningContextCardProps = {
-  plan: EditPlan
+  editingCategory: EditingCategory
+  editLevel: EditLevel
+  targetPlatform: TargetPlatform
+  aspectRatio: AspectRatio
+  frameTemplateType: FrameTemplateType
+  visualPreference: VisualPreference
+  clips: ClipSource[]
+  sourceOrderConfirmed: boolean
+  sourceSequenceMode: SourceSequenceMode
+  aspectRatioConfirmed: boolean
+  editLevelConfirmed: boolean
 }
 
-const focusLabels: Record<ReferenceAdaptationFocus, string> = {
-  overall_style: 'overall style',
-  opening_style: 'opening style',
-  pacing: 'pacing',
-  caption_style: 'captions',
-  transition_style: 'transitions',
-  music_sound: 'music/SoundSync',
-  visual_effects: 'visual effects',
-  b_roll: 'b-roll',
-  color_mood: 'color/mood',
-  signature_system_usage: 'signature systems',
-  ignore_reference: 'ignored',
+const platformLabels: Record<TargetPlatform, string> = {
+  tiktok_reels_shorts: 'TikTok / Reels / Shorts',
+  youtube: 'YouTube',
+  website: 'Website',
+  course_training: 'Course / training',
+  client_review: 'Client review',
+  custom: 'Custom',
 }
 
-function getReferenceStatus(referenceVideoPlan?: ReferenceVideoPlan) {
-  if (!referenceVideoPlan || referenceVideoPlan.mode === 'no_reference') {
-    return 'No reference'
-  }
-
-  if (referenceVideoPlan.skipped) {
-    return 'Skipped'
-  }
-
-  if (referenceVideoPlan.status === 'analyzed_mock') {
-    return 'Mock DNA ready'
-  }
-
-  return 'Reference attached'
+function labelForCategory(value: EditingCategory) {
+  return launchEditingCategories.find((category) => category.value === value)?.label ?? value
 }
 
-export function InlinePlanningContextCard({ plan }: InlinePlanningContextCardProps) {
-  const referenceDNA = plan.referenceVideoPlan?.referenceDNA
-  const focusSummary = referenceDNA?.focus.map((focus) => focusLabels[focus]).join(', ') ?? 'none'
-  const browserCaptureStatus = plan.browserCapturePlan?.active
-    ? `Active: ${plan.browserCapturePlan.items.map((item) => item.browserVisualType.replaceAll('_', ' ')).join(', ')}`
-    : 'No browser/app capture need detected'
-  const browserSourceSummary =
-    plan.browserCapturePlan?.items.map((item) => `${item.source.permissionStatus.replaceAll('_', ' ')} / ${item.source.safeWording}`).join(', ') ??
-    'none'
+function labelForLevel(value: EditLevel) {
+  return editLevelDefinitions.find((level) => level.value === value)?.label ?? value
+}
+
+function labelForFrame(value: FrameTemplateType) {
+  return frameLayoutTemplates[value]?.animationZone.label ?? value.replaceAll('_', ' ')
+}
+
+function labelForVisualPreference(value: VisualPreference) {
+  return visualPreferenceOptions.find((option) => option.value === value)?.label ?? value.replaceAll('_', ' ')
+}
+
+function veoPolicyForLevel(value: EditLevel) {
+  if (value === 'basic') {
+    return 'Veo locked for Basic'
+  }
+
+  if (value === 'pro') {
+    return 'Veo locked for Pro'
+  }
+
+  return 'Veo Lite final fallback only'
+}
+
+export function InlinePlanningContextCard({
+  aspectRatio,
+  aspectRatioConfirmed,
+  editLevelConfirmed,
+  editingCategory,
+  editLevel,
+  frameTemplateType,
+  clips,
+  sourceOrderConfirmed,
+  sourceSequenceMode,
+  targetPlatform,
+  visualPreference,
+}: InlinePlanningContextCardProps) {
+  const veoPolicy = veoPolicyForLevel(editLevel)
+  const importantClipCount = clips.filter((clip) => clip.isImportant).length
+  const optionalClipCount = clips.filter((clip) => clip.isOptional || clip.sourceRole === 'optional').length
 
   return (
     <section className="inline-chat-card planning-context-card">
       <div className="inline-card-heading">
         <div>
-          <span className="section-eyebrow">Planning context</span>
-          <h3>Raw chat becomes structured intent</h3>
+          <span className="section-eyebrow">Current planning context</span>
+          <h3>ReeditPro will plan with these choices</h3>
         </div>
-        <Badge accent={referenceDNA ? 'cyan' : 'muted'}>{getReferenceStatus(plan.referenceVideoPlan)}</Badge>
+        <Badge accent={editLevel === 'premium' ? 'warning' : 'cyan'}>{veoPolicy}</Badge>
       </div>
 
-      <div className="chat-plan-grid">
+      <div className="planning-context-grid">
         <div>
-          <strong>Intent</strong>
-          <p>{plan.compiledIntent?.goalSummary ?? plan.goalSummary}</p>
+          <span>Category</span>
+          <strong>{labelForCategory(editingCategory)}</strong>
         </div>
         <div>
-          <strong>Reference focus</strong>
-          <p>{focusSummary}</p>
+          <span>Source mode</span>
+          <strong>{getSourceSequenceModeLabel(sourceSequenceMode)}</strong>
         </div>
         <div>
-          <strong>Browser/app visuals</strong>
-          <p>{browserCaptureStatus}</p>
+          <span>Source order</span>
+          <strong>{sourceOrderConfirmed ? 'Confirmed' : 'Needs review'}</strong>
         </div>
         <div>
-          <strong>Source status</strong>
-          <p>{browserSourceSummary}</p>
+          <span>Clip count</span>
+          <strong>{clips.length} total / {importantClipCount} important / {optionalClipCount} optional</strong>
+        </div>
+        <div>
+          <span>Level</span>
+          <strong>{labelForLevel(editLevel)} / {editLevelConfirmed ? 'confirmed' : 'pending'}</strong>
+        </div>
+        <div>
+          <span>Output frame</span>
+          <strong>{platformLabels[targetPlatform]} / {aspectRatio} / {aspectRatioConfirmed ? 'confirmed' : 'pending'}</strong>
+        </div>
+        <div>
+          <span>Frame template</span>
+          <strong>{labelForFrame(frameTemplateType)}</strong>
+        </div>
+        <div>
+          <span>Visual preference</span>
+          <strong>{labelForVisualPreference(visualPreference)}</strong>
+        </div>
+        <div>
+          <span>Model rule</span>
+          <strong>{veoPolicy}</strong>
+        </div>
+        <div>
+          <span>Background policy</span>
+          <strong>AI video visuals use matching panel backgrounds by default.</strong>
         </div>
       </div>
-
-      <div className="reference-do-not-copy-note">
-        <strong>Style guidance only</strong>
-        <p>Reference DNA guides pacing, captions, transitions, SoundSync, mood, and layout. It does not copy the reference or override your instructions.</p>
-      </div>
+      <p className="inline-helper">
+        Category guides context. Edit level changes complexity and fallback depth. The frame system owns the final canvas.
+      </p>
     </section>
   )
 }

@@ -409,18 +409,18 @@ export function mergeReferenceDNAIntoProfessionalDirective(params: {
     return {
       ...directive,
       transitionFamilies: [...directive.transitionFamilies],
-      signatureSystemGuidance: [...directive.signatureSystemGuidance],
-      customDirectives: [...directive.customDirectives],
-      avoidRules: [...directive.avoidRules],
-      tierModelRules: [...directive.tierModelRules],
+      signatureSystemGuidance: [...(directive.signatureSystemGuidance ?? [])],
+      customDirectives: [...(directive.customDirectives ?? [])],
+      avoidRules: [...(directive.avoidRules ?? [])],
+      tierModelRules: [...(directive.tierModelRules ?? [])],
     }
   }
 
   const focus = referenceDNA.focus
   const transitionFamilies = [...directive.transitionFamilies]
-  const signatureSystemGuidance = [...directive.signatureSystemGuidance]
-  const customDirectives = [...directive.customDirectives]
-  const avoidRules = [...directive.avoidRules, ...referenceDNA.doNotCopyRules]
+  const signatureSystemGuidance = [...(directive.signatureSystemGuidance ?? [])]
+  const customDirectives = [...(directive.customDirectives ?? [])]
+  const avoidRules = [...(directive.avoidRules ?? []), ...(referenceDNA.doNotCopyRules ?? [])]
   let pacingStyle = directive.pacingStyle
   let captionStyle = directive.captionStyle
   let soundStyle = directive.soundStyle
@@ -464,6 +464,6 @@ export function mergeReferenceDNAIntoProfessionalDirective(params: {
     signatureSystemGuidance: Array.from(new Set(signatureSystemGuidance)),
     customDirectives: Array.from(new Set(customDirectives)),
     avoidRules: Array.from(new Set(avoidRules)),
-    tierModelRules: [...directive.tierModelRules],
+    tierModelRules: [...(directive.tierModelRules ?? [])],
   }
 }

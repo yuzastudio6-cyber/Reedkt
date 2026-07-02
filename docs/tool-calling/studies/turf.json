@@ -1,0 +1,177 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "turf",
+  "displayName": "Turf",
+  "aliases": [
+    "turf"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "turf",
+    "reason": "Turf is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Route geometry",
+        "Bounds",
+        "Distances"
+      ],
+      "notFor": [
+        "Map rendering by itself",
+        "Unverified location truth"
+      ],
+      "inputArtifacts": [
+        "geojson",
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "maplibre"
+      ],
+      "notes": [
+        "Turf is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "video.safe_zone.detect",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Route geometry",
+        "Bounds",
+        "Distances"
+      ],
+      "notFor": [
+        "Map rendering by itself",
+        "Unverified location truth"
+      ],
+      "inputArtifacts": [
+        "geojson",
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "json_spec"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "ocr_text_overlap"
+      ],
+      "fallbackToolIds": [
+        "maplibre"
+      ],
+      "notes": [
+        "Turf is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Route geometry",
+    "Bounds",
+    "Distances",
+    "GeoJSON transforms"
+  ],
+  "notFor": [
+    "Map rendering by itself",
+    "Unverified location truth"
+  ],
+  "inputArtifacts": [
+    "geojson",
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "maplibre"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior",
+    "planning-only registry worker type has no runtime execution route"
+  ],
+  "professionalEditingUses": [
+    "Route geometry",
+    "Bounds",
+    "Distances",
+    "GeoJSON transforms"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:turf:latency_pending",
+    "benchmark:turf:quality_pending",
+    "benchmark:turf:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:turf:selection_count",
+    "telemetry:turf:fallback_count",
+    "telemetry:turf:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Turf is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Turf has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Turf has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Turf has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-tool-readiness-plan.md",
+      "summary": "Turf has related repo-local owner, readiness, Docker, or lane evidence in docs/production-tool-readiness-plan.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-tool-runtime-roadmap.md",
+      "summary": "Turf has related repo-local owner, readiness, Docker, or lane evidence in docs/production-tool-runtime-roadmap.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

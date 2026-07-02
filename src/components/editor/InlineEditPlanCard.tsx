@@ -10,6 +10,13 @@ const systemLabels = {
   none: 'None',
 }
 
+function formatLabel(value: string) {
+  return value
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 type InlineEditPlanCardProps = {
   plan: EditPlan
   onApprove: () => void
@@ -18,6 +25,8 @@ type InlineEditPlanCardProps = {
 }
 
 export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion, plan }: InlineEditPlanCardProps) {
+  const frameConfirmed = plan.aspectRatioFramePlan?.status === 'confirmed'
+
   return (
     <section className="inline-chat-card edit-plan-chat-card">
       <div className="inline-card-heading">
@@ -25,7 +34,7 @@ export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion,
           <span className="section-eyebrow">Edit plan</span>
           <h3>Here is the plan before spending credits</h3>
         </div>
-        <Badge accent="warning">Approval required</Badge>
+        <Badge accent="warning">Plan + credit approval required</Badge>
       </div>
 
       <div className="chat-plan-grid">
@@ -38,6 +47,24 @@ export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion,
           <p>{plan.hookDecision.recommendation}</p>
         </div>
       </div>
+
+      {plan.professionalEditingDirective && (
+        <div className="inline-plan-section professional-direction-section">
+          <strong>Professional editing direction</strong>
+          <div className="professional-direction-grid">
+            <span><small>Edit style</small>{formatLabel(plan.professionalEditingDirective.editStyle)}</span>
+            <span><small>Pacing</small>{formatLabel(plan.professionalEditingDirective.pacingStyle)} / {formatLabel(plan.professionalEditingDirective.cutIntensity)}</span>
+            <span><small>Color grade</small>{formatLabel(plan.professionalEditingDirective.colorGradeStyle)}</span>
+            <span><small>Captions</small>{formatLabel(plan.professionalEditingDirective.captionStyle)}</span>
+            <span><small>B-roll</small>{formatLabel(plan.professionalEditingDirective.brollPolicy)}</span>
+            <span><small>Sound</small>{formatLabel(plan.professionalEditingDirective.soundStyle)}</span>
+          </div>
+          <p>
+            Transitions: {plan.professionalEditingDirective.transitionFamilies.map(formatLabel).join(', ')}.
+            The ontology guides the plan without limiting custom user requests.
+          </p>
+        </div>
+      )}
 
       <div className="inline-plan-section">
         <strong>Source sequence summary</strong>
@@ -73,8 +100,16 @@ export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion,
         <p>{plan.captionDirection}</p>
       </div>
 
+      <p className="approval-gate-note">
+        {frameConfirmed
+          ? 'Mock progress starts only after you approve both the edit plan and credit estimate.'
+          : 'Confirm output frame before approving the plan and credit estimate.'}
+      </p>
+
       <div className="inline-card-actions">
-        <Button onClick={onApprove} variant="primary">Approve plan</Button>
+        <Button disabled={!frameConfirmed} onClick={onApprove} variant="primary">
+          {frameConfirmed ? 'Approve plan and credits' : 'Confirm output frame first'}
+        </Button>
         <Button onClick={onLowerCost} variant="secondary">Lower credit cost</Button>
         <Button onClick={onRemoveRealMotion} variant="ghost">Remove Real Motion</Button>
         <Button variant="ghost">Ask a question</Button>

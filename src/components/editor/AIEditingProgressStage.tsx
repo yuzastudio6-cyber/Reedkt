@@ -24,7 +24,7 @@ export function AIEditingProgressStage({ activeIndex, complete }: AIEditingProgr
       </div>
       <AIProgressStepList activeIndex={activeIndex} steps={progressSteps} />
       <p className="inline-helper">
-        This is mock progress only. Production would run AI editing after plan and credit approval.
+        This is mock progress only. Production would run AI editing only after the edit plan and credit estimate are approved.
       </p>
     </section>
   )

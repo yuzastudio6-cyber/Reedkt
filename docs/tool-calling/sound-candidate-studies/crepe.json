@@ -1,0 +1,119 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "crepe",
+  "displayName": "CREPE",
+  "aliases": [
+    "crepe"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "beat_timing",
+  "runtimeResolution": {
+    "status": "blocked_pending_model_weight",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Pitch/model candidate, owner review required."
+  },
+  "operations": [
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "future pitch tracking planning",
+        "voice/music pitch evidence"
+      ],
+      "notFor": [
+        "model execution",
+        "GPU/runtime inference now"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "librosa",
+        "audioflux"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future pitch tracking planning",
+    "voice/music pitch evidence"
+  ],
+  "notFor": [
+    "model execution",
+    "GPU/runtime inference now"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "json_spec"
+  ],
+  "validators": [
+    "audio_sync"
+  ],
+  "fallbackToolIds": [
+    "librosa",
+    "audioflux"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "model weights or provider provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Pitch contour study",
+    "Music alignment planning"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-model-weight-gpu-policy-plan.md",
+      "summary": "Owner evidence for CREPE from PR #636 docs/sound-runtime-media-gate-0-model-weight-gpu-policy-plan.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_model_weight_owner_review",
+  "futurePromotionRequirements": [
+    "SOUND-RUNTIME-MEDIA-GATE-2 model weight, license, and provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:crepe:owner_gate_pending",
+    "benchmark:crepe:latency_pending",
+    "benchmark:crepe:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:crepe:candidate_review_count",
+    "telemetry:crepe:owner_gate_outcomes",
+    "telemetry:crepe:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

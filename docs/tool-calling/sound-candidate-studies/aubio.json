@@ -1,0 +1,124 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "aubio",
+  "displayName": "Aubio",
+  "aliases": [
+    "aubio"
+  ],
+  "ownerLane": "sound_music_audio",
+  "soundCategory": "beat_timing",
+  "runtimeResolution": {
+    "status": "blocked_pending_license",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Beat/onset candidate, wait for SOUND owner install proof."
+  },
+  "operations": [
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "future onset and beat analysis planning",
+        "music timing candidate comparison"
+      ],
+      "notFor": [
+        "runtime beat detection now",
+        "final audio mix decisions"
+      ],
+      "inputArtifacts": [
+        "audio"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec"
+      ],
+      "validators": [
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "audioflux",
+        "librosa"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future onset and beat analysis planning",
+    "music timing candidate comparison"
+  ],
+  "notFor": [
+    "runtime beat detection now",
+    "final audio mix decisions"
+  ],
+  "inputArtifacts": [
+    "audio"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "json_spec"
+  ],
+  "validators": [
+    "audio_sync"
+  ],
+  "fallbackToolIds": [
+    "audioflux",
+    "librosa"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "license or native dependency provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Beat grid planning",
+    "SoundSync timing evidence"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-install-strategy.md",
+      "summary": "Owner evidence for Aubio from PR #636 docs/sound-runtime-media-gate-0-install-strategy.md."
+    },
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md",
+      "summary": "Owner evidence for Aubio from PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_license_provenance_review",
+  "futurePromotionRequirements": [
+    "license, native dependency, and commercial use provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:aubio:owner_gate_pending",
+    "benchmark:aubio:latency_pending",
+    "benchmark:aubio:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:aubio:candidate_review_count",
+    "telemetry:aubio:owner_gate_outcomes",
+    "telemetry:aubio:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

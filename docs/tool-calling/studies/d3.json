@@ -1,0 +1,150 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "d3",
+  "displayName": "D3",
+  "aliases": [
+    "d3"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "d3",
+    "reason": "D3 is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Custom diagrams",
+        "Money flows",
+        "Timelines"
+      ],
+      "notFor": [
+        "Random decorative visuals",
+        "AI-invented numbers"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "chart_visual",
+        "json_spec"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "echarts",
+        "remotion"
+      ],
+      "notes": [
+        "D3 is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Custom diagrams",
+    "Money flows",
+    "Timelines",
+    "Exact labels/arrows"
+  ],
+  "notFor": [
+    "Random decorative visuals",
+    "AI-invented numbers"
+  ],
+  "inputArtifacts": [
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "chart_visual",
+    "json_spec"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "echarts",
+    "remotion"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior",
+    "planning-only registry worker type has no runtime execution route"
+  ],
+  "professionalEditingUses": [
+    "Custom diagrams",
+    "Money flows",
+    "Timelines",
+    "Exact labels/arrows"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:d3:latency_pending",
+    "benchmark:d3:quality_pending",
+    "benchmark:d3:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:d3:selection_count",
+    "telemetry:d3:fallback_count",
+    "telemetry:d3:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "D3 is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "D3 has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "D3 has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "D3 has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "D3 has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "D3 has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

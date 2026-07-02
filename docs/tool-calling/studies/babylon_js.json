@@ -1,0 +1,184 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "babylon_js",
+  "displayName": "Babylon.js",
+  "aliases": [
+    "babylon_js"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "babylon_js",
+    "reason": "Babylon.js is a first-class ProductionToolId in server/tool-registry and is now explicitly covered for planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "future",
+      "bestFor": [
+        "Advanced 3D scene evaluation",
+        "Alternative 3D pipeline comparison"
+      ],
+      "notFor": [
+        "Launch core stack",
+        "Simple motion graphics"
+      ],
+      "inputArtifacts": [
+        "image",
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "preview_video"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "three_js",
+        "remotion"
+      ],
+      "notes": [
+        "Babylon.js is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    },
+    {
+      "operationId": "render.preview",
+      "supportLevel": "future",
+      "bestFor": [
+        "Advanced 3D scene evaluation",
+        "Alternative 3D pipeline comparison"
+      ],
+      "notFor": [
+        "Launch core stack",
+        "Simple motion graphics"
+      ],
+      "inputArtifacts": [
+        "image",
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "preview_video"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "three_js",
+        "remotion"
+      ],
+      "notes": [
+        "Babylon.js is added for planning-only first-class coverage; no execution is enabled by this card.",
+        "Operation support is derived from the canonical registry profile and current tool-calling ontology."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Advanced 3D scene evaluation",
+    "Alternative 3D pipeline comparison"
+  ],
+  "notFor": [
+    "Launch core stack",
+    "Simple motion graphics"
+  ],
+  "inputArtifacts": [
+    "json_data",
+    "image",
+    "render_manifest"
+  ],
+  "outputArtifacts": [
+    "image_asset",
+    "preview_video",
+    "json_spec"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "caption_safe_zone"
+  ],
+  "fallbackToolIds": [
+    "three_js",
+    "remotion"
+  ],
+  "resourceProfile": {
+    "workerType": "render_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "render_pipeline"
+  },
+  "qualityProfile": {
+    "productionStatus": "future",
+    "adoptionStage": "future",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "owner proof stale before execution",
+    "planning assumptions diverge from actual runtime behavior"
+  ],
+  "professionalEditingUses": [
+    "Advanced 3D scene evaluation",
+    "Alternative 3D pipeline comparison"
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:babylon_js:latency_pending",
+    "benchmark:babylon_js:quality_pending",
+    "benchmark:babylon_js:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:babylon_js:selection_count",
+    "telemetry:babylon_js:fallback_count",
+    "telemetry:babylon_js:qa_gate_outcomes"
+  ],
+  "readinessNotes": [
+    "Babylon.js remains future; do not enable production execution from this card.",
+    "Explicit study card expands first-class planning coverage only; it does not prove local installation or executable readiness.",
+    "Metadata only; production execution remains blocked until later worker/tool readiness milestones.",
+    "Owner proof must be refreshed before any execution milestone uses this tool.",
+    "Planning-only adapter coverage must continue to route future execution through existing approved worker systems."
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Babylon.js is a first-class ProductionToolId with canonical registry profile metadata for planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "Babylon.js has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/gpu-worker/requirements.gpu.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/render-worker/requirements.render.txt",
+      "summary": "Babylon.js has related repo-local owner, readiness, Docker, or lane evidence in docker/prod/render-worker/requirements.render.txt."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-final-render-qa-policy.md",
+      "summary": "Babylon.js has related repo-local owner, readiness, Docker, or lane evidence in docs/production-final-render-qa-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-gpu-tool-readiness-policy.md",
+      "summary": "Babylon.js has related repo-local owner, readiness, Docker, or lane evidence in docs/production-gpu-tool-readiness-policy.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-stack-decision.md",
+      "summary": "Babylon.js has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-stack-decision.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docs/production-render-worker-tool-install-policy.md",
+      "summary": "Babylon.js has related repo-local owner, readiness, Docker, or lane evidence in docs/production-render-worker-tool-install-policy.md."
+    },
+    {
+      "evidenceType": "owner_evidence_pending",
+      "sourcePath": "docs/tool-calling/repo-integration-audit.md",
+      "summary": "Execution readiness still requires refreshed owner proof before any runtime execution milestone."
+    }
+  ]
+}

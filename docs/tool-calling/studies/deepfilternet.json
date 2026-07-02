@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "deepfilternet",
+  "displayName": "DeepFilterNet",
+  "aliases": ["deepfilternet"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "deepfilternet",
+    "reason": "DeepFilterNet is a first-class ProductionToolId for neural speech cleanup planning."
+  },
+  "operations": [
+    {"operationId": "audio.cleanup", "supportLevel": "primary", "bestFor": ["speech denoise and cleanup planning"], "notFor": ["music source separation"], "inputArtifacts": ["audio", "extracted_audio", "source_media"], "outputArtifacts": ["processed_audio", "cleaned_audio", "qa_report"], "validators": ["audio_naturalness", "audio_loudness", "audio_sync"], "fallbackToolIds": ["rnnoise", "demucs", "ffmpeg"], "notes": ["Primary cleanup planning candidate where model policy allows."]}
+  ],
+  "bestFor": ["speech denoise", "voice cleanup", "audio naturalness planning"],
+  "notFor": ["loudness-only normalization", "caption timing", "music separation authority"],
+  "inputArtifacts": ["audio", "extracted_audio", "source_media"],
+  "outputArtifacts": ["processed_audio", "cleaned_audio", "qa_report"],
+  "validators": ["audio_naturalness", "audio_loudness", "audio_sync"],
+  "fallbackToolIds": ["rnnoise", "demucs", "ffmpeg"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": true, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["over-denoise artifacts", "speech/music confusion", "model-weight review may block execution"],
+  "professionalEditingUses": ["dialogue cleanup", "talking-head polish", "audio QA planning"],
+  "benchmarkPlaceholders": ["benchmark:deepfilternet:denoise_quality_pending", "benchmark:deepfilternet:cleanup_latency_pending"],
+  "telemetryPlaceholders": ["telemetry:deepfilternet:selection_count", "telemetry:deepfilternet:audio_gate_outcomes"],
+  "readinessNotes": ["Planning-only study card; no neural cleanup is executed."]
+}

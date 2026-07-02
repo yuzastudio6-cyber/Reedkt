@@ -1,0 +1,17 @@
+# Production Real Audio Execution
+
+Milestone 15A turns the Milestone 9 audio planning foundation into a controlled server-only execution path.
+
+The flow is:
+
+1. validate approved snapshot, execution plan, idempotency, and private audio artifact refs;
+2. build an `AudioExecutionPlan`;
+3. prepare allowlisted FFmpeg loudness and normalization command plans;
+4. optionally run local-dev FFmpeg against safe local/generated audio only;
+5. keep DeepFilterNet, RNNoise, and Demucs skip-safe and model-weight gated;
+6. write private cleaned-audio, stem, SoundSync metadata, and QA artifact records;
+7. emit `audio_loudness`, `audio_sync`, `audio_naturalness`, and `music_over_voice` gates.
+
+M15A does not final mux, render, color grade, run masks, deploy, call providers, download models, run GPU production jobs, overwrite source audio, or use Revideo.
+
+M16A final render/export consumes private cleaned-audio, stem, SoundSync, and QA artifacts for audio layers and final audio sync checks.

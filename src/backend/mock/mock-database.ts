@@ -4,6 +4,7 @@ import type {
   AmbientSoundPlanRecord,
   AudioEnvironmentAnalysisRecord,
   CaptionPlanRecord,
+  CaptionTimingPlanRecord,
   ChatActionRecord,
   ChatMessageRecord,
   ChatSessionRecord,
@@ -12,9 +13,12 @@ import type {
   CreditEstimateRecord,
   CreditGrantRecord,
   CreditLedgerEntryRecord,
+  CreditRefundRecord,
   CreditReservationRecord,
   CreditWalletRecord,
+  BackendRuntimeMessageRecord,
   CutDecisionRecord,
+  CutTimingPlanRecord,
   EditInstructionRecord,
   EditPlanRecord,
   EditPlanSegmentRecord,
@@ -31,6 +35,9 @@ import type {
   JobDependencyRecord,
   JobEventRecord,
   JobRecord,
+  MasterTimingMapRecord,
+  MusicBeatGridRecord,
+  MusicDuckingTimingPlanRecord,
   LyriaPromptPlanRecord,
   LyriaPromptSegment,
   MediaAssetRecord,
@@ -50,16 +57,38 @@ import type {
   RenderJobInputRecord,
   RenderJobRecord,
   RenderRecord,
+  RenderTimingManifestRecord,
   RevisionRequestItemRecord,
   RevisionRequestRecord,
+  SFXAdjustmentDecisionRecord,
+  SFXEventPlanRecord,
+  SFXGeneratedAssetRecord,
+  SFXLibraryCandidateRecord,
+  SFXLibrarySearchRecord,
+  SFXMixPlanRecord,
+  SFXMockWaveformAnalysisRecord,
+  SFXPromptAdapterTestRecord,
+  SFXPromptPlanRecord,
+  SFXProvenanceReviewRecord,
+  SFXProviderRouteRecord,
+  SFXQAReportRecord,
+  SFXRegenerationDecisionRecord,
+  SFXReplacementDecisionRecord,
+  SFXTimingAlignmentRecord,
+  SFXTrimPlanRecord,
+  SFXUsageLearningRecord,
+  SFXUsageRecord,
   SignatureRouteRecord,
   SoundEffectPlanRecord,
+  SoundSyncTimingIntegrationRecord,
   SourceClipSequenceItem,
   SourceClipSequenceRecord,
   SourceSequenceMapItemRecord,
   SourceSequenceMapRecord,
   StoryBeatMapRecord,
   StoryBeatRecord,
+  StoryTimingQACheckRecord,
+  StoryTimingSegmentRecord,
   StrokeMotionBeatRecord,
   StrokeMotionCharacterRecord,
   StrokeMotionGenerationSpecRecord,
@@ -69,12 +98,32 @@ import type {
   StrokeMotionSymbolRecord,
   StrokeMotionTimingAnchorRecord,
   StrokeMotionTransitionRecord,
+  TimingAnchorRecord,
+  TimingConflictRecord,
+  TimingConflictResolutionRecord,
+  TimingDependencyRecord,
+  TimingEventRecord,
   TransitionPlanRecord,
   UserRecord,
   WorkspaceRecord,
+  RuntimeIdempotencyRecord,
+  WorkerLeaseClaimAttemptRecord,
+  WorkerLeaseRecord,
 } from '../../types'
 import type { ExportRecord } from '../../types/review-render-export'
 import type { RecommendedEditStructureRecord } from '../../types/planning'
+import type {
+  ProjectEditBriefApplicationLogRecord,
+  ProjectEditBriefMarkerAttachmentRecord,
+  ProjectEditBriefMarkerConfirmationRecord,
+  ProjectEditBriefMarkerConflictRecord,
+  ProjectEditBriefMarkerIntentRecord,
+  ProjectEditBriefMarkerMessageRecord,
+  ProjectEditBriefMarkerRecord,
+  ProjectEditBriefMarkerRevisionRecord,
+  ProjectEditBriefRecord,
+  ProjectEditSessionExportSettingsRecord,
+} from '../../types/project-edit-brief'
 
 export const MOCK_NOW = '2026-05-13T12:00:00.000Z'
 
@@ -99,6 +148,20 @@ export interface MockDatabase {
   storyBeatMaps: StoryBeatMapRecord[]
   storyBeats: StoryBeatRecord[]
   editPlanSegments: EditPlanSegmentRecord[]
+  masterTimingMaps: MasterTimingMapRecord[]
+  storyTimingSegments: StoryTimingSegmentRecord[]
+  timingAnchors: TimingAnchorRecord[]
+  timingEvents: TimingEventRecord[]
+  timingDependencies: TimingDependencyRecord[]
+  timingConflicts: TimingConflictRecord[]
+  timingConflictResolutions: TimingConflictResolutionRecord[]
+  storyTimingQAChecks: StoryTimingQACheckRecord[]
+  renderTimingManifests: RenderTimingManifestRecord[]
+  captionTimingPlans: CaptionTimingPlanRecord[]
+  cutTimingPlans: CutTimingPlanRecord[]
+  musicBeatGrids: MusicBeatGridRecord[]
+  musicDuckingTimingPlans: MusicDuckingTimingPlanRecord[]
+  soundSyncTimingIntegrations: SoundSyncTimingIntegrationRecord[]
   signatureRoutes: SignatureRouteRecord[]
   editInstructions: EditInstructionRecord[]
   editQualityProfiles: EditQualityProfileRecord[]
@@ -117,6 +180,24 @@ export interface MockDatabase {
   lyriaPromptPlans: LyriaPromptPlanRecord[]
   lyriaPromptSegments: LyriaPromptSegment[]
   soundEffectPlans: SoundEffectPlanRecord[]
+  sfxEventPlans: SFXEventPlanRecord[]
+  sfxProviderRoutes: SFXProviderRouteRecord[]
+  sfxPromptPlans: SFXPromptPlanRecord[]
+  sfxPromptAdapterTests: SFXPromptAdapterTestRecord[]
+  sfxGeneratedAssets: SFXGeneratedAssetRecord[]
+  sfxWaveformAnalyses: SFXMockWaveformAnalysisRecord[]
+  sfxTrimPlans: SFXTrimPlanRecord[]
+  sfxTimingAlignments: SFXTimingAlignmentRecord[]
+  sfxMixPlans: SFXMixPlanRecord[]
+  sfxQAReports: SFXQAReportRecord[]
+  sfxRegenerationDecisions: SFXRegenerationDecisionRecord[]
+  sfxAdjustmentDecisions: SFXAdjustmentDecisionRecord[]
+  sfxReplacementDecisions: SFXReplacementDecisionRecord[]
+  sfxLibraryCandidates: SFXLibraryCandidateRecord[]
+  sfxUsageRecords: SFXUsageRecord[]
+  sfxProvenanceReviews: SFXProvenanceReviewRecord[]
+  sfxLibrarySearchRecords: SFXLibrarySearchRecord[]
+  sfxUsageLearningRecords: SFXUsageLearningRecord[]
   captionPlans: CaptionPlanRecord[]
   editQualityChecks: EditQualityCheckRecord[]
   strokeMotionPlans: StrokeMotionPlanRecord[]
@@ -135,6 +216,21 @@ export interface MockDatabase {
   creditEstimateLineItems: CreditEstimateLineItemRecord[]
   creditApprovals: CreditApprovalRecord[]
   creditReservations: CreditReservationRecord[]
+  creditRefunds: CreditRefundRecord[]
+  backendRuntimeMessages: BackendRuntimeMessageRecord[]
+  runtimeIdempotencyRecords: RuntimeIdempotencyRecord[]
+  projectEditBriefs: ProjectEditBriefRecord[]
+  projectEditBriefMarkers: ProjectEditBriefMarkerRecord[]
+  projectEditBriefMarkerAttachments: ProjectEditBriefMarkerAttachmentRecord[]
+  projectEditBriefMarkerMessages: ProjectEditBriefMarkerMessageRecord[]
+  projectEditBriefMarkerIntents: ProjectEditBriefMarkerIntentRecord[]
+  projectEditBriefMarkerConfirmations: ProjectEditBriefMarkerConfirmationRecord[]
+  projectEditBriefMarkerConflicts: ProjectEditBriefMarkerConflictRecord[]
+  projectEditBriefMarkerRevisions: ProjectEditBriefMarkerRevisionRecord[]
+  projectEditBriefApplicationLogs: ProjectEditBriefApplicationLogRecord[]
+  projectEditSessionExportSettings: ProjectEditSessionExportSettingsRecord[]
+  workerLeases: WorkerLeaseRecord[]
+  workerLeaseClaimAttempts: WorkerLeaseClaimAttemptRecord[]
   jobBatches: JobBatchRecord[]
   jobs: JobRecord[]
   jobDependencies: JobDependencyRecord[]
@@ -197,6 +293,20 @@ export function createMockDatabase(): MockDatabase {
     storyBeatMaps: [],
     storyBeats: [],
     editPlanSegments: [],
+    masterTimingMaps: [],
+    storyTimingSegments: [],
+    timingAnchors: [],
+    timingEvents: [],
+    timingDependencies: [],
+    timingConflicts: [],
+    timingConflictResolutions: [],
+    storyTimingQAChecks: [],
+    renderTimingManifests: [],
+    captionTimingPlans: [],
+    cutTimingPlans: [],
+    musicBeatGrids: [],
+    musicDuckingTimingPlans: [],
+    soundSyncTimingIntegrations: [],
     signatureRoutes: [],
     editInstructions: [],
     editQualityProfiles: [],
@@ -215,6 +325,24 @@ export function createMockDatabase(): MockDatabase {
     lyriaPromptPlans: [],
     lyriaPromptSegments: [],
     soundEffectPlans: [],
+    sfxEventPlans: [],
+    sfxProviderRoutes: [],
+    sfxPromptPlans: [],
+    sfxPromptAdapterTests: [],
+    sfxGeneratedAssets: [],
+    sfxWaveformAnalyses: [],
+    sfxTrimPlans: [],
+    sfxTimingAlignments: [],
+    sfxMixPlans: [],
+    sfxQAReports: [],
+    sfxRegenerationDecisions: [],
+    sfxAdjustmentDecisions: [],
+    sfxReplacementDecisions: [],
+    sfxLibraryCandidates: [],
+    sfxUsageRecords: [],
+    sfxProvenanceReviews: [],
+    sfxLibrarySearchRecords: [],
+    sfxUsageLearningRecords: [],
     captionPlans: [],
     editQualityChecks: [],
     strokeMotionPlans: [],
@@ -233,6 +361,21 @@ export function createMockDatabase(): MockDatabase {
     creditEstimateLineItems: [],
     creditApprovals: [],
     creditReservations: [],
+    creditRefunds: [],
+    backendRuntimeMessages: [],
+    runtimeIdempotencyRecords: [],
+    projectEditBriefs: [],
+    projectEditBriefMarkers: [],
+    projectEditBriefMarkerAttachments: [],
+    projectEditBriefMarkerMessages: [],
+    projectEditBriefMarkerIntents: [],
+    projectEditBriefMarkerConfirmations: [],
+    projectEditBriefMarkerConflicts: [],
+    projectEditBriefMarkerRevisions: [],
+    projectEditBriefApplicationLogs: [],
+    projectEditSessionExportSettings: [],
+    workerLeases: [],
+    workerLeaseClaimAttempts: [],
     jobBatches: [],
     jobs: [],
     jobDependencies: [],

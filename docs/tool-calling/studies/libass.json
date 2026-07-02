@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "libass",
+  "displayName": "libass",
+  "aliases": ["libass", "libass_caption_burnin"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "libass",
+    "reason": "libass is the first-class ProductionToolId for ASS subtitle styling and burn-in planning."
+  },
+  "operations": [
+    {"operationId": "caption.align", "supportLevel": "secondary", "bestFor": ["subtitle event timing validation"], "notFor": ["speech-to-word alignment"], "inputArtifacts": ["caption_segments_json", "transcript_json", "timeline_manifest"], "outputArtifacts": ["caption_segments_json", "qa_report"], "validators": ["caption_timing", "transcript_alignment"], "fallbackToolIds": ["faster_whisper", "remotion"], "notes": ["Supports caption timing QA planning."]},
+    {"operationId": "caption.style", "supportLevel": "secondary", "bestFor": ["ASS style and readability planning"], "notFor": ["rich component layouts"], "inputArtifacts": ["caption_segments", "caption_segments_json", "render_manifest", "json_data"], "outputArtifacts": ["render_manifest", "json_spec", "qa_report"], "validators": ["caption_readability", "caption_safe_zone"], "fallbackToolIds": ["remotion", "sharp"], "notes": ["Good deterministic style fallback."]},
+    {"operationId": "caption.burn_in", "supportLevel": "primary", "bestFor": ["deterministic subtitle burn-in planning"], "notFor": ["transcript generation"], "inputArtifacts": ["caption_segments", "caption_segments_json", "render_manifest", "video"], "outputArtifacts": ["processed_video", "final_export", "qa_report"], "validators": ["caption_readability", "caption_timing", "caption_safe_zone", "render_asset_integrity"], "fallbackToolIds": ["remotion", "ffmpeg"], "notes": ["Primary burn-in planning candidate when ASS captions are ready."]}
+  ],
+  "bestFor": ["caption burn-in", "ASS style planning", "caption timing QA"],
+  "notFor": ["transcription", "media inspection", "mask generation"],
+  "inputArtifacts": ["caption_segments", "caption_segments_json", "transcript_json", "timeline_manifest", "render_manifest", "json_data", "video"],
+  "outputArtifacts": ["caption_segments_json", "render_manifest", "json_spec", "qa_report", "processed_video", "final_export"],
+  "validators": ["caption_timing", "transcript_alignment", "caption_readability", "caption_safe_zone", "render_asset_integrity"],
+  "fallbackToolIds": ["faster_whisper", "remotion", "sharp", "ffmpeg"],
+  "resourceProfile": {"workerType": "render_worker", "gpuRequired": false, "cpuAllowed": true, "executionMode": "render_pipeline"},
+  "qualityProfile": {"productionStatus": "launch_core", "adoptionStage": "launch_core", "launchCore": true, "modelWeightsRequired": false, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["font availability mismatch", "subtitle overflow", "timing drift when source captions are weak"],
+  "professionalEditingUses": ["caption burn-in", "subtitle readability QA", "caption style fallback"],
+  "benchmarkPlaceholders": ["benchmark:libass:burnin_latency_pending", "benchmark:libass:caption_readability_pending"],
+  "telemetryPlaceholders": ["telemetry:libass:selection_count", "telemetry:libass:caption_gate_outcomes"],
+  "readinessNotes": ["Alias `libass_caption_burnin` resolves to first-class runtime ID `libass`."]
+}

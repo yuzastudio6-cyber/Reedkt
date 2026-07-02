@@ -1,0 +1,155 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "soundsync",
+  "displayName": "SoundSync",
+  "aliases": [
+    "sound_sync",
+    "soundsync",
+    "soundsync_cue_planning"
+  ],
+  "ownerLane": "sfx_soundsync",
+  "soundCategory": "soundsync",
+  "runtimeResolution": {
+    "status": "owner_inventory_only",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Owner planning lane, not a runtime tool."
+  },
+  "operations": [
+    {
+      "operationId": "media.inspect",
+      "supportLevel": "future",
+      "bestFor": [
+        "future timing-aware cue planning",
+        "sound-to-picture sync metadata"
+      ],
+      "notFor": [
+        "runtime audio processing",
+        "worker dispatch now"
+      ],
+      "inputArtifacts": [
+        "json_spec"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "audioflux",
+        "librosa"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    },
+    {
+      "operationId": "render.compose",
+      "supportLevel": "future",
+      "bestFor": [
+        "future timing-aware cue planning",
+        "sound-to-picture sync metadata"
+      ],
+      "notFor": [
+        "runtime audio processing",
+        "worker dispatch now"
+      ],
+      "inputArtifacts": [
+        "json_spec"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "audio_sync"
+      ],
+      "fallbackToolIds": [
+        "audioflux",
+        "librosa"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future timing-aware cue planning",
+    "sound-to-picture sync metadata"
+  ],
+  "notFor": [
+    "runtime audio processing",
+    "worker dispatch now"
+  ],
+  "inputArtifacts": [
+    "json_spec"
+  ],
+  "outputArtifacts": [
+    "json_spec",
+    "qa_report"
+  ],
+  "validators": [
+    "audio_sync"
+  ],
+  "fallbackToolIds": [
+    "audioflux",
+    "librosa"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "Cue timing study",
+    "SoundSync planning metadata"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md",
+      "summary": "Owner evidence for SoundSync from PR #636 docs/sound-runtime-media-gate-0-runtime-tool-inventory.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_evidence",
+      "sourcePath": "docs/production-soundsync-foundation-policy.md",
+      "summary": "Owner evidence for SoundSync from docs/production-soundsync-foundation-policy.md."
+    }
+  ],
+  "ownerGateStatus": "do_not_duplicate_owner_lane",
+  "futurePromotionRequirements": [
+    "explicit owner handoff that this surface should become a local OSS runtime tool",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:soundsync:owner_gate_pending",
+    "benchmark:soundsync:latency_pending",
+    "benchmark:soundsync:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:soundsync:candidate_review_count",
+    "telemetry:soundsync:owner_gate_outcomes",
+    "telemetry:soundsync:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

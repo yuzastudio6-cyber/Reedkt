@@ -2,9 +2,12 @@ import type {
   MusicContextAnalysisRecord,
   MusicCueRecord,
   MusicCueRole,
+  MusicCueSheetItemRecord,
   MusicCueSheetRecord,
+  MusicDirectorGuidanceRecord,
   MusicLanguageContextRecord,
   MusicMixPlanRecord,
+  ReferenceAudioSectionRecord,
   MusicSceneType,
   ReferenceMusicDNARecord,
 } from '../../types'
@@ -63,6 +66,8 @@ export function createMusicCueSheet(
     musicContextAnalysisId: musicContextAnalysis.id,
     cueCountDecision: musicContextAnalysis.musicCueCountDecision,
     summary: createCueSheetSummary(input),
+    items: [],
+    doNotCopyRules: input.referenceMusicDNA?.doNotCopyRules ?? [],
     overallMood: chooseMood({
       userPrompt: musicContextAnalysis.userMusicInstructions.join(' '),
       settingSummary: musicContextAnalysis.settingSummary,
@@ -324,7 +329,7 @@ export function createCueTimingPlan(cueOrder: number, cueRole: MusicCueRole): {
   endTimeSeconds: number
   targetDurationSeconds: number
 } {
-  const durations: Record<MusicCueRole, number> = {
+  const durations: Partial<Record<MusicCueRole, number>> = {
     no_music: 0,
     ambient_only: 30,
     subtle_bed: 45,
@@ -556,4 +561,84 @@ function chooseBpmTarget(sceneType: MusicSceneType): number | undefined {
   }
 
   return undefined
+}
+
+function cueItemFromReferenceSection(params: {
+  cueSheetId: string
+  section: ReferenceAudioSectionRecord
+  index: number
+}): MusicCueSheetItemRecord {
+  const { cueSheetId, index, section } = params
+  const hasTimeRange = typeof section.startTimeSeconds === 'number' && typeof section.endTimeSeconds === 'number'
+
+  return {
+    id: createMockId('music-cue-sheet-item'),
+    cueSheetId,
+    cueOrder: index + 1,
+    cueRole: section.musicRole ?? 'custom',
+    sectionType: section.sectionType,
+    label: `${section.sectionType.replaceAll('_', ' ')} cue`,
+    timeRange: hasTimeRange
+      ? {
+          startSeconds: section.startTimeSeconds ?? 0,
+          endSeconds: section.endTimeSeconds ?? 0,
+        }
+      : undefined,
+    mood: section.musicMood ?? 'premium_lifestyle',
+    energyLevel: section.energyLevel ?? 'medium',
+    vocalPolicy: section.vocalPolicy ?? 'instrumental_only',
+    speechSafety: section.speechSafety ?? 'speech_first',
+    genreHints: section.genreHints,
+    ambienceNotes: [
+      section.ambienceBehavior ?? 'Preserve useful ambience when it supports the edit.',
+    ],
+    sfxNotes: [
+      section.sfxBehavior ?? 'No copied SFX; use original subtle support only if needed.',
+    ],
+    adaptationNotes: section.adaptationNotes,
+    doNotCopyNotes: section.doNotCopyNotes,
+  }
+}
+
+export function createReferenceGuidedCueSheet(input: {
+  projectId?: string
+  editPlanId?: string
+  guidance: MusicDirectorGuidanceRecord
+  referenceMusicDNA: ReferenceMusicDNARecord
+}): MusicCueSheetRecord {
+  const cueSheetId = createMockId('music-cue-sheet')
+  const sections = input.referenceMusicDNA.audioSections ?? []
+  const items: MusicCueSheetItemRecord[] = sections.length > 0
+    ? sections.map((section, index) => cueItemFromReferenceSection({ cueSheetId, section, index }))
+    : [
+        {
+          id: createMockId('music-cue-sheet-item'),
+          cueSheetId,
+          cueOrder: 1,
+          cueRole: input.guidance.recommendedCueStrategy === 'voice_first' ? 'dialogue_bed' : 'brand_bed',
+          sectionType: 'dialogue',
+          label: 'Voice-first music bed',
+          mood: input.guidance.moodTargets[0] ?? 'premium_lifestyle',
+          energyLevel: 'low',
+          vocalPolicy: input.guidance.vocalPolicy,
+          speechSafety: input.guidance.speechSafety,
+          genreHints: input.guidance.genreFamilies,
+          ambienceNotes: input.guidance.ambiencePriorities,
+          sfxNotes: input.guidance.sfxNotes,
+          adaptationNotes: input.guidance.adaptationRules,
+          doNotCopyNotes: input.guidance.doNotCopyRules,
+        },
+      ]
+
+  return {
+    id: cueSheetId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    referenceDnaId: input.referenceMusicDNA.id,
+    guidanceId: input.guidance.id,
+    summary: `${items.length} mock music cue${items.length === 1 ? '' : 's'} planned from safe reference DNA guidance.`,
+    items,
+    doNotCopyRules: input.guidance.doNotCopyRules,
+    createdAt: nowIso(),
+  }
 }

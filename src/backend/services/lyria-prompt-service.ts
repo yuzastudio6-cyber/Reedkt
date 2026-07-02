@@ -5,11 +5,13 @@ import type {
   MusicContextAnalysisRecord,
   MusicCueRecord,
   MusicCueRole,
+  MusicCueSheetItemRecord,
   MusicCueSheetRecord,
   MusicGenerationPurpose,
   MusicLanguageContextRecord,
   MusicSceneType,
   ReferenceMusicDNARecord,
+  ReferenceStyleAdaptationPlanRecord,
 } from '../../types'
 import { LYRIA_PRO_FUTURE_MODEL_NAME } from '../../types'
 import { createMockId, nowIso } from '../mock/mock-database'
@@ -483,4 +485,70 @@ function formatTime(seconds: number): string {
 
 function round(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+const universalReferenceNegativePrompt =
+  'Do not imitate or copy any existing song, melody, lyrics, artist, track, exact cue timing, title-card sound, or copyrighted SFX.'
+
+function promptForReferenceCue(params: {
+  item: MusicCueSheetItemRecord
+  referenceMusicDNA?: ReferenceMusicDNARecord
+  adaptationPlan?: ReferenceStyleAdaptationPlanRecord
+}) {
+  const { adaptationPlan, item, referenceMusicDNA } = params
+  const mood = item.mood.replaceAll('_', ' ')
+  const genreHints = item.genreHints.map((hint) => hint.replaceAll('_', ' ')).join(', ')
+  const referenceSummary = referenceMusicDNA
+    ? `Reference influence: ${referenceMusicDNA.styleSummary ?? referenceMusicDNA.summary ?? 'safe style DNA only'}`
+    : 'Reference influence: none.'
+
+  return [
+    'Create original ReeditPro music from style DNA only.',
+    `Cue role: ${item.cueRole.replaceAll('_', ' ')}.`,
+    `Mood: ${mood}. Energy: ${item.energyLevel.replaceAll('_', ' ')}.`,
+    `Broad genre family hints: ${genreHints || 'cinematic lifestyle'}.`,
+    `Vocal policy: ${item.vocalPolicy.replaceAll('_', ' ')}. Speech safety: ${item.speechSafety.replaceAll('_', ' ')}.`,
+    referenceSummary,
+    ...(adaptationPlan?.musicAdaptationRules ?? []),
+    'Do not include exact reference track names, artist names, copyrighted lyrics, or copied timing.',
+  ].join(' ')
+}
+
+export function createLyriaPromptPlan(input: {
+  cueSheet: MusicCueSheetRecord
+  referenceMusicDNA?: ReferenceMusicDNARecord
+  adaptationPlan?: ReferenceStyleAdaptationPlanRecord
+}): LyriaPromptPlanRecord[] {
+  return (input.cueSheet.items ?? []).map((item) => ({
+    id: createMockId('lyria-prompt-plan'),
+    cueSheetItemId: item.id,
+    referenceDnaId: input.referenceMusicDNA?.id ?? input.adaptationPlan?.referenceDnaId,
+    promptTitle: `${item.label} prompt`,
+    prompt: promptForReferenceCue({
+      item,
+      referenceMusicDNA: input.referenceMusicDNA,
+      adaptationPlan: input.adaptationPlan,
+    }),
+    negativePrompt: [
+      universalReferenceNegativePrompt,
+      ...item.doNotCopyNotes,
+      ...(input.adaptationPlan?.doNotCopyRules ?? input.referenceMusicDNA?.doNotCopyRules ?? []),
+    ].join(' '),
+    styleDnaOnly: true,
+    blockedReferenceContent: [
+      'track names',
+      'artist names',
+      'lyrics',
+      'melodies',
+      'exact cue timing',
+      'copyrighted sound effects',
+    ],
+    adaptationRules: [
+      ...item.adaptationNotes,
+      ...(input.adaptationPlan?.musicAdaptationRules ?? []),
+    ],
+    speechSafety: item.speechSafety,
+    vocalPolicy: item.vocalPolicy,
+    createdAt: nowIso(),
+  }))
 }

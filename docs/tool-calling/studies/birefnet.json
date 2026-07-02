@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "birefnet",
+  "displayName": "BiRefNet",
+  "aliases": ["birefnet"],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "birefnet",
+    "reason": "BiRefNet is a first-class ProductionToolId for image mask and background-removal planning."
+  },
+  "operations": [
+    {"operationId": "mask.generate", "supportLevel": "primary", "bestFor": ["foreground mask generation"], "notFor": ["temporal object tracking"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["mask_image", "mask_sequence", "image_asset", "qa_report"], "validators": ["mask_edge_quality", "mask_subject_coverage"], "fallbackToolIds": ["sam2", "rembg", "transparent_background", "opencv"], "notes": ["Primary foreground mask planning candidate for stills."]},
+    {"operationId": "background.remove", "supportLevel": "primary", "bestFor": ["image cutout and background removal planning"], "notFor": ["video temporal consistency"], "inputArtifacts": ["image", "video", "frame_sequence"], "outputArtifacts": ["mask_image", "mask_sequence", "image_asset", "processed_video", "qa_report"], "validators": ["mask_edge_quality", "mask_subject_coverage", "mask_temporal_stability"], "fallbackToolIds": ["sam2", "rembg", "transparent_background", "opencv"], "notes": ["Use temporal QA before video background-removal selection."]}
+  ],
+  "bestFor": ["foreground masks", "background removal", "cutout planning"],
+  "notFor": ["caption rendering", "OCR", "timeline validation"],
+  "inputArtifacts": ["image", "video", "frame_sequence"],
+  "outputArtifacts": ["mask_image", "mask_sequence", "image_asset", "processed_video", "qa_report"],
+  "validators": ["mask_edge_quality", "mask_subject_coverage", "mask_temporal_stability"],
+  "fallbackToolIds": ["sam2", "rembg", "transparent_background", "opencv"],
+  "resourceProfile": {"workerType": "gpu_ai_worker", "gpuRequired": true, "cpuAllowed": false, "executionMode": "worker_recipe"},
+  "qualityProfile": {"productionStatus": "planned", "adoptionStage": "planned", "launchCore": false, "modelWeightsRequired": true, "licenseRisk": "medium", "commercialUseStatus": "allowed_with_review"},
+  "knownFailureModes": ["hair and transparent edges need QA", "busy backgrounds reduce subject coverage", "model policy can block execution"],
+  "professionalEditingUses": ["thumbnail cutouts", "text-behind-subject masks", "background removal planning"],
+  "benchmarkPlaceholders": ["benchmark:birefnet:mask_edge_quality_pending", "benchmark:birefnet:subject_coverage_pending"],
+  "telemetryPlaceholders": ["telemetry:birefnet:selection_count", "telemetry:birefnet:mask_gate_outcomes"],
+  "readinessNotes": ["Planning only; model execution remains out of scope."]
+}

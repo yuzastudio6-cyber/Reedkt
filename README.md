@@ -22,6 +22,14 @@ SoundSync is important, but it is not the third visual signature system. SoundSy
 
 StoryTiming coordinates captions, cuts, Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and story beats.
 
+## Launch Model And Frame Policy
+
+ReeditPro's launch routing policy treats GPT-Image-2 as the primary image, still, keyframe, graphic, and frame model. Wan is the primary low-cost animation family, Hailuo is the normal fallback/alternate animation family, and Veo 3.1 Lite is Premium-only final fallback/rescue. Basic and Pro must never route to Veo, and Veo must never be the default primary model.
+
+Generated AI video defaults to 720P-class output: Wan at 720P, Hailuo at 768P, and Veo at 720P when Premium final rescue is approved. ReeditPro should never default generated AI video to 1080P.
+
+AI video generation should default to matching white, near-white, or custom frame panels inside the ReeditPro compositor. Transparent overlays remain a future/controlled renderer option for SVG, Lottie, Remotion, or other deterministic systems, not the default AI video route.
+
 ## Subscription And Credit Model
 
 Subscriptions provide software access. Reedit Credits pay for AI generation, rendering, and editing usage.
@@ -44,6 +52,13 @@ Core product foundation docs live in the repo root:
 - `product-plan.md`
 - `signature-systems.md`
 - `real-motion-system.md`
+- `visual-storytelling-architecture.md`
+- `model-routing-policy.md`
+- `frame-layout-system.md`
+- `remotion-renderer-plan.md`
+- `professional-editing-ontology.md`
+- `edit-quality-standards.md`
+- `intent-compiler-architecture.md`
 - `intent-led-edit-planning.md`
 - `edit-workflow-blueprints.md`
 - `pricing-and-credits.md`
@@ -58,3 +73,23 @@ Before UI work, read `design.md`. Before product, AI, billing, planning, or work
 This repo currently contains an early web prototype plus product foundation documentation. The documentation is intended to guide future implementation. The foundation docs do not implement backend logic, database migrations, Stripe, AI APIs, video rendering, or mobile app behavior.
 
 Future implementation should stay modular so upload, intent analysis, reference DNA, edit planning, credit estimation, approval gates, rendering jobs, billing, and review workflows can be added safely.
+
+The connected planning foundation now includes chat-native planning, source sequence review, adaptive strategy, visual/story/tool/render planning, color/audio/map/dataviz/browser/depth/mask planning, launch tool stack alignment, worker-runtime architecture notes, production-readiness boundaries, validation, regression, and the planning system audit. See `connected-planning-system-overview.md` for the end-to-end map and `implementation-status-and-next-phase.md` for what remains frontend/mock versus future backend work.
+
+The data preparation foundation now includes a Supabase schema planning bridge. It documents future tables, JSONB approved snapshot strategy, private storage buckets, and migration readiness checks without creating SQL migrations or connecting Supabase. See `supabase-schema-planning-bridge.md`, `supabase-table-specification.md`, and `database-migration-readiness-checklist.md`; the next data step is to convert the bridge into reviewed migrations in a dedicated migration milestone.
+
+The backend readiness foundation now includes frontend-safe auth/bootstrap helpers, storage/upload planning helpers, an API boundary skeleton, credit gates, job runtime readiness, RP-FIX-11 mock runtime transport plus worker leases, and an RP-FIX-12 mock-only Node backend scaffold for a future Cloud Run API service. It remains mock/local only: no backend is deployed, no service-role handler exists, and provider, payment, worker, render, signed storage, lease mutation, and admin routes remain backend-required or disabled.
+
+RP-DATA-02 adds review-only SQL migration drafts in `database/migration-drafts/`. These are not active Supabase migrations and should not be run or copied into `supabase/migrations/` until a future review/hardening step such as RP-DATA-03. See `sql-migration-draft-review.md`, `supabase-rls-policy-draft.md`, and `supabase-storage-bucket-draft.md`.
+
+RP-DATA-03 adds a draft migration review and RLS hardening layer. Draft SQL remains `DO NOT RUN`; real migration execution, Supabase connection, and backend implementation are still future work. See `migration-review-and-rls-hardening.md`, `rls-hardening-matrix.md`, and `data-privacy-retention-plan.md`.
+
+RP-DATA-04 adds active Supabase migration files in `supabase/migrations/` for manual local/staging testing only. Codex does not run them, connect Supabase, or implement backend behavior. Production remains blocked until manual tests, RLS/storage verification, Supabase advisor review, backups, and approval pass. See `supabase-production-test-readiness.md`, `supabase-local-staging-test-plan.md`, and `database/test-sql/`.
+
+RP-TIMING-01 adds a mock Master Timing foundation for frame-accurate edit planning. Captions, visual cues, transitions, SFX, music ducking, provider clips, and Remotion layer timing now use a typed `MasterTimingPlan`; no real transcript alignment, beat detection, media processing, tools, provider calls, backend, or rendering are executed. See `master-timing-architecture.md`, `timing-settings-catalog.md`, and `timing-qa-policy.md`.
+
+RP-TIMING-02 adds a mock Caption + Visual Cue Timing refinement layer. It plans readable caption chunks, caption animation policy, visual cue triggers, read-time holds, and caption/visual collision recommendations from the Master Timing Plan. It is still mock-only: no real transcript alignment, speech-to-text, beat detection, media processing, provider calls, backend, or rendering are executed. See `caption-visual-cue-timing.md`, `caption-readability-motion-policy.md`, and `visual-cue-synchronization-policy.md`.
+
+RP-TIMING-03 adds a mock SoundSync + Transition Timing refinement layer. It plans beat grids, music phrase sections, speech-safe beat snap decisions, refined transitions, cue-linked SFX, and voice-first ducking from the Master Timing and Caption + Visual Cue Timing plans. AudioFlux is represented as a future analysis worker only; no real audio/media analysis, SFX generation, provider calls, backend, Supabase, or rendering are executed. See `soundsync-beat-grid-transition-timing.md`, `transition-timing-policy.md`, and `sfx-ducking-timing-policy.md`.
+
+RP-TIMING-04 adds mock Timing Validation + Credit Impact. It validates Master Timing, Caption + Visual Cue Timing, and SoundSync + Transition Timing before approval, blocks approval for failed/blocking timing, and explains timing complexity in Reedit Credits with lower-cost alternatives. No real timing/audio/transcript/media analysis, tool execution, backend, provider calls, rendering, billing, or credit deduction is executed. See `timing-validation-policy.md`, `timing-complexity-credit-policy.md`, and `timing-approval-gate-policy.md`.

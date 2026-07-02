@@ -41,9 +41,21 @@ export const aspectRatioOptions: SelectOption<AspectRatio>[] = [
 ]
 
 export const editLevelOptions: SelectOption<EditLevel>[] = [
-  { value: 'basic', label: 'Basic - clean it up' },
-  { value: 'pro', label: 'Pro - make it polished' },
-  { value: 'advanced_viral', label: 'Advanced / Viral - make it high-impact' },
+  {
+    value: 'basic',
+    label: 'Basic',
+    description: 'Professional clean editing with lower compute, fewer generated assets, and simpler planning.',
+  },
+  {
+    value: 'pro',
+    label: 'Pro',
+    description: 'Polished production planning with Wan/Hailuo routing where animation improves the story.',
+  },
+  {
+    value: 'premium',
+    label: 'Premium - deeper planning and fallback',
+    description: 'Strongest planning, more fallbacks, more retries, and Premium-only Veo final fallback when needed.',
+  },
 ]
 
 export const structurePreferenceOptions: SelectOption<StructurePreference>[] = [

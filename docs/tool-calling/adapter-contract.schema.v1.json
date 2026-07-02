@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/tool-calling/adapter-contract.schema.v1.json",
+  "title": "Reeditpro Tool Adapter Contract v1",
+  "type": "object",
+  "required": [
+    "adapterId",
+    "toolId",
+    "displayName",
+    "supportedOperationIds",
+    "acceptedInputArtifacts",
+    "producedOutputArtifacts",
+    "requiredQualityGates",
+    "workerType",
+    "executionMode",
+    "planningOnly",
+    "commandExecutionAllowed",
+    "mediaProcessingAllowed",
+    "requiresFirstClassProductionToolId",
+    "runtimeNotes",
+    "safetyNotes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "adapterId": {
+      "type": "string",
+      "pattern": "^tool_adapter_[a-z0-9_]+_v1$"
+    },
+    "toolId": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supportedOperationIds": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "acceptedInputArtifacts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "producedOutputArtifacts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "requiredQualityGates": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "workerType": {
+      "type": "string"
+    },
+    "executionMode": {
+      "const": "planning_only"
+    },
+    "planningOnly": {
+      "const": true
+    },
+    "commandExecutionAllowed": {
+      "const": false
+    },
+    "mediaProcessingAllowed": {
+      "const": false
+    },
+    "requiresFirstClassProductionToolId": {
+      "const": true
+    },
+    "runtimeNotes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "safetyNotes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
+  }
+}

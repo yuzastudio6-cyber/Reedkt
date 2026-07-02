@@ -27,6 +27,15 @@
     "tool-calling:fixture-bound-export-validation": "node scripts/validation/tool-calling-fixture-bound-export-validation-diagnostics.mjs",
     "tool-calling:unmerged-owner-evidence": "node scripts/validation/tool-calling-unmerged-owner-evidence-overlay-diagnostics.mjs",
     "tool-calling:all-owner-stack-reconciliation": "node scripts/validation/tool-calling-all-owner-stack-reconciliation-diagnostics.mjs",
+    "tool-calling:sound-music-audio-owner-expansion": "node scripts/validation/tool-calling-sound-music-audio-owner-expansion-diagnostics.mjs",
+    "tool-calling:sound-candidate-study-cards": "node scripts/validation/tool-calling-sound-candidate-study-cards-diagnostics.mjs",
+    "tool-calling:sound-runtime-gate-1-reconciliation": "node scripts/validation/tool-calling-sound-runtime-gate-1-reconciliation-diagnostics.mjs",
+    "tool-calling:sound-gate-1a-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1a-merged-reconciliation-diagnostics.mjs",
+    "tool-calling:sound-gate-1b-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1b-merged-reconciliation-diagnostics.mjs",
+    "tool-calling:sound-gate-1c-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1c-merged-reconciliation-diagnostics.mjs",
+    "tool-calling:sound-gate-1d-merged-reconciliation": "node scripts/validation/tool-calling-sound-gate-1d-merged-reconciliation-diagnostics.mjs",
+    "tool-calling:worker-runtime-sound-cpu-handoff-review-reconciliation": "node scripts/validation/tool-calling-worker-runtime-sound-cpu-handoff-review-reconciliation-diagnostics.mjs",
+    "tool-calling:worker-runtime-sound-cpu-contract-owner-review-merged-reconciliation": "node scripts/validation/tool-calling-worker-runtime-sound-cpu-contract-owner-review-merged-reconciliation-diagnostics.mjs",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",
@@ -80,7 +89,15 @@
     "start:remotion-worker:mock": "node dist-remotion-worker/remotion-worker-cli.js",
     "dev:server": "npm run build:server && npm run start:server",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:qwen-secret-leakage": "node scripts/check-qwen-secret-leakage.mjs",
+    "smoke:qwen-runtime-boundary": "tsx server/smoke/qwen-runtime-boundary-smoke.ts",
+    "check:qwen-runtime-boundary": "node scripts/check-qwen-runtime-boundary.mjs",
+    "smoke:qwen-marker-chat-bridge": "tsx server/smoke/qwen-marker-chat-bridge-smoke.ts",
+    "smoke:project-edit-brief-marker-chat": "tsx server/smoke/project-edit-brief-marker-chat-smoke.ts",
+    "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",
+    "smoke:supabase-command-safety": "tsx server/smoke/supabase-command-safety-smoke.ts",
+    "check:supabase-command-safety": "node scripts/check-supabase-command-safety.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
@@ -92,7 +109,8 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@google-cloud/secret-manager": "^6.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -109,6 +127,7 @@
     "tsx": "^4.22.3",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "@playwright/test": "^1.60.0"
   }
 }

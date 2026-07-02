@@ -104,6 +104,18 @@ import type {
 } from '../../types'
 import type { ExportRecord } from '../../types/review-render-export'
 import type { RecommendedEditStructureRecord } from '../../types/planning'
+import type {
+  ProjectEditBriefApplicationLogRecord,
+  ProjectEditBriefMarkerAttachmentRecord,
+  ProjectEditBriefMarkerConfirmationRecord,
+  ProjectEditBriefMarkerConflictRecord,
+  ProjectEditBriefMarkerIntentRecord,
+  ProjectEditBriefMarkerMessageRecord,
+  ProjectEditBriefMarkerRecord,
+  ProjectEditBriefMarkerRevisionRecord,
+  ProjectEditBriefRecord,
+  ProjectEditSessionExportSettingsRecord,
+} from '../../types/project-edit-brief'
 
 export const MOCK_NOW = '2026-05-13T12:00:00.000Z'
 
@@ -191,6 +203,16 @@ export interface MockDatabase {
   creditRefunds: CreditRefundRecord[]
   backendRuntimeMessages: BackendRuntimeMessageRecord[]
   runtimeIdempotencyRecords: RuntimeIdempotencyRecord[]
+  projectEditBriefs: ProjectEditBriefRecord[]
+  projectEditBriefMarkers: ProjectEditBriefMarkerRecord[]
+  projectEditBriefMarkerAttachments: ProjectEditBriefMarkerAttachmentRecord[]
+  projectEditBriefMarkerMessages: ProjectEditBriefMarkerMessageRecord[]
+  projectEditBriefMarkerIntents: ProjectEditBriefMarkerIntentRecord[]
+  projectEditBriefMarkerConfirmations: ProjectEditBriefMarkerConfirmationRecord[]
+  projectEditBriefMarkerConflicts: ProjectEditBriefMarkerConflictRecord[]
+  projectEditBriefMarkerRevisions: ProjectEditBriefMarkerRevisionRecord[]
+  projectEditBriefApplicationLogs: ProjectEditBriefApplicationLogRecord[]
+  projectEditSessionExportSettings: ProjectEditSessionExportSettingsRecord[]
   workerLeases: WorkerLeaseRecord[]
   workerLeaseClaimAttempts: WorkerLeaseClaimAttemptRecord[]
   jobBatches: JobBatchRecord[]
@@ -318,6 +340,16 @@ export function createMockDatabase(): MockDatabase {
     creditRefunds: [],
     backendRuntimeMessages: [],
     runtimeIdempotencyRecords: [],
+    projectEditBriefs: [],
+    projectEditBriefMarkers: [],
+    projectEditBriefMarkerAttachments: [],
+    projectEditBriefMarkerMessages: [],
+    projectEditBriefMarkerIntents: [],
+    projectEditBriefMarkerConfirmations: [],
+    projectEditBriefMarkerConflicts: [],
+    projectEditBriefMarkerRevisions: [],
+    projectEditBriefApplicationLogs: [],
+    projectEditSessionExportSettings: [],
     workerLeases: [],
     workerLeaseClaimAttempts: [],
     jobBatches: [],

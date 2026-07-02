@@ -53,6 +53,14 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Owner labels and lanes are never runtime ranking dimensions; pending external tools must wait for first-class registry expansion before runtime selection.
 - Future expansion milestones must run refresh-gate, unmerged-owner evidence, and all-owner stack reconciliation before adding tool-calling coverage.
 
+## Sound/Music/Audio Owner Expansion
+
+- Sound/Music/Audio and SFX/SoundSync coverage is reconciled against merged owner evidence before tool-calling adds study, registry, adapter, probe, or execution surfaces.
+- PR #636 `SOUND-RUNTIME-MEDIA-GATE-0` is consumed as owner evidence for 65 SOUND candidate labels, 13 pinned requirements, 16 install-plan tools, and the current runtime/media/model/license gate status.
+- First-class SOUND tools stay covered by the existing registry, study cards, and planning-only adapters; this expansion does not duplicate them.
+- Owner-inventory, install-plan-only, provider/API-only, SFX/SoundSync, cue-manifest, model-weight, license-sensitive, and media-policy-sensitive surfaces remain non-selectable unless first-class registry and owner proof exists.
+- Runtime/media/model/provenance/license gates must remain blocked until the SOUND owner lane clears them.
+
 ## Adapter Contract Layer
 
 - Adapter contracts convert selected planning tools into structured adapter plans and future worker-route bridge metadata.
@@ -139,6 +147,58 @@ The Reeditpro tool-calling brain is a planning-first runtime foundation for choo
 - Owner evidence remains the source of truth for execution readiness, model-weight governance, license review, and worker-route enablement.
 - Track B external registry expansion promotes `mediainfo`, `exiftool`, `tesseract`, and `imagemagick` into first-class planning metadata while keeping execution gated separately.
 - `graphicsmagick` remains pending and non-selectable as a separate runtime identity; diagnostics report `graphicsMagickCounted: false`.
+
+## Sound Candidate-Only Study Cards
+
+- Sound candidate-only study cards are awareness metadata for Sound/Music/Audio and SFX/SoundSync candidates from PR #641 / PR #636 evidence.
+- They are stored separately from first-class study cards and do not participate in runtime selection, ranking, adapter contracts, command intents, fixtures, probes, or execution.
+- Runtime selection still requires a first-class `ProductionToolId`; SOUND owner gates remain the source of truth for install, model, license, media, provider, and worker readiness.
+
+## Sound Runtime Gate 1 Reconciliation
+
+- Sound Runtime Gate 1 reconciliation consumes merged PR #640 evidence as planning metadata only.
+- It records the 13 direct pinned packages, 2 alias-covered tools, and planning-only sound worker/job surfaces without enabling runtime execution.
+- Package/install proof remains owner-lane gated by `SOUND-RUNTIME-MEDIA-GATE-1A`; worker contract review remains gated by `SOUND-RUNTIME-MEDIA-GATE-1B`.
+- Tool-calling can reason about Gate 1 candidates, but it must not select or execute candidate-only tools.
+
+## Sound Gate 1A Merged Reconciliation
+
+- Sound Gate 1A merged reconciliation records PR #647 / `SOUND-RUNTIME-MEDIA-GATE-1A` as merged owner source evidence using merge commit `0126327c19f1af18bb1ca040c31d06736693d1b6`.
+- The layer records controlled CPU install proof facts for planning only: 13 metadata checks passed, 14 import checks passed including `scipy.signal`, failed imports `[]`, `python3` observed as `3.13.13`, and temporary venv cleanup.
+- It does not run imports, install packages, add probes, promote runtime IDs, add adapters, add command intents, process media/audio, or dispatch workers.
+- Gate 1B worker contract review, Gate 2 model/provenance review, and Gate 3 media-policy handoff remain required before downstream expansion.
+
+## Sound Gate 1B Merged Reconciliation
+
+- Sound Gate 1B merged reconciliation records PR #653 / `SOUND-RUNTIME-MEDIA-GATE-1B` as merged owner source evidence using merge commit `5bc262db23f6f6a4c9ab7b03f9b239536c6a0f91`.
+- The layer recognizes `sound-cpu-analysis-worker`, `sound-audio-metadata-worker`, and four `sound.*` job types as planning metadata only.
+- It does not dispatch workers, call the worker router, create jobs, run imports, execute tools, add worker-route dry-runs, add adapters, add commands, add probes, process media/audio, or mutate Supabase.
+- Gate 1C and Gate 1D remain required before CPU worker image planning or worker runtime handoff can be consumed.
+
+## Sound Gate 1C Merged Reconciliation
+
+- Sound Gate 1C merged reconciliation records PR #660 / `SOUND-RUNTIME-MEDIA-GATE-1C` as merged owner source evidence using merge commit `b46509a54695dd049d044fd7135b37a8faaef18e`.
+- The layer records planned CPU worker image names, preserved worker names, preserved planning-only job types, Gate 1C image-plan documentation surfaces, blocked gates, and Gate 1D/Gate 1E next prompts.
+- It does not add Dockerfiles, build images, call Docker/GCP/Cloud Run, dispatch workers, call routes, create jobs, run imports, execute tools, add worker-route dry-runs, add adapters, add commands, add probes, process media/audio, mutate Supabase/SQL, or mutate `package-lock.json`.
+
+## Sound Gate 1D Merged Reconciliation
+
+- Sound Gate 1D merged reconciliation records PR #663 / `SOUND-RUNTIME-MEDIA-GATE-1D` as merged owner source evidence using merge commit `dbb6d7fe56e7a710059fd80385f11e6fe186f5e0`.
+- The layer records the `WORKER_RUNTIME_JOBS` handoff packet, dependency map, job contract register, blocker register, owner acceptance request, runtime claim policy, accepted planning terms, blocked gates, and next prompts.
+- It does not dispatch workers, call the worker router, create jobs, claim or lease worker runtime, run imports, execute tools, add worker-route dry-runs, add adapters, add commands, add probes, process media/audio, touch Docker/GCP/Cloud Run/Secret Manager, mutate Supabase/SQL, or mutate `package-lock.json`.
+
+## Worker Runtime Sound CPU Handoff Review
+
+- Worker Runtime Sound CPU handoff review reconciliation records PR #670 / `WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW` as merged owner source evidence using merge commit `f0cb0000fcc49f9b5c5e76394be9578f5d6d29dc`.
+- The layer records Sound worker names, planned images, and job types as future static planning terms only.
+- Worker-route dry-run, worker dispatch, worker claim/lease, job creation, static contract integration, imports, tools, media/audio, Docker/GCP/Cloud Run/Secret Manager, Supabase/SQL, adapters, commands, probes, fixtures, beta, and production remain blocked until static contract plan evidence exists.
+
+## Worker Runtime Sound CPU Contract Owner Review
+
+- Worker Runtime Sound CPU contract owner review reconciliation records PR #679 / `WORKER_RUNTIME_JOBS-SOUND-CPU-CONTRACT-OWNER-REVIEW` as merged owner source evidence using merge commit `1091f901729334389918f3b1ea28b584ebf7686b`.
+- The layer records accepted worker names, planned images, job types, static contract areas, static fields, and placeholder policies as future Dockerfile/static image planning terms only.
+- PR #684 Dockerfile static review evidence is candidate-only unless live GitHub inspection proves it has merged.
+- Worker-route dry-run, worker dispatch, worker claim/lease, job creation, Dockerfile static integration, Docker/GCP/Cloud Run/Secret Manager, imports, tools, media/audio, Supabase/SQL, adapters, commands, probes, fixtures, beta, and production remain blocked until Dockerfile static review and Gate 1E evidence are reconciled.
 
 ## Track B External Registry Planning Expansion
 

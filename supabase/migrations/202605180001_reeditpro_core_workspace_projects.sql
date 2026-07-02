@@ -71,6 +71,47 @@ create table if not exists public.edit_sessions (
   updated_at timestamptz not null default now()
 );
 
+alter table public.projects
+  add column if not exists current_edit_session_id uuid;
+
+alter table public.workspaces
+  add column if not exists owner_id uuid;
+
+update public.workspaces
+set owner_id = owner_user_id
+where owner_id is null
+  and owner_user_id is not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'workspaces_owner_id_fkey'
+  ) then
+    alter table public.workspaces
+      add constraint workspaces_owner_id_fkey
+      foreign key (owner_id) references auth.users(id) on delete cascade;
+  end if;
+end $$;
+
+alter table public.projects
+  add column if not exists owner_id uuid;
+
+update public.projects
+set owner_id = created_by
+where owner_id is null
+  and created_by is not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'projects_owner_id_fkey'
+  ) then
+    alter table public.projects
+      add constraint projects_owner_id_fkey
+      foreign key (owner_id) references auth.users(id) on delete cascade;
+  end if;
+end $$;
+
 do $$
 begin
   if not exists (
@@ -92,6 +133,20 @@ create table if not exists public.chat_messages (
   metadata_json jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table public.chat_messages
+  add column if not exists edit_session_id uuid;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'chat_messages_edit_session_id_fkey'
+  ) then
+    alter table public.chat_messages
+      add constraint chat_messages_edit_session_id_fkey
+      foreign key (edit_session_id) references public.edit_sessions(id) on delete cascade;
+  end if;
+end $$;
 
 create table if not exists public.user_confirmations (
   id uuid primary key default gen_random_uuid(),

@@ -17,6 +17,7 @@ The reconciliation covers Track B media/OCR/color, Track A render/export/native/
 - Registry/study/adapter coverage is derived dynamically from the current tool-calling modules.
 - Candidate-only surfaces such as `gstreamer`, `bento4/mp4box`, `mkvtoolnix`, `satori`, `svg.js`, `viz.js`, `animejs`, `torch/torchvision`, `transformers`, `soundfile/libsndfile`, `sox`, `aubio`, `mmaudio`, `gdal/ogr`, `tippecanoe`, `pmtiles`, `vllm`, `qwen3_vl`, and `onnxruntime` require owner evidence before tool-calling registry expansion.
 - Provider/API surfaces remain separated from local OSS tool execution.
+- Sound/Music/Audio owner expansion consumes merged PR #636 `SOUND-RUNTIME-MEDIA-GATE-0` evidence for 65 SOUND candidate labels, 13 pinned requirements, 16 install-plan-only tools, and blocked model/media/runtime gates.
 
 ## Duplicate Risks
 

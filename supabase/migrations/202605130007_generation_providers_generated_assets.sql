@@ -745,7 +745,7 @@ insert into public.generation_provider_models (
   supports_seed,
   model_payload
 )
-select gp.id, model_key, model_name, display_name, description, default_quality_level, supports_transparent_background, supports_word_level_timing, supports_seed, payload
+select gp.id, model_key, model_name, display_name, seed.description, default_quality_level, seed.supports_transparent_background, seed.supports_word_level_timing, supports_seed, payload
 from public.generation_providers gp
 cross join lateral (
   values

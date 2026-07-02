@@ -62,6 +62,14 @@
 - It prevents duplicate production registries, worker routers, QA policies, fallback policies, adapter execution systems, command execution systems, fixture/probe layers, owner registries, Supabase/runtime tables, migrations, and SQL execution tables.
 - Recommended next milestones are lane-scoped and must wait for owner proof before registry or execution expansion.
 
+## Sound/Music/Audio Owner Evidence
+
+- The Sound/Music/Audio owner expansion consumes merged PR #636 `SOUND-RUNTIME-MEDIA-GATE-0` evidence without copying the SOUND owner registry or docs into a new tool-calling system.
+- PR #636 inventories 65 SOUND candidate labels, records 13 pinned Python requirements, and records 16 approved install-plan tools as install evidence only.
+- Runtime/media/model/license gates remain blocked for model weights, GPU use, FFmpeg/ffprobe handoff, pydub media operations, audioread file-open, Supabase, signed/public artifacts, billing, beta, and production.
+- First-class SOUND tools continue to come from `server/tool-registry`; owner-inventory and install-plan-only candidates remain non-selectable until SOUND gate reconciliation clears them.
+- Recommended next owner work remains `SOUND-RUNTIME-MEDIA-GATE-1`, `SOUND-RUNTIME-MEDIA-GATE-2`, and `SOUND-RUNTIME-MEDIA-GATE-3` before tool-calling registry or execution expansion.
+
 ## Adapter Contract Integration
 
 - Adapter contracts reuse `server/tool-registry` profiles, existing capability cards, QA policy, fallback policy, and runtime contract types.
@@ -137,6 +145,64 @@
 - Existing export, QA, ffprobe, final-render, worker, CLI, and production-readiness helpers remain scan evidence only and are not imported.
 - The layer does not create a duplicate export worker, final-render worker, media probe worker, worker router, production registry, QA policy, fallback policy, Supabase runtime table, migration, SQL file, storage writer, artifact writer, or command execution layer.
 - Required gates are `export_codec_format`, `export_duration_sync`, and `render_asset_integrity`; `final_delivery` is optional, skipped, and deferred to a future real export validation milestone.
+
+## Sound Candidate Study Coverage
+
+- Sound candidate study coverage adds candidate-only cards for 18 Sound/Music/Audio and SFX/SoundSync owner-evidence tools.
+- The cards do not create runtime IDs, adapter contracts, command intents, fixture plans, controlled probes, execution surfaces, Supabase tables, SQL, migrations, signed URLs, package installs, or package-lock changes.
+- Candidate cards remain separate from first-class capability cards; runtime selection still requires `server/tool-registry` `ProductionToolId` coverage.
+- Next recommended gate is `SOUND-RUNTIME-MEDIA-GATE-1` before any registry reconciliation for install-plan candidates.
+
+## Sound Runtime Media Gate 1
+
+- Sound Runtime Media Gate 1 reconciliation consumes merged PR #640 evidence for 15 CPU install candidates.
+- It records 13 direct pinned packages, 2 alias-covered tools, `signalsmith_stretch` as approved-plan-covered and planning-only, and future sound worker/job surfaces.
+- Next owner prompts remain `SOUND-RUNTIME-MEDIA-GATE-1A` for controlled CPU install proof and `SOUND-RUNTIME-MEDIA-GATE-1B` for worker contract review.
+- This layer adds no package installs, probes, adapters, command intents, media processing, worker dispatch, Supabase/SQL, package-lock mutation, beta unlock, or production unlock.
+
+## Sound Gate 1A Merged Evidence
+
+- Sound Gate 1A merged reconciliation records PR #647 / `SOUND-RUNTIME-MEDIA-GATE-1A` as merged owner source evidence using merge commit `0126327c19f1af18bb1ca040c31d06736693d1b6`.
+- It records controlled CPU install proof metadata only and does not run package imports, install packages, add controlled probes, add adapters, add command intents, change registry IDs, process audio/media, or dispatch workers.
+- It does not duplicate the Sound owner lane, production registry, worker router, QA policy, fallback policy, adapter registry, command policy, fixture planner, probe layer, Supabase runtime table, migration, or SQL file.
+- Gate 1B worker contracts, Gate 2 model/provenance review, and Gate 3 media policy remain required before runtime expansion.
+
+## Sound Runtime Media Gate 1B Merged Evidence
+
+- Sound Gate 1B merged reconciliation records PR #653 / `SOUND-RUNTIME-MEDIA-GATE-1B` as merged owner source evidence using merge commit `5bc262db23f6f6a4c9ab7b03f9b239536c6a0f91`.
+- It accepts `sound-cpu-analysis-worker`, `sound-audio-metadata-worker`, and four `sound.*` job types as planning-only metadata while explicitly rejecting `sound.synthetic_fixture_validate` as a Gate 1B worker execution contract item.
+- It preserves blocked scopes for media file-open, pydub operations, FFmpeg/ffprobe, real audio processing, artifact writes, worker/route/tool execution, Docker/GCP, Supabase/SQL, provider/model calls, billing, beta, and production.
+- It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, or SQL.
+- Next recommended owner gate is `SOUND-RUNTIME-MEDIA-GATE-1C`; Gate 1D remains required before worker runtime handoff.
+
+## Sound Runtime Media Gate 1C Merged Evidence
+
+- Sound Gate 1C merged reconciliation records PR #660 / `SOUND-RUNTIME-MEDIA-GATE-1C` as merged owner source evidence using merge commit `b46509a54695dd049d044fd7135b37a8faaef18e`.
+- It records planned image names `reeditpro/sound-cpu-analysis-worker` and `reeditpro/sound-audio-metadata-worker`, preserves the Gate 1B worker/job metadata, and keeps Gate 1D/Gate 1E as future owner prompts.
+- It preserves blocked scopes for Dockerfiles, image builds, Docker/GCP/Cloud Run calls, service accounts, Secret Manager, worker/route/tool execution, media/audio processing, model/provider calls, Supabase/SQL, signed/public artifacts, billing, beta, and production.
+- It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Docker/GCP handoff, Supabase runtime tables, migrations, SQL, or package-lock state.
+
+## Sound Runtime Media Gate 1D Merged Evidence
+
+- Sound Gate 1D merged reconciliation records PR #663 / `SOUND-RUNTIME-MEDIA-GATE-1D` as merged owner source evidence using merge commit `dbb6d7fe56e7a710059fd80385f11e6fe186f5e0`.
+- It records the `WORKER_RUNTIME_JOBS` owner handoff packet, accepted worker names, planned image names, planning-only job types, runtime claim policy, blocked gates, and next prompts as evidence metadata only.
+- It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, route/tool execution, Docker/GCP/Cloud Run/Secret Manager, media/audio processing, provider/model calls, Supabase/SQL, signed/public artifacts, billing, beta, and production.
+- It does not duplicate worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Docker/GCP handoff, Supabase runtime tables, migrations, SQL, or package-lock state.
+
+## Worker Runtime Sound CPU Handoff Review
+
+- Worker Runtime Sound CPU handoff review reconciliation records PR #670 / `WORKER_RUNTIME_JOBS-SOUND-CPU-HANDOFF-REVIEW` as merged owner source evidence using merge commit `f0cb0000fcc49f9b5c5e76394be9578f5d6d29dc`.
+- It records Worker Runtime acceptance of the Sound worker names, planned images, and job types for future static planning only.
+- It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, static contract integration, imports, tools, media/audio, Docker/GCP/Cloud Run/Secret Manager, observability/retry/artifact/Supabase policy enablement, signed/public artifacts, beta, and production.
+- It does not duplicate Worker Runtime Jobs owner docs, Sound Gate 1D docs, worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, SQL, or package-lock state.
+
+## Worker Runtime Sound CPU Contract Owner Review
+
+- Worker Runtime Sound CPU contract owner review reconciliation records PR #679 / `WORKER_RUNTIME_JOBS-SOUND-CPU-CONTRACT-OWNER-REVIEW` as merged owner source evidence using merge commit `1091f901729334389918f3b1ea28b584ebf7686b`.
+- It records accepted worker names, planned images, job types, static contract areas, static fields, and placeholder policies as future Dockerfile/static image planning terms only.
+- PR #684 Dockerfile static review is represented as candidate evidence unless live GitHub inspection proves it has merged; open/draft evidence is never treated as final source truth.
+- It preserves blocked scopes for worker dispatch, worker-router calls, job creation, worker claims, worker leases, worker-route dry-run, Dockerfile mutation, image builds, Docker/GCP/Cloud Run/Secret Manager, imports, tools, media/audio, Supabase/SQL, observability/retry/artifact policy enablement, signed/public artifacts, beta, and production.
+- It does not duplicate Worker Runtime Jobs owner docs, PR #678 compatibility supplement, PR #684 Dockerfile static review docs, worker runtime, worker job tables, worker router, production registry, QA/fallback policy, adapter registry, command policy, fixture/probe/export-validation layers, Supabase runtime tables, migrations, SQL, or package-lock state.
 
 ## First-Class Coverage Expansion
 

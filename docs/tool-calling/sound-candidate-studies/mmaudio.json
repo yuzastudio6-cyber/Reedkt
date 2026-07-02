@@ -1,0 +1,124 @@
+{
+  "schema": "reeditpro.soundCandidateStudyCard.v1",
+  "externalToolId": "mmaudio",
+  "displayName": "MMAudio",
+  "aliases": [
+    "mmaudio",
+    "mmaudio_provider_api",
+    "mmaudio_v2"
+  ],
+  "ownerLane": "sfx_soundsync",
+  "soundCategory": "sound_effects",
+  "runtimeResolution": {
+    "status": "blocked_pending_model_weight",
+    "selectableAsRuntimeTool": false,
+    "productionToolId": null,
+    "reason": "Provider/model SFX surface, not a local OSS runtime tool."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "future",
+      "bestFor": [
+        "future provider or model SFX planning",
+        "action Foley generation lane reconciliation"
+      ],
+      "notFor": [
+        "local OSS runtime selection",
+        "model download or provider call"
+      ],
+      "inputArtifacts": [
+        "json_spec"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "qa_report"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "remotion"
+      ],
+      "notes": [
+        "candidate-only awareness metadata",
+        "does not participate in runtime tool ranking or selection"
+      ]
+    }
+  ],
+  "bestFor": [
+    "future provider or model SFX planning",
+    "action Foley generation lane reconciliation"
+  ],
+  "notFor": [
+    "local OSS runtime selection",
+    "model download or provider call"
+  ],
+  "inputArtifacts": [
+    "json_spec"
+  ],
+  "outputArtifacts": [
+    "json_spec",
+    "qa_report"
+  ],
+  "validators": [
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "remotion"
+  ],
+  "knownFailureModes": [
+    "candidate may duplicate an existing owner lane if promoted too early",
+    "model weights or provider provenance may block execution",
+    "owner evidence may be stale before future promotion"
+  ],
+  "professionalEditingUses": [
+    "SFX generation owner-lane planning",
+    "Provider/model risk tracking"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "merged_sound_runtime_media_gate_0",
+      "sourcePath": "PR #636 docs/sound-runtime-media-gate-0-owner-handoff-map.md",
+      "summary": "Owner evidence for MMAudio from PR #636 docs/sound-runtime-media-gate-0-owner-handoff-map.md."
+    },
+    {
+      "evidenceType": "repo_local_owner_evidence",
+      "sourcePath": "docs/sfx-provider-adapter-layer.md",
+      "summary": "Owner evidence for MMAudio from docs/sfx-provider-adapter-layer.md."
+    }
+  ],
+  "ownerGateStatus": "wait_for_model_weight_owner_review",
+  "futurePromotionRequirements": [
+    "SOUND-RUNTIME-MEDIA-GATE-2 model weight, license, and provenance review",
+    "merged owner proof that the candidate should become a runtime tool",
+    "new first-class ProductionToolId proposal reviewed in server/tool-registry",
+    "planning-only adapter contract in a future milestone after registry promotion"
+  ],
+  "readinessNotes": [
+    "Candidate-only card for tool-calling awareness, not a first-class runtime tool.",
+    "Do not add adapter contracts, safe command intents, fixtures, controlled probes, or execution for this candidate in this milestone.",
+    "Runtime selection remains blocked until a future registry expansion milestone promotes a first-class ProductionToolId.",
+    "SOUND owner gates from PR #636 and PR #641 remain source-of-truth."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:mmaudio:owner_gate_pending",
+    "benchmark:mmaudio:latency_pending",
+    "benchmark:mmaudio:quality_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:mmaudio:candidate_review_count",
+    "telemetry:mmaudio:owner_gate_outcomes",
+    "telemetry:mmaudio:future_promotion_decisions"
+  ],
+  "selectableAsRuntimeTool": false,
+  "adapterContractAllowedNow": false,
+  "commandIntentAllowedNow": false,
+  "fixturePlanAllowedNow": false,
+  "controlledProbeAllowedNow": false,
+  "toolExecutionAllowedNow": false,
+  "mediaProcessingAllowedNow": false,
+  "workerExecutionAllowedNow": false,
+  "supabaseMutationAllowedNow": false,
+  "betaProductionAllowedNow": false
+}

@@ -82,6 +82,22 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase153IndexExportEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase153-actual-dispatch-contract-index-export-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase153-actual-dispatch-contract-index-export-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase153_actual_dispatch_contract_index_export_source_creation_completed_with_warnings_ready_for_index_export_static_validation' &&
+    evidence.sourceChange?.indexExportAdded === true &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase150-dispatch-contract-static-import-validation-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase151-dispatch-contract-index-export-plan'),
@@ -97,7 +113,10 @@ for (const file of Object.values(docs).filter((file) => file.endsWith('.md'))) a
 
 const indexText = read(indexPath)
 assert(fs.existsSync(path.join(process.cwd(), sourcePath)), 'dispatch contract source missing')
-assert(!indexText.includes('dispatch-contract.ts'), 'index export must not exist in Phase151')
+assert(
+  !indexText.includes('dispatch-contract.ts') || phase153IndexExportEvidenceExists(),
+  'index export must not exist before Phase153 evidence',
+)
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')
 assert(parsed.source.validationResult.staticImportSucceeded === true, 'static import source missing')

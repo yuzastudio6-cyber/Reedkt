@@ -80,6 +80,22 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase153IndexExportEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase153-actual-dispatch-contract-index-export-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase153-actual-dispatch-contract-index-export-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase153_actual_dispatch_contract_index_export_source_creation_completed_with_warnings_ready_for_index_export_static_validation' &&
+    evidence.sourceChange?.indexExportAdded === true &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase149-dispatch-contract-source-owner-review-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase150-dispatch-contract-static-import-validation'),
@@ -98,7 +114,10 @@ const indexText = read(indexPath)
 const runnerText = read(docs.proofRunner)
 assert(sourceText.includes('validateSoundCpuDispatchContractPayload'), 'source helper missing')
 assert(sourceText.includes('buildDisabledSoundCpuDispatchEnvelope'), 'disabled envelope helper missing')
-assert(!indexText.includes('dispatch-contract.ts'), 'index export must remain blocked')
+assert(
+  !indexText.includes('dispatch-contract.ts') || phase153IndexExportEvidenceExists(),
+  'index export must remain blocked until Phase153 evidence exists',
+)
 assert(runnerText.includes('validateSoundCpuDispatchContractPayload'), 'runner does not import validation helper')
 assert(runnerText.includes('buildDisabledSoundCpuDispatchEnvelope'), 'runner does not import envelope helper')
 assert(!runnerText.includes('fetch('), 'runner must not call network')

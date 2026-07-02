@@ -158,7 +158,7 @@ assert.equal(summary.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(summary.nextAction, spec.nextAction)
 assert.equal(
   summary.nextAction,
-  'AI-VIDEO-BROLL-GEN-10J-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in us-west4-c with mandatory cleanup, no model import/no inference',
+  'AI-VIDEO-BROLL-GEN-10K-PAYLOAD-INSTALL-STOCKOUT-FIX: choose next approved no-idle L4 payload/install-readiness proof capacity strategy after us-west4-c stockout, no VM/no inference',
 )
 
 for (const [flag, value] of Object.entries(summary.runtimeSideEffects as Record<string, boolean>)) {

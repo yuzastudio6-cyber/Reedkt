@@ -146,7 +146,10 @@ assertNoOpClassification(parsed.ownerPrompt.supabaseClassification, 'ownerPrompt
 
 const appSource = read('server/app.ts')
 const workerRoutes = read('server/routes/worker-routes.ts')
-assert(!appSource.includes('sound-cpu-worker-routes'), 'app has SOUND CPU route registration')
+const phase142SourceCreated = fs.existsSync(
+  path.join(process.cwd(), 'docs/worker-runtime-jobs-sound-cpu-phase142-disabled-route-registration-source-result.md'),
+)
+if (!phase142SourceCreated) assert(!appSource.includes('sound-cpu-worker-routes'), 'app has SOUND CPU route registration')
 assert(!workerRoutes.includes('sound-cpu-worker-routes'), 'worker-routes has SOUND CPU route registration')
 
 console.log(

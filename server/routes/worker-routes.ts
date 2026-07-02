@@ -2,10 +2,15 @@ import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
 import { createWorkerClaimService } from '../services/worker-claim-service'
+import {
+  RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_NARROW_EXECUTION_READY_ROUTE_WORKER_BRIDGE_ROUTE_PATH,
+  runGstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridge,
+} from '../services/rp-external-beta-gstreamer-mkvtoolnix-narrow-execution-ready-route-worker-bridge-1'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
   claimWorkerJobSchema,
+  gstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridgeSchema,
   probeMediaJobSchema,
   recordToolRuntimeCheckSchema,
   releaseWorkerJobSchema,
@@ -75,6 +80,20 @@ export function createWorkerRoutes(): Router {
     })
     sendOk(response, { result, mediaProbe: result.output }, result.warnings, result.status === 'blocked' ? 409 : 201)
   }))
+
+  router.post(
+    RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_NARROW_EXECUTION_READY_ROUTE_WORKER_BRIDGE_ROUTE_PATH,
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(gstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridgeSchema, request.body)
+      const result = await runGstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridge({
+        ...body,
+        routeIdempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(response, { result }, [], result.ok ? 201 : 409)
+    }),
+  )
 
   return router
 }

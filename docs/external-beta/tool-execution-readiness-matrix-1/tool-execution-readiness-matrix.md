@@ -8,6 +8,14 @@ Execution: `completed_docs_only_tool_execution_readiness_matrix_no_runtime_execu
 
 Product-ready end-to-end local OSS tools: `0`
 
+## Current Track A Tool Lane Realignment
+
+`RP-EXTERNAL-BETA-TRACKA-TOOL-LANE-OWNERSHIP-REALIGNMENT-1` supersedes the historical covered-area count for this agent's active native/container execution lane.
+
+Active native/container tool lanes for this agent are now exactly `3`: `gstreamer_render_pipeline_support`, `mkvtoolnix_container_validation`, and `gpac_mp4box_packaging_validation`.
+
+Remotion is not counted in this agent lane. Revideo is excluded by operator instruction. FFmpeg/FFprobe, Sharp/libvips, OpenCV, PyAV, Signalsmith, AudioFlux, DeepFilterNet, PaddleOCR, and related raw tools remain other-lane owned.
+
 | Tool lane | Covered status | External-agent execution readiness | Required next gate |
 | --- | --- | --- | --- |
 | `qwen2_5_vl_gpu_model_runtime` | `completed_qwen_persisted_worker_dispatch_approved_fixture_inference_runtime` | `ready_for_single_tester_product_flow_qa_only_backend_gated_not_native_oss_tool` | `RP-EXTERNAL-BETA-QWEN-SINGLE-TESTER-PRODUCT-FLOW-QA-1` |

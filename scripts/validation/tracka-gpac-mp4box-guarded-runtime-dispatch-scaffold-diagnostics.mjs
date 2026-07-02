@@ -64,10 +64,21 @@ const followOnToolExecutionReadinessMatrixFiles = [
   'package.json',
 ]
 
+const followOnTrackaToolLaneRealignmentFiles = [
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/source-audit.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tool-lane-matrix.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/next-action-plan.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/validation-results.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tracka-tool-lane-ownership-realignment-record.json',
+  'docs/activation-phase-rp-external-beta-tracka-tool-lane-ownership-realignment-1-results.md',
+  'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...followOnExternalReadinessFiles,
   ...followOnToolExecutionReadinessMatrixFiles,
+  ...followOnTrackaToolLaneRealignmentFiles,
 ])
 
 function fail(message) {

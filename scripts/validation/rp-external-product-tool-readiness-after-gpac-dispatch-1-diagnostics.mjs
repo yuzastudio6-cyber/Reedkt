@@ -68,6 +68,13 @@ const allowedChangedFiles = new Set([
   'docs/activation-phase-rp-external-beta-qwen-real-dispatch-source-import-scope-1-results.md',
   'docs/implementation-prompts/prompt-qwen2-5-vl-controlled-persisted-worker-dispatch-runtime-real-dispatch-mock-only-source-import-1.md',
   'scripts/validation/rp-external-beta-qwen-real-dispatch-source-import-scope-1-diagnostics.mjs',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/source-audit.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tool-lane-matrix.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/next-action-plan.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/validation-results.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tracka-tool-lane-ownership-realignment-record.json',
+  'docs/activation-phase-rp-external-beta-tracka-tool-lane-ownership-realignment-1-results.md',
+  'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
   'package.json',
 ])
 

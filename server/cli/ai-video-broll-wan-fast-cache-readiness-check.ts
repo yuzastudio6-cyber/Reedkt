@@ -199,7 +199,7 @@ function main() {
         runtimeGatesAllFalse,
         readyForExternalAgentExecutionNow: spec.readyForExternalAgentExecutionNow,
         readyForBoundedRetryAfterBlockerClears: spec.readyForBoundedRetryAfterBlockerClears,
-        readyForIapOsLoginAccessFixPrompt: spec.readyForIapOsLoginAccessFixPrompt,
+        readyForNonGpuIapSshCanaryPrompt: spec.readyForNonGpuIapSshCanaryPrompt,
         nextAction: spec.nextAction,
       },
       null,

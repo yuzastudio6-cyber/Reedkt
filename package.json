@@ -586,6 +586,7 @@
     "worker-runtime-jobs:sound-cpu-phase136-route-execution-boundary-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase136-route-execution-boundary-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase136-route-execution-boundary-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase136-route-execution-boundary-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase137-supabase-private-storage-rls-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase137-supabase-private-storage-rls-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase137-supabase-private-storage-rls-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase137-supabase-private-storage-rls-owner-review-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

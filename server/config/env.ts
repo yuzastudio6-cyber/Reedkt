@@ -35,6 +35,7 @@ export interface RuntimeEnv {
   workerClaimLeaseSeconds: number
   aiGraphicsExternalBetaToolCallRouteMountEnabled: boolean
   aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled: boolean
   aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled: boolean
   aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled: boolean
   strictToolReadiness: boolean
@@ -82,6 +83,7 @@ const envSchema = z.object({
   WORKER_CLAIM_LEASE_SECONDS: z.coerce.number().int().positive().max(86400).default(300),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
   STRICT_TOOL_READINESS: z.string().optional(),
@@ -157,6 +159,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED),
     aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled:
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED),
     aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED),
     aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:
@@ -223,6 +227,8 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
         env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
       aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled:
         env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled,
+      aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled,
       aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
         env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled,
       aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:

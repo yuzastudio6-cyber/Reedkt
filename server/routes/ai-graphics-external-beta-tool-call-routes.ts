@@ -2,6 +2,10 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
+import {
+  executeAiGraphicsExternalAgentCpuStaticControlledAdapter,
+  isAiGraphicsExternalAgentCpuStaticControlledAdapterTool,
+} from '../tool-registry/ai-graphics-external-agent-cpu-static-controlled-adapter'
 import { listAiGraphicsToolCallHandoffTools } from '../tool-registry/ai-graphics-tool-call-handoff'
 import { evaluateAiGraphicsToolCallPlan } from '../tool-registry/ai-graphics-tool-call-plan-evaluator'
 import { getAiGraphicsToolCallReadiness } from '../tool-registry/ai-graphics-tool-call-readiness'
@@ -14,6 +18,9 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH =
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED'
+
+export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG =
+  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWARE = [
   'requireAuth',
@@ -324,6 +331,126 @@ export async function admitAiGraphicsExternalBetaToolCallToMockQueue(
   }
 }
 
+export async function executeAiGraphicsExternalBetaToolCallCpuStaticControlledAdapter(
+  request: AiGraphicsExternalBetaToolCallRequest,
+  serviceContext: ServiceContext,
+) {
+  if (!serviceContext.env.aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta canonical tool-call CPU/static controlled execution is disabled.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+  if (!serviceContext.env.mockOnly) {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'AI graphics external-beta canonical tool-call CPU/static controlled execution requires explicit mock runtime mode; live worker execution remains separately gated.',
+      409,
+      {
+        requestId: request.requestId,
+        toolId: request.toolId,
+        capabilityId: request.capabilityId,
+        cpuStaticControlledExecutionRequiresMockOnly: true,
+        workerDispatchApprovedNow: false,
+        toolExecutionApprovedNow: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    )
+  }
+  if (!isAiGraphicsExternalAgentCpuStaticControlledAdapterTool(request.toolId)) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta canonical tool-call CPU/static execution is available only for the six proven CPU/static tools.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+
+  const adapterResult = await executeAiGraphicsExternalAgentCpuStaticControlledAdapter({
+    requestId: request.requestId,
+    toolId: request.toolId,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    privateArtifactManifestRef: request.privateArtifactManifestRef,
+    toolRouteApprovalRef: request.toolRouteApprovalRef,
+    workerApprovalRef: request.workerApprovalRef,
+    traceId: request.traceId,
+    payload: request.payload,
+  })
+
+  return {
+    routeDecision:
+      'ai_graphics_external_beta_tool_call_route_cpu_static_controlled_execution_accepted',
+    routeStatus:
+      'external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready',
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routeFlag:
+      AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
+    workspaceId: request.workspaceId,
+    requestId: request.requestId,
+    toolId: request.toolId,
+    capabilityId: request.capabilityId,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    privateArtifactManifestRef: request.privateArtifactManifestRef,
+    externalAgentCanExecuteCpuStaticControlledToolsNow: true,
+    controlledCpuStaticCanonicalRouteExecutionPerformed: true,
+    controlledCpuStaticToolsCallableNow: 6,
+    all21ToolsCoveredByAiGraphicsLane: 21,
+    remainingToolsStillBlockedForRuntime: 15,
+    gpuRuntimeShouldStartNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+    globalAllToolExecutionStillBlocked: true,
+    adapterResult,
+    outputAccess: {
+      privateArtifactManifestRef: adapterResult.privateArtifactManifestRef,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+    counts: {
+      totalAiGraphicsTools: 21,
+      controlledCpuStaticCanonicalRouteExecutedTools: 1,
+      controlledCpuStaticToolsCallableNow: 6,
+      remainingToolsStillBlockedForRuntime: 15,
+      gpuRuntimeShouldStartNowTools: 0,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+    },
+    booleans: {
+      externalBetaToolCallRouteCpuStaticControlledExecutionAccepted: true,
+      approvedPlanSnapshotAccepted: true,
+      creditReservationAccepted: true,
+      privateArtifactManifestAccepted: true,
+      mockOnlyRuntimeModeEnforced: true,
+      agentCanSelectForPlanning: true,
+      externalAgentCanExecuteCpuStaticControlledToolsNow: true,
+      controlledCpuStaticCanonicalRouteExecutionPerformed: true,
+      localCpuStaticPackageExecutionPerformed: true,
+      agentCanExecuteAll21ToolsNow: false,
+      routeExecutionPerformed: true,
+      workerExecutionApprovedNow: false,
+      workerExecutionPerformed: false,
+      workerDispatchApprovedNow: false,
+      workerDispatchPerformed: false,
+      toolExecutionApprovedNow: false,
+      toolExecutionPerformed: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
 function buildRepresentativeToolCallRequest(
   toolId: string,
   capabilityId: string,
@@ -376,6 +503,18 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
   router.post(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH, asyncRoute(async (request, response) => {
     const body = validateBody(aiGraphicsExternalBetaToolCallRequestSchema, request.body)
     const serviceContext = getServiceContext(request)
+    if (
+      serviceContext.env.aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled &&
+      isAiGraphicsExternalAgentCpuStaticControlledAdapterTool(body.toolId)
+    ) {
+      const execution =
+        await executeAiGraphicsExternalBetaToolCallCpuStaticControlledAdapter(
+          body,
+          serviceContext,
+        )
+      sendOk(response, execution, [], 200)
+      return
+    }
     if (serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {
       const admission = await admitAiGraphicsExternalBetaToolCallToMockQueue(
         body,

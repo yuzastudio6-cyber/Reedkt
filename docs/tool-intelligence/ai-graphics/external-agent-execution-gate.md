@@ -122,6 +122,17 @@ The current state is not zero-tool execution. Controlled route smoke now proves 
 - External-beta-ready-now tools: `0`
 - Production-ready-now tools: `0`
 
+## GPU/Model External-Beta Unblock Split
+
+The eight GPU/model tools are not equally blocked anymore. The controlled route readiness evidence now carries the exact next blocker per GPU tool:
+
+- Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`.
+- Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`.
+- Runtime behavior stays on-demand only: GPU starts only after a later accepted worker/tool job is claimed, and no idle GPU runtime is approved.
+- Current executable GPU/model tools: `0`.
+
+Per-tool JSON rows expose `gpuModelExternalBetaReadinessBlocker`, `nextExternalAgentAction`, `nativeGpuRuntimeProofRequired`, `nativeGpuRuntimeProofAccepted`, `modelWeightPrivateEvidenceRequired`, and `modelWeightPrivateEvidenceAccepted` so external-agent orchestration can explain the exact missing proof instead of treating all eight GPU tools as one generic block.
+
 ## Allowed Before Execution
 
 - Read the proper-install audit and confirm each tool is installed only for its planned ReeditPro surface.

@@ -209,6 +209,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -216,7 +223,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "native L4 GPU runtime proof must pass before this foundation GPU tool can execute; GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -265,6 +272,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -272,7 +286,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "native L4 GPU runtime proof must pass before this foundation GPU tool can execute; GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -321,6 +335,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "private_model_weight_evidence_and_native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": true,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -328,7 +349,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "private model-weight checksum evidence, manifest supplement, reviewed private manifest, and native L4 GPU runtime proof must pass before this GPU/model tool can execute; GPU remains off until an accepted job is claimed"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -377,6 +398,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "private_model_weight_evidence_and_native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": true,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -384,7 +412,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "private model-weight checksum evidence, manifest supplement, reviewed private manifest, and native L4 GPU runtime proof must pass before this GPU/model tool can execute; GPU remains off until an accepted job is claimed"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -433,6 +461,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "private_model_weight_evidence_and_native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": true,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -440,7 +475,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "private model-weight checksum evidence, manifest supplement, reviewed private manifest, and native L4 GPU runtime proof must pass before this GPU/model tool can execute; GPU remains off until an accepted job is claimed"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -489,6 +524,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -496,7 +538,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "native L4 GPU runtime proof must pass before this foundation GPU tool can execute; GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -545,6 +587,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "private_model_weight_evidence_and_native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": true,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -552,7 +601,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "private model-weight checksum evidence, manifest supplement, reviewed private manifest, and native L4 GPU runtime proof must pass before this GPU/model tool can execute; GPU remains off until an accepted job is claimed"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -601,6 +650,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": "blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof",
+      "gpuModelExternalBetaReadinessBlocker": "private_model_weight_evidence_and_native_gpu_runtime_proof_pending",
+      "nextExternalAgentAction": "provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result",
+      "nativeGpuRuntimeProofRequired": true,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": true,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -608,7 +664,7 @@
         "approved plan snapshot, credit reservation, private artifact manifest, trace, and idempotency evidence must be present",
         "private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass",
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
-        "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
+        "private model-weight checksum evidence, manifest supplement, reviewed private manifest, and native L4 GPU runtime proof must pass before this GPU/model tool can execute; GPU remains off until an accepted job is claimed"
       ],
       "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics"
     },
@@ -657,6 +713,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -713,6 +776,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -769,6 +839,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -825,6 +902,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -881,6 +965,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -937,6 +1028,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -993,6 +1091,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1049,6 +1154,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1105,6 +1217,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1161,6 +1280,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1217,6 +1343,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1273,6 +1406,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1329,6 +1469,13 @@
       "controlledToolExecutionProofRequired": false,
       "executionAllowedNow": false,
       "gpuRuntimeShouldStartNow": false,
+      "gpuModelUnblockPlanStatus": null,
+      "gpuModelExternalBetaReadinessBlocker": null,
+      "nextExternalAgentAction": null,
+      "nativeGpuRuntimeProofRequired": false,
+      "nativeGpuRuntimeProofAccepted": false,
+      "modelWeightPrivateEvidenceRequired": false,
+      "modelWeightPrivateEvidenceAccepted": false,
       "currentBlocker": "external_agent_execution_gate_fail_closed_runtime_blocked",
       "requiredBeforeExecution": [
         "explicit external-agent execution approval must pass this gate in require-go mode",
@@ -1597,5 +1744,21 @@
   "sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted": true,
   "sourceExternalAgentToolAdapterAuthorizationAccepted": true,
   "sourceSatoriFontRuntimeProofDecision": "ai_graphics_satori_font_runtime_proof_completed_with_warnings",
-  "sourceSatoriFontRuntimeProofAccepted": true
+  "sourceSatoriFontRuntimeProofAccepted": true,
+  "gpuModelUnblockSplit": {
+    "nativeGpuProofOnlyTools": [
+      "torch_torchvision",
+      "transformers",
+      "kornia"
+    ],
+    "privateModelWeightEvidenceAndNativeGpuProofTools": [
+      "sam2",
+      "birefnet",
+      "real_esrgan",
+      "rembg",
+      "transparent_background"
+    ],
+    "currentExecutableGpuModelTools": 0,
+    "gpuRuntimePolicy": "on_demand_only_after_accepted_worker_or_tool_job"
+  }
 }

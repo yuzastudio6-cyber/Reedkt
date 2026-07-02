@@ -636,6 +636,13 @@ export interface AiGraphicsExternalAgentExecutionGateToolRow {
   controlledToolExecutionProofRequired: boolean
   executionAllowedNow: false
   gpuRuntimeShouldStartNow: false
+  gpuModelUnblockPlanStatus: string | null
+  gpuModelExternalBetaReadinessBlocker: string | null
+  nextExternalAgentAction: string | null
+  nativeGpuRuntimeProofRequired: boolean
+  nativeGpuRuntimeProofAccepted: boolean
+  modelWeightPrivateEvidenceRequired: boolean
+  modelWeightPrivateEvidenceAccepted: boolean
   currentBlocker: string
   requiredBeforeExecution: string[]
   safeNextCommand: string
@@ -2451,6 +2458,10 @@ function statusFromInput(input: {
 
 function requiredBeforeExecution(input: {
   gpuRequiredForRuntime: boolean
+  nativeGpuRuntimeProofRequired?: boolean
+  nativeGpuRuntimeProofAccepted?: boolean
+  modelWeightPrivateEvidenceRequired?: boolean
+  modelWeightPrivateEvidenceAccepted?: boolean
   cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
   cpuStaticExactAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
   cpuStaticAdapterInvocationEnqueueAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionRow
@@ -2510,8 +2521,10 @@ function requiredBeforeExecution(input: {
       ? 'adapter invocation and worker enqueue admission must pass next; current exact request admission still performs no live queue write, adapter invocation, worker enqueue, dispatch, or tool execution'
       : 'private non-production queue insertion, worker claim, worker dispatch, and result capture proof must pass',
     'Tool Route and Worker execution must remain private and explicitly approved before any tool call',
-    input.gpuRequiredForRuntime
-      ? 'GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion'
+    input.gpuRequiredForRuntime && input.modelWeightPrivateEvidenceRequired
+      ? 'private model-weight checksum evidence, manifest supplement, reviewed private manifest, and native L4 GPU runtime proof must pass before this GPU/model tool can execute; GPU remains off until an accepted job is claimed'
+      : input.gpuRequiredForRuntime && input.nativeGpuRuntimeProofRequired
+      ? 'native L4 GPU runtime proof must pass before this foundation GPU tool can execute; GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion'
       : 'CPU/static worker proof must pass without browser, GPU, provider, public artifact, or signed URL side effects',
   ]
 }
@@ -2682,8 +2695,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     (sourceCpuStaticControlledToolExecutionProof?.rows ?? [])
       .map((row) => [row.toolId, row]),
   )
+  const routeReadinessProbeToolSummaryRows = new Map(
+    (sourceExternalBetaToolCallRouteReadinessProbeSmoke?.toolSummary ?? [])
+      .map((row) => [row.toolId, row]),
+  )
   const toolRows = tools.map((tool): AiGraphicsExternalAgentExecutionGateToolRow => {
     const installRow = installRows.get(tool.toolId)
+    const routeReadinessProbeToolSummaryRow =
+      routeReadinessProbeToolSummaryRows.get(tool.toolId)
     const cpuStaticProofRow = cpuStaticProofRows.get(tool.toolId)
     const cpuStaticExactAdmissionRow = cpuStaticExactAdmissionRows.get(tool.toolId)
     const cpuStaticAdapterInvocationEnqueueAdmissionRow =
@@ -2735,6 +2754,26 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       cpuStaticControlledToolExecutionProofAccepted &&
       cpuStaticControlledToolExecutionProofRow?.controlledToolExecutionProofAccepted ===
         true
+    const nativeGpuRuntimeProofRequired =
+      routeReadinessProbeAccepted &&
+      routeReadinessProbeToolSummaryRow?.nativeGpuRuntimeProofRequired === true
+    const nativeGpuRuntimeProofAccepted =
+      routeReadinessProbeAccepted &&
+      routeReadinessProbeToolSummaryRow?.nativeGpuRuntimeProofAccepted === true
+    const modelWeightPrivateEvidenceRequired =
+      routeReadinessProbeAccepted &&
+      routeReadinessProbeToolSummaryRow?.modelWeightPrivateEvidenceRequired === true
+    const modelWeightPrivateEvidenceAccepted =
+      routeReadinessProbeAccepted &&
+      routeReadinessProbeToolSummaryRow?.modelWeightPrivateEvidenceAccepted === true
+    const gpuModelExternalBetaReadinessBlocker =
+      tool.gpuRequiredForRuntime
+        ? modelWeightPrivateEvidenceRequired
+          ? 'private_model_weight_evidence_and_native_gpu_runtime_proof_pending'
+          : nativeGpuRuntimeProofRequired
+          ? 'native_gpu_runtime_proof_pending'
+          : 'gpu_runtime_admission_metadata_missing'
+        : null
     return {
       toolId: tool.toolId,
       productionToolId: tool.productionToolId,
@@ -2848,9 +2887,22 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         !cpuStaticControlledToolExecutionProofReady,
       executionAllowedNow: false,
       gpuRuntimeShouldStartNow: false,
+      gpuModelUnblockPlanStatus:
+        routeReadinessProbeToolSummaryRow?.gpuModelUnblockPlanStatus ?? null,
+      gpuModelExternalBetaReadinessBlocker,
+      nextExternalAgentAction:
+        routeReadinessProbeToolSummaryRow?.nextExternalAgentAction ?? null,
+      nativeGpuRuntimeProofRequired,
+      nativeGpuRuntimeProofAccepted,
+      modelWeightPrivateEvidenceRequired,
+      modelWeightPrivateEvidenceAccepted,
       currentBlocker: 'external_agent_execution_gate_fail_closed_runtime_blocked',
       requiredBeforeExecution: requiredBeforeExecution({
         gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
+        nativeGpuRuntimeProofRequired,
+        nativeGpuRuntimeProofAccepted,
+        modelWeightPrivateEvidenceRequired,
+        modelWeightPrivateEvidenceAccepted,
         cpuStaticProofRow,
         cpuStaticExactAdmissionRow,
         cpuStaticAdapterInvocationEnqueueAdmissionRow,

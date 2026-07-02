@@ -83,6 +83,20 @@ const gpuTools = new Set([
   'transparent_background',
 ])
 
+const gpuModelWeightTools = new Set([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
+
+const gpuNativeProofOnlyTools = new Set([
+  'torch_torchvision',
+  'transformers',
+  'kornia',
+])
+
 const browserRuntimeProofTools = new Set([
   'echarts',
   'lottie_web',
@@ -624,6 +638,55 @@ function assertRuntimeRows(label, rows) {
     if (!gpuTools.has(row.toolId) && row.gpuRequiredForRuntime !== false) {
       fail(`${label}_${row.toolId}_gpu_required_not_false`)
     }
+    if (gpuTools.has(row.toolId)) {
+      if (typeof row.gpuModelUnblockPlanStatus !== 'string') {
+        fail(`${label}_${row.toolId}_gpu_unblock_plan_missing`)
+      }
+      if (typeof row.nextExternalAgentAction !== 'string') {
+        fail(`${label}_${row.toolId}_next_external_agent_action_missing`)
+      }
+      if (row.nativeGpuRuntimeProofRequired !== true) {
+        fail(`${label}_${row.toolId}_native_gpu_proof_required_not_true`)
+      }
+      if (row.nativeGpuRuntimeProofAccepted !== false) {
+        fail(`${label}_${row.toolId}_native_gpu_proof_accepted_not_false`)
+      }
+      if (gpuModelWeightTools.has(row.toolId)) {
+        if (row.modelWeightPrivateEvidenceRequired !== true) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_required_not_true`)
+        }
+        if (row.modelWeightPrivateEvidenceAccepted !== false) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_accepted_not_false`)
+        }
+        if (
+          row.gpuModelExternalBetaReadinessBlocker !==
+          'private_model_weight_evidence_and_native_gpu_runtime_proof_pending'
+        ) {
+          fail(`${label}_${row.toolId}_model_weight_blocker_mismatch`)
+        }
+      }
+      if (gpuNativeProofOnlyTools.has(row.toolId)) {
+        if (row.modelWeightPrivateEvidenceRequired !== false) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_required_not_false`)
+        }
+        if (row.modelWeightPrivateEvidenceAccepted !== false) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_accepted_not_false`)
+        }
+        if (row.gpuModelExternalBetaReadinessBlocker !== 'native_gpu_runtime_proof_pending') {
+          fail(`${label}_${row.toolId}_native_gpu_blocker_mismatch`)
+        }
+      }
+    } else {
+      if (row.gpuModelExternalBetaReadinessBlocker !== null) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_blocker`)
+      }
+      if (row.nativeGpuRuntimeProofRequired !== false) {
+        fail(`${label}_${row.toolId}_unexpected_native_gpu_proof_required`)
+      }
+      if (row.modelWeightPrivateEvidenceRequired !== false) {
+        fail(`${label}_${row.toolId}_unexpected_model_weight_evidence_required`)
+      }
+    }
   }
 }
 
@@ -999,6 +1062,10 @@ for (const phrase of [
   'GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`',
   'GPU/model native GPU proof-only required with readiness-probe evidence: `3`',
   'GPU/model tools ready for execution after current evidence: `0`',
+  'Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`',
+  'Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`',
+  'gpuModelExternalBetaReadinessBlocker',
+  'modelWeightPrivateEvidenceRequired',
   'Route readiness probe evidence is accepted',
   routeReadinessProbeCommand,
   'Controlled canonical route execution smoke accepted: `true`',

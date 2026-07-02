@@ -119,6 +119,7 @@ for (const required of [
   '`npm run external-agent-tool-execute-qwen` is the canonical guarded Qwen wrapper',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION=true`',
   'docs/qwen2-5-vl-7b-58dy-external-agent-wrapper-execution-result.md',
+  'docs/qwen2-5-vl-7b-58ea-external-agent-wrapper-execution-result.md',
   'docs/qwen2-5-vl-7b-58dz-external-agent-wrapper-rerun-result.md',
   'parsed delegated npm output',
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
@@ -248,6 +249,10 @@ assert.equal(qwen?.nextAction, QWEN_NEXT_PROMPT)
 assert.equal(qwen?.manualBlockerActions?.length, 0)
 assert.equal(qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dx-private-inference-result-review.md'), true)
 assert.equal(
+  qwen?.evidence.includes('docs/qwen2-5-vl-7b-58ea-external-agent-wrapper-execution-result.md'),
+  true,
+)
+assert.equal(
   qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dz-external-agent-wrapper-rerun-result.md'),
   true,
 )
@@ -261,6 +266,10 @@ assert.equal(
   true,
 )
 assert.equal(
+  qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58ea-external-agent-wrapper-execution-result.ts'),
+  true,
+)
+assert.equal(
   qwen?.evidence.includes('src/backend/mock/mock-qwen2-5-vl-58dz-external-agent-wrapper-rerun-result.ts'),
   true,
 )
@@ -271,6 +280,10 @@ assert.equal(
 )
 assert.equal(
   qwen?.evidence.includes('server/smoke/qwen2-5-vl-58dy-external-agent-wrapper-execution-result-smoke.ts'),
+  true,
+)
+assert.equal(
+  qwen?.evidence.includes('server/smoke/qwen2-5-vl-58ea-external-agent-wrapper-execution-result-smoke.ts'),
   true,
 )
 assert.equal(

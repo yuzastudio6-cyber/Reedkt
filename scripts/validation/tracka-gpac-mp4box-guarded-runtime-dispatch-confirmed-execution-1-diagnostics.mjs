@@ -27,15 +27,30 @@ const packetFiles = [
   'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1.md',
 ]
 
+const routeEnablementSourcePacketFiles = [
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1/source-chain.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1/route-source-contract.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1/safety-boundary.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1/validation-results.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1/route-enablement-source-record.json',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1r.md',
+]
+
 const implementationFiles = [
   'package.json',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs',
+  'server/routes/worker-routes.ts',
+  'server/validation/worker-schemas.ts',
+  'server/services/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-smoke.ts',
 ]
 
 const sourceFiles = [
@@ -47,7 +62,13 @@ const sourceFiles = [
   'src/backend/contracts/gpac-mp4box-guarded-worker-skeleton-mock-contracts.ts',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...routeEnablementSourcePacketFiles, ...implementationFiles])
+const allowedForbiddenPathExceptions = new Set([
+  'server/routes/worker-routes.ts',
+  'server/validation/worker-schemas.ts',
+  'server/services/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1.ts',
+  'server/smoke/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-smoke.ts',
+])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^docker\//,
@@ -227,7 +248,12 @@ const changedFiles = [
 const uniqueChangedFiles = [...new Set(changedFiles)]
 for (const file of uniqueChangedFiles) {
   if (!allowedChangedFiles.has(file)) fail(`unexpected changed file: ${file}`)
-  if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path: ${file}`)
+  if (
+    forbiddenPathPatterns.some((pattern) => pattern.test(file)) &&
+    !allowedForbiddenPathExceptions.has(file)
+  ) {
+    fail(`forbidden changed path: ${file}`)
+  }
 }
 
 const changedCorpus = uniqueChangedFiles

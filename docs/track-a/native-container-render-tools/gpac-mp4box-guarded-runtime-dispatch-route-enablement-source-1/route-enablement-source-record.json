@@ -1,0 +1,54 @@
+{
+  "packet": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-ROUTE-ENABLEMENT-SOURCE-1",
+  "decision": "completed_gpac_mp4box_guarded_runtime_dispatch_route_enablement_source",
+  "execution": "completed_guarded_backend_route_source_to_mock_queue_handoff_no_tool_execution",
+  "routePath": "/v1/external-beta/gpac-mp4box/guarded-runtime-dispatch/generated-fixture/route-source/enqueue",
+  "confirmationGate": {
+    "name": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH_ROUTE_SOURCE",
+    "required": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH_ROUTE_SOURCE=true"
+  },
+  "sourceFiles": {
+    "service": "server/services/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1.ts",
+    "route": "server/routes/worker-routes.ts",
+    "schema": "server/validation/worker-schemas.ts",
+    "smoke": "server/smoke/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-smoke.ts"
+  },
+  "allowedToolsInThisLane": [
+    "gstreamer_render_pipeline_support",
+    "mkvtoolnix_container_validation",
+    "gpac_mp4box_packaging_validation"
+  ],
+  "activeNativeContainerToolLaneCount": 3,
+  "gpacMp4box": {
+    "routeSource": "implemented_guarded_mock_queue_handoff_only",
+    "localMockQueueItem": "allowed_only_under_confirmation_gate",
+    "workerSkeletonValidation": "allowed_only_under_confirmation_gate",
+    "runtimeDispatch": "pending_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH_CONFIRMED_EXECUTION_1R",
+    "toolExecution": false
+  },
+  "currentPhaseExecution": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gpacMp4boxExecution": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "remotionExecution": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "storageTransfer": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "nextMilestone": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1R"
+}

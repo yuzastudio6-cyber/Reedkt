@@ -56,6 +56,22 @@ export interface ToolExecutionFallbackPlan {
   requiresUserApprovalWhen: string[]
 }
 
+export interface ToolExecutionCostCreditGate {
+  approvedPlanSnapshotId: ID
+  creditEstimateId?: ID
+  creditReservationId?: ID
+  rateCardVersion?: string
+  estimatedLowCredits?: number
+  estimatedExpectedCredits?: number
+  estimatedHighCredits?: number
+  approvedReservationRemainingCredits?: number
+  canRunWithinApprovedReservation: boolean
+  revisedEstimateRequired: boolean
+  executionAllowed: boolean
+  blockerReasons: string[]
+  pricingSnapshot?: JSONObject
+}
+
 export interface ToolExecutionPlan {
   id: ID
   workspaceId: ID
@@ -75,7 +91,9 @@ export interface ToolExecutionPlan {
   expectedArtifacts: ExpectedToolArtifact[]
   requiredQualityGates: RequiredQualityGatePlan[]
   fallbackPlan: ToolExecutionFallbackPlan
+  creditEstimateId?: ID
   creditReservationId?: ID
+  costCreditGate?: ToolExecutionCostCreditGate
   idempotencyKey: string
   approvalRequired: boolean
   approvedAt?: ISODateString

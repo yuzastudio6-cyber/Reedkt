@@ -77,10 +77,40 @@ export interface ToolCallIntentExpectedOutput {
 
 export interface ToolCallIntentCostEstimate {
   credits: number
+  lowCredits?: number
+  expectedCredits?: number
+  highCredits?: number
+  lowInternalCostCents?: number
+  expectedInternalCostCents?: number
+  highInternalCostCents?: number
+  rateCardVersion?: string
+  pricingSnapshot?: Record<string, string | number | boolean | null | string[]>
+  canRunWithinApprovedReservation?: boolean
+  revisedEstimateRequired?: boolean
   creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
   basis: string
   includedInEditEstimate: boolean
   notes: string[]
+}
+
+export type ToolCallCreditGateStatus =
+  | 'planning_only_pending_approval'
+  | 'missing_approved_plan_snapshot'
+  | 'missing_credit_estimate'
+  | 'missing_credit_reservation'
+  | 'blocked_over_budget_requires_revised_estimate'
+  | 'ready_within_reservation'
+
+export interface ToolCallIntentCreditGate {
+  status: ToolCallCreditGateStatus
+  approvedPlanSnapshotId?: string
+  creditEstimateId?: string
+  creditReservationId?: string
+  approvedReservationRemainingCredits?: number
+  canRunWithinApprovedReservation: boolean
+  revisedEstimateRequired: boolean
+  executionBlocked: boolean
+  blockerReasons: string[]
 }
 
 export interface ToolCallIntentFallback {
@@ -103,10 +133,25 @@ export interface ToolCallIntent {
   inputArtifactDependency: ToolCallIntentArtifactDependency
   expectedOutputArtifact: ToolCallIntentExpectedOutput
   costEstimate: ToolCallIntentCostEstimate
+  creditGate: ToolCallIntentCreditGate
   fallback: ToolCallIntentFallback
   approvalRequiredBeforeExecution: true
   frontendExecutionAllowed: false
   metadata?: Record<string, string | number | boolean | string[]>
+}
+
+export interface ToolCallCreditGateSummary {
+  totalLowCredits: number
+  totalExpectedCredits: number
+  totalHighCredits: number
+  approvedPlanSnapshotId?: string
+  creditEstimateId?: string
+  creditReservationId?: string
+  approvedReservationRemainingCredits?: number
+  executionAllowed: boolean
+  revisedEstimateRequired: boolean
+  blockers: string[]
+  userFacingSummary: string
 }
 
 export interface ToolCallIntentPlan {
@@ -115,6 +160,7 @@ export interface ToolCallIntentPlan {
   intents: ToolCallIntent[]
   readinessCounts: Record<ToolCallIntentReadinessState, number>
   totalEstimatedCredits: number
+  creditGateSummary: ToolCallCreditGateSummary
   planningOnly: true
   approvalRequiredBeforeExecution: true
   notes: string[]

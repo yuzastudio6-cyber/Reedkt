@@ -355,6 +355,11 @@ if (proofDocs.operatorResultTemplate?.operatorPreflightCommand?.includes('--oper
 if (!proofDocs.operatorResultTemplate?.runnerCommand?.includes(runScriptName)) {
   fail('proof_docs_missing_runner_command')
 }
+for (const flag of prepared.requiredFlags ?? []) {
+  if (!proofDocs.operatorResultTemplate?.operatorPreflightCommand?.includes(flag)) {
+    fail(`proof_docs_operator_preflight_missing_required_flag:${flag}`)
+  }
+}
 if (proofDocs.operatorResultTemplate?.canBeUsedAsAcceptedResultWithoutLiveSmoke !== false) {
   fail('proof_docs_template_accepts_without_live_smoke')
 }
@@ -389,6 +394,11 @@ if (!proofPrint.operatorResultTemplate?.runnerCommand?.includes(runScriptName)) 
 }
 if (proofPrint.operatorResultTemplate?.operatorPreflightCommand?.includes('--operator-preflight') !== true) {
   fail('proof_print_missing_operator_preflight_command')
+}
+for (const flag of prepared.requiredFlags ?? []) {
+  if (!proofPrint.operatorResultTemplate?.operatorPreflightCommand?.includes(flag)) {
+    fail(`proof_print_operator_preflight_missing_required_flag:${flag}`)
+  }
 }
 if (proofPrint.booleans?.agentCanExecuteToolsNow !== false) {
   fail('proof_print_agent_execute_not_false')

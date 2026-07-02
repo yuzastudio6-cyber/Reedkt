@@ -310,6 +310,11 @@ if (!proofDocs.operatorResultTemplate?.operatorPreflightCommand?.includes('--ope
 if (!proofDocs.operatorResultTemplate?.runnerCommand?.includes(runScriptName)) {
   fail('proof_docs_missing_runner_command')
 }
+for (const flag of prepared.requiredFlags ?? []) {
+  if (!proofDocs.operatorResultTemplate?.operatorPreflightCommand?.includes(flag)) {
+    fail(`proof_docs_operator_preflight_missing_required_flag:${flag}`)
+  }
+}
 if (proofDocs.operatorResultTemplate?.canBeUsedAsAcceptedResultWithoutLiveSmoke !== false) {
   fail('proof_docs_template_accepts_without_live_smoke')
 }

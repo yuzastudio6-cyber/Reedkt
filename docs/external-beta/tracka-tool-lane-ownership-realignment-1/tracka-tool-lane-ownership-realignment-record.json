@@ -17,8 +17,8 @@
     },
     "gpac_mp4box_packaging_validation": {
       "activeInThisAgentLane": true,
-      "status": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa",
-      "nextGate": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1",
+      "status": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_with_route_worker_contract_pinned",
+      "nextGate": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1",
       "requiredGate": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true"
     }
   },

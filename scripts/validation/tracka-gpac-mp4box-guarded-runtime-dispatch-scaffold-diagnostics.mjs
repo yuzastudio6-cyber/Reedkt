@@ -74,11 +74,27 @@ const followOnTrackaToolLaneRealignmentFiles = [
   'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
 ]
 
+const followOnConfirmedDispatchScaffoldFiles = [
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/pinned-dispatch-contract.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/pinned-dispatch-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/fail-closed-result.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/fail-closed-result.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/readiness-report.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/validation-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...requiredFiles,
   ...followOnExternalReadinessFiles,
   ...followOnToolExecutionReadinessMatrixFiles,
   ...followOnTrackaToolLaneRealignmentFiles,
+  ...followOnConfirmedDispatchScaffoldFiles,
 ])
 
 function fail(message) {

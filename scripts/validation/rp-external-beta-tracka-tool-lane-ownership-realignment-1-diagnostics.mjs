@@ -33,6 +33,18 @@ const allowedChangedFiles = new Set([
   ...packetFiles,
   'docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix.md',
   'docs/external-beta/tool-execution-readiness-matrix-1/tool-execution-readiness-matrix-record.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/source-of-truth-audit.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/source-of-truth-audit.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/pinned-dispatch-contract.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/pinned-dispatch-contract.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/fail-closed-result.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/fail-closed-result.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/readiness-report.md',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/readiness-report.json',
+  'docs/track-a/native-container-render-tools/gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1/validation-results.md',
+  'docs/activation-phase-tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gpac-mp4box-guarded-runtime-dispatch-confirmed-execution-1.md',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-confirmed-1-diagnostics.mjs',
   'scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs',
   'scripts/validation/rp-external-product-tool-readiness-after-gpac-dispatch-1-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
@@ -49,8 +61,8 @@ const requiredText = [
   'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation',
   'ready_for_guarded_external_agent_controlled_generated_fixture_execution',
-  'blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa',
-  'TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1',
+  'blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_with_route_worker_contract_pinned',
+  'TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1',
   'REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true',
   'remotion',
   'not_this_lane_track_b_or_render_runtime_owned_current_external_beta_evidence_exists',
@@ -234,4 +246,4 @@ gitQuiet(['diff', '--cached', '--check'], 'git diff --cached --check failed')
 console.log(`${packet} diagnostics passed`)
 console.log(`Decision: ${decision}`)
 console.log('Active native/container tool lanes: 3')
-console.log('Next GPAC/MP4Box gate: TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1')
+console.log('Next GPAC/MP4Box gate: TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-CONFIRMED-EXECUTION-1')

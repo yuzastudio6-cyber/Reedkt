@@ -45,6 +45,25 @@ const implementationFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-qa-rollup-1-diagnostics.mjs',
 ]
 
+const runtimeIntegrationImplementationDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1'
+const runtimeIntegrationImplementationFiles = [
+  `${runtimeIntegrationImplementationDir}/source-audit.md`,
+  `${runtimeIntegrationImplementationDir}/implementation-result.md`,
+  `${runtimeIntegrationImplementationDir}/integration-envelope.md`,
+  `${runtimeIntegrationImplementationDir}/artifact-manifest-summary.md`,
+  `${runtimeIntegrationImplementationDir}/readiness.md`,
+  `${runtimeIntegrationImplementationDir}/safety-boundary.md`,
+  `${runtimeIntegrationImplementationDir}/validation-results.md`,
+  `${runtimeIntegrationImplementationDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-qa-rollup-1.md',
+  'server/services/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1.ts',
+  'server/smoke/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1-smoke.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1.ts',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1-diagnostics.mjs',
+]
+
 const sourceFiles = [
   sourceRecordPath,
   'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-1/source-audit.md',
@@ -57,7 +76,11 @@ const sourceFiles = [
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-packet-qa-rollup-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...runtimeIntegrationImplementationFiles,
+])
 
 const requiredText = [
   packet,
@@ -115,7 +138,7 @@ const requiredText = [
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\//,
+  /^server\/(?!services\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1\.ts$|smoke\/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-controlled-worker-runtime-integration-implementation-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

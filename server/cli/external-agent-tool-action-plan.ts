@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 9R selected us-west1-b as the next bounded no-idle IAP wheelhouse transfer proof target after the us-west1-a 9Q stockout; the future 9S prompt is required before another transfer proof VM attempt, dependency install, or inference; do not create VMs from this rollup',
+        'B-roll 9S attempted the us-west1-b bounded no-idle IAP wheelhouse transfer proof and stocked out before VM creation; the future 9T no-VM stockout-fix prompt is required before another transfer proof VM attempt, dependency install, or inference; do not create VMs from this rollup',
       afterBlockerClears:
-        'run the separate 9S no-idle us-west1-b IAP wheelhouse transfer proof prompt before dependency install or inference',
+        'run the separate 9T no-VM stockout-fix prompt before selecting another transfer proof target or considering any capacity strategy',
     }
   }
 

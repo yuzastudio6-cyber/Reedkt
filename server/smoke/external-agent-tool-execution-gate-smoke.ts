@@ -240,11 +240,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'bounded_no_idle_l4_iap_wheelhouse_transfer_us_west1_b_prompt_required_before_dependency_or_inference',
+  'bounded_no_idle_l4_iap_wheelhouse_transfer_stockout_fix_required_after_us_west1_b_resource_pool_exhaustion',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-9r-iap-wheelhouse-transfer-stockout-fix-result',
+  'npm run smoke:ai-video-broll-gen-9s-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-b-result',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

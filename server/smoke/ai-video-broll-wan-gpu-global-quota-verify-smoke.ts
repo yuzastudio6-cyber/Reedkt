@@ -73,13 +73,14 @@ for (const required of [
   'Quota is sufficient for one L4 VM',
   '9W create attempt in `us-east4-a` stocked out',
   'this result is not execution permission',
-  'quota request created: false',
-  'Compute Engine VM created: false',
-  'model import/inference: false',
-  'Supabase/SQL/storage/signed URLs: false',
-  'beta/production unlock: false',
-  'AI-VIDEO-BROLL-GEN-9X-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX',
-]) {
+	  'quota request created: false',
+	  'Compute Engine VM created: false',
+	  'model import/inference: false',
+	  'Supabase/SQL/storage/signed URLs: false',
+	  'beta/production unlock: false',
+	  '9X no-VM strategy result selected `us-east4-c`',
+	  'AI-VIDEO-BROLL-GEN-9Y-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-C',
+	]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
 
@@ -100,17 +101,17 @@ const resultSpec = AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT
 assert.equal(spec.decision, 'ai_video_broll_wan_gpu_global_quota_verify_read_only_probe_defined')
 assert.equal(spec.mode, 'read_only_broll_wan_gpu_global_quota_verify')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
-assert.equal(spec.projectId, 'reeditpro')
-assert.equal(spec.targetRegion, 'us-east4')
-assert.equal(spec.targetZone, 'us-east4-a')
+	assert.equal(spec.projectId, 'reeditpro')
+	assert.equal(spec.targetRegion, 'us-east4')
+	assert.equal(spec.targetZone, 'us-east4-c')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.machineType, 'g2-standard-4')
 assert.equal(spec.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.minimumRegionalL4Quota, 1)
 assert.equal(spec.globalQuotaMetric, 'GPUS_ALL_REGIONS')
-assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
-assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
-assert.equal(spec.nextActionIfQuotaCleared.includes('9X-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX'), true)
+	assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
+	assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
+	assert.equal(spec.nextActionIfQuotaCleared.includes('9Y-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST4-C'), true)
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_no_idle_prompt_ready')
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')

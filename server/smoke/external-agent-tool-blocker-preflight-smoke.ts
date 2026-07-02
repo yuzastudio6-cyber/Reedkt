@@ -79,10 +79,10 @@ assert.equal(spec.qwen.nextActionIfCleared.includes('58DW-PRIVATE'), false)
 assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
 assert.equal(spec.broll.targetRegion, 'us-east4')
-assert.equal(spec.broll.targetZone, 'us-east4-a')
+assert.equal(spec.broll.targetZone, 'us-east4-c')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
-assert.equal(spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-9X'), true)
+assert.equal(spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-9Y'), true)
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
 
 for (const command of spec.allowedReadOnlyCommands) {

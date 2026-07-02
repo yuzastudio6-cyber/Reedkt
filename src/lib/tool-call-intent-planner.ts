@@ -190,7 +190,7 @@ export function createToolCallIntentPlan(params: CreateToolCallIntentPlanParams 
     planningOnly: true,
     approvalRequiredBeforeExecution: true,
     notes: [
-      'Tool-call intents are shown before approval so the user can see which tools may be used and why.',
+      'Guided chat summarizes planned edit work before approval; exact execution identifiers stay in developer review.',
       'No tool, provider, worker, render, media processing, Supabase write, billing mutation, or external beta action is started by this plan.',
       'Every future tool call still needs approved plan snapshot, credit estimate, credit reservation, idempotency, and private artifact gates.',
     ],

@@ -5,6 +5,7 @@ import type {
   EditPlan,
   TimingQaCheck,
 } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineCaptionVisualCueTimingCardProps = {
@@ -72,7 +73,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
       </div>
 
       <div className="caption-visual-mock-note">
-        {timingPlan.summary}
+        {toUserFacingToolCopy(timingPlan.summary)}
       </div>
 
       <div className="caption-policy-summary">
@@ -80,7 +81,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
         <span><strong>Min / max duration</strong>{timingPlan.captionPolicy.minDurationFrames}-{timingPlan.captionPolicy.maxDurationFrames}f</span>
         <span><strong>Lead / lag</strong>{timingPlan.captionPolicy.leadInFrames}/{timingPlan.captionPolicy.lagFrames}f</span>
         <span><strong>Emphasis</strong>{timingPlan.captionPolicy.emphasisAllowed ? `${timingPlan.captionPolicy.maxEmphasisWordsPerCaption} word(s)` : 'restrained'}</span>
-        <span><strong>Avoid</strong>{timingPlan.captionPolicy.avoidRules.slice(0, 2).join(' ')}</span>
+        <span><strong>Avoid</strong>{toUserFacingToolCopy(timingPlan.captionPolicy.avoidRules.slice(0, 2).join(' '))}</span>
       </div>
 
       <div>
@@ -108,7 +109,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
                 <span className="caption-readability-badge">{caption.readabilityRisk}</span>
               </div>
               <small>{caption.emphasisWords.length ? `Emphasis: ${caption.emphasisWords.join(', ')}` : 'No aggressive emphasis.'}</small>
-              <small>{caption.safeZoneNotes[0]}</small>
+              <small>{toUserFacingToolCopy(caption.safeZoneNotes[0])}</small>
             </article>
           ))}
         </div>
@@ -126,7 +127,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
                 <span className="visual-cue-status-badge">{cue.status.replaceAll('_', ' ')}</span>
               </div>
               <small>{cue.cueType.replaceAll('_', ' ')} / reveal {cue.revealFrames}f, hold {cue.holdFrames}f, exit {cue.exitFrames}f</small>
-              <small>{cue.reason}</small>
+              <small>{toUserFacingToolCopy(cue.reason)}</small>
             </article>
           ))}
         </div>
@@ -139,8 +140,8 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
             <article className="caption-collision-item" key={collision.id}>
               <strong>{collision.label}</strong>
               <Badge accent={riskAccent(collision.risk)}>{collision.risk}</Badge>
-              <span>{collision.issue}</span>
-              <small>{collision.recommendation}</small>
+              <span>{toUserFacingToolCopy(collision.issue)}</span>
+              <small>{toUserFacingToolCopy(collision.recommendation)}</small>
             </article>
           )) : (
             <article className="caption-collision-item">
@@ -158,7 +159,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
             <article className="timing-cue-item" key={qaCheck.id}>
               <strong>{qaCheck.label}</strong>
               <Badge accent={riskAccent(qaCheck.riskLevel)}>{qaCheck.riskLevel}</Badge>
-              <small>{qaCheck.message}</small>
+              <small>{toUserFacingToolCopy(qaCheck.message)}</small>
             </article>
           ))}
         </div>
@@ -166,7 +167,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
 
       <div className="caption-visual-mock-note">
         {timingPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{toUserFacingToolCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

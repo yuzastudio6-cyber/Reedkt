@@ -1,6 +1,6 @@
 # Tool-Call Intent Planner
 
-Milestone 2 adds a planning-only tool-call intent layer to edit plans. It sits between tool strategy and execution planning so users can see which backend tools an edit may use before they approve credits.
+Milestone 2 adds a planning-only tool-call intent layer to edit plans. It sits between tool strategy and execution planning so ReeditPro can explain which edit activities may run before users approve credits while preserving exact backend identifiers for developer/audit review.
 
 Milestone 3 adds the cost/credit gate bridge. Planning still does not run tools, but each intent now carries a low/expected/high credit range and a credit-gate state. Backend code can enrich the plan with the static v1 tool-cost rate card, attach approved snapshot/estimate/reservation IDs, and fail closed before worker/provider/render execution when the high estimate is not covered.
 
@@ -21,7 +21,7 @@ The intent plan is attached to mock edit plans and backend edit-plan records as 
 
 ## User-Facing Behavior
 
-The chat editor shows a `Planned tool calls` card before approval. It summarizes backend-gated candidates, dry-run-only lanes, gated lanes, expected/high credits, the missing approval/reservation gate, and individual tool reasons. This is the source of the user-facing statement: “This edit will use FFmpeg, OCR, OpenColorIO, etc., because...”
+The guided chat editor shows a `Planned edit work` card before approval. It summarizes edit activities, readiness, approval cost, progress, private results, blockers, and QA in user-facing edit language. Guided chat must not list raw execution tool names by default; exact identifiers stay available only in developer review.
 
 The default UI state is intentionally blocked:
 

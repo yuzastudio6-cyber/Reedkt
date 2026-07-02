@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import type { ChatPlanningCardDescriptor, EditPlan, QAStatus, SegmentQAPlanItem } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineQAPlanCardProps = {
@@ -88,7 +89,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
         <span><strong>Approval</strong>{qaPlan.approvalChecks.length} checks</span>
       </div>
 
-      <p className="inline-helper">{qaPlan.summary}</p>
+      <p className="inline-helper">{toUserFacingToolCopy(qaPlan.summary)}</p>
 
       <div className="qa-check-list">
         {highlightedChecks.map((check) => (
@@ -97,7 +98,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
               <strong>{check.label}</strong>
               <small>{formatLabel(check.category)} / {formatLabel(check.severity)} / {statusLabel(check.status)}</small>
             </div>
-            <p>{check.check}</p>
+            <p>{toUserFacingToolCopy(check.check)}</p>
             {check.fallbackActions.length > 0 && (
               <div className="segment-chip-row">
                 {check.fallbackActions.slice(0, 3).map((fallback) => (
@@ -114,7 +115,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
 
       <div className="renderer-notes">
         {qaPlan.notes.map((note) => (
-          <span key={note}>{note}</span>
+          <span key={note}>{toUserFacingToolCopy(note)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

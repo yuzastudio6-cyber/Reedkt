@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import { Button } from '../Button'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import type { CreditEstimate, CreditEstimatePolicyNote, CreditEstimateRiskLevel, EditLevel, EditingCategory } from '../../types/reeditpro'
 
 type InlineCreditEstimateCardProps = {
@@ -111,7 +112,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         <div className="timing-credit-section">
           <strong>Timing complexity</strong>
           <span>{estimate.timingCredits} timing credit{estimate.timingCredits === 1 ? '' : 's'}</span>
-          <small>Timing affects credits when the plan includes frame-accurate caption animation, visual cues, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.</small>
+          <small>Timing affects credits when the plan includes frame-accurate caption animation, visual cues, SoundSync, transitions, SFX, music ducking, AI clip duration, and renderer layer timing.</small>
           {estimate.approvalBlocked && <em>Confirm/fix timing before final approval.</em>}
         </div>
       )}
@@ -119,9 +120,9 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
       <div className="credit-breakdown-list">
         {estimate.breakdown.map((item) => (
           <div key={item.label}>
-            <span>{item.label}</span>
+            <span>{toUserFacingToolCopy(item.label)}</span>
             <strong>{item.credits} credits</strong>
-            <small>{item.reason}</small>
+            <small>{toUserFacingToolCopy(item.reason)}</small>
           </div>
         ))}
       </div>
@@ -132,9 +133,9 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
           <div className="credit-asset-summary-grid">
             {estimate.visualSystemSummary?.map((item) => (
               <div className="credit-asset-summary-item" key={item.label}>
-                <span>{item.label}</span>
+                <span>{toUserFacingToolCopy(item.label)}</span>
                 <strong>{item.count} / {item.credits} credits</strong>
-                <small>{item.reason}</small>
+                <small>{toUserFacingToolCopy(item.reason)}</small>
               </div>
             ))}
           </div>
@@ -147,9 +148,9 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
           <div className="credit-asset-summary-grid">
             {estimate.assetTypeSummary?.map((item) => (
               <div className="credit-asset-summary-item" key={item.label}>
-                <span>{item.label}</span>
+                <span>{toUserFacingToolCopy(item.label)}</span>
                 <strong>{item.count} / {item.credits} credits</strong>
-                <small>{item.reason}</small>
+                <small>{toUserFacingToolCopy(item.reason)}</small>
               </div>
             ))}
           </div>
@@ -168,8 +169,8 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         <div className="credit-policy-list">
           {estimate.fallbackPolicyNotes?.map((note) => (
             <div className={`credit-policy-note ${policyToneClass[note.tone]}`} key={note.label}>
-              <strong>{note.label}</strong>
-              <span>{note.message}</span>
+              <strong>{toUserFacingToolCopy(note.label)}</strong>
+              <span>{toUserFacingToolCopy(note.message)}</span>
             </div>
           ))}
         </div>
@@ -180,10 +181,10 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
           <strong>Lower-cost alternatives</strong>
           {estimate.lowerCostAlternatives?.map((alternative) => (
             <div className="lower-cost-item" key={alternative.label}>
-              <span>{alternative.label}</span>
+              <span>{toUserFacingToolCopy(alternative.label)}</span>
               <strong>Save about {alternative.estimatedSavings} credits</strong>
-              <small>{alternative.tradeoff}</small>
-              <em>{alternative.actionHint}</em>
+              <small>{toUserFacingToolCopy(alternative.tradeoff)}</small>
+              <em>{toUserFacingToolCopy(alternative.actionHint)}</em>
             </div>
           ))}
         </div>
@@ -194,10 +195,10 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
           <strong>Timing lower-cost options</strong>
           {estimate.timingTradeoffs?.slice(0, 4).map((tradeoff) => (
             <div className="timing-lower-cost-item" key={tradeoff.id}>
-              <span>{tradeoff.label}</span>
+              <span>{toUserFacingToolCopy(tradeoff.label)}</span>
               <strong>Save about {tradeoff.estimatedCreditSavings} credits</strong>
-              <small>{tradeoff.tradeoff}</small>
-              <em>{tradeoff.whatChanges.join('; ')}</em>
+              <small>{toUserFacingToolCopy(tradeoff.tradeoff)}</small>
+              <em>{toUserFacingToolCopy(tradeoff.whatChanges.join('; '))}</em>
             </div>
           ))}
         </div>

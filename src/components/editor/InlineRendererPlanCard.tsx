@@ -42,13 +42,13 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Frame + renderer plan"
-      helper="ReeditPro owns the final canvas. AI models generate assets and clips; Remotion places them into safe frame zones, captions, panels, and timeline layers."
+      helper="ReeditPro owns the final canvas. AI models generate assets and clips; the renderer places them into safe frame zones, captions, panels, and timeline layers."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Frame + renderer plan"
     >
       <div className="renderer-badge-row">
-        <Badge accent="cyan">Remotion planned</Badge>
+        <Badge accent="cyan">Renderer planned</Badge>
         <Badge accent="muted">Mock only</Badge>
         <Badge accent="warning">Approval required</Badge>
         <Badge accent={frameConfirmed ? 'success' : 'warning'}>{frameConfirmed ? 'Frame confirmed' : 'Draft until frame confirmed'}</Badge>
@@ -58,7 +58,7 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
       <div className="renderer-plan-grid">
         <FrameLayoutPreview frameTemplate={rendererPlan.frameTemplate} />
         <div className="renderer-plan-summary">
-          <span><strong>Engine</strong>Remotion</span>
+          <span><strong>Engine</strong>ReeditPro renderer</span>
           <span><strong>Aspect ratio</strong>{rendererPlan.frameTemplate.aspectRatio}</span>
           <span><strong>Canvas</strong>{rendererPlan.frameTemplate.canvasWidth}x{rendererPlan.frameTemplate.canvasHeight}</span>
           <span><strong>Frame gate</strong>{frameConfirmed ? 'Confirmed' : 'Needs confirmation'}</span>

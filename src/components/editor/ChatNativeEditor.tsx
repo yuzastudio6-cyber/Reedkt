@@ -733,7 +733,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
           {sourceOrderConfirmed && (setupReady || plan.masterTimingPlan?.status === 'needs_frame_confirmation') && showCard('master_timing') && (
             <ChatMessage role="ai">
-              <p>I'll place captions, visuals, transitions, SFX, AI clips, and Remotion layers on a frame-accurate mock timeline before approval.</p>
+              <p>I'll place captions, visuals, transitions, SFX, AI clips, and renderer layers on a frame-accurate mock timeline before approval.</p>
               <InlineMasterTimingPlanCard descriptor={cardById.master_timing} plan={plan} />
             </ChatMessage>
           )}
@@ -810,7 +810,11 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 <InlineToolStrategyCard descriptor={cardById.tool_strategy} plan={plan} />
               )}
               {showCard('tool_call_intents') && (
-                <InlineToolCallIntentCard descriptor={cardById.tool_call_intents} plan={plan} />
+                <InlineToolCallIntentCard
+                  descriptor={cardById.tool_call_intents}
+                  displayMode={displayMode}
+                  plan={plan}
+                />
               )}
               {showCard('map_animation_plan') && (
                 <InlineMapAnimationPlanCard descriptor={cardById.map_animation_plan} plan={plan} />
@@ -911,6 +915,13 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               <p>Plan and credit estimate approved. ReeditPro would now begin editing/generation in production.</p>
               {approvedSnapshot && <p>Approved plan snapshot created for this mock session. Snapshot version: {approvedSnapshot.snapshotVersion}.</p>}
               <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} />
+              <InlineToolCallIntentCard
+                approved={approved}
+                displayMode={displayMode}
+                plan={plan}
+                previewReady={previewReady}
+                progressStarted={progressStarted}
+              />
             </ChatMessage>
           )}
 

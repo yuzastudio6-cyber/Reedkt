@@ -52,6 +52,7 @@
     "smoke:tool-execution-gateway": "tsx server/smoke/tool-execution-gateway-smoke.ts",
     "smoke:trackb-adapter-pack": "tsx server/smoke/trackb-adapter-pack-smoke.ts",
     "smoke:worker-runtime-artifact-pipeline": "tsx server/smoke/worker-runtime-artifact-pipeline-smoke.ts",
+    "smoke:frontend-chat-tool-ux": "tsx server/smoke/frontend-chat-tool-ux-smoke.ts",
     "smoke:tool-beta-execution-readiness": "tsx server/smoke/tool-beta-execution-readiness-smoke.ts",
     "smoke:beta-readiness-api": "tsx server/smoke/beta-readiness-api-smoke.ts",
     "smoke:beta-readiness": "tsx server/smoke/beta-readiness-smoke.ts",

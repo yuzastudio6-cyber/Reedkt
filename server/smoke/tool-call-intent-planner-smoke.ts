@@ -79,10 +79,10 @@ const cards = getChatPlanningCards({
 
 const card = cards.find((item) => item.id === 'tool_call_intents')
 assert.ok(card, 'chat planning cards should include tool_call_intents')
-assert.equal(card?.label, 'Planned tool calls', 'tool-call intent card should use user-facing planned-call label')
+assert.equal(card?.label, 'Planned edit work', 'tool-call intent card should use edit-activity language in guided chat')
 assert.equal(card?.phase, 'credits_approval', 'tool-call intent card should appear before approval/credits')
 assert.equal(card?.requiredBeforeApproval, false, 'tool-call intent card should inform approval without blocking setup')
-assert.ok(card?.summary.includes('planned tool call'), 'tool-call intent card should summarize planned calls')
+assert.ok(card?.summary.includes('planned edit activit'), 'tool-call intent card should summarize planned edit activities')
 
 console.log(JSON.stringify({
   ok: true,

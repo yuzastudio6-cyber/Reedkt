@@ -7,6 +7,7 @@ import {
   type BetaPlatformDeployedEvidenceObservation,
   type BetaPlatformSupabaseAttestedProbeId,
 } from '../beta-readiness'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 
 const admin = createFakeSupabaseAdminClient()
 const transport = createBetaPlatformSupabaseDeployedEvidenceProbeTransport({
@@ -36,6 +37,7 @@ const report = await runBetaPlatformDeployedEvidenceVerifier({
     monitoringApproved: true,
     supportApproved: true,
   },
+  monitoringDeploymentEvidence: monitoringEvidenceFixture(),
   notes: ['Smoke fixture proves the Supabase deployed probe transport can feed the platform verifier.'],
 }, createBetaPlatformDeployedEvidenceProbeRunners(transport))
 
@@ -106,6 +108,21 @@ function passed(evidence: string): BetaPlatformDeployedEvidenceObservation {
     ok: true,
     evidence: [evidence],
     nextAction: 'No action for smoke fixture.',
+  }
+}
+
+function monitoringEvidenceFixture() {
+  const alertRuleIds = alertRuleCatalog.map((rule) => rule.alertId)
+  return {
+    dashboardIds: ['tool-cost-billing-dashboard', 'worker-runtime-dashboard', 'readiness-gate-dashboard'],
+    alertRuleIds,
+    metricNames: productionMetricsCatalog.map((metric) => metric.metricName),
+    alertRoutingDestinations: ['on-call-ops-route', 'billing-owner-route'],
+    billingQaAlertRuleIds: alertRuleIds.filter((alertId) =>
+      alertId.includes('tool_cost') ||
+      alertId.includes('billing_qa') ||
+      alertId.includes('stripe'),
+    ),
   }
 }
 

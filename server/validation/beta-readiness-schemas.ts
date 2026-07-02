@@ -154,6 +154,14 @@ const deployedPlatformOwnerApprovalsSchema = z.object({
   supportApproved: z.boolean(),
 }).strict()
 
+const deployedMonitoringCoverageSchema = z.object({
+  dashboardIds: z.array(sourceIdSchema).min(1).max(50),
+  alertRuleIds: z.array(sourceIdSchema).min(1).max(100),
+  metricNames: z.array(sourceIdSchema).min(1).max(100),
+  alertRoutingDestinations: z.array(sourceIdSchema).min(1).max(20),
+  billingQaAlertRuleIds: z.array(sourceIdSchema).min(1).max(30),
+}).strict()
+
 export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
   workspaceId: idSchema,
   projectId: idSchema.optional(),
@@ -161,6 +169,7 @@ export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['staging', 'production']),
   ownerApprovals: deployedPlatformOwnerApprovalsSchema,
+  monitoringDeploymentEvidence: deployedMonitoringCoverageSchema.optional(),
   notes: z.array(noteSchema).min(1).max(20),
   probes: z.array(deployedPlatformProbeObservationSchema).min(1).max(9),
   recordEvidence: z.boolean().optional(),
@@ -174,6 +183,7 @@ export const betaReadinessPlatformSupabaseDeployedProbeSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['staging', 'production']),
   ownerApprovals: deployedPlatformOwnerApprovalsSchema,
+  monitoringDeploymentEvidence: deployedMonitoringCoverageSchema.optional(),
   notes: z.array(noteSchema).min(1).max(20),
   allowPersistentProbeWrites: z.boolean().optional(),
   walletSettlementProbeToolCostEventId: sourceIdSchema.optional(),

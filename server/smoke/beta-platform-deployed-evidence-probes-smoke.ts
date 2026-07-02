@@ -5,6 +5,7 @@ import {
   type BetaPlatformDeployedEvidenceObservation,
   type BetaPlatformDeployedEvidenceProbeTransport,
 } from '../beta-readiness'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 
 const callOrder: string[] = []
 const transport = passingTransport(callOrder)
@@ -25,6 +26,7 @@ const report = await runBetaPlatformDeployedEvidenceVerifier({
     monitoringApproved: true,
     supportApproved: true,
   },
+  monitoringDeploymentEvidence: monitoringEvidenceFixture(),
   notes: ['Smoke fixture proves deployed probe transport can feed the platform evidence verifier.'],
 }, probes)
 
@@ -71,6 +73,7 @@ const failedReport = await runBetaPlatformDeployedEvidenceVerifier({
     monitoringApproved: true,
     supportApproved: true,
   },
+  monitoringDeploymentEvidence: monitoringEvidenceFixture(),
   notes: ['Smoke fixture proves failed deployed probe transport fails closed.'],
 }, createBetaPlatformDeployedEvidenceProbeRunners(failedTransport))
 
@@ -114,5 +117,20 @@ async function observation(
     ok: true,
     evidence: [`${methodName} passed in smoke fixture.`],
     nextAction: 'No action for smoke fixture.',
+  }
+}
+
+function monitoringEvidenceFixture() {
+  const alertRuleIds = alertRuleCatalog.map((rule) => rule.alertId)
+  return {
+    dashboardIds: ['tool-cost-billing-dashboard', 'worker-runtime-dashboard', 'readiness-gate-dashboard'],
+    alertRuleIds,
+    metricNames: productionMetricsCatalog.map((metric) => metric.metricName),
+    alertRoutingDestinations: ['on-call-ops-route', 'billing-owner-route'],
+    billingQaAlertRuleIds: alertRuleIds.filter((alertId) =>
+      alertId.includes('tool_cost') ||
+      alertId.includes('billing_qa') ||
+      alertId.includes('stripe'),
+    ),
   }
 }

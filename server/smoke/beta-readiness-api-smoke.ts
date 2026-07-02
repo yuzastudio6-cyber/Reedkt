@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { type AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 import { betaReadinessEvidenceEvaluationSchema } from '../validation/beta-readiness-schemas'
 import type {
@@ -448,6 +449,7 @@ function buildPassingPlatformDeployedEvidenceBody(workspaceId: string) {
       monitoringApproved: true,
       supportApproved: true,
     },
+    monitoringDeploymentEvidence: monitoringEvidenceFixture(),
     notes: ['Smoke evidence verifies deployed platform evidence route without live beta activation.'],
     probes: buildPassingDeployedProbeObservations(),
   }
@@ -470,6 +472,21 @@ function buildPassingDeployedProbeObservations() {
     evidence: [`${id} passed in API smoke fixture.`],
     nextAction: 'No action for API smoke fixture.',
   }))
+}
+
+function monitoringEvidenceFixture() {
+  const alertRuleIds = alertRuleCatalog.map((rule) => rule.alertId)
+  return {
+    dashboardIds: ['tool-cost-billing-dashboard', 'worker-runtime-dashboard', 'readiness-gate-dashboard'],
+    alertRuleIds,
+    metricNames: productionMetricsCatalog.map((metric) => metric.metricName),
+    alertRoutingDestinations: ['on-call-ops-route', 'billing-owner-route'],
+    billingQaAlertRuleIds: alertRuleIds.filter((alertId) =>
+      alertId.includes('tool_cost') ||
+      alertId.includes('billing_qa') ||
+      alertId.includes('stripe'),
+    ),
+  }
 }
 
 async function requestJson(

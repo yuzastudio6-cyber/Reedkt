@@ -195,6 +195,8 @@ const allowedPackageDiffLines = new Set([
   '+    "ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke.ts",',
   '+    "ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke": "tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke.ts",',
+  '+    "ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke:diagnostics": "node scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-diagnostics.mjs",',
 ])
 
 const generatedArtifactPattern =

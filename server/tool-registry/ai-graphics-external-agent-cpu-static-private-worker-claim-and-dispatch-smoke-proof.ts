@@ -107,6 +107,63 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
   productionReadyNow: false
 }
 
+export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeOperatorResultTemplate {
+  schemaVersion:
+    '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-operator-result-template'
+  templateMode:
+    'operator_must_execute_non_production_claim_and_dispatch_then_fill_saved_result'
+  queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
+  sourceQueueWriteSmokeProofDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION
+  sourceQueueWriteSmokeProofAccepted: true
+  sourceExactExecutionAdmissionDecision:
+    typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION
+  sourceExactExecutionAdmissionAccepted: true
+  toolsClaimed: 5
+  toolsClaimedIds: AiGraphicsCanonicalToolId[]
+  expectedQueueRowsRead: 5
+  expectedWorkerClaimsCreated: 5
+  expectedWorkerDispatchHandoffsCreated: 5
+  expectedWorkerDispatchLeasesReleased: 5
+  expectedWorkerExecutionsPerformed: 0
+  expectedToolExecutionsPerformed: 0
+  expectedQueueRowsCleanedUp: 5
+  expectedQueueRowsPersistedAfterCleanup: 0
+  requiredEnvironment: string[]
+  requiredFlags: string[]
+  requiredResultFields: string[]
+  perToolClaimRows: Array<{
+    toolId: AiGraphicsCanonicalToolId
+    productionToolId: ProductionToolId
+    workerType: ProductionRegistryWorkerType
+    runtimeTarget: AiGraphicsRuntimeTarget | 'deferred'
+    queueName: typeof AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME
+    approvedPlanSnapshotRef: string | null
+    creditReservationRef: string | null
+    privateArtifactManifestRef: string | null
+    queuePayloadIdempotencyKey: string | null
+    workerAcceptedRequestSchemaRef: string | null
+    toolSpecificQaGateRef: string | null
+    expectedOutputVisibility: 'private_artifact_only'
+  }>
+  evidenceRefTemplate: {
+    serviceRoleBoundaryRef: string
+    privateEvidenceRef: string
+    telemetryRef: string
+    leaseAuditRef: string
+    cleanupProofRef: string
+    rollbackRef: string
+  }
+  localOnlySuggestedResultPath: string
+  runnerCommand: string
+  validatorCommand: string
+  canBeUsedAsAcceptedResultWithoutLiveSmoke: false
+  agentCanExecuteToolsNow: false
+  workerExecutionApprovedNow: false
+  toolExecutionApprovedNow: false
+  gpuRuntimeShouldStartNow: false
+}
+
 export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofInput {
   sourceQueueWriteSmokeProofPacket?:
     AiGraphicsExternalAgentCpuStaticPrivateWorkerNonProductionServiceRoleQueueWriteSmokeProofReport
@@ -185,6 +242,8 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSm
     cleanupMustPersistZeroRows: true
     nextGateRequiresToolExecutionDryRunProof: true
   }
+  operatorResultTemplate:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeOperatorResultTemplate
   rejectionReasons: string[]
   rows: AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProofRow[]
   counts: {
@@ -502,6 +561,145 @@ function validateSmokeResult(
   ].filter((reason): reason is string => Boolean(reason))
 }
 
+function claimAndDispatchOperatorResultTemplate(
+  sourceExactExecutionAdmissionPacket?:
+    AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionReport,
+): AiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeOperatorResultTemplate {
+  const exactRows = new Map(
+    proofTools.map((toolId) => [toolId, exactAdmissionSourceRow(sourceExactExecutionAdmissionPacket, toolId)]),
+  )
+
+  return {
+    schemaVersion:
+      '2026-07-01.ai-graphics.external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-operator-result-template',
+    templateMode:
+      'operator_must_execute_non_production_claim_and_dispatch_then_fill_saved_result',
+    queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
+    sourceQueueWriteSmokeProofDecision:
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_NON_PRODUCTION_SERVICE_ROLE_QUEUE_WRITE_SMOKE_PROOF_DECISION,
+    sourceQueueWriteSmokeProofAccepted: true,
+    sourceExactExecutionAdmissionDecision:
+      AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_EXACT_EXECUTION_ADMISSION_DECISION,
+    sourceExactExecutionAdmissionAccepted: true,
+    toolsClaimed: 5,
+    toolsClaimedIds: [...proofTools],
+    expectedQueueRowsRead: 5,
+    expectedWorkerClaimsCreated: 5,
+    expectedWorkerDispatchHandoffsCreated: 5,
+    expectedWorkerDispatchLeasesReleased: 5,
+    expectedWorkerExecutionsPerformed: 0,
+    expectedToolExecutionsPerformed: 0,
+    expectedQueueRowsCleanedUp: 5,
+    expectedQueueRowsPersistedAfterCleanup: 0,
+    requiredEnvironment: [
+      'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE=true',
+      'REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE_ENV=non_production',
+      'SUPABASE_URL',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'E2E_RUNTIME_MODE=local',
+      'WORKER_RUNTIME_MODE=mock',
+    ],
+    requiredFlags: [
+      '--execute-ai-graphics-external-agent-cpu-static-worker-claim-and-dispatch-smoke',
+      '--workspace-id',
+      '--project-id',
+      '--approved-plan-snapshot-id',
+      '--credit-reservation-id',
+      '--idempotency-prefix',
+      '--source-service-role-queue-write-smoke-proof-packet',
+      '--source-exact-execution-admission-packet',
+      '--service-role-boundary-ref',
+      '--private-evidence-ref',
+      '--telemetry-ref',
+      '--lease-audit-ref',
+      '--cleanup-proof-ref',
+      '--rollback-ref',
+      '--output-result',
+    ],
+    requiredResultFields: [
+      'ok',
+      'decision',
+      'status',
+      'queueName',
+      'toolsClaimed',
+      'toolsClaimedIds',
+      'queueRowsRead',
+      'workerClaimsCreated',
+      'workerDispatchHandoffsCreated',
+      'workerDispatchLeasesReleased',
+      'workerExecutionsPerformed',
+      'toolExecutionsPerformed',
+      'queueRowsCleanedUp',
+      'queueRowsPersistedAfterCleanup',
+      'serviceRoleBoundaryRef',
+      'privateEvidenceRef',
+      'telemetryRef',
+      'leaseAuditRef',
+      'cleanupProofRef',
+      'rollbackRef',
+      'sourceQueueWriteSmokeProofDecision',
+      'sourceQueueWriteSmokeProofAccepted',
+      'liveWorkerClaimAndDispatchSmokeExecutedNow',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'gpuRuntimeShouldStartNow',
+      'externalAgentExecutableNowTools',
+      'runtimeReadyNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ],
+    perToolClaimRows: proofTools.map((toolId) => {
+      const row = exactRows.get(toolId)
+      return {
+        toolId,
+        productionToolId:
+          row?.productionToolId ?? (`ai_graphics_${toolId}` as ProductionToolId),
+        workerType: row?.workerType ?? 'tool_readiness_worker',
+        runtimeTarget: row?.runtimeTarget ?? 'deferred',
+        queueName: AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME,
+        approvedPlanSnapshotRef:
+          row?.exactExecutionAdmissionEvidence?.approvedPlanSnapshotRef ?? null,
+        creditReservationRef:
+          row?.exactExecutionAdmissionEvidence?.creditReservationRef ?? null,
+        privateArtifactManifestRef:
+          row?.exactExecutionAdmissionEvidence?.privateArtifactManifestRef ?? null,
+        queuePayloadIdempotencyKey:
+          row?.exactExecutionAdmissionEvidence?.queuePayloadIdempotencyKey ?? null,
+        workerAcceptedRequestSchemaRef:
+          row?.exactExecutionAdmissionEvidence?.workerAcceptedRequestSchemaRef ?? null,
+        toolSpecificQaGateRef:
+          row?.exactExecutionAdmissionEvidence?.toolSpecificQaGateRef ?? null,
+        expectedOutputVisibility: 'private_artifact_only',
+      }
+    }),
+    evidenceRefTemplate: {
+      serviceRoleBoundaryRef:
+        'service-role-boundary://ai-graphics/external-agent/cpu-static-worker-claim-and-dispatch-smoke/non-production',
+      privateEvidenceRef:
+        'private://ai-graphics/external-agent/cpu-static-worker-claim-and-dispatch-smoke/batch/evidence.json',
+      telemetryRef:
+        'private://ai-graphics/external-agent/cpu-static-worker-claim-and-dispatch-smoke/batch/telemetry.json',
+      leaseAuditRef:
+        'private://ai-graphics/external-agent/cpu-static-worker-claim-and-dispatch-smoke/batch/lease-audit.json',
+      cleanupProofRef:
+        'private://ai-graphics/external-agent/cpu-static-worker-claim-and-dispatch-smoke/batch/cleanup.json',
+      rollbackRef:
+        'private://ai-graphics/external-agent/cpu-static-worker-claim-and-dispatch-smoke/batch/rollback.json',
+    },
+    localOnlySuggestedResultPath:
+      '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json',
+    runnerCommand:
+      'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke -- --execute-ai-graphics-external-agent-cpu-static-worker-claim-and-dispatch-smoke --source-service-role-queue-write-smoke-proof-packet docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json --source-exact-execution-admission-packet docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json --workspace-id <non-production-workspace-id> --project-id <non-production-project-id> --approved-plan-snapshot-id <approved-plan-snapshot-id> --credit-reservation-id <credit-reservation-id> --idempotency-prefix <unique-smoke-prefix> --service-role-boundary-ref <service-role-boundary-ref> --private-evidence-ref <private-evidence-ref> --telemetry-ref <telemetry-ref> --lease-audit-ref <lease-audit-ref> --cleanup-proof-ref <cleanup-proof-ref> --rollback-ref <rollback-ref> --output-result .local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json',
+    validatorCommand:
+      'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof -- --external-agent-cpu-static-worker-claim-and-dispatch-smoke-result <local-result.json> --print-only',
+    canBeUsedAsAcceptedResultWithoutLiveSmoke: false,
+    agentCanExecuteToolsNow: false,
+    workerExecutionApprovedNow: false,
+    toolExecutionApprovedNow: false,
+    gpuRuntimeShouldStartNow: false,
+  }
+}
+
 function reportStatus(input: {
   sourceAccepted: boolean
   exactSourceAccepted: boolean
@@ -674,6 +872,9 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
       cleanupMustPersistZeroRows: true,
       nextGateRequiresToolExecutionDryRunProof: true,
     },
+    operatorResultTemplate: claimAndDispatchOperatorResultTemplate(
+      input.sourceExactExecutionAdmissionPacket,
+    ),
     rejectionReasons,
     rows,
     counts: {
@@ -798,6 +999,7 @@ export function evaluateAiGraphicsExternalAgentCpuStaticPrivateWorkerClaimAndDis
     },
     safeCommands: [
       'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics',
+      'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke:diagnostics',
       'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics',
     ],
     nextMilestone: resultAccepted

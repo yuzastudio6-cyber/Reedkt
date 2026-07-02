@@ -87,6 +87,14 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 - External-agent executable now tools: \`${report.counts.externalAgentExecutableNowTools}\`
 - GPU runtime starts now: \`${report.counts.gpuRuntimeShouldStartNowTools}\`
 
+## Operator Runner
+
+- Runner command: \`${report.operatorResultTemplate.runnerCommand}\`
+- Local-only suggested result path: \`${report.operatorResultTemplate.localOnlySuggestedResultPath}\`
+- Validator command: \`${report.operatorResultTemplate.validatorCommand}\`
+- Can be used as accepted result without live smoke: \`${report.operatorResultTemplate.canBeUsedAsAcceptedResultWithoutLiveSmoke}\`
+- Required environment: \`${report.operatorResultTemplate.requiredEnvironment.join(', ')}\`
+
 ## Rejection Reasons
 
 ${rejectionReasons}

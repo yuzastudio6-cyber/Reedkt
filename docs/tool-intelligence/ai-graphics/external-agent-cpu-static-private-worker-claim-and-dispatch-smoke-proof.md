@@ -31,6 +31,14 @@ This packet validates a saved non-production worker claim and dispatch handoff s
 - External-agent executable now tools: `0`
 - GPU runtime starts now: `0`
 
+## Operator Runner
+
+- Runner command: `npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke -- --execute-ai-graphics-external-agent-cpu-static-worker-claim-and-dispatch-smoke --source-service-role-queue-write-smoke-proof-packet docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json --source-exact-execution-admission-packet docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json --workspace-id <non-production-workspace-id> --project-id <non-production-project-id> --approved-plan-snapshot-id <approved-plan-snapshot-id> --credit-reservation-id <credit-reservation-id> --idempotency-prefix <unique-smoke-prefix> --service-role-boundary-ref <service-role-boundary-ref> --private-evidence-ref <private-evidence-ref> --telemetry-ref <telemetry-ref> --lease-audit-ref <lease-audit-ref> --cleanup-proof-ref <cleanup-proof-ref> --rollback-ref <rollback-ref> --output-result .local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json`
+- Local-only suggested result path: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/claim-and-dispatch-smoke-result.json`
+- Validator command: `npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof -- --external-agent-cpu-static-worker-claim-and-dispatch-smoke-result <local-result.json> --print-only`
+- Can be used as accepted result without live smoke: `false`
+- Required environment: `REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE=true, REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE_ENV=non_production, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, E2E_RUNTIME_MODE=local, WORKER_RUNTIME_MODE=mock`
+
 ## Rejection Reasons
 
 - source non-production service-role queue-write smoke proof is missing or not accepted

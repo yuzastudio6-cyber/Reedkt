@@ -10,7 +10,7 @@ This packet records a read-only B-roll quota verification result for the Wan/Wan
 
 - Project: `reeditpro`
 - Region: `us-east1`
-- Zone: `us-east1-b`
+- Zone: `us-east1-c`
 - GPU: `nvidia_l4`
 - Future machine shape: `g2-standard-4`
 - Verification command: `npm run ai-video-broll-wan-gpu-global-quota:verify`
@@ -34,7 +34,7 @@ This packet records a read-only B-roll quota verification result for the Wan/Wan
 
 ## Runtime Boundary
 
-Quota is sufficient for one L4 VM, but this result is not execution permission. The 9W create attempt in `us-east4-a` stocked out before any VM existed, the 9X no-VM strategy result selected `us-east4-c`, and the 9Y create attempt in `us-east4-c` also stocked out before any VM existed. The 9Z no-VM stockout-fix result selected `us-east1-b` as the next bounded no-idle transfer-proof target. The 10A no-idle transfer proof then stocked out in `us-east1-b` before any VM existed, with cleanup/absence verified. The next step is the explicit 10B no-VM stockout-fix prompt before any further VM action:
+Quota is sufficient for one L4 VM, but this result is not execution permission. The 9W create attempt in `us-east4-a` stocked out before any VM existed, the 9X no-VM strategy result selected `us-east4-c`, and the 9Y create attempt in `us-east4-c` also stocked out before any VM existed. The 9Z no-VM stockout-fix result selected `us-east1-b` as the next bounded no-idle transfer-proof target. The 10A no-idle transfer proof then stocked out in `us-east1-b` before any VM existed, with cleanup/absence verified. The 10B no-VM stockout-fix result selected `us-east1-c` as the next same-region cross-zone no-idle transfer-proof target. The next step is the explicit 10C future prompt before any further VM action:
 
 - no public IP;
 - prompt-scoped VM only;
@@ -64,4 +64,4 @@ All runtime side-effect gates remained false:
 
 ## Recommended Next Prompt
 
-`AI-VIDEO-BROLL-GEN-10B-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-east1-b stockout, no VM/no inference`
+`AI-VIDEO-BROLL-GEN-10C-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-C: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east1-c and mandatory cleanup, no model inference`

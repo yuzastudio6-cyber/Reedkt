@@ -39,12 +39,28 @@ const packetFiles = [
   promptPath,
 ]
 
+const qaRollupDir =
+  'docs/external-beta/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-qa-rollup-1'
+const qaRollupFiles = [
+  `${qaRollupDir}/source-audit.md`,
+  `${qaRollupDir}/evidence-matrix.md`,
+  `${qaRollupDir}/qa-decision.md`,
+  `${qaRollupDir}/readiness.md`,
+  `${qaRollupDir}/safety-boundary.md`,
+  `${qaRollupDir}/validation-results.md`,
+  `${qaRollupDir}/gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-qa-rollup-1-record.json`,
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-registration-plan-1.md',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
+  ...qaRollupFiles,
   handlerSourcePath,
   smokePath,
   'package.json',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-narrow-external-agent-runtime-guarded-route-worker-fail-closed-handler-contract-qa-rollup-1-diagnostics.mjs',
 ])
 
 const requiredText = [

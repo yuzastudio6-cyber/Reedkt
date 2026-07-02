@@ -3,7 +3,7 @@
 ```json worker-runtime-jobs-sound-cpu-phase140-controlled-no-media-route-import-validation
 {
   "label": "worker-runtime-jobs-sound-cpu-phase140-controlled-no-media-route-import-validation",
-  "requiredSourceDecision": "worker_runtime_jobs_sound_cpu_phase139_static_route_source_validation_passed_with_warnings_ready_for_route_source_owner_review",
+  "requiredSourceDecision": "worker_runtime_jobs_sound_cpu_phase139_static_route_source_owner_review_passed_with_warnings_ready_for_controlled_no_media_route_import_validation",
   "expectedDecision": "worker_runtime_jobs_sound_cpu_phase140_controlled_no_media_route_import_validation_passed_with_warnings_ready_for_route_registration_plan",
   "validationScope": {
     "controlledImportValidationOnly": true,

@@ -145,7 +145,7 @@ assertNoOpClassification(parsed.nextStaticPrompt.supabaseClassification, 'nextSt
 
 assert(
   parsed.nextImportPrompt.requiredSourceDecision ===
-    'worker_runtime_jobs_sound_cpu_phase139_static_route_source_validation_passed_with_warnings_ready_for_route_source_owner_review',
+    'worker_runtime_jobs_sound_cpu_phase139_static_route_source_owner_review_passed_with_warnings_ready_for_controlled_no_media_route_import_validation',
   'next import prompt source mismatch',
 )
 assert(parsed.nextImportPrompt.validationScope.controlledImportValidationOnly === true, 'next import scope mismatch')

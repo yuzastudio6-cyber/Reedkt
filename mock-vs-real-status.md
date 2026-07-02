@@ -126,3 +126,9 @@
 - Real: `docs/credit-production-persistence-plan.md` documents the target Supabase persistence architecture, existing schema inventory, schema gaps, transaction/RLS/idempotency plan, Stripe test/live separation, and mock-to-production mapping.
 - Real: `smoke:credit-production-persistence-plan` verifies the plan references existing migrations and remains docs/status/smoke-only.
 - Not implemented by design: no migration, Supabase CLI, SQL execution, database connection, production persistence adapter, Stripe webhook processing, production wallet mutation, ledger write, provider call, render/export execution, or package-lock change is wired.
+
+## RP-SUPABASE-MIGRATION-01 Migration Draft Status
+
+- Real: `docs/credit-supabase-migration-draft.md` and `supabase/review/credit_persistence_*_draft.sql` document review-only table, RLS, explicit grant, index, constraint, idempotency, and RPC drafts for credit persistence.
+- Real: `smoke:credit-supabase-migration-draft` verifies the drafts stay outside `supabase/migrations` and retain review-only/no-apply boundaries.
+- Not implemented by design: no active migration, Supabase CLI, SQL execution, database connection, generated DB types, production persistence adapter, Stripe webhook processing, production wallet mutation, ledger write, provider call, render/export execution, or package-lock change is wired.

@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-SUPABASE-MIGRATION-01
+
+Status: review-only Supabase migration draft.
+
+The repository now includes credit persistence draft SQL under `supabase/review/`, RLS/read-grant/service-role draft policy notes, RPC skeletons for reservation, revised-credit hold, settlement, Stripe webhook grant completion, and bonus expiration, plus a smoke that verifies the drafts remain outside active migrations.
+
+It does not create active migrations, run Supabase CLI, apply SQL, connect to Supabase, generate database types, implement persistence repositories, process Stripe webhooks, grant production credits, mutate wallets, write ledgers, call providers, run workers, render/export, or change package-lock.
+
 ## RP-PERSISTENCE-PLAN-01
 
 Status: production persistence plan only.

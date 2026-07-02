@@ -89,6 +89,8 @@ Run the migrations in timestamp order. The chain is intentionally layered:
 
 RP-PERSISTENCE-PLAN-01 keeps these tables as the credit production spine and documents later migration gaps for `credit_settlements`, `credit_revision_actions`, `credit_export_locks`, `credit_top_up_intents`, Stripe link/session/webhook tables, and optional audit read models in `docs/credit-production-persistence-plan.md`. No migration is created or applied by that milestone.
 
+RP-SUPABASE-MIGRATION-01 adds review-only SQL drafts for those credit persistence gaps in `supabase/review/`. The drafts cover table proposals, RLS, explicit grants, service-role-only writes, indexes, constraints, idempotency, and RPC skeletons, but they are not active migrations and must not be applied without a later reviewed migration milestone.
+
 ### RP-DB-07 Job Orchestration + Agent Runs
 
 - `job_batches`

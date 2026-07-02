@@ -195,6 +195,7 @@
     "smoke:external-beta-credit": "tsx server/smoke/external-beta-credit-smoke.ts",
     "smoke:credit-production-persistence-plan": "tsx server/smoke/credit-production-persistence-plan-smoke.ts",
     "smoke:credit-persistence-plan": "npm run smoke:credit-production-persistence-plan",
+    "smoke:credit-supabase-migration-draft": "tsx server/smoke/credit-supabase-migration-draft-smoke.ts",
     "smoke:edit-level-surface-audit": "tsx server/smoke/edit-level-surface-audit-smoke.ts",
     "smoke:edit-level-architecture": "tsx server/smoke/edit-level-architecture-smoke.ts",
     "smoke:edit-level-types": "tsx server/smoke/edit-level-types-smoke.ts",

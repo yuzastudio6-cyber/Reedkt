@@ -2,54 +2,45 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 
-const packet = 'TRACKA-THREE-TOOL-EXTERNAL-AGENT-RUNTIME-READY-ROLLUP-1'
-const decision = 'completed_three_tool_external_agent_runtime_ready_rollup_for_controlled_generated_fixture_paths'
-const execution = 'completed_docs_only_three_tool_runtime_ready_rollup_no_new_runtime_execution'
-const dir = 'docs/external-beta/tracka-three-tool-external-agent-runtime-ready-rollup-1'
-const recordPath = `${dir}/tracka-three-tool-external-agent-runtime-ready-rollup-1-record.json`
-const gstreamerMkvtoolnixRecordPath =
-  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-record.json'
-const gpacRecordPath =
+const packet = 'TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-HANDOFF-1'
+const decision = 'completed_three_tool_external_agent_controlled_generated_fixture_handoff_ready_for_guarded_execution'
+const execution = 'completed_docs_only_three_tool_external_agent_handoff_no_new_runtime_execution'
+const dir = 'docs/external-beta/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1'
+const recordPath = `${dir}/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-record.json`
+const threeToolRollupRecordPath =
+  'docs/external-beta/tracka-three-tool-external-agent-runtime-ready-rollup-1/tracka-three-tool-external-agent-runtime-ready-rollup-1-record.json'
+const gstreamerHandoffRecordPath =
+  'docs/external-beta/gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-handoff-1/gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-handoff-1-record.json'
+const gpacQaRecordPath =
   'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-record.json'
-const readiness = 'ready_for_external_agent_controlled_generated_fixture_runtime_handoff'
-const nextMilestone = 'TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-HANDOFF-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
+
+const readiness = 'ready_for_guarded_three_tool_external_agent_controlled_generated_fixture_execution_packet'
+const pathClass = 'controlled_generated_fixture_runtime_handoff_only'
+const nextMilestone = 'TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1'
 
 const packetFiles = [
   `${dir}/source-chain.md`,
-  `${dir}/tool-matrix.md`,
-  `${dir}/external-agent-boundary.md`,
-  `${dir}/artifact-manifest-summary.md`,
+  `${dir}/handoff-contract.md`,
+  `${dir}/execution-readiness.md`,
+  `${dir}/artifact-manifest-policy.md`,
+  `${dir}/safety-boundary.md`,
   `${dir}/validation-results.md`,
   recordPath,
-  'docs/activation-phase-tracka-three-tool-external-agent-runtime-ready-rollup-1-results.md',
-  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1.md',
-]
-
-const implementationFiles = [
-  'package.json',
-  'scripts/validation/tracka-three-tool-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
-  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
-  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs',
-  'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs',
-]
-
-const handoffDir = 'docs/external-beta/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1'
-const handoffFiles = [
-  `${handoffDir}/source-chain.md`,
-  `${handoffDir}/handoff-contract.md`,
-  `${handoffDir}/execution-readiness.md`,
-  `${handoffDir}/artifact-manifest-policy.md`,
-  `${handoffDir}/safety-boundary.md`,
-  `${handoffDir}/validation-results.md`,
-  `${handoffDir}/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-record.json`,
   'docs/activation-phase-tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-results.md',
   'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-controlled-generated-fixture-execution-1.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...handoffFiles])
+const implementationFiles = [
+  'package.json',
+  'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
@@ -64,6 +55,7 @@ const forbiddenPathPatterns = [
   /^public\//,
   /^dist(?:-|\/|$)/,
   /^node_modules\//,
+  /^tmp\//,
   /\.(mp4|mov|mkv|webm|srt|ass|png|jpg|jpeg|gif|wav|mp3|deb|gpg|asc)$/i,
   /(^|\/)\._/,
   /(^|\/)\.DS_Store$/,
@@ -73,14 +65,18 @@ const forbiddenClaimPatterns = [
   /\bready_for_paid_production\b/i,
   /\bready_for_production\b/i,
   /\bready_for_final_delivery\b/i,
-  /\bprivate media processing:\s*`?(true|enabled|approved|completed_private|user)/i,
-  /\buser media processing:\s*`?(true|enabled|approved|completed_user|private)/i,
-  /\bSupabase mutation:\s*`?(true|enabled|completed|passed|run|executed|approved)/i,
-  /\bSQL execution:\s*`?(true|enabled|completed|passed|run|executed|approved)/i,
-  /\bsigned URL creation:\s*`?(true|enabled|completed|passed|run|executed|approved)/i,
-  /\bpublic artifact creation:\s*`?(true|enabled|completed|passed|run|executed|approved)/i,
-  /\bfinal render\/export:\s*`?(true|enabled|completed|passed|run|executed|approved)/i,
-  /\bproduction unlock:\s*`?(true|enabled|completed|passed|run|executed|approved)/i,
+  /\b(?:Route execution|Worker execution|GStreamer execution|MKVToolNix execution|GPAC\/MP4Box execution|FFmpeg\/FFprobe execution|Docker execution|Supabase mutation|SQL execution|Signed URL creation|Public artifact creation|Private media processing|User media processing|Final render\/export):\s*`?(true|enabled|completed|passed|run|executed)\b/i,
+  /"routeExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"workerExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"gstreamerExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"mkvtoolnixExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"gpacMp4boxExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"ffmpegFfprobeExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"dockerExecutionInThisHandoffPhase"\s*:\s*true/i,
+  /"supabaseMutation"\s*:\s*true/i,
+  /"sqlExecution"\s*:\s*true/i,
+  /"signedUrlCreation"\s*:\s*true/i,
+  /"publicArtifactCreation"\s*:\s*true/i,
 ]
 const requiredText = [
   packet,
@@ -91,11 +87,15 @@ const requiredText = [
   'gpac_mp4box_packaging_validation',
   '2026-07-02T12-00-03-397Z-aa991010',
   '2026-07-02T21-38-32-756Z-c4ed2b30',
-  '90d15f1944e4f86fd0085fbf483b145edf5ec7a9',
+  'e8cf179250214f473da15d18203680fd37fb6b3a',
   '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute',
   '/v1/external-beta/gpac-mp4box/generated-fixture-runtime/execute',
+  'REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_EXTERNAL_AGENT_CONTROLLED_GENERATED_FIXTURE_EXECUTION=true',
+  'REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_EXECUTION_READY_ROUTE_WORKER_BRIDGE=true',
+  'REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GENERATED_FIXTURE_RUNTIME_EXECUTION=true',
+  'REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_CONTROLLED_GENERATED_FIXTURE_EXECUTION=true',
   readiness,
-  'controlled_generated_fixture_runtime_handoff_only',
+  pathClass,
   '#577 remains open/draft/blocked/excluded',
   'Product-ready end-to-end local OSS tools: `0`',
   'Package-lock: `unchanged`',
@@ -134,13 +134,17 @@ function gitQuiet(args, label) {
   }
 }
 
-for (const file of [...packetFiles, ...implementationFiles, gstreamerMkvtoolnixRecordPath, gpacRecordPath]) read(file)
+for (const file of [...packetFiles, ...implementationFiles, threeToolRollupRecordPath, gstreamerHandoffRecordPath, gpacQaRecordPath]) {
+  read(file)
+}
 
 const packageJson = json('package.json')
 if (
-  packageJson.scripts?.['tracka:three-tool-external-agent-runtime-ready-rollup-1:diagnostics'] !==
-  'node scripts/validation/tracka-three-tool-external-agent-runtime-ready-rollup-1-diagnostics.mjs'
-) fail('missing diagnostics package script')
+  packageJson.scripts?.['tracka:three-tool-external-agent-controlled-generated-fixture-handoff-1:diagnostics'] !==
+  'node scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-diagnostics.mjs'
+) {
+  fail('missing handoff diagnostics package script')
+}
 
 const corpus = packetFiles.map(read).join('\n')
 for (const text of requiredText) {
@@ -150,43 +154,35 @@ for (const pattern of forbiddenClaimPatterns) {
   if (pattern.test(corpus)) fail(`forbidden claim matched in packet corpus: ${pattern}`)
 }
 
-const gmRecord = json(gstreamerMkvtoolnixRecordPath)
-if (gmRecord.readiness?.gstreamer !== readiness) fail('GStreamer source readiness mismatch')
-if (gmRecord.readiness?.mkvtoolnix !== readiness) fail('MKVToolNix source readiness mismatch')
-if (gmRecord.acceptedConfirmedRuntimeEvidence?.runnerRunId !== '2026-07-02T12-00-03-397Z-aa991010') {
-  fail('GStreamer/MKVToolNix source run ID mismatch')
+const rollupRecord = json(threeToolRollupRecordPath)
+if (rollupRecord.decision !== 'completed_three_tool_external_agent_runtime_ready_rollup_for_controlled_generated_fixture_paths') {
+  fail('three-tool rollup decision mismatch')
 }
-for (const key of [
-  'privateMediaProcessing',
-  'userMediaProcessing',
-  'ffmpegFfprobeExecution',
-  'supabaseMutation',
-  'sqlExecution',
-  'signedUrlCreation',
-  'publicArtifactCreation',
-  'finalRenderExport',
+if (rollupRecord.validation !== 'passed') fail('three-tool rollup validation mismatch')
+for (const tool of [
+  'gstreamer_render_pipeline_support',
+  'mkvtoolnix_container_validation',
+  'gpac_mp4box_packaging_validation',
 ]) {
-  if (gmRecord.acceptedConfirmedRuntimeEvidence?.[key] !== false) fail(`GStreamer/MKVToolNix safety mismatch: ${key}`)
+  if (rollupRecord.readiness?.[tool] !== 'ready_for_external_agent_controlled_generated_fixture_runtime_handoff') {
+    fail(`rollup readiness mismatch: ${tool}`)
+  }
 }
 
-const gpacRecord = json(gpacRecordPath)
-if (gpacRecord.readiness?.gpac_mp4box_packaging_validation !== readiness) fail('GPAC source readiness mismatch')
-if (gpacRecord.acceptedConfirmedRuntimeEvidence?.runId !== '2026-07-02T21-38-32-756Z-c4ed2b30') {
-  fail('GPAC source run ID mismatch')
+const gstreamerHandoffRecord = json(gstreamerHandoffRecordPath)
+if (gstreamerHandoffRecord.decision !== 'completed_external_agent_controlled_generated_fixture_handoff_ready_for_guarded_execution') {
+  fail('GStreamer/MKVToolNix handoff decision mismatch')
 }
-for (const key of [
-  'privateMediaProcessing',
-  'userMediaProcessing',
-  'ffmpegFfprobeExecution',
-  'routeExecution',
-  'workerExecution',
-  'supabaseMutation',
-  'sqlExecution',
-  'signedUrlCreation',
-  'publicArtifactCreation',
-  'finalRenderExport',
-]) {
-  if (gpacRecord.acceptedConfirmedRuntimeEvidence?.[key] !== false) fail(`GPAC safety mismatch: ${key}`)
+if (gstreamerHandoffRecord.handoff?.routePath !== '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute') {
+  fail('GStreamer/MKVToolNix handoff route mismatch')
+}
+
+const gpacQaRecord = json(gpacQaRecordPath)
+if (gpacQaRecord.decision !== 'qa_passed_gpac_mp4box_execution_ready_route_worker_bridge_confirmed_runtime_evidence') {
+  fail('GPAC QA decision mismatch')
+}
+if (gpacQaRecord.acceptedConfirmedRuntimeEvidence?.runId !== '2026-07-02T21-38-32-756Z-c4ed2b30') {
+  fail('GPAC accepted run ID mismatch')
 }
 
 const record = json(recordPath)
@@ -194,8 +190,8 @@ if (record.packet !== packet) fail('record packet mismatch')
 if (record.decision !== decision) fail('record decision mismatch')
 if (record.execution !== execution) fail('record execution mismatch')
 if (record.activeNativeContainerToolLaneCount !== 3) fail('active lane count mismatch')
-if (record.sourceChain?.gpacMp4boxQaRollupMergeSha !== '90d15f1944e4f86fd0085fbf483b145edf5ec7a9') {
-  fail('GPAC QA rollup merge SHA mismatch')
+if (record.sourceChain?.threeToolRuntimeReadyRollupMergeSha !== 'e8cf179250214f473da15d18203680fd37fb6b3a') {
+  fail('three-tool rollup merge SHA mismatch')
 }
 if (record.sourceChain?.excludedRemotionPr !== '#577 open_draft_blocked_excluded') fail('#577 exclusion mismatch')
 for (const tool of [
@@ -203,19 +199,17 @@ for (const tool of [
   'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation',
 ]) {
-  if (record.readiness?.[tool] !== readiness) fail(`readiness mismatch: ${tool}`)
+  if (record.readiness?.[tool] !== readiness) fail(`record readiness mismatch: ${tool}`)
 }
-if (record.readiness?.externalAgentPathClass !== 'controlled_generated_fixture_runtime_handoff_only') {
-  fail('external-agent path class mismatch')
-}
+if (record.readiness?.externalAgentPathClass !== pathClass) fail('path class mismatch')
 for (const [key, value] of Object.entries(record.blockedScope ?? {})) {
   if (value !== true) fail(`blocked scope must remain true: ${key}`)
 }
-for (const [key, value] of Object.entries(record.rollupPhaseSafety ?? {})) {
+for (const [key, value] of Object.entries(record.handoffPhaseSafety ?? {})) {
   if (key === 'docsStatusDiagnosticsOnly') {
     if (value !== true) fail(`${key} safety flag must be true`)
   } else if (value !== false) {
-    fail(`rollup safety flag must be false: ${key}`)
+    fail(`handoff safety flag must be false: ${key}`)
   }
 }
 if (record.productReadyEndToEndLocalOssTools !== 0) fail('product-ready count mismatch')

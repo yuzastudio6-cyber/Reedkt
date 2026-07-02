@@ -202,3 +202,43 @@ export const gstreamerMkvtoolnixPersistedJobRuntimeHandoffSchema =
     persistedJobWriteRequestedNow: z.boolean().optional(),
     runtimeRouteInvocationRequestedNow: z.boolean().optional(),
   }).strict()
+
+const gstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationPayloadSchema = z.object({
+  persistedHandoffId: idSchema,
+  packet: z.literal('RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-PERSISTED-JOB-RUNTIME-HANDOFF-1'),
+  runtimeInvocationRoutePath: z.literal('/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/invoke'),
+  runtimeInvocationIdempotencyKey: z.string().min(1),
+  runtimeInvocationBody: gstreamerMkvtoolnixGeneratedFixtureQueuedJobRuntimeRouteInvocationSchema,
+  queueHandoff: z.record(z.string(), z.unknown()).optional(),
+  safety: z.record(z.string(), z.unknown()).optional(),
+}).strict()
+
+export const gstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  approvedSnapshotId: idSchema,
+  persistedInvocationId: idSchema,
+  persistedJobId: idSchema,
+  persistedJobType: z.literal('gstreamer_mkvtoolnix_generated_fixture_runtime'),
+  persistedJobPayloadMode: z.literal('persisted_job_payload_to_existing_runtime_route_delegate'),
+  persistedJobPayloadJson: gstreamerMkvtoolnixPersistedJobRuntimeRouteInvocationPayloadSchema,
+  persistedJobRuntimeRouteInvocationConfirmed: z.boolean(),
+  routeIdempotencyKey: z.string().min(1),
+  workerDispatchRequestedNow: z.boolean().optional(),
+  workerExecutionRequestedNow: z.boolean().optional(),
+  workerProcessStartRequestedNow: z.boolean().optional(),
+  workerLeaseClaimRequestedNow: z.boolean().optional(),
+  persistentJobQueueWriteRequestedNow: z.boolean().optional(),
+  privateMediaProcessingRequestedNow: z.boolean().optional(),
+  userMediaProcessingRequestedNow: z.boolean().optional(),
+  supabaseMutationRequestedNow: z.boolean().optional(),
+  sqlExecutionRequestedNow: z.boolean().optional(),
+  secretPayloadAccessRequestedNow: z.boolean().optional(),
+  serviceRoleSecretPayloadAccessRequestedNow: z.boolean().optional(),
+  signedUrlCreationRequestedNow: z.boolean().optional(),
+  publicArtifactRequestedNow: z.boolean().optional(),
+  finalRenderExportRequestedNow: z.boolean().optional(),
+  externalBetaUnlockRequestedNow: z.boolean().optional(),
+  paidProductionUnlockRequestedNow: z.boolean().optional(),
+  productionUnlockRequestedNow: z.boolean().optional(),
+}).strict()

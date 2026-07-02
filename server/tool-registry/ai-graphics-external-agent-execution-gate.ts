@@ -382,6 +382,9 @@ const safeCommandsBeforeExecution = [
   'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics',
   'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence',
   'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics',
+  'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics',
+  'npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics',
+  'npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics',
   'npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics',
 ]
 
@@ -399,10 +402,12 @@ const allowedPreExecutionActions = [
   'prepare or explicitly run the guarded CPU/static non-production evidence sequence so queue-write proof is validated before worker claim and dispatch proof',
   'read saved CPU/static non-production service-role queue-write smoke proof when provided, then keep worker claim, dispatch, and tool execution blocked until the next proof gate passes',
   'read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes',
+  'read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only',
   'preserve GPU startup as on-demand only for a later accepted worker/tool job',
 ]
 
 function safeNextCommand(input: {
+  gpuRequiredForRuntime: boolean
   cpuStaticProofRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerLiveAdapterInvocationQueueWriteProofRow
   cpuStaticExactAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerExactExecutionAdmissionRow
   cpuStaticAdapterInvocationEnqueueAdmissionRow?: AiGraphicsExternalAgentCpuStaticPrivateWorkerAdapterInvocationEnqueueAdmissionRow
@@ -449,6 +454,9 @@ function safeNextCommand(input: {
   }
   if (exactAdmissionReady) {
     return 'npm run ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics'
+  }
+  if (input.gpuRequiredForRuntime) {
+    return 'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
   }
   return 'npm run ai-graphics:external-agent-execution-gate'
 }
@@ -1464,6 +1472,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         cpuStaticWorkerClaimAndDispatchSmokeProofRow,
       }),
       safeNextCommand: safeNextCommand({
+        gpuRequiredForRuntime: tool.gpuRequiredForRuntime,
         cpuStaticProofRow,
         cpuStaticExactAdmissionRow,
         cpuStaticAdapterInvocationEnqueueAdmissionRow,

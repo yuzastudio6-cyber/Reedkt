@@ -15,6 +15,8 @@ const claimAndDispatchProofCommand =
   'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics'
 const toolExecutionDryRunProofCommand =
   'npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
+const nativeGpuProofCollectionCommand =
+  'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
 const serviceRoleQueueWriteSmokeProofScriptName =
   'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
 const workerClaimAndDispatchSmokeProofScriptName =
@@ -639,6 +641,8 @@ for (const phrase of [
   'CPU/static worker claim/dispatch smoke proof accepted: `false`',
   'cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
   'toolExecutionDryRunProofRequiredTools: `0`',
+  'native GPU proof collection',
+  nativeGpuProofCollectionCommand,
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
   'CPU/static live-adapter queue-service proof accepted: `true`',
@@ -938,6 +942,13 @@ for (const row of acceptedSourceReport.toolRows.filter(
 )) {
   if (row.safeNextCommand !== evidenceSequenceCommand) {
     fail(`accepted_report_${row.toolId}_safe_next_not_evidence_sequence`)
+  }
+}
+for (const row of acceptedSourceReport.toolRows.filter(
+  (tool) => gpuTools.has(tool.toolId),
+)) {
+  if (row.safeNextCommand !== nativeGpuProofCollectionCommand) {
+    fail(`accepted_report_${row.toolId}_safe_next_not_native_gpu_proof_collection`)
   }
 }
 assertTrueBooleans('accepted_report', acceptedSourceReport.booleans)

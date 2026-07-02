@@ -22,7 +22,10 @@
     "externalAgentCpuStaticPrivateWorkerClaimAndDispatchSmokeProof": "ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_validator_prepared_with_runtime_blocks",
     "sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofDecision": null,
     "sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted": false,
-    "externalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequence": "ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_with_runtime_blocks"
+    "externalAgentCpuStaticPrivateWorkerNonProductionEvidenceSequence": "ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_with_runtime_blocks",
+    "externalBetaNativeGpuProofCollection": "ai_graphics_external_beta_native_gpu_proof_collection_prepared_with_private_manifest_and_runtime_result_blocks",
+    "externalBetaNativeGpuProofOperatorScaffold": "ai_graphics_external_beta_native_gpu_proof_operator_scaffold_prepared_local_only",
+    "externalBetaNativeGpuProofCloudRunJobScaffold": "ai_graphics_external_beta_native_gpu_proof_cloud_run_job_scaffold_prepared_local_only"
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-execution-gate",
@@ -121,7 +124,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -168,7 +171,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -215,7 +218,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -262,7 +265,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -309,7 +312,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -356,7 +359,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -403,7 +406,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -450,7 +453,7 @@
         "Tool Route and Worker execution must remain private and explicitly approved before any tool call",
         "GPU worker must start only after an accepted GPU job is claimed, then scale back down after completion"
       ],
-      "safeNextCommand": "npm run ai-graphics:external-agent-execution-gate",
+      "safeNextCommand": "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
       "cpuStaticWorkerClaimAndDispatchSmokeProofStatus": null,
       "cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence": false,
       "cpuStaticWorkerClaimsAcceptedWithProvidedEvidence": 0,
@@ -1087,6 +1090,9 @@
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
     "npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics",
+    "npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics",
+    "npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics",
+    "npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics",
     "npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics"
   ],
   "allowedPreExecutionActions": [
@@ -1102,6 +1108,7 @@
     "read CPU/static non-production service-role queue-write smoke preflight evidence for the same five tools while preserving actual queue write, worker, and tool execution blocks",
     "Prepare or explicitly run the guarded CPU/static non-production evidence sequence so queue-write proof is validated before worker claim and dispatch proof.",
     "read saved CPU/static non-production service-role queue-write smoke proof when provided, then keep worker claim, dispatch, and tool execution blocked until the next proof gate passes",
+    "Read native GPU proof collection, operator scaffold, and Cloud Run Job scaffold diagnostics for the eight GPU/model tools while preserving GPU runtime as on-demand only.",
     "preserve GPU startup as on-demand only for a later accepted worker/tool job",
     "read saved CPU/static worker claim and dispatch smoke proof when provided, then keep worker execution and tool execution blocked until the tool execution dry-run proof passes"
   ],

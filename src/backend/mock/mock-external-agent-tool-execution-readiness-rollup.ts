@@ -86,10 +86,12 @@ export const AI_VIDEO_BROLL_GEN_9K_NO_IDLE_L4_PROOF_PROMPT =
   'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt' as const
 export const AI_VIDEO_BROLL_GEN_9L_NO_IDLE_L4_PROOF_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-9L-NO-IDLE-L4-PROOF-EXECUTE: run bounded no-idle L4 VM lifecycle proof with mandatory cleanup, no model inference' as const
+export const AI_VIDEO_BROLL_GEN_9L_STOCKOUT_FIX_PROMPT =
+  'AI-VIDEO-BROLL-GEN-9L-STOCKOUT-FIX: choose approved alternate no-idle L4 proof zone or retry plan, no VM/no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_prepared',
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_9l_stockout_cleanup_verified',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -314,14 +316,15 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_private_proof_quota_verified_no_idle_prompt_prepared_after_private_cache_runner_fast_cache_readiness',
+        'controlled_l4_no_idle_lifecycle_proof_blocked_by_us_central1_b_resource_pool_exhaustion_cleanup_verified',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
-      primaryBlocker: 'bounded_no_idle_l4_lifecycle_execute_prompt_required_before_vm_or_inference',
+      primaryBlocker: 'us_central1_b_l4_resource_pool_exhausted_before_lifecycle_proof',
       evidence: [
+        'docs/ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result.md',
         'docs/ai-video-broll-wan-gpu-global-quota-verify-result.md',
         'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
         'docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md',
@@ -334,6 +337,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify.ts',
         'src/backend/mock/mock-ai-video-broll-wan-gpu-global-quota-verify-result.ts',
         'src/backend/mock/mock-ai-video-broll-gen-9k-no-idle-l4-proof-prompt.ts',
+        'src/backend/mock/mock-ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result.ts',
         'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
         'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts',
         'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts',
@@ -342,11 +346,12 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts',
         'server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts',
         'server/smoke/ai-video-broll-gen-9k-no-idle-l4-proof-prompt-smoke.ts',
+        'server/smoke/ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result-smoke.ts',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-9k-no-idle-l4-proof.md',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_9L_NO_IDLE_L4_PROOF_EXECUTE_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_9L_STOCKOUT_FIX_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -368,7 +373,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         runtimePromptRequiredBeforeVmCreate: true,
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
-        nextActionAfterQuotaClears: AI_VIDEO_BROLL_GEN_9L_NO_IDLE_L4_PROOF_EXECUTE_PROMPT,
+        nextActionAfterQuotaClears: AI_VIDEO_BROLL_GEN_9L_STOCKOUT_FIX_PROMPT,
       },
     },
     {
@@ -420,7 +425,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       nextAction: 'use as source-of-truth evidence only; do not mutate live Supabase from this rollup',
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
-  recommendedNextPrompt: AI_VIDEO_BROLL_GEN_9L_NO_IDLE_L4_PROOF_EXECUTE_PROMPT,
+  recommendedNextPrompt: AI_VIDEO_BROLL_GEN_9L_STOCKOUT_FIX_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

@@ -88,7 +88,7 @@ for (const required of [
 	  'ai-video-broll-wan-gpu-global-quota-verify.ts',
 	  'ai-video-broll-wan-fast-cache-readiness-check.ts',
 	  'broll_gpus_all_regions_quota_not_sufficient',
-	  'broll_no_idle_l4_iap_wheelhouse_transfer_us_east1_b_future_prompt_required',
+	  'broll_no_idle_l4_iap_wheelhouse_transfer_us_east1_b_stockout_fix_10b_required',
 	  'parseJsonOutput',
 	  'runtimeRunNow: false',
   'computeVmCreated: false',

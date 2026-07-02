@@ -27,7 +27,7 @@ function main() {
   add('dockerfile_exists', dockerfileExists, DOCKERFILE_PATH, 'missing Dockerfile source');
   add('source_only_comment', dockerfile.includes('SOUND-RUNTIME-MEDIA-GATE-1G source-only Dockerfile'), 'Gate 1G source-only comment', 'missing source-only comment');
   add('no_build_comment', dockerfile.includes('No Docker build has been run'), 'No Docker build has been run', 'missing no-build source comment');
-  add('base_image_python_313_slim', /^FROM\s+python:3\.13-slim\s*$/m.test(dockerfile), 'FROM python:3.13-slim', 'base image is not the accepted Python 3.13 slim image');
+  add('base_image_python_313_slim', /^FROM(?:\s+--platform=linux\/amd64)?\s+python:3\.13-slim\s*$/m.test(dockerfile), 'FROM python:3.13-slim or FROM --platform=linux/amd64 python:3.13-slim', 'base image is not the accepted Python 3.13 slim image');
   add('approved_requirements_copy', dockerfile.includes(`COPY ${REQUIREMENTS_SOURCE} ${COPIED_REQUIREMENTS}`), `COPY ${REQUIREMENTS_SOURCE} ${COPIED_REQUIREMENTS}`, 'requirements copy does not use approved SOUND requirements source');
   add('pip_install_from_approved_requirements', dockerfile.includes(`pip install --no-cache-dir --requirement ${COPIED_REQUIREMENTS}`), `pip install --no-cache-dir --requirement ${COPIED_REQUIREMENTS}`, 'pip install does not use the approved copied requirements file');
   add('sound_runtime_disabled_env', /\bREEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0\b/.test(dockerfile), 'REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0', 'missing disabled SOUND runtime flag');

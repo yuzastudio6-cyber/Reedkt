@@ -362,6 +362,8 @@ function checkPackageJson() {
     `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
     '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller": "tsx server/cli/ai-graphics-external-agent-gpu-model-proof-ref-route-caller.ts",',
     '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge": "tsx server/cli/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge.ts",',
+    '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.ts",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-diagnostics.mjs",',
   ])

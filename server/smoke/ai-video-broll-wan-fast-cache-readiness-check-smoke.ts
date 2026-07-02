@@ -91,7 +91,10 @@ for (const forbidden of [
 assert.equal(cliSource.includes('stat-only cache readiness check'), true)
 
 const spec = AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC
-assert.equal(spec.decision, 'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_quota_blocked')
+assert.equal(
+  spec.decision,
+  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_quota_cleared_10h_us_west4_c_selected',
+)
 assert.equal(spec.mode, 'stat_only_private_cache_readiness_check')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
 assert.equal(spec.modelRepository, 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers')
@@ -99,7 +102,7 @@ assert.equal(spec.sourceCommit, '0fad780a534b6463e45facd96134c9f345acfa5b')
 assert.equal(spec.runtimeEssentialFileCount, 19)
 assert.equal(spec.aggregateBytes, 28928887859)
 assert.equal(spec.expectedModelIndexClassName, 'WanPipeline')
-assert.equal(spec.quotaBlocker, 'gpus_all_regions_quota_zero')
+assert.equal(spec.quotaBlocker, 'cleared')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.statOnly, true)
 assert.equal(spec.hashesComputed, false)
@@ -153,6 +156,10 @@ assert.equal(summary.runtimeGatesAllFalse, true)
 assert.equal(summary.readyForExternalAgentExecutionNow, false)
 assert.equal(summary.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(summary.nextAction, spec.nextAction)
+assert.equal(
+  summary.nextAction,
+  'AI-VIDEO-BROLL-GEN-10J-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in us-west4-c with mandatory cleanup, no model import/no inference',
+)
 
 for (const [flag, value] of Object.entries(summary.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)

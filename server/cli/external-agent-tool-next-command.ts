@@ -210,8 +210,10 @@ function main() {
   const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
   const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
   const gateToolSummaries = executionGateToolSummaries(executionGate.json)
-  const executionAllowedNow = executionGateAllowsRuntime && qwenLivePreflightPassed
-  const qwenLivePreflightVerificationRequired = qwenLivePreflightPassed && !executionGateAllowsRuntime
+  const executionAllowedNow =
+    (executionGateAllowsRuntime || staticExplicitToolGateReady) && qwenLivePreflightPassed
+  const qwenLivePreflightVerificationRequired =
+    staticExplicitToolGateReady && !qwenLivePreflightPassed
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
   const gcloudDiagnostic = shouldRunGcloudDiagnostic
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
@@ -226,9 +228,7 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
-      : qwenLivePreflightVerificationRequired
-        ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
-      : !qwenLivePreflightPassed
+      : !qwenLivePreflightPassed || qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
         : !brollQuotaSufficient
           ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
@@ -247,6 +247,51 @@ function main() {
     chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
   const codexRunnableNextCommandNow =
     manualActionRequired || chosenNextCommandAlreadyExecutedInThisRun ? undefined : chosenNextCommand
+  const qwenBoundedExecutionCommand = executionAllowedNow
+    ? {
+        ...spec.qwenBoundedExecutionCommand,
+        shellExample: `${spec.qwenBoundedExecutionCommand.confirmationEnv}=${spec.qwenBoundedExecutionCommand.confirmationEnvRequiredValue} ${[
+          spec.qwenBoundedExecutionCommand.command,
+          ...spec.qwenBoundedExecutionCommand.args,
+        ].join(' ')}`,
+      }
+    : null
+  const qwenExternalAgentExecutionCommand = executionAllowedNow
+    ? {
+        ...spec.qwenExternalAgentExecutionCommand,
+        shellExample: `${spec.qwenExternalAgentExecutionCommand.confirmationEnv}=${spec.qwenExternalAgentExecutionCommand.confirmationEnvRequiredValue} ${[
+          spec.qwenExternalAgentExecutionCommand.command,
+          ...spec.qwenExternalAgentExecutionCommand.args,
+        ].join(' ')}`,
+      }
+    : null
+  const brollWanExternalAgentProofCommand = {
+    ...spec.brollWanExternalAgentProofCommand,
+    executionAllowedNow: false,
+    blocker: nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_preflight_not_cleared',
+    shellExample: `${spec.brollWanExternalAgentProofCommand.confirmationEnv}=${spec.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue} ${[
+      spec.brollWanExternalAgentProofCommand.command,
+      ...spec.brollWanExternalAgentProofCommand.args,
+    ].join(' ')}`,
+  }
+  const soundMusicAudioEvidenceCommand = {
+    ...spec.soundMusicAudioEvidenceCommand,
+    executionAllowedNow: false,
+    blocker: 'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
+    shellExample: `${spec.soundMusicAudioEvidenceCommand.confirmationEnv}=${spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue} ${[
+      spec.soundMusicAudioEvidenceCommand.command,
+      ...spec.soundMusicAudioEvidenceCommand.args,
+    ].join(' ')}`,
+  }
+  const supabaseLocalHarnessEvidenceCommand = {
+    ...spec.supabaseLocalHarnessEvidenceCommand,
+    executionAllowedNow: false,
+    blocker: 'not_a_model_or_media_execution_lane_on_this_branch',
+    shellExample: `${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnv}=${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue} ${[
+      spec.supabaseLocalHarnessEvidenceCommand.command,
+      ...spec.supabaseLocalHarnessEvidenceCommand.args,
+    ].join(' ')}`,
+  }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
@@ -292,6 +337,11 @@ function main() {
         chosenNextCommand,
         chosenNextCommandAlreadyExecutedInThisRun,
         codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
+        qwenExternalAgentExecutionCommand,
+        qwenBoundedExecutionCommand,
+        brollWanExternalAgentProofCommand,
+        soundMusicAudioEvidenceCommand,
+        supabaseLocalHarnessEvidenceCommand,
         chosenManualAction,
         manualActionRequired,
         manualActionReason,

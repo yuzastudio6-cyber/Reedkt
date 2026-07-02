@@ -1,5 +1,5 @@
 import {
-  QWEN2_5_VL_58DW_RETRY_2_PROMPT,
+  EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
 } from './mock-external-agent-tool-execution-readiness-rollup'
 
@@ -11,6 +11,98 @@ export type ExternalAgentToolNextCommandAllowedProbe = {
   runsModel: false
   createsAssets: false
   purpose: string
+}
+
+export type ExternalAgentToolQwenBoundedExecutionCommand = {
+  toolId: 'qwen2_5_vl_7b_instruct'
+  command: 'npm'
+  args: readonly [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+  ]
+  confirmationEnv: 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY'
+  confirmationEnvRequiredValue: 'true'
+  requiresLivePreflightPassed: true
+  requiresStaticExplicitToolGateReady: true
+  boundedApprovedFixtureOnly: true
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
+export type ExternalAgentToolQwenExternalAgentExecutionCommand = {
+  toolId: 'qwen2_5_vl_7b_instruct'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-qwen', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION'
+  confirmationEnvRequiredValue: 'true'
+  verifiesLiveNextCommandBeforeDelegating: true
+  delegatesToBoundedCommand: true
+  boundedApprovedFixtureOnly: true
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
+export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
+  toolId: 'ai_video_broll_generation_wan'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-broll-wan', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
+  confirmationEnvRequiredValue: 'true'
+  verifiesLiveQuotaBeforeAnyVmAction: true
+  verifiesPrivateCacheBeforeAnyVmAction: true
+  requiresNoIdleLifecycleGate: true
+  blocksWhenGpusAllRegionsQuotaInsufficient: true
+  createsComputeVm: false
+  runsModel: false
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
+export type ExternalAgentToolSoundMusicAudioEvidenceCommand = {
+  toolId: 'sound_music_audio'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-sound', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW'
+  confirmationEnvRequiredValue: 'true'
+  verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true
+  verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true
+  blocksRealProviderWorkerStorageExport: true
+  runsProvider: false
+  dispatchesWorker: false
+  runsMediaProcessing: false
+  createsGeneratedAudio: false
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
+export type ExternalAgentToolSupabaseHarnessEvidenceCommand = {
+  toolId: 'supabase_local_fixture_harness'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-supabase-harness', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW'
+  confirmationEnvRequiredValue: 'true'
+  verifiesLocalConfigBeforeAnyRuntime: true
+  verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true
+  blocksLiveSupabaseMutation: true
+  runsSupabaseCli: false
+  runsDocker: false
+  executesSql: false
+  createsRows: false
+  createsStorageObjects: false
+  createsSignedUrls: false
+  touchesSupabaseCloud: false
+  unlocksBetaOrProduction: false
 }
 
 export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
@@ -50,12 +142,12 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     },
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
-    whenExecutionGateAllowsRuntime: QWEN2_5_VL_58DW_RETRY_2_PROMPT,
+    whenExecutionGateAllowsRuntime: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
-    whenBrollQuotaNeedsVerification: 'npm run external-agent-tool-blockers:preflight',
+    whenBrollQuotaNeedsVerification: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
     whenWanCacheNeedsStaticRefresh: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
   },
   manualActionRules: {
@@ -66,14 +158,101 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
       rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
     },
   },
+  qwenBoundedExecutionCommand: {
+    toolId: 'qwen2_5_vl_7b_instruct',
+    command: 'npm',
+    args: [
+      'run',
+      'qwen2-5-vl-58dw-bounded-private-inference-retry',
+      '--',
+      '--execute',
+      '--json',
+    ],
+    confirmationEnv: 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY',
+    confirmationEnvRequiredValue: 'true',
+    requiresLivePreflightPassed: true,
+    requiresStaticExplicitToolGateReady: true,
+    boundedApprovedFixtureOnly: true,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolQwenBoundedExecutionCommand,
+  qwenExternalAgentExecutionCommand: {
+    toolId: 'qwen2_5_vl_7b_instruct',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-qwen', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION',
+    confirmationEnvRequiredValue: 'true',
+    verifiesLiveNextCommandBeforeDelegating: true,
+    delegatesToBoundedCommand: true,
+    boundedApprovedFixtureOnly: true,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolQwenExternalAgentExecutionCommand,
+  brollWanExternalAgentProofCommand: {
+    toolId: 'ai_video_broll_generation_wan',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-broll-wan', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+    confirmationEnvRequiredValue: 'true',
+    verifiesLiveQuotaBeforeAnyVmAction: true,
+    verifiesPrivateCacheBeforeAnyVmAction: true,
+    requiresNoIdleLifecycleGate: true,
+    blocksWhenGpusAllRegionsQuotaInsufficient: true,
+    createsComputeVm: false,
+    runsModel: false,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolBrollWanExternalAgentProofCommand,
+  soundMusicAudioEvidenceCommand: {
+    toolId: 'sound_music_audio',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-sound', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+    confirmationEnvRequiredValue: 'true',
+    verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true,
+    verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true,
+    blocksRealProviderWorkerStorageExport: true,
+    runsProvider: false,
+    dispatchesWorker: false,
+    runsMediaProcessing: false,
+    createsGeneratedAudio: false,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolSoundMusicAudioEvidenceCommand,
+  supabaseLocalHarnessEvidenceCommand: {
+    toolId: 'supabase_local_fixture_harness',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-supabase-harness', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+    confirmationEnvRequiredValue: 'true',
+    verifiesLocalConfigBeforeAnyRuntime: true,
+    verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true,
+    blocksLiveSupabaseMutation: true,
+    runsSupabaseCli: false,
+    runsDocker: false,
+    executesSql: false,
+    createsRows: false,
+    createsStorageObjects: false,
+    createsSignedUrls: false,
+    touchesSupabaseCloud: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolSupabaseHarnessEvidenceCommand,
   forbiddenRuntimeActions: [
-    'do not invoke Cloud Run again before the 58DW retry-2 result review is accepted',
-    'do not execute Cloud Run jobs again before the 58DW retry-2 result review is accepted',
+    'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
+    'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',
     'do not create Compute Engine VMs',
     'do not request quota',
     'do not run Docker',
-    'do not import models again before the 58DW retry-2 result review is accepted',
-    'do not run inference again before the 58DW retry-2 result review is accepted',
+    'do not import models outside the bounded approved-fixture Qwen gate',
+    'do not run inference outside the bounded approved-fixture Qwen gate',
     'do not create generated assets',
     'do not call providers',
     'do not dispatch workers',

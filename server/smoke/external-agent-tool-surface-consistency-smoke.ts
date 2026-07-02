@@ -5,6 +5,7 @@ import {
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentManualBlockerAction,
 } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
+import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 type JsonObject = Record<string, unknown>
 
@@ -12,7 +13,7 @@ const ROOT = process.cwd()
 const QWEN_TOOL_ID = 'qwen2_5_vl_7b_instruct'
 const BROLL_TOOL_ID = 'ai_video_broll_generation_wan'
 const EXPECTED_QWEN_MANUAL_ACTION_IDS: string[] = []
-const EXPECTED_BROLL_MANUAL_ACTION_IDS = ['request_gpus_all_regions_quota_in_console']
+const EXPECTED_BROLL_MANUAL_ACTION_IDS: string[] = []
 
 function runJsonCli(script: string): JsonObject {
   const output = execFileSync('npx', ['tsx', script], {
@@ -99,14 +100,18 @@ function assertSameManualActions(
 
 function assertManualActionSafety(actions: ExternalAgentManualBlockerAction[], label: string): void {
   for (const action of actions) {
+    const expectedAfterCompletionCommand =
+      action.id === 'request_gpus_all_regions_quota_in_console'
+        ? 'npm run ai-video-broll-wan-gpu-global-quota:verify'
+        : 'npm run external-agent-tool-blockers:preflight'
     assert.equal(action.runInsideCodex, false, `${label}.${action.id} must remain outside Codex`)
     assert.equal(action.mutatesRuntime, false, `${label}.${action.id} must not mutate runtime`)
     assert.equal(action.runsModel, false, `${label}.${action.id} must not run models`)
     assert.equal(action.createsAssets, false, `${label}.${action.id} must not create assets`)
     assert.equal(
       action.afterCompletionCommand,
-      'npm run external-agent-tool-blockers:preflight',
-      `${label}.${action.id} must route back through read-only blocker preflight`,
+      expectedAfterCompletionCommand,
+      `${label}.${action.id} must route back through its read-only verification command`,
     )
   }
 }
@@ -131,10 +136,12 @@ function assertQwenManualActions(actions: ExternalAgentManualBlockerAction[], la
 function assertBrollManualActions(actions: ExternalAgentManualBlockerAction[], label: string): void {
   assertExpectedManualActionIds(actions, EXPECTED_BROLL_MANUAL_ACTION_IDS, label)
   assertManualActionSafety(actions, label)
-  assert.equal(actions[0].mutatesCloud, true, `${label}.request_gpus_all_regions_quota_in_console must be cloud-owner work`)
-  assert.equal(actions[0].mutatesLocalGcloudAuth, false, `${label}.request_gpus_all_regions_quota_in_console must not touch auth`)
-  assert.equal(actions[0].mutatesLocalGcloudConfig, false, `${label}.request_gpus_all_regions_quota_in_console must not touch config`)
-  assert.equal(actions[0].changesQuotaRequest, true, `${label}.request_gpus_all_regions_quota_in_console must identify quota request`)
+  for (const action of actions) {
+    assert.equal(action.mutatesCloud, true, `${label}.${action.id} must identify cloud-owner work`)
+    assert.equal(action.mutatesLocalGcloudAuth, false, `${label}.${action.id} must not touch auth`)
+    assert.equal(action.mutatesLocalGcloudConfig, false, `${label}.${action.id} must not touch config`)
+    assert.equal(action.changesQuotaRequest, true, `${label}.${action.id} must identify quota request`)
+  }
 }
 
 function assertAllRuntimeFlagsFalse(value: unknown, label: string): void {
@@ -193,7 +200,7 @@ assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
 for (const tool of rollup.tools) {
   if (tool.toolId === QWEN_TOOL_ID) {
-    assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must wait for retry-2 result review`)
+    assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for the explicit gate`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,
@@ -207,7 +214,14 @@ const actionPlan = runJsonCli('server/cli/external-agent-tool-action-plan.ts')
 const readiness = runJsonCli('server/cli/external-agent-tool-readiness-check.ts')
 const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.ts')
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
+const brollQuotaVerify = runJsonCli('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts')
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
+const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
+const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
+const soundExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-sound.ts')
+const supabaseHarnessExecutionWrapper = runJsonCli(
+  'server/cli/external-agent-tool-execute-supabase-harness.ts',
+)
 
 const qwenSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, QWEN_TOOL_ID, 'actionPlan.toolActions')],
@@ -256,15 +270,15 @@ assert.equal(
   asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
     (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === QWEN_TOOL_ID,
   ),
-  true,
-  'actionPlan.manualBlockers must include result-review-blocked Qwen',
+  false,
+  'actionPlan.manualBlockers must not include explicit-gate-ready Qwen',
 )
 assert.equal(
   asArray(readiness.blockers, 'readiness.blockers').some(
     (row) => asRecord(row, 'readiness.blockers row').toolId === QWEN_TOOL_ID,
   ),
-  true,
-  'readiness.blockers must include result-review-blocked Qwen',
+  false,
+  'readiness.blockers must not include explicit-gate-ready Qwen',
 )
 
 for (const [label, actions] of brollSurfaceActions) {
@@ -272,11 +286,11 @@ for (const [label, actions] of brollSurfaceActions) {
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',
@@ -301,13 +315,226 @@ assert.equal(blockerPreflight.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(blockerPreflight.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(blockerPreflight.runtimeSideEffects, 'blockerPreflight.runtimeSideEffects')
 
+assert.equal(brollQuotaVerify.readyForExternalAgentExecutionNow, false)
+assert.equal(brollQuotaVerify.runtimeGatesAllFalse, true)
+assertAllRuntimeFlagsFalse(brollQuotaVerify.runtimeSideEffects, 'brollQuotaVerify.runtimeSideEffects')
+
 assert.equal(
   nextCommand.executionAllowedNow,
-  nextCommand.executionGateAllowsRuntime === true && nextCommand.qwenLivePreflightPassed === true,
+  (nextCommand.executionGateAllowsRuntime === true ||
+    nextCommand.staticExplicitToolGateReady === true) &&
+    nextCommand.qwenLivePreflightPassed === true,
 )
 assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, nextCommand.executionAllowedNow)
 assert.equal(nextCommand.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(nextCommand.runtimeSideEffects, 'nextCommand.runtimeSideEffects')
+
+const wrapperCanonicalCommand = asRecord(qwenExecutionWrapper.canonicalCommand, 'qwenExecutionWrapper.canonicalCommand')
+assert.equal(qwenExecutionWrapper.mode, 'external_agent_qwen_execution_static_guard')
+assert.equal(qwenExecutionWrapper.executeRequired, true)
+assert.equal(qwenExecutionWrapper.runtimeRunNow, false)
+assert.equal(qwenExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(qwenExecutionWrapper.supabaseTouched, false)
+assert.equal(qwenExecutionWrapper.sqlExecuted, false)
+assert.equal(qwenExecutionWrapper.creditMutationCreated, false)
+assert.equal(qwenExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const qwenExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesLiveNextCommandBeforeDelegating',
+  'delegatesToBoundedCommand',
+  'boundedApprovedFixtureOnly',
+  'createsGeneratedAssets',
+  'touchesSupabase',
+  'touchesSql',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of qwenExecutionCommandKeys) {
+  assert.deepEqual(
+    wrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand[key],
+    `Qwen wrapper command drifted from spec at ${key}`,
+  )
+  if (nextCommand.qwenExternalAgentExecutionCommand) {
+    const nextCanonicalCommand = asRecord(
+      nextCommand.qwenExternalAgentExecutionCommand,
+      'nextCommand.qwenExternalAgentExecutionCommand',
+    )
+    assert.deepEqual(wrapperCanonicalCommand[key], nextCanonicalCommand[key], `Qwen wrapper command drifted at ${key}`)
+  }
+}
+
+const brollWrapperCanonicalCommand = asRecord(
+  brollExecutionWrapper.canonicalCommand,
+  'brollExecutionWrapper.canonicalCommand',
+)
+assert.equal(brollExecutionWrapper.mode, 'external_agent_broll_wan_execution_static_guard')
+assert.equal(brollExecutionWrapper.executeRequired, true)
+assert.equal(brollExecutionWrapper.runtimeRunNow, false)
+assert.equal(brollExecutionWrapper.computeVmCreated, false)
+assert.equal(brollExecutionWrapper.dockerRun, false)
+assert.equal(brollExecutionWrapper.modelImportRun, false)
+assert.equal(brollExecutionWrapper.modelInferenceRun, false)
+assert.equal(brollExecutionWrapper.generatedVideoCreated, false)
+assert.equal(brollExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(brollExecutionWrapper.supabaseTouched, false)
+assert.equal(brollExecutionWrapper.sqlExecuted, false)
+assert.equal(brollExecutionWrapper.creditMutationCreated, false)
+assert.equal(brollExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const brollExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesLiveQuotaBeforeAnyVmAction',
+  'verifiesPrivateCacheBeforeAnyVmAction',
+  'requiresNoIdleLifecycleGate',
+  'blocksWhenGpusAllRegionsQuotaInsufficient',
+  'createsComputeVm',
+  'runsModel',
+  'createsGeneratedAssets',
+  'touchesSupabase',
+  'touchesSql',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of brollExecutionCommandKeys) {
+  assert.deepEqual(
+    brollWrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand[key],
+    `B-roll wrapper command drifted from spec at ${key}`,
+  )
+  const nextBrollCommand = asRecord(
+    nextCommand.brollWanExternalAgentProofCommand,
+    'nextCommand.brollWanExternalAgentProofCommand',
+  )
+  assert.deepEqual(
+    brollWrapperCanonicalCommand[key],
+    nextBrollCommand[key],
+    `B-roll wrapper command drifted at ${key}`,
+  )
+}
+assert.equal(
+  asRecord(nextCommand.brollWanExternalAgentProofCommand, 'nextCommand.brollWanExternalAgentProofCommand')
+    .executionAllowedNow,
+  false,
+)
+
+const soundWrapperCanonicalCommand = asRecord(
+  soundExecutionWrapper.canonicalCommand,
+  'soundExecutionWrapper.canonicalCommand',
+)
+assert.equal(soundExecutionWrapper.mode, 'external_agent_sound_execution_static_guard')
+assert.equal(soundExecutionWrapper.executeRequired, true)
+assert.equal(soundExecutionWrapper.runtimeRunNow, false)
+assert.equal(soundExecutionWrapper.providerCallsMade, false)
+assert.equal(soundExecutionWrapper.workersDispatched, false)
+assert.equal(soundExecutionWrapper.mediaProcessingRun, false)
+assert.equal(soundExecutionWrapper.generatedAudioCreated, false)
+assert.equal(soundExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(soundExecutionWrapper.supabaseTouched, false)
+assert.equal(soundExecutionWrapper.sqlExecuted, false)
+assert.equal(soundExecutionWrapper.creditMutationCreated, false)
+assert.equal(soundExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const soundExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime',
+  'verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime',
+  'blocksRealProviderWorkerStorageExport',
+  'runsProvider',
+  'dispatchesWorker',
+  'runsMediaProcessing',
+  'createsGeneratedAudio',
+  'createsGeneratedAssets',
+  'touchesSupabase',
+  'touchesSql',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of soundExecutionCommandKeys) {
+  assert.deepEqual(
+    soundWrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.soundMusicAudioEvidenceCommand[key],
+    `Sound wrapper command drifted from spec at ${key}`,
+  )
+  const nextSoundCommand = asRecord(
+    nextCommand.soundMusicAudioEvidenceCommand,
+    'nextCommand.soundMusicAudioEvidenceCommand',
+  )
+  assert.deepEqual(
+    soundWrapperCanonicalCommand[key],
+    nextSoundCommand[key],
+    `Sound wrapper command drifted at ${key}`,
+  )
+}
+assert.equal(
+  asRecord(nextCommand.soundMusicAudioEvidenceCommand, 'nextCommand.soundMusicAudioEvidenceCommand')
+    .executionAllowedNow,
+  false,
+)
+
+const supabaseHarnessWrapperCanonicalCommand = asRecord(
+  supabaseHarnessExecutionWrapper.canonicalCommand,
+  'supabaseHarnessExecutionWrapper.canonicalCommand',
+)
+assert.equal(supabaseHarnessExecutionWrapper.mode, 'external_agent_supabase_harness_execution_static_guard')
+assert.equal(supabaseHarnessExecutionWrapper.executeRequired, true)
+assert.equal(supabaseHarnessExecutionWrapper.runtimeRunNow, false)
+assert.equal(supabaseHarnessExecutionWrapper.supabaseCliExecuted, false)
+assert.equal(supabaseHarnessExecutionWrapper.dockerStarted, false)
+assert.equal(supabaseHarnessExecutionWrapper.sqlExecuted, false)
+assert.equal(supabaseHarnessExecutionWrapper.databaseCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.migrationDeployed, false)
+assert.equal(supabaseHarnessExecutionWrapper.rowsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.storageObjectsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.signedUrlsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.generatedAssetsCreated, false)
+assert.equal(supabaseHarnessExecutionWrapper.generatedLocalFixturePassedClaimed, false)
+const supabaseHarnessExecutionCommandKeys = [
+  'toolId',
+  'command',
+  'args',
+  'confirmationEnv',
+  'confirmationEnvRequiredValue',
+  'verifiesLocalConfigBeforeAnyRuntime',
+  'verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime',
+  'blocksLiveSupabaseMutation',
+  'runsSupabaseCli',
+  'runsDocker',
+  'executesSql',
+  'createsRows',
+  'createsStorageObjects',
+  'createsSignedUrls',
+  'touchesSupabaseCloud',
+  'unlocksBetaOrProduction',
+] as const
+for (const key of supabaseHarnessExecutionCommandKeys) {
+  assert.deepEqual(
+    supabaseHarnessWrapperCanonicalCommand[key],
+    EXTERNAL_AGENT_TOOL_NEXT_COMMAND.supabaseLocalHarnessEvidenceCommand[key],
+    `Supabase harness wrapper command drifted from spec at ${key}`,
+  )
+  const nextSupabaseHarnessCommand = asRecord(
+    nextCommand.supabaseLocalHarnessEvidenceCommand,
+    'nextCommand.supabaseLocalHarnessEvidenceCommand',
+  )
+  assert.deepEqual(
+    supabaseHarnessWrapperCanonicalCommand[key],
+    nextSupabaseHarnessCommand[key],
+    `Supabase harness wrapper command drifted at ${key}`,
+  )
+}
+assert.equal(
+  asRecord(nextCommand.supabaseLocalHarnessEvidenceCommand, 'nextCommand.supabaseLocalHarnessEvidenceCommand')
+    .executionAllowedNow,
+  false,
+)
 
 const normalizedSurfaceData = {
   rollupQwenActions: normalizeManualActions(rollupQwenActions),
@@ -319,7 +546,42 @@ const normalizedSurfaceData = {
     actionPlan: actionPlan.runtimeSideEffects,
     executionGate: executionGate.runtimeSideEffects,
     blockerPreflight: blockerPreflight.runtimeSideEffects,
+    brollQuotaVerify: brollQuotaVerify.runtimeSideEffects,
     nextCommand: nextCommand.runtimeSideEffects,
+  },
+  qwenExecutionWrapper: {
+    canonicalCommand: qwenExecutionWrapper.canonicalCommand,
+    delegatedBoundedCommand: qwenExecutionWrapper.delegatedBoundedCommand,
+    runtimeRunNow: qwenExecutionWrapper.runtimeRunNow,
+    generatedAssetsCreated: qwenExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: qwenExecutionWrapper.generatedLocalFixturePassedClaimed,
+  },
+  brollExecutionWrapper: {
+    canonicalCommand: brollExecutionWrapper.canonicalCommand,
+    runtimeRunNow: brollExecutionWrapper.runtimeRunNow,
+    computeVmCreated: brollExecutionWrapper.computeVmCreated,
+    modelInferenceRun: brollExecutionWrapper.modelInferenceRun,
+    generatedAssetsCreated: brollExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: brollExecutionWrapper.generatedLocalFixturePassedClaimed,
+  },
+  soundExecutionWrapper: {
+    canonicalCommand: soundExecutionWrapper.canonicalCommand,
+    runtimeRunNow: soundExecutionWrapper.runtimeRunNow,
+    providerCallsMade: soundExecutionWrapper.providerCallsMade,
+    workersDispatched: soundExecutionWrapper.workersDispatched,
+    mediaProcessingRun: soundExecutionWrapper.mediaProcessingRun,
+    generatedAssetsCreated: soundExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: soundExecutionWrapper.generatedLocalFixturePassedClaimed,
+  },
+  supabaseHarnessExecutionWrapper: {
+    canonicalCommand: supabaseHarnessExecutionWrapper.canonicalCommand,
+    runtimeRunNow: supabaseHarnessExecutionWrapper.runtimeRunNow,
+    supabaseCliExecuted: supabaseHarnessExecutionWrapper.supabaseCliExecuted,
+    dockerStarted: supabaseHarnessExecutionWrapper.dockerStarted,
+    sqlExecuted: supabaseHarnessExecutionWrapper.sqlExecuted,
+    migrationDeployed: supabaseHarnessExecutionWrapper.migrationDeployed,
+    generatedAssetsCreated: supabaseHarnessExecutionWrapper.generatedAssetsCreated,
+    generatedLocalFixturePassedClaimed: supabaseHarnessExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
@@ -336,12 +598,17 @@ console.log(
         'external-agent-tool-readiness:check',
         'external-agent-tool-execution-gate',
         'external-agent-tool-blockers:preflight',
+        'ai-video-broll-wan-gpu-global-quota:verify',
         'external-agent-tool-next-command',
+        'external-agent-tool-execute-qwen',
+        'external-agent-tool-execute-broll-wan',
+        'external-agent-tool-execute-sound',
+        'external-agent-tool-execute-supabase-harness',
       ],
-      qwenManualBlockerActionIds: rollupQwenActions.map((action) => action.id),
-      brollManualBlockerActionIds: rollupBrollActions.map((action) => action.id),
+      qwenManualBlockerActionIds: normalizeManualActions(rollupQwenActions).map((action) => action.id),
+      brollManualBlockerActionIds: normalizeManualActions(rollupBrollActions).map((action) => action.id),
       runtimeGatesAllFalse: true,
-      staticQwenReadyForExplicitGate: false,
+      staticQwenReadyForExplicitGate: nextCommand.staticExplicitToolGateReady === true,
       liveQwenPreflightPassed: nextCommand.qwenLivePreflightPassed,
       executionAllowedNow: nextCommand.executionAllowedNow,
       readyForAnyExternalAgentExecutionNow: nextCommand.readyForAnyExternalAgentExecutionNow,

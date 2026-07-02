@@ -6,8 +6,8 @@ import path from 'node:path'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 
 const ROOT = process.cwd()
-const QWEN_RESULT_REVIEW_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
+const QWEN_READY_PROMPT =
+  'EXTERNAL-AGENT-TOOL-EXECUTION-READY-QWEN: Qwen controlled approved-fixture private inference is ready for the explicit external-agent gate; keep beta/production blocked'
 const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-gate.ts'
 const CLI_PATH = 'server/cli/external-agent-tool-execution-gate.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-gate-smoke.ts'
@@ -73,10 +73,10 @@ assert.equal(
 )
 
 const gate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
-assert.equal(gate.decision, 'external_agent_execution_no_go_runtime_blocked')
+assert.equal(gate.decision, 'external_agent_execution_no_go_live_preflight_required')
 assert.equal(gate.mode, 'fail_closed_external_agent_tool_execution_gate')
 assert.equal(gate.readyForAnyExternalAgentExecutionNow, false)
-assert.equal(gate.staticExplicitToolGateReady, false)
+assert.equal(gate.staticExplicitToolGateReady, true)
 assert.equal(gate.requiresLivePreflightBeforeRuntime, true)
 assert.equal(gate.requiresApprovedSnapshotBeforeExecution, true)
 assert.equal(gate.requiresStructuredToolEnvelopeBeforeExecution, true)
@@ -90,12 +90,19 @@ assert.equal(
   false,
 )
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-broll-wan'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-sound'), true)
+assert.equal(
+  gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-supabase-harness'),
+  true,
+)
 
 for (const row of gate.toolRows) {
   if (row.toolId === 'qwen2_5_vl_7b_instruct') {
-    assert.equal(row.staticExplicitToolGateReady, false, `${row.toolId} must wait for retry-2 result review`)
-    assert.equal(row.executionAllowedNow, false, `${row.toolId} must not rerun retry-2 before result review`)
+    assert.equal(row.staticExplicitToolGateReady, true, `${row.toolId} must have the explicit gate prepared`)
+    assert.equal(row.executionAllowedNow, false, `${row.toolId} still requires live preflight`)
   } else {
     assert.equal(row.executionAllowedNow, false, `${row.toolId} must be blocked`)
   }
@@ -104,11 +111,23 @@ for (const row of gate.toolRows) {
 const qwenGateRow = gate.toolRows.find((row) => row.toolId === 'qwen2_5_vl_7b_instruct')
 assert.equal(
   qwenGateRow?.currentBlocker,
-  'qwen_58dw_retry_2_result_review_required',
+  'live_preflight_required_before_runtime',
 )
 assert.equal(
   qwenGateRow?.safeNextCommand,
-  QWEN_RESULT_REVIEW_PROMPT,
+  'npm run external-agent-tool-next-command',
+)
+const soundGateRow = gate.toolRows.find((row) => row.toolId === 'sound_music_audio')
+assert.equal(
+  soundGateRow?.currentBlocker,
+  'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
+)
+assert.equal(soundGateRow?.safeNextCommand, 'npm run external-agent-tool-execute-sound')
+const supabaseHarnessGateRow = gate.toolRows.find((row) => row.toolId === 'supabase_local_fixture_harness')
+assert.equal(supabaseHarnessGateRow?.currentBlocker, 'not_a_model_or_media_execution_lane_on_this_branch')
+assert.equal(
+  supabaseHarnessGateRow?.safeNextCommand,
+  'npm run external-agent-tool-execute-supabase-harness',
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
@@ -142,7 +161,7 @@ assert.equal(
 )
 assert.equal(
   qwenGateRow?.requiredBeforeExecution.some((requirement) =>
-    requirement.includes('58DW-RETRY-2 result review'),
+    requirement.includes('58DX result review'),
   ),
   true,
 )
@@ -176,8 +195,8 @@ assert.equal(
 assert.equal(brollGateRow?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'us-central1')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'us-central1-b')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'us-west4')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'us-west4-c')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.noPublicIpRequired, true)
 assert.equal(brollGateRow?.noIdleLifecycleGate?.externalIpAllowed, false)
 assert.equal(brollGateRow?.noIdleLifecycleGate?.cleanupVerificationRequired, true)
@@ -187,6 +206,7 @@ assert.equal(brollGateRow?.noIdleLifecycleGate?.modelInferenceAllowedNow, false)
 for (const [flag, value] of Object.entries(gate.runtimeSideEffects)) {
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)
 }
+assert.equal(gate.recommendedNextPrompt, QWEN_READY_PROMPT)
 
 const cliSource = read(CLI_PATH)
 for (const forbidden of ['spawnSync', 'execSync', 'execFileSync', 'gcloud ', 'docker ', 'psql', 'from_pretrained', 'torch.']) {
@@ -202,15 +222,15 @@ const report = JSON.parse(output)
 assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
-assert.equal(report.staticExplicitToolGateReady, false)
-assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [])
+assert.equal(report.staticExplicitToolGateReady, true)
+assert.deepEqual(report.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.equal(report.requiresLivePreflightBeforeRuntime, true)
 assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, [])
-assert.equal(report.blockedToolIds.length, 4)
+assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(report.blockedToolIds.length, 3)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
@@ -218,17 +238,15 @@ const reportQwenGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'qwen2_5_vl_7b_instruct',
 )
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
-assert.equal(reportBrollGateRow.manualBlockerActions.length, 1)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(reportBrollGateRow.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].runsModel, false)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].createsAssets, false)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].changesQuotaRequest, true)
-assert.equal(reportBrollGateRow.manualBlockerActions[0].afterCompletionCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(
+  reportBrollGateRow.currentBlocker,
+  'bounded_no_idle_l4_iap_wheelhouse_payload_install_proof_us_west4_c_future_prompt_required',
+)
+assert.equal(
+  reportBrollGateRow.safeNextCommand,
+  'npm run smoke:ai-video-broll-gen-10i-no-idle-l4-iap-wheelhouse-transfer-proof-us-west4-c-result',
+)
+assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.externalIpAllowed, false)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.vmCreateAllowedNow, false)
@@ -240,7 +258,7 @@ const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
 })
 const requireGoReport = JSON.parse(String(requireGo.stdout))
 assert.equal(requireGoReport.requireGoMode, true)
-assert.equal(requireGoReport.staticExplicitToolGateReady, false)
+assert.equal(requireGoReport.staticExplicitToolGateReady, true)
 assert.equal(requireGoReport.executionAllowedNow, false)
 assert.equal(requireGo.status, 2)
 

@@ -11,8 +11,8 @@ const CLI_PATH = 'server/cli/external-agent-tool-next-command.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-next-command-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-next-command'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-next-command'
-const QWEN_RETRY_2_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
+const QWEN_READY_PROMPT =
+  'EXTERNAL-AGENT-TOOL-EXECUTION-READY-QWEN: Qwen controlled approved-fixture private inference is ready for the explicit external-agent gate; keep beta/production blocked'
 const QWEN_RESULT_REVIEW_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 const QWEN_AUTH_NEXT_PROMPT =
@@ -88,10 +88,98 @@ assert.equal(
   'npm run external-agent-tool-blockers:preflight',
 )
 assert.equal(
+  spec.nextCommandRules.whenBrollQuotaNeedsVerification,
+  'npm run ai-video-broll-wan-gpu-global-quota:verify',
+)
+assert.equal(
   spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked,
   QWEN_RESULT_REVIEW_PROMPT,
 )
-assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_RETRY_2_PROMPT)
+assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_READY_PROMPT)
+assert.deepEqual(spec.qwenBoundedExecutionCommand.args, [
+  'run',
+  'qwen2-5-vl-58dw-bounded-private-inference-retry',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(spec.qwenBoundedExecutionCommand.confirmationEnv, 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY')
+assert.equal(spec.qwenBoundedExecutionCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.qwenBoundedExecutionCommand.requiresLivePreflightPassed, true)
+assert.equal(spec.qwenBoundedExecutionCommand.requiresStaticExplicitToolGateReady, true)
+assert.equal(spec.qwenBoundedExecutionCommand.boundedApprovedFixtureOnly, true)
+assert.equal(spec.qwenBoundedExecutionCommand.createsGeneratedAssets, false)
+assert.equal(spec.qwenBoundedExecutionCommand.touchesSupabase, false)
+assert.equal(spec.qwenBoundedExecutionCommand.touchesSql, false)
+assert.equal(spec.qwenBoundedExecutionCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.brollWanExternalAgentProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.brollWanExternalAgentProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+)
+assert.equal(spec.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeAnyVmAction, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.createsComputeVm, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.runsModel, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.soundMusicAudioEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-sound',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.soundMusicAudioEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+)
+assert.equal(spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.runsProvider, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.runsMediaProcessing, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.createsGeneratedAudio, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.createsGeneratedAssets, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.touchesSupabase, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.touchesSql, false)
+assert.equal(spec.soundMusicAudioEvidenceCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.supabaseLocalHarnessEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-supabase-harness',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.supabaseLocalHarnessEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBeforeAnyRuntime, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.executesSql, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.createsRows, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.createsStorageObjects, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.createsSignedUrls, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.touchesSupabaseCloud, false)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.unlocksBetaOrProduction, false)
 
 for (const probe of spec.allowedProbeScripts) {
   assert.equal(probe.mutatesRuntime, false, `${probe.id} must not mutate runtime`)
@@ -156,9 +244,9 @@ const qwenGateSummary = gateToolSummaries.get('qwen2_5_vl_7b_instruct') as {
   }>
 }
 assert.equal(qwenGateSummary.executionAllowedNow, false)
-assert.equal(qwenGateSummary.staticExplicitToolGateReady, false)
-assert.equal(qwenGateSummary.currentBlocker, 'qwen_58dw_retry_2_result_review_required')
-assert.equal(qwenGateSummary.safeNextCommand, QWEN_RESULT_REVIEW_PROMPT)
+assert.equal(qwenGateSummary.staticExplicitToolGateReady, true)
+assert.equal(qwenGateSummary.currentBlocker, 'live_preflight_required_before_runtime')
+assert.equal(qwenGateSummary.safeNextCommand, 'npm run external-agent-tool-next-command')
 assert.equal(qwenGateSummary.manualBlockerActions.length, 0)
 const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') as {
   executionAllowedNow: boolean
@@ -188,31 +276,48 @@ const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') 
 }
 assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
-assert.equal(brollGateSummary.currentBlocker, 'gpus_all_regions_quota_zero_or_unverified')
-assert.equal(brollGateSummary.safeNextCommand, 'npm run external-agent-tool-blockers:preflight')
-assert.equal(brollGateSummary.manualBlockerActions.length, 1)
-assert.equal(brollGateSummary.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(brollGateSummary.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].runsModel, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].createsAssets, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
-assert.equal(brollGateSummary.manualBlockerActions[0].changesQuotaRequest, true)
 assert.equal(
-  brollGateSummary.manualBlockerActions[0].afterCompletionCommand,
-  'npm run external-agent-tool-blockers:preflight',
+  brollGateSummary.currentBlocker,
+  'bounded_no_idle_l4_iap_wheelhouse_payload_install_proof_us_west4_c_future_prompt_required',
 )
+assert.equal(
+  brollGateSummary.safeNextCommand,
+  'npm run smoke:ai-video-broll-gen-10i-no-idle-l4-iap-wheelhouse-transfer-proof-us-west4-c-result',
+)
+assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateSummary.noIdleLifecycleGate.noPublicIpRequired, true)
 assert.equal(brollGateSummary.noIdleLifecycleGate.externalIpAllowed, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.idleGpuAllowed, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(brollGateSummary.noIdleLifecycleGate.modelInferenceAllowedNow, false)
+const soundGateSummary = gateToolSummaries.get('sound_music_audio') as {
+  executionAllowedNow: boolean
+  staticExplicitToolGateReady: boolean
+  currentBlocker: string
+  safeNextCommand: string
+}
+assert.equal(soundGateSummary.executionAllowedNow, false)
+assert.equal(soundGateSummary.staticExplicitToolGateReady, false)
+assert.equal(soundGateSummary.currentBlocker, 'real_provider_worker_storage_track_qa_billing_export_handoffs_required')
+assert.equal(soundGateSummary.safeNextCommand, 'npm run external-agent-tool-execute-sound')
+const supabaseHarnessGateSummary = gateToolSummaries.get('supabase_local_fixture_harness') as {
+  executionAllowedNow: boolean
+  staticExplicitToolGateReady: boolean
+  currentBlocker: string
+  safeNextCommand: string
+}
+assert.equal(supabaseHarnessGateSummary.executionAllowedNow, false)
+assert.equal(supabaseHarnessGateSummary.staticExplicitToolGateReady, false)
+assert.equal(supabaseHarnessGateSummary.currentBlocker, 'not_a_model_or_media_execution_lane_on_this_branch')
+assert.equal(
+  supabaseHarnessGateSummary.safeNextCommand,
+  'npm run external-agent-tool-execute-supabase-harness',
+)
 assert.equal(
   decision.executionAllowedNow,
-  decision.executionGateAllowsRuntime && decision.qwenLivePreflightPassed,
+  (decision.executionGateAllowsRuntime || decision.staticExplicitToolGateReady) &&
+    decision.qwenLivePreflightPassed,
 )
 for (const summary of decision.executionGateToolSummaries as Array<{
   toolId: string
@@ -237,6 +342,95 @@ assert.equal(decision.probeSummaries.length >= 2, true)
 assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
+assert.equal(typeof decision.brollWanExternalAgentProofCommand, 'object')
+assert.deepEqual(decision.brollWanExternalAgentProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.brollWanExternalAgentProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+)
+assert.equal(decision.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeAnyVmAction, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.executionAllowedNow, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.runsModel, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.touchesSupabase, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.touchesSql, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.brollWanExternalAgentProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
+)
+assert.equal(typeof decision.soundMusicAudioEvidenceCommand, 'object')
+assert.deepEqual(decision.soundMusicAudioEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-sound',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.soundMusicAudioEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+)
+assert.equal(decision.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.soundMusicAudioEvidenceCommand.verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime, true)
+assert.equal(
+  decision.soundMusicAudioEvidenceCommand.verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime,
+  true,
+)
+assert.equal(decision.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
+assert.equal(decision.soundMusicAudioEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.runsProvider, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.runsMediaProcessing, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.createsGeneratedAudio, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.createsGeneratedAssets, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.touchesSupabase, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.touchesSql, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.soundMusicAudioEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-sound -- --execute --json',
+)
+assert.equal(typeof decision.supabaseLocalHarnessEvidenceCommand, 'object')
+assert.deepEqual(decision.supabaseLocalHarnessEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-supabase-harness',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.supabaseLocalHarnessEvidenceCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBeforeAnyRuntime, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executesSql, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.createsRows, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.createsStorageObjects, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.createsSignedUrls, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.touchesSupabaseCloud, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.supabaseLocalHarnessEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-supabase-harness -- --execute --json',
+)
 assert.equal(typeof decision.chosenManualAction, 'string')
 assert.equal(typeof decision.chosenNextCommand === 'string' || decision.chosenNextCommand === undefined, true)
 assert.equal(typeof decision.chosenNextCommandAlreadyExecutedInThisRun, 'boolean')
@@ -246,12 +440,32 @@ assert.equal(
     decision.codexRunnableNextCommandNow === undefined,
   true,
 )
-if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
+if (decision.qwenLivePreflightPassed && decision.staticExplicitToolGateReady) {
   assert.equal(decision.executionAllowedNow, true)
-  assert.equal(decision.chosenManualAction, QWEN_RETRY_2_PROMPT)
+  assert.equal(decision.chosenManualAction, QWEN_READY_PROMPT)
   assert.equal(decision.chosenNextCommand, undefined)
   assert.equal(decision.chosenNextCommandAlreadyExecutedInThisRun, false)
   assert.equal(decision.codexRunnableNextCommandNow, null)
+  assert.deepEqual(decision.qwenBoundedExecutionCommand.args, [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+  ])
+  assert.equal(decision.qwenBoundedExecutionCommand.confirmationEnv, 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY')
+  assert.equal(decision.qwenBoundedExecutionCommand.confirmationEnvRequiredValue, 'true')
+  assert.equal(decision.qwenBoundedExecutionCommand.requiresLivePreflightPassed, true)
+  assert.equal(decision.qwenBoundedExecutionCommand.requiresStaticExplicitToolGateReady, true)
+  assert.equal(decision.qwenBoundedExecutionCommand.boundedApprovedFixtureOnly, true)
+  assert.equal(decision.qwenBoundedExecutionCommand.createsGeneratedAssets, false)
+  assert.equal(decision.qwenBoundedExecutionCommand.touchesSupabase, false)
+  assert.equal(decision.qwenBoundedExecutionCommand.touchesSql, false)
+  assert.equal(decision.qwenBoundedExecutionCommand.unlocksBetaOrProduction, false)
+  assert.equal(
+    decision.qwenBoundedExecutionCommand.shellExample,
+    'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY=true npm run qwen2-5-vl-58dw-bounded-private-inference-retry -- --execute --json',
+  )
   assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.manualActionReason, undefined)
   assert.equal(decision.manualActionBlocksRuntime, undefined)
@@ -259,6 +473,7 @@ if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
   assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else if (decision.qwenLivePreflightPassed) {
   assert.equal(decision.executionAllowedNow, false)
+  assert.equal(decision.qwenBoundedExecutionCommand, null)
   assert.equal(decision.qwenLivePreflightVerificationRequired, true)
   assert.equal(
     decision.chosenNextCommand,
@@ -271,6 +486,7 @@ if (decision.qwenLivePreflightPassed && decision.executionGateAllowsRuntime) {
   assert.equal(decision.nextCodexCommandAfterManualAction, undefined)
 } else {
   assert.equal(decision.executionAllowedNow, false)
+  assert.equal(decision.qwenBoundedExecutionCommand, null)
   assert.equal(
     decision.chosenNextCommand,
     decision.qwenAuthRefreshPassed

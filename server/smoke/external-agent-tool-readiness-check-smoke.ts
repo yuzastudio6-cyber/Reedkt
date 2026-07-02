@@ -77,11 +77,11 @@ assert.equal(summary.supabaseTouched, false)
 assert.equal(summary.sqlExecuted, false)
 assert.equal(summary.modelInferenceRun, false)
 assert.equal(summary.generatedAssetsCreated, false)
-assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
-assert.deepEqual(summary.readyToolIds, [])
-assert.deepEqual(summary.staticExplicitToolGateReadyToolIds, [])
-assert.equal(summary.livePreflightRequiredBeforeRuntime, false)
-assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length)
+assert.equal(summary.readyForAnyExternalAgentExecutionNow, true)
+assert.deepEqual(summary.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.deepEqual(summary.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(summary.livePreflightRequiredBeforeRuntime, true)
+assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length - 1)
 assert.deepEqual(summary.missingEvidence, [])
 assert.deepEqual(summary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
 assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
@@ -94,39 +94,31 @@ assert.equal(
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('qwen2_5_vl_7b_instruct'),
-  false,
+  true,
 )
 assert.equal(
   summary.retryReadyAfterBlockerClearsToolIds.includes('ai_video_broll_generation_wan'),
-  true,
+  false,
 )
 assert.deepEqual(summary.noIdleLifecycleGateToolIds, ['ai_video_broll_generation_wan'])
 assert.equal(summary.noIdleLifecycleGates.length, 1)
 assert.equal(summary.noIdleLifecycleGates[0].toolId, 'ai_video_broll_generation_wan')
 assert.equal(summary.noIdleLifecycleGates[0].gate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-4')
-assert.equal(summary.noIdleLifecycleGates[0].gate.targetRegion, 'us-central1')
-assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'us-central1-b')
+assert.equal(summary.noIdleLifecycleGates[0].gate.targetRegion, 'us-west4')
+assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'us-west4-c')
 assert.equal(summary.noIdleLifecycleGates[0].gate.noPublicIpRequired, true)
 assert.equal(summary.noIdleLifecycleGates[0].gate.externalIpAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, true)
 assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
-assert.deepEqual(summary.manualBlockerActionToolIds, ['ai_video_broll_generation_wan'])
+assert.deepEqual(summary.manualBlockerActionToolIds, [])
 
 const blockersByTool = new Map(
   summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),
 )
-assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), true)
-const qwenBlocker = blockersByTool.get('qwen2_5_vl_7b_instruct') as {
-  blocker: string
-  nextAction: string
-  manualBlockerActions: unknown[]
-}
-assert.equal(qwenBlocker.blocker, 'qwen_58dw_retry_2_result_review_required')
-assert.equal(qwenBlocker.nextAction, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt)
-assert.deepEqual(qwenBlocker.manualBlockerActions, [])
+assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), false)
 
 const brollBlocker = blockersByTool.get('ai_video_broll_generation_wan') as {
   manualBlockerActions: Array<{
@@ -142,20 +134,7 @@ const brollBlocker = blockersByTool.get('ai_video_broll_generation_wan') as {
     afterCompletionCommand: string
   }>
 }
-assert.equal(brollBlocker.manualBlockerActions.length, 1)
-assert.equal(brollBlocker.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(brollBlocker.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(brollBlocker.manualBlockerActions[0].runsModel, false)
-assert.equal(brollBlocker.manualBlockerActions[0].createsAssets, false)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesLocalGcloudAuth, false)
-assert.equal(brollBlocker.manualBlockerActions[0].mutatesLocalGcloudConfig, false)
-assert.equal(brollBlocker.manualBlockerActions[0].changesQuotaRequest, true)
-assert.equal(
-  brollBlocker.manualBlockerActions[0].afterCompletionCommand,
-  'npm run external-agent-tool-blockers:preflight',
-)
+assert.equal(brollBlocker.manualBlockerActions.length, 0)
 
 for (const blocker of summary.blockers as Array<{
   toolId: string

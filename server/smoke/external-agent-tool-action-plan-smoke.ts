@@ -93,16 +93,16 @@ assert.equal(plan.decision, rollup.decision)
 assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
-assert.equal(plan.readyForAnyExternalAgentExecutionNow, false)
-assert.deepEqual(plan.readyToolIds, [])
-assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [])
-assert.equal(plan.livePreflightRequiredBeforeRuntime, false)
-assert.equal(plan.blockedToolCount, rollup.tools.length)
+assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
+assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
+assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
-assert.equal(plan.manualBlockers.length, rollup.tools.length)
+assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
 assert.equal(plan.sourceRules.approvedSnapshotRequired, true)
 assert.equal(plan.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
@@ -128,11 +128,11 @@ const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
 assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
-assert.equal(qwen.externalManualBlocker.includes('bounded 58DW retry-2'), true)
-assert.equal(qwen.externalManualBlocker.includes('result review'), true)
+assert.equal(qwen.externalManualBlocker.includes('58DX result review accepted'), true)
+assert.equal(qwen.externalManualBlocker.includes('live preflight is still required'), true)
 assert.equal(
   qwen.forbiddenRuntimeActions.some((action) =>
-    action.includes('do not run inference again before the 58DW retry-2 result review is accepted'),
+    action.includes('do not run inference outside the bounded approved-fixture Qwen gate'),
   ),
   true,
 )
@@ -172,24 +172,18 @@ const broll = toolActions.get('ai_video_broll_generation_wan') as {
 assert.equal(broll.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
+assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
-assert.equal(broll.externalManualBlocker.includes('GPUS_ALL_REGIONS'), true)
-assert.equal(broll.externalManualBlocker.includes('Google Cloud Console'), true)
+assert.equal(broll.externalManualBlocker.includes('10I passed'), true)
+assert.equal(broll.externalManualBlocker.includes('10J bounded proof prompt'), true)
+assert.equal(broll.externalManualBlocker.includes('us-west4-c'), true)
 assert.equal(broll.externalManualBlocker.includes('do not create VMs'), true)
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
-assert.equal(broll.manualBlockerActions.length, 1)
-assert.equal(broll.manualBlockerActions[0].id, 'request_gpus_all_regions_quota_in_console')
-assert.equal(broll.manualBlockerActions[0].runInsideCodex, false)
-assert.equal(broll.manualBlockerActions[0].mutatesRuntime, false)
-assert.equal(broll.manualBlockerActions[0].runsModel, false)
-assert.equal(broll.manualBlockerActions[0].createsAssets, false)
-assert.equal(broll.manualBlockerActions[0].mutatesCloud, true)
-assert.equal(broll.manualBlockerActions[0].changesQuotaRequest, true)
-assert.equal(broll.manualBlockerActions[0].afterCompletionCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(broll.manualBlockerActions.length, 0)
 assert.equal(broll.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-4')
-assert.equal(broll.noIdleLifecycleGate.targetRegion, 'us-central1')
-assert.equal(broll.noIdleLifecycleGate.targetZone, 'us-central1-b')
+assert.equal(broll.noIdleLifecycleGate.targetRegion, 'us-west4')
+assert.equal(broll.noIdleLifecycleGate.targetZone, 'us-west4-c')
 assert.equal(broll.noIdleLifecycleGate.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(broll.noIdleLifecycleGate.minimumRegionalL4Quota, 1)
 assert.equal(broll.noIdleLifecycleGate.noPublicIpRequired, true)
@@ -198,6 +192,31 @@ assert.equal(broll.noIdleLifecycleGate.cleanupVerificationRequired, true)
 assert.equal(broll.noIdleLifecycleGate.idleGpuAllowed, false)
 assert.equal(broll.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(broll.noIdleLifecycleGate.modelInferenceAllowedNow, false)
+
+const sound = toolActions.get('sound_music_audio') as {
+  immediateSafeActions: string[]
+  externalManualBlocker: string
+  manualBlockerActions: unknown[]
+}
+assert.equal(sound.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
+assert.equal(sound.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
+assert.equal(sound.immediateSafeActions.includes('npm run external-agent-tool-execute-sound'), true)
+assert.equal(sound.externalManualBlocker.includes('runtime owner handoffs still required'), true)
+assert.equal(sound.manualBlockerActions.length, 0)
+
+const supabaseHarness = toolActions.get('supabase_local_fixture_harness') as {
+  immediateSafeActions: string[]
+  externalManualBlocker: string
+  manualBlockerActions: unknown[]
+}
+assert.equal(supabaseHarness.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
+assert.equal(supabaseHarness.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
+assert.equal(
+  supabaseHarness.immediateSafeActions.includes('npm run external-agent-tool-execute-supabase-harness'),
+  true,
+)
+assert.equal(supabaseHarness.externalManualBlocker.includes('not a model or media execution lane'), true)
+assert.equal(supabaseHarness.manualBlockerActions.length, 0)
 
 for (const toolAction of plan.toolActions as Array<{ toolId: string; immediateSafeActions: string[] }>) {
   assert.equal(

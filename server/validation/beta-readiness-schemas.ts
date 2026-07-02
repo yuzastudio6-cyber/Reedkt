@@ -179,9 +179,115 @@ export const betaReadinessPlatformSupabaseDeployedProbeSchema = z.object({
   confirmRecordEvidence: z.boolean().optional(),
 }).strict()
 
+const productionEvidenceNotesSchema = z.object({
+  notes: z.array(noteSchema).min(1).max(20),
+}).strict()
+
+const productionSupabasePersistenceEvidenceSchema = productionEvidenceNotesSchema.extend({
+  environment: z.enum(['staging', 'production']),
+  toolCostEventsMigrationDeployed: z.boolean(),
+  betaReadinessEvidenceMigrationDeployed: z.boolean(),
+  serviceRoleWritePathVerified: z.boolean(),
+  rlsMemberReadPathVerified: z.boolean(),
+  backupPitrApproved: z.boolean(),
+  securityAdvisorReviewed: z.boolean(),
+  performanceAdvisorReviewed: z.boolean(),
+  storagePoliciesVerified: z.boolean(),
+}).strict()
+
+const productionToolCostLedgerEvidenceSchema = productionEvidenceNotesSchema.extend({
+  toolCostEventWriteVerified: z.boolean(),
+  ledgerAppendOnlyVerified: z.boolean(),
+  idempotentReplayVerified: z.boolean(),
+  projectSummaryReadbackVerified: z.boolean(),
+}).strict()
+
+const productionWalletSettlementEvidenceSchema = productionEvidenceNotesSchema.extend({
+  reservationVerified: z.boolean(),
+  spendVerified: z.boolean(),
+  releaseVerified: z.boolean(),
+  refundVerified: z.boolean(),
+  settlementRpcVerified: z.boolean(),
+  idempotentSettlementReplayVerified: z.boolean(),
+  noSilentChargeVerified: z.boolean(),
+}).strict()
+
+const productionStripeBoundaryEvidenceSchema = productionEvidenceNotesSchema.extend({
+  billingOwnerApproved: z.boolean(),
+  noStripeFromToolCostSurface: z.boolean(),
+  serviceFeeExcludedFromToolEvents: z.boolean(),
+  stripeWebhookSeparatedFromToolLedger: z.boolean(),
+}).strict()
+
+const productionObservabilityEvidenceSchema = productionEvidenceNotesSchema.extend({
+  dashboardsDeployed: z.boolean(),
+  alertsDeployed: z.boolean(),
+  alertRoutingVerified: z.boolean(),
+  billingQaMonitoringVerified: z.boolean(),
+}).strict()
+
+const productionOperationsControlEvidenceSchema = productionEvidenceNotesSchema.extend({
+  rollbackPlanApproved: z.boolean(),
+  killSwitchesVerified: z.boolean(),
+  rateLimitsVerified: z.boolean(),
+  concurrencyLimitsVerified: z.boolean(),
+  incidentRunbookApproved: z.boolean(),
+}).strict()
+
+const productionToolEvidenceSchema = productionEvidenceNotesSchema.extend({
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  allProductionToolsAccepted: z.boolean(),
+  modelWeightLicenseReviewApproved: z.boolean(),
+}).strict()
+
+const productionHardSafetyEvidenceSchema = productionEvidenceNotesSchema.extend({
+  approvedPlanSnapshotRequired: z.boolean(),
+  creditEstimateAndReservationRequired: z.boolean(),
+  idempotencyRequired: z.boolean(),
+  rawPromptsRejected: z.boolean(),
+  secretsRejected: z.boolean(),
+  temporaryAccessLinksRejectedAsSourceTruth: z.boolean(),
+  frontendHeavyExecutionBlocked: z.boolean(),
+  licenseAndModelWeightReviewRequired: z.boolean(),
+  silentBillingBlocked: z.boolean(),
+}).strict()
+
+const productionFinalOwnerSignoffEvidenceSchema = productionEvidenceNotesSchema.extend({
+  deploymentOwnerApproved: z.boolean(),
+  securityOwnerApproved: z.boolean(),
+  storagePrivacyOwnerApproved: z.boolean(),
+  legalOwnerApproved: z.boolean(),
+  supportOwnerApproved: z.boolean(),
+  billingOwnerApproved: z.boolean(),
+  operationsOwnerApproved: z.boolean(),
+  realUserMediaBetaApproved: z.boolean(),
+  privateMediaApproval: z.boolean(),
+  artifactPrivacyEvidenceReady: z.boolean(),
+  paidProductionApproved: z.boolean(),
+  finalDeliveryShareApproved: z.boolean(),
+}).strict()
+
+export const productionToolExecutionReadinessGateSchema = z.object({
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  workspaceId: idSchema,
+  projectId: idSchema,
+  supabasePersistence: productionSupabasePersistenceEvidenceSchema.optional(),
+  toolCostLedger: productionToolCostLedgerEvidenceSchema.optional(),
+  walletSettlement: productionWalletSettlementEvidenceSchema.optional(),
+  stripeBoundary: productionStripeBoundaryEvidenceSchema.optional(),
+  observability: productionObservabilityEvidenceSchema.optional(),
+  operationsControls: productionOperationsControlEvidenceSchema.optional(),
+  toolEvidence: productionToolEvidenceSchema.optional(),
+  hardSafety: productionHardSafetyEvidenceSchema.optional(),
+  finalOwnerSignoff: productionFinalOwnerSignoffEvidenceSchema.optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
 export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>
 export type BetaReadinessCoreRealCheckEvidenceBody = z.infer<typeof betaReadinessCoreRealCheckEvidenceSchema>
 export type BetaReadinessPlatformBillingQaBody = z.infer<typeof betaReadinessPlatformBillingQaSchema>
 export type BetaReadinessPlatformDeployedEvidenceBody = z.infer<typeof betaReadinessPlatformDeployedEvidenceSchema>
 export type BetaReadinessPlatformSupabaseDeployedProbeBody = z.infer<typeof betaReadinessPlatformSupabaseDeployedProbeSchema>
+export type ProductionToolExecutionReadinessGateBody = z.infer<typeof productionToolExecutionReadinessGateSchema>

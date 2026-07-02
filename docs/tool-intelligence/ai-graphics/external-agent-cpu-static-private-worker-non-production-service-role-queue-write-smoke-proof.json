@@ -91,13 +91,12 @@
       "--approved-plan-snapshot-id",
       "--credit-reservation-id",
       "--idempotency-prefix",
-      "--source-live-adapter-queue-write-proof-packet",
+      "--source-non-production-service-role-queue-write-smoke-preflight-packet",
       "--service-role-boundary-ref",
+      "--private-evidence-ref",
       "--telemetry-ref",
       "--cleanup-proof-ref",
       "--rollback-ref",
-      "--source-non-production-service-role-queue-write-smoke-preflight-packet",
-      "--private-evidence-ref",
       "--output-result"
     ],
     "requiredResultFields": [

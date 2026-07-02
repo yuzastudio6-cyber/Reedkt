@@ -25,6 +25,22 @@ const proofTools: AiGraphicsCanonicalToolId[] = [
   'viz_js',
 ]
 
+const queueWriteSmokeRunnerRequiredFlags = [
+  '--execute-ai-graphics-external-agent-cpu-static-service-role-queue-write-smoke',
+  '--workspace-id',
+  '--project-id',
+  '--approved-plan-snapshot-id',
+  '--credit-reservation-id',
+  '--idempotency-prefix',
+  '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+  '--service-role-boundary-ref',
+  '--private-evidence-ref',
+  '--telemetry-ref',
+  '--cleanup-proof-ref',
+  '--rollback-ref',
+  '--output-result',
+]
+
 const productFacingCapabilities = AI_GRAPHICS_TOOL_CALL_CAPABILITY_IDS.filter(
   (capabilityId) =>
     capabilityId !== 'planning_metadata_only' &&
@@ -453,12 +469,7 @@ function operatorResultTemplateFor(input: {
     expectedWorkerExecutionsPerformed: 0,
     expectedToolExecutionsPerformed: 0,
     requiredEnvironment: [...(firstContract?.requiredEnvironment ?? [])],
-    requiredFlags: Array.from(new Set([
-      ...(firstContract?.requiredFlags ?? []),
-      '--source-non-production-service-role-queue-write-smoke-preflight-packet',
-      '--private-evidence-ref',
-      '--output-result',
-    ])),
+    requiredFlags: [...queueWriteSmokeRunnerRequiredFlags],
     requiredResultFields: [
       'ok',
       'decision',

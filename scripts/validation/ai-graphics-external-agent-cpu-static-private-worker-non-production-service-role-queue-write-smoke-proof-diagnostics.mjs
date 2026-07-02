@@ -231,14 +231,28 @@ function assertOperatorTemplate(label, template) {
     '--approved-plan-snapshot-id',
     '--credit-reservation-id',
     '--idempotency-prefix',
-    '--source-live-adapter-queue-write-proof-packet',
+    '--source-non-production-service-role-queue-write-smoke-preflight-packet',
     '--service-role-boundary-ref',
+    '--private-evidence-ref',
     '--telemetry-ref',
     '--cleanup-proof-ref',
     '--rollback-ref',
+    '--output-result',
   ]) {
     if (!template.requiredFlags?.includes(flag)) {
       fail(`${label}_operator_template_missing_flag:${flag}`)
+    }
+  }
+  if (template.requiredFlags?.includes('--source-live-adapter-queue-write-proof-packet')) {
+    fail(`${label}_operator_template_contains_stale_live_adapter_flag`)
+  }
+  for (const commandKey of ['operatorPreflightCommand', 'runnerCommand']) {
+    const command = String(template[commandKey] ?? '')
+    if (!command.includes('--source-non-production-service-role-queue-write-smoke-preflight-packet')) {
+      fail(`${label}_operator_template_${commandKey}_missing_source_preflight_flag`)
+    }
+    if (command.includes('--source-live-adapter-queue-write-proof-packet')) {
+      fail(`${label}_operator_template_${commandKey}_contains_stale_live_adapter_flag`)
     }
   }
   for (const field of [

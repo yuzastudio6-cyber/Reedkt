@@ -25,6 +25,8 @@ const routeBrowserRuntimeControlledExecutionSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics'
 const routeGpuModelRuntimeAdmissionSmokeCommand =
   'npm run ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics'
+const routeMockQueueWorkerClaimSmokeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics'
 const nativeGpuProofCollectionCommand =
   'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
 const satoriFontProofCommand =
@@ -205,6 +207,7 @@ const trueBooleanKeys = [
   'sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted',
   'sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted',
   'sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted',
+  'sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted',
   'externalAgentCanExecuteControlledRouteToolsNow',
   'routeReadinessProbeAcceptedWithProvidedEvidence',
   'agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow',
@@ -213,6 +216,9 @@ const trueBooleanKeys = [
   'sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
   'sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
   'eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence',
+  'all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence',
+  'all21RouteAdmittedMockJobsClaimedWithProvidedEvidence',
+  'mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked',
   'controlledRouteExecutionSmokeKeepsBroadExecutionBlocked',
   'gpuModelUnblockPlanAcceptedWithProvidedEvidence',
   'allEightGpuModelToolsHaveActionableUnblockPlan',
@@ -244,6 +250,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-cpu-static-controlled-execution-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/index.ts',
   'package.json',
@@ -825,6 +832,30 @@ if (docs.counts?.gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence !== 8)
 if (docs.counts?.gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence !== 0) {
   fail('docs_gpu_runtime_start_allowed_for_external_beta_job_not_0')
 }
+if (docs.counts?.mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_mock_queue_worker_claim_smoke_accepted_not_21')
+}
+if (docs.counts?.mockQueueInsertedJobsWithProvidedEvidence !== 21) {
+  fail('docs_mock_queue_inserted_jobs_not_21')
+}
+if (docs.counts?.mockWorkerClaimsCreatedWithProvidedEvidence !== 21) {
+  fail('docs_mock_worker_claims_created_not_21')
+}
+if (docs.counts?.mockWorkerLeaseSecondsWithProvidedEvidence !== 900) {
+  fail('docs_mock_worker_lease_seconds_not_900')
+}
+if (docs.counts?.mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_live_queue_write_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_worker_dispatch_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_tool_execution_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_gpu_runtime_start_not_0')
+}
 if (docs.counts?.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 8) {
   fail('docs_gpu_model_route_blocked_with_readiness_probe_not_8')
 }
@@ -928,6 +959,16 @@ for (const phrase of [
   'gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence: `8`',
   'gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence: `8`',
   'gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence: `0`',
+  'Mock queue worker-claim smoke accepted: `true`',
+  'mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence: `21`',
+  'mockQueueInsertedJobsWithProvidedEvidence: `21`',
+  'mockWorkerClaimsCreatedWithProvidedEvidence: `21`',
+  'mockWorkerLeaseSecondsWithProvidedEvidence: `900`',
+  'mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence: `0`',
+  'mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence: `0`',
+  'mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence: `0`',
+  'mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  routeMockQueueWorkerClaimSmokeCommand,
   routeCpuStaticControlledExecutionSmokeCommand,
   routeBrowserRuntimeControlledExecutionSmokeCommand,
   routeGpuModelRuntimeAdmissionSmokeCommand,
@@ -1105,6 +1146,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.json',
   '--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
+  '--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -1292,6 +1335,12 @@ if (
 ) {
   fail('accepted_report_gpu_model_runtime_admission_smoke_source_not_true')
 }
+if (
+  acceptedSourceReport.sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted !==
+  true
+) {
+  fail('accepted_report_mock_queue_worker_claim_smoke_source_not_true')
+}
 if (acceptedSourceReport.controlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 13) {
   fail('accepted_report_controlled_canonical_route_executed_not_13')
 }
@@ -1315,6 +1364,30 @@ if (acceptedSourceReport.gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidenc
 }
 if (acceptedSourceReport.gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence !== 0) {
   fail('accepted_report_gpu_runtime_start_allowed_for_external_beta_job_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_mock_queue_worker_claim_smoke_accepted_not_21')
+}
+if (acceptedSourceReport.mockQueueInsertedJobsWithProvidedEvidence !== 21) {
+  fail('accepted_report_mock_queue_inserted_jobs_not_21')
+}
+if (acceptedSourceReport.mockWorkerClaimsCreatedWithProvidedEvidence !== 21) {
+  fail('accepted_report_mock_worker_claims_created_not_21')
+}
+if (acceptedSourceReport.mockWorkerLeaseSecondsWithProvidedEvidence !== 900) {
+  fail('accepted_report_mock_worker_lease_seconds_not_900')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_live_queue_write_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_worker_dispatch_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_tool_execution_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_gpu_runtime_start_not_0')
 }
 if (acceptedSourceReport.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 8) {
   fail('accepted_report_gpu_model_route_blocked_with_readiness_probe_not_8')

@@ -69,6 +69,8 @@ The gateway uses the Milestone 3 cost/credit assertion:
 
 Over-budget requests must go back through a revised estimate and reservation approval path before dispatch.
 
+For `production_ready`, post-dispatch billing audit uses the persistent service-role tool-cost path only after the supplied production evidence proves deployed Supabase migrations, explicit Data API grants, backend-only beta evidence access, authenticated RLS readback, and service-role-only settlement RPC execution. Missing deployed persistence evidence blocks before worker dispatch or billing audit.
+
 ## Production Ops Controls
 
 `production_ready` dispatch is not allowed to rely only on a user-supplied readiness packet. Immediately before a new worker dispatch, the gateway checks backend-owned operations controls:

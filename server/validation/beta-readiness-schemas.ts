@@ -189,6 +189,8 @@ const productionSupabasePersistenceEvidenceSchema = productionEvidenceNotesSchem
   betaReadinessEvidenceMigrationDeployed: z.boolean(),
   serviceRoleWritePathVerified: z.boolean(),
   rlsMemberReadPathVerified: z.boolean(),
+  explicitDataApiGrantsVerified: z.boolean(),
+  betaEvidenceBackendOnlyAccessVerified: z.boolean(),
   backupPitrApproved: z.boolean(),
   securityAdvisorReviewed: z.boolean(),
   performanceAdvisorReviewed: z.boolean(),
@@ -208,6 +210,7 @@ const productionWalletSettlementEvidenceSchema = productionEvidenceNotesSchema.e
   releaseVerified: z.boolean(),
   refundVerified: z.boolean(),
   settlementRpcVerified: z.boolean(),
+  settlementRpcServiceRoleOnlyVerified: z.boolean(),
   idempotentSettlementReplayVerified: z.boolean(),
   noSilentChargeVerified: z.boolean(),
 }).strict()

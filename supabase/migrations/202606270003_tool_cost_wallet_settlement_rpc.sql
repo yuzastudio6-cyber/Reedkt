@@ -36,12 +36,21 @@ create index if not exists idx_tool_cost_wallet_settlements_tool_cost_event
 
 alter table public.tool_cost_wallet_settlements enable row level security;
 
+grant usage on schema public to authenticated;
+grant usage on schema public to service_role;
+revoke all on table public.tool_cost_wallet_settlements from anon;
+revoke all on table public.tool_cost_wallet_settlements from authenticated;
+revoke all on table public.tool_cost_wallet_settlements from service_role;
+grant select on table public.tool_cost_wallet_settlements to authenticated;
+grant select, insert on table public.tool_cost_wallet_settlements to service_role;
+
 drop policy if exists "tool_cost_wallet_settlements_select_workspace_member" on public.tool_cost_wallet_settlements;
 create policy "tool_cost_wallet_settlements_select_workspace_member" on public.tool_cost_wallet_settlements
 for select to authenticated
 using (public.is_workspace_member(workspace_id) and public.is_project_member(project_id));
 
 -- Inserts are intentionally backend/service-role only. No authenticated insert/update/delete policy is created.
+-- Explicit grants are required for Supabase Data API compatibility; RLS still limits authenticated selects.
 
 create or replace function public.settle_tool_cost_event(
   p_idempotency_key text,
@@ -202,3 +211,8 @@ $$;
 
 comment on function public.settle_tool_cost_event(text, text, text) is
 'Idempotently settles a billable tool_cost_events row into credit_ledger_entries. Requires service-role/backend use and does not call Stripe or include ReEditPro service/edit fees.';
+
+revoke all on function public.settle_tool_cost_event(text, text, text) from public;
+revoke all on function public.settle_tool_cost_event(text, text, text) from anon;
+revoke all on function public.settle_tool_cost_event(text, text, text) from authenticated;
+grant execute on function public.settle_tool_cost_event(text, text, text) to service_role;

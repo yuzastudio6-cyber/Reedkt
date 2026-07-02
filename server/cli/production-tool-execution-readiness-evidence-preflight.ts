@@ -15,6 +15,8 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED?: string
   REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED?: string
+  REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED?: string
+  REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED?: string
   REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED?: string
   REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED?: string
@@ -30,6 +32,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED?: string
+  REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_NOTES?: string
@@ -163,6 +166,8 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       betaReadinessEvidenceMigrationDeployed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED),
       serviceRoleWritePathVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED),
       rlsMemberReadPathVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED),
+      explicitDataApiGrantsVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED),
+      betaEvidenceBackendOnlyAccessVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED),
       backupPitrApproved: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED),
       securityAdvisorReviewed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED),
       performanceAdvisorReviewed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED),
@@ -182,6 +187,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       releaseVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED),
       refundVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED),
       settlementRpcVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED),
+      settlementRpcServiceRoleOnlyVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED),
       idempotentSettlementReplayVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED),
       noSilentChargeVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED),
       notes: noteList(env.REEDITPRO_PRODUCTION_WALLET_NOTES),
@@ -277,6 +283,8 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED', requiredFor: 'production_evidence' },
@@ -292,6 +300,7 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_NOTES', requiredFor: 'production_evidence' },

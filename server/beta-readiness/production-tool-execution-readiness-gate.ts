@@ -22,6 +22,8 @@ export interface ProductionSupabasePersistenceEvidence extends ProductionToolExe
   betaReadinessEvidenceMigrationDeployed: boolean
   serviceRoleWritePathVerified: boolean
   rlsMemberReadPathVerified: boolean
+  explicitDataApiGrantsVerified: boolean
+  betaEvidenceBackendOnlyAccessVerified: boolean
   backupPitrApproved: boolean
   securityAdvisorReviewed: boolean
   performanceAdvisorReviewed: boolean
@@ -41,6 +43,7 @@ export interface ProductionWalletSettlementEvidence extends ProductionToolExecut
   releaseVerified: boolean
   refundVerified: boolean
   settlementRpcVerified: boolean
+  settlementRpcServiceRoleOnlyVerified: boolean
   idempotentSettlementReplayVerified: boolean
   noSilentChargeVerified: boolean
 }
@@ -258,6 +261,8 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.supabasePersistence?.betaReadinessEvidenceMigrationDeployed, 'beta_readiness_evidence migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.serviceRoleWritePathVerified, 'service-role write path is unverified.'),
       requireBoolean(input.supabasePersistence?.rlsMemberReadPathVerified, 'authenticated RLS member readback is unverified.'),
+      requireBoolean(input.supabasePersistence?.explicitDataApiGrantsVerified, 'explicit Supabase Data API grants are unverified.'),
+      requireBoolean(input.supabasePersistence?.betaEvidenceBackendOnlyAccessVerified, 'backend-only beta evidence access is unverified.'),
       requireBoolean(input.supabasePersistence?.backupPitrApproved, 'backup/PITR approval is missing.'),
       requireBoolean(input.supabasePersistence?.securityAdvisorReviewed, 'Supabase Security Advisor review is missing.'),
       requireBoolean(input.supabasePersistence?.performanceAdvisorReviewed, 'Supabase Performance Advisor review is missing.'),
@@ -279,6 +284,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.walletSettlement?.releaseVerified, 'wallet release verification is missing.'),
       requireBoolean(input.walletSettlement?.refundVerified, 'wallet refund verification is missing.'),
       requireBoolean(input.walletSettlement?.settlementRpcVerified, 'settlement RPC verification is missing.'),
+      requireBoolean(input.walletSettlement?.settlementRpcServiceRoleOnlyVerified, 'settlement RPC service-role-only execution is unverified.'),
       requireBoolean(input.walletSettlement?.idempotentSettlementReplayVerified, 'idempotent settlement replay is missing.'),
       requireBoolean(input.walletSettlement?.noSilentChargeVerified, 'no-silent-charge verification is missing.'),
       requireNotes(input.walletSettlement?.notes, 'Wallet settlement evidence notes are missing.'),
@@ -408,6 +414,8 @@ function isSupabasePersistenceReady(input: ProductionToolExecutionReadinessGateI
     evidence.betaReadinessEvidenceMigrationDeployed &&
     evidence.serviceRoleWritePathVerified &&
     evidence.rlsMemberReadPathVerified &&
+    evidence.explicitDataApiGrantsVerified &&
+    evidence.betaEvidenceBackendOnlyAccessVerified &&
     evidence.backupPitrApproved &&
     evidence.securityAdvisorReviewed &&
     evidence.performanceAdvisorReviewed &&
@@ -431,6 +439,7 @@ function isWalletSettlementReady(input: ProductionToolExecutionReadinessGateInpu
     evidence.releaseVerified &&
     evidence.refundVerified &&
     evidence.settlementRpcVerified &&
+    evidence.settlementRpcServiceRoleOnlyVerified &&
     evidence.idempotentSettlementReplayVerified &&
     evidence.noSilentChargeVerified &&
     evidence.notes.length > 0)

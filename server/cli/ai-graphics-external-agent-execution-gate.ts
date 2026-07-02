@@ -5,6 +5,7 @@ import {
   type AiGraphicsExternalAgentExecutionGateInput,
   type AiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket,
+  type AiGraphicsExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket,
@@ -132,6 +133,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacket>>(
       '--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet',
     ),
+  sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokePacket:
+    readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokePacket>>(
+      '--external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-packet',
+    ),
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket:
     readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket>>(
       '--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet',
@@ -188,6 +193,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-packet')),
     externalBetaToolCallRouteGpuModelRuntimeAdmissionSmokePacketRead:
       Boolean(valueAfterFlag('--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet')),
+    externalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokePacketRead:
+      Boolean(valueAfterFlag('--external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-packet')),
     externalBetaToolCallRouteMockQueueWorkerClaimSmokePacketRead:
       Boolean(valueAfterFlag('--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet')),
     externalAgentToolAdapterAuthorizationPacketRead:

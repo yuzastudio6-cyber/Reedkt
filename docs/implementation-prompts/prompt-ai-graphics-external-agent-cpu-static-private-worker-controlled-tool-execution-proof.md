@@ -12,6 +12,7 @@ Decision: `ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_
 ## Result
 
 - `5` CPU/static tools have controlled proof accepted from Phase 0 local execution evidence.
+- Source worker claim/dispatch smoke proof accepted tools in the checked-in default dry-run source: `0`. The diagnostic verifies the alternate newer worker claim/dispatch-sourced dry-run path preserves `5/5` lineage refs without approving execution.
 - `5` exact request contracts preserve approved plan snapshot fixture refs, credit reservation fixture refs, private artifact manifest refs, queue idempotency keys, dry dispatch idempotency keys, dry tool execution idempotency keys, controlled tool execution idempotency keys, source dispatch refs, adapter dry-run refs, input contract refs, output contract refs, result schema refs, QA gate refs, and private artifact visibility.
 - `1` Satori remains blocked pending approved font fixture proof.
 - `15` browser/GPU/model tools remain deferred by runtime boundary.

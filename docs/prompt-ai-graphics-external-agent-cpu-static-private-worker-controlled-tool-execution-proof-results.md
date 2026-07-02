@@ -6,6 +6,8 @@
 - Decision: `ai_graphics_external_agent_cpu_static_private_worker_controlled_tool_execution_proof_prepared_with_runtime_blocks`
 - Controlled tool execution proofs accepted: `5`
 - Source tool execution dry-run proofs prepared: `5`
+- Source worker claim/dispatch smoke proof accepted tools: `0`
+- Claim/dispatch-source preservation note: default checked-in source remains dispatch-smoke lineage; diagnostic verifies `5/5` preservation for the alternate worker claim/dispatch-sourced dry-run packet.
 - Source Phase 0 proof-passed tools: `5`
 - Exact request contracts accepted: `5`
 - Private output manifests accepted: `5`

@@ -95,6 +95,9 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExec
   sourceToolExecutionDryRunStatus: string | null
   sourceToolExecutionDryRunProofPrepared: boolean
   sourceDryRunContractAccepted: boolean
+  sourceWorkerClaimAndDispatchSmokeProofStatus: string | null
+  sourceWorkerClaimAndDispatchSmokeProofAccepted: boolean
+  sourceWorkerClaimAndDispatchEvidenceAccepted: boolean
   phase0Status: string | null
   phase0ImportStatus: string | null
   phase0FixtureStatus: string | null
@@ -178,6 +181,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExec
     totalAiGraphicsTools: 21
     controlledToolExecutionProofAcceptedTools: number
     sourceToolExecutionDryRunProofPreparedTools: number
+    sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: number
     sourcePhase0ProofPassedTools: number
     exactRequestContractsAcceptedTools: number
     privateOutputManifestAcceptedTools: number
@@ -205,6 +209,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExec
   booleans: {
     externalAgentCpuStaticPrivateWorkerControlledToolExecutionProofCompleted: true
     sourceToolExecutionDryRunProofAccepted: boolean
+    sourceWorkerClaimAndDispatchSmokeProofAccepted: boolean
     sourcePhase0ExecutionProofAccepted: boolean
     all21ToolsCovered: true
     all12CapabilitiesCovered: true
@@ -217,6 +222,7 @@ export interface AiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExec
     satoriBlockedPendingApprovedFontFixture: boolean
     fifteenRuntimeDeferredToolsPreserved: boolean
     sourceDryRunContractRefsPreserved: boolean
+    sourceWorkerClaimAndDispatchEvidenceRefsPreserved: boolean
     phase0LocalArtifactPolicyAccepted: boolean
     privateArtifactOnlyPolicyAccepted: true
     noNewToolExecutionByControlledProof: true
@@ -496,6 +502,9 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledTool
   const dryRunAccepted = sourceToolExecutionDryRunProofAccepted(
     input.sourceToolExecutionDryRunProofReport,
   )
+  const workerClaimAndDispatchSourceAccepted =
+    input.sourceToolExecutionDryRunProofReport?.booleans
+      ?.sourceWorkerClaimAndDispatchSmokeProofAccepted === true
   const phase0Accepted = sourcePhase0Accepted(input.sourcePhase0Report)
 
   const rows = AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => {
@@ -531,6 +540,12 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledTool
       sourceToolExecutionDryRunStatus: dryRun.toolExecutionDryRunStatus,
       sourceToolExecutionDryRunProofPrepared: dryRun.dryToolExecutionProofPrepared,
       sourceDryRunContractAccepted: Boolean(dryRun.dryRunContract) && dryRunAccepted,
+      sourceWorkerClaimAndDispatchSmokeProofStatus:
+        dryRun.sourceWorkerClaimAndDispatchSmokeProofStatus,
+      sourceWorkerClaimAndDispatchSmokeProofAccepted:
+        dryRun.sourceWorkerClaimAndDispatchSmokeProofAccepted,
+      sourceWorkerClaimAndDispatchEvidenceAccepted:
+        dryRun.sourceWorkerClaimAndDispatchEvidenceAccepted,
       phase0Status: phase0?.status ?? null,
       phase0ImportStatus: phase0?.importStatus ?? null,
       phase0FixtureStatus: phase0?.fixtureStatus ?? null,
@@ -632,6 +647,9 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledTool
       controlledToolExecutionProofAcceptedTools: acceptedRows.length,
       sourceToolExecutionDryRunProofPreparedTools:
         input.sourceToolExecutionDryRunProofReport?.counts.toolExecutionDryRunProofPreparedTools ?? 0,
+      sourceWorkerClaimAndDispatchSmokeProofAcceptedTools:
+        input.sourceToolExecutionDryRunProofReport?.counts
+          .sourceWorkerClaimAndDispatchSmokeProofAcceptedTools ?? 0,
       sourcePhase0ProofPassedTools:
         input.sourcePhase0Report?.tools?.filter((tool) => tool.status === 'proof_passed').length ?? 0,
       exactRequestContractsAcceptedTools: rows.filter((row) => row.exactRequestContractAccepted)
@@ -665,6 +683,8 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledTool
     booleans: {
       externalAgentCpuStaticPrivateWorkerControlledToolExecutionProofCompleted: true,
       sourceToolExecutionDryRunProofAccepted: dryRunAccepted,
+      sourceWorkerClaimAndDispatchSmokeProofAccepted:
+        workerClaimAndDispatchSourceAccepted,
       sourcePhase0ExecutionProofAccepted: phase0Accepted,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
@@ -697,6 +717,22 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledTool
             evidence!.controlledToolExecutionIdempotencyKey.includes(row.toolId) &&
             evidence!.controlledToolExecutionEvidenceRef.includes(row.toolId) &&
             evidence!.expectedOutputVisibility === 'private_artifact_only'
+        }),
+      sourceWorkerClaimAndDispatchEvidenceRefsPreserved:
+        workerClaimAndDispatchSourceAccepted &&
+        acceptedRows.length === 5 &&
+        acceptedRows.every((row) => {
+          const evidence = row.controlledToolExecutionEvidence
+          return row.sourceWorkerClaimAndDispatchEvidenceAccepted === true &&
+            Boolean(evidence) &&
+            evidence!.sourceWorkerDispatchAttemptRef.startsWith(
+              'worker-claim-dispatch://',
+            ) &&
+            evidence!.workerDispatchSmokeEvidenceRef.startsWith('private://') &&
+            evidence!.workerDispatchSmokeTelemetryRef.startsWith('private://') &&
+            evidence!.sourceWorkerDispatchAttemptRef.includes(row.toolId) &&
+            evidence!.workerDispatchSmokeEvidenceRef.includes(row.toolId) &&
+            evidence!.workerDispatchSmokeTelemetryRef.includes(row.toolId)
         }),
       phase0LocalArtifactPolicyAccepted:
         acceptedRows.length === 5 &&

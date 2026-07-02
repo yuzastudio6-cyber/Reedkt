@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -72,6 +73,7 @@ const expectedCounts = {
   totalAiGraphicsTools: 21,
   controlledToolExecutionProofAcceptedTools: 5,
   sourceToolExecutionDryRunProofPreparedTools: 5,
+  sourceWorkerClaimAndDispatchSmokeProofAcceptedTools: 0,
   sourcePhase0ProofPassedTools: 5,
   exactRequestContractsAcceptedTools: 5,
   privateOutputManifestAcceptedTools: 5,
@@ -123,6 +125,8 @@ const trueKeys = [
 ]
 
 const falseKeys = [
+  'sourceWorkerClaimAndDispatchSmokeProofAccepted',
+  'sourceWorkerClaimAndDispatchEvidenceRefsPreserved',
   'externalAgentCanDispatchPrivateWorkerJobNow',
   'externalAgentCanSubmitPrivateWorkerQueueNow',
   'externalAgentCanRequestPrivateWorkerHandoffNow',
@@ -312,9 +316,6 @@ function checkEvidence(label, toolId, evidence) {
     approvedPlanSnapshotRef: 'approved-plan-snapshot://',
     creditReservationRef: 'credit-reservation://',
     privateArtifactManifestRef: 'private://',
-    sourceWorkerDispatchAttemptRef: 'dispatch://',
-    workerDispatchSmokeEvidenceRef: 'evidence://',
-    workerDispatchSmokeTelemetryRef: 'telemetry://',
     adapterInvocationDryRunRef: 'adapter-dry-run://',
     toolInputContractRef: 'tool-input-contract://',
     expectedPrivateOutputContractRef: 'private-output-contract://',
@@ -327,6 +328,26 @@ function checkEvidence(label, toolId, evidence) {
     if (!String(evidence[key] ?? '').startsWith(prefix)) {
       fail(`${label}_evidence_prefix_mismatch:${toolId}:${key}`)
     }
+  }
+  if (
+    !String(evidence.sourceWorkerDispatchAttemptRef ?? '').startsWith('dispatch://') &&
+    !String(evidence.sourceWorkerDispatchAttemptRef ?? '').startsWith(
+      'worker-claim-dispatch://',
+    )
+  ) {
+    fail(`${label}_evidence_prefix_mismatch:${toolId}:sourceWorkerDispatchAttemptRef`)
+  }
+  if (
+    !String(evidence.workerDispatchSmokeEvidenceRef ?? '').startsWith('evidence://') &&
+    !String(evidence.workerDispatchSmokeEvidenceRef ?? '').startsWith('private://')
+  ) {
+    fail(`${label}_evidence_prefix_mismatch:${toolId}:workerDispatchSmokeEvidenceRef`)
+  }
+  if (
+    !String(evidence.workerDispatchSmokeTelemetryRef ?? '').startsWith('telemetry://') &&
+    !String(evidence.workerDispatchSmokeTelemetryRef ?? '').startsWith('private://')
+  ) {
+    fail(`${label}_evidence_prefix_mismatch:${toolId}:workerDispatchSmokeTelemetryRef`)
   }
   for (const key of [
     'queuePayloadIdempotencyKey',
@@ -398,6 +419,12 @@ function checkRows(label, rows) {
         'toolSpecificQaGateAccepted',
       ]) {
         if (row[field] !== true) fail(`${label}_row_field_not_true:${toolId}:${field}`)
+      }
+      for (const field of [
+        'sourceWorkerClaimAndDispatchSmokeProofAccepted',
+        'sourceWorkerClaimAndDispatchEvidenceAccepted',
+      ]) {
+        if (row[field] !== false) fail(`${label}_row_field_not_false:${toolId}:${field}`)
       }
       if (row.phase0Status !== 'proof_passed') fail(`${label}_phase0_status_mismatch:${toolId}`)
       if (row.phase0ImportStatus !== 'passed') fail(`${label}_phase0_import_mismatch:${toolId}`)
@@ -565,6 +592,12 @@ if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
 if (!moduleSource.includes(decision)) fail('module_missing_decision')
 if (!cliSource.includes('--write-records')) fail('cli_missing_write_records')
 if (!diagnosticSource.includes('allowedPackageDiffLines')) fail('diagnostic_missing_package_diff_guard')
+if (!cliSource.includes('--source-tool-execution-dry-run-proof-packet')) {
+  fail('cli_missing_source_dry_run_packet_flag')
+}
+if (!cliSource.includes('--source-phase0-packet')) {
+  fail('cli_missing_source_phase0_packet_flag')
+}
 if (
   !indexSource.includes(
     "export * from './ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof'",
@@ -596,6 +629,38 @@ for (const text of [docsMd, promptResult, implementationPrompt, scorecard]) {
   }
 }
 
+function makeClaimDispatchSourcedDryRunPacket() {
+  const report = JSON.parse(JSON.stringify(sourceDryRun))
+  report.sourceWorkerClaimAndDispatchSmokeProofDecision =
+    'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_proof_validator_prepared_with_runtime_blocks'
+  report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools = 5
+  report.booleans.sourceWorkerClaimAndDispatchSmokeProofAccepted = true
+  report.booleans.sourceWorkerClaimAndDispatchEvidenceRefsPreserved = true
+  for (const toolId of controlledProofTools) {
+    const row = report.rows?.find((candidate) => candidate.toolId === toolId)
+    if (!row || !row.dryRunContract) {
+      fail(`claim_dispatch_fixture_missing_row:${toolId}`)
+      continue
+    }
+    row.sourceWorkerClaimAndDispatchSmokeProofStatus =
+      'accepted_saved_worker_claim_and_dispatch_smoke_result_execution_blocked'
+    row.sourceWorkerClaimAndDispatchSmokeProofAccepted = true
+    row.sourceWorkerClaimAndDispatchEvidenceAccepted = true
+    row.dryRunContract.sourceWorkerDispatchAttemptRef =
+      `worker-claim-dispatch://ai-graphics/external-agent/cpu-static-private-worker-claim-and-dispatch-smoke-proof/${toolId}/handoff`
+    row.dryRunContract.workerDispatchSmokeEvidenceRef =
+      `private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/${toolId}/evidence.json`
+    row.dryRunContract.workerDispatchSmokeTelemetryRef =
+      `private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/${toolId}/telemetry.json`
+  }
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'reeditpro-controlled-tool-exec-claim-dispatch-'),
+  )
+  const packetPath = path.join(tempDir, 'claim-dispatch-sourced-dry-run.json')
+  fs.writeFileSync(packetPath, `${JSON.stringify(report, null, 2)}\n`)
+  return packetPath
+}
+
 checkPackageDiff('git diff -- package.json', 'worktree_package_json')
 checkPackageDiff('git diff --cached -- package.json', 'cached_package_json')
 
@@ -623,10 +688,47 @@ const cliOutput = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 if (cliOutput.decision !== decision) fail('cli_decision_mismatch')
 if (cliOutput.acceptedStatus !== acceptedStatus) fail('cli_status_mismatch')
 if (cliOutput.controlledToolExecutionProofAcceptedTools !== 5) fail('cli_count_mismatch')
+if (cliOutput.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools !== 0) {
+  fail('cli_default_claim_dispatch_source_count_not_0')
+}
+if (cliOutput.sourceWorkerClaimAndDispatchEvidenceRefsPreserved !== false) {
+  fail('cli_default_claim_dispatch_refs_not_false')
+}
 if (cliOutput.agentCanExecuteToolsNow !== false) fail('cli_agent_execution_not_false')
 if (cliOutput.externalAgentCanInvokeAdapterNow !== false) fail('cli_adapter_not_false')
 if (cliOutput.toolExecutionApprovedNow !== false) fail('cli_tool_execution_not_false')
 if (cliOutput.gpuRuntimeShouldStartNow !== false) fail('cli_gpu_runtime_not_false')
+
+const claimDispatchSourcedDryRunPacket = makeClaimDispatchSourcedDryRunPacket()
+const claimDispatchSourceCliOutput = JSON.parse(exec([
+  `npm run --silent ${runScriptName} --`,
+  `--source-tool-execution-dry-run-proof-packet ${JSON.stringify(claimDispatchSourcedDryRunPacket)}`,
+  '--source-phase0-packet docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json',
+].join(' ')))
+if (claimDispatchSourceCliOutput.decision !== decision) {
+  fail('claim_dispatch_source_cli_decision_mismatch')
+}
+if (claimDispatchSourceCliOutput.controlledToolExecutionProofAcceptedTools !== 5) {
+  fail('claim_dispatch_source_cli_count_mismatch')
+}
+if (claimDispatchSourceCliOutput.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools !== 5) {
+  fail('claim_dispatch_source_cli_claim_dispatch_source_count_not_5')
+}
+if (claimDispatchSourceCliOutput.sourceWorkerClaimAndDispatchEvidenceRefsPreserved !== true) {
+  fail('claim_dispatch_source_cli_claim_dispatch_refs_not_true')
+}
+if (claimDispatchSourceCliOutput.agentCanExecuteToolsNow !== false) {
+  fail('claim_dispatch_source_cli_agent_execution_not_false')
+}
+if (claimDispatchSourceCliOutput.externalAgentCanInvokeAdapterNow !== false) {
+  fail('claim_dispatch_source_cli_adapter_not_false')
+}
+if (claimDispatchSourceCliOutput.toolExecutionApprovedNow !== false) {
+  fail('claim_dispatch_source_cli_tool_execution_not_false')
+}
+if (claimDispatchSourceCliOutput.gpuRuntimeShouldStartNow !== false) {
+  fail('claim_dispatch_source_cli_gpu_runtime_not_false')
+}
 
 if (failures.length > 0) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2))

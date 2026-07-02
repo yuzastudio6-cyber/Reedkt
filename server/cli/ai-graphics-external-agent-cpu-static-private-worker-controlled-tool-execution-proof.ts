@@ -4,9 +4,9 @@ import {
   buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProof,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof'
 
-const sourceToolExecutionDryRunProofPath =
+const defaultSourceToolExecutionDryRunProofPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.json'
-const sourcePhase0Path =
+const defaultSourcePhase0Path =
   'docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-controlled-tool-execution-proof.json'
@@ -18,6 +18,17 @@ const implementationPromptPath =
   'docs/implementation-prompts/prompt-ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof.md'
 
 type JsonRecord = Record<string, any>
+
+function valueAfterFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  return index >= 0 ? process.argv[index + 1] : undefined
+}
+
+const sourceToolExecutionDryRunProofPath =
+  valueAfterFlag('--source-tool-execution-dry-run-proof-packet') ??
+  defaultSourceToolExecutionDryRunProofPath
+const sourcePhase0Path =
+  valueAfterFlag('--source-phase0-packet') ?? defaultSourcePhase0Path
 
 function readJson(file: string): JsonRecord {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as JsonRecord
@@ -73,6 +84,8 @@ This packet binds accepted CPU/static Phase 0 local execution evidence to the ex
 - Total AI graphics tools covered: \`${report.counts.totalAiGraphicsTools}\`
 - Controlled tool execution proofs accepted: \`${report.counts.controlledToolExecutionProofAcceptedTools}\` tools: ${acceptedTools}
 - Source tool execution dry-run proofs prepared: \`${report.counts.sourceToolExecutionDryRunProofPreparedTools}\`
+- Source worker claim/dispatch smoke proof accepted tools: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`
+- Claim/dispatch-source preservation note: the checked-in default dry-run packet still uses dispatch-smoke lineage; the diagnostic verifies the alternate worker claim/dispatch-sourced dry-run path preserves \`5/5\` newer lineage refs without enabling execution.
 - Source Phase 0 proof-passed tools: \`${report.counts.sourcePhase0ProofPassedTools}\`
 - Exact request contracts accepted: \`${report.counts.exactRequestContractsAcceptedTools}\`
 - Private output manifests accepted: \`${report.counts.privateOutputManifestAcceptedTools}\`
@@ -141,6 +154,8 @@ function makePromptResult(
 - Decision: \`${report.decision}\`
 - Controlled tool execution proofs accepted: \`${report.counts.controlledToolExecutionProofAcceptedTools}\`
 - Source tool execution dry-run proofs prepared: \`${report.counts.sourceToolExecutionDryRunProofPreparedTools}\`
+- Source worker claim/dispatch smoke proof accepted tools: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`
+- Claim/dispatch-source preservation note: default checked-in source remains dispatch-smoke lineage; diagnostic verifies \`5/5\` preservation for the alternate worker claim/dispatch-sourced dry-run packet.
 - Source Phase 0 proof-passed tools: \`${report.counts.sourcePhase0ProofPassedTools}\`
 - Exact request contracts accepted: \`${report.counts.exactRequestContractsAcceptedTools}\`
 - Private output manifests accepted: \`${report.counts.privateOutputManifestAcceptedTools}\`
@@ -190,6 +205,7 @@ Decision: \`${report.decision}\`
 ## Result
 
 - \`${report.counts.controlledToolExecutionProofAcceptedTools}\` CPU/static tools have controlled proof accepted from Phase 0 local execution evidence.
+- Source worker claim/dispatch smoke proof accepted tools in the checked-in default dry-run source: \`${report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools}\`. The diagnostic verifies the alternate newer worker claim/dispatch-sourced dry-run path preserves \`5/5\` lineage refs without approving execution.
 - \`${report.counts.exactRequestContractsAcceptedTools}\` exact request contracts preserve approved plan snapshot fixture refs, credit reservation fixture refs, private artifact manifest refs, queue idempotency keys, dry dispatch idempotency keys, dry tool execution idempotency keys, controlled tool execution idempotency keys, source dispatch refs, adapter dry-run refs, input contract refs, output contract refs, result schema refs, QA gate refs, and private artifact visibility.
 - \`${report.counts.satoriBlockedPendingApprovedFontFixtureTools}\` Satori remains blocked pending approved font fixture proof.
 - \`${report.counts.nonCpuStaticDeferredTools}\` browser/GPU/model tools remain deferred by runtime boundary.
@@ -276,6 +292,10 @@ async function main() {
         acceptedStatus: report.status,
         controlledToolExecutionProofAcceptedTools:
           report.counts.controlledToolExecutionProofAcceptedTools,
+        sourceWorkerClaimAndDispatchSmokeProofAcceptedTools:
+          report.counts.sourceWorkerClaimAndDispatchSmokeProofAcceptedTools,
+        sourceWorkerClaimAndDispatchEvidenceRefsPreserved:
+          report.booleans.sourceWorkerClaimAndDispatchEvidenceRefsPreserved,
         agentCanExecuteToolsNow: report.booleans.agentCanExecuteToolsNow,
         externalAgentCanInvokeAdapterNow: report.booleans.externalAgentCanInvokeAdapterNow,
         toolExecutionApprovedNow: report.booleans.toolExecutionApprovedNow,

@@ -21,6 +21,8 @@ This packet binds accepted CPU/static Phase 0 local execution evidence to the ex
 - Total AI graphics tools covered: `21`
 - Controlled tool execution proofs accepted: `5` tools: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, `viz_js`
 - Source tool execution dry-run proofs prepared: `5`
+- Source worker claim/dispatch smoke proof accepted tools: `0`
+- Claim/dispatch-source preservation note: the checked-in default dry-run packet still uses dispatch-smoke lineage; the diagnostic verifies the alternate worker claim/dispatch-sourced dry-run path preserves `5/5` newer lineage refs without enabling execution.
 - Source Phase 0 proof-passed tools: `5`
 - Exact request contracts accepted: `5`
 - Private output manifests accepted: `5`

@@ -106,7 +106,7 @@ assert.equal(summary.noIdleLifecycleGates[0].toolId, 'ai_video_broll_generation_
 assert.equal(summary.noIdleLifecycleGates[0].gate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-4')
 assert.equal(summary.noIdleLifecycleGates[0].gate.targetRegion, 'us-west4')
-assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'us-west4-a')
+assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'us-west4-c')
 assert.equal(summary.noIdleLifecycleGates[0].gate.noPublicIpRequired, true)
 assert.equal(summary.noIdleLifecycleGates[0].gate.externalIpAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, true)

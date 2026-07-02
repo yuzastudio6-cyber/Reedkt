@@ -10,7 +10,7 @@ This packet records a read-only B-roll quota verification result for the Wan/Wan
 
 - Project: `reeditpro`
 - Region: `us-west4`
-- Zone: `us-west4-a`
+- Zone: `us-west4-c`
 - GPU: `nvidia_l4`
 - Future machine shape: `g2-standard-4`
 - Verification command: `npm run ai-video-broll-wan-gpu-global-quota:verify`
@@ -34,7 +34,7 @@ This packet records a read-only B-roll quota verification result for the Wan/Wan
 
 ## Runtime Boundary
 
-Quota is sufficient for one L4 VM, but this result is not execution permission. The 9W create attempt in `us-east4-a` stocked out before any VM existed, the 9X no-VM strategy result selected `us-east4-c`, and the 9Y create attempt in `us-east4-c` also stocked out before any VM existed. The 9Z no-VM stockout-fix result selected `us-east1-b` as the next bounded no-idle transfer-proof target. The 10A no-idle transfer proof then stocked out in `us-east1-b` before any VM existed, with cleanup/absence verified. The 10B no-VM stockout-fix result selected `us-east1-c` as the next same-region cross-zone no-idle transfer-proof target. The 10C no-idle transfer proof then stocked out in `us-east1-c` before any VM existed, with cleanup/absence verified. The 10D no-VM stockout-fix result selected `us-east1-d` as the next same-region cross-zone no-idle transfer-proof target. The 10E no-idle transfer proof then stocked out in `us-east1-d` before any VM existed, with cleanup/absence verified. The 10F no-VM stockout-fix result selected `us-west4-a` as the next bounded cross-region no-idle transfer-proof target. The 10G no-idle transfer proof then stocked out in `us-west4-a` before any VM existed, with cleanup/absence verified and `us-west4-c` suggested as planning evidence only. The next step is the explicit 10H no-VM stockout-fix strategy prompt before any further VM action:
+Quota is sufficient for one L4 VM, but this result is not execution permission. The 9W create attempt in `us-east4-a` stocked out before any VM existed, the 9X no-VM strategy result selected `us-east4-c`, and the 9Y create attempt in `us-east4-c` also stocked out before any VM existed. The 9Z no-VM stockout-fix result selected `us-east1-b` as the next bounded no-idle transfer-proof target. The 10A no-idle transfer proof then stocked out in `us-east1-b` before any VM existed, with cleanup/absence verified. The 10B no-VM stockout-fix result selected `us-east1-c` as the next same-region cross-zone no-idle transfer-proof target. The 10C no-idle transfer proof then stocked out in `us-east1-c` before any VM existed, with cleanup/absence verified. The 10D no-VM stockout-fix result selected `us-east1-d` as the next same-region cross-zone no-idle transfer-proof target. The 10E no-idle transfer proof then stocked out in `us-east1-d` before any VM existed, with cleanup/absence verified. The 10F no-VM stockout-fix result selected `us-west4-a` as the next bounded cross-region no-idle transfer-proof target. The 10G no-idle transfer proof then stocked out in `us-west4-a` before any VM existed, with cleanup/absence verified and `us-west4-c` suggested as planning evidence only. The 10H no-VM stockout-fix result selected `us-west4-c` as the next bounded no-idle transfer-proof target. The next step is the explicit 10I bounded transfer proof prompt before any further VM action:
 
 - no public IP;
 - prompt-scoped VM only;
@@ -64,4 +64,4 @@ All runtime side-effect gates remained false:
 
 ## Recommended Next Prompt
 
-`AI-VIDEO-BROLL-GEN-10H-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-west4-a stockout, no VM/no inference`
+`AI-VIDEO-BROLL-GEN-10I-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-west4-c and mandatory cleanup, no model inference`

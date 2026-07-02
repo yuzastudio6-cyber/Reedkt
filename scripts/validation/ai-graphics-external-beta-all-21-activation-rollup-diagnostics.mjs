@@ -419,6 +419,8 @@ function verifyPackageJson() {
     '+    "ai-graphics:external-beta-activated-launch-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-gpu-model-worker-boundary-proof": "tsx server/cli/ai-graphics-external-beta-gpu-model-worker-boundary-proof.ts",',
     '+    "ai-graphics:external-beta-gpu-model-worker-boundary-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-worker-boundary-proof-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke": "tsx server/cli/ai-graphics-external-beta-gpu-model-service-role-queue-smoke.ts",',
+    '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')

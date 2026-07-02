@@ -580,6 +580,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-to-live-enqueue-authorization-bridge-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts",',
   '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke": "tsx server/cli/ai-graphics-external-beta-gpu-model-service-role-queue-smoke.ts",',
+  '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-diagnostics.mjs",',
   `+    "${runScriptName}": "${runScriptCommand}",`,
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:external-beta-api-route-queue-smoke-authorization": "tsx server/cli/ai-graphics-external-beta-api-route-queue-smoke-authorization.ts",',

@@ -204,6 +204,8 @@ const allowedPackageDiffLines = [
   '+    "ai-graphics:external-agent-route-to-queue-blocked-admission:diagnostics": "node scripts/validation/ai-graphics-external-agent-route-to-queue-blocked-admission-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-mock-queue-insertion-proof": "tsx server/cli/ai-graphics-external-agent-mock-queue-insertion-proof.ts",',
   '+    "ai-graphics:external-agent-mock-queue-insertion-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-mock-queue-insertion-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke": "tsx server/cli/ai-graphics-external-beta-gpu-model-service-role-queue-smoke.ts",',
+  '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-mock-worker-claim-proof": "tsx server/cli/ai-graphics-external-agent-mock-worker-claim-proof.ts",',
   '+    "ai-graphics:external-agent-mock-worker-claim-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-mock-worker-claim-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-mock-worker-dispatch-handoff-proof": "tsx server/cli/ai-graphics-external-agent-mock-worker-dispatch-handoff-proof.ts",',

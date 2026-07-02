@@ -20,7 +20,11 @@ Commands:
 
 ```bash
 npm run smoke:production-tool-execution-readiness-gate
+npm run smoke:production-tool-execution-readiness-evidence-preflight
+npm run prod:readiness:tool-execution-gate-preflight
 npm run prod:readiness:tool-execution-gate
 ```
 
 This is the bridge between beta readiness and paid production. It makes the remaining blockers exact evidence gaps instead of permanent hardcoded no-rules.
+
+Use `prod:readiness:tool-execution-gate-preflight` before the final gate report. The preflight reads non-secret operator evidence variables, checks for missing production evidence, rejects secret-like notes, and tells operators whether the supplied packet is ready to evaluate against the paid-production gate. It does not call Supabase, Stripe, workers, tools, media processors, deployments, or production routes.

@@ -16,6 +16,12 @@ import {
 } from '../tool-registry'
 import type { ProductionToolId } from '../tool-registry'
 import { validateProductionStorageReference } from '../workers/production/production-worker-artifact-policy'
+import {
+  getProjectWorkerRuntimeOutputManifest,
+  getWorkerRuntimeArtifactReplay,
+  recordWorkerRuntimeArtifactPipeline,
+  type WorkerRuntimeArtifactPipelineResult,
+} from '../workers/production/production-worker-artifact-pipeline'
 import { dispatchProductionWorkerJob } from '../workers/production/production-worker-dispatcher'
 import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
 import type {
@@ -63,6 +69,7 @@ export interface ToolExecutionGatewayDispatchResult {
     dispatchedAt: string
   }
   trackBAdapterResult?: TrackBAdapterResult
+  workerRuntimeArtifactPipeline?: WorkerRuntimeArtifactPipelineResult
   workerResult?: ProductionWorkerExecutionResult
   warnings: string[]
 }
@@ -127,6 +134,28 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         }
       }
 
+      const replay = getWorkerRuntimeArtifactReplay(workerIdempotencyKey)
+      if (replay) {
+        return {
+          gateway: buildGatewayRecord({
+            input,
+            adapterId,
+            blockers,
+            status: 'dispatched',
+            dispatchedAt: createdAt,
+            workerIdempotencyKey,
+          }),
+          trackBAdapterResult: replay.trackBAdapterResult ?? trackBAdapterResult,
+          workerRuntimeArtifactPipeline: replay.pipeline,
+          workerResult: replay.workerResult,
+          warnings: [
+            ...warnings,
+            ...replay.pipeline.warnings,
+            'Tool execution gateway returned an idempotent worker/runtime artifact replay.',
+          ],
+        }
+      }
+
       const workerResult = await dispatchProductionWorkerJob({
         payload,
         executionPlan,
@@ -143,6 +172,13 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           })))
       }
 
+      const workerRuntimeArtifactPipeline = recordWorkerRuntimeArtifactPipeline({
+        payload,
+        workerResult,
+        trackBAdapterResult,
+        apiIdempotencyKey: input.apiIdempotencyKey,
+      })
+
       return {
         gateway: buildGatewayRecord({
           input,
@@ -153,11 +189,36 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           workerIdempotencyKey,
         }),
         trackBAdapterResult,
+        workerRuntimeArtifactPipeline,
         workerResult,
         warnings: [
           ...warnings,
+          ...workerRuntimeArtifactPipeline.warnings,
           'Tool execution gateway dispatched only through mock-safe backend worker adapters; no frontend tool execution occurred.',
         ],
+      }
+    },
+
+    async getProjectToolOutputManifest(input: { workspaceId: string; projectId: string }) {
+      getRequiredAuthUserId(context)
+      const warnings: string[] = []
+      warnings.push(...await validateWorkspaceProjectAccess(context, {
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        userId: context.auth?.userId ?? 'user-unknown',
+      }))
+
+      if (context.clients.admin && !context.env.mockOnly) {
+        throw new ApiError(
+          'MOCK_ONLY',
+          'Durable production artifact manifest persistence is not connected yet; use mock-safe runtime artifact manifests or add the backend artifact table/RPC first.',
+          409,
+        )
+      }
+
+      return {
+        outputManifest: getProjectWorkerRuntimeOutputManifest(input),
+        warnings,
       }
     },
   }

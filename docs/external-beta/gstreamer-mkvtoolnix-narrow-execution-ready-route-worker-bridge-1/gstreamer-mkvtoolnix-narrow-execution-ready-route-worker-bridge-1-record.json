@@ -1,0 +1,52 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXECUTION-READY-ROUTE-WORKER-BRIDGE-1",
+  "integrationBase": "a0ff760725bbeeb931317115f862e8a495cae972",
+  "decision": "completed_gstreamer_mkvtoolnix_narrow_execution_ready_route_worker_bridge",
+  "execution": "completed_backend_route_worker_bridge_source_for_controlled_generated_fixture_runtime_execution",
+  "sourceChain": {
+    "gstreamerMkvtoolnixQaRollupPr": 682,
+    "failClosedHandlerRegistrationQaRollupPr": 2110,
+    "failClosedHandlerRegistrationQaRollupMergeSha": "a0ff760725bbeeb931317115f862e8a495cae972",
+    "guardedRuntimeExecutionPacket2Decision": "completed_gstreamer_mkvtoolnix_post_dispatch_worker_runtime_execution_packet_generated_fixture_only",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "routeWorkerBridge": {
+    "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute",
+    "routeOwner": "backend_service_role_only",
+    "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_NARROW_EXECUTION_READY_ROUTE_WORKER_BRIDGE=true",
+    "routeBridgeMode": "delegates_existing_guarded_runtime_packet",
+    "runtimeExecutionMode": "controlled_generated_fixture_runtime_execution",
+    "fixtureScope": "generated_srt_and_generated_subtitle_only_mkv_fixture",
+    "allowedCommandTemplates": [
+      "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+      "gst_controlled_generated_fixture_pipeline_v1",
+      "mkvmerge_generated_subtitle_only_package_v1",
+      "mkvmerge_identify_generated_subtitle_only_v1"
+    ],
+    "runtimeDelegate": "scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2.mjs",
+    "runtimeDelegateConfirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_POST_DISPATCH_WORKER_RUNTIME_EXECUTION=true",
+    "readiness": "ready_for_guarded_generated_fixture_route_invocation"
+  },
+  "safety": {
+    "normalValidationRunsToolExecution": false,
+    "rawCommandAccepted": false,
+    "rawChatAccepted": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXECUTION-READY-ROUTE-WORKER-BRIDGE-QA-ROLLUP-1"
+}

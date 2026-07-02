@@ -17,7 +17,9 @@
   },
   "route": {
     "path": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-handoff",
-    "jobType": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "jobType": "quality_check",
+    "payloadKind": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "schemaCompatibility": "db_job_type_uses_public_job_type_enum_payload_kind_preserves_gstreamer_mkvtoolnix_runtime_identity",
     "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF",
     "queueHandoffConfirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_GENERATED_FIXTURE_APPROVED_SNAPSHOT_JOB_QUEUE_HANDOFF",
     "queueHandoffRoutePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/enqueue",

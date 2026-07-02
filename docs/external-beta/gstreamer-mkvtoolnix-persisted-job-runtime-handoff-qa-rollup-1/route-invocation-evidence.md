@@ -18,7 +18,8 @@ Confirmation gates used:
 Observed handoff:
 
 - Local mock job service handoff: `completed`
-- Job type: `gstreamer_mkvtoolnix_generated_fixture_runtime`
+- DB job type: `quality_check`
+- Payload kind: `gstreamer_mkvtoolnix_generated_fixture_runtime`
 - Runtime invocation body accepted into persisted job payload: `true`
 - Runtime route invocation during this QA rollup: `false`
 - GStreamer execution during this QA rollup: `false`

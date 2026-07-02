@@ -19,7 +19,7 @@ Confirmation gates:
 
 Invocation behavior:
 
-- Accepts only `gstreamer_mkvtoolnix_generated_fixture_runtime` persisted job payloads.
+- Accepts only `quality_check` persisted DB job payloads with payload kind `gstreamer_mkvtoolnix_generated_fixture_runtime`.
 - Requires top-level workspace, project, and approved snapshot references for idempotency and verifies they match the stored runtime invocation body.
 - Requires `persisted_job_payload_to_existing_runtime_route_delegate`.
 - Requires route idempotency derived from workspace, project, approved snapshot, persisted job, persisted invocation, and stored runtime invocation idempotency.

@@ -24,7 +24,9 @@
     "persistedHandoffRoutePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-handoff",
     "queuedRuntimeInvocationRoutePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/invoke",
     "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_ROUTE_INVOCATION",
-    "persistedJobType": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "persistedJobType": "quality_check",
+    "persistedJobPayloadKind": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "schemaCompatibility": "db_job_type_uses_public_job_type_enum_payload_kind_preserves_gstreamer_mkvtoolnix_runtime_identity",
     "payloadMode": "persisted_job_payload_to_existing_runtime_route_delegate",
     "readiness": "ready_for_persisted_job_runtime_route_invocation_qa_rollup"
   },

@@ -24,7 +24,9 @@
     "status": "completed_persisted_job_runtime_handoff",
     "runId": "2026-07-02T12-58-02-530Z-persisted-route",
     "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/2026-07-02T12-58-02-530Z-persisted-route",
-    "jobType": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "jobType": "quality_check",
+    "payloadKind": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+    "schemaCompatibility": "db_job_type_uses_public_job_type_enum_payload_kind_preserves_gstreamer_mkvtoolnix_runtime_identity",
     "runtimeInvocationBodyAccepted": true,
     "localMockJobServiceHandoff": "completed"
   },

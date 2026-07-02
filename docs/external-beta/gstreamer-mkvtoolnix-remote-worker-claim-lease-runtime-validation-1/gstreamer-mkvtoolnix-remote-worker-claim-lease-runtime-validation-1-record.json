@@ -1,0 +1,91 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-REMOTE-WORKER-CLAIM-LEASE-RUNTIME-VALIDATION-1",
+  "decision": "completed_gstreamer_mkvtoolnix_remote_worker_claim_lease_runtime_validation",
+  "execution": "completed_guarded_transaction_rolled_back_remote_worker_claim_lease_validation",
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "class": "staging"
+  },
+  "confirmationGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_REMOTE_WORKER_CLAIM_LEASE_RUNTIME_VALIDATION",
+  "dbUrlEnv": "REEDITPRO_STAGING_SUPABASE_DB_URL",
+  "jobType": "quality_check",
+  "payloadKind": "gstreamer_mkvtoolnix_generated_fixture_runtime",
+  "schemaCompatibility": "db_job_type_uses_public_job_type_enum_payload_kind_preserves_gstreamer_mkvtoolnix_runtime_identity",
+  "workerType": "gstreamer_mkvtoolnix_generated_fixture_worker",
+  "allowedRemoteScope": "guarded_transaction_rolled_back_worker_claim_lease_validation_fixture_only",
+  "remoteValidation": "passed",
+  "runId": "2026-07-02T15-13-58-300Z-7afbfde3",
+  "outputDirectory": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-remote-worker-claim-lease-runtime-validation-1/2026-07-02T15-13-58-300Z-7afbfde3",
+  "readback": {
+    "jobType": "quality_check",
+    "jobStatus": "queued",
+    "runtimeType": "cloud_run_job",
+    "workerTarget": "render_worker",
+    "workerClaimType": "gstreamer_mkvtoolnix_generated_fixture_worker",
+    "workerClaimStatus": "active",
+    "canRunBefore": true,
+    "canClaimBefore": true,
+    "activeClaimBefore": false,
+    "activeClaimAfter": true,
+    "canClaimAfter": false
+  },
+  "rollbackResidueReadback": {
+    "workspaces": 0,
+    "projects": 0,
+    "jobBatches": 0,
+    "jobs": 0,
+    "workerJobClaims": 0
+  },
+  "artifacts": [
+    {
+      "fileName": "remote-worker-claim-lease-runtime-validation-1-report.json",
+      "bytes": 4474,
+      "sha256": "52379625980493d9e0b09c1af718f2c02f6d70a1e72ed6cb2f99561c881e602d"
+    },
+    {
+      "fileName": "worker-claim-lease-readback.json",
+      "bytes": 549,
+      "sha256": "81d764a75b875d2153c5ea96684da1d6fc5b762c5bc7376e3eb770f55f43b179"
+    },
+    {
+      "fileName": "rollback-residue-readback.json",
+      "bytes": 95,
+      "sha256": "072535c9964d49e9c3c03b5436c35cdca2d836d3607832528bc16cdae4fbd711"
+    },
+    {
+      "fileName": "remote-worker-claim-lease-runtime-validation-1-manifest.json",
+      "bytes": 1479,
+      "sha256": "a94f7492ba349b804238c6f24a849d82749fd48054a98eadb3d3f886c83db2d6"
+    }
+  ],
+  "persistentRowsCreated": false,
+  "workerDispatch": false,
+  "workerExecution": false,
+  "gstreamerExecution": false,
+  "mkvtoolnixExecution": false,
+  "ffmpegFfprobeExecution": false,
+  "dockerExecution": false,
+  "remotionExecution": false,
+  "mediaProcessing": false,
+  "privateMediaProcessing": false,
+  "userMediaProcessing": false,
+  "secretManagerPayloadAccessByRunner": false,
+  "signedUrlCreation": false,
+  "publicArtifactCreation": false,
+  "finalRenderExport": false,
+  "sourceChain": {
+    "persistedJobRuntimeHandoffQaPr": 2132,
+    "persistedRouteInvocationPr": 2137,
+    "persistedRouteInvocationQaPr": 2139,
+    "localMockClaimLeasePr": 2142,
+    "localMockClaimLeaseQaPr": 2144,
+    "remoteWorkerClaimLeaseOwnerGatePr": 2147,
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-SOURCE-GATE-1"
+}

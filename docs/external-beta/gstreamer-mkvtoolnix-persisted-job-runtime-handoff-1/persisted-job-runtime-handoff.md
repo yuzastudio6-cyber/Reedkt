@@ -4,7 +4,11 @@ Route: `/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-ru
 
 Queue handoff route: `/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/enqueue`
 
-Job type: `gstreamer_mkvtoolnix_generated_fixture_runtime`
+DB job type: `quality_check`
+
+Payload kind: `gstreamer_mkvtoolnix_generated_fixture_runtime`
+
+Schema compatibility note: the persisted job must use a value that exists in the `public.job_type` enum. The GStreamer/MKVToolNix-specific identity is preserved in payload and worker metadata, not as a custom DB enum value.
 
 Decision: `completed_gstreamer_mkvtoolnix_persisted_job_runtime_handoff`
 

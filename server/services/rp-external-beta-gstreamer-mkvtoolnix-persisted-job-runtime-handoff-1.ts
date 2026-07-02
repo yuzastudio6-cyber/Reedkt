@@ -32,6 +32,9 @@ export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF
   '/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/approved-snapshot/jobs/persisted-handoff' as const
 
 export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_JOB_TYPE =
+  'quality_check' as const
+
+export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND =
   'gstreamer_mkvtoolnix_generated_fixture_runtime' as const
 
 export const RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_NEXT_MILESTONE =
@@ -86,6 +89,7 @@ export interface GstreamerMkvtoolnixPersistedJobRuntimeHandoffResult {
     persistedJobId: string | null
     persistedJobBatchId: string | null
     persistedJobType: typeof RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_JOB_TYPE
+    persistedJobPayloadKind: typeof RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND
     jobServiceMode: 'local_mock_job_service' | 'service_role_job_service'
     routeIdempotencyKey: string
     queueIdempotencyKey: string
@@ -338,6 +342,7 @@ function buildResult(
       persistedJobId: jobId,
       persistedJobBatchId: jobBatchId,
       persistedJobType: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_JOB_TYPE,
+      persistedJobPayloadKind: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND,
       jobServiceMode: serviceRoleWrite ? 'service_role_job_service' : 'local_mock_job_service',
       routeIdempotencyKey: input.routeIdempotencyKey,
       queueIdempotencyKey: input.queueIdempotencyKey,
@@ -450,6 +455,7 @@ export async function runGstreamerMkvtoolnixPersistedJobRuntimeHandoff(
       payloadJson: {
         persistedHandoffId: input.persistedHandoffId,
         packet: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PACKET,
+        persistedJobPayloadKind: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_RUNTIME_HANDOFF_PAYLOAD_KIND,
         runtimeInvocationRoutePath: RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_QUEUED_JOB_RUNTIME_ROUTE_INVOCATION_ROUTE_PATH,
         runtimeInvocationIdempotencyKey: input.routeIdempotencyKey,
         runtimeInvocationBody,

@@ -195,8 +195,8 @@ assert.equal(
 assert.equal(brollGateRow?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'northamerica-northeast1')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'northamerica-northeast1-c')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'northamerica-northeast2')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'northamerica-northeast2-a')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.noPublicIpRequired, true)
 assert.equal(brollGateRow?.noIdleLifecycleGate?.externalIpAllowed, false)
 assert.equal(brollGateRow?.noIdleLifecycleGate?.cleanupVerificationRequired, true)
@@ -240,11 +240,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'bounded_no_idle_l4_payload_install_proof_northamerica_northeast1_c_resource_availability_failed_10o_strategy_required',
+  'bounded_no_idle_l4_payload_install_proof_northamerica_northeast2_a_required_after_10o_resource_availability_fix',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10n-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast1-c-result',
+  'npm run smoke:ai-video-broll-gen-10o-payload-install-resource-availability-fix-result',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

@@ -69,7 +69,7 @@ for (const required of [
   'This packet records a read-only B-roll quota verification result',
   'Project: `reeditpro`',
   '`GPUS_ALL_REGIONS` limit',
-  '`NVIDIA_L4_GPUS` limit in `northamerica-northeast1`',
+  '`NVIDIA_L4_GPUS` limit in `northamerica-northeast2`',
   'Quota is sufficient for one L4 VM',
   '9W create attempt in `us-east4-a` stocked out',
   'this result is not execution permission',
@@ -90,7 +90,8 @@ for (const required of [
   '10J bounded payload/install-readiness proof then stocked out',
   '10L bounded payload/install-readiness proof then failed in `northamerica-northeast1-b`',
   '10N bounded payload/install-readiness proof then failed in `northamerica-northeast1-c`',
-  'AI-VIDEO-BROLL-GEN-10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX',
+  '10O no-VM strategy result selected `northamerica-northeast2-a`',
+  'AI-VIDEO-BROLL-GEN-10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -113,8 +114,8 @@ assert.equal(spec.decision, 'ai_video_broll_wan_gpu_global_quota_verify_read_onl
 assert.equal(spec.mode, 'read_only_broll_wan_gpu_global_quota_verify')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
 assert.equal(spec.projectId, 'reeditpro')
-assert.equal(spec.targetRegion, 'northamerica-northeast1')
-assert.equal(spec.targetZone, 'northamerica-northeast1-c')
+assert.equal(spec.targetRegion, 'northamerica-northeast2')
+assert.equal(spec.targetZone, 'northamerica-northeast2-a')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.machineType, 'g2-standard-4')
 assert.equal(spec.minimumGlobalGpusAllRegionsQuota, 1)
@@ -124,7 +125,7 @@ assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
 assert.equal(
   spec.nextActionIfQuotaCleared.includes(
-    '10O-PAYLOAD-INSTALL-RESOURCE-AVAILABILITY-FIX',
+    '10P-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-NORTHAMERICA-NORTHEAST2-A',
   ),
   true,
 )

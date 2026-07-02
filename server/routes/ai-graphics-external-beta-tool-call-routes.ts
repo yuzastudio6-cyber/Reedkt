@@ -157,6 +157,7 @@ export const aiGraphicsExternalBetaToolCallRequestSchema = z.object({
   ownerRuntimeApprovalRef: privateRefSchema,
   nativeGpuRuntimeProofRef: privateRefSchema.optional(),
   modelWeightManifestRef: privateRefSchema.optional(),
+  externalBetaPerToolRuntimeProofRef: privateRefSchema.optional(),
   traceId: z.string().min(1),
   payload: z.record(z.string(), z.unknown()).optional(),
 })
@@ -654,6 +655,8 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     hasAcceptedPrivateRef(request.nativeGpuRuntimeProofRef)
   const modelWeightManifestRefAccepted =
     modelWeightManifestRequired && hasAcceptedPrivateRef(request.modelWeightManifestRef)
+  const externalBetaPerToolRuntimeProofRecheckAccepted =
+    hasAcceptedPrivateRef(request.externalBetaPerToolRuntimeProofRef)
   const admission = evaluateAiGraphicsOnDemandRuntimeAdmission({
     capabilityId: request.capabilityId,
     requestedToolId: request.toolId,
@@ -678,7 +681,14 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     modelWeightManifestRequired,
   )
   const runtimeJobAdmissionReadyWithProvidedEvidence =
-    admission.runtimeJobAdmissionReadyWithProvidedEvidence === true
+    admission.runtimeJobAdmissionReadyWithProvidedEvidence === true &&
+    externalBetaPerToolRuntimeProofRecheckAccepted
+  const missingRuntimeProofGates = [
+    ...admission.missingRuntimeProofGates,
+    ...(!externalBetaPerToolRuntimeProofRecheckAccepted
+      ? ['external-beta per-tool runtime proof recheck reference is missing']
+      : []),
+  ]
   const gpuModelAdmissionEvidenceState =
     runtimeJobAdmissionReadyWithProvidedEvidence
       ? 'proof_refs_accepted_pending_live_worker_enqueue'
@@ -686,7 +696,7 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
   const nextExternalAgentAction = runtimeJobAdmissionReadyWithProvidedEvidence
     ? 'wait_for_live_worker_enqueue_authorization_or_submit_to_approved_worker_lane'
     : gpuModelUnblockPlan.nextExternalAgentAction
-  const missingPrivateModelWeightEvidence = admission.missingRuntimeProofGates.length === 0
+  const missingPrivateModelWeightEvidence = missingRuntimeProofGates.length === 0
     ? []
     : [
         ...(modelWeightManifestRequired && !modelWeightManifestRefAccepted
@@ -697,6 +707,9 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
           : []),
         ...(!nativeGpuRuntimeProofRefAccepted
           ? ['native NVIDIA L4 model/runtime proof is missing']
+          : []),
+        ...(!externalBetaPerToolRuntimeProofRecheckAccepted
+          ? ['external-beta per-tool runtime proof recheck reference is missing']
           : []),
       ]
 
@@ -730,7 +743,9 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     externalBetaPerToolRuntimeProofRecheckRequired:
       gpuModelUnblockPlan.externalBetaPerToolRuntimeProofRecheckRequired,
     externalBetaPerToolRuntimeProofRecheckAccepted:
-      gpuModelUnblockPlan.externalBetaPerToolRuntimeProofRecheckAccepted,
+      externalBetaPerToolRuntimeProofRecheckAccepted,
+    externalBetaPerToolRuntimeProofRefAccepted:
+      externalBetaPerToolRuntimeProofRecheckAccepted,
     runtimeJobAdmissionReadyWithProvidedEvidence,
     workerEnqueueStillBlockedByCurrentLane: true,
     admissionDecision: admission.decision,
@@ -739,7 +754,7 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
       admission.gpuRuntimeStartAllowedForAcceptedJob,
     gpuRuntimeShouldStartNow: false,
     missingRuntimeJobGates: admission.missingRuntimeJobGates,
-    missingRuntimeProofGates: admission.missingRuntimeProofGates,
+    missingRuntimeProofGates,
     missingPrivateModelWeightEvidence,
     nextRequiredProofs: [
       'collect reviewed private checksum evidence for model-weight tools',
@@ -916,6 +931,8 @@ export async function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
             ownerRuntimeApprovalRef: request.ownerRuntimeApprovalRef,
             nativeGpuRuntimeProofRef: request.nativeGpuRuntimeProofRef,
             modelWeightManifestRef: request.modelWeightManifestRef,
+            externalBetaPerToolRuntimeProofRef:
+              request.externalBetaPerToolRuntimeProofRef,
             payload: request.payload ?? {},
             gpuModelProofRefMockQueueAdmissionOnly: true,
             runtimeJobAdmissionReadyWithProvidedEvidence: true,
@@ -967,6 +984,10 @@ export async function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
       nativeGpuRuntimeProofRefAccepted: details.nativeGpuRuntimeProofRefAccepted,
       modelWeightManifestRequired: details.modelWeightManifestRequired,
       modelWeightManifestRefAccepted: details.modelWeightManifestRefAccepted,
+      externalBetaPerToolRuntimeProofRecheckAccepted:
+        details.externalBetaPerToolRuntimeProofRecheckAccepted,
+      externalBetaPerToolRuntimeProofRefAccepted:
+        details.externalBetaPerToolRuntimeProofRefAccepted,
       runtimeJobAdmissionReadyWithProvidedEvidence: true,
       gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
         details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
@@ -1010,6 +1031,10 @@ export async function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
           details.nativeGpuRuntimeProofRefAccepted,
         modelWeightManifestRequired: details.modelWeightManifestRequired,
         modelWeightManifestRefAccepted: details.modelWeightManifestRefAccepted,
+        externalBetaPerToolRuntimeProofRecheckAccepted:
+          details.externalBetaPerToolRuntimeProofRecheckAccepted,
+        externalBetaPerToolRuntimeProofRefAccepted:
+          details.externalBetaPerToolRuntimeProofRefAccepted,
         runtimeJobAdmissionReadyWithProvidedEvidence: true,
         gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
           details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,

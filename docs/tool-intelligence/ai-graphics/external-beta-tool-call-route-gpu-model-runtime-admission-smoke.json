@@ -75,10 +75,12 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -159,10 +161,12 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -250,13 +254,15 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing",
-        "reviewed model-weight manifest reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
         "reviewed private model-weight manifest reference is missing",
         "private checksum evidence is missing",
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -344,13 +350,15 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing",
-        "reviewed model-weight manifest reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
         "reviewed private model-weight manifest reference is missing",
         "private checksum evidence is missing",
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -438,13 +446,15 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing",
-        "reviewed model-weight manifest reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
         "reviewed private model-weight manifest reference is missing",
         "private checksum evidence is missing",
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -525,10 +535,12 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -616,13 +628,15 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing",
-        "reviewed model-weight manifest reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
         "reviewed private model-weight manifest reference is missing",
         "private checksum evidence is missing",
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -710,13 +724,15 @@
       },
       "missingRuntimeJobGates": [],
       "missingRuntimeProofGates": [
-        "native NVIDIA GPU runtime proof reference is missing",
-        "reviewed model-weight manifest reference is missing"
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "missingPrivateModelWeightEvidence": [
         "reviewed private model-weight manifest reference is missing",
         "private checksum evidence is missing",
-        "native NVIDIA L4 model/runtime proof is missing"
+        "native NVIDIA L4 model/runtime proof is missing",
+        "external-beta per-tool runtime proof recheck reference is missing"
       ],
       "gpuRuntimeStartupAuthorization": "blocked_missing_runtime_job_gates",
       "gpuRuntimeStartAllowedForAcceptedExternalBetaJob": false,
@@ -736,7 +752,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
       "workerType": "gpu_ai_worker",
@@ -751,7 +767,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -816,7 +832,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
       "workerType": "gpu_ai_worker",
@@ -831,7 +847,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -896,7 +912,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
       "workerType": "gpu_ai_worker",
@@ -911,7 +927,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -978,7 +994,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
       "workerType": "gpu_ai_worker",
@@ -993,7 +1009,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -1065,7 +1081,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
       "workerType": "gpu_ai_worker",
@@ -1080,7 +1096,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -1152,7 +1168,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
       "workerType": "gpu_ai_worker",
@@ -1167,7 +1183,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -1239,7 +1255,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
       "workerType": "gpu_ai_worker",
@@ -1254,7 +1270,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {
@@ -1326,7 +1342,7 @@
       "statusCode": 409,
       "blocked": true,
       "code": null,
-      "routeStatus": "gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence",
+      "routeStatus": "gpu_model_runtime_admission_ready_pending_mock_queue_admission",
       "admissionDecision": "runtime_job_admission_ready_for_worker_enqueue",
       "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
       "workerType": "gpu_ai_worker",
@@ -1341,7 +1357,7 @@
       "nativeGpuRuntimeProofAccepted": true,
       "nativeGpuRuntimeProofRefAccepted": true,
       "externalBetaPerToolRuntimeProofRecheckRequired": true,
-      "externalBetaPerToolRuntimeProofRecheckAccepted": false,
+      "externalBetaPerToolRuntimeProofRecheckAccepted": true,
       "runtimeJobAdmissionReadyWithProvidedEvidence": true,
       "workerEnqueueStillBlockedByCurrentLane": true,
       "gpuModelUnblockPlan": {

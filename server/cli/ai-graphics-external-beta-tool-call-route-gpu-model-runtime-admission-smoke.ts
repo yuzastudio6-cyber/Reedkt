@@ -188,11 +188,14 @@ function normalizeProofReadyNativeGpuOnlyRequest(
     ),
     nativeGpuRuntimeProofRef:
       `private://ai-graphics/external-beta/native-gpu-proof/${request.toolId}/accepted-result`,
+    externalBetaPerToolRuntimeProofRef:
+      `private://ai-graphics/external-beta/per-tool-runtime-proof/${request.toolId}/accepted-recheck`,
     payload: {
       ...(normalized.payload ?? {}),
       gpuModelRuntimeAdmissionProofRefsProvided: true,
       nativeGpuRuntimeProofRefProvided: true,
       modelWeightManifestRefProvided: false,
+      externalBetaPerToolRuntimeProofRefProvided: true,
       workerEnqueueStillBlockedByCurrentLane: true,
     },
   }
@@ -216,11 +219,14 @@ function normalizeProofReadyModelWeightRequest(
       `private://ai-graphics/external-beta/native-gpu-proof/${request.toolId}/accepted-result`,
     modelWeightManifestRef:
       `private://ai-graphics/external-beta/model-weight-manifest/${request.toolId}/accepted-manifest`,
+    externalBetaPerToolRuntimeProofRef:
+      `private://ai-graphics/external-beta/per-tool-runtime-proof/${request.toolId}/accepted-recheck`,
     payload: {
       ...(normalized.payload ?? {}),
       gpuModelRuntimeAdmissionProofRefsProvided: true,
       nativeGpuRuntimeProofRefProvided: true,
       modelWeightManifestRefProvided: true,
+      externalBetaPerToolRuntimeProofRefProvided: true,
       workerEnqueueStillBlockedByCurrentLane: true,
     },
   }
@@ -788,6 +794,10 @@ async function main() {
       `${result.toolId} should report native GPU proof accepted`,
     )
     assert(
+      result.externalBetaPerToolRuntimeProofRecheckAccepted === true,
+      `${result.toolId} should accept the per-tool runtime proof recheck ref`,
+    )
+    assert(
       result.modelWeightManifestRequired === false,
       `${result.toolId} should not require model-weight manifest ref`,
     )
@@ -843,6 +853,10 @@ async function main() {
     assert(
       result.nativeGpuRuntimeProofAccepted === true,
       `${result.toolId} should report native GPU proof accepted`,
+    )
+    assert(
+      result.externalBetaPerToolRuntimeProofRecheckAccepted === true,
+      `${result.toolId} should accept the per-tool runtime proof recheck ref`,
     )
     assert(
       result.modelWeightManifestRequired === true,

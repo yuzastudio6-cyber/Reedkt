@@ -58,6 +58,8 @@ interface GpuModelQueuedJob {
   nativeGpuRuntimeProofRefAccepted: boolean
   modelWeightManifestRequired: boolean
   modelWeightManifestRefAccepted: boolean
+  externalBetaPerToolRuntimeProofRecheckAccepted: boolean
+  externalBetaPerToolRuntimeProofRefAccepted: boolean
   runtimeJobAdmissionReadyWithProvidedEvidence: boolean
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
   agentCanSubmitGpuModelToolCallToQueueAdmissionNow: boolean
@@ -168,11 +170,14 @@ function proofReadyRequest(
     modelWeightManifestRef: modelWeightManifestRequiredTools.has(request.toolId)
       ? `private://ai-graphics/external-beta/model-weight-manifest/${request.toolId}/accepted-manifest`
       : undefined,
+    externalBetaPerToolRuntimeProofRef:
+      `private://ai-graphics/external-beta/per-tool-runtime-proof/${request.toolId}/accepted-recheck`,
     payload: {
       gpuModelProofRefQueueAdmissionSmoke: true,
       nativeGpuRuntimeProofRefProvided: true,
       modelWeightManifestRefProvided:
         modelWeightManifestRequiredTools.has(request.toolId),
+      externalBetaPerToolRuntimeProofRefProvided: true,
       routeExecutionPerformed: true,
       workerDispatchPerformed: false,
       toolExecutionPerformed: false,
@@ -213,6 +218,10 @@ async function runRouteAdmissionCase(
     modelWeightManifestRequired: data.modelWeightManifestRequired === true,
     modelWeightManifestRefAccepted:
       data.modelWeightManifestRefAccepted === true,
+    externalBetaPerToolRuntimeProofRecheckAccepted:
+      data.externalBetaPerToolRuntimeProofRecheckAccepted === true,
+    externalBetaPerToolRuntimeProofRefAccepted:
+      data.externalBetaPerToolRuntimeProofRefAccepted === true,
     runtimeJobAdmissionReadyWithProvidedEvidence:
       data.runtimeJobAdmissionReadyWithProvidedEvidence === true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -416,6 +425,14 @@ async function main() {
       `${job.toolId} runtime target was not native GPU`,
     )
     assert(job.nativeGpuRuntimeProofRefAccepted === true, `${job.toolId} native proof was not accepted`)
+    assert(
+      job.externalBetaPerToolRuntimeProofRecheckAccepted === true,
+      `${job.toolId} per-tool runtime proof recheck was not accepted`,
+    )
+    assert(
+      job.externalBetaPerToolRuntimeProofRefAccepted === true,
+      `${job.toolId} per-tool runtime proof ref was not accepted`,
+    )
     if (modelWeightManifestRequiredTools.has(job.toolId)) {
       assert(job.modelWeightManifestRefAccepted === true, `${job.toolId} model manifest was not accepted`)
     } else {

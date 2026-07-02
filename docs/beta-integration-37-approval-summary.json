@@ -1,0 +1,50 @@
+{
+  "milestone": "RP-BETA-INTEGRATION-37",
+  "type": "owner_approval_packet",
+  "decision": "remote_supabase_staging_owner_approval_packet_pr_created",
+  "remoteActionsPerformed": false,
+  "supabaseCliRun": false,
+  "migrationsApplied": false,
+  "stagingDeployRun": false,
+  "providerCallsRun": false,
+  "workersRun": false,
+  "qwenCloneMutated": false,
+  "sideArtifactsStagedOrDeleted": false,
+  "packageLockChanged": false,
+  "requiresOwnerApproval": true,
+  "verifiedBase": {
+    "targetBranch": "codex/reeditpro-web-ui-shell",
+    "pr637MergeCommit": "88c6b19334ff1a1e327c8e97823601afde867072",
+    "pr2184MergeCommit": "5bd57641fb18b7bff8dfb831ae75a63dda6a5ba6"
+  },
+  "supabaseInventory": {
+    "migrationFileCount": 24,
+    "reviewFileCount": 0,
+    "localConfigPresent": true
+  },
+  "requiredApprovals": [
+    "Approve remote Supabase project and environment.",
+    "Approve remote Supabase command set.",
+    "Approve migration file list.",
+    "Approve migration application window.",
+    "Approve staging deployment target.",
+    "Approve staging deployment command.",
+    "Approve post-deploy validation suite.",
+    "Approve rollback plan.",
+    "Confirm secrets and config are present in the approved secret store.",
+    "Confirm production deployment is excluded."
+  ],
+  "requiredValidation": [
+    "DEVELOPER_DIR=/Library/Developer/CommandLineTools git diff --check",
+    "npm run lint",
+    "npm run build",
+    "npm run check:qwen-secret-leakage",
+    "npm run smoke:beta-readiness",
+    "npm run smoke:api",
+    "npm run smoke:beta-integration-37"
+  ],
+  "knownSideArtifacts": [
+    "supabase/.branches/",
+    "supabase/.temp/"
+  ]
+}

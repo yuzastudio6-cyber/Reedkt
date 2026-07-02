@@ -24,6 +24,18 @@ The implementation handles missing Supabase env values, signed-out users, profil
 - Supabase local/staging validation.
 - Credit, provider, worker, rendering, Stripe, and mobile implementation.
 
+## RP-BETA-INTEGRATION-37
+
+Status: approval packet ready.
+
+The repository now includes a remote Supabase and staging deployment owner approval packet plus a local smoke check:
+
+- `docs/beta-integration-37-remote-supabase-staging-approval.md`
+- `docs/beta-integration-37-approval-summary.json`
+- `server/smoke/beta-integration-37-approval-packet-smoke.ts`
+
+It does not run Supabase CLI, apply migrations, deploy staging, expose secrets, call providers, start workers, mutate the Qwen clone, or stage/delete local Supabase side artifacts. Owner approval is still required before any remote Supabase or staging deployment step.
+
 ## RP-FIX-07
 
 Status: partially fixed.

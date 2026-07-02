@@ -154,6 +154,63 @@ function runOperatorPreflightProbe() {
   return JSON.parse(output)
 }
 
+function runPlaceholderOperatorPreflightProbe() {
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      runScriptName,
+      '--',
+      '--operator-preflight',
+      '--execute-ai-graphics-external-agent-cpu-static-non-production-evidence-sequence',
+      '--workspace-id',
+      '<non-production-workspace-id>',
+      '--project-id',
+      '<non-production-project-id>',
+      '--approved-plan-snapshot-id',
+      '<approved-plan-snapshot-id>',
+      '--credit-reservation-id',
+      '<credit-reservation-id>',
+      '--idempotency-prefix',
+      '<unique-smoke-prefix>',
+      '--source-non-production-service-role-queue-write-smoke-preflight-packet',
+      'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+      '--source-exact-execution-admission-packet',
+      'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+      '--output-dir',
+      '.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence',
+    ],
+    {
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_NON_PRODUCTION_EVIDENCE_SEQUENCE:
+          'true',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE:
+          'true',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE:
+          'true',
+        REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_NON_PRODUCTION_EVIDENCE_SEQUENCE_ENV:
+          'non_production',
+        REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE_ENV:
+          'non_production',
+        REEDITPRO_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE_ENV:
+          'non_production',
+        SUPABASE_URL: 'https://non-production.supabase.local',
+        SUPABASE_SERVICE_ROLE_KEY: 'non-production-service-role-key',
+        E2E_RUNTIME_MODE: 'local',
+        WORKER_RUNTIME_MODE: 'mock',
+        NODE_ENV: 'test',
+      },
+      stdio: 'pipe',
+    },
+  )
+  return JSON.parse(output)
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence.ts',
   'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence-diagnostics.mjs',
@@ -198,6 +255,9 @@ for (const phrase of [
   'assertAcceptedQueueProof',
   'assertAcceptedClaimDispatchProof',
   'buildOperatorPreflightReport',
+  'invalidFlagValueFindings',
+  'assertRuntimeFlagValues',
+  'invalidFlagValues',
   'operatorPreflightOnly',
   'canRunEvidenceSequenceNow',
   'missingOrMismatchedEnv',
@@ -241,6 +301,7 @@ for (const deferredTool of ['satori', 'echarts', 'three_js', 'pixi_js', 'babylon
 
 const prepared = runPrepared()
 const operatorPreflight = runOperatorPreflightProbe()
+const placeholderPreflight = runPlaceholderOperatorPreflightProbe()
 const committed = json(outputJsonPath)
 const committedMd = read(outputMdPath)
 const promptResult = read(promptResultPath)
@@ -332,6 +393,47 @@ for (const expectedMissingFlag of [
   if (!operatorPreflight.missingFlags?.includes(expectedMissingFlag)) {
     fail(`operator_preflight_missing_expected_flag_blocker:${expectedMissingFlag}`)
   }
+}
+if (placeholderPreflight.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_operator_preflight_completed_with_runtime_blocks') {
+  fail(`placeholder_preflight_decision_mismatch:${placeholderPreflight.decision}`)
+}
+if (placeholderPreflight.operatorPreflightOnly !== true) {
+  fail('placeholder_preflight_only_not_true')
+}
+if (placeholderPreflight.canRunEvidenceSequenceNow !== false) {
+  fail('placeholder_preflight_unexpectedly_ready_with_placeholder_flags')
+}
+if (!Array.isArray(placeholderPreflight.invalidFlagValues)) {
+  fail('placeholder_preflight_invalid_flag_values_missing')
+}
+for (const expectedInvalidFlag of [
+  '--workspace-id',
+  '--project-id',
+  '--approved-plan-snapshot-id',
+  '--credit-reservation-id',
+  '--idempotency-prefix',
+]) {
+  if (!placeholderPreflight.invalidFlagValues?.some((finding) => finding.flag === expectedInvalidFlag)) {
+    fail(`placeholder_preflight_missing_invalid_flag:${expectedInvalidFlag}`)
+  }
+}
+if (placeholderPreflight.invalidFlagValues?.length !== 5) {
+  fail(`placeholder_preflight_invalid_flag_count:${placeholderPreflight.invalidFlagValues?.length}`)
+}
+if (placeholderPreflight.liveEvidenceSequenceExecutedNow !== false) {
+  fail('placeholder_preflight_live_sequence_not_false')
+}
+if (placeholderPreflight.liveSupabaseQueueWritesNow !== 0) {
+  fail('placeholder_preflight_live_queue_writes_not_0')
+}
+if (placeholderPreflight.liveWorkerClaimsNow !== 0) {
+  fail('placeholder_preflight_worker_claims_not_0')
+}
+if (placeholderPreflight.liveWorkerDispatchHandoffsNow !== 0) {
+  fail('placeholder_preflight_worker_handoffs_not_0')
+}
+if (placeholderPreflight.toolExecutionsPerformedNow !== 0) {
+  fail('placeholder_preflight_tool_executions_not_0')
 }
 if (!Array.isArray(prepared.stages) || prepared.stages.length !== 2) {
   fail('prepared_stages_not_2')
@@ -425,5 +527,7 @@ console.log(JSON.stringify({
   toolExecutionsPerformedNow: prepared.toolExecutionsPerformedNow,
   agentCanExecuteToolsNow: prepared.booleans.agentCanExecuteToolsNow,
   gpuRuntimeShouldStartNow: prepared.booleans.gpuRuntimeShouldStartNow,
+  placeholderPreflightBlocked: placeholderPreflight.canRunEvidenceSequenceNow === false,
+  placeholderInvalidFlagValues: placeholderPreflight.invalidFlagValues?.length ?? 0,
   packageLockUnchanged: true,
 }, null, 2))

@@ -68,12 +68,87 @@ function requiredFlag(flag: string): string {
   return value
 }
 
-function optionalFlag(flag: string, fallback: string): string {
-  return valueAfterFlag(flag) ?? fallback
-}
-
 function refFor(prefix: string, name: string): string {
   return `private://ai-graphics/external-agent/cpu-static-non-production-evidence-sequence/${prefix}/${name}`
+}
+
+function isPlaceholderValue(value: string): boolean {
+  const trimmed = value.trim()
+  return trimmed.length === 0 || (trimmed.startsWith('<') && trimmed.endsWith('>')) ||
+    trimmed.includes('<') || trimmed.includes('>')
+}
+
+function flagValueRejection(flag: string, value: string): string | undefined {
+  if (isPlaceholderValue(value)) return `${flag} uses a placeholder value`
+  if (/\s/.test(value)) return `${flag} contains whitespace`
+  if (
+    [
+      '--workspace-id',
+      '--project-id',
+      '--approved-plan-snapshot-id',
+      '--credit-reservation-id',
+    ].includes(flag) && value.length < 4
+  ) {
+    return `${flag} is too short for a non-production identifier`
+  }
+  if (flag === '--idempotency-prefix') {
+    if (!/^[a-zA-Z0-9._-]+$/.test(value)) {
+      return `${flag} must contain only safe idempotency characters`
+    }
+    if (value.length < 16 || value.length > 160) {
+      return `${flag} must be 16-160 characters`
+    }
+    if (!value.toLowerCase().includes('smoke')) {
+      return `${flag} must include smoke for audit traceability`
+    }
+  }
+  if (
+    flag === '--source-non-production-service-role-queue-write-smoke-preflight-packet' &&
+    value !== defaultSourceQueueWritePreflightPath
+  ) {
+    return `${flag} must point at the checked-in source queue-write preflight packet`
+  }
+  if (
+    flag === '--source-exact-execution-admission-packet' &&
+    value !== defaultSourceExactExecutionAdmissionPath
+  ) {
+    return `${flag} must point at the checked-in source exact execution admission packet`
+  }
+  if (flag === '--output-dir' && value !== defaultOutputDir) {
+    return `${flag} must use the local-only suggested output directory`
+  }
+  return undefined
+}
+
+function invalidFlagValueFindings() {
+  return requiredFlags
+    .filter((flag) => flag !== executeFlag)
+    .map((flag) => {
+      const value = valueAfterFlag(flag)
+      if (!value) return null
+      const rejection = flagValueRejection(flag, value)
+      return rejection
+        ? {
+          flag,
+          valuePreview: value,
+          rejection,
+        }
+        : null
+    })
+    .filter((finding): finding is { flag: string; valuePreview: string; rejection: string } =>
+      Boolean(finding),
+    )
+}
+
+function assertRuntimeFlagValues(): void {
+  const findings = invalidFlagValueFindings()
+  if (findings.length > 0) {
+    throw new Error(
+      `CPU/static non-production evidence sequence rejected runtime flag values: ${
+        findings.map((finding) => finding.rejection).join('; ')
+      }`,
+    )
+  }
 }
 
 function preparedContract() {
@@ -407,12 +482,14 @@ function buildOperatorPreflightReport() {
     .filter((check) => !check.matchesExpected)
     .map((check) => check.key)
   const missingFlags = flagChecks.filter((check) => !check.present).map((check) => check.flag)
+  const invalidFlagValues = invalidFlagValueFindings()
   const missingSourcePackets = sourcePacketChecks
     .filter((check) => !check.exists)
     .map((check) => check.path)
   const canRunEvidenceSequenceNow =
     missingOrMismatchedEnv.length === 0 &&
     missingFlags.length === 0 &&
+    invalidFlagValues.length === 0 &&
     missingSourcePackets.length === 0 &&
     !productionBlocked
 
@@ -435,6 +512,7 @@ function buildOperatorPreflightReport() {
     sourcePacketChecks,
     missingOrMismatchedEnv,
     missingFlags,
+    invalidFlagValues,
     missingSourcePackets,
     productionBlocked,
     toolsCovered: 5,
@@ -526,15 +604,12 @@ async function executeSequence() {
   const approvedPlanSnapshotId = requiredFlag('--approved-plan-snapshot-id')
   const creditReservationId = requiredFlag('--credit-reservation-id')
   const idempotencyPrefix = requiredFlag('--idempotency-prefix')
-  const sourcePreflightPath = optionalFlag(
+  const sourcePreflightPath = requiredFlag(
     '--source-non-production-service-role-queue-write-smoke-preflight-packet',
-    defaultSourceQueueWritePreflightPath,
   )
-  const sourceExactAdmissionPath = optionalFlag(
-    '--source-exact-execution-admission-packet',
-    defaultSourceExactExecutionAdmissionPath,
-  )
-  const outputDir = optionalFlag('--output-dir', defaultOutputDir)
+  const sourceExactAdmissionPath = requiredFlag('--source-exact-execution-admission-packet')
+  const outputDir = requiredFlag('--output-dir')
+  assertRuntimeFlagValues()
 
   const queueResultPath = path.join(outputDir, 'queue-write-smoke-result.json')
   const queueProofPath = path.join(outputDir, 'queue-write-smoke-proof.json')

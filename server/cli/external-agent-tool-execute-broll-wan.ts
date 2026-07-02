@@ -9,7 +9,7 @@ const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const NEXT_AFTER_QUOTA =
-  'AI-VIDEO-BROLL-GEN-10D-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-east1-c stockout, no VM/no inference'
+  'AI-VIDEO-BROLL-GEN-10E-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-EAST1-D: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-east1-d and mandatory cleanup, no model inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -113,7 +113,7 @@ function validateReadiness(quota: JsonRecord | undefined, cache: JsonRecord | un
   if (cache?.modelIndexClassNameMatches !== true) blockers.push('broll_private_cache_model_index_mismatch')
   if (cache?.indexRefsLocal !== true) blockers.push('broll_private_cache_refs_not_local')
 
-  blockers.push('broll_no_idle_l4_iap_wheelhouse_transfer_us_east1_c_stocked_out_capacity_strategy_required')
+  blockers.push('broll_no_idle_l4_iap_wheelhouse_transfer_us_east1_d_future_prompt_required')
   return Array.from(new Set(blockers))
 }
 

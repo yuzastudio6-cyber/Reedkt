@@ -40,6 +40,12 @@ This packet records the exact operator handoff for the CPU/static private-worker
 - `--source-exact-execution-admission-packet`
 - `--output-dir`
 
+## Operator Preflight
+
+- Non-mutating preflight flag: `--operator-preflight`
+- Purpose: verify exact future execution environment, flags, source packets, and production block state without queue writes, worker claims, worker dispatches, tool execution, GPU runtime, signed URLs, or public artifacts.
+- Usage: run the evidence sequence command with `--operator-preflight` plus the same env/flags intended for the future execution run. The preflight reports `canRunEvidenceSequenceNow` but never executes the sequence.
+
 ## Ordered Evidence Stages
 
 | Stage | Command | Result output | Proof output | Tool executions expected |

@@ -4,6 +4,7 @@
   "status": "external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_not_executed",
   "preparedScript": "ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence",
   "executeFlagRequired": "--execute-ai-graphics-external-agent-cpu-static-non-production-evidence-sequence",
+  "operatorPreflightFlag": "--operator-preflight",
   "sourceQueueWritePreflightPacket": "docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json",
   "sourceExactExecutionAdmissionPacket": "docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json",
   "requiredEnv": [

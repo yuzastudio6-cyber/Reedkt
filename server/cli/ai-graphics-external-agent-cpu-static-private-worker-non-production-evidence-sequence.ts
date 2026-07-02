@@ -4,9 +4,12 @@ import path from 'node:path'
 
 const RUNNER_DECISION =
   'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_prepared_with_runtime_blocks'
+const OPERATOR_PREFLIGHT_DECISION =
+  'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_operator_preflight_completed_with_runtime_blocks'
 
 const executeFlag =
   '--execute-ai-graphics-external-agent-cpu-static-non-production-evidence-sequence'
+const operatorPreflightFlag = '--operator-preflight'
 
 const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js'] as const
 
@@ -82,6 +85,7 @@ function preparedContract() {
     preparedScript:
       'ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence',
     executeFlagRequired: executeFlag,
+    operatorPreflightFlag,
     sourceQueueWritePreflightPacket: defaultSourceQueueWritePreflightPath,
     sourceExactExecutionAdmissionPacket: defaultSourceExactExecutionAdmissionPath,
     requiredEnv,
@@ -217,6 +221,12 @@ ${markdownList(contract.requiredEnv)}
 
 ${markdownList(contract.requiredFlags)}
 
+## Operator Preflight
+
+- Non-mutating preflight flag: \`${contract.operatorPreflightFlag}\`
+- Purpose: verify exact future execution environment, flags, source packets, and production block state without queue writes, worker claims, worker dispatches, tool execution, GPU runtime, signed URLs, or public artifacts.
+- Usage: run the evidence sequence command with \`${contract.operatorPreflightFlag}\` plus the same env/flags intended for the future execution run. The preflight reports \`canRunEvidenceSequenceNow\` but never executes the sequence.
+
 ## Ordered Evidence Stages
 
 | Stage | Command | Result output | Proof output | Tool executions expected |
@@ -256,6 +266,7 @@ function makePromptResult(contract: PreparedContract): string {
 - Tools covered: \`${contract.toolsCovered}\`
 - Tool IDs: ${contract.toolsCoveredIds.map((toolId) => `\`${toolId}\``).join(', ')}
 - Live evidence sequence executed now: \`${contract.liveEvidenceSequenceExecutedNow}\`
+- Operator preflight flag: \`${contract.operatorPreflightFlag}\`
 - Local-only sequence result path: \`${contract.localOnlySuggestedSequenceResult}\`
 - Live Supabase queue writes now: \`${contract.liveSupabaseQueueWritesNow}\`
 - Worker claims now: \`${contract.liveWorkerClaimsNow}\`
@@ -287,6 +298,7 @@ Implemented committed evidence-sequence records for the CPU/static private-worke
 - Tools covered: \`${contract.toolsCovered}\`
 - Local-only output directory: \`${contract.localOnlySuggestedOutputDir}\`
 - Local-only sequence result path: \`${contract.localOnlySuggestedSequenceResult}\`
+- Operator preflight flag: \`${contract.operatorPreflightFlag}\`
 - Queue-write smoke proof must validate before claim/dispatch smoke: \`${contract.booleans.queueWriteProofMustValidateBeforeClaimDispatch}\`
 - Claim/dispatch smoke proof must validate before execution gate: \`${contract.booleans.claimDispatchProofMustValidateBeforeExecutionGate}\`
 - Agent can execute tools now: \`${contract.booleans.agentCanExecuteToolsNow}\`
@@ -344,6 +356,122 @@ function assertAllowedToExecute(): void {
   }
   if (hasFlag('--production') || process.env.NODE_ENV === 'production') {
     throw new Error('CPU/static non-production evidence sequence is blocked in production.')
+  }
+}
+
+function splitRequiredEnv(value: string): { key: string; expected?: string } {
+  const separatorIndex = value.indexOf('=')
+  if (separatorIndex === -1) return { key: value }
+  return {
+    key: value.slice(0, separatorIndex),
+    expected: value.slice(separatorIndex + 1),
+  }
+}
+
+function buildOperatorPreflightReport() {
+  const envChecks = requiredEnv.map((entry) => {
+    const { key, expected } = splitRequiredEnv(entry)
+    const actual = process.env[key]
+    const present = Boolean(actual)
+    const matchesExpected = expected === undefined ? present : actual === expected
+    return {
+      key,
+      expected: expected ?? 'present',
+      present,
+      matchesExpected,
+      value: present ? '<present>' : '<missing>',
+    }
+  })
+  const flagChecks = requiredFlags.map((flag) => {
+    const present =
+      flag === executeFlag || flag === operatorPreflightFlag
+        ? hasFlag(flag)
+        : Boolean(valueAfterFlag(flag))
+    return {
+      flag,
+      present,
+    }
+  })
+  const sourcePacketChecks = [
+    {
+      path: defaultSourceQueueWritePreflightPath,
+      exists: fs.existsSync(defaultSourceQueueWritePreflightPath),
+    },
+    {
+      path: defaultSourceExactExecutionAdmissionPath,
+      exists: fs.existsSync(defaultSourceExactExecutionAdmissionPath),
+    },
+  ]
+  const productionBlocked = hasFlag('--production') || process.env.NODE_ENV === 'production'
+  const missingOrMismatchedEnv = envChecks
+    .filter((check) => !check.matchesExpected)
+    .map((check) => check.key)
+  const missingFlags = flagChecks.filter((check) => !check.present).map((check) => check.flag)
+  const missingSourcePackets = sourcePacketChecks
+    .filter((check) => !check.exists)
+    .map((check) => check.path)
+  const canRunEvidenceSequenceNow =
+    missingOrMismatchedEnv.length === 0 &&
+    missingFlags.length === 0 &&
+    missingSourcePackets.length === 0 &&
+    !productionBlocked
+
+  return {
+    ok: true,
+    decision: OPERATOR_PREFLIGHT_DECISION,
+    status: canRunEvidenceSequenceNow
+      ? 'external_agent_cpu_static_private_worker_non_production_evidence_sequence_operator_preflight_ready_for_execute_flag'
+      : 'external_agent_cpu_static_private_worker_non_production_evidence_sequence_operator_preflight_blocked_pending_runtime_prerequisites',
+    operatorPreflightOnly: true,
+    canRunEvidenceSequenceNow,
+    executeFlagRequired: executeFlag,
+    operatorPreflightFlag,
+    sourceQueueWritePreflightPacket: defaultSourceQueueWritePreflightPath,
+    sourceExactExecutionAdmissionPacket: defaultSourceExactExecutionAdmissionPath,
+    localOnlySuggestedOutputDir: defaultOutputDir,
+    localOnlySuggestedSequenceResult: `${defaultOutputDir}/evidence-sequence-result.json`,
+    envChecks,
+    flagChecks,
+    sourcePacketChecks,
+    missingOrMismatchedEnv,
+    missingFlags,
+    missingSourcePackets,
+    productionBlocked,
+    toolsCovered: 5,
+    toolsCoveredIds: [...proofTools],
+    liveEvidenceSequenceExecutedNow: false,
+    liveSupabaseQueueWritesNow: 0,
+    liveWorkerClaimsNow: 0,
+    liveWorkerDispatchHandoffsNow: 0,
+    toolExecutionsPerformedNow: 0,
+    agentCanExecuteToolsNow: false,
+    gpuRuntimeShouldStartNow: false,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+    booleans: {
+      operatorPreflightOnly: true,
+      canRunEvidenceSequenceNow,
+      sourcePacketsPresent: missingSourcePackets.length === 0,
+      explicitExecuteFlagPresent: hasFlag(executeFlag),
+      explicitOperatorPreflightFlagPresent: hasFlag(operatorPreflightFlag),
+      productionBlocked,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      agentCanExecuteToolsNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
   }
 }
 
@@ -542,6 +670,10 @@ async function executeSequence() {
 }
 
 async function main(): Promise<void> {
+  if (hasFlag(operatorPreflightFlag)) {
+    console.log(JSON.stringify(buildOperatorPreflightReport(), null, 2))
+    return
+  }
   if (!hasFlag(executeFlag)) {
     const contract = preparedContract()
     if (hasFlag('--write-records')) {

@@ -7,6 +7,7 @@
 - Tools covered: `5`
 - Tool IDs: `d3`, `vega_lite`, `vega`, `svgdotjs_svg_js`, `viz_js`
 - Live evidence sequence executed now: `false`
+- Operator preflight flag: `--operator-preflight`
 - Local-only sequence result path: `.local-artifacts/ai-graphics/external-agent/cpu-static-private-worker/non-production-evidence-sequence/evidence-sequence-result.json`
 - Live Supabase queue writes now: `0`
 - Worker claims now: `0`

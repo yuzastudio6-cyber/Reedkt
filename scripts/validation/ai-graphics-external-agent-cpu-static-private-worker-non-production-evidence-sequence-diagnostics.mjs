@@ -127,6 +127,33 @@ function runRejectedExecutionProbe() {
   }
 }
 
+function runOperatorPreflightProbe() {
+  const output = execFileSync(
+    'npm',
+    ['run', '--silent', runScriptName, '--', '--operator-preflight'],
+    {
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_NON_PRODUCTION_EVIDENCE_SEQUENCE:
+          '',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE:
+          '',
+        REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE:
+          '',
+        SUPABASE_URL: '',
+        SUPABASE_SERVICE_ROLE_KEY: '',
+        E2E_RUNTIME_MODE: '',
+        WORKER_RUNTIME_MODE: '',
+      },
+      stdio: 'pipe',
+    },
+  )
+  return JSON.parse(output)
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence.ts',
   'scripts/validation/ai-graphics-external-agent-cpu-static-private-worker-non-production-evidence-sequence-diagnostics.mjs',
@@ -167,8 +194,15 @@ for (const phrase of [
   'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke',
   'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof',
   '--print-only',
+  '--operator-preflight',
   'assertAcceptedQueueProof',
   'assertAcceptedClaimDispatchProof',
+  'buildOperatorPreflightReport',
+  'operatorPreflightOnly',
+  'canRunEvidenceSequenceNow',
+  'missingOrMismatchedEnv',
+  'missingFlags',
+  'sourcePacketChecks',
   'queue-write-smoke-proof.json',
   'claim-and-dispatch-smoke-proof.json',
   'evidence-sequence-result.json',
@@ -206,6 +240,7 @@ for (const deferredTool of ['satori', 'echarts', 'three_js', 'pixi_js', 'babylon
 }
 
 const prepared = runPrepared()
+const operatorPreflight = runOperatorPreflightProbe()
 const committed = json(outputJsonPath)
 const committedMd = read(outputMdPath)
 const promptResult = read(promptResultPath)
@@ -249,6 +284,55 @@ if (
 ) {
   fail('prepared_sequence_result_path_mismatch')
 }
+if (operatorPreflight.decision !== 'ai_graphics_external_agent_cpu_static_private_worker_non_production_evidence_sequence_operator_preflight_completed_with_runtime_blocks') {
+  fail(`operator_preflight_decision_mismatch:${operatorPreflight.decision}`)
+}
+if (operatorPreflight.operatorPreflightOnly !== true) fail('operator_preflight_only_not_true')
+if (operatorPreflight.canRunEvidenceSequenceNow !== false) {
+  fail('operator_preflight_unexpectedly_ready_without_env_or_flags')
+}
+if (operatorPreflight.liveEvidenceSequenceExecutedNow !== false) {
+  fail('operator_preflight_live_sequence_not_false')
+}
+if (operatorPreflight.liveSupabaseQueueWritesNow !== 0) fail('operator_preflight_live_queue_writes_not_0')
+if (operatorPreflight.liveWorkerClaimsNow !== 0) fail('operator_preflight_worker_claims_not_0')
+if (operatorPreflight.liveWorkerDispatchHandoffsNow !== 0) {
+  fail('operator_preflight_worker_dispatch_handoffs_not_0')
+}
+if (operatorPreflight.toolExecutionsPerformedNow !== 0) {
+  fail('operator_preflight_tool_executions_not_0')
+}
+if (operatorPreflight.booleans?.agentCanExecuteToolsNow !== false) {
+  fail('operator_preflight_agent_execute_not_false')
+}
+if (operatorPreflight.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('operator_preflight_gpu_start_not_false')
+}
+for (const expectedMissing of [
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_NON_PRODUCTION_EVIDENCE_SEQUENCE',
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_SERVICE_ROLE_QUEUE_WRITE_SMOKE',
+  'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_WORKER_CLAIM_AND_DISPATCH_SMOKE',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'E2E_RUNTIME_MODE',
+  'WORKER_RUNTIME_MODE',
+]) {
+  if (!operatorPreflight.missingOrMismatchedEnv?.includes(expectedMissing)) {
+    fail(`operator_preflight_missing_expected_env_blocker:${expectedMissing}`)
+  }
+}
+for (const expectedMissingFlag of [
+  '--execute-ai-graphics-external-agent-cpu-static-non-production-evidence-sequence',
+  '--workspace-id',
+  '--project-id',
+  '--approved-plan-snapshot-id',
+  '--credit-reservation-id',
+  '--idempotency-prefix',
+]) {
+  if (!operatorPreflight.missingFlags?.includes(expectedMissingFlag)) {
+    fail(`operator_preflight_missing_expected_flag_blocker:${expectedMissingFlag}`)
+  }
+}
 if (!Array.isArray(prepared.stages) || prepared.stages.length !== 2) {
   fail('prepared_stages_not_2')
 }
@@ -277,6 +361,8 @@ for (const phrase of [
   'worker claim/dispatch smoke',
   'does not execute the sequence',
   'server-only service-role credentials',
+  '--operator-preflight',
+  'canRunEvidenceSequenceNow',
   'No-Scope',
   'Agent can execute tools now: `false`',
   'Local-only sequence result',

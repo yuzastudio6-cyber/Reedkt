@@ -20,6 +20,7 @@ export function createToolExecutionGatewayRoutes(): Router {
       response,
       {
         gateway: result.gateway,
+        productionReadinessReport: result.productionReadinessReport,
         trackBAdapterResult: result.trackBAdapterResult,
         workerRuntimeArtifactPipeline: result.workerRuntimeArtifactPipeline,
         workerResult: result.workerResult,

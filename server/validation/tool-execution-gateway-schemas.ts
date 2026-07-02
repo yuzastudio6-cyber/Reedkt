@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { trackBAdapterExecutionModeSchema, trackBAdapterToolIdSchema } from '../trackb-adapters'
 import { PRODUCTION_TOOL_IDS, type ProductionToolId } from '../tool-registry'
+import { productionToolExecutionReadinessGateSchema } from './beta-readiness-schemas'
 import { idSchema } from './common-schemas'
 
 const productionToolIdSchema = z.enum(PRODUCTION_TOOL_IDS as unknown as [ProductionToolId, ...ProductionToolId[]])
@@ -97,6 +98,7 @@ export const toolExecutionGatewayDispatchSchema = z.object({
   renderMode: z.enum(['preview', 'final_export', 'qa_probe']).optional(),
   requiredQualityGateIds: z.array(idSchema).optional(),
   requiredQualityGateTypes: z.array(qualityGateTypeSchema).optional(),
+  productionReadinessEvidence: productionToolExecutionReadinessGateSchema.optional(),
   attempt: z.number().int().positive().default(1),
   maxAttempts: z.number().int().positive().default(1),
   metadata: z.record(z.string(), z.unknown()).optional(),

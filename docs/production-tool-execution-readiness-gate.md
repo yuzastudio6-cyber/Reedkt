@@ -37,3 +37,5 @@ POST /v1/beta-readiness/production-tool-execution-readiness/evaluate
 ```
 
 The route is authenticated and report-only. It returns a blocked readiness report when evidence is incomplete, returns a passing report only when every production gate is supplied, and rejects secret-like evidence as validation failure. It does not record evidence, dispatch workers, run tools, process media, mutate wallets, call Supabase, call Stripe, or enable beta/production by itself.
+
+The backend tool execution gateway also fail-closes `production_ready` dispatch unless the request carries a passing production readiness evidence packet in `productionReadinessEvidence`. The gateway checks that the evidence workspace/project matches the dispatch workspace/project, evaluates the same production gate, and returns the readiness report with the gateway result. Missing, incomplete, mismatched, staging-only, or secret-like evidence blocks before worker dispatch. Non-production dry-run and mock-safe gateway modes do not require this all-up paid-production packet.

@@ -26,10 +26,15 @@ import {
   RP_EXTERNAL_BETA_GSTREAMER_MKVTOOLNIX_PERSISTED_JOB_WORKER_DISPATCH_CLAIM_LEASE_ROUTE_PATH,
   runGstreamerMkvtoolnixPersistedJobWorkerDispatchClaimLease,
 } from '../services/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-worker-dispatch-claim-lease-1'
+import {
+  TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH_ROUTE_ENABLEMENT_SOURCE_ROUTE_PATH,
+  runGpacMp4boxGuardedRuntimeDispatchRouteEnablementSource,
+} from '../services/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
   claimWorkerJobSchema,
+  gpacMp4boxGuardedRuntimeDispatchRouteEnablementSourceSchema,
   gstreamerMkvtoolnixGeneratedFixtureApprovedSnapshotJobQueueHandoffSchema,
   gstreamerMkvtoolnixGeneratedFixtureQueuedJobRuntimeRouteInvocationSchema,
   gstreamerMkvtoolnixNarrowExecutionReadyRouteWorkerBridgeSchema,
@@ -203,6 +208,20 @@ export function createWorkerRoutes(): Router {
         routeIdempotencyKey: getIdempotencyKey(request),
       }, getServiceContext(request))
       sendOk(response, { result }, result.warnings, result.ok ? 201 : 409)
+    }),
+  )
+
+  router.post(
+    TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH_ROUTE_ENABLEMENT_SOURCE_ROUTE_PATH,
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(gpacMp4boxGuardedRuntimeDispatchRouteEnablementSourceSchema, request.body)
+      const result = runGpacMp4boxGuardedRuntimeDispatchRouteEnablementSource({
+        ...body,
+        routeIdempotencyKey: body.routeIdempotencyKey || getIdempotencyKey(request),
+      })
+      sendOk(response, { result }, [], result.ok ? 201 : 409)
     }),
   )
 

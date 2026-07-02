@@ -13,8 +13,16 @@ assert.equal(passing.secretLikeInputPaths.length, 0, 'complete fixture should no
 assert.equal(passing.missingConfiguration.length, 0, 'complete fixture should not miss configuration')
 assert.equal(passing.missingEvidence.length, 0, 'complete fixture should not miss evidence')
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED'),
+  'preflight should document explicit Supabase Data API grant evidence variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED'),
   'preflight should document wallet refund evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED'),
+  'preflight should document service-role-only settlement RPC evidence variable',
 )
 assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OWNER_PAID_PRODUCTION_APPROVED'),
@@ -92,6 +100,8 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED: yes,
@@ -107,6 +117,7 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_NOTES: 'Wallet reserve spend release refund evidence reviewed.',

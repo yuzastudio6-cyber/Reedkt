@@ -4,9 +4,9 @@ Milestone 10 adds one auditable paid-production gate for tool execution. It does
 
 The gate can pass only when the production evidence packet proves:
 
-- Supabase production persistence is deployed and reviewed.
+- Supabase production persistence is deployed and reviewed, including explicit Data API grants for the intended roles, backend-only beta evidence access, authenticated RLS member/non-member readback, and service-role write/readback evidence.
 - Tool cost ledger writes are durable, append-only, idempotent, and readable.
-- Wallet reserve, spend, release, refund, and settlement replay are verified.
+- Wallet reserve, spend, release, refund, settlement replay, and service-role-only settlement RPC execution are verified.
 - Stripe remains separated from tool cost event recording and wallet settlement.
 - Observability dashboards, alerts, and billing QA monitoring are deployed.
 - Rollback, kill switches, rate limits, concurrency limits, and incident runbooks are approved.
@@ -43,3 +43,5 @@ The backend tool execution gateway also fail-closes `production_ready` dispatch 
 `production_ready` dispatch now also has a backend-owned operations-control admission step immediately before new worker dispatch. The admission step checks active production kill switches, workspace job-creation rate limits, project concurrency limits, and worker-type concurrency limits. Local/mock runtime uses deterministic in-memory counters for smoke coverage. Non-mock runtime defaults kill switches active unless backend environment explicitly opens them and reads persistent `api_idempotency_keys` plus `worker_leases` for rate/concurrency readback; missing deployed control sources fail closed before worker dispatch or billing audit.
 
 After a production-ready gateway request reaches the backend worker path, the gateway records a tool-cost event and wallet settlement audit through the existing metering services. In mock/local mode this stays in memory; in non-mock mode it uses the persistent service-role path and settlement RPC, failing closed if the deployed billing backend is missing. The emitted events keep `serviceFeeIncluded=false`, preserve Stripe isolation, and are idempotent on the worker idempotency key. The current worker route remains a placeholder until a later execution milestone replaces it with real tool handlers.
+
+The Supabase migrations used by the tool-cost ledger now declare the Data API exposure intentionally instead of relying on default public-schema grants. `tool_cost_events` and `tool_cost_wallet_settlements` grant authenticated `select` only through their RLS policies and grant backend `service_role` read/insert for persistent writes. `beta_readiness_evidence_packets` remains backend-only with no authenticated read/write grant. The `settle_tool_cost_event` security-definer RPC revokes default public/authenticated execution and grants execute only to `service_role`.

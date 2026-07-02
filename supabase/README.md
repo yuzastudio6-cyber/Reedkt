@@ -377,10 +377,15 @@ It adds:
 - workspace/project and tool summary indexes
 - credit reservation lookup index
 - RLS with authenticated select scoped to workspace/project membership
+- explicit Supabase Data API grants: authenticated `select`, service-role `select, insert`, and no anon access
 
 The table is append-only from the user/API perspective. No authenticated insert, update, or delete policy is created; backend service-role code owns event writes and idempotent replay. ReEditPro service/edit fees are intentionally excluded from tool events.
 
-This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, settle wallet charges, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
+`migrations/202606270002_beta_readiness_evidence_packets.sql` is backend-only. It explicitly grants service-role `select, insert`, revokes anon/authenticated access, and creates no authenticated RLS policy.
+
+`migrations/202606270003_tool_cost_wallet_settlement_rpc.sql` adds wallet settlement rows and the `settle_tool_cost_event` RPC. The settlement table explicitly grants authenticated `select` through RLS and service-role `select, insert`. The security-definer RPC revokes default public/anon/authenticated execution and grants execute only to service-role.
+
+These migrations have not been run in staging or production. They do not connect to Supabase remotely, settle wallet charges in a deployed project, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
 
 ## Future Migrations
 

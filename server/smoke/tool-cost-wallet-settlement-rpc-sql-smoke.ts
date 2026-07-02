@@ -71,6 +71,14 @@ try {
 
   assert.equal(rlsRows[0]?.relrowsecurity, 'true', 'wallet settlement table should have RLS enabled')
   assert.equal(rlsRows[0]?.policy_count, '1', 'wallet settlement table should expose only the member read policy')
+  assertTablePrivilege('anon', 'public.tool_cost_wallet_settlements', 'select', false)
+  assertTablePrivilege('authenticated', 'public.tool_cost_wallet_settlements', 'select', true)
+  assertTablePrivilege('authenticated', 'public.tool_cost_wallet_settlements', 'insert', false)
+  assertTablePrivilege('service_role', 'public.tool_cost_wallet_settlements', 'select', true)
+  assertTablePrivilege('service_role', 'public.tool_cost_wallet_settlements', 'insert', true)
+  assertFunctionPrivilege('anon', 'public.settle_tool_cost_event(text,text,text)', 'execute', false)
+  assertFunctionPrivilege('authenticated', 'public.settle_tool_cost_event(text,text,text)', 'execute', false)
+  assertFunctionPrivilege('service_role', 'public.settle_tool_cost_event(text,text,text)', 'execute', true)
 
   console.log(JSON.stringify({
     ok: true,
@@ -80,6 +88,8 @@ try {
     nonBillableStatus: nonBillable.status,
     ledgerRows: ledgerRows.length,
     rlsEnabled: rlsRows[0]?.relrowsecurity === 'true',
+    explicitDataApiGrantsVerified: true,
+    settlementRpcServiceRoleOnly: true,
     stripeCallAttempted: false,
     serviceFeeIncluded: false,
     remoteSupabaseTouched: false,
@@ -96,8 +106,16 @@ function buildPrerequisiteSql(): string {
     create schema if not exists auth;
     do $$
     begin
+      if not exists (select 1 from pg_roles where rolname = 'anon') then
+        create role anon;
+      end if;
+
       if not exists (select 1 from pg_roles where rolname = 'authenticated') then
         create role authenticated;
+      end if;
+
+      if not exists (select 1 from pg_roles where rolname = 'service_role') then
+        create role service_role;
       end if;
     end
     $$;
@@ -250,6 +268,34 @@ function queryRows(database: string, sql: string): Record<string, string>[] {
     const columns = parseCsvLine(line)
     return Object.fromEntries(columns.map((value, index) => [queryColumns(sql)[index] ?? `column_${index}`, value]))
   })
+}
+
+function queryScalar(database: string, sql: string): string {
+  return runCommand('psql', [
+    '-v',
+    'ON_ERROR_STOP=1',
+    '--tuples-only',
+    '--no-align',
+    database,
+    '-c',
+    sql,
+  ]).trim().split('\n').at(-1)?.trim() ?? ''
+}
+
+function assertTablePrivilege(role: string, relation: string, privilege: string, expected: boolean): void {
+  assert.equal(
+    queryScalar(databaseName, `select has_table_privilege('${role}', '${relation}', '${privilege}')::text;`),
+    String(expected),
+    `${role} ${privilege} privilege on ${relation} should be ${expected}`,
+  )
+}
+
+function assertFunctionPrivilege(role: string, functionName: string, privilege: string, expected: boolean): void {
+  assert.equal(
+    queryScalar(databaseName, `select has_function_privilege('${role}', '${functionName}', '${privilege}')::text;`),
+    String(expected),
+    `${role} ${privilege} privilege on ${functionName} should be ${expected}`,
+  )
 }
 
 function queryColumns(sql: string): string[] {

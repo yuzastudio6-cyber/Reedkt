@@ -34,5 +34,12 @@ create unique index if not exists idx_beta_readiness_evidence_packets_workspace_
 
 alter table public.beta_readiness_evidence_packets enable row level security;
 
+grant usage on schema public to service_role;
+revoke all on table public.beta_readiness_evidence_packets from anon;
+revoke all on table public.beta_readiness_evidence_packets from authenticated;
+revoke all on table public.beta_readiness_evidence_packets from service_role;
+grant select, insert on table public.beta_readiness_evidence_packets to service_role;
+
 -- Inserts and reads are intentionally backend/service-role only for now.
 -- No authenticated insert/update/delete/select policy is created in this skeleton migration.
+-- Explicit grants are required for Supabase Data API compatibility; this table remains backend-only.

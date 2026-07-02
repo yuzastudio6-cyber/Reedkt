@@ -83,9 +83,18 @@ create index if not exists idx_tool_cost_events_credit_reservation
 
 alter table public.tool_cost_events enable row level security;
 
+grant usage on schema public to authenticated;
+grant usage on schema public to service_role;
+revoke all on table public.tool_cost_events from anon;
+revoke all on table public.tool_cost_events from authenticated;
+revoke all on table public.tool_cost_events from service_role;
+grant select on table public.tool_cost_events to authenticated;
+grant select, insert on table public.tool_cost_events to service_role;
+
 drop policy if exists "tool_cost_events_select_workspace_member" on public.tool_cost_events;
 create policy "tool_cost_events_select_workspace_member" on public.tool_cost_events
 for select to authenticated
 using (public.is_workspace_member(workspace_id) and public.is_project_member(project_id));
 
 -- Inserts are intentionally service-role/backend only. No authenticated insert/update/delete policy is created.
+-- Explicit grants are required for Supabase Data API compatibility; RLS still limits authenticated selects.

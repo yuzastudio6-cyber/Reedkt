@@ -105,13 +105,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10F stockout fix result must remain recorded with us-west4-a selected as the next bounded no-idle IAP wheelhouse transfer proof target',
         '10G us-west4-a transfer proof result must remain recorded as blocked by resource pool exhaustion before VM creation with cleanup verified',
         '10H stockout fix result must remain recorded with us-west4-c selected as the next bounded no-idle IAP wheelhouse transfer proof target',
-        'controlled GPU proof must use the future 10I bounded transfer proof prompt before another VM attempt, dependency install, or inference',
+        '10I us-west4-c transfer proof result must remain recorded as passed with IAP manifest transfer, remote readability, and cleanup verified',
+        'controlled GPU proof must use the future 10J bounded payload/install readiness prompt before full wheelhouse payload transfer, dependency install, model import, or inference',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
       currentBlocker:
-        'bounded_no_idle_l4_iap_wheelhouse_transfer_us_west4_c_future_transfer_proof_required',
+        'bounded_no_idle_l4_iap_wheelhouse_payload_install_proof_us_west4_c_future_prompt_required',
       safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10h-iap-wheelhouse-transfer-stockout-fix-result',
+        'npm run smoke:ai-video-broll-gen-10i-no-idle-l4-iap-wheelhouse-transfer-proof-us-west4-c-result',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {

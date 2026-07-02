@@ -38,7 +38,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfCleared:
-      'AI-VIDEO-BROLL-GEN-10I-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-west4-c and mandatory cleanup, no model inference',
+      'AI-VIDEO-BROLL-GEN-10J-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in us-west4-c with mandatory cleanup, no model import/no inference',
   },
   allowedReadOnlyCommands: [
     {

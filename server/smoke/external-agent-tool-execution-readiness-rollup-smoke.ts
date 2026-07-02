@@ -60,7 +60,7 @@ const BROLL_10G_US_WEST4_A_TRANSFER_PROMPT =
 const BROLL_10H_STOCKOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10H-IAP-WHEELHOUSE-TRANSFER-STOCKOUT-FIX: choose next approved no-idle L4 transfer proof capacity strategy after us-west4-a stockout, no VM/no inference'
 const BROLL_10I_US_WEST4_C_TRANSFER_PROMPT =
-  'AI-VIDEO-BROLL-GEN-10I-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-west4-c and mandatory cleanup, no model inference'
+  'AI-VIDEO-BROLL-GEN-10J-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in us-west4-c with mandatory cleanup, no model import/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -115,7 +115,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10h_us_west4_c_selected_future_prompt_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10i_iap_transfer_passed_10j_payload_install_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -191,7 +191,7 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_no_idle_l4_iap_wheelhouse_transfer_us_west4_c_future_transfer_proof_required`',
+  '`broll_no_idle_l4_iap_wheelhouse_payload_install_proof_us_west4_c_future_prompt_required`',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -328,7 +328,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10h_us_west4_c_selected_future_prompt_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10i_iap_transfer_passed_10j_payload_install_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -601,7 +601,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'bounded_no_idle_l4_iap_wheelhouse_transfer_us_west4_c_future_transfer_proof_required',
+  'bounded_no_idle_l4_iap_wheelhouse_payload_install_proof_us_west4_c_future_prompt_required',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),

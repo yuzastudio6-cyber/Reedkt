@@ -75,7 +75,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10I-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-west4-c and mandatory cleanup, no model inference',
+    'AI-VIDEO-BROLL-GEN-10J-NO-IDLE-L4-IAP-WHEELHOUSE-PAYLOAD-INSTALL-PROOF-US-WEST4-C: run bounded no-idle L4 VM lifecycle with private wheelhouse payload transfer and offline dependency install readiness validation in us-west4-c with mandatory cleanup, no model import/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

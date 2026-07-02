@@ -218,7 +218,10 @@ if (!indexSource.includes("export * from './ai-graphics-external-agent-cpu-stati
   fail('index_export_missing')
 }
 for (const packageName of ['d3', 'vega-lite', 'vega', '@svgdotjs/svg.js', 'jsdom', '@viz-js/viz']) {
-  if (!moduleSource.includes(`import('${packageName}')`)) {
+  if (
+    !moduleSource.includes(`import('${packageName}')`) &&
+    !moduleSource.includes(`importRuntimeModule('${packageName}')`)
+  ) {
     fail(`module_missing_dynamic_import:${packageName}`)
   }
 }
@@ -269,6 +272,8 @@ for (const line of packageDiff.split('\n')) {
   if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
   if (line === `+    "${runScriptName}": "${runScriptCommand}",`) continue
   if (line === `+    "${diagnosticsScriptName}": "${diagnosticsScriptCommand}",`) continue
+  if (line === '+    "ai-graphics:external-beta-cpu-static-controlled-tool-call-route-smoke": "tsx server/cli/ai-graphics-external-beta-cpu-static-controlled-tool-call-route-smoke.ts",') continue
+  if (line === '+    "ai-graphics:external-beta-cpu-static-controlled-tool-call-route-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-cpu-static-controlled-tool-call-route-smoke-diagnostics.mjs",') continue
   if (line.startsWith('+') || line.startsWith('-')) {
     fail(`unexpected_package_json_diff:${line}`)
   }

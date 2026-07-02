@@ -172,6 +172,10 @@ function privateRef(value: string, field: string): void {
   }
 }
 
+async function importRuntimeModule(moduleName: string): Promise<any> {
+  return import(moduleName)
+}
+
 function assertRequestBoundary(request: AiGraphicsExternalAgentCpuStaticControlledAdapterRequest): void {
   if (!request.requestId) throw new Error('requestId is required')
   if (!request.approvedPlanSnapshotId) throw new Error('approvedPlanSnapshotId is required')
@@ -191,7 +195,7 @@ export function isAiGraphicsExternalAgentCpuStaticControlledAdapterTool(
 }
 
 async function runD3(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
-  const d3 = await import('d3') as any
+  const d3 = await importRuntimeModule('d3')
   const input = { ...defaultFixtures.d3, ...asObject(payload) } as any
   const points = Array.isArray(input.points) && input.points.length > 0
     ? input.points
@@ -219,7 +223,7 @@ async function runD3(payload: unknown): Promise<AiGraphicsExternalAgentCpuStatic
 }
 
 async function runVegaLite(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
-  const vegaLite = await import('vega-lite') as any
+  const vegaLite = await importRuntimeModule('vega-lite')
   const compile = vegaLite.compile ?? vegaLite.default?.compile
   if (typeof compile !== 'function') throw new Error('vega-lite compile API is unavailable')
   const spec = Object.keys(asObject(payload)).length > 0 ? payload : defaultFixtures.vega_lite
@@ -245,7 +249,7 @@ async function runVegaLite(payload: unknown): Promise<AiGraphicsExternalAgentCpu
 }
 
 async function runVega(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
-  const vega = await import('vega') as any
+  const vega = await importRuntimeModule('vega')
   if (typeof vega.parse !== 'function') throw new Error('vega parse API is unavailable')
   const spec = Object.keys(asObject(payload)).length > 0 ? payload : defaultFixtures.vega
   const parsed = vega.parse(spec)
@@ -270,8 +274,8 @@ async function runVega(payload: unknown): Promise<AiGraphicsExternalAgentCpuStat
 }
 
 async function runSvgdotjs(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
-  const svgdotjs = await import('@svgdotjs/svg.js') as any
-  const jsdom = await import('jsdom') as any
+  const svgdotjs = await importRuntimeModule('@svgdotjs/svg.js')
+  const jsdom = await importRuntimeModule('jsdom')
   const { JSDOM } = jsdom
   const { SVG, registerWindow } = svgdotjs
   if (typeof SVG !== 'function' || typeof registerWindow !== 'function') {
@@ -301,7 +305,7 @@ async function runSvgdotjs(payload: unknown): Promise<AiGraphicsExternalAgentCpu
 }
 
 async function runVizJs(payload: unknown): Promise<AiGraphicsExternalAgentCpuStaticControlledAdapterOutput> {
-  const vizModule = await import('@viz-js/viz') as any
+  const vizModule = await importRuntimeModule('@viz-js/viz')
   if (typeof vizModule.instance !== 'function') throw new Error('@viz-js/viz instance API is unavailable')
   const dot = typeof asObject(payload).dot === 'string'
     ? String(asObject(payload).dot)

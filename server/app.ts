@@ -6,6 +6,7 @@ import { createSupabasePublicClient } from './supabase/public-client'
 import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
+import { createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes } from './routes/ai-graphics-external-beta-cpu-static-controlled-tool-call-routes'
 import { createAiGraphicsExternalBetaToolCallRoutes } from './routes/ai-graphics-external-beta-tool-call-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditRoutes } from './routes/credit-routes'
@@ -51,6 +52,9 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createWebSearchRoutes())
   if (env.aiGraphicsExternalBetaToolCallRouteMountEnabled) {
     app.use(createAiGraphicsExternalBetaToolCallRoutes())
+  }
+  if (env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled) {
+    app.use(createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes())
   }
 
   app.use(errorHandlerMiddleware)

@@ -95,6 +95,13 @@ const allowedChangedFiles = new Set([
   'scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-diagnostics.mjs',
   'scripts/validation/tracka-native-container-render-tools-rollup-after-gstreamer-mkvtoolnix-qa-1-diagnostics.mjs',
   'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-scaffold-diagnostics.mjs',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/source-audit.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tool-lane-matrix.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/next-action-plan.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/validation-results.md',
+  'docs/external-beta/tracka-tool-lane-ownership-realignment-1/tracka-tool-lane-ownership-realignment-record.json',
+  'docs/activation-phase-rp-external-beta-tracka-tool-lane-ownership-realignment-1-results.md',
+  'scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs',
   'package.json',
 ])
 

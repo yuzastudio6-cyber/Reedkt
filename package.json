@@ -813,6 +813,7 @@
     "rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r": "node scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r.mjs",
     "rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r:diagnostics": "node scripts/validation/rp-external-beta-qwen-persisted-worker-dispatch-approved-fixture-inference-confirmed-runtime-1r-diagnostics.mjs",
     "rp-external-beta-tool-execution-readiness-matrix-1:diagnostics": "node scripts/validation/rp-external-beta-tool-execution-readiness-matrix-1-diagnostics.mjs",
+    "rp-external-beta-tracka-tool-lane-ownership-realignment-1:diagnostics": "node scripts/validation/rp-external-beta-tracka-tool-lane-ownership-realignment-1-diagnostics.mjs",
     "rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-agent-execution-contract-1-diagnostics.mjs",
     "smoke:rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1": "tsx server/smoke/rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1-smoke.ts",
     "rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1:diagnostics": "node scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-disabled-worker-scaffold-1-diagnostics.mjs",

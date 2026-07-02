@@ -1,0 +1,89 @@
+{
+  "packet": "RP-EXTERNAL-BETA-TRACKA-TOOL-LANE-OWNERSHIP-REALIGNMENT-1",
+  "decision": "completed_tracka_tool_lane_ownership_realignment_for_external_agent_execution",
+  "execution": "completed_docs_only_tool_lane_realignment_no_runtime_execution",
+  "integrationBase": "82048ece6eacfa90bee2bf9d700ead3de2dc4b77",
+  "activeNativeContainerToolLaneCount": 3,
+  "activeToolLanes": {
+    "gstreamer_render_pipeline_support": {
+      "activeInThisAgentLane": true,
+      "status": "ready_for_guarded_external_agent_controlled_generated_fixture_execution",
+      "nextGate": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1"
+    },
+    "mkvtoolnix_container_validation": {
+      "activeInThisAgentLane": true,
+      "status": "ready_for_guarded_external_agent_controlled_generated_fixture_execution",
+      "nextGate": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1"
+    },
+    "gpac_mp4box_packaging_validation": {
+      "activeInThisAgentLane": true,
+      "status": "blocked_pending_gpac_mp4box_guarded_runtime_dispatch_confirmation_after_official_apt_runtime_and_synthetic_command_qa",
+      "nextGate": "TRACKA-GPAC-MP4BOX-GUARDED-RUNTIME-DISPATCH-SCAFFOLD-CONFIRMED-1",
+      "requiredGate": "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH=true"
+    }
+  },
+  "excludedOrOtherLaneTools": {
+    "remotion": "not_this_lane_track_b_or_render_runtime_owned_current_external_beta_evidence_exists",
+    "revideo_render_preview_alternative": "excluded_by_operator_instruction_no_active_tracka_execution_work",
+    "ffmpeg_ffprobe_shared_dependency": "track_b_owned_shared_dependency_boundary",
+    "sharp_libvips": "track_b_owned_shared_dependency_boundary",
+    "opencv": "track_b_owned_shared_dependency_boundary",
+    "signalsmith_stretch": "track_b_audio_timing_owned",
+    "audioflux": "sound_music_audio_owned",
+    "vapoursynth_frame_pipeline": "blocked_no_safe_package_source_for_core_vapoursynth_current_base",
+    "film_frame_interpolation": "blocked_pending_ai_graphics_owner_acceptance_for_film_runtime",
+    "hyperframe_render_handoff": "handoff_only_no_install_source_change"
+  },
+  "confirmationGateObserved": {
+    "REEDITPRO_CONFIRM_TRACKA_GPAC_MP4BOX_GUARDED_RUNTIME_DISPATCH": "absent"
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "safety": {
+    "docsOnly": true,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "providerCall": false,
+    "modelCall": false,
+    "workerExecution": false,
+    "workerDispatch": false,
+    "serviceRoleRouteExecution": false,
+    "routeExecution": false,
+    "browserCapture": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "creditMutation": false,
+    "stripePaymentProcessing": false,
+    "deployment": false,
+    "iamMutation": false,
+    "googleGroupMembershipMutation": false,
+    "broadExternalBetaAudienceUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false,
+    "rawPromptExecution": false,
+    "finalRenderExport": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "gstreamerExecutionInThisPhase": false,
+    "mkvtoolnixExecutionInThisPhase": false,
+    "gpacMp4boxExecutionInThisPhase": false,
+    "vapoursynthExecutionInThisPhase": false,
+    "revideoExecutionInThisPhase": false,
+    "filmExecution": false,
+    "qwen25VlExecutionInThisPhase": false,
+    "aiGraphicsExecution": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "remotionExecutionInThisPhase": false,
+    "packageInstallationBeyondDependencyValidation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "dockerfileInstallSourceChange": false,
+    "requirementsInstallSourceChange": false,
+    "cloudRunReadback": false,
+    "cloudRunServiceUpdate": false,
+    "broadServiceRoleHandler": false
+  }
+}

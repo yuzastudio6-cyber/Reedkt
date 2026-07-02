@@ -1,5 +1,7 @@
 {
   "packet": "RP-EXTERNAL-BETA-TOOL-EXECUTION-READINESS-MATRIX-1",
+  "supersededForActiveTrackaNativeToolLaneBy": "RP-EXTERNAL-BETA-TRACKA-TOOL-LANE-OWNERSHIP-REALIGNMENT-1",
+  "activeTrackaNativeContainerToolLaneCountAfterRealignment": 3,
   "decision": "completed_external_beta_tool_execution_readiness_matrix_for_guarded_agent_execution",
   "execution": "completed_docs_only_tool_execution_readiness_matrix_no_runtime_execution",
   "integrationBase": "d816ebc9060c5daa875fa06fa45ce2b4284ee2f8",

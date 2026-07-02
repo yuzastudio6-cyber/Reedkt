@@ -40,10 +40,21 @@ const priorDiagnostics = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-generated-fixture-queued-job-runtime-qa-rollup-1-diagnostics.mjs',
 ]
 
+const downstreamQaRollupFiles = [
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/route-invocation-evidence.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1/gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1-results.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-persisted-job-runtime-handoff-qa-rollup-1-diagnostics.mjs',
+]
+
 const allowedChangedFiles = new Set([
   ...packetFiles,
   ...sourceFiles,
   ...priorDiagnostics,
+  ...downstreamQaRollupFiles,
   'package.json',
 ])
 

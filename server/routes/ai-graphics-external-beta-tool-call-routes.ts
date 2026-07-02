@@ -6,6 +6,10 @@ import {
   executeAiGraphicsExternalAgentCpuStaticControlledAdapter,
   isAiGraphicsExternalAgentCpuStaticControlledAdapterTool,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-controlled-adapter'
+import {
+  executeAiGraphicsExternalAgentBrowserRuntimeControlledAdapter,
+  isAiGraphicsExternalAgentBrowserRuntimeControlledAdapterTool,
+} from '../tool-registry/ai-graphics-external-agent-browser-runtime-controlled-adapter'
 import { listAiGraphicsToolCallHandoffTools } from '../tool-registry/ai-graphics-tool-call-handoff'
 import { evaluateAiGraphicsToolCallPlan } from '../tool-registry/ai-graphics-tool-call-plan-evaluator'
 import { getAiGraphicsToolCallReadiness } from '../tool-registry/ai-graphics-tool-call-readiness'
@@ -21,6 +25,9 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED'
+
+export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG =
+  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWARE = [
   'requireAuth',
@@ -451,6 +458,132 @@ export async function executeAiGraphicsExternalBetaToolCallCpuStaticControlledAd
   }
 }
 
+export async function executeAiGraphicsExternalBetaToolCallBrowserRuntimeControlledAdapter(
+  request: AiGraphicsExternalBetaToolCallRequest,
+  serviceContext: ServiceContext,
+) {
+  if (!serviceContext.env.aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta canonical tool-call browser-runtime controlled execution is disabled.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+  if (!serviceContext.env.mockOnly) {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'AI graphics external-beta canonical tool-call browser-runtime controlled execution requires explicit mock runtime mode; live worker execution remains separately gated.',
+      409,
+      {
+        requestId: request.requestId,
+        toolId: request.toolId,
+        capabilityId: request.capabilityId,
+        browserRuntimeControlledExecutionRequiresMockOnly: true,
+        workerDispatchApprovedNow: false,
+        toolExecutionApprovedNow: false,
+        gpuRuntimeShouldStartNow: false,
+      },
+    )
+  }
+  if (!isAiGraphicsExternalAgentBrowserRuntimeControlledAdapterTool(request.toolId)) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'AI graphics external-beta canonical tool-call browser-runtime execution is available only for the seven proven browser/runtime tools.',
+      409,
+      buildAiGraphicsExternalBetaToolCallBlockedDetails(request),
+    )
+  }
+
+  const adapterResult = await executeAiGraphicsExternalAgentBrowserRuntimeControlledAdapter({
+    requestId: request.requestId,
+    toolId: request.toolId,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    privateArtifactManifestRef: request.privateArtifactManifestRef,
+    toolRouteApprovalRef: request.toolRouteApprovalRef,
+    workerApprovalRef: request.workerApprovalRef,
+    browserRuntimeProofRef: request.runtimeEnqueueApprovalRef,
+    traceId: request.traceId,
+    payload: request.payload,
+  })
+
+  return {
+    routeDecision:
+      'ai_graphics_external_beta_tool_call_route_browser_runtime_controlled_execution_accepted',
+    routeStatus:
+      'external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready',
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routeFlag:
+      AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG,
+    workspaceId: request.workspaceId,
+    requestId: request.requestId,
+    toolId: request.toolId,
+    capabilityId: request.capabilityId,
+    approvedPlanSnapshotId: request.approvedPlanSnapshotId,
+    creditReservationId: request.creditReservationId,
+    privateArtifactManifestRef: request.privateArtifactManifestRef,
+    externalAgentCanExecuteBrowserRuntimeControlledToolsNow: true,
+    controlledBrowserRuntimeCanonicalRouteExecutionPerformed: true,
+    controlledBrowserRuntimeToolsCallableNow: 7,
+    scopedControlledToolsCallableNow: 13,
+    all21ToolsCoveredByAiGraphicsLane: 21,
+    remainingToolsStillBlockedForRuntime: 8,
+    browserRuntimeStartedByCanonicalRoute: true,
+    gpuRuntimeShouldStartNow: false,
+    providerRuntimeApprovedNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+    globalAllToolExecutionStillBlocked: true,
+    adapterResult,
+    outputAccess: {
+      privateArtifactManifestRef: adapterResult.privateArtifactManifestRef,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+    counts: {
+      totalAiGraphicsTools: 21,
+      controlledBrowserRuntimeCanonicalRouteExecutedTools: 1,
+      controlledBrowserRuntimeToolsCallableNow: 7,
+      scopedControlledToolsCallableNow: 13,
+      remainingToolsStillBlockedForRuntime: 8,
+      gpuRuntimeShouldStartNowTools: 0,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+    },
+    booleans: {
+      externalBetaToolCallRouteBrowserRuntimeControlledExecutionAccepted: true,
+      approvedPlanSnapshotAccepted: true,
+      creditReservationAccepted: true,
+      privateArtifactManifestAccepted: true,
+      mockOnlyRuntimeModeEnforced: true,
+      agentCanSelectForPlanning: true,
+      externalAgentCanExecuteBrowserRuntimeControlledToolsNow: true,
+      controlledBrowserRuntimeCanonicalRouteExecutionPerformed: true,
+      localBrowserRuntimePackageExecutionPerformed: true,
+      browserRuntimeStartedByCanonicalRoute: true,
+      agentCanExecuteAll21ToolsNow: false,
+      routeExecutionPerformed: true,
+      workerExecutionApprovedNow: false,
+      workerExecutionPerformed: false,
+      workerDispatchApprovedNow: false,
+      workerDispatchPerformed: false,
+      toolExecutionApprovedNow: false,
+      toolExecutionPerformed: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
 function buildRepresentativeToolCallRequest(
   toolId: string,
   capabilityId: string,
@@ -509,6 +642,18 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
     ) {
       const execution =
         await executeAiGraphicsExternalBetaToolCallCpuStaticControlledAdapter(
+          body,
+          serviceContext,
+        )
+      sendOk(response, execution, [], 200)
+      return
+    }
+    if (
+      serviceContext.env.aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled &&
+      isAiGraphicsExternalAgentBrowserRuntimeControlledAdapterTool(body.toolId)
+    ) {
+      const execution =
+        await executeAiGraphicsExternalBetaToolCallBrowserRuntimeControlledAdapter(
           body,
           serviceContext,
         )

@@ -1279,6 +1279,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-mock-queue-worker-claim-smoke-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-cpu-static-controlled-execution-smoke.ts",',
   '+    "ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-cpu-static-controlled-execution-smoke-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.ts",',
+  '+    "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-diagnostics.mjs",',
   '+    "ai-graphics:model-weight-private-evidence-intake": "tsx server/cli/ai-graphics-model-weight-private-evidence-intake.ts",',
   '+    "ai-graphics:model-weight-private-evidence-intake:diagnostics": "node scripts/validation/ai-graphics-model-weight-private-evidence-intake-diagnostics.mjs",',
 ])

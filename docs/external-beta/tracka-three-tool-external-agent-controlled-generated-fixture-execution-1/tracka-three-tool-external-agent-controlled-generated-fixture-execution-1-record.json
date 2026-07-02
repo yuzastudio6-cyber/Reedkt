@@ -1,0 +1,77 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1",
+  "decision": "completed_three_tool_external_agent_controlled_generated_fixture_execution",
+  "execution": "completed_confirmation_gated_three_tool_controlled_generated_fixture_runtime_execution",
+  "activeNativeContainerToolLaneCount": 3,
+  "runId": "2026-07-02T23-06-37-783Z-735edf80",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-controlled-generated-fixture-execution-1/2026-07-02T23-06-37-783Z-735edf80",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-controlled-generated-fixture-execution-1/2026-07-02T23-06-37-783Z-735edf80/three-tool-external-agent-controlled-generated-fixture-execution-1-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-controlled-generated-fixture-execution-1/2026-07-02T23-06-37-783Z-735edf80/three-tool-external-agent-controlled-generated-fixture-execution-1-manifest.json",
+  "sourceChain": {
+    "threeToolRuntimeReadyRollupMergeSha": "e8cf179250214f473da15d18203680fd37fb6b3a",
+    "threeToolControlledGeneratedFixtureHandoffPacket": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-HANDOFF-1",
+    "gstreamerMkvtoolnixPriorConfirmedRuntimeRunId": "2026-07-02T12-00-03-397Z-aa991010",
+    "gpacMp4boxPriorConfirmedRuntimeRunId": "2026-07-02T21-38-32-756Z-c4ed2b30",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "childRuntimeEvidence": {
+    "gstreamerMkvtoolnix": {
+      "runId": "2026-07-02T23-06-37-953Z-ee1ebbec",
+      "guardedRuntimeRunId": "2026-07-02T23-06-38-140Z-687e30fc",
+      "decision": "completed_gstreamer_mkvtoolnix_post_dispatch_worker_runtime_execution_packet_generated_fixture_only",
+      "execution": "completed_confirmation_gated_post_dispatch_worker_runtime_execution_packet_generated_fixture_only_no_route_or_worker_dispatch",
+      "outputDir": "/tmp/reeditpro-rp-external-beta-gstreamer-mkvtoolnix-guarded-worker-runtime-execution-packet-2/2026-07-02T23-06-37-953Z-ee1ebbec",
+      "reportSha256": "0a60bd92ee776ccf0ba3eb78d8e25172206b331e44d70e0006b1d00c248e0b36",
+      "manifestSha256": "9908497632c7931e85877deae2ec0debbed36141d0a2ee051991df184da31ac8"
+    },
+    "gpacMp4box": {
+      "runId": "2026-07-02T23-06-42-095Z-21ff9b93",
+      "decision": "completed_gpac_mp4box_generated_fixture_runtime_execution",
+      "execution": "completed_confirmation_gated_local_render_worker_runtime_execution_generated_fixture_only",
+      "outputDir": "/tmp/reeditpro-tracka-gpac-mp4box-generated-fixture-runtime-execution-1/2026-07-02T23-06-42-095Z-21ff9b93",
+      "reportSha256": "476fa99ab7a07a467f7998f2877ce36144f2b37e4ff057b6baaa5ffb71e60870",
+      "manifestSha256": "2784900314498d7f5932f6a87bfcbf9cf286b01494b9da757153be24e71913d7"
+    }
+  },
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_external_agent_three_tool_runtime_qa_rollup",
+    "mkvtoolnix_container_validation": "ready_for_external_agent_three_tool_runtime_qa_rollup",
+    "gpac_mp4box_packaging_validation": "ready_for_external_agent_three_tool_runtime_qa_rollup"
+  },
+  "runtimeExecution": {
+    "status": "completed_three_tool_controlled_generated_fixture_runtime_execution",
+    "dockerExecution": "completed_local_images_only_network_disabled_no_push_no_deploy",
+    "routeExecution": "not_run_runtime_runners_only",
+    "workerDispatch": "not_run_runtime_runners_only",
+    "workerExecution": "not_run_runtime_runners_only",
+    "gstreamerExecution": "completed_controlled_generated_fixture_only",
+    "mkvtoolnixExecution": "completed_controlled_generated_fixture_only",
+    "gpacMp4boxExecution": "completed_controlled_generated_fixture_only",
+    "mediaProcessing": "controlled_generated_fixture_only",
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false
+  },
+  "blockedScope": {
+    "arbitraryPrivateMediaBlocked": true,
+    "userMediaBlocked": true,
+    "publicUrlMediaBlocked": true,
+    "signedUrlSourceOfTruthBlocked": true,
+    "gcsPrivateArtifactAccessBlocked": true,
+    "broadServiceRoleHandlersBlocked": true,
+    "publicArtifactsBlocked": true,
+    "finalRenderExportBlocked": true,
+    "broadExternalBetaBlocked": true,
+    "paidProductionBlocked": true,
+    "supabaseMutationBlocked": true,
+    "sqlExecutionBlocked": true,
+    "ffmpegFfprobeExecutionBlocked": true,
+    "dockerPushDeployBlocked": true,
+    "packageInstallationBlocked": true,
+    "dependencyMutationBlocked": true
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-QA-ROLLUP-1"
+}

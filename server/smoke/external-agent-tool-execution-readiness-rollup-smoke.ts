@@ -21,6 +21,8 @@ const BROLL_9N_NEXT_PROMPT =
   'AI-VIDEO-BROLL-GEN-9N-NO-IDLE-L4-PROOF-EXECUTE-US-CENTRAL1-C: run bounded no-idle L4 VM lifecycle proof in us-central1-c with mandatory cleanup, no model inference'
 const BROLL_9O_NEXT_PROMPT =
   'AI-VIDEO-BROLL-GEN-9O-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF: run bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation and mandatory cleanup, no model inference'
+const BROLL_9O_RETRY_NEXT_PROMPT =
+  'AI-VIDEO-BROLL-GEN-9O-RETRY-NO-IDLE-L4-IAP-WHEELHOUSE-TRANSFER-PROOF: retry bounded no-idle L4 VM lifecycle with private wheelhouse IAP transfer validation in us-central1-c and mandatory cleanup, no model inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -75,7 +77,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_9n_l4_lifecycle_passed_cleanup_verified_ready_for_iap_wheelhouse_transfer_proof',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_9o_iap_wheelhouse_transfer_blocked_resource_pool_exhausted_cleanup_verified_ready_for_iap_wheelhouse_transfer_retry',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -83,6 +85,7 @@ for (const required of [
   'ready for explicit external-agent gate',
   '9N lifecycle proof created one no-public-IP L4 VM',
   'bounded 9O IAP wheelhouse transfer validation',
+  '9O IAP wheelhouse transfer proof blocked by `us-central1-c` resource pool exhaustion before VM creation',
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
@@ -135,7 +138,7 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_no_idle_l4_iap_wheelhouse_transfer_prompt_required_before_dependency_or_inference`',
+  '`broll_no_idle_l4_iap_wheelhouse_transfer_retry_required_resource_pool_exhausted_before_dependency_or_inference`',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -152,19 +155,24 @@ for (const required of [
   BROLL_9M_NEXT_PROMPT,
   BROLL_9N_NEXT_PROMPT,
   BROLL_9O_NEXT_PROMPT,
+  BROLL_9O_RETRY_NEXT_PROMPT,
   'docs/implementation-prompts/prompt-ai-video-broll-gen-9k-no-idle-l4-proof.md',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-9m-no-idle-l4-proof-execute-us-central1-a.md',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-9n-no-idle-l4-proof-execute-us-central1-c.md',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof.md',
+  'docs/implementation-prompts/prompt-ai-video-broll-gen-9o-retry-no-idle-l4-iap-wheelhouse-transfer-proof.md',
   'src/backend/mock/mock-ai-video-broll-gen-9k-no-idle-l4-proof-prompt.ts',
   'docs/ai-video-broll-gen-9n-no-idle-l4-lifecycle-proof-result.md',
+  'docs/ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof-result.md',
   'docs/ai-video-broll-gen-9m-no-idle-l4-lifecycle-proof-result.md',
   'docs/ai-video-broll-gen-9l-stockout-fix-result.md',
   'docs/ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result.md',
   'src/backend/mock/mock-ai-video-broll-gen-9n-no-idle-l4-lifecycle-proof-result.ts',
+  'src/backend/mock/mock-ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof-result.ts',
   'src/backend/mock/mock-ai-video-broll-gen-9m-no-idle-l4-lifecycle-proof-result.ts',
   'src/backend/mock/mock-ai-video-broll-gen-9l-stockout-fix-result.ts',
   'src/backend/mock/mock-ai-video-broll-gen-9l-no-idle-l4-lifecycle-proof-result.ts',
+  'server/smoke/ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof-result-smoke.ts',
 ]) {
   assert.equal(doc.includes(required), true, `Rollup doc missing ${required}`)
 }
@@ -172,7 +180,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_9n_l4_lifecycle_passed_cleanup_verified_ready_for_iap_wheelhouse_transfer_proof',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_9o_iap_wheelhouse_transfer_blocked_resource_pool_exhausted_cleanup_verified_ready_for_iap_wheelhouse_transfer_retry',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -182,7 +190,7 @@ assert.equal(rollup.sourceRules.approvedSnapshotRequired, true)
 assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
-assert.equal(rollup.recommendedNextPrompt, BROLL_9O_NEXT_PROMPT)
+assert.equal(rollup.recommendedNextPrompt, BROLL_9O_RETRY_NEXT_PROMPT)
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
@@ -445,7 +453,11 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'bounded_no_idle_l4_iap_wheelhouse_transfer_prompt_required_before_dependency_or_inference',
+  'bounded_no_idle_l4_iap_wheelhouse_transfer_retry_required_resource_pool_exhausted_before_dependency_or_inference',
+)
+assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof-result.md'),
+  true,
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9n-no-idle-l4-lifecycle-proof-result.md'),
@@ -472,6 +484,12 @@ assert.equal(
 assert.equal(
   broll?.evidence.includes(
     'docs/implementation-prompts/prompt-ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof.md',
+  ),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes(
+    'docs/implementation-prompts/prompt-ai-video-broll-gen-9o-retry-no-idle-l4-iap-wheelhouse-transfer-proof.md',
   ),
   true,
 )
@@ -522,6 +540,12 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes(
+    'src/backend/mock/mock-ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof-result.ts',
+  ),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-9m-no-idle-l4-lifecycle-proof-result.ts'),
   true,
 )
@@ -558,6 +582,12 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes(
+    'server/smoke/ai-video-broll-gen-9o-no-idle-l4-iap-wheelhouse-transfer-proof-result-smoke.ts',
+  ),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-9m-no-idle-l4-lifecycle-proof-result-smoke.ts'),
   true,
 )
@@ -573,7 +603,7 @@ assert.equal(
   broll?.evidence.includes('docs/implementation-prompts/prompt-ai-video-broll-gen-9k-no-idle-l4-proof.md'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_9O_NEXT_PROMPT)
+assert.equal(broll?.nextAction, BROLL_9O_RETRY_NEXT_PROMPT)
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(broll?.manualBlockerActions?.length, 0)
@@ -604,7 +634,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_9O_NEXT_PROMPT,
+  BROLL_9O_RETRY_NEXT_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

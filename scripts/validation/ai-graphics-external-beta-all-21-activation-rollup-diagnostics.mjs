@@ -427,6 +427,8 @@ function verifyPackageJson() {
     '+    "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",',
     '+    "ai-graphics:external-agent-controlled-route-caller": "tsx server/cli/ai-graphics-external-agent-controlled-route-caller.ts",',
     '+    "ai-graphics:external-agent-controlled-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller": "tsx server/cli/ai-graphics-external-agent-gpu-model-proof-ref-route-caller.ts",',
+    '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs",',
   ]
   const packageDiffLines = git(['diff', '--', 'package.json'])
     .split('\n')

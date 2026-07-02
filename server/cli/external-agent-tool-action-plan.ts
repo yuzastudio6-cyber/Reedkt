@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 9O IAP wheelhouse transfer proof repeated preflight but was blocked by us-central1-c L4 resource pool exhaustion before a VM existed; cleanup/absence was verified, and the bounded no-idle 9O retry prompt is still required before dependency install or inference; do not create VMs from this rollup',
+        'B-roll 9O and 9O retry IAP wheelhouse transfer proofs repeated preflight but were blocked by us-central1-c L4 resource pool exhaustion before a VM existed; cleanup/absence was verified, and a stockout-fix prompt is required before another transfer proof VM attempt, dependency install, or inference; do not create VMs from this rollup',
       afterBlockerClears:
-        'run the separate bounded no-idle 9O retry L4 IAP wheelhouse transfer validation prompt with mandatory cleanup before dependency install or inference',
+        'run the separate stockout-fix prompt to choose an approved alternate no-idle L4 transfer proof zone or capacity strategy before dependency install or inference',
     }
   }
 

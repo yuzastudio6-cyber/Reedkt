@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    ssr: 'src/server/server.ts',
+    ssr: 'server/index.ts',
     outDir: 'dist-server',
     emptyOutDir: true,
     target: 'node22',

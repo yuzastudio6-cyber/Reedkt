@@ -30,7 +30,7 @@ export type ProductionErrorCategory =
 export interface ProductionMetricDefinition {
   metricName: string
   description: string
-  unit: 'count' | 'ms' | 'usd' | 'bytes'
+  unit: 'count' | 'ms' | 'usd' | 'bytes' | 'credits'
   labels: string[]
 }
 

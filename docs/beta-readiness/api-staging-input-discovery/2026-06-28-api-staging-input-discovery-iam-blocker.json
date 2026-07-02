@@ -1,0 +1,90 @@
+{
+  "reportId": "beta-readiness-api-staging-input-discovery-iam-blocker-2026-06-28",
+  "decision": "beta_readiness_api_staging_input_discovery_blocked_by_wif_read_only_iam",
+  "sourceSha": "9fee82aeba313dd238e3de75c8137ce4f11a07c6",
+  "defaultBranchWorkflow": {
+    "path": ".github/workflows/beta-readiness-api-staging-input-discovery.yml",
+    "branch": "codex/reeditpro-web-ui-shell",
+    "workflowDispatchOnly": true,
+    "confirmationPhrase": "READ_STAGING_BETA_API_DEPLOY_INPUTS",
+    "discoveryWorkflowPr": 1365,
+    "allProbeReportingPr": 1369,
+    "latestRun": {
+      "runId": 28309436736,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28309436736",
+      "headSha": "acd5e423fdb5308a7c92b1cb794d7a823f03e44d",
+      "createdAt": "2026-06-28T02:58:16Z",
+      "conclusion": "failure"
+    }
+  },
+  "readOnlyPreflight": {
+    "wifAuthSucceeded": true,
+    "setupGcloudSucceeded": true,
+    "projectId": "reeditpro",
+    "region": "us-east1",
+    "candidateServiceName": "reeditpro-api-staging",
+    "probeFailures": [
+      "artifactRepositoriesUsCentral1",
+      "artifactRepositoriesUsEast1",
+      "serviceAccounts"
+    ],
+    "probes": {
+      "artifactRepositoriesUsCentral1": {
+        "ok": false,
+        "permission": "artifactregistry.repositories.list",
+        "resource": "projects/reeditpro/locations/us-central1",
+        "reason": "IAM_PERMISSION_DENIED"
+      },
+      "artifactRepositoriesUsEast1": {
+        "ok": false,
+        "permission": "artifactregistry.repositories.list",
+        "resource": "projects/reeditpro/locations/us-east1",
+        "reason": "IAM_PERMISSION_DENIED"
+      },
+      "serviceAccounts": {
+        "ok": false,
+        "permission": "iam.serviceAccounts.list",
+        "resource": "projects/reeditpro",
+        "reason": "IAM_PERMISSION_DENIED"
+      },
+      "cloudRunServices": {
+        "ok": true,
+        "observedServices": [
+          {
+            "name": "reeditpro-staging-render-canary",
+            "url": "https://reeditpro-staging-render-canary-4wkjiqvdqa-ue.a.run.app"
+          }
+        ]
+      }
+    }
+  },
+  "blockedAction": "staging_api_deploy_until_owner_approved_artifact_registry_and_service_account_inputs_are_proven",
+  "blockedScopes": [
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "safeForwardProgress": [
+    "owner_iam_read_permission_remediation",
+    "owner_supplied_exact_artifact_registry_repository_and_service_accounts",
+    "rerun_read_only_input_discovery",
+    "staging_api_deployment_preflight_after_inputs_are_proven"
+  ],
+  "nextSafeActions": [
+    "Have the project owner either grant the GitHub Actions WIF/deployer identity read-only discovery permissions for artifactregistry.repositories.list on the selected Artifact Registry location(s) and iam.serviceAccounts.list on project reeditpro, or provide exact owner-approved Artifact Registry repository, deployer service account, and runtime API service account values without requiring list access.",
+    "Rerun gh workflow run beta-readiness-api-staging-input-discovery.yml --repo yuzastudio6-cyber/Reedkt --ref codex/reeditpro-web-ui-shell --field confirm_staging_api_input_discovery=READ_STAGING_BETA_API_DEPLOY_INPUTS.",
+    "Only after the read-only discovery or owner-supplied inputs prove the required staging values should operators dispatch beta-readiness-api-staging-deploy.yml."
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

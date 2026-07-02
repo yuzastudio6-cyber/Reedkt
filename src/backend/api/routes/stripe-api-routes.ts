@@ -15,7 +15,11 @@ export const STRIPE_API_ROUTES: ApiRouteDefinition[] = [
     requiresProviderSecret: false,
     requiresStripeSecret: true,
     futureHandlerName: 'createCheckoutSession',
-    notes: ['Metadata-only skeleton; no payment SDK is imported or called.'],
+    notes: [
+      'Metadata-only skeleton; no payment SDK is imported or called.',
+      'RP-STRIPE-FOUNDATION-01 adds /v1/billing/stripe/checkout-sessions/mock for config/mock contract checks only.',
+      'RP-STRIPE-TESTMODE-01 adds /v1/billing/stripe/checkout-sessions/test for Stripe test-mode credit-pack checkout only.',
+    ],
   },
   {
     id: 'stripe.webhook.handle',
@@ -31,7 +35,11 @@ export const STRIPE_API_ROUTES: ApiRouteDefinition[] = [
     requiresProviderSecret: false,
     requiresStripeSecret: true,
     futureHandlerName: 'handlePaymentWebhook',
-    notes: ['Webhook validation is backend-only and disabled here.'],
+    notes: [
+      'Webhook validation is backend-only and disabled here.',
+      'Future live Stripe webhooks must mount before JSON parsing so raw request body is available for signature verification.',
+      'RP-STRIPE-TESTMODE-01 mounts /v1/billing/stripe/webhooks/test before JSON parsing for test-mode webhook verification only.',
+    ],
   },
   {
     id: 'stripe.subscription.get',
@@ -47,6 +55,6 @@ export const STRIPE_API_ROUTES: ApiRouteDefinition[] = [
     requiresProviderSecret: false,
     requiresStripeSecret: true,
     futureHandlerName: 'getSubscriptionStatus',
-    notes: ['Disabled until billing runtime and account mapping exist.'],
+    notes: ['Disabled until billing runtime and account mapping exist; RP-STRIPE-FOUNDATION-01 adds customer/payment method link contracts only.'],
   },
 ]

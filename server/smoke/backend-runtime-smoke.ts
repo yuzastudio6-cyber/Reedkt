@@ -15,9 +15,17 @@ const env = loadRuntimeEnv({
   SUPABASE_SERVICE_ROLE_KEY: 'smoke-service-role-placeholder',
   SUPABASE_URL: '',
 })
+const cloudRunPortEnv = loadRuntimeEnv({
+  NODE_ENV: 'test',
+  E2E_RUNTIME_MODE: 'cloud_run',
+  API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+  PORT: '8080',
+  SUPABASE_URL: '',
+})
 
 const app = createReeditProApiApp(env)
 assert(Boolean(app), 'Express app should be created.')
+assert(cloudRunPortEnv.apiPort === 8080, 'Cloud Run PORT must be honored when API_PORT is not set.')
 
 const errorEnvelope = createApiErrorEnvelope(
   new ApiError('VALIDATION_FAILED', 'Smoke validation error.', 400),
@@ -42,6 +50,7 @@ console.log(JSON.stringify({
   ok: true,
   checks: [
     'env_parser_mock_mode',
+    'cloud_run_port_fallback',
     'express_app_registration',
     'error_envelope_shape',
     'provider_real_calls_disabled',

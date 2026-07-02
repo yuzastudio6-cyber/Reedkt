@@ -11,7 +11,7 @@ export function buildStaticReadinessCommandPlan(): ReadinessCommandPlan {
     id: 'static_readiness',
     label: 'Static production readiness',
     mode: 'static_only',
-    command: 'npm.cmd run prod:readiness:summary',
+    command: 'npm run prod:readiness:summary',
     requiredEnvVars: [],
     safetyNotes: [
       'Default static mode builds a report from specs, Dockerfile declarations, model-weight templates, and policies.',

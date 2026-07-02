@@ -87,6 +87,8 @@ Run the migrations in timestamp order. The chain is intentionally layered:
 - `credit_refunds`
 - `credit_wallet_balance_view`
 
+RP-PERSISTENCE-PLAN-01 keeps these tables as the credit production spine and documents later migration gaps for `credit_settlements`, `credit_revision_actions`, `credit_export_locks`, `credit_top_up_intents`, Stripe link/session/webhook tables, and optional audit read models in `docs/credit-production-persistence-plan.md`. No migration is created or applied by that milestone.
+
 ### RP-DB-07 Job Orchestration + Agent Runs
 
 - `job_batches`

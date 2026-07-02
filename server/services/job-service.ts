@@ -43,11 +43,12 @@ export function createJobService(context: ServiceContext) {
       jobType: string
       jobBatchId?: string
       approvedPlanSnapshotId?: string
+      creditEstimateId?: string
       creditReservationId?: string
       payloadJson?: Record<string, unknown>
     }) {
-      if (EXECUTION_JOB_TYPES.has(input.jobType) && (!input.approvedPlanSnapshotId || !input.creditReservationId)) {
-        throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Execution jobs require approved snapshot and credit reservation IDs.', 409)
+      if (EXECUTION_JOB_TYPES.has(input.jobType) && (!input.approvedPlanSnapshotId || !input.creditEstimateId || !input.creditReservationId)) {
+        throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Execution jobs require approved snapshot, credit estimate, and credit reservation IDs.', 409)
       }
 
       if (!context.clients.admin || context.env.mockOnly) {
@@ -59,6 +60,7 @@ export function createJobService(context: ServiceContext) {
             jobType: input.jobType,
             jobBatchId: input.jobBatchId,
             approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            creditEstimateId: input.creditEstimateId,
             creditReservationId: input.creditReservationId,
             status: 'queued',
             payloadJson: input.payloadJson ?? {},
@@ -78,6 +80,7 @@ export function createJobService(context: ServiceContext) {
           job_batch_id: input.jobBatchId ?? null,
           job_type: input.jobType,
           approved_plan_snapshot_id: input.approvedPlanSnapshotId ?? null,
+          credit_estimate_id: input.creditEstimateId ?? null,
           credit_reservation_id: input.creditReservationId ?? null,
           status: 'queued',
           payload_json: input.payloadJson ?? {},

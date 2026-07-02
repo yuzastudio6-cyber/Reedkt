@@ -1,0 +1,308 @@
+import { readFileSync } from 'node:fs'
+import { buildBetaPlatformEvidenceManifest } from '../beta-readiness/platform-evidence-manifest'
+import { buildToolBetaExecutionReadinessReport } from '../beta-readiness/tool-beta-execution-readiness'
+import {
+  buildBetaPlatformStagingEvidencePreflight,
+  type BetaPlatformStagingEvidencePreflightReport,
+} from './beta-platform-staging-evidence-preflight'
+import {
+  buildBetaToolsCoreRealCheckEvidencePreflight,
+  type BetaToolsCoreRealCheckEvidencePreflightReport,
+} from './beta-tools-core-real-check-evidence-preflight'
+import {
+  buildBetaReadinessLaunchApprovalEvidencePreflight,
+  type BetaReadinessLaunchApprovalEvidencePreflightReport,
+} from './beta-readiness-launch-approval-evidence-preflight'
+import type { BetaPlatformStagingEvidenceProbeEnv } from './beta-platform-staging-evidence-probe'
+import type { BetaToolsCoreRealCheckEvidenceEnv } from './beta-tools-core-real-check-evidence'
+import type { BetaReadinessLaunchApprovalEvidenceEnv } from './beta-readiness-launch-approval-evidence'
+
+const LOCAL_ACCEPTED_BUNDLE_PATH = 'docs/beta-readiness/local-accepted-evidence-bundle/2026-06-30-df7fd0d-current-source-16-tool-local-accepted-evidence-bundle.json'
+
+export interface BetaReadinessOperatorStatusEnv extends
+  BetaPlatformStagingEvidenceProbeEnv,
+  BetaToolsCoreRealCheckEvidenceEnv,
+  BetaReadinessLaunchApprovalEvidenceEnv {}
+
+export interface BetaReadinessOperatorStatusReport {
+  ok: boolean
+  operatorInputsReady: boolean
+  toolEvidenceReady: boolean
+  platformEvidenceReady: boolean
+  launchApprovalEvidenceReady: boolean
+  sourceTruth: {
+    localAcceptedEvidence: {
+      bundlePath: string
+      decision: string
+      evidenceMode: string
+      locallyAcceptedToolCount: number
+      locallyAcceptedToolIds: string[]
+      readyToRecordDeployedEvidence: boolean
+      productReadyLocalOssCount: number
+      productReadyLocalOssRequiredForCurrentTrackB: number
+    }
+  }
+  currentGate: {
+    totalTools: number
+    ownerCoverageToolCount: number
+    readinessSpecToolCount: number
+    blockers: number
+    platformBlockers: number
+    productReadyLocalOssCount: number
+    externalBetaToolExecutionAllowed: boolean
+    productionToolExecutionAllowed: boolean
+    blockerPolicy: string
+    blockerForwardProgressPolicy: {
+      intentionalBlanketBlocksAllowed: false
+      blockerScope: string
+      safeForwardProgressRequired: true
+      nextSafeActionRequiredForBlockers: true
+    }
+    safeBlockerReductionAllowed: boolean
+    blockedActionScope: string[]
+    allowedForwardProgressScopes: string[]
+  }
+  toolEvidence: {
+    localDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview -- --local-defaults'
+    hydratedLocalDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults'
+    previewCommand: 'npm run beta:tools:core-real-check-preview'
+    hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated'
+    hydrationSetupCommand: 'npm run tools:readiness:install-core-python'
+    localAcceptedEvidenceBundleCommand: 'npm run beta:tools:local-accepted-evidence-bundle'
+    localAcceptedEvidenceCollectorCommand: 'npm run beta:tools:local-accepted-evidence-collector'
+    command: 'npm run beta:tools:core-real-check-evidence'
+    preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight'
+    readyToRunCli: boolean
+    readyToRecordAcceptedEvidence: boolean
+    missingConfiguration: string[]
+    confirmationGaps: string[]
+    invalidToolIds: string[]
+    secretLikeInputPaths: string[]
+  }
+  platformEvidence: {
+    command: 'npm run beta:platform:staging-evidence-probe'
+    preflightCommand: 'npm run beta:platform:staging-evidence-preflight'
+    readyToRunCollector: boolean
+    readyToRecordEvidencePacket: boolean
+    missingConfiguration: string[]
+    missingOwnerApprovals: string[]
+    missingAttestations: string[]
+    secretLikeInputPaths: string[]
+  }
+  launchApprovalEvidence: {
+    command: 'npm run beta:readiness:launch-approval-evidence'
+    preflightCommand: 'npm run beta:readiness:launch-approval-evidence-preflight'
+    readyToRecordLaunchApprovalEvidence: boolean
+    missingConfiguration: string[]
+    missingOwnerApprovals: string[]
+    missingEvidenceNotes: string[]
+    confirmationGaps: string[]
+    rejectedScope: string[]
+    secretLikeInputPaths: string[]
+  }
+  manifest: {
+    requirements: number
+    remainingRequiredEvidence: number
+    localProofCommands: string[]
+    blockersAreEvidenceGaps: boolean
+  }
+  nextActions: string[]
+  warnings: string[]
+}
+
+export function buildBetaReadinessOperatorStatus(
+  env: BetaReadinessOperatorStatusEnv,
+): BetaReadinessOperatorStatusReport {
+  const toolEvidence = buildBetaToolsCoreRealCheckEvidencePreflight(env)
+  const platformEvidence = buildBetaPlatformStagingEvidencePreflight(env)
+  const launchApprovalEvidence = buildBetaReadinessLaunchApprovalEvidencePreflight(env)
+  const readiness = buildToolBetaExecutionReadinessReport()
+  const manifest = buildBetaPlatformEvidenceManifest()
+  const localAcceptedEvidence = readLocalAcceptedEvidence()
+  const toolEvidenceReady = toolEvidence.readyToRecordAcceptedEvidence
+  const platformEvidenceReady = platformEvidence.readyToRecordEvidencePacket
+  const launchApprovalEvidenceReady = launchApprovalEvidence.readyToRecordLaunchApprovalEvidence
+  const operatorInputsReady = toolEvidenceReady && platformEvidenceReady && launchApprovalEvidenceReady
+
+  return {
+    ok: operatorInputsReady,
+    operatorInputsReady,
+    toolEvidenceReady,
+    platformEvidenceReady,
+    launchApprovalEvidenceReady,
+    sourceTruth: {
+      localAcceptedEvidence,
+    },
+    currentGate: {
+      totalTools: readiness.totalTools,
+      ownerCoverageToolCount: readiness.ownerCoverageToolCount,
+      readinessSpecToolCount: readiness.readinessSpecToolCount,
+      blockers: readiness.blockers.length,
+      platformBlockers: readiness.platformBlockers.length,
+      productReadyLocalOssCount: readiness.productReadyLocalOssCount,
+      externalBetaToolExecutionAllowed: readiness.externalBetaToolExecutionAllowed,
+      productionToolExecutionAllowed: readiness.productionToolExecutionAllowed,
+      blockerPolicy: readiness.blockerPolicy,
+      blockerForwardProgressPolicy: readiness.blockerForwardProgressPolicy,
+      safeBlockerReductionAllowed: readiness.safeBlockerReductionAllowed,
+      blockedActionScope: readiness.blockedActionScope,
+      allowedForwardProgressScopes: readiness.safeBlockerReductionAllowed
+        ? readiness.allowedForwardProgressScopes
+        : [],
+    },
+    toolEvidence: toolEvidenceSummary(toolEvidence),
+    platformEvidence: platformEvidenceSummary(platformEvidence),
+    launchApprovalEvidence: launchApprovalEvidenceSummary(launchApprovalEvidence),
+    manifest: {
+      requirements: manifest.requirements.length,
+      remainingRequiredEvidence: manifest.remainingRequiredEvidence.length,
+      localProofCommands: manifest.localProofCommands,
+      blockersAreEvidenceGaps: manifest.policy.blockersAreEvidenceGaps,
+    },
+    nextActions: buildNextActions(toolEvidence, platformEvidence, launchApprovalEvidence, localAcceptedEvidence),
+    warnings: [
+      'This operator status is no-network and does not call the deployed backend, run tool checks, write evidence, enable external beta, or enable production.',
+      'External beta and production remain disabled until accepted tool evidence, deployed platform evidence, and launch approvals are complete.',
+      'Blocked beta/production actions do not block bounded source reviews, local proofs, diagnostics, QA packets, deployment preflights, or owner approval evidence that retire named blockers.',
+      'Bearer tokens and service-role secrets are never printed; the report uses preflight summaries only.',
+    ],
+  }
+}
+
+function toolEvidenceSummary(
+  report: BetaToolsCoreRealCheckEvidencePreflightReport,
+): BetaReadinessOperatorStatusReport['toolEvidence'] {
+  return {
+    localDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview -- --local-defaults',
+    hydratedLocalDefaultsPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults',
+    previewCommand: 'npm run beta:tools:core-real-check-preview',
+    hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated',
+    hydrationSetupCommand: 'npm run tools:readiness:install-core-python',
+    localAcceptedEvidenceBundleCommand: 'npm run beta:tools:local-accepted-evidence-bundle',
+    localAcceptedEvidenceCollectorCommand: 'npm run beta:tools:local-accepted-evidence-collector',
+    command: 'npm run beta:tools:core-real-check-evidence',
+    preflightCommand: 'npm run beta:tools:core-real-check-evidence-preflight',
+    readyToRunCli: report.readyToRunCli,
+    readyToRecordAcceptedEvidence: report.readyToRecordAcceptedEvidence,
+    missingConfiguration: report.missingConfiguration,
+    confirmationGaps: report.confirmationGaps,
+    invalidToolIds: report.invalidToolIds,
+    secretLikeInputPaths: report.secretLikeInputPaths,
+  }
+}
+
+function platformEvidenceSummary(
+  report: BetaPlatformStagingEvidencePreflightReport,
+): BetaReadinessOperatorStatusReport['platformEvidence'] {
+  return {
+    command: 'npm run beta:platform:staging-evidence-probe',
+    preflightCommand: 'npm run beta:platform:staging-evidence-preflight',
+    readyToRunCollector: report.readyToRunCollector,
+    readyToRecordEvidencePacket: report.readyToRecordEvidencePacket,
+    missingConfiguration: report.missingConfiguration,
+    missingOwnerApprovals: report.missingOwnerApprovals,
+    missingAttestations: report.missingAttestations,
+    secretLikeInputPaths: report.secretLikeInputPaths,
+  }
+}
+
+function launchApprovalEvidenceSummary(
+  report: BetaReadinessLaunchApprovalEvidencePreflightReport,
+): BetaReadinessOperatorStatusReport['launchApprovalEvidence'] {
+  return {
+    command: 'npm run beta:readiness:launch-approval-evidence',
+    preflightCommand: 'npm run beta:readiness:launch-approval-evidence-preflight',
+    readyToRecordLaunchApprovalEvidence: report.readyToRecordLaunchApprovalEvidence,
+    missingConfiguration: report.missingConfiguration,
+    missingOwnerApprovals: report.missingOwnerApprovals,
+    missingEvidenceNotes: report.missingEvidenceNotes,
+    confirmationGaps: report.confirmationGaps,
+    rejectedScope: report.rejectedScope,
+    secretLikeInputPaths: report.secretLikeInputPaths,
+  }
+}
+
+function buildNextActions(
+  toolEvidence: BetaToolsCoreRealCheckEvidencePreflightReport,
+  platformEvidence: BetaPlatformStagingEvidencePreflightReport,
+  launchApprovalEvidence: BetaReadinessLaunchApprovalEvidencePreflightReport,
+  localAcceptedEvidence: BetaReadinessOperatorStatusReport['sourceTruth']['localAcceptedEvidence'],
+): string[] {
+  const actions: string[] = []
+
+  if (!toolEvidence.readyToRecordAcceptedEvidence) {
+    if (localAcceptedEvidence.readyToRecordDeployedEvidence) {
+      actions.push(`Current source truth already has ${localAcceptedEvidence.locallyAcceptedToolCount} bounded accepted-proven Track B tools in ${localAcceptedEvidence.bundlePath}; do not rerun old core/libass proof lanes unless refreshing evidence for a new source SHA.`)
+      actions.push('Set the REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_* deployed-staging values, including API base URL, bearer token, workspace ID, source SHA, core/libass idempotency keys, bounded accepted and product-ready confirmations, and REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT=16; then run npm run beta:tools:trackb-product-ready-deployed-evidence-collector to record the 16-tool product-ready bundle and verify operator-status readback.')
+      actions.push('If the source SHA changes or the local bundle is intentionally refreshed, run npm run beta:tools:core-real-check-preview -- --local-defaults, then npm run beta:tools:local-accepted-evidence-bundle with bounded accepted evidence confirmations before any deployed recording; product-ready deployed evidence must still require the PR #987 source-truth reconciliation and operator-status readback count 16.')
+    } else {
+      actions.push('Run npm run beta:tools:core-real-check-preview -- --local-defaults to collect a local no-write blocker-reduction preview without operator secrets; for Python-backed core tools, first run npm run tools:readiness:install-core-python, then npm run beta:tools:core-real-check-preview:hydrated -- --local-defaults. Use the manual REEDITPRO_BETA_TOOLS_PREVIEW_* values only when intentionally overriding local defaults. After preview passes, set the missing REEDITPRO_BETA_TOOLS_* deployed evidence values and rerun npm run beta:tools:core-real-check-evidence-preflight.')
+      actions.push('For the remaining libass subtitle-filter warning, run npm run beta:tools:libass-container-proof-preflight against an approved render/tool-readiness image; this can reduce libass execution evidence without claiming product-ready caption burn-in.')
+      actions.push('After libass filter proof passes, run npm run beta:tools:libass-synthetic-burnin-qa-preflight to collect synthetic-only caption burn-in/font QA evidence before product-ready local OSS acceptance is recorded.')
+      actions.push('After core hydrated preview and libass synthetic QA pass, run npm run beta:tools:local-accepted-evidence-bundle to confirm the combined local accepted tool set and remaining staging gates before recording deployed evidence.')
+      actions.push('After the local accepted evidence bundle passes, run npm run beta:tools:local-accepted-evidence-collector against deployed staging to record core and libass evidence and verify operator-status readback.')
+      actions.push('After synthetic libass QA passes, run npm run beta:tools:libass-synthetic-burnin-qa-evidence-preflight, then npm run beta:tools:libass-synthetic-burnin-qa-evidence against deployed staging to record accepted libass evidence.')
+    }
+  } else {
+    actions.push('Tool evidence inputs are complete. Prefer npm run beta:tools:trackb-product-ready-deployed-evidence-collector for the current 16-tool product-ready bundle and operator-status readback count 16; if recording bounded evidence only, use npm run beta:tools:local-accepted-evidence-collector, or record individually with npm run beta:tools:core-real-check-evidence for core tools and npm run beta:tools:libass-synthetic-burnin-qa-evidence for libass.')
+  }
+
+  actions.push('Use npm run beta:readiness:owner-approval-packet plus docs/beta-readiness/owner-approval-packet-current-gates/2026-06-28-owner-approval-packet-current-gates.md as the current non-secret source for platform and launch owner approval inputs; the packet does not grant approval by itself. Generate the exact local fill-in template with npm run beta:readiness:owner-approval-env-template, review pending operator input status with npm run beta:readiness:external-beta-operator-input-template -- --status, create the ignored owner-only local skeleton with npm run beta:readiness:external-beta-operator-local-env-bootstrap, review redacted local value progress with npm run beta:readiness:external-beta-operator-value-progress, export only safe non-secret constants/idempotency keys with npm run beta:readiness:external-beta-operator-autofill-env or apply them to the ignored local env with npm run beta:readiness:external-beta-operator-autofill-local-env, review the 47 human-owned inputs with npm run beta:readiness:external-beta-operator-human-input-checklist, then validate the completed local ignored env file with npm run beta:readiness:external-beta-operator-local-env-preflight before any deployed collector.')
+  actions.push('Before rerunning deployed evidence manifests or collectors with owner-provided values, run npm run beta:readiness:owner-approval-intake-status for a value-free owner input progress review, then run REEDITPRO_BETA_OWNER_APPROVAL_ENV_FILE=.env.reeditpro-beta-operator.local npm run beta:readiness:owner-approval-intake-preflight to require approval/attestation booleans to be explicitly true from the owner-only local env file, reject secret-like owner notes, reject unsafe local env file permissions or symlinks, reject real-user-media or paid-production scope flags, and avoid echoing evidence note values.')
+
+  if (!platformEvidence.readyToRecordEvidencePacket) {
+    actions.push('After collecting the current non-secret platform owner approval notes, set the missing REEDITPRO_BETA_PLATFORM_* values and rerun npm run beta:platform:staging-evidence-preflight.')
+  } else {
+    actions.push('Run npm run beta:platform:staging-evidence-probe against deployed staging to record platform evidence.')
+  }
+
+  if (!launchApprovalEvidence.readyToRecordLaunchApprovalEvidence) {
+    actions.push('After collecting the current non-secret launch owner approval notes, set the missing REEDITPRO_BETA_LAUNCH_* values and rerun npm run beta:readiness:launch-approval-evidence-preflight.')
+  } else {
+    actions.push('Run npm run beta:readiness:launch-approval-evidence against deployed staging to record top-level external-beta launch approval evidence.')
+  }
+
+  actions.push('Current source truth has deployed authenticated-only staging services: reeditpro-api-staging for platform/status checks and reeditpro-tool-readiness-staging for tool evidence. Treat docs/beta-readiness/api-staging-input-discovery/* owner-remediation packets as historical audit context unless a future API deployment preflight proves those IAM inputs regressed.')
+  actions.push('Before any deployed evidence call after a redeploy or endpoint change, run npm run beta:readiness:api-deployment-preflight against reeditpro-api-staging to prove the API URL, deployed source SHA, image, service account, and secret bindings are coherent.')
+  actions.push('After API deployment preflight and owner approval intake status/preflight pass, set REEDITPRO_BETA_DEPLOYED_EVIDENCE_SOURCE_SHA to the current deployed staging source SHA, then run npm run beta:readiness:deployed-evidence-input-manifest -- --status for non-blocking review and npm run beta:readiness:deployed-evidence-input-manifest as the strict collector gate to verify the historical local evidence bundle, current 16 bounded accepted-proven / 16 product-ready Track B source boundary, libass container image, platform approvals, and launch approvals before any deployed evidence call.')
+  actions.push('After the local accepted evidence bundle, deployed evidence input manifest, platform staging evidence preflight, and launch approval preflight all pass, run npm run beta:readiness:external-beta-sequence-preflight to prove the all-up no-network sequence is ready before any deployed evidence collector writes evidence.')
+  actions.push('After the sequence preflight passes, run npm run beta:readiness:external-beta-evidence-collector to record tool/platform/launch evidence and require final external-beta operator-status readback in one fail-closed sequence.')
+  actions.push('After tool, platform, and launch approval evidence packets exist, rerun npm run beta:readiness:operator-status-api, smoke:tool-beta-execution-readiness, and the beta readiness API smoke from the final source SHA.')
+  actions.push('After deployed operator status reports external beta ready, use npm run beta:readiness:scope-approval-evidence-preflight with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=real_user_media_beta; after real-user-media beta is ready, repeat with REEDITPRO_BETA_SCOPE_APPROVAL_MODE=paid_production, or run npm run beta:readiness:scope-approval-sequence when both later approvals and evidence notes are ready.')
+  actions.push('When all external-beta, real-user-media beta, and paid-production approval evidence inputs are available, run npm run beta:readiness:paid-production-evidence-collector to sequence the full evidence/readback path and require final paid-production operator-status readiness.')
+  return actions
+}
+
+function readLocalAcceptedEvidence(): BetaReadinessOperatorStatusReport['sourceTruth']['localAcceptedEvidence'] {
+  const payload = JSON.parse(readFileSync(LOCAL_ACCEPTED_BUNDLE_PATH, 'utf8')) as Record<string, unknown>
+  return {
+    bundlePath: LOCAL_ACCEPTED_BUNDLE_PATH,
+    decision: stringValue(payload.decision),
+    evidenceMode: stringValue(payload.evidenceMode),
+    locallyAcceptedToolCount: numberValue(payload.locallyAcceptedToolCount),
+    locallyAcceptedToolIds: stringArray(payload.locallyAcceptedToolIds),
+    readyToRecordDeployedEvidence: payload.readyToRecordDeployedEvidence === true,
+    productReadyLocalOssCount: 0,
+    productReadyLocalOssRequiredForCurrentTrackB: 16,
+  }
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const report = buildBetaReadinessOperatorStatus(process.env)
+  console.log(JSON.stringify(report, null, 2))
+  if (!report.operatorInputsReady) {
+    process.exitCode = 1
+  }
+}

@@ -173,3 +173,31 @@ The existing credit tables remain the target schema. The skeleton does not add m
 ## RP-FIX-10 Job Recovery Link
 
 RP-FIX-10 connects mock job completion/failure flows to the RP-FIX-09 credit skeleton. Successful mock jobs can spend a reserved credit record. Failed mock jobs can release or refund reserved credits. Production behavior still requires transactional backend enforcement around job status and ledger mutation.
+
+## RP-RESERVATION-01 Max Hold Foundation
+
+RP-RESERVATION-01 updates the mock reservation foundation so the pre-work hold reserves `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`. The new server route and corrected mock helpers create only local in-memory wallet/reservation state for the hold; they do not write reservation ledger entries, run settlement, spend/release/refund credits, call providers, run render/export, unlock export, start checkout/top-up, write Supabase, or wire live billing/Stripe behavior. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.
+
+## RP-RUNTIME-GUARD-01 Runtime Guard
+
+RP-RUNTIME-GUARD-01 adds a mock-safe paid-tool start guard before worker lease, provider, or render execution. It treats `reserved` as the only active reservation status, includes current billable mock tool-cost events and pending high-credit work in the projection, keeps tool-cost events `serviceFeeIncluded = false`, and uses the credit policy service-fee math separately. Projected overage creates one idempotent mock `CreditRevisionActionRecord` with "Action required: revised credit estimate needed" and `projected_overage`; it does not create ledger entries, spend, release, refund, settle, call providers, run render/export, unlock export, or wire live billing.
+
+## RP-CREDITREVISION-01 Revised Credit Resolution
+
+RP-CREDITREVISION-01 resolves those mock revised-credit actions. Approve & Continue may reserve a local mock `revised_credit_additional_hold` on the existing reservation; Choose Lower-Cost Option and Cancel Extra Work record the user decision without reservation changes. This layer still creates no ledger entries and performs no spend, release, refund, settlement, provider call, render/export, checkout/top-up, export unlock, Supabase write, or live billing behavior.
+
+## RP-SETTLEMENT-01 Final Credit Settlement
+
+RP-SETTLEMENT-01 performs final settlement in local mock state only. It aggregates billable tool-cost events, adds the ReEditPro service/edit fee separately, updates mock wallet/reservation balances, releases unused hold, and records absorbed overage or approved-but-unfunded state without creating production ledger entries. Live billing, Stripe/payment, Supabase writes, provider calls, render/export, checkout/top-up, and export unlock remain future work.
+
+## RP-EXPORTLOCK-01 Export Credit Gate
+
+RP-EXPORTLOCK-01 adds a local/mock export readiness gate over settlement state. It allows `settled` and `settled_with_absorbed_overage`, and creates only an idempotent mock export lock for `requires_top_up_before_export`. It does not create ledger entries, mutate production wallets, run checkout/top-up, execute render/export, unlock export, write Supabase, or wire live billing.
+
+## RP-CREDITPURCHASE-01 Mock Purchased Grants
+
+RP-CREDITPURCHASE-01 adds fixed mock credit packs and purchased grants to the shared mock wallet store. Completing a mock top-up creates a local `purchased` grant and increases available credits only; it creates no production ledger entry, real checkout session, Stripe/payment call, Supabase write, reservation retry, revised-credit retry, export unlock, provider call, or render/export execution.
+
+## RP-PERSISTENCE-PLAN-01 Production Persistence Plan
+
+RP-PERSISTENCE-PLAN-01 keeps the existing wallet, grant, ledger, estimate, approval, reservation, refund, idempotency, and tool-cost schema as the production target. The new plan documents how final settlements, revised-credit actions, export locks, purchased top-up intents, Stripe links/sessions/webhooks, and support audit evidence should extend that schema in later reviewed migrations. It is docs/status/smoke-only and does not create migrations, run Supabase CLI, apply SQL, write Supabase data, mutate production wallets/ledgers, call Stripe/providers, or run render/export.

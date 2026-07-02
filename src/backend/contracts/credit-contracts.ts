@@ -1,9 +1,45 @@
 import type {
+  ApproveCreditRevisionActionRequest,
+  CancelCreditRevisionActionRequest,
+  ChooseLowerCostCreditRevisionOptionRequest,
+  CompleteMockCreditTopUpRequest,
+  CompleteMockCreditTopUpResponse,
+  CreateMockCreditTopUpRequest,
+  CreateMockCreditTopUpResponse,
   CreditApprovalRecord,
+  CreditAuditTimeline,
+  CreditAuditTimelineResponse,
+  CreditBetaReadinessEvidenceReport,
+  CreditBetaReadinessEvidenceResponse,
+  CreditExternalBetaLaunchGateReport,
+  CreditExternalBetaLaunchGateResponse,
+  CreditExternalBetaScenario,
+  CreditExternalBetaScenarioResult,
+  CreditExportLockRecord,
   CreditEstimateLineItemRecord,
   CreditEstimateRecord,
+  CreditPackDefinition,
+  CreditRevisionActionResolutionResponse,
+  CreditRevisionActionRecord,
   CreditReservationRecord,
+  CreditSettlementRecord,
+  CreditSupportReceipt,
+  CreditSupportReceiptResponse,
   CreditWalletRecord,
+  EditCreditCostSummary,
+  EvaluateExportCreditGateRequest,
+  ExportCreditGateResult,
+  PreviewCreditSettlementRequest,
+  PreviewCreditSettlementResponse,
+  ReserveMaxEstimateCreditsRequest,
+  ReserveMaxEstimateCreditsResponse,
+  SettleCreditReservationRequest,
+  SettleCreditReservationResponse,
+  StripeBillingTraceResponse,
+  StripeBillingTraceSummary,
+  SuggestCreditTopUpRequest,
+  SuggestCreditTopUpResponse,
+  SuggestedCreditTopUp,
 } from '../../types'
 
 export interface CreateCreditEstimateRequest {
@@ -41,4 +77,55 @@ export interface ReserveCreditsRequest {
 export interface ReserveCreditsResponse {
   creditReservation: CreditReservationRecord
   creditWallet: CreditWalletRecord
+}
+
+export type {
+  CreditRevisionActionRecord,
+  CreditSettlementRecord,
+  CreditAuditTimeline,
+  CreditAuditTimelineResponse,
+  CreditBetaReadinessEvidenceReport,
+  CreditBetaReadinessEvidenceResponse,
+  CreditExternalBetaLaunchGateReport,
+  CreditExternalBetaLaunchGateResponse,
+  CreditExternalBetaScenario,
+  CreditExternalBetaScenarioResult,
+  CreditPackDefinition,
+  CreditSupportReceipt,
+  CreditSupportReceiptResponse,
+  EditCreditCostSummary,
+  ApproveCreditRevisionActionRequest,
+  CancelCreditRevisionActionRequest,
+  ChooseLowerCostCreditRevisionOptionRequest,
+  CompleteMockCreditTopUpRequest,
+  CompleteMockCreditTopUpResponse,
+  CreditExportLockRecord,
+  CreditRevisionActionResolutionResponse,
+  CreateMockCreditTopUpRequest,
+  CreateMockCreditTopUpResponse,
+  PreviewCreditSettlementRequest,
+  PreviewCreditSettlementResponse,
+  ReserveMaxEstimateCreditsRequest,
+  ReserveMaxEstimateCreditsResponse,
+  SettleCreditReservationRequest,
+  SettleCreditReservationResponse,
+  StripeBillingTraceResponse,
+  StripeBillingTraceSummary,
+  SuggestCreditTopUpRequest,
+  SuggestCreditTopUpResponse,
+  SuggestedCreditTopUp,
+  EvaluateExportCreditGateRequest,
+  ExportCreditGateResult,
+}
+
+export interface ListCreditSettlementsResponse {
+  settlements: CreditSettlementRecord[]
+}
+
+export interface CreateCreditRevisionActionResponse {
+  action: CreditRevisionActionRecord
+}
+
+export interface ListCreditRevisionActionsResponse {
+  actions: CreditRevisionActionRecord[]
 }

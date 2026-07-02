@@ -1,4 +1,5 @@
 import type { BaseRecord, CreditAmount, ID, ISODateString, JSONObject } from './shared'
+import type { ReEditProCanonicalEditLevel } from './edit-level'
 
 export type CreditWalletType = 'personal' | 'workspace' | 'business' | 'enterprise'
 
@@ -83,6 +84,915 @@ export type CreditRefundReason =
   | 'admin_adjustment'
   | 'duplicate_charge'
   | 'reservation_release'
+
+export const CREDIT_SETTLEMENT_STATUSES = [
+  'draft',
+  'previewed',
+  'pending',
+  'settled',
+  'requires_revised_estimate',
+  'requires_top_up_before_export',
+  'settled_with_absorbed_overage',
+  'failed',
+  'cancelled',
+] as const
+
+export type CreditSettlementStatus = typeof CREDIT_SETTLEMENT_STATUSES[number]
+
+export const CREDIT_SETTLEMENT_REASONS = [
+  'edit_completed',
+  'projected_overage',
+  'user_approved_overage',
+  'approved_but_unfunded',
+  'estimate_error_absorbed',
+  'provider_variance_absorbed',
+  'reeditpro_failed_to_pause_absorbed',
+  'user_cancelled',
+  'admin_adjustment',
+  'unknown',
+] as const
+
+export type CreditSettlementReason = typeof CREDIT_SETTLEMENT_REASONS[number]
+
+export const CREDIT_REVISION_ACTION_STATUSES = [
+  'action_required',
+  'approved',
+  'rejected',
+  'lower_cost_selected',
+  'cancelled',
+  'expired',
+  'resolved',
+] as const
+
+export type CreditRevisionActionStatus = typeof CREDIT_REVISION_ACTION_STATUSES[number]
+
+export const CREDIT_REVISION_PAUSE_REASONS = [
+  'projected_overage',
+  'user_requested_scope_increase',
+  'compute_level_upgrade_required',
+  'provider_route_changed',
+  'export_top_up_required',
+  'tool_cost_risk_increased',
+  'unknown',
+] as const
+
+export type CreditRevisionPauseReason = typeof CREDIT_REVISION_PAUSE_REASONS[number]
+
+export type CreditRevisionUserAction =
+  | 'approve_and_continue'
+  | 'choose_lower_cost_option'
+  | 'cancel_extra_work'
+  | 'add_credits_and_unlock_export'
+
+export interface CreditRevisionUserOption {
+  id: string
+  label: string
+  action: CreditRevisionUserAction
+}
+
+export const CREDIT_REVISION_ACTION_RESOLUTION_STATUSES = [
+  'approved',
+  'lower_cost_selected',
+  'cancelled',
+  'already_resolved',
+  'action_not_found',
+  'invalid_action_state',
+  'invalid_request',
+  'reservation_not_found',
+  'inactive_reservation',
+  'wallet_not_found',
+  'insufficient_credits',
+] as const
+
+export type CreditRevisionActionResolutionStatus =
+  typeof CREDIT_REVISION_ACTION_RESOLUTION_STATUSES[number]
+
+export const CREDIT_SETTLEMENT_MODES = [
+  'completed_edit',
+  'preview_only',
+  'force_absorb_unapproved_overage',
+  'approved_but_unfunded',
+] as const
+
+export type CreditSettlementMode = typeof CREDIT_SETTLEMENT_MODES[number]
+
+export const SETTLE_CREDIT_RESERVATION_STATUSES = [
+  'previewed',
+  'settled',
+  'settled_with_absorbed_overage',
+  'requires_top_up_before_export',
+  'reservation_not_found',
+  'reservation_not_active',
+  'estimate_not_found',
+  'invalid_request',
+  'already_settled',
+] as const
+
+export type SettleCreditReservationStatus = typeof SETTLE_CREDIT_RESERVATION_STATUSES[number]
+
+export const EXPORT_CREDIT_GATE_STATUSES = [
+  'export_allowed',
+  'export_locked_top_up_required',
+  'settlement_required',
+  'revised_estimate_required',
+  'settlement_failed',
+  'invalid_request',
+  'settlement_not_found',
+  'reservation_not_found',
+] as const
+
+export type ExportCreditGateStatus = typeof EXPORT_CREDIT_GATE_STATUSES[number]
+
+export const EXPORT_CREDIT_GATE_REQUIRED_ACTIONS = [
+  'none',
+  'add_credits_to_export',
+  'settle_edit_first',
+  'resolve_revised_estimate',
+  'contact_support',
+] as const
+
+export type ExportCreditGateRequiredAction = typeof EXPORT_CREDIT_GATE_REQUIRED_ACTIONS[number]
+
+export const CREDIT_EXPORT_LOCK_STATUSES = [
+  'locked',
+  'unlocked',
+  'not_required',
+  'resolved',
+  'cancelled',
+] as const
+
+export type CreditExportLockStatus = typeof CREDIT_EXPORT_LOCK_STATUSES[number]
+
+export const CREDIT_EXPORT_LOCK_REASONS = [
+  'approved_but_unfunded',
+  'settlement_required',
+  'revised_estimate_required',
+  'settlement_failed',
+  'unknown',
+] as const
+
+export type CreditExportLockReason = typeof CREDIT_EXPORT_LOCK_REASONS[number]
+
+export const CREDIT_TOP_UP_REASONS = [
+  'insufficient_credits_for_estimate',
+  'revised_credit_additional_hold',
+  'export_top_up_required',
+  'manual_wallet_top_up',
+  'admin_test',
+] as const
+
+export type CreditTopUpReason = typeof CREDIT_TOP_UP_REASONS[number]
+
+export const MOCK_CREDIT_TOP_UP_INTENT_STATUSES = [
+  'created',
+  'completed',
+  'cancelled',
+  'failed',
+] as const
+
+export type MockCreditTopUpIntentStatus = typeof MOCK_CREDIT_TOP_UP_INTENT_STATUSES[number]
+
+export const MOCK_CREDIT_TOP_UP_RESPONSE_STATUSES = [
+  'created',
+  'completed',
+  'wallet_not_found',
+  'pack_not_found',
+  'invalid_request',
+  'already_created',
+  'already_completed',
+] as const
+
+export type MockCreditTopUpResponseStatus = typeof MOCK_CREDIT_TOP_UP_RESPONSE_STATUSES[number]
+
+export const MOCK_CREDIT_TOP_UP_NEXT_ACTIONS = [
+  'none',
+  'retry_estimate_reservation',
+  'retry_revised_credit_approval',
+  'retry_export_gate',
+  'review_wallet',
+] as const
+
+export type MockCreditTopUpNextAction = typeof MOCK_CREDIT_TOP_UP_NEXT_ACTIONS[number]
+
+export interface CreditPackDefinition {
+  id: ID
+  label: string
+  credits: CreditAmount
+  priceCents: number
+  currency: 'USD'
+  retailValueCents: number
+  isActive: boolean
+  metadata: JSONObject
+}
+
+export interface MockCreditTopUpIntent extends BaseRecord {
+  workspaceId: ID
+  userId: ID
+  creditWalletId: ID
+  creditPackId?: ID | null
+  credits: CreditAmount
+  priceCents: number
+  currency: 'USD'
+  status: MockCreditTopUpIntentStatus
+  topUpReason: CreditTopUpReason
+  mockOnly: true
+  checkoutProvider: 'mock'
+  checkoutUrl?: string | null
+  relatedProjectId?: ID | null
+  relatedCreditEstimateId?: ID | null
+  relatedCreditReservationId?: ID | null
+  relatedCreditSettlementId?: ID | null
+  relatedCreditRevisionActionId?: ID | null
+  idempotencyKey: string
+  completedAt?: ISODateString | null
+}
+
+export interface CreateMockCreditTopUpRequest {
+  workspaceId: ID
+  userId: ID
+  creditWalletId: ID
+  creditPackId?: ID
+  customCredits?: number
+  topUpReason: CreditTopUpReason
+  relatedProjectId?: ID | null
+  relatedCreditEstimateId?: ID | null
+  relatedCreditReservationId?: ID | null
+  relatedCreditSettlementId?: ID | null
+  relatedCreditRevisionActionId?: ID | null
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CompleteMockCreditTopUpRequest extends CreateMockCreditTopUpRequest {
+  topUpIntentId?: ID
+}
+
+export interface SuggestCreditTopUpRequest {
+  workspaceId: ID
+  userId?: ID
+  creditWalletId: ID
+  topUpReason: CreditTopUpReason
+  relatedProjectId?: ID | null
+  relatedCreditEstimateId?: ID | null
+  relatedCreditReservationId?: ID | null
+  relatedCreditSettlementId?: ID | null
+  relatedCreditRevisionActionId?: ID | null
+  requestedCredits?: CreditAmount
+  metadata?: JSONObject
+}
+
+export interface MockCreditTopUpSafetyFlags {
+  mockOnly: true
+  mockTopUpIntentWritten: boolean
+  mockCreditGrantWritten: boolean
+  walletMutated: boolean
+  creditsAdded: boolean
+  creditsReserved: false
+  creditsSpent: false
+  creditsReleased: false
+  creditsRefunded: false
+  ledgerWritten: false
+  productionWalletMutated: false
+  productionPersistenceWritten: false
+  checkoutSessionCreated: false
+  paymentProviderCalled: false
+  stripeCalled: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+}
+
+export interface CreateMockCreditTopUpResponse {
+  status: MockCreditTopUpResponseStatus
+  topUpIntent: MockCreditTopUpIntent | null
+  creditGrant: null
+  walletBalance: CreditReservationWalletBalance | null
+  creditsAdded: 0
+  priceCents: number
+  userFacingTitle: string
+  userFacingMessage: string
+  nextSuggestedAction: MockCreditTopUpNextAction
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  safetyFlags: MockCreditTopUpSafetyFlags
+  warnings: string[]
+}
+
+export interface CompleteMockCreditTopUpResponse {
+  status: MockCreditTopUpResponseStatus
+  topUpIntent: MockCreditTopUpIntent | null
+  creditGrant: CreditGrantRecord | null
+  walletBalance: CreditReservationWalletBalance | null
+  creditsAdded: CreditAmount
+  priceCents: number
+  userFacingTitle: string
+  userFacingMessage: string
+  nextSuggestedAction: MockCreditTopUpNextAction
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  safetyFlags: MockCreditTopUpSafetyFlags
+  warnings: string[]
+}
+
+export interface SuggestedCreditTopUp {
+  requiredTopUpCredits: CreditAmount
+  recommendedPackId?: ID
+  recommendedCredits: CreditAmount
+  recommendedPriceCents: number
+  reason: CreditTopUpReason
+  nextSuggestedAction: MockCreditTopUpNextAction
+  warnings: string[]
+}
+
+export interface SuggestCreditTopUpResponse {
+  suggestion: SuggestedCreditTopUp
+  walletBalance: CreditReservationWalletBalance | null
+  safetyFlags: MockCreditTopUpSafetyFlags
+  warnings: string[]
+}
+
+export interface CreditSettlementRecord {
+  id: ID
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  chatSessionId?: ID | null
+  jobBatchId?: ID | null
+  creditWalletId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  creditApprovalId?: ID | null
+  editComputeLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  status: CreditSettlementStatus
+  settlementReason: CreditSettlementReason
+  reservedCredits: CreditAmount
+  actualToolCostCents: number
+  actualToolCostCredits: CreditAmount
+  reeditproServiceFeeCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  releasedCredits: CreditAmount
+  absorbedOverageCredits: CreditAmount
+  outstandingCredits: CreditAmount
+  billableToolEventCount: number
+  nonBillableToolEventCount: number
+  toolCostEventIds: ID[]
+  rateCardVersion?: string | null
+  creditPolicyVersion?: string | null
+  serviceFeePolicyVersion?: string | null
+  idempotencyKey: string
+  settlementPayload: JSONObject
+  receiptPayload: JSONObject
+  metadata: JSONObject
+  createdAt: ISODateString
+  updatedAt: ISODateString
+  settledAt?: ISODateString | null
+  failedAt?: ISODateString | null
+}
+
+export interface CreditRevisionActionRecord {
+  id: ID
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  chatSessionId?: ID | null
+  jobBatchId?: ID | null
+  jobId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  previousCreditEstimateId?: ID | null
+  revisedCreditEstimateId?: ID | null
+  editComputeLevel: ReEditProCanonicalEditLevel
+  status: CreditRevisionActionStatus
+  pauseReason: CreditRevisionPauseReason
+  approvedMaxCredits: CreditAmount
+  usedOrCommittedCredits: CreditAmount
+  additionalLowCredits: CreditAmount
+  additionalExpectedCredits: CreditAmount
+  additionalHighCredits: CreditAmount
+  newMaximumEstimatedCredits: CreditAmount
+  reasonSummary: string
+  actionRequiredTitle: string
+  actionRequiredMessage: string
+  userOptions: CreditRevisionUserOption[]
+  selectedOptionId?: string | null
+  resolvedByUserId?: ID | null
+  resolvedAt?: ISODateString | null
+  idempotencyKey: string
+  metadata: JSONObject
+  createdAt: ISODateString
+  updatedAt: ISODateString
+  expiresAt?: ISODateString | null
+}
+
+export interface EditCreditCostSummaryUsageCategory {
+  eventCount: number
+  billableEventCount: number
+  nonBillableEventCount: number
+  actualInternalCostCents: number
+  credits: CreditAmount
+}
+
+export interface EditCreditCostSummaryLine {
+  label: string
+  credits: CreditAmount
+  description?: string
+}
+
+export interface EditCreditCostSummary {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  creditSettlementId?: ID | null
+  editComputeLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  reservedCredits: CreditAmount
+  actualToolCostCents: number
+  actualToolCostCredits: CreditAmount
+  reeditproServiceFeeCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  releasedCredits: CreditAmount
+  absorbedOverageCredits: CreditAmount
+  outstandingCredits: CreditAmount
+  byUsageCategory: Record<string, EditCreditCostSummaryUsageCategory>
+  nonBillableAbsorbed?: {
+    eventCount: number
+    actualInternalCostCents: number
+    credits: CreditAmount
+    reasons: string[]
+  }
+  userFacingLines: EditCreditCostSummaryLine[]
+  warnings: string[]
+}
+
+export interface PreviewCreditSettlementRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  editComputeLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  reservedCredits: CreditAmount
+  toolCostEventIds?: ID[]
+  idempotencyKey: string
+}
+
+export interface PreviewCreditSettlementResponse {
+  settlement: CreditSettlementRecord
+  summary: EditCreditCostSummary
+  requiresAction: boolean
+  requiredActionType?: 'revised_estimate' | 'top_up_before_export' | 'none'
+  warnings: string[]
+}
+
+export interface SettleCreditReservationRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId: ID
+  creditReservationId: ID
+  settledByUserId?: ID | null
+  settledByAgent?: string | null
+  productEditLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  settlementMode: CreditSettlementMode
+  toolCostEventIds?: ID[]
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CreditSettlementSafetyFlags {
+  mockOnly: true
+  walletMutated: boolean
+  reservationMutated: boolean
+  creditsSpent: boolean
+  creditsReleased: boolean
+  creditsRefunded: false
+  ledgerWritten: false
+  productionWalletMutated: false
+  productionSettlementWritten: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface SettleCreditReservationResponse {
+  status: SettleCreditReservationStatus
+  settlement: CreditSettlementRecord | null
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  walletBalance: CreditReservationWalletBalance | null
+  summary?: EditCreditCostSummary
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  userFacingTitle: string
+  userFacingMessage: string
+  safetyFlags: CreditSettlementSafetyFlags
+  warnings: string[]
+}
+
+export interface EvaluateExportCreditGateRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  renderId?: ID | null
+  exportId?: ID | null
+  creditReservationId: ID
+  creditSettlementId?: ID | null
+  requestedByUserId?: ID | null
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CreditExportLockRecord extends BaseRecord {
+  id: ID
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  renderId?: ID | null
+  exportId?: ID | null
+  creditReservationId: ID
+  creditSettlementId: ID
+  status: CreditExportLockStatus
+  lockReason: CreditExportLockReason
+  outstandingCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  reservedCredits: CreditAmount
+  actionRequiredTitle: string
+  actionRequiredMessage: string
+  idempotencyKey: string
+  metadata: JSONObject
+  resolvedAt?: ISODateString | null
+}
+
+export interface ExportCreditGateSafetyFlags {
+  mockOnly: true
+  readOnly: boolean
+  mockExportLockWritten: boolean
+  walletMutated: false
+  reservationMutated: false
+  creditsSpent: false
+  creditsReleased: false
+  creditsRefunded: false
+  ledgerWritten: false
+  productionWalletMutated: false
+  productionPersistenceWritten: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface ExportCreditGateResult {
+  status: ExportCreditGateStatus
+  canExport: boolean
+  creditReservationId: ID | null
+  creditSettlementId?: ID | null
+  settlementStatus?: CreditSettlementStatus | null
+  reservedCredits: CreditAmount
+  finalChargeCredits: CreditAmount
+  outstandingCredits: CreditAmount
+  absorbedOverageCredits: CreditAmount
+  releasedCredits: CreditAmount
+  userFacingTitle: string
+  userFacingMessage: string
+  requiredAction: ExportCreditGateRequiredAction
+  exportLock: CreditExportLockRecord | null
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  metadata: JSONObject
+  safetyFlags: ExportCreditGateSafetyFlags
+  warnings: string[]
+}
+
+export const EDIT_CREDIT_ESTIMATE_TOOL_COMPUTE_LEVELS = [
+  'economy',
+  'standard',
+  'premium',
+] as const
+
+export type EditCreditEstimateToolComputeLevel = typeof EDIT_CREDIT_ESTIMATE_TOOL_COMPUTE_LEVELS[number]
+
+export const EDIT_CREDIT_ESTIMATE_READINESS_STATUSES = [
+  'ready_for_reservation',
+  'needs_top_up',
+  'custom_estimate_required',
+  'estimate_only_blocked',
+] as const
+
+export type EditCreditEstimateReadinessStatus = typeof EDIT_CREDIT_ESTIMATE_READINESS_STATUSES[number]
+
+export type EditCreditEstimateLowerCostAction =
+  | 'downgrade_product_edit_level'
+  | 'reduce_tool_scope'
+  | 'lower_render_quality'
+  | 'reduce_audio_scope'
+  | 'custom_estimate_review'
+
+export interface EditCreditEstimateToolUsageInput {
+  toolId: ID
+  toolComputeLevel?: EditCreditEstimateToolComputeLevel | null
+  qualityLevel?: EditCreditEstimateToolComputeLevel | null
+  estimatedRuntimeSeconds?: number
+  renderDurationSeconds?: number
+  outputDurationSeconds?: number
+  megapixelFrames?: number
+  requestCount?: number
+  inputTokens?: number
+  outputTokens?: number
+  inputVideoSeconds?: number
+  outputVideoSeconds?: number
+  inputAudioSeconds?: number
+  outputAudioSeconds?: number
+  imageCount?: number
+  provider?: string | null
+  model?: string | null
+  vcpuCount?: number
+  memoryGib?: number
+  gpuCount?: number
+  tempStorageGibHours?: number
+  outputStorageGibHours?: number
+  networkEgressMib?: number
+  actualInternalCostCents?: number
+  metadata?: JSONObject
+}
+
+export interface PreviewEditCreditEstimateRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId: ID
+  productEditLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  plannedToolIds: ID[]
+  toolUsageInputs?: Record<string, EditCreditEstimateToolUsageInput>
+  availableCreditsSnapshot?: CreditAmount
+  reservedCreditsSnapshot?: CreditAmount
+  purchasedCreditsSnapshot?: CreditAmount
+  weeklyBonusCreditsSnapshot?: CreditAmount
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface EditCreditEstimateToolEstimateSnapshot {
+  toolId: ID
+  toolName: string
+  owner: string
+  usageCategory: string
+  lineItemType: CreditEstimateLineItemType
+  productEditLevel: ReEditProCanonicalEditLevel
+  toolComputeLevel: EditCreditEstimateToolComputeLevel
+  qualityLevel: EditCreditEstimateToolComputeLevel
+  prerequisiteStatus: string
+  lowInternalCostCents: number
+  expectedInternalCostCents: number
+  highInternalCostCents: number
+  lowCredits: CreditAmount
+  expectedCredits: CreditAmount
+  highCredits: CreditAmount
+  rateCardVersion: string
+  pricingSnapshot: JSONObject
+  serviceFeeIncluded: false
+  warnings: string[]
+}
+
+export interface EditCreditEstimateServiceFeeEstimate {
+  lowToolCostCredits: CreditAmount
+  expectedToolCostCredits: CreditAmount
+  highToolCostCredits: CreditAmount
+  lowServiceFeeCredits: CreditAmount
+  expectedServiceFeeCredits: CreditAmount
+  highServiceFeeCredits: CreditAmount
+  customEstimateRequired: boolean
+  durationBucket: string
+  creditPolicyVersion: string
+  serviceFeePolicyVersion: string
+  finalChargeFormula: string
+}
+
+export interface EditCreditEstimateTopUpSummary {
+  availableCreditsSnapshot?: CreditAmount
+  reservedCreditsSnapshot?: CreditAmount
+  purchasedCreditsSnapshot?: CreditAmount
+  weeklyBonusCreditsSnapshot?: CreditAmount
+  requiredHoldCredits: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  canProceedToReservation: boolean
+  readinessStatus: EditCreditEstimateReadinessStatus
+}
+
+export interface EditCreditEstimateLowerCostOption {
+  id: string
+  label: string
+  description: string
+  action: EditCreditEstimateLowerCostAction
+  affectedToolIds: ID[]
+  targetProductEditLevel?: ReEditProCanonicalEditLevel
+  estimatedSavingsCredits?: CreditAmount
+}
+
+export interface EditCreditEstimateSafetyFlags {
+  estimateOnly: true
+  creditsReservedOrSpent: false
+  walletMutated: false
+  reservationMutated: false
+  ledgerWritten: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface EditCreditEstimatePreviewSummary {
+  workspaceId: ID
+  projectId: ID
+  editPlanId: ID
+  productEditLevel: ReEditProCanonicalEditLevel
+  finalVideoDurationSeconds: number
+  plannedToolCount: number
+  lowToolCostCredits: CreditAmount
+  expectedToolCostCredits: CreditAmount
+  highToolCostCredits: CreditAmount
+  lowServiceFeeCredits: CreditAmount
+  expectedServiceFeeCredits: CreditAmount
+  highServiceFeeCredits: CreditAmount
+  minimumEstimatedCredits: CreditAmount
+  totalEstimatedCredits: CreditAmount
+  maximumEstimatedCredits: CreditAmount
+  requiredHoldCredits: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  canProceedToReservation: boolean
+  customEstimateRequired: boolean
+  readinessStatus: EditCreditEstimateReadinessStatus
+  userFacingLines: EditCreditCostSummaryLine[]
+}
+
+export interface EditCreditEstimatePreview {
+  estimate: CreditEstimateRecord
+  summary: EditCreditEstimatePreviewSummary
+  toolEstimates: EditCreditEstimateToolEstimateSnapshot[]
+  serviceFeeEstimate: EditCreditEstimateServiceFeeEstimate
+  topUpSummary: EditCreditEstimateTopUpSummary
+  lowerCostOptions: EditCreditEstimateLowerCostOption[]
+  safetyFlags: EditCreditEstimateSafetyFlags
+  idempotencyStatus: 'created' | 'duplicate_returned'
+  warnings: string[]
+}
+
+export interface PreviewEditCreditEstimateResponse {
+  preview: EditCreditEstimatePreview
+  warnings: string[]
+}
+
+export const RESERVE_MAX_ESTIMATE_CREDIT_STATUSES = [
+  'reserved',
+  'insufficient_credits',
+  'estimate_not_found',
+  'estimate_not_approved',
+  'estimate_expired',
+  'wallet_not_found',
+  'already_reserved',
+  'invalid_request',
+] as const
+
+export type ReserveMaxEstimateCreditsStatus = typeof RESERVE_MAX_ESTIMATE_CREDIT_STATUSES[number]
+
+export interface ReserveMaxEstimateCreditsRequest {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID
+  chatSessionId?: ID
+  creditWalletId?: ID
+  creditEstimateId: ID
+  creditApprovalId?: ID
+  approvedByUserId: ID
+  idempotencyKey: string
+  expiresAt?: ISODateString
+  metadata?: JSONObject
+}
+
+export interface CreditReservationWalletBalance {
+  creditWalletId: ID
+  workspaceId: ID
+  userId?: ID
+  walletType: CreditWalletType
+  availableCredits: CreditAmount
+  reservedCredits: CreditAmount
+  spentCredits: CreditAmount
+  refundedCredits: CreditAmount
+}
+
+export interface ReserveMaxEstimateCreditsSafetyFlags {
+  mockOnly: true
+  requiredHoldUsesMaximumEstimate: true
+  walletMutated: boolean
+  reservationMutated: boolean
+  creditsReserved: boolean
+  creditsSpent: false
+  ledgerWritten: false
+  settlementExecuted: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface ReserveMaxEstimateCreditsResponse {
+  status: ReserveMaxEstimateCreditsStatus
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  creditWallet: CreditWalletRecord | null
+  walletBalance: CreditReservationWalletBalance | null
+  requiredHoldCredits: CreditAmount
+  availableCreditsBeforeReservation: CreditAmount
+  availableCreditsAfterReservation: CreditAmount
+  reservedCreditsAfterReservation: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  userFacingMessage: string
+  safetyFlags: ReserveMaxEstimateCreditsSafetyFlags
+  warnings: string[]
+}
+
+export interface ApproveCreditRevisionActionRequest {
+  workspaceId: ID
+  projectId: ID
+  creditRevisionActionId: ID
+  creditReservationId: ID
+  approvedByUserId: ID
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface ChooseLowerCostCreditRevisionOptionRequest {
+  workspaceId: ID
+  projectId: ID
+  creditRevisionActionId: ID
+  selectedOptionId: string
+  selectedByUserId: ID
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CancelCreditRevisionActionRequest {
+  workspaceId: ID
+  projectId: ID
+  creditRevisionActionId: ID
+  cancelledByUserId: ID
+  cancellationReason?: string
+  idempotencyKey: string
+  metadata?: JSONObject
+}
+
+export interface CreditRevisionActionResolutionSafetyFlags {
+  mockOnly: true
+  paidWorkStarted: false
+  walletMutated: boolean
+  reservationMutated: boolean
+  creditsReserved: boolean
+  creditsSpent: false
+  creditsReleased: false
+  creditsRefunded: false
+  ledgerWritten: false
+  settlementExecuted: false
+  providerCalled: false
+  workerRun: false
+  renderOrExportStarted: false
+  exportUnlocked: false
+  checkoutOrTopUpStarted: false
+  supabaseWritten: false
+  serviceFeeIncludedInToolCosts: false
+}
+
+export interface CreditRevisionActionResolutionResponse {
+  status: CreditRevisionActionResolutionStatus
+  action: CreditRevisionActionRecord | null
+  reservation: CreditReservationRecord | null
+  reservationLineItems: CreditReservationLineItemRecord[]
+  walletBalance: CreditReservationWalletBalance | null
+  additionalHoldCredits: CreditAmount
+  requiredTopUpCredits: CreditAmount
+  idempotencyStatus: 'created' | 'duplicate_returned' | 'not_created'
+  requiresRuntimeGuardRecheck: boolean
+  requiresNewEstimateOrPlan: boolean
+  extraWorkCancelled: boolean
+  paidWorkStarted: false
+  userFacingMessage: string
+  safetyFlags: CreditRevisionActionResolutionSafetyFlags
+  warnings: string[]
+}
 
 export interface CreditWalletRecord extends BaseRecord {
   workspaceId: ID
@@ -250,6 +1160,391 @@ export interface CreditRefundRecord extends BaseRecord {
   approvedAt?: ISODateString
   completedAt?: ISODateString
   ledgerEntryId?: ID
+}
+
+export const CREDIT_AUDIT_TIMELINE_EVENT_TYPES = [
+  'estimate_created',
+  'estimate_shown',
+  'estimate_approved',
+  'reservation_created',
+  'runtime_guard_ready',
+  'runtime_guard_paused_revised_credit',
+  'revision_action_created',
+  'revision_action_approved',
+  'revision_action_lower_cost_selected',
+  'revision_action_cancelled',
+  'tool_cost_billable',
+  'tool_cost_non_billable',
+  'settlement_settled',
+  'settlement_absorbed_overage',
+  'settlement_requires_top_up',
+  'export_allowed',
+  'export_locked_top_up_required',
+  'credit_top_up_intent_created',
+  'credit_top_up_completed',
+  'credit_grant_created',
+  'stripe_customer_linked',
+  'stripe_setup_intent_created',
+  'stripe_checkout_created',
+  'stripe_webhook_verified',
+  'stripe_webhook_processed',
+  'stripe_webhook_duplicate',
+  'stripe_live_readiness_checked',
+  'other',
+] as const
+
+export type CreditAuditTimelineEventType = typeof CREDIT_AUDIT_TIMELINE_EVENT_TYPES[number]
+
+export const CREDIT_AUDIT_EVENT_SEVERITIES = [
+  'info',
+  'warning',
+  'action_required',
+  'blocked',
+  'success',
+  'error',
+] as const
+
+export type CreditAuditEventSeverity = typeof CREDIT_AUDIT_EVENT_SEVERITIES[number]
+
+export const CREDIT_AUDIT_ACTOR_TYPES = [
+  'user',
+  'system',
+  'stripe',
+  'reeditpro',
+  'admin',
+  'unknown',
+] as const
+
+export type CreditAuditActorType = typeof CREDIT_AUDIT_ACTOR_TYPES[number]
+
+export interface CreditAuditTimelineEvent {
+  id: ID
+  workspaceId: ID
+  projectId?: ID | null
+  editPlanId?: ID | null
+  creditWalletId?: ID | null
+  creditEstimateId?: ID | null
+  creditReservationId?: ID | null
+  creditSettlementId?: ID | null
+  creditRevisionActionId?: ID | null
+  creditExportLockId?: ID | null
+  stripeEventId?: string | null
+  toolCostEventId?: ID | null
+  eventType: CreditAuditTimelineEventType
+  severity: CreditAuditEventSeverity
+  actorType: CreditAuditActorType
+  title: string
+  message: string
+  creditsDelta?: CreditAmount
+  availableCreditsAfter?: CreditAmount
+  reservedCreditsAfter?: CreditAmount
+  spentCreditsAfter?: CreditAmount
+  refundedCreditsAfter?: CreditAmount
+  amountCents?: number
+  toolUsageCategory?: string | null
+  billableToUser?: boolean | null
+  safePayload: JSONObject
+  redactionApplied: boolean
+  createdAt: ISODateString
+}
+
+export interface CreditAuditTimelineSummary {
+  estimateCount: number
+  reservationCount: number
+  revisionActionCount: number
+  billableToolEventCount: number
+  nonBillableToolEventCount: number
+  settlementCount: number
+  exportLockCount: number
+  topUpCount: number
+  stripeEventCount: number
+  totalReservedCredits: CreditAmount
+  totalSpentCredits: CreditAmount
+  totalReleasedCredits: CreditAmount
+  totalAbsorbedOverageCredits: CreditAmount
+  totalOutstandingCredits: CreditAmount
+  totalPurchasedCredits: CreditAmount
+}
+
+export interface CreditAuditTimeline {
+  workspaceId: ID
+  projectId?: ID | null
+  editPlanId?: ID | null
+  creditWalletId?: ID | null
+  events: CreditAuditTimelineEvent[]
+  summary: CreditAuditTimelineSummary
+  unresolvedActionRequiredCount: number
+  unresolvedExportLockCount: number
+  warnings: string[]
+}
+
+export interface CreditSupportReceiptToolCostBreakdown {
+  usageCategory: string
+  eventCount: number
+  billableEventCount: number
+  nonBillableEventCount: number
+  billableCredits: CreditAmount
+  billableCents: number
+  nonBillableCents: number
+  notes: string[]
+}
+
+export interface CreditSupportReceiptQuestion {
+  question: string
+  answer: string
+  evidenceEventIds: ID[]
+}
+
+export interface CreditSupportReceipt {
+  workspaceId: ID
+  projectId: ID
+  editPlanId?: ID | null
+  creditEstimateId?: ID | null
+  creditReservationId?: ID | null
+  creditSettlementId?: ID | null
+  userFacingReceipt: EditCreditCostSummary
+  supportSummary: {
+    approvedEstimateMinCredits: CreditAmount
+    approvedEstimateExpectedCredits: CreditAmount
+    approvedEstimateMaxCredits: CreditAmount
+    reservedCredits: CreditAmount
+    actualBillableToolCostCredits: CreditAmount
+    reeditproServiceFeeCredits: CreditAmount
+    finalChargeCredits: CreditAmount
+    releasedCredits: CreditAmount
+    absorbedOverageCredits: CreditAmount
+    outstandingCredits: CreditAmount
+    settlementStatus: string
+    settlementReason: string
+  }
+  toolCostBreakdown: CreditSupportReceiptToolCostBreakdown[]
+  supportQuestions: CreditSupportReceiptQuestion[]
+  warnings: string[]
+}
+
+export interface StripeBillingTraceCheckoutSessionSummary {
+  checkoutSessionId: string
+  stripeMode: 'test' | 'live'
+  creditPackId?: ID | null
+  credits?: CreditAmount | null
+  amountCents?: number | null
+  status: string
+  safeMetadata: JSONObject
+}
+
+export interface StripeBillingTraceWebhookEventSummary {
+  stripeEventId: string
+  stripeMode: 'test' | 'live'
+  eventType: string
+  status: string
+  idempotencyKey: string
+  processedAt?: ISODateString | null
+}
+
+export interface StripeBillingTraceCreditGrantSummary {
+  creditGrantId: ID
+  sourceType: string
+  originalAmount: CreditAmount
+  remainingAmount: CreditAmount
+  purchaseAmountCents?: number | null
+  billingProvider?: string | null
+  billingPaymentId?: string | null
+}
+
+export interface StripeBillingTraceSummary {
+  workspaceId: ID
+  userId?: ID | null
+  creditWalletId?: ID | null
+  stripeMode: 'disabled' | 'test' | 'live' | 'unknown'
+  customerLinked: boolean
+  paymentMethodLinked: boolean
+  checkoutSessions: StripeBillingTraceCheckoutSessionSummary[]
+  webhookEvents: StripeBillingTraceWebhookEventSummary[]
+  creditGrants: StripeBillingTraceCreditGrantSummary[]
+  redactionApplied: boolean
+  warnings: string[]
+}
+
+export const CREDIT_BETA_READINESS_EVIDENCE_STATUSES = [
+  'ready_for_mock_external_beta',
+  'blocked',
+  'warning',
+] as const
+
+export type CreditBetaReadinessEvidenceStatus = typeof CREDIT_BETA_READINESS_EVIDENCE_STATUSES[number]
+
+export const CREDIT_BETA_READINESS_CHECK_STATUSES = [
+  'passed',
+  'failed',
+  'warning',
+] as const
+
+export type CreditBetaReadinessCheckStatus = typeof CREDIT_BETA_READINESS_CHECK_STATUSES[number]
+
+export interface CreditBetaReadinessEvidenceCheck {
+  id: string
+  label: string
+  status: CreditBetaReadinessCheckStatus
+  evidence: string[]
+  remediation?: string
+}
+
+export interface CreditBetaReadinessEvidenceReport {
+  generatedAt: ISODateString
+  status: CreditBetaReadinessEvidenceStatus
+  checks: CreditBetaReadinessEvidenceCheck[]
+  requiredSmokes: string[]
+  knownNonBlockingGaps: string[]
+  blockingGaps: string[]
+}
+
+export const CREDIT_EXTERNAL_BETA_SCENARIO_TYPES = [
+  'happy_path_normal',
+  'happy_path_premium',
+  'happy_path_ultra_premium',
+  'insufficient_credits_before_reservation',
+  'runtime_projected_overage',
+  'revised_credit_approved',
+  'lower_cost_selected',
+  'extra_work_cancelled',
+  'settled_with_unused_return',
+  'settled_with_absorbed_overage',
+  'approved_but_unfunded_export_lock',
+  'mock_credit_top_up',
+  'stripe_testmode_checkout_grant',
+  'stripe_live_readiness_no_charge',
+  'audit_support_trace',
+  'ui_lifecycle_display',
+] as const
+
+export type CreditExternalBetaScenarioType = typeof CREDIT_EXTERNAL_BETA_SCENARIO_TYPES[number]
+
+export const CREDIT_EXTERNAL_BETA_RESULT_STATUSES = [
+  'passed',
+  'failed',
+  'warning',
+  'blocked',
+] as const
+
+export type CreditExternalBetaResultStatus = typeof CREDIT_EXTERNAL_BETA_RESULT_STATUSES[number]
+
+export const CREDIT_EXTERNAL_BETA_LAUNCH_GATE_STATUSES = [
+  'ready_for_mock_external_beta',
+  'ready_for_stripe_testmode_beta',
+  'blocked_for_live_external_beta',
+  'blocked',
+] as const
+
+export type CreditExternalBetaLaunchGateStatus = typeof CREDIT_EXTERNAL_BETA_LAUNCH_GATE_STATUSES[number]
+
+export const CREDIT_EXTERNAL_BETA_EVIDENCE_SOURCES = [
+  'estimate',
+  'reservation',
+  'runtime_guard',
+  'revision_action',
+  'tool_cost',
+  'settlement',
+  'export_lock',
+  'top_up',
+  'stripe',
+  'ui',
+  'audit',
+  'smoke',
+  'doc',
+  'other',
+] as const
+
+export type CreditExternalBetaEvidenceSource = typeof CREDIT_EXTERNAL_BETA_EVIDENCE_SOURCES[number]
+
+export const CREDIT_EXTERNAL_BETA_STRIPE_MODES = [
+  'disabled',
+  'test',
+  'live',
+  'not_applicable',
+] as const
+
+export type CreditExternalBetaStripeMode = typeof CREDIT_EXTERNAL_BETA_STRIPE_MODES[number]
+
+export interface CreditExternalBetaScenarioEvidence {
+  id: ID
+  label: string
+  value: string
+  source: CreditExternalBetaEvidenceSource
+}
+
+export interface CreditExternalBetaScenario {
+  id: ID
+  name: string
+  description: string
+  scenarioType: CreditExternalBetaScenarioType
+  expectedStatus: CreditExternalBetaResultStatus
+  requiredSmokes: string[]
+  requiredEvidence: string[]
+  mockOnly: boolean
+  stripeMode: CreditExternalBetaStripeMode
+  liveBillingExpected: false
+  notes: string[]
+}
+
+export interface CreditExternalBetaScenarioResult {
+  scenarioId: ID
+  scenarioType: CreditExternalBetaScenarioType
+  status: CreditExternalBetaResultStatus
+  evidence: CreditExternalBetaScenarioEvidence[]
+  warnings: string[]
+  blockers: string[]
+}
+
+export interface CreditExternalBetaRequiredSmokeResult {
+  command: string
+  status: 'passed' | 'failed' | 'not_available' | 'skipped'
+  notes: string[]
+}
+
+export interface CreditExternalBetaSafetyCheck {
+  id: ID
+  label: string
+  status: CreditExternalBetaResultStatus
+  notes: string[]
+}
+
+export interface CreditExternalBetaLaunchGateReport {
+  generatedAt: ISODateString
+  status: CreditExternalBetaLaunchGateStatus
+  liveBetaStatus: CreditExternalBetaLaunchGateStatus
+  scenarios: CreditExternalBetaScenario[]
+  scenarioResults: CreditExternalBetaScenarioResult[]
+  requiredSmokeResults: CreditExternalBetaRequiredSmokeResult[]
+  safetyChecks: CreditExternalBetaSafetyCheck[]
+  mockBetaReady: boolean
+  stripeTestModeReady: boolean
+  liveModeReadyNoCharge: boolean
+  liveModeEnabled: false
+  blockingGaps: string[]
+  nonBlockingGaps: string[]
+  recommendedNextMilestone: string
+}
+
+export interface CreditAuditTimelineResponse {
+  timeline: CreditAuditTimeline
+}
+
+export interface CreditSupportReceiptResponse {
+  receipt: CreditSupportReceipt | null
+  warnings: string[]
+}
+
+export interface StripeBillingTraceResponse {
+  stripeTrace: StripeBillingTraceSummary
+}
+
+export interface CreditBetaReadinessEvidenceResponse {
+  report: CreditBetaReadinessEvidenceReport
+  launchGateReport?: CreditExternalBetaLaunchGateReport
+}
+
+export interface CreditExternalBetaLaunchGateResponse {
+  launchGateReport: CreditExternalBetaLaunchGateReport
 }
 
 export interface CreditWalletBalanceViewRecord {

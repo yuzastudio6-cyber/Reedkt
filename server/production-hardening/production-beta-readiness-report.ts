@@ -1,4 +1,8 @@
 import { buildBetaReadinessReport } from '../beta-readiness'
+import {
+  SCOPED_BLOCKER_FORWARD_PROGRESS_POLICY,
+  defaultAllowedForwardProgressScopes,
+} from '../beta-readiness/scoped-blocker-forward-progress-policy'
 import { buildCostControlSummary } from '../cost-controls'
 import { buildSecurityReviewReport } from '../security-review'
 import { buildProductionReadinessReport, type ProductionReadinessReport } from '../workers/readiness-validation'
@@ -67,6 +71,7 @@ export function buildProductionHardeningReport(options: BuildProductionHardening
   const warnings = [...launchBlockers.warnings, ...securityReport.warnings, ...betaReport.warnings]
   const checks = buildChecks([...new Set(blockers)], [...new Set(warnings)])
   const scorecard = computeProductionReadinessScorecard(checks)
+  const blockedActionScope = buildBlockedActionScope(scorecard.limitedBetaAllowed)
 
   return {
     reportId: `production-hardening-${new Date().toISOString()}`,
@@ -74,6 +79,13 @@ export function buildProductionHardeningReport(options: BuildProductionHardening
     overallStatus: 'blocked',
     categories: productionHardeningCategories,
     scorecard,
+    blockerForwardProgressPolicy: SCOPED_BLOCKER_FORWARD_PROGRESS_POLICY,
+    safeBlockerReductionAllowed: true,
+    blockedActionScope,
+    allowedForwardProgressScopes: [
+      ...defaultAllowedForwardProgressScopes(),
+      'security_privacy_review',
+    ],
     blockers: [...new Set(blockers)],
     warnings: [...new Set(warnings)],
     passedChecks: checks.filter((check) => check.status === 'passed'),
@@ -86,11 +98,23 @@ export function buildProductionHardeningReport(options: BuildProductionHardening
     ],
     riskRegister: productionRiskRegister,
     nextActions: [
-      'Keep production_ready and external beta blocked until human-run deployment, readiness, model/license, security, cost, and legal approvals pass.',
+      'Keep production_ready and external beta blocked only for their named unsafe launch/runtime actions until human-run deployment, readiness, model/license, security, cost, and legal approvals pass.',
+      'Continue safe blocker-reduction lanes: source review, local dependency proof, bounded command/import/container proof, diagnostics, QA packets, deployment preflights, owner approvals, and rollback/monitoring/support planning.',
       'Run the M16B E2E dry-run suite and M17 static smokes before internal testing.',
       'Do not process real user media or create public delivery links until storage/privacy/share policy is approved.',
     ],
     productionReadyAllowed: false,
     limitedBetaAllowed: scorecard.limitedBetaAllowed,
   }
+}
+
+function buildBlockedActionScope(limitedBetaAllowed: boolean): string[] {
+  const blockedActions = new Set<string>()
+  if (!limitedBetaAllowed) blockedActions.add('external_beta_launch')
+  blockedActions.add('real_user_media_beta')
+  blockedActions.add('paid_production_launch')
+  blockedActions.add('production_deployment')
+  blockedActions.add('production_runtime_execution')
+  blockedActions.add('public_artifact_delivery')
+  return [...blockedActions]
 }

@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { dirname, join, parse } from 'node:path'
 import type { ProductionToolId } from '../../tool-registry'
 import type { ProductionReadinessStatus } from './production-tool-readiness-types'
 import { CORE_TOOL_COMMAND_CHECKS, type CoreToolCommandCheckDefinition } from './core-tool-command-checks'
@@ -16,10 +18,12 @@ export const M10_CORE_CPU_RENDER_TOOL_IDS: ProductionToolId[] = [
   'duckdb',
   'polars',
   'opentimelineio',
+  'audioflux',
   'sharp',
   'remotion',
   'libass',
   'hyperframe',
+  'signalsmith_stretch',
   'openimageio',
   'opencolorio',
 ]
@@ -66,6 +70,7 @@ export interface CoreToolReadinessCheckResult {
 export interface RunCoreCpuRenderReadinessOptions {
   realCheckMode?: boolean
   strict?: boolean
+  toolIds?: ProductionToolId[]
   timeoutMs?: number
   maxBuffer?: number
 }
@@ -186,15 +191,7 @@ function runPythonImportCheck(
   }
 
   try {
-    execFileSync(pythonCommand, [
-      '-c',
-      `import importlib; importlib.import_module(${JSON.stringify(definition.importName)}); print("ok")`,
-    ], {
-      encoding: 'utf8',
-      timeout: options.timeoutMs,
-      maxBuffer: options.maxBuffer,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const firstAttempt = runPythonImportAttempt(definition, pythonCommand, options)
 
     return {
       toolId: definition.toolId,
@@ -203,7 +200,10 @@ function runPythonImportCheck(
       status: 'passed',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.importName} Python import check passed.`,
+      message: firstAttempt.retried
+        ? `${definition.importName} Python import check passed after one bounded retry.`
+        : `${definition.importName} Python import check passed.`,
+      detail: firstAttempt.firstFailureDetail,
       packageName: definition.packageName,
       importName: definition.importName,
       checkedAt,
@@ -226,12 +226,47 @@ function runPythonImportCheck(
   }
 }
 
+function runPythonImportAttempt(
+  definition: CoreToolPythonImportCheckDefinition,
+  pythonCommand: string,
+  options: Required<Pick<RunCoreCpuRenderReadinessOptions, 'timeoutMs' | 'maxBuffer'>>,
+): { retried: boolean, firstFailureDetail?: string } {
+  const args = [
+    '-c',
+    `import importlib; importlib.import_module(${JSON.stringify(definition.importName)}); print("ok")`,
+  ]
+
+  try {
+    execFileSync(pythonCommand, args, {
+      encoding: 'utf8',
+      timeout: options.timeoutMs,
+      maxBuffer: options.maxBuffer,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    return { retried: false }
+  } catch (error) {
+    const firstFailure = error as { stderr?: string | Buffer, message?: string }
+    execFileSync(pythonCommand, args, {
+      encoding: 'utf8',
+      timeout: options.timeoutMs,
+      maxBuffer: options.maxBuffer,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    return {
+      retried: true,
+      firstFailureDetail: `first attempt: ${cleanDetail(firstFailure.stderr) || cleanDetail(firstFailure.message)}`,
+    }
+  }
+}
+
 function runNodePackageCheck(
   definition: CoreToolNodePackageCheckDefinition,
   checkedAt: string,
 ): CoreToolReadinessCheckResult {
   try {
-    const resolvedPath = requireFromReadiness.resolve(definition.packageJsonPath)
+    const resolvedPath = definition.sourcePath
+      ? resolveSourceMetadataPath(definition)
+      : resolvePackageMetadataPath(definition)
     return {
       toolId: definition.toolId,
       checkKind: 'node_package_metadata',
@@ -239,10 +274,12 @@ function runNodePackageCheck(
       status: 'passed',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.packageName} package metadata is resolvable without importing runtime code.`,
+      message: definition.sourcePath
+        ? `${definition.packageName} source boundary is present without importing runtime code.`
+        : `${definition.packageName} package metadata is resolvable without importing runtime code.`,
       detail: resolvedPath,
       packageName: definition.packageName,
-      importName: definition.packageJsonPath,
+      importName: definition.sourcePath ?? definition.packageJsonPath,
       checkedAt,
     }
   } catch (error) {
@@ -254,13 +291,40 @@ function runNodePackageCheck(
       status: definition.optional ? 'not_installed' : 'missing',
       optional: definition.optional,
       manualReviewRequired: false,
-      message: `${definition.packageName} package metadata is not currently resolvable.`,
+      message: definition.sourcePath
+        ? `${definition.packageName} source boundary is not currently resolvable.`
+        : `${definition.packageName} package metadata is not currently resolvable.`,
       detail: cleanDetail(failed.message),
       packageName: definition.packageName,
-      importName: definition.packageJsonPath,
+      importName: definition.sourcePath ?? definition.packageJsonPath,
       checkedAt,
     }
   }
+}
+
+function resolveSourceMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  if (!definition.sourcePath) throw new Error(`${definition.packageName} source path is not configured.`)
+  const candidate = join(process.cwd(), definition.sourcePath)
+  if (!existsSync(candidate)) throw new Error(`${definition.packageName} source boundary is missing: ${definition.sourcePath}`)
+  return candidate
+}
+
+function resolvePackageMetadataPath(definition: CoreToolNodePackageCheckDefinition): string {
+  try {
+    return requireFromReadiness.resolve(definition.packageJsonPath)
+  } catch (error) {
+    const packageJsonExportError = error as { code?: string }
+    if (packageJsonExportError.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') throw error
+  }
+
+  let current = dirname(requireFromReadiness.resolve(definition.packageName))
+  const root = parse(current).root
+  while (current && current !== root) {
+    const candidate = join(current, 'package.json')
+    if (existsSync(candidate)) return candidate
+    current = dirname(current)
+  }
+  throw new Error(`${definition.packageName} package metadata is not resolvable from ${definition.packageName}.`)
 }
 
 function dryRunResult(
@@ -309,6 +373,18 @@ function policyResults(checkedAt: string): CoreToolReadinessCheckResult[] {
   ]
 }
 
+function filterPolicyResults(
+  results: CoreToolReadinessCheckResult[],
+  requestedToolIds?: Set<ProductionToolId>,
+): CoreToolReadinessCheckResult[] {
+  if (!requestedToolIds) return results
+
+  return results.filter((result) => {
+    if (result.toolId === 'ffmpeg_lgpl_policy') return requestedToolIds.has('ffmpeg')
+    return requestedToolIds.has(result.toolId as ProductionToolId)
+  })
+}
+
 function assertM10CoreResultsExcludeGpuModelTools(results: CoreToolReadinessCheckResult[]): void {
   const checkedToolIds = new Set(results.map((result) => result.toolId))
   const forbidden = M10_EXCLUDED_GPU_MODEL_TOOL_IDS.filter((toolId) => checkedToolIds.has(toolId))
@@ -323,22 +399,29 @@ export function runCoreCpuRenderReadinessChecks(
 ): RunCoreCpuRenderReadinessResult {
   const realCheckMode = options.realCheckMode === true
   const strict = options.strict === true
-  const timeoutMs = options.timeoutMs ?? 5000
+  const timeoutMs = options.timeoutMs ?? 45000
   const maxBuffer = options.maxBuffer ?? 1024 * 1024
   const checkedAt = new Date().toISOString()
+  const pythonCommand = realCheckMode ? findPythonCommand(timeoutMs) : undefined
+  const requestedToolIds = options.toolIds ? new Set(options.toolIds) : undefined
+  const includeTool = (toolId: ProductionToolId) => !requestedToolIds || requestedToolIds.has(toolId)
+  const commandChecks = CORE_TOOL_COMMAND_CHECKS.filter((definition) => includeTool(definition.toolId))
+  const pythonImportChecks = CORE_TOOL_PYTHON_IMPORT_CHECKS.filter((definition) => includeTool(definition.toolId))
+  const nodePackageChecks = CORE_TOOL_NODE_PACKAGE_CHECKS.filter((definition) => includeTool(definition.toolId))
+  const policyCheckResults = filterPolicyResults(policyResults(checkedAt), requestedToolIds)
 
   const results: CoreToolReadinessCheckResult[] = realCheckMode
     ? [
-        ...CORE_TOOL_COMMAND_CHECKS.map((definition) => runCommandCheck(definition, checkedAt, { timeoutMs, maxBuffer })),
-        ...CORE_TOOL_PYTHON_IMPORT_CHECKS.map((definition) => runPythonImportCheck(definition, checkedAt, findPythonCommand(timeoutMs), { timeoutMs, maxBuffer })),
-        ...CORE_TOOL_NODE_PACKAGE_CHECKS.map((definition) => runNodePackageCheck(definition, checkedAt)),
-        ...policyResults(checkedAt),
+        ...commandChecks.map((definition) => runCommandCheck(definition, checkedAt, { timeoutMs, maxBuffer })),
+        ...pythonImportChecks.map((definition) => runPythonImportCheck(definition, checkedAt, pythonCommand, { timeoutMs, maxBuffer })),
+        ...nodePackageChecks.map((definition) => runNodePackageCheck(definition, checkedAt)),
+        ...policyCheckResults,
       ]
     : [
-        ...CORE_TOOL_COMMAND_CHECKS.map((definition) => dryRunResult(definition, checkedAt, 'command_version')),
-        ...CORE_TOOL_PYTHON_IMPORT_CHECKS.map((definition) => dryRunResult(definition, checkedAt, 'python_import')),
-        ...CORE_TOOL_NODE_PACKAGE_CHECKS.map((definition) => dryRunResult(definition, checkedAt, 'node_package_metadata')),
-        ...policyResults(checkedAt),
+        ...commandChecks.map((definition) => dryRunResult(definition, checkedAt, 'command_version')),
+        ...pythonImportChecks.map((definition) => dryRunResult(definition, checkedAt, 'python_import')),
+        ...nodePackageChecks.map((definition) => dryRunResult(definition, checkedAt, 'node_package_metadata')),
+        ...policyCheckResults,
       ]
 
   assertM10CoreResultsExcludeGpuModelTools(results)
@@ -356,7 +439,9 @@ export function runCoreCpuRenderReadinessChecks(
     checkedAt,
     results,
     report: buildCoreToolReadinessReport(results, true),
-    coreToolIds: [...M10_CORE_CPU_RENDER_TOOL_IDS],
+    coreToolIds: requestedToolIds
+      ? M10_CORE_CPU_RENDER_TOOL_IDS.filter((toolId) => requestedToolIds.has(toolId))
+      : [...M10_CORE_CPU_RENDER_TOOL_IDS],
     excludedGpuModelToolIds: [...M10_EXCLUDED_GPU_MODEL_TOOL_IDS],
   }
 }

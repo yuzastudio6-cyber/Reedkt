@@ -1,0 +1,101 @@
+{
+  "reportId": "beta-readiness-deployed-evidence-input-manifest-251e-current-16-tool-refresh-2026-06-29",
+  "createdAt": "2026-06-29T12:20:00Z",
+  "decision": "beta_deployed_evidence_input_manifest_passed_ready_for_operator_staging_inputs",
+  "manifestId": "beta-deployed-evidence-input-manifest-after-local-accepted-tools-2026-06-29-16-tool",
+  "sourceShaPolicy": "operator_supplied_current_deployed_source_sha_required",
+  "currentSource": {
+    "branch": "codex/sound-music-audio-1abc-checkpoint",
+    "sha": "251e07194828ea74370f04b30c95f0904e2a2d83",
+    "sourceFreshnessDecision": "beta_readiness_source_freshness_preflight_blocked_deploy_evidence_source_stale",
+    "deployedEvidenceSourceSha": "769fc2d922b37a9eebb8b0ca29fa2447a6f8f127",
+    "sourceFreshnessReadyForDeployedEvidenceInputManifest": false
+  },
+  "localAcceptedEvidence": {
+    "bundlePath": "docs/beta-readiness/local-accepted-evidence-bundle/2026-06-29-current-source-16-tool-local-accepted-evidence-bundle.json",
+    "sourceSha": "e8821759a10a43a60795accb596b3b83c15f9dfb",
+    "sourceId": "beta-tools-current-source-16-tool-local-accepted-evidence-bundle",
+    "locallyAcceptedToolCount": 16,
+    "coreToolIds": [
+      "ffmpeg",
+      "ffprobe",
+      "pyav",
+      "opentimelineio",
+      "hyperframe",
+      "remotion",
+      "sharp",
+      "duckdb",
+      "polars",
+      "pyscenedetect",
+      "opencv",
+      "opencolorio",
+      "openimageio",
+      "audioflux",
+      "signalsmith_stretch"
+    ],
+    "libassToolIds": [
+      "libass"
+    ],
+    "libassMode": "docker",
+    "libassContainerImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001"
+  },
+  "trackBToolTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "sourceFreshnessDrift": {
+    "changedFileCount": 56,
+    "blockingChangedFiles": [
+      ".gitignore",
+      "docker/prod/tool-readiness-worker/requirements.readiness.txt",
+      "package.json",
+      "server/cli/beta-readiness-operator-status-api.d.ts",
+      "server/cli/build-signalsmith-stretch-readiness.ts",
+      "server/config/env.ts",
+      "server/workers/production-readiness/core-cpu-render-readiness-checks.ts",
+      "server/workers/production-readiness/core-tool-command-checks.ts",
+      "server/workers/production-readiness/core-tool-python-import-checks.ts",
+      "server/workers/production-readiness/core-tool-readiness-report.ts",
+      "server/workers/readiness-validation/production-readiness-report-builder.ts"
+    ],
+    "blockingReason": "Current branch includes runtime/readiness source changes after the deployed evidence SHA, so deployed evidence collection must wait for current-source staging deploy evidence."
+  },
+  "fixedInputExpectations": {
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_ID": "beta-tools-current-source-16-tool-local-accepted-evidence-bundle",
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_SOURCE_SHA": "e8821759a10a43a60795accb596b3b83c15f9dfb",
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_CORE_TOOL_IDS": "ffmpeg,ffprobe,pyav,opentimelineio,hyperframe,remotion,sharp,duckdb,polars,pyscenedetect,opencv,opencolorio,openimageio,audioflux,signalsmith_stretch",
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_BOUNDED_ACCEPTED_TOOL_COUNT": "16",
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_REQUIRED_PRODUCT_READY_LOCAL_OSS_COUNT": "0",
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_MODE": "docker",
+    "REEDITPRO_BETA_TOOLS_LOCAL_BUNDLE_LIBASS_CONTAINER_IMAGE": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001"
+  },
+  "remainingBlockedScopes": [
+    "deployed_evidence_input_manifest_until_current_source_matches_deploy_evidence",
+    "external_beta_until_deployed_evidence_collector_and_operator_readback_pass",
+    "real_user_media_beta_until_separate_scope_approval_evidence_passes",
+    "paid_production_until_separate_paid_production_evidence_collector_passes",
+    "public_launch_claims_until_final_operator_status_readback_passes"
+  ],
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeAction": "Run the guarded current-source staging API deploy/preflight path with owner-approved inputs, then rerun source freshness, owner intake, deployed evidence input manifest, external beta evidence collector, and operator-status readback."
+}

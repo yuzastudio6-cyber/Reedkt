@@ -8,6 +8,7 @@ export interface CoreToolPythonImportCheckDefinition {
     | 'duckdb'
     | 'polars'
     | 'opentimelineio'
+    | 'audioflux'
     | 'openimageio'
     | 'opencolorio'
   >
@@ -66,6 +67,14 @@ export const CORE_TOOL_PYTHON_IMPORT_CHECKS: CoreToolPythonImportCheckDefinition
     importName: 'opentimelineio',
     optional: false,
     notes: ['OpenTimelineIO supports timeline interchange validation and handoff.'],
+  },
+  {
+    toolId: 'audioflux',
+    checkName: 'python_import_audioflux',
+    packageName: 'audioflux',
+    importName: 'audioflux',
+    optional: false,
+    notes: ['AudioFlux supports future CPU SoundSync timing analysis; readiness imports only and must not process audio.'],
   },
   {
     toolId: 'openimageio',

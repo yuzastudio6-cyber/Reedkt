@@ -12,7 +12,7 @@ type AppShellProps = {
   eyebrow?: string
   title: string
   description: string
-  primaryAction?: string
+  primaryAction?: string | false
 }
 
 export function AppShell({ children, description, eyebrow, primaryAction = 'Create project and chat', title }: AppShellProps) {
@@ -75,9 +75,11 @@ export function AppShell({ children, description, eyebrow, primaryAction = 'Crea
             <Badge accent="cyan">100 credits</Badge>
             <Badge accent="violet">Personal</Badge>
             <IconButton icon={Bell} label="Notifications" />
-            <Button icon={Sparkles} to="/projects/new" variant="primary">
-              {primaryAction}
-            </Button>
+            {primaryAction !== false && (
+              <Button icon={Sparkles} to="/projects/new" variant="primary">
+                {primaryAction}
+              </Button>
+            )}
             <button className="profile-button" type="button">
               <span>TP</span>
               <ChevronDown aria-hidden="true" size={16} />

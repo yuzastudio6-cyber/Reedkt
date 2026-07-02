@@ -1,5 +1,8 @@
 import { ApiError } from '../errors/api-error'
+import type { ReEditProCanonicalEditLevel } from '../../src/types/edit-level'
+import { estimateToolCost } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
+import { evaluatePaidToolRuntimeGuard } from './runtime-credit-guard-service'
 import { createMockId, mockWarning, nowIso, sanitizeJson, throwOnSupabaseError } from './service-helpers'
 
 export function assertRealProviderCallsDisabled(): void {
@@ -11,15 +14,88 @@ export function createProviderGatewayService(context: ServiceContext) {
     async createProviderRequestAttempt(input: {
       workspaceId: string
       projectId?: string
+      toolId?: string
       providerRoute: string
       providerModel?: string
       generationRequestId?: string
       jobId?: string
       approvedPlanSnapshotId?: string
+      creditEstimateId?: string
       creditReservationId?: string
+      runtimeGuardRequired?: boolean
+      productEditLevel?: ReEditProCanonicalEditLevel
+      estimatedFinalVideoDurationSeconds?: number
+      approvedPlanStatus?: string
+      estimateStatus?: string
+      committedPendingHighCredits?: number
       requestPayloadHash: string
       mockOnly?: boolean
     }) {
+      const toolCostEstimate = estimateToolCost({
+        toolId: `provider:${input.providerRoute}`,
+        toolName: `${input.providerRoute} provider request`,
+        usageCategory: 'other',
+        computeLevel: 'premium',
+        providerType: 'external_api',
+        providerName: input.providerRoute,
+        modelName: input.providerModel ?? null,
+        qualityLevel: 'premium',
+        estimatedRuntimeSeconds: 60,
+        providerOptions: [input.providerRoute],
+        assumptions: [
+          'Provider request estimate is generated before transport.',
+          'Real provider calls remain disabled in this runtime skeleton.',
+        ],
+      })
+      const runtimeGuard = input.runtimeGuardRequired && input.toolId
+        ? evaluatePaidToolRuntimeGuard({
+            workspaceId: input.workspaceId,
+            projectId: input.projectId ?? input.workspaceId,
+            approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            jobId: input.jobId,
+            toolId: input.toolId,
+            productEditLevel: input.productEditLevel ?? 'normal',
+            estimatedFinalVideoDurationSeconds: input.estimatedFinalVideoDurationSeconds ?? 30,
+            creditEstimateId: input.creditEstimateId,
+            creditReservationId: input.creditReservationId,
+            idempotencyKey: context.requestId,
+            approvedPlanStatus: input.approvedPlanStatus,
+            estimateStatus: input.estimateStatus,
+            committedPendingHighCredits: input.committedPendingHighCredits,
+          })
+        : undefined
+
+      if (runtimeGuard && !runtimeGuard.canStart) {
+        return {
+          providerRequestAttempt: {
+            id: createMockId('provider_attempt'),
+            workspaceId: input.workspaceId,
+            projectId: input.projectId,
+            providerRoute: input.providerRoute,
+            providerModel: input.providerModel,
+            generationRequestId: input.generationRequestId,
+            jobId: input.jobId,
+            approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+            creditReservationId: input.creditReservationId,
+            attemptStatus: 'blocked',
+            idempotencyKey: context.requestId,
+            requestPayloadHash: input.requestPayloadHash,
+            normalizedErrorCode: runtimeGuard.status,
+            normalizedErrorMessage: runtimeGuard.warnings.join(' '),
+            runtimeCreditGuard: runtimeGuard,
+            createdAt: nowIso(),
+            updatedAt: nowIso(),
+            mockOnly: true,
+          },
+          toolCostEstimate,
+          runtimeCreditGuard: runtimeGuard,
+          warnings: [
+            ...runtimeGuard.warnings,
+            'Provider gateway stopped before provider transport because runtime credit guard did not pass.',
+          ],
+        }
+      }
+
       if (!input.mockOnly) {
         if (context.clients.admin && !context.env.mockOnly) {
           await recordBlockedAttempt(context, input)
@@ -48,6 +124,7 @@ export function createProviderGatewayService(context: ServiceContext) {
             updatedAt: nowIso(),
             mockOnly: true,
           },
+          toolCostEstimate,
           warnings: [mockWarning('Provider gateway attempt'), 'No OpenAI, Wan, Hailuo, Veo, Lyria, Mirelo, or MMAudio call was made.'],
         }
       }
@@ -73,7 +150,7 @@ export function createProviderGatewayService(context: ServiceContext) {
         .single()
 
       throwOnSupabaseError(error)
-      return { providerRequestAttempt: data, warnings: ['Real provider execution remains disabled.'] }
+      return { providerRequestAttempt: data, toolCostEstimate, warnings: ['Real provider execution remains disabled.'] }
     },
 
     async recordProviderWebhook(input: {
@@ -135,12 +212,14 @@ async function recordBlockedAttempt(
   input: {
     workspaceId: string
     projectId?: string
+    toolId?: string
     providerRoute: string
     providerModel?: string
     generationRequestId?: string
     jobId?: string
     approvedPlanSnapshotId?: string
     creditReservationId?: string
+    creditEstimateId?: string
     requestPayloadHash: string
   },
 ): Promise<void> {

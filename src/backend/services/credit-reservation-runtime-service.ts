@@ -53,6 +53,29 @@ export function reserveCreditsForApprovedEstimate(
     return fail('CREDIT_WALLET_NOT_FOUND', 'A credit wallet is required before mock reservation.')
   }
 
+  const requiredHold = resolveMaximumEstimateHold(estimate)
+  if (!requiredHold.ok) {
+    return fail(requiredHold.error.code, requiredHold.error.message, requiredHold.error.details)
+  }
+
+  const idempotencyKey = `mock-runtime-reservation-${estimate.id}-${input.purpose}`
+  const existing = db.creditReservations.find((reservation) =>
+    reservation.workspaceId === input.workspaceId &&
+    reservation.creditWalletId === wallet.id &&
+    reservation.creditEstimateId === estimate.id &&
+    reservation.idempotencyKey === idempotencyKey)
+  if (existing) {
+    return ok({
+      reservation: existing,
+      runtimeReservation: toRuntimeReservation(existing, input.purpose, input.requestedByUserId),
+      message: 'Existing mock max-estimate reservation returned by idempotency key.',
+      warnings: [
+        'Duplicate mock reservation request did not reserve credits a second time.',
+        'No Stripe, payment, provider, render/export, or production persistence operation was performed.',
+      ],
+    })
+  }
+
   const gateWithoutReservation = checkCreditApprovalGate(db, {
     workspaceId: input.workspaceId,
     projectId: input.projectId,
@@ -60,8 +83,8 @@ export function reserveCreditsForApprovedEstimate(
     creditEstimateId: estimate.id,
     requestedByUserId: input.requestedByUserId,
     purpose: input.purpose,
-    estimatedCredits: estimate.totalEstimatedCredits,
-    requiresApproval: estimate.totalEstimatedCredits > 0,
+    estimatedCredits: requiredHold.data,
+    requiresApproval: requiredHold.data > 0,
   })
 
   if (
@@ -71,8 +94,8 @@ export function reserveCreditsForApprovedEstimate(
     return fail('GENERATION_NOT_ALLOWED', gateWithoutReservation.message, gateWithoutReservation)
   }
 
-  wallet.cachedAvailableCredits -= estimate.totalEstimatedCredits
-  wallet.cachedReservedCredits += estimate.totalEstimatedCredits
+  wallet.cachedAvailableCredits -= requiredHold.data
+  wallet.cachedReservedCredits += requiredHold.data
   wallet.updatedAt = nowIso()
 
   const reservation: CreditReservationRecord = {
@@ -84,12 +107,12 @@ export function reserveCreditsForApprovedEstimate(
     creditApprovalId: input.creditApprovalId ?? db.creditApprovals.find((approval) => approval.creditEstimateId === estimate.id)?.id,
     editPlanId: input.editPlanId ?? estimate.editPlanId,
     status: 'reserved',
-    reservedCredits: estimate.totalEstimatedCredits,
+    reservedCredits: requiredHold.data,
     spentCredits: 0,
     releasedCredits: 0,
     refundedCredits: 0,
-    reservationReason: `Mock reservation for ${input.purpose}.`,
-    idempotencyKey: `mock-runtime-reservation-${estimate.id}-${input.purpose}`,
+    reservationReason: `Mock max-estimate reservation for ${input.purpose}.`,
+    idempotencyKey,
     reservedAt: nowIso(),
     expiresAt: input.expiresAt,
     createdAt: nowIso(),
@@ -98,6 +121,12 @@ export function reserveCreditsForApprovedEstimate(
       mockOnly: true,
       backendRequiredForRealReservation: true,
       purpose: input.purpose,
+      milestone: 'RP-RESERVATION-01',
+      requiredHoldCredits: requiredHold.data,
+      maximumEstimatedCredits: estimate.maximumEstimatedCredits ?? 0,
+      totalEstimatedCredits: estimate.totalEstimatedCredits,
+      reserveMaximumEstimateOnly: true,
+      noReservationLedgerWrite: true,
     },
   }
 
@@ -108,8 +137,8 @@ export function reserveCreditsForApprovedEstimate(
     runtimeReservation: toRuntimeReservation(reservation, input.purpose, input.requestedByUserId),
     message: 'Mock credits reserved after approved plan and estimate checks.',
     warnings: [
-      'Mock reservation only; real reservation must be transactional in backend runtime.',
-      'No Stripe or payment operation was performed.',
+      'Mock reservation held maximumEstimatedCredits, not totalEstimatedCredits.',
+      'No Stripe, payment, provider, render/export, ledger, or production persistence operation was performed.',
     ],
   })
 }
@@ -211,4 +240,15 @@ function toRuntimeReservation(
 function normalizeReservationStatus(status: CreditReservationRecord['status']): CreditReservationRuntimeRecord['status'] {
   if (status === 'partially_spent' || status === 'cancelled') return 'failed'
   return status
+}
+
+function resolveMaximumEstimateHold(estimate: { maximumEstimatedCredits?: number }): ServiceResult<number> {
+  if (
+    !Number.isInteger(estimate.maximumEstimatedCredits) ||
+    (estimate.maximumEstimatedCredits ?? 0) <= 0
+  ) {
+    return fail('CREDIT_ESTIMATE_NOT_READY', 'Credit reservation requires a positive maximumEstimatedCredits value.')
+  }
+
+  return ok(estimate.maximumEstimatedCredits as number)
 }

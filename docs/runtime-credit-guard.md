@@ -1,0 +1,20 @@
+# RP-RUNTIME-GUARD-01 Runtime Credit Guard
+
+RP-RUNTIME-GUARD-01 adds a mock-safe paid runtime guard before paid worker, provider, and render starts. It requires an approved plan, approved credit estimate, active credit reservation, idempotency key, production-ready tool profile, and a projected max charge that fits inside the approved reserved credits.
+
+The guard reuses the credit foundation: max-estimate reservations, production tool-cost estimates/events, credit-policy service fee math, and `CreditRevisionActionRecord`. `reserved is the only active reservation status` for new paid work in this milestone; `partially_spent`, `expired`, `released`, `spent`, `refunded`, `cancelled`, `draft`, and `failed` are not active for starting more paid work.
+
+If the next paid tool would exceed the approved max, the guard pauses before work starts and creates one idempotent revision action with `pauseReason = projected_overage` and the title `Action required: revised credit estimate needed`. The action includes approved max credits, used/committed credits, additional low/expected/high credits, new maximum estimate, and the options Approve & Continue, Choose Lower-Cost Option, and Cancel Extra Work.
+
+RP-CREDITREVISION-01 resolves those actions without starting paid work. Approve & Continue can add a mock `revised_credit_additional_hold` to the existing reservation, then a later guard recheck may pass if the projection fits. Choose Lower-Cost Option and Cancel Extra Work resolve the action but keep the original paid runtime path blocked so it cannot silently resume. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
+
+Tool-cost events remain owner/internal-cost only with `serviceFeeIncluded = false`. Current billable tool credits come from billable mock tool-cost events for the same workspace/project/estimate/reservation; non-billable events remain visible but excluded. ReEditPro service fee is projected separately with credit-policy helpers.
+
+Boundaries: no live billing, no Stripe/payment, no Supabase migrations or writes, no provider call, no worker run after a failed guard, no render/export execution, no production wallet mutation, no reservation spend/release/refund, no production ledger write, no settlement execution, no export unlock, and no checkout/top-up. `smoke:runtime-credit-guard` covers the guard contract and boundary integrations.
+
+RP-SETTLEMENT-01 runs after paid work is complete. Runtime guard still blocks new paid work unless the reservation is `reserved`; final settlement marks a reservation `spent`, releases unused mock hold, and does not call providers or render/export.
+
+RP-EXPORTLOCK-01 runs after settlement and does not affect runtime start. It allows export readiness for `settled` and absorbed-overage settlements, and blocks only approved-but-unfunded `requires_top_up_before_export` without starting checkout/top-up or export unlock.
+## RP-CREDITAUDIT-01 Note
+
+The audit timeline reports runtime guard pauses and projected-overage revised-credit actions as support evidence. It does not re-run the guard, start paid work, or emit tool-cost events.

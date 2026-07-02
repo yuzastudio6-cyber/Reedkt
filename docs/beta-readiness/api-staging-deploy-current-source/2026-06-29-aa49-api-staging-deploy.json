@@ -1,0 +1,99 @@
+{
+  "reportId": "beta-readiness-api-staging-current-source-deploy-aa49-2026-06-29",
+  "createdAt": "2026-06-29T13:05:00Z",
+  "decision": "beta_readiness_api_staging_deploy_current_source_passed_ready_for_current_source_api_preflight",
+  "sourceTruth": {
+    "sourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+    "sourceSha": "aa49cef9ed6dad971f0163ea80ebb34de0e65d67",
+    "previousApiDeploySourceSha": "769fc2d922b37a9eebb8b0ca29fa2447a6f8f127",
+    "previousApiDeployPacket": "docs/beta-readiness/api-staging-deploy-current-source/2026-06-29-769f-api-staging-deploy.json",
+    "previousSourceFreshnessPacket": "docs/beta-readiness/source-freshness-preflight/2026-06-29-769f-source-freshness-passed.json"
+  },
+  "workflowRun": {
+    "workflowName": "Beta Readiness API Staging Deploy",
+    "runId": "28373860720",
+    "runUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28373860720",
+    "event": "workflow_dispatch",
+    "triggerBranch": "codex/reeditpro-web-ui-shell",
+    "triggerHeadSha": "c2c99bb1d3da714d382e9016dda29d22d46b5bdd",
+    "conclusion": "success",
+    "startedAt": "2026-06-29T13:00:35Z",
+    "completedAt": "2026-06-29T13:02:02Z",
+    "jobs": [
+      {
+        "name": "Guarded staging API deploy preflight",
+        "conclusion": "success"
+      },
+      {
+        "name": "Build and deploy private staging API service",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "deployInputs": {
+    "sourceRef": "codex/sound-music-audio-1abc-checkpoint",
+    "sourceSha": "aa49cef9ed6dad971f0163ea80ebb34de0e65d67",
+    "imageTag": "api-staging-aa49cef9ed6d-20260629T1300Z",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "cloudRunRegion": "us-east1",
+    "serviceName": "reeditpro-api-staging",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "unauthenticatedAccessPolicy": "no-allow-unauthenticated"
+  },
+  "artifact": {
+    "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-api:api-staging-aa49cef9ed6d-20260629T1300Z",
+    "digest": "sha256:509124705b31f169148f76161b9d5f3c6cd3ab77f703a7f66616eb649ae6117f"
+  },
+  "deployedService": {
+    "service": "reeditpro-api-staging",
+    "region": "us-east1",
+    "revision": "reeditpro-api-staging-00013-jv9",
+    "trafficPercent": 100,
+    "serviceUrl": "https://reeditpro-api-staging-4wkjiqvdqa-ue.a.run.app",
+    "canonicalServiceUrl": "https://reeditpro-api-staging-390722338345.us-east1.run.app"
+  },
+  "cloudRunDeployWarnings": [
+    "workflow_log_reported_setting_iam_policy_failed_but_service_deployed_and_existing_private_staging_boundary_remains_required_for_followup_readback"
+  ],
+  "limitations": {
+    "authenticatedHealthReadback": "not_run_in_this_source_truth_refresh",
+    "externalBetaEvidenceCollector": "not_run_operator_inputs_and_launch_evidence_still_required",
+    "runtimeToolExecution": "not_run"
+  },
+  "currentEvidenceState": {
+    "normalApiCurrentSourceDeploy": "passed",
+    "apiDeploymentPreflightAtAa49": "passed",
+    "sourceFreshnessAtAa49": "passed",
+    "deployedEvidenceInputManifestAtAa49": "blocked_pending_operator_inputs",
+    "pendingOperatorInputCount": 58,
+    "externalBetaReady": false,
+    "realUserMediaBetaReady": false,
+    "paidProductionReady": false
+  },
+  "blockedScopeConfirmations": {
+    "externalBetaEnabled": false,
+    "realUserMediaBetaEnabled": false,
+    "paidProductionEnabled": false,
+    "providerCallsRan": false,
+    "workerDispatchRan": false,
+    "mediaProcessed": false,
+    "supabaseWritesRan": false,
+    "sqlRan": false,
+    "gcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false
+  },
+  "supabaseClassification": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "nextSafeActions": [
+    "Run npm run beta:readiness:source-freshness-preflight against the aa49 deploy evidence.",
+    "Provide operator external beta inputs outside source control.",
+    "Run npm run beta:readiness:deployed-evidence-input-manifest before any external beta evidence collector."
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "reportId": "beta-tools-core-python-readiness-rerun-after-post-foundation-owner-audit-2026-06-28",
+  "decision": "beta_tools_core_python_readiness_rerun_passed_ready_for_current_source_libass_bundle_refresh",
+  "createdAt": "2026-06-28T10:21:17Z",
+  "toolsSourceBranch": "codex/sound-music-audio-1abc-checkpoint",
+  "toolsSourceSha": "9bda4642fefa82714d30868f1625a6155f3363b3",
+  "precedingSourceTruth": {
+    "externalBetaFoundationPr": 1293,
+    "ownerPrerequisiteAuditRerunPr": 1420,
+    "ownerPrerequisiteAuditRerunMergeSha": "9bda4642fefa82714d30868f1625a6155f3363b3",
+    "ownerPrerequisiteAuditRunId": 28316789547,
+    "ownerPrerequisiteAuditRunUrl": "https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/28316789547"
+  },
+  "commands": [
+    {
+      "command": "npm ci --no-audit --no-fund --progress=false",
+      "status": "passed",
+      "notes": "Dependency hydration was local only and did not mutate package-lock.json."
+    },
+    {
+      "command": "npm run tools:readiness:install-core-python",
+      "status": "passed",
+      "notes": "Hydrated the ignored .reeditpro-tool-readiness-python virtualenv from docker/prod/tool-readiness-worker/requirements.readiness.txt."
+    },
+    {
+      "command": "npm run smoke:prod-core-python-readiness",
+      "status": "passed_on_rerun_after_cold_import_warmup",
+      "notes": "The first smoke attempt failed on pyscenedetect after package hydration, while direct bounded imports passed for av, scenedetect, cv2, duckdb, polars, opentimelineio, PyOpenColorIO, and OpenImageIO. An immediate rerun passed all expected Python tools. No media files were processed."
+    },
+    {
+      "command": "npm run beta:tools:core-real-check-preview:hydrated",
+      "status": "passed",
+      "notes": "Local no-write preview accepted 13 core tools and skipped only libass because warning-status evidence was not accepted by this core preview."
+    }
+  ],
+  "acceptedToolEvidencePreview": {
+    "acceptedToolCount": 13,
+    "acceptedToolIds": [
+      "ffmpeg",
+      "ffprobe",
+      "pyav",
+      "opentimelineio",
+      "hyperframe",
+      "remotion",
+      "sharp",
+      "duckdb",
+      "polars",
+      "pyscenedetect",
+      "opencv",
+      "opencolorio",
+      "openimageio"
+    ],
+    "skippedToolCount": 1,
+    "skippedToolResults": [
+      {
+        "toolId": "libass",
+        "status": "warning",
+        "reason": "warning_status_not_accepted_by_request"
+      }
+    ],
+    "readinessStatuses": {
+      "passed": 13,
+      "warning": 1,
+      "missing": 0,
+      "blocked": 0,
+      "not_installed": 0,
+      "future_only": 0,
+      "evaluation_only": 0,
+      "needs_license_review": 0,
+      "pending_manual_review": 0,
+      "not_checked": 0
+    }
+  },
+  "pythonPackageProof": {
+    "venvPath": ".reeditpro-tool-readiness-python/bin/python",
+    "importsPassed": [
+      "av",
+      "scenedetect",
+      "cv2",
+      "duckdb",
+      "polars",
+      "opentimelineio",
+      "PyOpenColorIO",
+      "OpenImageIO"
+    ],
+    "importOnly": true,
+    "mediaProcessed": false
+  },
+  "blockedAction": "deployed_staging_evidence_recording_external_beta_and_paid_production_until_current_source_core_and_libass_evidence_are_recorded_and_platform_launch_gates_pass",
+  "notABlanketBlocker": true,
+  "safeForwardProgress": [
+    "refresh_current_source_libass_synthetic_burnin_qa_or_container_filter_evidence",
+    "rerun_beta_tools_local_accepted_evidence_bundle_at_the_current_tools_source_sha",
+    "run_core_real_check_evidence_preflight_against_staging_after_api_owner_prerequisites_are_fixed",
+    "record_core_and_libass_evidence_through_the_authenticated_staging_backend_after_deploy",
+    "continue_platform_staging_evidence_preflight_and_launch_approval_preflight_without_enabling_beta"
+  ],
+  "blockedScopes": [
+    "backend_evidence_not_recorded",
+    "staging_api_deploy_blocked_by_owner_prerequisites",
+    "external_beta_not_enabled",
+    "real_user_media_beta_not_enabled",
+    "paid_production_not_enabled",
+    "product_ready_local_oss_count_not_incremented_by_this_source_packet"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "realUserMediaBetaEnabled": false,
+  "productionEnabled": false
+}

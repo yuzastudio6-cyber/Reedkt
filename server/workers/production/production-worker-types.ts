@@ -2,7 +2,9 @@ import type { QualityGateType, ProductionStorageBucketPurpose } from '../../../s
 import type { FallbackDecision, ToolRunResult } from '../../../src/backend/contracts/tool-execution-contracts'
 import type { QualityGateResult } from '../../../src/backend/contracts/quality-gate-contracts'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
+import type { MockToolCostEvent, ToolCreditPrerequisiteStatus } from '../../tool-cost-metering'
 import type { ProductionToolId } from '../../tool-registry'
+import type { RuntimeCreditGuardResult } from '../../services/runtime-credit-guard-service'
 
 export type ProductionWorkerRuntimeType =
   | 'cpu_analysis_worker'
@@ -27,6 +29,7 @@ export type ProductionWorkerJobStatus =
 export type ProductionWorkerExecutionMode =
   | 'dry_run'
   | 'mock_safe'
+  | 'bounded_rehearsal'
   | 'production_ready'
   | 'production_blocked'
 
@@ -128,7 +131,7 @@ export interface ProductionWorkerRouteOutput {
   summary: string
   workerType: ProductionWorkerRuntimeType
   executionMode: ProductionWorkerExecutionMode
-  mockOnly: true
+  mockOnly: boolean
   futureHandler: string
   mediaFoundationResult?: unknown
   speechFoundationResult?: unknown
@@ -143,6 +146,7 @@ export interface ProductionWorkerRouteOutput {
   maskCompositionResult?: unknown
   enhancementSlowMotionResult?: unknown
   finalRenderExecutionResult?: unknown
+  trackBAgentToolRecipeResult?: unknown
 }
 
 export interface ProductionWorkerExecutionResult {
@@ -153,6 +157,7 @@ export interface ProductionWorkerExecutionResult {
   events: ProductionWorkerEventRecord[]
   output?: ProductionWorkerRouteOutput
   toolRunResults: ToolRunResult[]
+  toolCostMetadata?: ProductionWorkerToolCostMetadata
   artifactRecords: ToolArtifact[]
   qualityGateResults: QualityGateResult[]
   fallbackDecisions: FallbackDecision[]
@@ -164,6 +169,17 @@ export interface ProductionWorkerExecutionResult {
   }
   startedAt: string
   completedAt: string
+}
+
+export interface ProductionWorkerToolCostMetadata {
+  mockOnly: true
+  serviceFeeIncluded: false
+  requestedToolCount: number
+  estimateStatuses: Record<string, ToolCreditPrerequisiteStatus>
+  emittedEvents: MockToolCostEvent[]
+  blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus>
+  runtimeCreditGuard?: RuntimeCreditGuardResult
+  warnings: string[]
 }
 
 export interface ProductionWorkerStorageReferenceInput {

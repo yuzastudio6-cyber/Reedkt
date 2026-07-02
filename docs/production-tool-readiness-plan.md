@@ -40,7 +40,7 @@ DeepFilterNet and Demucs require model-weight review before production use. Soun
 
 ## Milestone 10 Core Install Readiness
 
-Milestone 10 adds optional real command/import checks for safe CPU/render tools while preserving dry-run as the default. Real check mode is limited to FFmpeg/ffprobe version checks, safe libass inspection, Python imports for CPU analysis packages, and Node package metadata checks for Sharp/Remotion/Hyperframe.
+Milestone 10 adds optional real command/import checks for safe CPU/render tools while preserving dry-run as the default. Real check mode is limited to FFmpeg/ffprobe version checks, safe libass inspection, Python imports for CPU analysis packages, Node package metadata checks for Sharp/Remotion, and an internal Hyperframe bridge source-boundary check.
 
 GPU/model tools, model-weight checks, media processing, render/export work, provider calls, Docker builds, and frontend/browser execution remain outside M10 readiness.
 

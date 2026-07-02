@@ -1,0 +1,68 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-command-handoff-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_command_handoff_passed_ready_for_higher_privilege_owner_application",
+  "toolsSourceSha": "d7534c53649a1ddf4cf064854088a4fc92531adc",
+  "sourceTruth": {
+    "ownerCommandPacket": "docs/beta-readiness/api-staging-input-discovery/2026-06-28-api-staging-owner-remediation-command-packet.md",
+    "workflowScopeFixPr": 1441,
+    "workflowScopeFixRunId": 28321557589,
+    "workflowScopeFixDecision": "beta_readiness_api_staging_owner_remediation_after_workflow_scope_fix_blocked_by_higher_privilege_owner_permissions"
+  },
+  "ownerHandoffCommand": "npm run beta:readiness:owner-command-handoff",
+  "intendedExecutor": "higher_privilege_gcp_owner_or_resource_admin",
+  "lockedInputs": {
+    "projectId": "reeditpro",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "serviceName": "reeditpro-api-staging"
+  },
+  "requiredOwnerEnvironment": [
+    "REEDITPRO_FIXED_STAGING_API_SECRET_NAMES_CSV"
+  ],
+  "commandIds": [
+    "artifact_registry_writer_on_staging_repository",
+    "runtime_service_account_create_or_confirm",
+    "deployer_act_as_runtime_service_account",
+    "deployer_fixed_secret_metadata_describe",
+    "runtime_fixed_secret_payload_access"
+  ],
+  "blockedAlternatives": [
+    "project-wide owner/editor grants",
+    "roles/run.admin mutation from the owner-remediation handoff",
+    "granting secret payload access to the deployer",
+    "broad wildcard secret access",
+    "production service-account substitution",
+    "Cloud Run deploy before read-only owner prerequisite audit passes",
+    "Docker build or Artifact Registry push before read-only owner prerequisite audit passes"
+  ],
+  "blockedScopes": [
+    "cloud_run_deploy_not_run",
+    "cloud_run_role_mutation_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "secret_values_not_read",
+    "secret_names_not_committed",
+    "runtime_tool_execution_not_run",
+    "media_processing_not_run",
+    "external_beta_not_enabled",
+    "real_user_media_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "postOwnerValidation": [
+    "rerun_read_only_owner_prerequisite_audit",
+    "rerun_read_only_exact_input_discovery",
+    "only_then_run_guarded_staging_api_deploy"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "realUserMediaBetaEnabled": false,
+  "productionEnabled": false
+}

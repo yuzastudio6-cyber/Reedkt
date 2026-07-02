@@ -1,4 +1,11 @@
 import type { ToolExecutionPlan } from '../../../src/backend/contracts/tool-execution-contracts'
+import { evaluatePaidToolRuntimeGuard, type RuntimeCreditGuardResult } from '../../services/runtime-credit-guard-service'
+import { sharedMockCreditDataStore } from '../../services/mock-credit-foundation-stores'
+import {
+  emitProductionToolCostEvent,
+  estimateProductionToolCost,
+  type ToolCreditPrerequisiteStatus,
+} from '../../tool-cost-metering'
 import { createProductionWorkerEvent } from './production-worker-events'
 import { getHardFailedGates, runProductionWorkerGates } from './production-worker-gates'
 import { detectDuplicateToolRun } from './production-worker-idempotency'
@@ -14,6 +21,7 @@ import type {
   ProductionWorkerExecutionResult,
   ProductionWorkerJobPayload,
   ProductionWorkerRuntimeState,
+  ProductionWorkerToolCostMetadata,
 } from './production-worker-types'
 
 function pushEvent(
@@ -90,6 +98,32 @@ export async function dispatchProductionWorkerJob(input: {
     })
   }
 
+  const runtimeGuard = evaluateWorkerRuntimeCreditGuard(payload)
+  if (runtimeGuard && !runtimeGuard.canStart) {
+    const runtimeGuardGate = runtimeCreditGuardGate(runtimeGuard)
+    events.push(pushEvent(state, payload, 'job_blocked', runtimeGuard.warnings.join(' '), 100, {
+      runtimeCreditGuardStatus: runtimeGuard.status,
+      prerequisiteFailures: runtimeGuard.prerequisiteFailures,
+      creditRevisionActionId: runtimeGuard.revisionAction?.id ?? null,
+    }))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks: [...gateChecks, runtimeGuardGate],
+      events,
+      toolCostMetadata: buildBlockedWorkerToolCostMetadata(payload, runtimeGuard),
+      warnings: [...collectGateWarnings(gateChecks), ...runtimeGuard.warnings],
+      error: {
+        code: runtimeGuard.status === 'paused_projected_overage'
+          ? 'RUNTIME_CREDIT_GUARD_PAUSED_PROJECTED_OVERAGE'
+          : 'RUNTIME_CREDIT_GUARD_BLOCKED',
+        message: runtimeGuard.warnings.join(' '),
+        failureCategory: 'credit_blocked',
+      },
+      startedAt,
+    })
+  }
+
   const lease = createWorkerLease(state, payload, input.workerInstanceId)
   events.push(pushEvent(state, payload, 'job_claimed', 'Production worker job lease claimed.', 25, {
     leaseId: lease.leaseId,
@@ -98,16 +132,27 @@ export async function dispatchProductionWorkerJob(input: {
   events.push(pushEvent(state, payload, 'heartbeat', 'Production worker lease heartbeat recorded.', 30, {
     leaseId: lease.leaseId,
   }))
-  events.push(pushEvent(state, payload, 'job_started', 'Production worker placeholder route started.', 40))
-  events.push(pushEvent(state, payload, 'step_started', 'Production worker placeholder step started.', 50))
+  const routeKind = payload.executionMode === 'bounded_rehearsal' ? 'bounded rehearsal' : 'placeholder'
+  events.push(pushEvent(state, payload, 'job_started', `Production worker ${routeKind} route started.`, 40))
+  events.push(pushEvent(state, payload, 'step_started', `Production worker ${routeKind} step started.`, 50))
 
   const output = await routeProductionWorkerJob(payload)
 
-  events.push(pushEvent(state, payload, 'step_completed', 'Production worker placeholder step completed without running real tools.', 80, {
-    futureHandler: output.futureHandler,
-  }))
+  events.push(pushEvent(
+    state,
+    payload,
+    'step_completed',
+    output.mockOnly
+      ? 'Production worker placeholder step completed without running real tools.'
+      : 'Production worker bounded rehearsal step completed with synthetic/no-user-media tool execution.',
+    80,
+    {
+      futureHandler: output.futureHandler,
+      mockOnly: output.mockOnly,
+    },
+  ))
   releaseWorkerLease(state, lease.leaseId)
-  events.push(pushEvent(state, payload, 'job_completed', 'Production worker placeholder job completed.', 100, {
+  events.push(pushEvent(state, payload, 'job_completed', `Production worker ${output.mockOnly ? 'placeholder' : 'bounded rehearsal'} job completed.`, 100, {
     leaseId: lease.leaseId,
   }))
 
@@ -117,7 +162,186 @@ export async function dispatchProductionWorkerJob(input: {
     gateChecks,
     events,
     output,
+    toolCostMetadata: buildWorkerToolCostMetadata(payload),
     warnings: collectGateWarnings(gateChecks),
     startedAt,
   })
+}
+
+function buildWorkerToolCostMetadata(payload: ProductionWorkerJobPayload): ProductionWorkerToolCostMetadata {
+  const store = sharedMockCreditDataStore.toolCostStore
+  const estimateStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const warnings: string[] = []
+  const emittedEvents: typeof store.toolCostEvents = []
+  const billableToUser = payload.executionMode === 'production_ready'
+  const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
+  const productEditLevel = readProductEditLevel(payload.metadata)
+  const trackBProductReadyRuntimeEvidenceAccepted = readBooleanMetadata(
+    payload.metadata,
+    'trackBProductReadyRuntimeEvidenceAccepted',
+  )
+
+  for (const toolId of payload.requestedToolIds) {
+    const estimate = estimateProductionToolCost({
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      approvedReservationRemainingCredits: readNumberMetadata(payload.metadata, 'approvedReservationRemainingCredits'),
+      idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
+      estimateOnlyWhenBlocked: !trackBProductReadyRuntimeEvidenceAccepted,
+    })
+
+    if (!estimate.ok) {
+      blockedEventStatuses[toolId] = estimate.error.status
+      warnings.push(estimate.error.message)
+      continue
+    }
+
+    estimateStatuses[toolId] = estimate.data.creditPrerequisiteStatus
+
+    const emitted = emitProductionToolCostEvent({
+      store,
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
+      billableToUser,
+      nonBillableReason: billableToUser ? undefined : payload.executionMode,
+      estimateOnlyWhenBlocked: !trackBProductReadyRuntimeEvidenceAccepted,
+      metadata: {
+        workerExecutionMode: payload.executionMode,
+        workerType: payload.workerType,
+        renderMode: payload.renderMode ?? null,
+      },
+    })
+
+    if (emitted.ok) {
+      emittedEvents.push(emitted.data.event)
+      warnings.push(...emitted.data.warnings)
+    } else {
+      blockedEventStatuses[toolId] = emitted.error.status
+      warnings.push(emitted.error.message)
+    }
+  }
+
+  return {
+    mockOnly: true,
+    serviceFeeIncluded: false,
+    requestedToolCount: payload.requestedToolIds.length,
+    estimateStatuses,
+    emittedEvents,
+    blockedEventStatuses,
+    warnings: Array.from(new Set(warnings)),
+  }
+}
+
+function evaluateWorkerRuntimeCreditGuard(payload: ProductionWorkerJobPayload): RuntimeCreditGuardResult | undefined {
+  if (payload.executionMode !== 'production_ready') return undefined
+
+  const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
+  const productEditLevel = readProductEditLevel(payload.metadata)
+  const estimatedFinalVideoDurationSeconds = readNumberMetadata(payload.metadata, 'estimatedFinalVideoDurationSeconds') ?? 30
+  const trackBProductReadyRuntimeEvidenceAccepted = readBooleanMetadata(
+    payload.metadata,
+    'trackBProductReadyRuntimeEvidenceAccepted',
+  )
+  let committedPendingHighCredits = readNumberMetadata(payload.metadata, 'committedPendingHighCredits') ?? 0
+  let latest: RuntimeCreditGuardResult | undefined
+
+  for (const toolId of payload.requestedToolIds) {
+    const result = evaluatePaidToolRuntimeGuard({
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      jobId: payload.jobId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      toolId,
+      productEditLevel,
+      estimatedFinalVideoDurationSeconds,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      idempotencyKey: `${payload.idempotencyKey}:${toolId}`,
+      allowEstimateOnly: !trackBProductReadyRuntimeEvidenceAccepted,
+      approvedPlanStatus: payload.approvedSnapshotId ? 'approved' : readStringMetadata(payload.metadata, 'approvedPlanStatus'),
+      estimateStatus: readStringMetadata(payload.metadata, 'estimateStatus'),
+      committedPendingHighCredits,
+    })
+    latest = result
+    if (!result.canStart) return result
+    committedPendingHighCredits += result.projection?.nextToolHighCredits ?? 0
+  }
+
+  return latest
+}
+
+function runtimeCreditGuardGate(result: RuntimeCreditGuardResult) {
+  return {
+    gateName: 'runtime_credit_guard',
+    status: result.canStart ? 'passed' as const : 'blocked' as const,
+    hardBlock: !result.canStart,
+    message: result.canStart
+      ? 'Runtime credit guard passed before paid worker start.'
+      : result.warnings.join(' '),
+    warnings: result.warnings,
+    details: {
+      guardStatus: result.status,
+      prerequisiteFailures: result.prerequisiteFailures,
+      approvedReservedCredits: result.projection?.approvedReservedCredits,
+      projectedHighFinalCredits: result.projection?.projectedHighFinalCredits,
+      creditRevisionActionId: result.revisionAction?.id ?? null,
+    },
+  }
+}
+
+function buildBlockedWorkerToolCostMetadata(
+  payload: ProductionWorkerJobPayload,
+  runtimeGuard: RuntimeCreditGuardResult,
+): ProductionWorkerToolCostMetadata {
+  const blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  for (const toolId of payload.requestedToolIds) {
+    blockedEventStatuses[toolId] = runtimeGuard.creditPrerequisiteStatus ?? 'requires_revised_estimate'
+  }
+
+  return {
+    mockOnly: true,
+    serviceFeeIncluded: false,
+    requestedToolCount: payload.requestedToolIds.length,
+    estimateStatuses: {},
+    emittedEvents: [],
+    blockedEventStatuses,
+    runtimeCreditGuard: runtimeGuard,
+    warnings: runtimeGuard.warnings,
+  }
+}
+
+function readStringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function readNumberMetadata(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function readBooleanMetadata(metadata: Record<string, unknown> | undefined, key: string): boolean {
+  return metadata?.[key] === true
+}
+
+function readProductEditLevel(metadata: Record<string, unknown> | undefined): 'normal' | 'premium' | 'ultra_premium' {
+  const value = readStringMetadata(metadata, 'productEditLevel')
+  return value === 'premium' || value === 'ultra_premium' ? value : 'normal'
 }

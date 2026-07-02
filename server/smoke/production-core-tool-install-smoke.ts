@@ -119,18 +119,21 @@ for (const forbidden of M10_EXCLUDED_GPU_MODEL_TOOL_IDS) {
 const commandTools = new Set(CORE_TOOL_COMMAND_CHECKS.map((item) => item.toolId))
 check(commandTools.has('ffmpeg'), 'FFmpeg command readiness must be declared.')
 check(commandTools.has('ffprobe'), 'FFprobe command readiness must be declared.')
+check(commandTools.has('signalsmith_stretch'), 'Signalsmith Stretch command readiness must be declared.')
 check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'ffmpeg')?.args.join(' ') === '-version', 'FFmpeg readiness must use version check only.')
 check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'ffprobe')?.args.join(' ') === '-version', 'FFprobe readiness must use version check only.')
+check(CORE_TOOL_COMMAND_CHECKS.find((item) => item.toolId === 'signalsmith_stretch')?.args.join(' ') === '-v', 'Signalsmith readiness must use version-shape check only.')
 
 const pythonImports = new Set(CORE_TOOL_PYTHON_IMPORT_CHECKS.map((item) => item.importName))
-for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentimelineio']) {
+for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentimelineio', 'audioflux']) {
   check(pythonImports.has(expected), `Python import check must include ${expected}.`)
 }
 
 const nodePackages = new Set(CORE_TOOL_NODE_PACKAGE_CHECKS.map((item) => item.packageName))
 check(nodePackages.has('sharp'), 'Node package checks must include Sharp metadata.')
 check(nodePackages.has('remotion'), 'Node package checks must include Remotion metadata.')
-check(nodePackages.has('hyperframe'), 'Node package checks must include Hyperframe metadata boundary.')
+const hyperframeNodeCheck = CORE_TOOL_NODE_PACKAGE_CHECKS.find((item) => item.toolId === 'hyperframe')
+check(hyperframeNodeCheck?.sourcePath === 'server/workers/timeline/hyperframe-timeline-bridge.ts', 'Node package checks must prove the internal Hyperframe bridge source boundary.')
 
 const revideoSpec = getProductionReadinessSpec('revideo')
 check(revideoSpec?.evaluationOnly === true, 'Revideo readiness must remain evaluation-only.')
@@ -171,6 +174,8 @@ console.log(JSON.stringify({
   ffprobeStatus: realCore.coreToolReadiness?.report.ffprobeStatus,
   lgplStatus: realCore.coreToolReadiness?.report.ffmpegLgplVerificationStatus,
   libassStatus: realCore.coreToolReadiness?.report.libassSubtitleSupportStatus,
+  signalsmithStatus: realCore.coreToolReadiness?.report.signalsmithStretchStatus,
+  audiofluxStatus: realCore.coreToolReadiness?.report.launchAudioPackageStatus,
   revideoStatus: realCore.coreToolReadiness?.report.revideoStatus,
   localChecksAreInformational: true,
 }, null, 2))

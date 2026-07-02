@@ -9,6 +9,9 @@ export function buildProductionHardeningSummary(): string {
     `Warnings: ${report.warnings.length}`,
     `Production ready allowed: ${report.productionReadyAllowed}`,
     `Limited beta allowed: ${report.limitedBetaAllowed}`,
-    'Production/external beta remains blocked until human-run approvals pass.',
+    `Safe blocker reduction allowed: ${report.safeBlockerReductionAllowed}`,
+    `Blocked action scope: ${report.blockedActionScope.join(', ') || 'none'}`,
+    `Allowed forward progress: ${report.allowedForwardProgressScopes.join(', ') || 'none'}`,
+    'Production/external beta remains blocked for named unsafe actions until human-run approvals pass; safe source review, local proof, diagnostics, QA, deployment preflight, owner approval, and rollback/monitoring planning can continue.',
   ].join('\n')
 }

@@ -1,0 +1,61 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-identity-scan-blocker-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_identity_scan_blocked_no_higher_privilege_identity_configured",
+  "sourceSha": "4d661bb01195caa4dbf4ab2fa636336d7be7fdaa",
+  "scanMode": "github_repo_and_staging_environment_configuration_names_only",
+  "scanCommands": [
+    "gh variable list --repo yuzastudio6-cyber/Reedkt",
+    "gh variable list --repo yuzastudio6-cyber/Reedkt --env staging",
+    "gh secret list --repo yuzastudio6-cyber/Reedkt",
+    "gh secret list --repo yuzastudio6-cyber/Reedkt --env staging"
+  ],
+  "repoVariablesObserved": [
+    "GCP_PROJECT_ID",
+    "GCP_REGION",
+    "GCP_SERVICE_ACCOUNT",
+    "GCP_WORKLOAD_IDENTITY_PROVIDER",
+    "STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE",
+    "STAGING_CLOUD_RUN_RENDER_CANARY_URL",
+    "STAGING_RENDER_CANARY_AUDIENCE",
+    "STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX",
+    "STAGING_RENDER_CANARY_URL",
+    "STAGING_SUPABASE_PROJECT_REF"
+  ],
+  "repoSecretsObservedByNameOnly": [
+    "GCP_SERVICE_ACCOUNT",
+    "GCP_WORKLOAD_IDENTITY_PROVIDER",
+    "STAGING_SUPABASE_ANON_KEY",
+    "STAGING_SUPABASE_SERVICE_ROLE_KEY",
+    "STAGING_SUPABASE_URL"
+  ],
+  "stagingEnvironmentVariablesObserved": [],
+  "stagingEnvironmentSecretsObservedByNameOnly": [],
+  "configuredDeployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+  "higherPrivilegeOwnerIdentityConfigured": false,
+  "secretValuesRead": false,
+  "blockedAction": "staging_api_owner_remediation_via_alternate_github_identity_until_owner_configures_or_runs_higher_privilege_path",
+  "safeForwardProgress": [
+    "higher_privilege_gcp_owner_applies_exact_iam_prerequisites_outside_github_deployer_identity",
+    "or_owner_configures_a_separate_guarded_remediation_identity_with_explicit_approval_and_wif_policy",
+    "rerun_exact_input_validation_after_owner_side_remediation"
+  ],
+  "blockedScopes": [
+    "no_alternate_owner_service_account_configured",
+    "no_staging_environment_owner_identity_configured",
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

@@ -90,10 +90,17 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Always estimate credits before generation.
 - Deduct credits only after user approval.
 - Do not imply subscriptions provide open-ended AI editing.
+- Stripe test-mode billing routes may create test customers, SetupIntents, Checkout Sessions, and verified test webhook grants, but live Stripe, production wallet mutation, production ledger writes, Supabase writes, export unlock, and provider/render/export execution remain blocked unless a later milestone explicitly enables them.
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
 - RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.
 - RP-FIX-10 job runtime helpers are the current mock-safe queue/readiness layer. Real worker dispatch, Cloud Run jobs, service-role job mutation, provider execution, and rendering remain backend-required.
+- Blockers are evidence gaps, not permanent stop signs. When a path is blocked, the repo should name the exact missing approval, proof, deployment, license, persistence, or runtime evidence and the next smallest safe step that can retire that blocker. Do not use broad "production blocked", "backend-required", or "product-ready false" language to intentionally freeze unrelated safe work. Keep approval, credit, privacy, secret, provider, worker, Supabase, storage, beta, and production gates strict, but move forward through bounded source reviews, mock-safe skeletons, local proofs, diagnostics, and QA packets whenever those steps can reduce a named blocker without bypassing the gate.
+- A blocked beta or production gate must not block unrelated implementation lanes. If a live gate cannot be cleared yet, the next change should make the blocker smaller, more measurable, or closer to owner approval: source classification, dependency proof, local command/import proof, persistence preflight, cost-metering skeleton, QA acceptance, rollout plan, or rollback policy. A blocker may stop only the unsafe action it protects, not safe evidence gathering or safe backend scaffolding that keeps the gate closed.
+- Hard rule: intentional blanket blockers are not allowed. A blocker must identify the unsafe action it protects, the exact evidence missing, and at least one safe forward lane. If a blocker report cannot name a safe next action, improve the blocker report first; do not treat the missing next action as permission to stop unrelated safe work.
+- Reports and diagnostics should expose this distinction in machine-readable form where possible. Prefer fields that name the blocked action scope and confirm safe blocker-reduction work is allowed, so future agents do not mistake a guarded beta/production gate for a blanket instruction to stop progress.
+- Production hardening and beta readiness reports must expose `intentionalBlanketBlocksAllowed: false`, `safeBlockerReductionAllowed: true`, blocked action scope, and allowed forward-progress scopes when they report launch/runtime blockers. A missing scoped-forward-progress contract is itself a metadata defect to repair, not a reason to stop all safe work.
+- When a user asks to keep moving toward beta or production readiness, do not answer by treating current blockers as intentional permanent walls. Choose the smallest safe forward lane that reduces a named blocker while preserving approval, credit, privacy, Supabase, provider, worker, storage, beta, and production gates.
 
 ## Backend And Database Architecture
 
@@ -531,3 +538,50 @@ Do not implement these without explicit user request:
 - Mobile companion app
 - Unlimited AI editing assumptions
 - Generation before approval
+
+## RP-RESERVATION-01 Credit Reservation Boundary
+
+- Mock credit reservation holds `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`.
+- Only local in-memory mock wallet available/reserved balances and mock reservation records may change.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, render/export, checkout/top-up, or export unlock for this milestone.
+- Use `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation` when changing the credit reservation surface.
+
+## RP-RUNTIME-GUARD-01 Runtime Credit Guard Boundary
+
+- Paid worker/provider/render starts require approved plan evidence, approved estimate, a `reserved` max-hold reservation, idempotency, and projected high-cost fit.
+- `reserved` is the only active reservation status for new paid work in this milestone.
+- Projected overage pauses before work with "Action required: revised credit estimate needed" and creates only a mock `projected_overage` revision action.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, reservation spend/release/refund, render/export execution, checkout/top-up, or export unlock.
+- Keep tool-cost events `serviceFeeIncluded = false`; use `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard` when changing the runtime credit guard surface.
+
+## RP-CREDITREVISION-01 Revised Credit Resolution Boundary
+
+- Resolve projected-overage actions only through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work.
+- Approve & Continue may add only a local mock `revised_credit_additional_hold` to the existing reserved reservation; paid work still requires a later runtime guard recheck.
+- Lower-cost and cancel resolutions must not reserve credits or silently resume the original paid tool.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, settlement, spend/release/refund, render/export execution, checkout/top-up, or export unlock.
+- Use `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action` when changing this surface.
+
+## RP-SETTLEMENT-01 Final Credit Settlement Boundary
+
+- Final settlement may mutate only local in-memory mock wallet/reservation state.
+- Charge actual billable tool cost plus the separate ReEditPro service/edit fee; keep tool-cost events `serviceFeeIncluded = false`.
+- Release unused mock hold, record absorbed overage when unapproved cost exceeds the hold, and keep approved-but-unfunded top-up informational.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, checkout/top-up, or export unlock.
+- Use `docs/credit-settlement-finalization.md` and `smoke:credit-settlement` when changing this surface.
+
+## RP-EXPORTLOCK-01 Export Credit Gate Boundary
+
+- Export credit readiness is based only on final settlement state.
+- Allow export for `settled` and `settled_with_absorbed_overage`; block only approved-but-unfunded `requires_top_up_before_export` with "Action required: add credits to export".
+- The mock export lock record is local in-memory state only and must not run checkout/top-up or unlock export.
+- Do not wire live billing, Stripe/payment, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, checkout/top-up, production persistence, or export unlock.
+- Use `docs/credit-export-lock.md` and `smoke:credit-export-lock` when changing this surface.
+
+## RP-CREDITPURCHASE-01 Mock Credit Top-Up Boundary
+
+- Mock top-up may add purchased credits only to local in-memory mock wallet available balance.
+- Purchased grants must use `sourceType = purchased`, `billingProvider = mock`, and `metadata.mockOnly = true`.
+- Top-up suggestions must not automatically retry reservation, revised-credit approval, or export gate; callers must retry explicitly.
+- Do not wire live billing, Stripe/payment, real checkout, Supabase writes, provider calls, production wallet or ledger mutation, render/export execution, production persistence, automatic retry, or export unlock.
+- Use `docs/credit-top-up-purchased-grants.md` and `smoke:credit-purchase` when changing this surface.

@@ -1,3 +1,7 @@
+import { createHash } from 'node:crypto'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import type { ProductionWorkerJobPayload, ProductionWorkerRouteOutput } from './production-worker-types'
 import { buildStorageArtifactReference, runMediaAnalysisFoundation } from '../media'
 import type { MediaFoundationRunMode, MediaFoundationTask } from '../media'
@@ -13,6 +17,8 @@ import { buildSmartCutPlan, runSmartCutFoundation } from '../smart-cut'
 import type { SmartCutAggressiveness, SmartCutFoundationRunMode, SmartCutIntent, PacingProfileName } from '../smart-cut'
 import { runTimelineFoundation } from '../timeline'
 import type { TimelineFoundationRunMode } from '../timeline'
+import { buildRemotionCompositionManifest } from '../timeline/remotion-composition-manifest-bridge'
+import { buildTrackBSyntheticTimelineManifest } from '../timeline/trackb-synthetic-timeline-manifest'
 import { runAudioFoundation } from '../audio'
 import type { AudioFoundationRunMode } from '../audio'
 import { runAudioExecutionPipeline } from '../audio-execution'
@@ -27,6 +33,11 @@ import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
+import { runBetaToolsLibassSyntheticBurninQaPreflight } from '../../cli/beta-tools-libass-synthetic-burnin-qa-preflight'
+
+const requireFromProductionWorkerRouter = createRequire(import.meta.url)
+const DEFAULT_TRACKB_LIBASS_BOUNDED_REHEARSAL_IMAGE =
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-libass-burnin-validation:staging-libass-burnin-validation-001'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   switch (payload.workerType) {
@@ -52,6 +63,18 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'cpu_analysis_worker_smart_cut_timeline_execution',
           smartCutTimelineExecutionResult,
+        }
+      }
+
+      if (hasTimelineFoundationRequest(payload)) {
+        const timelineFoundationResult = await runTimelineFoundation(buildTimelineFoundationInput(payload))
+        return {
+          summary: 'Milestone 8 CPU analysis worker timeline foundation route completed in explicit timelineFoundation mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: true,
+          futureHandler: 'cpu_analysis_worker_timeline_foundation',
+          timelineFoundationResult,
         }
       }
 
@@ -125,6 +148,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           futureHandler: 'cpu_analysis_worker_audio_foundation',
           audioFoundationResult,
         }
+      }
+
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
       }
 
       return {
@@ -205,6 +232,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           futureHandler: 'gpu_ai_worker_speech_foundation',
           speechFoundationResult,
         }
+      }
+
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
       }
 
       return {
@@ -297,6 +328,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           futureHandler: 'render_worker_timeline_foundation',
           timelineFoundationResult,
         }
+      }
+
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
       }
 
       return {
@@ -403,6 +438,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         }
       }
 
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
+      }
+
       return {
         summary: 'Dry-run only: future QA worker will run caption, audio, color, mask, render, export, and final delivery quality gates.',
         workerType: payload.workerType,
@@ -411,6 +450,10 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'qa_worker_placeholder',
       }
     case 'tool_readiness_worker':
+      if (hasTrackBAgentToolRecipeRequest(payload)) {
+        return buildTrackBAgentToolRecipeRouteOutput(payload)
+      }
+
       return {
         summary: 'Dry-run only: future tool readiness worker will check installed tool versions, imports, capabilities, and review status.',
         workerType: payload.workerType,
@@ -419,6 +462,1479 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'tool_readiness_worker_placeholder',
       }
   }
+}
+
+function hasTrackBAgentToolRecipeRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.trackBAgentToolRecipe
+  return Boolean(request && typeof request === 'object')
+}
+
+async function buildTrackBAgentToolRecipeRouteOutput(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
+  const request = payload.metadata?.trackBAgentToolRecipe as Record<string, unknown>
+  const toolId = stringValue(request.toolId) ?? payload.requestedToolIds[0] ?? 'unknown_tool'
+  const action = stringValue(request.action) ?? payload.requestedRecipeIds[0] ?? 'unknown_action'
+  const routeClass = stringValue(request.routeClass) ?? 'trackb_agent_tool_recipe'
+  const handler = resolveTrackBAgentToolRecipeHandler(toolId, action, routeClass)
+  if (toolId === 'ffmpeg' && routeClass === 'synthetic_video_null_bounded_rehearsal') {
+    return runFfmpegSyntheticVideoNullBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+  if (toolId === 'ffprobe' && routeClass === 'synthetic_stream_probe_bounded_rehearsal') {
+    return runFfprobeSyntheticStreamProbeBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+  if (toolId === 'sharp' && routeClass === 'image_asset_prepare_bounded_rehearsal') {
+    return runSharpImageAssetPrepareBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+  if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'duckdb',
+      action,
+      routeClass,
+      handler,
+      script: DUCKDB_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'polars' && routeClass === 'dataframe_transform_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'polars',
+      action,
+      routeClass,
+      handler,
+      script: POLARS_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'pyav' && routeClass === 'frame_access_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'pyav',
+      action,
+      routeClass,
+      handler,
+      script: PYAV_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'opentimelineio' && routeClass === 'timeline_serialize_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'opentimelineio',
+      action,
+      routeClass,
+      handler,
+      script: OPENTIMELINEIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'pyscenedetect' && routeClass === 'scene_boundary_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'pyscenedetect',
+      action,
+      routeClass,
+      handler,
+      script: PYSCENEDETECT_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'opencv' && routeClass === 'frame_analysis_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'opencv',
+      action,
+      routeClass,
+      handler,
+      script: OPENCV_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'opencolorio' && routeClass === 'color_config_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'opencolorio',
+      action,
+      routeClass,
+      handler,
+      script: OPENCOLORIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'openimageio' && routeClass === 'imagebuf_metadata_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'openimageio',
+      action,
+      routeClass,
+      handler,
+      script: OPENIMAGEIO_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'audioflux' && routeClass === 'audio_feature_bounded_rehearsal') {
+    return runPythonStructuredToolBoundedRehearsal({
+      payload,
+      request,
+      toolId: 'audioflux',
+      action,
+      routeClass,
+      handler,
+      script: AUDIOFLUX_BOUNDED_REHEARSAL_SCRIPT,
+    })
+  }
+  if (toolId === 'signalsmith_stretch' && routeClass === 'command_shape_bounded_rehearsal') {
+    return runSignalsmithStretchCommandShapeBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+  if (toolId === 'libass' && routeClass === 'synthetic_burnin_bounded_rehearsal') {
+    return runLibassSyntheticBurninBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+  if (toolId === 'remotion' && routeClass === 'composition_manifest_bounded_rehearsal') {
+    return runRemotionCompositionManifestBoundedRehearsal(payload, request, action, routeClass, handler)
+  }
+
+  return {
+    summary: `Track B agent worker recipe selected for ${toolId}:${action} through ${handler.futureHandler} without running real tool binaries or media processing.`,
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      toolId,
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      sourceReferenceCount: payload.storageReferenceIds.length,
+      plannedHandler: stringValue(request.plannedHandler),
+      notes: Array.isArray(request.notes) ? request.notes.filter(isStringValue) : [],
+    },
+  }
+}
+
+function resolveTrackBAgentToolRecipeHandler(
+  toolId: string,
+  action: string,
+  routeClass: string,
+): {
+  futureHandler: string
+  handlerKind: 'explicit_trackb_agent_worker_handler' | 'unmapped_trackb_agent_recipe_handler'
+  namedHandlerReady: boolean
+} {
+  if (toolId === 'ffmpeg' && routeClass === 'synthetic_video_null_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_ffmpeg_synthetic_video_null_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'ffprobe' && routeClass === 'synthetic_stream_probe_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_ffprobe_synthetic_stream_probe_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'sharp' && routeClass === 'image_asset_prepare_dry_run') {
+    return {
+      futureHandler: 'render_worker_sharp_image_asset_prepare_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'sharp' && routeClass === 'image_asset_prepare_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_sharp_image_asset_prepare_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_dry_run') {
+    return {
+      futureHandler: 'cpu_analysis_worker_duckdb_structured_artifact_query_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'duckdb' && routeClass === 'structured_artifact_query_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_duckdb_structured_artifact_query_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'polars' && routeClass === 'dataframe_transform_dry_run') {
+    return {
+      futureHandler: 'cpu_analysis_worker_polars_dataframe_transform_dry_run',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'polars' && routeClass === 'dataframe_transform_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_polars_dataframe_transform_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'pyav' && routeClass === 'frame_access_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_pyav_frame_access_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'opentimelineio' && routeClass === 'timeline_serialize_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_opentimelineio_timeline_serialize_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'pyscenedetect' && routeClass === 'scene_boundary_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_pyscenedetect_scene_boundary_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'opencv' && routeClass === 'frame_analysis_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_opencv_frame_analysis_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'opencolorio' && routeClass === 'color_config_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_opencolorio_color_config_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'openimageio' && routeClass === 'imagebuf_metadata_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_openimageio_imagebuf_metadata_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'audioflux' && routeClass === 'audio_feature_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_audioflux_audio_feature_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'signalsmith_stretch' && routeClass === 'command_shape_bounded_rehearsal') {
+    return {
+      futureHandler: 'cpu_analysis_worker_signalsmith_stretch_command_shape_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'libass' && routeClass === 'synthetic_burnin_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_libass_synthetic_burnin_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  if (toolId === 'remotion' && routeClass === 'composition_manifest_bounded_rehearsal') {
+    return {
+      futureHandler: 'render_worker_remotion_composition_manifest_bounded_rehearsal',
+      handlerKind: 'explicit_trackb_agent_worker_handler',
+      namedHandlerReady: true,
+    }
+  }
+
+  return {
+    futureHandler: `trackb_agent_${toolId}_${action}_recipe_dry_run`,
+    handlerKind: 'unmapped_trackb_agent_recipe_handler',
+    namedHandlerReady: false,
+  }
+}
+
+function runFfmpegSyntheticVideoNullBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  try {
+    const versionLine = firstOutputLine(execFileSync('ffmpeg', ['-version'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+      maxBuffer: 1024 * 128,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    const progressOutput = execFileSync('ffmpeg', [
+      '-hide_banner',
+      '-v',
+      'error',
+      '-nostats',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc2=size=16x16:rate=1:duration=1',
+      '-frames:v',
+      '1',
+      '-f',
+      'null',
+      '-',
+      '-progress',
+      'pipe:1',
+    ], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      maxBuffer: 1024 * 128,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    const progress = parseKeyValueOutput(progressOutput)
+
+    return {
+      summary: 'Track B agent FFmpeg bounded execution rehearsal completed with synthetic lavfi input and null muxer output only; no user media or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'ffmpeg',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: true,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version: versionLine,
+          operation: 'synthetic_lavfi_video_to_null_muxer',
+          input: 'lavfi:testsrc2=size=16x16:rate=1:duration=1',
+          output: 'null_muxer',
+          width: 16,
+          height: 16,
+          frameRate: '1/1',
+          frames: Number(progress.frame ?? 0),
+          outTime: progress.out_time,
+          progress: progress.progress,
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          outputFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses FFmpeg lavfi-generated synthetic input and null output only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedCommandLineToolRehearsal(
+      payload,
+      'ffmpeg',
+      action,
+      routeClass,
+      handler,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || 'Unknown FFmpeg bounded execution rehearsal error.',
+    )
+  }
+}
+
+function runFfprobeSyntheticStreamProbeBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  try {
+    const versionLine = firstOutputLine(execFileSync('ffprobe', ['-version'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+      maxBuffer: 1024 * 128,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    const output = execFileSync('ffprobe', [
+      '-hide_banner',
+      '-v',
+      'error',
+      '-f',
+      'lavfi',
+      '-i',
+      'testsrc2=size=16x16:rate=1:duration=1',
+      '-show_streams',
+      '-of',
+      'json',
+    ], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      maxBuffer: 1024 * 256,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    const parsed = JSON.parse(output) as { streams?: Array<Record<string, unknown>> }
+    const stream = parsed.streams?.[0] ?? {}
+
+    return {
+      summary: 'Track B agent ffprobe bounded execution rehearsal completed with synthetic lavfi input only; no user media or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'ffprobe',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: true,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version: versionLine,
+          operation: 'synthetic_lavfi_stream_probe',
+          input: 'lavfi:testsrc2=size=16x16:rate=1:duration=1',
+          streamCount: parsed.streams?.length ?? 0,
+          codecName: stringValue(stream.codec_name),
+          codecType: stringValue(stream.codec_type),
+          width: numberValue(stream.width),
+          height: numberValue(stream.height),
+          pixelFormat: stringValue(stream.pix_fmt),
+          frameRate: stringValue(stream.r_frame_rate),
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          outputFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses ffprobe against FFmpeg lavfi-generated synthetic input only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedCommandLineToolRehearsal(
+      payload,
+      'ffprobe',
+      action,
+      routeClass,
+      handler,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || 'Unknown ffprobe bounded execution rehearsal error.',
+    )
+  }
+}
+
+function buildBlockedCommandLineToolRehearsal(
+  payload: ProductionWorkerJobPayload,
+  toolId: 'ffmpeg' | 'ffprobe',
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: `Track B agent ${toolId} bounded execution rehearsal was blocked before proof completion.`,
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId,
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      syntheticMediaProcessing: true,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        `${toolId} bounded execution rehearsal failed closed.`,
+        'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+function runSignalsmithStretchCommandShapeBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  const resolved = resolveSignalsmithStretchCommand()
+  if ('blockedReason' in resolved) {
+    return buildBlockedSignalsmithStretchRehearsal(payload, action, routeClass, handler, resolved.blockedReason)
+  }
+
+  try {
+    const version = firstOutputLine(runSignalsmithStretchCommand(resolved.command, ['-v']))
+    if (!/^\d+\.\d+\.\d+/i.test(version)) {
+      throw new Error(`Signalsmith Stretch version output did not match expected shape: ${cleanToolProcessDetail(version)}`)
+    }
+
+    const help = runSignalsmithStretchCommand(resolved.command, ['--help'])
+    if (!/Usage\s+signalsmith-stretch\s+<input\.wav>\s+<output\.wav>/i.test(help)) {
+      throw new Error(`Signalsmith Stretch help output did not match expected command shape: ${cleanToolProcessDetail(help)}`)
+    }
+
+    return {
+      summary: 'Track B agent Signalsmith Stretch bounded execution rehearsal completed with command version/help shape only; no audio, user media, or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'signalsmith_stretch',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version,
+          operation: 'signalsmith_stretch_command_shape_version_and_help',
+          commandSource: resolved.source,
+          versionCommand: '-v',
+          helpCommand: '--help',
+          helpShape: {
+            usageMentionsInputWav: /<input\.wav>/i.test(help),
+            usageMentionsOutputWav: /<output\.wav>/i.test(help),
+            optionCount: help
+              .split(/\r?\n/)
+              .filter((line) => line.trim().startsWith('--') || line.trim() === '-v  -  prints the version').length,
+          },
+          inputFilesOpened: 0,
+          outputFilesCreated: 0,
+          audioProcessed: false,
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          outputFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof runs Signalsmith Stretch version/help shape only; it does not read or write audio, process user media, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedSignalsmithStretchRehearsal(
+      payload,
+      action,
+      routeClass,
+      handler,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || 'Unknown Signalsmith Stretch bounded execution rehearsal error.',
+    )
+  }
+}
+
+function buildBlockedSignalsmithStretchRehearsal(
+  payload: ProductionWorkerJobPayload,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: 'Track B agent Signalsmith Stretch bounded execution rehearsal was blocked before proof completion.',
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId: 'signalsmith_stretch',
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      syntheticMediaProcessing: false,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        'Signalsmith Stretch bounded execution rehearsal failed closed.',
+        'No audio input, user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+function runLibassSyntheticBurninBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): ProductionWorkerRouteOutput {
+  const image = stringValue(request.containerImage) ??
+    process.env.REEDITPRO_TRACKB_LIBASS_BOUNDED_REHEARSAL_CONTAINER_IMAGE ??
+    DEFAULT_TRACKB_LIBASS_BOUNDED_REHEARSAL_IMAGE
+  const imageInspection = inspectLocalDockerImage(image)
+  if (!imageInspection.available) {
+    return buildBlockedLibassSyntheticBurninRehearsal(payload, action, routeClass, handler, imageInspection.reason)
+  }
+
+  try {
+    const report = runBetaToolsLibassSyntheticBurninQaPreflight({
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_WORKSPACE_ID: payload.workspaceId,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_PROJECT_ID: payload.projectId,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_SOURCE_ID: `trackb-agent-libass-bounded-rehearsal-${payload.jobId}`,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_SOURCE_SHA: payload.approvedSnapshotId,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_MODE: 'docker',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_CONTAINER_IMAGE: image,
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_ACCEPT_BOUNDED_ACCEPTED_EVIDENCE: 'true',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_CONFIRM_BOUNDED_ACCEPTED_EVIDENCE_ACCEPTANCE: 'true',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_REQUIRE_ACCEPTED_EVIDENCE: 'true',
+      REEDITPRO_BETA_LIBASS_BURNIN_QA_TIMEOUT_MS: '60000',
+    })
+    if (!report.ok || !report.proof.burninCommandOk || !report.proof.decodeProbeOk || !report.proof.tempRootRemoved) {
+      const blockedReason = report.proof.failureMessage ??
+        ([...report.missingConfiguration, ...report.confirmationGaps, ...report.secretLikeInputPaths].join('; ') ||
+          'Libass synthetic burn-in bounded rehearsal did not produce accepted proof.')
+      return buildBlockedLibassSyntheticBurninRehearsal(
+        payload,
+        action,
+        routeClass,
+        handler,
+        blockedReason,
+      )
+    }
+
+    return {
+      summary: 'Track B agent libass bounded execution rehearsal completed with Docker network-disabled synthetic caption burn-in only; no user media or persistent artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'libass',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        syntheticMediaProcessing: true,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          operation: 'libass_synthetic_caption_burnin_docker_network_none',
+          mode: report.proof.mode,
+          containerImage: image,
+          localImageId: imageInspection.imageId,
+          syntheticOnly: report.proof.syntheticOnly,
+          noNetwork: report.proof.noNetwork,
+          noPrivateOrUserMedia: report.proof.noPrivateOrUserMedia,
+          tempRootRemoved: report.proof.tempRootRemoved,
+          fontDiscoveryOk: report.proof.fontDiscoveryOk,
+          burninCommandOk: report.proof.burninCommandOk,
+          decodeProbeOk: report.proof.decodeProbeOk,
+          inputVideoSizeBytes: report.proof.inputVideo.sizeBytes,
+          captionFileSizeBytes: report.proof.captionFile.sizeBytes,
+          outputVideoSizeBytes: report.proof.outputVideo.sizeBytes,
+          outputVideoSha256: report.proof.outputVideo.checksumSha256,
+          durationSeconds: report.proof.outputVideo.durationSeconds,
+          safeStylePresetAccepted: report.proof.captionFile.safeStylePresetAccepted,
+          commandSteps: report.proof.commandRecords.map((record) => ({
+            step: record.step,
+            exitOk: record.exitOk,
+            command: record.command,
+            networkDisabled: record.args.includes('--network') && record.args.includes('none'),
+          })),
+        },
+        cleanup: {
+          temporaryFilesCreated: 3,
+          temporaryOutputFilesCreated: 1,
+          tempRootRemoved: report.proof.tempRootRemoved,
+          persistentArtifactFilesCreated: 0,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses only generated synthetic video/caption inputs in an approved local Docker image with --network none; it does not read user media, retain artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    return buildBlockedLibassSyntheticBurninRehearsal(
+      payload,
+      action,
+      routeClass,
+      handler,
+      error instanceof Error ? error.message : 'Unknown libass synthetic burn-in bounded rehearsal error.',
+    )
+  }
+}
+
+function buildBlockedLibassSyntheticBurninRehearsal(
+  payload: ProductionWorkerJobPayload,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: 'Track B agent libass bounded execution rehearsal was blocked before proof completion.',
+    workerType: payload.workerType,
+    executionMode: payload.executionMode,
+    mockOnly: true,
+    futureHandler: handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId: 'libass',
+      action,
+      routeClass,
+      handlerKind: handler.handlerKind,
+      namedHandlerReady: handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      syntheticMediaProcessing: true,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        'libass bounded execution rehearsal failed closed.',
+        'No user media, persistent artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+async function runRemotionCompositionManifestBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): Promise<ProductionWorkerRouteOutput> {
+  try {
+    const remotion = await import('remotion')
+    const packagePath = requireFromProductionWorkerRouter.resolve('remotion/package.json')
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8')) as { version?: string }
+    const timelineManifest = buildTrackBSyntheticTimelineManifest({
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      approvedSnapshotId: payload.approvedSnapshotId,
+      editPlanId: payload.editPlanId,
+      mediaAssetId: payload.mediaAssetId,
+      timelineId: `timeline-trackb-remotion-rehearsal-${payload.jobId}`,
+      fps: 30,
+    })
+    const remotionManifest = buildRemotionCompositionManifest({
+      timelineManifest,
+      fps: 30,
+      canvas: { width: 320, height: 180 },
+      captionArtifactIds: ['synthetic-caption-artifact-trackb-remotion-rehearsal'],
+    })
+    const interpolatedOpacity = remotion.interpolate(15, [0, 30], [0, 1])
+
+    return {
+      summary: 'Track B agent Remotion bounded execution rehearsal completed with package API inspection and synthetic composition manifest only; no render, browser, user media, or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'remotion',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        realPackageApiExecution: true,
+        renderExecuted: false,
+        browserLaunched: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        proof: {
+          version: packageJson.version,
+          operation: 'synthetic_remotion_composition_manifest_api_shape',
+          apiShape: {
+            AbsoluteFill: typeof remotion.AbsoluteFill,
+            Composition: typeof remotion.Composition,
+            Sequence: typeof remotion.Sequence,
+            interpolate: typeof remotion.interpolate,
+            spring: typeof remotion.spring,
+            useCurrentFrame: typeof remotion.useCurrentFrame,
+            useVideoConfig: typeof remotion.useVideoConfig,
+          },
+          interpolateSample: interpolatedOpacity,
+          compositionId: remotionManifest.compositionId,
+          durationInFrames: remotionManifest.durationInFrames,
+          fps: remotionManifest.fps,
+          canvas: remotionManifest.canvas,
+          clipCount: remotionManifest.clips.length,
+          captionArtifactCount: remotionManifest.captionArtifactIds.length,
+          timelineSourceReferenceCount: timelineManifest.sourceReferences.length,
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          renderOutputsCreated: 0,
+          inMemoryObjectsOnly: true,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof imports Remotion package APIs and builds a synthetic manifest only; it does not render video, launch a browser, read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    return {
+      summary: 'Track B agent Remotion bounded execution rehearsal was blocked before proof completion.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: true,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'blocked',
+        toolId: 'remotion',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: false,
+        renderExecuted: false,
+        browserLaunched: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        blockedReason: error instanceof Error ? error.message : 'Unknown Remotion bounded execution rehearsal error.',
+        notes: [
+          'Remotion bounded execution rehearsal failed closed.',
+          'No render, browser, user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+        ],
+      },
+    }
+  }
+}
+
+async function runSharpImageAssetPrepareBoundedRehearsal(
+  payload: ProductionWorkerJobPayload,
+  request: Record<string, unknown>,
+  action: string,
+  routeClass: string,
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>,
+): Promise<ProductionWorkerRouteOutput> {
+  try {
+    const sharpModule = await import('sharp')
+    const sharp = sharpModule.default
+    const created = await sharp({
+      create: {
+        width: 2,
+        height: 2,
+        channels: 4,
+        background: { r: 12, g: 108, b: 242, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer({ resolveWithObject: true })
+    const transformed = await sharp(created.data)
+      .resize(1, 1, { fit: 'fill' })
+      .webp({ quality: 90 })
+      .toBuffer({ resolveWithObject: true })
+    const transformedMetadata = await sharp(transformed.data).metadata()
+
+    return {
+      summary: 'Track B agent Sharp bounded execution rehearsal completed with synthetic in-memory image data only; no user media or artifact file was processed.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: false,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: 'sharp',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: payload.storageReferenceIds.length,
+        plannedHandler: stringValue(request.plannedHandler),
+        sharpVersions: {
+          sharp: sharp.versions.sharp,
+          vips: sharp.versions.vips,
+        },
+        syntheticInput: {
+          format: created.info.format,
+          width: created.info.width,
+          height: created.info.height,
+          byteLength: created.data.byteLength,
+          sha256: sha256Hex(created.data),
+        },
+        syntheticOutput: {
+          format: transformed.info.format,
+          width: transformed.info.width,
+          height: transformed.info.height,
+          metadataFormat: transformedMetadata.format,
+          byteLength: transformed.data.byteLength,
+          sha256: sha256Hex(transformed.data),
+        },
+        cleanup: {
+          temporaryFilesCreated: 0,
+          inMemoryBuffersOnly: true,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses synthetic in-memory pixels only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    return {
+      summary: 'Track B agent Sharp bounded execution rehearsal was blocked before proof completion.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: true,
+      futureHandler: handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'blocked',
+        toolId: 'sharp',
+        action,
+        routeClass,
+        handlerKind: handler.handlerKind,
+        namedHandlerReady: handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: false,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        blockedReason: error instanceof Error ? error.message : 'Unknown Sharp bounded execution rehearsal error.',
+        notes: [
+          'Sharp bounded execution rehearsal failed closed.',
+          'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+        ],
+      },
+    }
+  }
+}
+
+function sha256Hex(buffer: Buffer): string {
+  return createHash('sha256').update(buffer).digest('hex')
+}
+
+const DUCKDB_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import duckdb
+import json
+
+conn = duckdb.connect(database=':memory:')
+conn.execute('create table synthetic_events(tool varchar, value integer)')
+conn.execute("insert into synthetic_events values ('duckdb', 7), ('duckdb', 35)")
+rows = conn.execute('select tool, sum(value) as total_value, count(*) as row_count from synthetic_events group by tool').fetchall()
+print(json.dumps({
+  'version': duckdb.__version__,
+  'database': ':memory:',
+  'query': 'synthetic_grouped_sum',
+  'columns': ['tool', 'total_value', 'row_count'],
+  'rows': rows,
+  'row_count': len(rows),
+  'total_value': rows[0][1],
+}))
+`
+
+const POLARS_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import polars as pl
+import json
+
+frame = pl.DataFrame({
+  'tool': ['polars', 'polars', 'polars'],
+  'frames': [12, 18, 30],
+})
+result = frame.with_columns((pl.col('frames') * 2).alias('weighted_frames')).select([
+  pl.col('frames').sum().alias('frames_sum'),
+  pl.col('weighted_frames').sum().alias('weighted_sum'),
+])
+print(json.dumps({
+  'version': pl.__version__,
+  'shape': list(frame.shape),
+  'columns': frame.columns,
+  'operation': 'synthetic_dataframe_transform',
+  'frames_sum': int(result.item(0, 'frames_sum')),
+  'weighted_sum': int(result.item(0, 'weighted_sum')),
+}))
+`
+
+const PYAV_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import av
+import json
+
+frame = av.VideoFrame(width=2, height=2, format='rgb24')
+array = frame.to_ndarray()
+array[:, :, 0] = 10
+array[:, :, 1] = 20
+array[:, :, 2] = 30
+roundtrip = av.VideoFrame.from_ndarray(array, format='rgb24')
+print(json.dumps({
+  'version': av.__version__,
+  'operation': 'synthetic_video_frame_roundtrip',
+  'width': roundtrip.width,
+  'height': roundtrip.height,
+  'format': roundtrip.format.name,
+  'planes': len(roundtrip.planes),
+  'mean_rgb': [int(array[:, :, channel].mean()) for channel in range(3)],
+}))
+`
+
+const OPENTIMELINEIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import opentimelineio as otio
+
+rate = 24
+source_range = otio.opentime.TimeRange(
+  start_time=otio.opentime.RationalTime(0, rate),
+  duration=otio.opentime.RationalTime(48, rate),
+)
+clip = otio.schema.Clip(
+  name='synthetic_clip',
+  media_reference=otio.schema.MissingReference(name='synthetic_missing_reference'),
+  source_range=source_range,
+)
+track = otio.schema.Track(name='synthetic_video_track', kind=otio.schema.TrackKind.Video)
+track.append(clip)
+timeline = otio.schema.Timeline(name='synthetic_trackb_timeline', tracks=[track])
+serialized = otio.adapters.write_to_string(timeline, adapter_name='otio_json')
+roundtrip = otio.adapters.read_from_string(serialized, adapter_name='otio_json')
+print(json.dumps({
+  'version': otio.__version__,
+  'timeline_name': roundtrip.name,
+  'track_count': len(roundtrip.tracks),
+  'clip_count': sum(len(track) for track in roundtrip.tracks),
+  'duration_frames': int(roundtrip.duration().value),
+  'serialized_length': len(serialized),
+  'media_reference_kind': roundtrip.tracks[0][0].media_reference.schema_name(),
+}))
+`
+
+const PYSCENEDETECT_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import numpy as np
+import scenedetect
+from scenedetect import FrameTimecode
+from scenedetect.detectors import ContentDetector
+
+detector = ContentDetector(threshold=1.0, min_scene_len=1)
+frames = [
+  np.zeros((8, 8, 3), dtype=np.uint8),
+  np.full((8, 8, 3), 255, dtype=np.uint8),
+  np.full((8, 8, 3), 255, dtype=np.uint8),
+]
+cuts = []
+for index, frame in enumerate(frames):
+  cuts.extend(detector.process_frame(FrameTimecode(index, 24.0), frame))
+print(json.dumps({
+  'version': scenedetect.__version__,
+  'detector': 'ContentDetector',
+  'operation': 'synthetic_scene_boundary_detection',
+  'frame_count': len(frames),
+  'cut_frames': [int(cut.frame_num) for cut in cuts],
+  'cut_count': len(cuts),
+}))
+`
+
+const OPENCV_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import cv2
+import json
+import numpy as np
+
+image = np.zeros((16, 16, 3), dtype=np.uint8)
+image[4:12, 4:12] = [255, 255, 255]
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+edges = cv2.Canny(blurred, 50, 150)
+print(json.dumps({
+  'version': cv2.__version__,
+  'operation': 'synthetic_frame_edge_analysis',
+  'shape': list(image.shape),
+  'gray_shape': list(gray.shape),
+  'edge_pixels': int(np.count_nonzero(edges)),
+  'mean_gray': round(float(gray.mean()), 4),
+  'center_pixel': int(gray[8, 8]),
+}))
+`
+
+const OPENCOLORIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import PyOpenColorIO as ocio
+
+config = ocio.Config.CreateRaw()
+config.setName('synthetic_trackb_raw_config')
+roles = [[role, color_space] for role, color_space in config.getRoles()]
+color_spaces = [color_space.getName() for color_space in config.getColorSpaces()]
+processor = config.getProcessor('raw', 'raw')
+cpu_processor = processor.getDefaultCPUProcessor()
+rgba = [0.1, 0.2, 0.3, 1.0]
+result = cpu_processor.applyRGBA(rgba[:])
+print(json.dumps({
+  'version': ocio.__version__,
+  'config_name': config.getName(),
+  'roles': roles,
+  'color_spaces': color_spaces,
+  'processor_created': processor is not None,
+  'input_rgba': rgba,
+  'output_rgba': [round(value, 6) for value in result],
+}))
+`
+
+const OPENIMAGEIO_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import json
+import OpenImageIO as oiio
+
+spec = oiio.ImageSpec(2, 2, 3, oiio.UINT8)
+buf = oiio.ImageBuf(spec)
+buf.setpixel(0, 0, (255, 128, 0))
+pixel = [round(float(value), 6) for value in buf.getpixel(0, 0)]
+print(json.dumps({
+  'version': oiio.VERSION_STRING,
+  'spec_width': spec.width,
+  'spec_height': spec.height,
+  'nchannels': spec.nchannels,
+  'format': str(spec.format),
+  'pixel': pixel,
+  'initialized': bool(buf.initialized),
+}))
+`
+
+const AUDIOFLUX_BOUNDED_REHEARSAL_SCRIPT = String.raw`
+import audioflux as af
+import json
+import numpy as np
+
+samplate = 8000
+audio = np.sin(2 * np.pi * 440 * np.arange(512) / samplate).astype(np.float32)
+bft = af.BFT(num=16, radix2_exp=8, samplate=samplate)
+spec = bft.bft(audio)
+print(json.dumps({
+  'version': af.__version__,
+  'operation': 'synthetic_audio_bft_feature_extract',
+  'sample_rate': samplate,
+  'sample_count': int(audio.shape[0]),
+  'feature_shape': list(spec.shape),
+  'magnitude_sum': round(float(np.abs(spec).sum()), 6),
+}))
+`
+
+type PythonStructuredRehearsalToolId =
+  | 'duckdb'
+  | 'polars'
+  | 'pyav'
+  | 'opentimelineio'
+  | 'pyscenedetect'
+  | 'opencv'
+  | 'opencolorio'
+  | 'openimageio'
+  | 'audioflux'
+
+function runPythonStructuredToolBoundedRehearsal(input: {
+  payload: ProductionWorkerJobPayload
+  request: Record<string, unknown>
+  toolId: PythonStructuredRehearsalToolId
+  action: string
+  routeClass: string
+  handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>
+  script: string
+}): ProductionWorkerRouteOutput {
+  const python = resolveBoundedRehearsalPython()
+  if (!python) {
+    return buildBlockedPythonStructuredToolRehearsal(input, 'Hydrated readiness Python is not available. Set REEDITPRO_READINESS_PYTHON_BIN or create .reeditpro-tool-readiness-python/bin/python.')
+  }
+
+  try {
+    const output = execFileSync(python, ['-c', input.script], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      maxBuffer: 1024 * 512,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        PATH: process.env.PATH,
+        PYTHONNOUSERSITE: '1',
+      },
+    })
+    const proof = parsePythonProof(output)
+    return {
+      summary: `Track B agent ${input.toolId} bounded execution rehearsal completed with synthetic in-memory data only; no user media or artifact file was processed.`,
+      workerType: input.payload.workerType,
+      executionMode: input.payload.executionMode,
+      mockOnly: false,
+      futureHandler: input.handler.futureHandler,
+      trackBAgentToolRecipeResult: {
+        status: 'completed',
+        toolId: input.toolId,
+        action: input.action,
+        routeClass: input.routeClass,
+        handlerKind: input.handler.handlerKind,
+        namedHandlerReady: input.handler.namedHandlerReady,
+        dryRunOnly: false,
+        rehearsalOnly: true,
+        productRuntimeExecution: false,
+        realToolBinaryExecution: true,
+        mediaProcessing: false,
+        userMediaProcessed: false,
+        syntheticInputOnly: true,
+        artifactFileWritten: false,
+        publicArtifactCreated: false,
+        sourceReferenceCount: input.payload.storageReferenceIds.length,
+        plannedHandler: stringValue(input.request.plannedHandler),
+        pythonRuntime: {
+          source: process.env.REEDITPRO_READINESS_PYTHON_BIN ? 'env_REEDITPRO_READINESS_PYTHON_BIN' : 'local_readiness_venv',
+          basename: python.split('/').pop(),
+        },
+        proof,
+        cleanup: {
+          temporaryFilesCreated: 0,
+          inMemoryObjectsOnly: true,
+          removedBeforeReturn: true,
+        },
+        notes: [
+          'Bounded execution rehearsal is payment-independent and non-billable.',
+          'This proof uses synthetic in-memory data only; it does not read user media, write artifacts, call Supabase/GCS, enable beta, or approve production use.',
+        ],
+      },
+    }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return buildBlockedPythonStructuredToolRehearsal(
+      input,
+      cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || `Unknown ${input.toolId} bounded execution rehearsal error.`,
+    )
+  }
+}
+
+function buildBlockedPythonStructuredToolRehearsal(
+  input: {
+    payload: ProductionWorkerJobPayload
+    toolId: PythonStructuredRehearsalToolId
+    action: string
+    routeClass: string
+    handler: ReturnType<typeof resolveTrackBAgentToolRecipeHandler>
+  },
+  blockedReason: string,
+): ProductionWorkerRouteOutput {
+  return {
+    summary: `Track B agent ${input.toolId} bounded execution rehearsal was blocked before proof completion.`,
+    workerType: input.payload.workerType,
+    executionMode: input.payload.executionMode,
+    mockOnly: true,
+    futureHandler: input.handler.futureHandler,
+    trackBAgentToolRecipeResult: {
+      status: 'blocked',
+      toolId: input.toolId,
+      action: input.action,
+      routeClass: input.routeClass,
+      handlerKind: input.handler.handlerKind,
+      namedHandlerReady: input.handler.namedHandlerReady,
+      dryRunOnly: false,
+      rehearsalOnly: true,
+      productRuntimeExecution: false,
+      realToolBinaryExecution: false,
+      mediaProcessing: false,
+      userMediaProcessed: false,
+      syntheticInputOnly: true,
+      artifactFileWritten: false,
+      publicArtifactCreated: false,
+      blockedReason,
+      notes: [
+        `${input.toolId} bounded execution rehearsal failed closed.`,
+        'No user media, artifact file, Supabase/GCS write, beta, or production scope was attempted.',
+      ],
+    },
+  }
+}
+
+function resolveSignalsmithStretchCommand(): { command: string; source: string } | { blockedReason: string } {
+  const explicitBinary = process.env.REEDITPRO_SIGNALSMITH_STRETCH_BIN
+  if (explicitBinary) {
+    return existsSync(explicitBinary)
+      ? { command: explicitBinary, source: 'env_REEDITPRO_SIGNALSMITH_STRETCH_BIN' }
+      : { blockedReason: `REEDITPRO_SIGNALSMITH_STRETCH_BIN does not exist: ${explicitBinary}` }
+  }
+
+  const readinessBinary = '.reeditpro-tool-readiness-bin/signalsmith-stretch'
+  if (existsSync(readinessBinary)) {
+    return { command: readinessBinary, source: 'local_readiness_bin' }
+  }
+
+  return { command: 'signalsmith-stretch', source: 'PATH' }
+}
+
+function runSignalsmithStretchCommand(command: string, args: string[]): string {
+  const result = spawnSync(command, args, {
+    encoding: 'utf8',
+    timeout: 5_000,
+    maxBuffer: 1024 * 64,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
+  if (result.error) throw result.error
+  if (result.status !== 0) {
+    throw new Error(`Signalsmith Stretch ${args.join(' ')} failed with exit code ${result.status ?? 'unknown'}: ${cleanToolProcessDetail(output)}`)
+  }
+  return output
+}
+
+function inspectLocalDockerImage(image: string): { available: true; imageId: string } | { available: false; reason: string } {
+  try {
+    const imageId = firstOutputLine(execFileSync('docker', ['image', 'inspect', image, '--format', '{{.Id}}'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+      maxBuffer: 1024 * 32,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }))
+    return imageId ? { available: true, imageId } : { available: false, reason: `Docker image inspect returned no image ID for ${image}.` }
+  } catch (error) {
+    const failed = error as { stderr?: string | Buffer, message?: string }
+    return {
+      available: false,
+      reason: cleanToolProcessDetail(failed.stderr) || cleanToolProcessDetail(failed.message) || `Docker image is not available locally: ${image}.`,
+    }
+  }
+}
+
+function resolveBoundedRehearsalPython(): string | undefined {
+  const candidates = [
+    process.env.REEDITPRO_READINESS_PYTHON_BIN,
+    '.reeditpro-tool-readiness-python/bin/python',
+  ].filter((candidate): candidate is string => Boolean(candidate))
+  return candidates.find((candidate) => existsSync(candidate))
+}
+
+function parsePythonProof(output: string): unknown {
+  const line = output
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .at(-1)
+  if (!line) {
+    throw new Error('Python rehearsal produced no JSON proof output.')
+  }
+  return JSON.parse(line)
+}
+
+function cleanToolProcessDetail(value: string | Buffer | undefined): string {
+  return String(value ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' | ')
+    .slice(0, 500)
 }
 
 function hasFinalRenderExecutionRequest(payload: ProductionWorkerJobPayload): boolean {
@@ -1432,4 +2948,19 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function firstOutputLine(output: string): string {
+  return output.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim() ?? 'version_unavailable'
+}
+
+function parseKeyValueOutput(output: string): Record<string, string> {
+  return Object.fromEntries(output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.includes('='))
+    .map((line) => {
+      const index = line.indexOf('=')
+      return [line.slice(0, index), line.slice(index + 1)]
+    }))
 }

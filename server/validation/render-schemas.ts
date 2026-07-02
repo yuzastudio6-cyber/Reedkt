@@ -5,9 +5,17 @@ export const createRenderJobSchema = z.object({
   workspaceId: idSchema,
   projectId: idSchema,
   approvedPlanSnapshotId: idSchema,
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema,
   renderType: z.enum(['preview', 'export']),
   renderQualityLevel: z.string().optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
+  runtimeGuardRequired: z.boolean().optional(),
+  productEditLevel: z.enum(['normal', 'premium', 'ultra_premium']).optional(),
+  estimatedFinalVideoDurationSeconds: z.number().positive().optional(),
+  approvedPlanStatus: z.string().optional(),
+  estimateStatus: z.string().optional(),
+  committedPendingHighCredits: z.number().int().nonnegative().optional(),
 })
 
 export const previewReviewSchema = z.object({
@@ -32,6 +40,7 @@ export const basicRenderSmokePreviewSchema = z.object({
   sourceStorageObjectId: idSchema,
   sourceStorageObject: basicRenderSmokeSourceObjectSchema.optional(),
   approvedPlanSnapshotId: idSchema,
+  creditEstimateId: idSchema.optional(),
   creditReservationId: idSchema,
   workerInstanceId: z.string().optional(),
   strict: z.boolean().optional(),

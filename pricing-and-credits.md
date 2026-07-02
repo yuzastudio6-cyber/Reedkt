@@ -82,6 +82,8 @@ Purchased credits are bought separately and should be tracked separately from we
 
 Business credits should be tracked as production/business usage and may require stronger reporting later.
 
+RP-STRIPE-TESTMODE-01 can create Stripe test-mode credit-pack Checkout Sessions and grant purchased credits to the local mock wallet only after a verified test webhook. It does not enable live billing, production wallet persistence, production ledger entries, export unlock, or automatic retry.
+
 ## Timing Complexity Credits
 
 Timing complexity affects Reedit Credits when a plan includes frame-accurate caption animation, visual cue timing, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.
@@ -101,3 +103,7 @@ The new runtime skeleton makes the product rule explicit:
 - failed mock jobs can release or refund a reservation.
 
 This remains a partial implementation. Real credit reservation, spend, refund, Stripe purchase handling, and transactional ledger enforcement still require a deployed backend runtime.
+
+## RP-CREDITPURCHASE-01 Mock Purchased Credits
+
+The external-beta mock foundation now includes fixed mock purchased credit packs and local purchased grants. Mock top-up adds available credits only and keeps purchased credits separate from weekly bonus credits. It is not Stripe/payment or real checkout behavior, and it does not write a production ledger, mutate production wallets, reserve credits, retry blocked flows, run render/export, or unlock export.

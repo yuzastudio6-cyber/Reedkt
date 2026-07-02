@@ -1,5 +1,61 @@
 ﻿# Implementation Status
 
+## RP-PERSISTENCE-PLAN-01
+
+Status: production persistence plan only.
+
+The repository now includes a Supabase production persistence architecture and schema gap report for the external-beta credit lifecycle. It documents existing credit/idempotency/tool-cost tables, proposed settlement/revision/export-lock/top-up/Stripe/audit tables, service-role transaction ownership, read-only RLS expectations, and mock-to-production mapping.
+
+It does not create migrations, run Supabase CLI, apply SQL, connect to Supabase, implement persistence repositories, process Stripe webhooks, grant production credits, mutate wallets, write ledgers, call providers, run workers, render/export, or change package-lock.
+
+## RP-EXTERNALBETA-01
+
+Status: mock/test-safe external beta credit launch gate.
+
+The repository now includes an end-to-end credit scenario matrix and launch-gate report over the merged credit, Stripe, UI, and audit foundations. The existing `/v1/credit-audit/beta-readiness` route returns the audit readiness report plus `launchGateReport`.
+
+It does not enable live billing, live Stripe payments, checkout/top-up execution, settlement execution, reservation spend/release/refund, export unlock, production persistence, provider calls, workers, render/export, raw secret/card exposure, or package-lock changes.
+
+## RP-CREDITAUDIT-01
+
+Status: mock-safe support/admin credit audit evidence.
+
+The repository now includes read-only audit timeline, support receipt, Stripe billing trace, redaction, beta-readiness evidence, and mock/internal support routes for the external-beta credit lifecycle.
+
+It does not call Stripe, run checkout/top-up execution, reserve/spend/release/refund credits, execute settlement, unlock export, write Supabase data, mutate production wallets, write ledgers, call providers, run workers, run render/export, expose raw secrets/card data, or change package-lock.
+
+## RP-CREDITUI-01
+
+Status: mock-safe user-facing credit lifecycle UI.
+
+The wallet page now includes fixture-driven cards for wallet balance, estimate, max hold, reservation, runtime pause, revised-credit actions, final settlement, export lock, mock top-up packs, and Stripe readiness. The adapter is browser-safe and uses existing credit/Stripe payload shapes.
+
+It does not call credit routes, reserve/spend/release/refund credits, call Stripe, enable live billing, create Checkout/SetupIntent/PaymentIntent objects, process live webhooks, unlock export, write Supabase data, mutate production wallets, write ledgers, call providers, run workers, run render/export, expose raw secrets, or change package-lock.
+
+## RP-STRIPE-LIVE-READINESS-01
+
+Status: no-charge live readiness gate.
+
+The repository now includes a live secret-reference audit and no-charge Stripe live readiness dry run. Complete production live config can report `ready_no_charge`, while all live money movement remains disabled.
+
+It does not enable live billing, live Checkout Sessions, live SetupIntents, live PaymentIntents, live webhooks, live credit grants, production wallet mutation, production ledger writes, Supabase writes, provider calls, render/export execution, export unlock, or package-lock changes.
+
+## RP-STRIPE-TESTMODE-01
+
+Status: test-mode billing path.
+
+The repository now includes real Stripe test-mode customer, SetupIntent, Checkout Session, and verified raw-body webhook services/routes using native `fetch` plus Node crypto. Verified test checkout webhooks can add purchased credits to the local mock wallet/grant store idempotently.
+
+It does not enable live Stripe, live billing, production wallet mutation, production ledger writes, Supabase writes, provider calls, render/export execution, export unlock, or package-lock changes.
+
+## RP-STRIPE-FOUNDATION-01
+
+Status: mock/config foundation.
+
+The repository now includes Stripe disabled/test/live runtime config, Secret Manager reference validation, customer/payment method link contracts, mock SetupIntent and Checkout Session stubs, webhook raw-body/idempotency contracts, live-mode readiness checks, and `smoke:stripe-foundation`.
+
+It does not call Stripe, create real Checkout Sessions, create SetupIntents, create PaymentIntents, charge cards, grant webhook credits, write Supabase data, mutate production wallets, write production ledger entries, call providers, or run render/export work.
+
 ## RP-FIX-06
 
 Status: partially fixed.
@@ -177,3 +233,51 @@ The repository now includes readiness reporting for future real Mirelo SFX V1.5 
 The implementation reports provider mode, backend/frontend runtime safety, Secret Manager reference readiness, approval/credit/request/job prerequisites, storage/provenance readiness, block reasons, warnings, required backend capabilities, and safe next steps. It also adds `sfx.providerReadiness.check` to the mock route surface.
 
 It does not call real Mirelo or MMAudio, add provider SDKs, add raw keys, resolve Secret Manager values, deploy Cloud Run, connect to Supabase, upload audio, spend credits, call Stripe, process audio, render media, or build mobile screens.
+
+## RP-RESERVATION-01
+
+Status: mock-safe foundation implemented.
+
+The credit foundation now includes a max estimate reservation step. `POST /v1/credit-estimates/:creditEstimateId/reservations/max` reserves `maximumEstimatedCredits` / `requiredHoldCredits`, not `totalEstimatedCredits`, against local in-memory mock wallet/reservation state. It blocks missing, unapproved, expired, custom/blocked, insufficient, or duplicate reservation requests without live side effects.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export, export unlock, or checkout/top-up. See `docs/credit-reservation-max-estimate.md` and `smoke:credit-reservation`.
+
+## RP-RUNTIME-GUARD-01
+
+Status: mock-safe runtime guard implemented.
+
+Paid worker/provider/render starts now share a mock credit guard that requires approved plan evidence, approved estimate, a `reserved` max-hold reservation, idempotency, and projected high-cost fit. Projected overage pauses before work, creates one idempotent local/mock revised-credit action with `projected_overage`, and keeps tool-cost events `serviceFeeIncluded = false`.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export execution, export unlock, or checkout/top-up. See `docs/runtime-credit-guard.md` and `smoke:runtime-credit-guard`.
+
+## RP-CREDITREVISION-01
+
+Status: mock-safe revised-credit action resolution implemented.
+
+Projected-overage pauses can now be resolved through Approve & Continue, Choose Lower-Cost Option, or Cancel Extra Work. Approve & Continue reserves only the additional mock max hold as `revised_credit_additional_hold` and does not start paid work; lower-cost and cancel resolutions leave the original paid runtime path blocked until a future plan/estimate path or cancellation flow handles it.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, settlement, reservation spend/release/refund, render/export execution, export unlock, checkout/top-up, or UI. See `docs/credit-revision-action-resolution.md` and `smoke:credit-revision-action`.
+
+## RP-SETTLEMENT-01
+
+Status: mock-safe final credit settlement implemented.
+
+Completed edits can now settle against a local mock reservation by aggregating billable tool-cost events, adding the separate ReEditPro service/edit fee, spending the final mock charge, and releasing unused reserved credits. Unapproved overage is absorbed by ReEditPro, while approved-but-unfunded export top-up is recorded without mutating the wallet/reservation.
+
+It does not add live billing, Stripe/payment, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, checkout/top-up, or UI. See `docs/credit-settlement-finalization.md` and `smoke:credit-settlement`.
+
+## RP-EXPORTLOCK-01
+
+Status: mock-safe export credit gate implemented.
+
+Completed edits can now evaluate export credit readiness from local mock settlement state. `settled` and `settled_with_absorbed_overage` allow export readiness, while `requires_top_up_before_export` creates an idempotent local mock export lock with "Action required: add credits to export".
+
+It does not add live billing, Stripe/payment, checkout/top-up, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, production persistence, or UI. See `docs/credit-export-lock.md` and `smoke:credit-export-lock`.
+
+## RP-CREDITPURCHASE-01
+
+Status: mock-safe credit top-up foundation implemented.
+
+The mock credit foundation now includes fixed purchased credit packs, local mock top-up intents, purchased credit grants, and read-only top-up suggestions for estimate reservation, revised-credit additional hold, and export top-up contexts. Completing a mock top-up increases only local in-memory wallet available credits.
+
+It does not add live billing, Stripe/payment, real checkout, Supabase writes or migrations, provider calls, production wallet mutation, production ledger writes, render/export execution, export unlock, production persistence, UI, or automatic retry behavior. See `docs/credit-top-up-purchased-grants.md` and `smoke:credit-purchase`.

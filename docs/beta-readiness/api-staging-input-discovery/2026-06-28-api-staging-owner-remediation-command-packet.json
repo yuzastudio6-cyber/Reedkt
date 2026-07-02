@@ -1,0 +1,130 @@
+{
+  "reportId": "beta-readiness-api-staging-owner-remediation-command-packet-2026-06-28",
+  "decision": "beta_readiness_api_staging_owner_remediation_command_packet_passed_ready_for_higher_privilege_owner_application",
+  "sourceSha": "1cae115558a33ea18e9dfd29693d4aa9176ed9d2",
+  "sourceEvidence": {
+    "ownerPrerequisiteAuditWorkflowPr": 1398,
+    "ownerPrerequisiteAuditWorkflowMergeSha": "bf663414d78f4612fb436037efa73fad23433a35",
+    "ownerPrerequisiteAuditRun": 28312122163,
+    "ownerPrerequisiteAuditDecision": "beta_readiness_api_staging_owner_prerequisite_audit_blocked_by_artifact_runtime_and_secret_describe_prerequisites",
+    "ownerPrerequisiteAuditRecordPr": 1402,
+    "ownerPrerequisiteAuditRecordMergeSha": "1cae115558a33ea18e9dfd29693d4aa9176ed9d2"
+  },
+  "lockedInputs": {
+    "projectId": "reeditpro",
+    "region": "us-east1",
+    "artifactRegion": "us-central1",
+    "artifactRepository": "reeditpro-staging-workers",
+    "deployerServiceAccount": "sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+    "runtimeServiceAccountId": "reeditpro-api-staging",
+    "serviceName": "reeditpro-api-staging"
+  },
+  "alreadyProvenByAudit": [
+    {
+      "id": "cloud_run_deploy_permissions",
+      "runId": 28312122163,
+      "allowedPermissions": [
+        "run.operations.get",
+        "run.services.create",
+        "run.services.get",
+        "run.services.update"
+      ],
+      "ownerCommandNeeded": false
+    }
+  ],
+  "remainingOwnerCommands": [
+    {
+      "id": "artifact_registry_writer_on_staging_repository",
+      "purpose": "Allow the deployer to read and upload the staging API image to the exact staging repository.",
+      "roleCandidate": "roles/artifactregistry.writer",
+      "target": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers",
+      "command": "gcloud artifacts repositories add-iam-policy-binding reeditpro-staging-workers --project=reeditpro --location=us-central1 --member=serviceAccount:sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com --role=roles/artifactregistry.writer",
+      "expectedAuditProof": [
+        "artifact_registry_repository_exists:passed",
+        "artifact_registry_upload_permission:passed"
+      ]
+    },
+    {
+      "id": "runtime_service_account_create_or_confirm",
+      "purpose": "Create or confirm the exact staging API runtime service account.",
+      "target": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "command": "gcloud iam service-accounts create reeditpro-api-staging --project=reeditpro --display-name='ReEditPro API staging runtime'",
+      "alreadyExistsAlternative": "If an owner has already created this service account, do not recreate it; run gcloud iam service-accounts describe reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --project=reeditpro instead.",
+      "expectedAuditProof": [
+        "runtime_service_account_exists:passed"
+      ]
+    },
+    {
+      "id": "deployer_act_as_runtime_service_account",
+      "purpose": "Allow the deployer to deploy Cloud Run with the exact staging runtime service account.",
+      "roleCandidate": "roles/iam.serviceAccountUser",
+      "target": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+      "command": "gcloud iam service-accounts add-iam-policy-binding reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --project=reeditpro --member=serviceAccount:sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com --role=roles/iam.serviceAccountUser",
+      "expectedAuditProof": [
+        "deployer_can_act_as_runtime_service_account:passed"
+      ]
+    },
+    {
+      "id": "deployer_fixed_secret_metadata_describe",
+      "purpose": "Allow the deployer to describe only the fixed staging API Secret Manager entries without granting secret payload access.",
+      "roleCandidate": "roles/secretmanager.viewer",
+      "target": "fixed staging API Secret Manager entries only",
+      "commandTemplate": "for secret in <fixed-staging-api-secret-name-1> <fixed-staging-api-secret-name-2> <fixed-staging-api-secret-name-3> <fixed-staging-api-secret-name-4>; do gcloud secrets add-iam-policy-binding \"$secret\" --project=reeditpro --member=serviceAccount:sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com --role=roles/secretmanager.viewer; done",
+      "expectedAuditProof": [
+        "fixed_staging_secret_entries_exist:passed"
+      ]
+    },
+    {
+      "id": "runtime_fixed_secret_payload_access",
+      "purpose": "Allow the staging API runtime account to access only the fixed staging API secret payloads after deploy.",
+      "roleCandidate": "roles/secretmanager.secretAccessor",
+      "target": "fixed staging API Secret Manager entries only",
+      "commandTemplate": "for secret in <fixed-staging-api-secret-name-1> <fixed-staging-api-secret-name-2> <fixed-staging-api-secret-name-3> <fixed-staging-api-secret-name-4>; do gcloud secrets add-iam-policy-binding \"$secret\" --project=reeditpro --member=serviceAccount:reeditpro-api-staging@reeditpro.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor; done",
+      "expectedAuditProof": [
+        "runtime secret access is not claimed by the read-only audit and must be proven by deploy/runtime evidence"
+      ]
+    }
+  ],
+  "blockedAlternatives": [
+    "project-wide owner/editor grants",
+    "granting secret payload access to the deployer",
+    "production service account substitution",
+    "broad wildcard secret access",
+    "Cloud Run deploy before audit passes",
+    "Docker build or Artifact Registry push before audit passes",
+    "external beta or production enablement before deployed evidence and owner approvals"
+  ],
+  "postOwnerValidation": [
+    "rerun .github/workflows/beta-readiness-api-staging-owner-prerequisite-audit.yml with AUDIT_STAGING_BETA_API_OWNER_PREREQUISITES",
+    "rerun .github/workflows/beta-readiness-api-staging-input-discovery.yml with READ_STAGING_BETA_API_DEPLOY_INPUTS and exact staging inputs",
+    "only after both read-only workflows pass, dispatch .github/workflows/beta-readiness-api-staging-deploy.yml with DEPLOY_STAGING_BETA_READINESS_API, an immutable image tag, and exact source SHA"
+  ],
+  "blockedAction": "staging_api_deploy_until_higher_privilege_owner_applies_exact_remaining_prerequisite_commands_and_audit_passes",
+  "notABlanketBlocker": true,
+  "safeForwardProgress": [
+    "higher_privilege_owner_applies_command_packet",
+    "rerun_read_only_owner_prerequisite_audit",
+    "rerun_exact_input_discovery_after_prerequisite_audit_passes",
+    "then_run_guarded_staging_deploy_only_after_read_only_prerequisites_pass"
+  ],
+  "blockedScopes": [
+    "cloud_run_deploy_not_run",
+    "docker_build_not_run",
+    "artifact_registry_push_not_run",
+    "secret_values_not_read",
+    "runtime_secret_access_not_claimed",
+    "evidence_collectors_not_run",
+    "external_beta_not_enabled",
+    "paid_production_not_enabled"
+  ],
+  "supabase": {
+    "write": "no write",
+    "environment": "none",
+    "sql": "none",
+    "migration": "no"
+  },
+  "productReadyLocalOssCount": 0,
+  "externalBetaEnabled": false,
+  "productionEnabled": false
+}

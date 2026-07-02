@@ -94,6 +94,25 @@ function assertNoUnsafeTrueClaims(file) {
   for (const key of unsafe) assert(!text.includes(`"${key}": true`), `${file} contains unsafe true claim: ${key}`)
 }
 
+function phase169RegistryEvidenceExists() {
+  const file = 'docs/worker-runtime-jobs-sound-cpu-phase169-actual-disabled-route-registration-source-result.md'
+  if (!fs.existsSync(path.join(process.cwd(), file))) return false
+
+  const evidence = parseJsonBlock(
+    file,
+    'worker-runtime-jobs-sound-cpu-phase169-actual-disabled-route-registration-source-result',
+  )
+  return (
+    evidence.decision ===
+      'worker_runtime_jobs_sound_cpu_phase169_actual_disabled_route_registration_source_creation_completed_with_warnings_ready_for_registration_static_validation' &&
+    evidence.sourceChange?.registrySourceCreated === true &&
+    evidence.sourceChange?.indexExportChanged === false &&
+    evidence.sourceChange?.expressRouteRegistered === false &&
+    evidence.sourceChange?.workerDispatchExecutionEnabled === false &&
+    evidence.sourceChange?.routeExecutionEnabled === false
+  )
+}
+
 const parsed = {
   source: parseJsonBlock(docs.source, 'worker-runtime-jobs-sound-cpu-phase167-disabled-route-registration-plan-result'),
   sourcePrompt: parseJsonBlock(docs.sourcePrompt, 'worker-runtime-jobs-sound-cpu-phase168-disabled-route-registration-owner-review'),
@@ -113,7 +132,10 @@ const adjacentExpressRoute = read(adjacentExpressRoutePath)
 assert(indexText.includes("from './disabled-dispatch-route.ts'"), 'index export missing disabled route source')
 assert(routeSource.includes('acceptedForDispatch: false'), 'route source must stay fail-closed')
 assert(adjacentExpressRoute.includes('SOUND_CPU_WORKER_ROUTE_EXECUTION_ENABLED = false as const'), 'adjacent Express route must remain disabled')
-assert(!fs.existsSync(path.join(process.cwd(), registryPath)), 'registry source must not exist in owner-review phase')
+assert(
+  !fs.existsSync(path.join(process.cwd(), registryPath)) || phase169RegistryEvidenceExists(),
+  'registry source must not exist before Phase169 evidence',
+)
 
 assert(parsed.source.decision === sourceDecision, 'source decision mismatch')
 assert(parsed.source.sourceVerification.sourcePr === 2210, 'source PR mismatch')

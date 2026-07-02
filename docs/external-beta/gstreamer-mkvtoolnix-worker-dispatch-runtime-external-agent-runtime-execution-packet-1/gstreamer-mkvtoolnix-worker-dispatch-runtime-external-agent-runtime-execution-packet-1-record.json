@@ -1,0 +1,124 @@
+{
+  "packet": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-EXTERNAL-AGENT-RUNTIME-EXECUTION-PACKET-1",
+  "decision": "completed_gstreamer_mkvtoolnix_worker_dispatch_runtime_external_agent_runtime_execution_packet",
+  "execution": "completed_docs_only_runtime_execution_packet_no_route_worker_tool_or_media_execution",
+  "sourceChain": {
+    "sourceGatePr": 2158,
+    "sourceGateMergeSha": "488df755ef9f9954e8696ed336f9106bada06319",
+    "dryRunPr": 2162,
+    "dryRunMergeSha": "ef5b15adcf5de407f3083abb64ffc14b298692cc",
+    "executionPacketPr": 2166,
+    "executionPacketMergeSha": "fc0706786e3413fdfc364d62a87adb45cc64ca36",
+    "executionQaPr": 2169,
+    "executionQaMergeSha": "b5e0177750f2fdaef0a3e8780e31026838b17d23",
+    "externalAgentHandoffPr": 2170,
+    "externalAgentHandoffMergeSha": "3b96c009902fe72265446264398018b489401880",
+    "externalAgentDryRunPr": 2175,
+    "externalAgentDryRunMergeSha": "85805fe2055f893a8e32f689d842c1ecafd7f6ff",
+    "externalAgentExecutionPacketPr": 2178,
+    "externalAgentExecutionPacketMergeSha": "311f82290808bf4db20876d35b858d57c54a90db",
+    "externalAgentExecutionPacketRunId": "2026-07-02T17-37-48-276Z-d4767789",
+    "externalAgentExecutionQaPr": 2181,
+    "externalAgentExecutionQaMergeSha": "5621ee3cfb7146ee0ba13617b5c8d24f9ebf80d2",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "class": "staging"
+  },
+  "routePath": "/v1/external-beta/gstreamer-mkvtoolnix/narrow-agent/generated-fixture-runtime/execute",
+  "workerSourcePath": "server/workers/gstreamer-mkvtoolnix-narrow-source-execution-worker-not-registered.ts",
+  "requiredFutureRuntimeGate": "REEDITPRO_CONFIRM_GSTREAMER_MKVTOOLNIX_WORKER_DISPATCH_RUNTIME_EXTERNAL_AGENT_RUNTIME_EXECUTION",
+  "runtimePacket": {
+    "status": "completed_docs_only_runtime_execution_packet",
+    "runtimeCommandPackageRunnerAdded": false,
+    "futureRuntimeInvocationMustBeNamedSeparately": true,
+    "routeExecution": "not_run_runtime_execution_packet_only",
+    "externalAgentRuntimeInvocation": "not_run_runtime_execution_packet_only",
+    "workerDispatch": "not_run_runtime_execution_packet_only",
+    "workerExecution": "not_run_runtime_execution_packet_only",
+    "workerLeaseClaim": "not_run_runtime_execution_packet_only",
+    "persistentQueueWrite": "not_run_runtime_execution_packet_only",
+    "toolExecution": "not_run_runtime_execution_packet_only",
+    "mediaProcessing": "not_run_runtime_execution_packet_only",
+    "fixtureScope": "controlled_generated_fixture_only"
+  },
+  "futureRuntimeRequirements": {
+    "routeRuntimeInvocation": "must_name_exact_invoker_before_execution",
+    "workerProcessBehavior": "must_describe_local_external_agent_or_remote_process_before_execution",
+    "serviceRoleBoundary": "service_role_secret_payload_access_forbidden_until_explicitly_approved",
+    "idempotency": "must_bind_2181_merge_sha_future_run_id_route_path_job_id_and_fixture_scope",
+    "rollback": "must_prove_no_persistent_public_artifacts_no_broad_worker_state_no_beta_or_production_unlock",
+    "cleanup": "must_cover_local_tmp_evidence_and_any_transient_generated_fixture_outputs",
+    "outputManifest": "must_include_sanitized_file_names_byte_counts_sha256_checksums",
+    "qaReport": "must_confirm_command_result_matrix_route_worker_state_artifacts_and_safety"
+  },
+  "acceptedEvidence": {
+    "executionPacketDecision": "completed_gstreamer_mkvtoolnix_worker_dispatch_runtime_external_agent_execution_packet",
+    "executionPacketExecution": "completed_confirmation_gated_external_agent_execution_packet_no_route_worker_tool_or_media_execution",
+    "executionPacketRunId": "2026-07-02T17-37-48-276Z-d4767789",
+    "executionQaDecision": "qa_passed_gstreamer_mkvtoolnix_worker_dispatch_runtime_external_agent_execution_packet_evidence",
+    "executionQaExecution": "completed_docs_only_external_agent_execution_packet_qa_no_runtime_execution",
+    "report": {
+      "fileName": "external-agent-execution-packet-report.json",
+      "bytes": 11264,
+      "sha256": "fcca1045661f139fc61137c727acd0f8ff733bf4d75a5009c031bdd62ce82bcd"
+    },
+    "envelope": {
+      "fileName": "external-agent-execution-packet-envelope.json",
+      "bytes": 4313,
+      "sha256": "5d795074da1baee6767f703448995a4ee6db8e2ecb1538e638864b049aa409c1"
+    },
+    "qaReport": {
+      "fileName": "external-agent-execution-packet-qa-report.json",
+      "bytes": 1934,
+      "sha256": "099fecb06dfcd20b185116be5c7b76aaaedceba76861e0b1f03e2b25835c8e53"
+    },
+    "manifest": {
+      "fileName": "external-agent-execution-packet-manifest.json",
+      "bytes": 1121,
+      "sha256": "0cb977c493b6253e152ac4c8ae6fd82ac2de0965425fee1abce8ebc6e728a819"
+    }
+  },
+  "runtimeExecutionPacketPhaseSafety": {
+    "docsStatusDiagnosticsOnly": true,
+    "routeExecutionInThisRuntimeExecutionPacketPhase": false,
+    "externalAgentRuntimeInvocationInThisRuntimeExecutionPacketPhase": false,
+    "realWorkerDispatchInThisRuntimeExecutionPacketPhase": false,
+    "workerProcessStartedInThisRuntimeExecutionPacketPhase": false,
+    "workerExecutionInThisRuntimeExecutionPacketPhase": false,
+    "workerLeaseClaimInThisRuntimeExecutionPacketPhase": false,
+    "workerLeaseMutationInThisRuntimeExecutionPacketPhase": false,
+    "persistentJobQueueWriteInThisRuntimeExecutionPacketPhase": false,
+    "gstreamerExecutionInThisRuntimeExecutionPacketPhase": false,
+    "mkvtoolnixExecutionInThisRuntimeExecutionPacketPhase": false,
+    "ffmpegFfprobeExecutionInThisRuntimeExecutionPacketPhase": false,
+    "dockerExecutionInThisRuntimeExecutionPacketPhase": false,
+    "remotionExecutionInThisRuntimeExecutionPacketPhase": false,
+    "mediaProcessingInThisRuntimeExecutionPacketPhase": false,
+    "privateMediaProcessingInThisRuntimeExecutionPacketPhase": false,
+    "userMediaProcessingInThisRuntimeExecutionPacketPhase": false,
+    "supabaseMutationInThisRuntimeExecutionPacketPhase": false,
+    "sqlExecutionInThisRuntimeExecutionPacketPhase": false,
+    "secretManagerPayloadAccessInThisRuntimeExecutionPacketPhase": false,
+    "signedUrlCreationInThisRuntimeExecutionPacketPhase": false,
+    "publicArtifactCreationInThisRuntimeExecutionPacketPhase": false,
+    "providerCallInThisRuntimeExecutionPacketPhase": false,
+    "modelCallInThisRuntimeExecutionPacketPhase": false,
+    "externalBetaUnlockInThisRuntimeExecutionPacketPhase": false,
+    "paidProductionUnlockInThisRuntimeExecutionPacketPhase": false,
+    "productionUnlockInThisRuntimeExecutionPacketPhase": false,
+    "finalRenderExportInThisRuntimeExecutionPacketPhase": false
+  },
+  "readiness": {
+    "externalAgentRuntimeExecution": "ready_for_confirmation_gated_external_agent_runtime_execution_attempt",
+    "gstreamer": "ready_for_confirmation_gated_external_agent_runtime_execution_attempt",
+    "mkvtoolnix": "ready_for_confirmation_gated_external_agent_runtime_execution_attempt"
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-WORKER-DISPATCH-RUNTIME-EXTERNAL-AGENT-CONFIRMED-RUNTIME-EXECUTION-1"
+}

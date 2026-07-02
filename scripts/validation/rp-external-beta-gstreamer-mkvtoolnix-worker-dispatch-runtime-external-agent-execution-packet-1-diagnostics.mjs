@@ -48,6 +48,17 @@ for (const file of [
   'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1-results.md',
   'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1.md',
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-execution-qa-1-diagnostics.mjs',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/source-audit.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/runtime-execution-packet.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/route-runtime-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/artifact-manifest-summary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/readiness.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/safety-boundary.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/validation-results.md',
+  'docs/external-beta/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1/gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1-record.json',
+  'docs/activation-phase-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-confirmed-runtime-execution-1.md',
+  'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-worker-dispatch-runtime-external-agent-runtime-execution-packet-1-diagnostics.mjs',
 ]) {
   allowedChangedFiles.add(file)
 }

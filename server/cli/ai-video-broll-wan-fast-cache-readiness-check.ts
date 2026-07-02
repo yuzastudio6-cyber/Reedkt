@@ -199,6 +199,7 @@ function main() {
         runtimeGatesAllFalse,
         readyForExternalAgentExecutionNow: spec.readyForExternalAgentExecutionNow,
         readyForBoundedRetryAfterBlockerClears: spec.readyForBoundedRetryAfterBlockerClears,
+        readyForIapOsLoginAccessFixPrompt: spec.readyForIapOsLoginAccessFixPrompt,
         nextAction: spec.nextAction,
       },
       null,

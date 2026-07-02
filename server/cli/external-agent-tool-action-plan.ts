@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10O selected northamerica-northeast2-a after 10L and 10N proved northamerica-northeast1 payload/install resource pools failed before VM creation; the 10P no-idle proof prompt must run before another VM attempt',
+        'B-roll 10P proved northamerica-northeast2-a can create a no-public-IP L4 VM and clean it up, but IAP SSH failed with a publickey/OS Login blocker; the 10Q no-GPU access fix prompt must run before another GPU VM attempt',
       afterBlockerClears:
-        'run the separate 10P no-idle payload/install proof prompt with fresh northeast2-a preflight and mandatory cleanup before any VM create retry',
+        'run the separate 10Q IAP/OS Login access fix prompt before any future bounded payload/install proof retry',
     }
   }
 

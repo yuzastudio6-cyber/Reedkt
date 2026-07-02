@@ -1,5 +1,13 @@
 ﻿# Implementation Status
 
+## RP-PERSISTENCE-PLAN-01
+
+Status: production persistence plan only.
+
+The repository now includes a Supabase production persistence architecture and schema gap report for the external-beta credit lifecycle. It documents existing credit/idempotency/tool-cost tables, proposed settlement/revision/export-lock/top-up/Stripe/audit tables, service-role transaction ownership, read-only RLS expectations, and mock-to-production mapping.
+
+It does not create migrations, run Supabase CLI, apply SQL, connect to Supabase, implement persistence repositories, process Stripe webhooks, grant production credits, mutate wallets, write ledgers, call providers, run workers, render/export, or change package-lock.
+
 ## RP-EXTERNALBETA-01
 
 Status: mock/test-safe external beta credit launch gate.

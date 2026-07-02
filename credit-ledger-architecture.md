@@ -197,3 +197,7 @@ RP-EXPORTLOCK-01 adds a local/mock export readiness gate over settlement state. 
 ## RP-CREDITPURCHASE-01 Mock Purchased Grants
 
 RP-CREDITPURCHASE-01 adds fixed mock credit packs and purchased grants to the shared mock wallet store. Completing a mock top-up creates a local `purchased` grant and increases available credits only; it creates no production ledger entry, real checkout session, Stripe/payment call, Supabase write, reservation retry, revised-credit retry, export unlock, provider call, or render/export execution.
+
+## RP-PERSISTENCE-PLAN-01 Production Persistence Plan
+
+RP-PERSISTENCE-PLAN-01 keeps the existing wallet, grant, ledger, estimate, approval, reservation, refund, idempotency, and tool-cost schema as the production target. The new plan documents how final settlements, revised-credit actions, export locks, purchased top-up intents, Stripe links/sessions/webhooks, and support audit evidence should extend that schema in later reviewed migrations. It is docs/status/smoke-only and does not create migrations, run Supabase CLI, apply SQL, write Supabase data, mutate production wallets/ledgers, call Stripe/providers, or run render/export.

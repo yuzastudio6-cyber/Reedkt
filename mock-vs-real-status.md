@@ -120,3 +120,9 @@
 - Real: `/v1/credit-audit/beta-readiness` now includes `launchGateReport` with mock/test scenario readiness, safety checks, and live-beta blocked status.
 - Real: mock external beta and Stripe test-mode beta can be reported ready when deterministic evidence passes.
 - Blocked by design: live external beta remains `blocked_for_live_external_beta`; no live billing, checkout/top-up execution, settlement execution, export unlock, production persistence, provider call, render/export execution, or raw secret/card exposure is wired.
+
+## RP-PERSISTENCE-PLAN-01 Production Persistence Plan Status
+
+- Real: `docs/credit-production-persistence-plan.md` documents the target Supabase persistence architecture, existing schema inventory, schema gaps, transaction/RLS/idempotency plan, Stripe test/live separation, and mock-to-production mapping.
+- Real: `smoke:credit-production-persistence-plan` verifies the plan references existing migrations and remains docs/status/smoke-only.
+- Not implemented by design: no migration, Supabase CLI, SQL execution, database connection, production persistence adapter, Stripe webhook processing, production wallet mutation, ledger write, provider call, render/export execution, or package-lock change is wired.

@@ -810,3 +810,186 @@ Updated status:
 Updated next step:
 
 `RP-BETA-INTEGRATION-21 - Post-Commit Merge Readiness Review and Qwen Reconciliation Decision`
+
+## 32. RP-BETA-INTEGRATION-21 Update
+
+RP-BETA-INTEGRATION-21 completed the post-commit merge-readiness review and Qwen reconciliation decision packet.
+
+Decision:
+
+- `post_commit_ready_for_qwen_reconciliation`
+
+Post-commit state:
+
+- Six RP-BETA-INTEGRATION-20 commits are present in order.
+- Staged files: `0`.
+- Remaining untracked files are only `supabase/.branches/` and `supabase/.temp/`.
+- Qwen beta files are present in the separate Qwen clone.
+- The listed Qwen runtime and marker-chat files are absent from the current RP-SKILLS repo.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `smoke:beta-readiness`: passed.
+- `smoke:api`: passed.
+- `smoke:sound-music-audio-contracts`: passed.
+- `smoke:sound-music-audio-planner`: passed.
+
+Updated status:
+
+- `blocked_pending_qwen_reconciliation_decision`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-22 - Qwen Beta Clone Reconciliation Plan`
+
+## 33. RP-BETA-INTEGRATION-22 Update
+
+RP-BETA-INTEGRATION-22 completed the read-only Qwen beta clone reconciliation planning pass.
+
+Decision:
+
+- `qwen_reconciliation_blocked_mixed_dirty_clone`
+
+Current repo status:
+
+- Qwen beta files are still absent from the current RP-SKILLS repo.
+- RP-BETA-INTEGRATION-20 commit baseline remains intact.
+- RP-BETA-INTEGRATION-21 docs and local Supabase side artifacts were the known dirty state entering this pass.
+
+Qwen clone status:
+
+- Qwen clone path: `/Users/macuser/Developer/REeditpro`.
+- Qwen branch: `codex/reeditpro-tool-calling-fixture-bound-export-validation-1`.
+- Staged files: `0`.
+- Tracked modified files: `144`.
+- Untracked files: `2234`.
+- Qwen/project-edit-brief/script-like untracked paths: `414`.
+- Reported Qwen files exist but are untracked and require additional untracked dependencies.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `smoke:beta-readiness`: passed.
+- `smoke:api`: passed.
+- `smoke:sound-music-audio-contracts`: passed.
+- `smoke:sound-music-audio-planner`: passed.
+
+Updated status:
+
+- `blocked_pending_qwen_clone_cleanup_and_commit_preparation`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-23 - Qwen Clone Cleanup and Commit Preparation Plan`
+
+## 34. RP-BETA-INTEGRATION-23 Update
+
+RP-BETA-INTEGRATION-23 completed the Qwen clone cleanup and commit-preparation planning pass.
+
+Decision:
+
+- `qwen_cleanup_plan_ready_for_owner_approval`
+
+Qwen clone status:
+
+- Qwen clone path: `/Users/macuser/Developer/REeditpro`.
+- Qwen branch: `codex/reeditpro-tool-calling-fixture-bound-export-validation-1`.
+- Staged files: `0`.
+- Tracked modified files: `144`.
+- Untracked files: `2234`.
+- Qwen/project-edit-brief/script-like untracked paths: `414`.
+
+Cleanup findings:
+
+- The future Qwen bundle spans Qwen type contracts, backend Qwen runtime services, Project Edit Brief contracts/repositories/routes, browser-safe marker-chat adapters, validation scripts/smokes, package changes, and curated docs.
+- Package/script deltas include `@google-cloud/secret-manager`, `@playwright/test`, Qwen validation scripts, Project Edit Brief smokes, frontend-boundary checks, and Supabase safety scripts.
+- Direct import from the dirty clone remains blocked.
+
+Updated status:
+
+- `blocked_pending_qwen_clone_owner_approved_cleanup_commits`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-24 - Qwen Clone Owner-Approved Cleanup and Local Commit Execution`
+
+## 35. RP-BETA-INTEGRATION-24 Update
+
+RP-BETA-INTEGRATION-24 attempted the owner-approved Qwen clone cleanup and local commit execution.
+
+Decision:
+
+- `blocked_before_qwen_staging`
+
+Specific blocker:
+
+- `blocked_qwen_package_conflict`
+
+Qwen validation:
+
+- `npm run lint`: passed.
+- `npm run build`: passed with chunk-size warnings.
+- `npm run check:qwen-secret-leakage`: passed.
+- `npm run smoke:qwen-runtime-boundary`: passed.
+- `npm run check:qwen-runtime-boundary`: passed.
+- `npm run smoke:qwen-marker-chat-bridge`: passed.
+- `npm run smoke:project-edit-brief-marker-chat`: passed.
+- `npm run check:frontend-boundary`: passed.
+- `npm run smoke:supabase-command-safety`: passed.
+- `npm run check:supabase-command-safety`: passed.
+
+Blocker:
+
+- Qwen `package.json` and `package-lock.json` cannot be safely staged as Qwen beta-only because the script surface includes broad production/readiness, monitoring, rollback, user-facing editing, media, storage, E2E, Qwen, Project Edit Brief, frontend-boundary, and Supabase safety commands.
+
+Updated status:
+
+- `blocked_pending_qwen_package_script_split`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-25 - Qwen Package Script Split and Cleanup Commit Repair`
+
+## 36. RP-BETA-INTEGRATION-25 Update
+
+RP-BETA-INTEGRATION-25 completed the Qwen package/script split and local cleanup commit repair.
+
+Decision:
+
+- `qwen_package_script_split_repaired_and_local_commits_created`
+
+Qwen local commits:
+
+- `92d3111e5` - `types(qwen): add marker chat runtime contracts`
+- `f9d52f8ff` - `feat(qwen): add backend marker chat runtime bridge`
+- `f87a40d65` - `feat(project-edit-brief): add marker chat runtime adapter`
+- `f53b52621` - `test(qwen): add beta runtime validation checks`
+- `df5f25c86` - `chore(qwen): add beta runtime dependencies and scripts`
+- `11ffea3b6` - `docs(qwen): document beta runtime readiness`
+
+Package/script repair:
+
+- `package.json` was staged by index-only patch.
+- The staged package script surface was limited to the eight approved Qwen/Project Edit Brief/frontend-boundary/Supabase-safety scripts.
+- The staged dependency delta was limited to `@google-cloud/secret-manager` and `@playwright/test`.
+- `package-lock.json` was staged by explicit path after confirming the root lockfile dependency delta was limited to the two approved packages.
+
+Validation:
+
+- Qwen pre-stage validation passed.
+- Qwen post-commit validation passed.
+- Qwen staged files after commits: `0`.
+- Remaining Qwen dirty state: `143` tracked modified entries and `1174` untracked entries.
+
+Updated status:
+
+- `blocked_pending_qwen_commit_import_into_rp_skills`
+
+Updated next step:
+
+`RP-BETA-INTEGRATION-26 - Qwen Beta Commit Import into RP-SKILLS Repo`

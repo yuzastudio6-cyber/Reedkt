@@ -384,3 +384,90 @@ Remaining blockers:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-21 - Post-Commit Merge Readiness Review and Qwen Reconciliation Decision`
+
+## T. RP-BETA-INTEGRATION-21 Post-Commit Review Update
+
+RP-BETA-INTEGRATION-21 verified the local commits and selected the Qwen reconciliation path.
+
+Decision:
+
+- `post_commit_ready_for_qwen_reconciliation`
+
+Findings:
+
+- RP-BETA-INTEGRATION-20 commits are present and ordered as expected.
+- Current validation is green.
+- Worktree has no staged files and only expected local Supabase side artifacts remain untracked.
+- Qwen beta files exist in the separate Qwen clone and are absent from the current RP-SKILLS repo.
+
+Recommended option:
+
+- Option A: reconcile Qwen beta into the current RP-SKILLS repo through a dedicated prompt.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-22 - Qwen Beta Clone Reconciliation Plan`
+
+## U. RP-BETA-INTEGRATION-22 Qwen Reconciliation Plan Update
+
+RP-BETA-INTEGRATION-22 completed the Qwen beta clone reconciliation plan.
+
+Decision:
+
+- `qwen_reconciliation_blocked_mixed_dirty_clone`
+
+Findings:
+
+- Qwen beta remains absent from the current RP-SKILLS repo.
+- The separate Qwen clone has the reported Qwen files, but they are untracked.
+- The reported files depend on more untracked project-edit-brief and Qwen runtime files.
+- Qwen package/script changes are broad and dirty.
+- Current repo validation remains green for diff check, lint, build, and the four safe smokes.
+
+Updated readiness:
+
+- RP-SKILLS/RP-BETA remains locally validated, but not end-to-end beta-ready.
+- Qwen reconciliation is blocked until the Qwen clone is cleaned, classified, and committed or an explicit owner import manifest is approved.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-23 - Qwen Clone Cleanup and Commit Preparation Plan`
+
+## V. RP-BETA-INTEGRATION-23 Qwen Cleanup Plan Update
+
+RP-BETA-INTEGRATION-23 completed the Qwen clone cleanup and commit-preparation plan.
+
+Decision:
+
+- `qwen_cleanup_plan_ready_for_owner_approval`
+
+Updated readiness:
+
+- RP-SKILLS/RP-BETA remains locally validated but not end-to-end beta-ready.
+- Qwen import is still blocked until the Qwen clone is cleaned and committed or an explicit owner-approved import manifest exists.
+- Future cleanup should happen in the Qwen clone first, with exact path lists and no broad staging.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-24 - Qwen Clone Owner-Approved Cleanup and Local Commit Execution`
+
+## W. RP-BETA-INTEGRATION-24 Qwen Commit Attempt Update
+
+RP-BETA-INTEGRATION-24 accepted local Qwen cleanup approval but stopped before staging.
+
+Decision:
+
+- `blocked_before_qwen_staging`
+
+Specific blocker:
+
+- `blocked_qwen_package_conflict`
+
+Updated readiness:
+
+- RP-SKILLS remains not end-to-end beta-ready because Qwen still has no clean local commits for import.
+- Qwen pre-stage validation is green, but package/script scope must be split or explicitly owner-approved before commits.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-25 - Qwen Package Script Split and Cleanup Commit Repair`

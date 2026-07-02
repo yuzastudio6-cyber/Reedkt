@@ -550,3 +550,23 @@ RP-BETA-INTEGRATION-19 repaired the sound-agent planner build blocker by importi
 ## RP-BETA-INTEGRATION-20 Note
 
 RP-BETA-INTEGRATION-20 created local commits for reviewed RP-SKILLS/RP-BETA work. TypeScript contracts and fixtures were committed as local source artifacts; no package files, runtime code beyond the existing sound-agent type import, providers, workers, UI behavior, remote Supabase, push, merge, or deployment changed.
+
+## RP-BETA-INTEGRATION-21 Note
+
+RP-BETA-INTEGRATION-21 reviewed the post-commit state and selected Qwen reconciliation as the next beta-integration step. It did not change TypeScript contracts, exports, mock fixtures, package files, migrations, manifest files, runtime code, providers, workers, UI, remote Supabase, push, merge, or deployment behavior.
+
+## RP-BETA-INTEGRATION-22 Note
+
+RP-BETA-INTEGRATION-22 documented the Qwen beta clone reconciliation plan and blocked direct import because the Qwen source is mixed, dirty, untracked, and package/script-heavy. It did not change TypeScript contracts, exports, mock fixtures, package files, migrations, manifest files, runtime code, providers, workers, UI, remote Supabase, push, merge, or deployment behavior.
+
+## RP-BETA-INTEGRATION-23 Note
+
+RP-BETA-INTEGRATION-23 documented the Qwen clone cleanup and commit-preparation plan. It identified required future Qwen type/export work, but did not change TypeScript contracts, exports, mock fixtures, package files, migrations, manifest files, runtime code, providers, workers, UI, remote Supabase, push, merge, or deployment behavior.
+
+## RP-BETA-INTEGRATION-24 Note
+
+RP-BETA-INTEGRATION-24 attempted owner-approved local Qwen clone cleanup commits but stopped before staging because the Qwen package/script diff is broader than the reviewed Qwen beta-only scope. It did not change TypeScript contracts, exports, mock fixtures, package files, migrations, manifest files, runtime code, providers, workers, UI, remote Supabase, push, merge, or deployment behavior in the RP-SKILLS repo.
+
+## RP-BETA-INTEGRATION-25 Note
+
+RP-BETA-INTEGRATION-25 repaired the Qwen package/script split in the separate Qwen clone and created local Qwen commits for marker-chat runtime contracts, backend bridge code, Project Edit Brief marker-chat adapters, validation checks, package dependencies/scripts, and docs. It did not change RP-SKILLS TypeScript contracts, exports, mock fixtures, package files, migrations, manifest files, runtime code, providers, workers, UI, remote Supabase, push, merge, or deployment behavior.

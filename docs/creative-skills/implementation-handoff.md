@@ -3424,3 +3424,212 @@ Remaining blockers:
 Recommended next prompt:
 
 `RP-BETA-INTEGRATION-21 - Post-Commit Merge Readiness Review and Qwen Reconciliation Decision`
+
+## RP-BETA-INTEGRATION-21 Completion
+
+RP-BETA-INTEGRATION-21 created the post-commit merge-readiness and Qwen reconciliation decision packet.
+
+Created docs:
+
+- `docs/creative-skills/post-commit-merge-readiness-and-qwen-reconciliation-decision.md`
+- `docs/creative-skills/post-commit-merge-readiness-and-qwen-reconciliation-decision-checklist.md`
+
+Decision:
+
+- `post_commit_ready_for_qwen_reconciliation`
+
+Findings:
+
+- The six RP-BETA-INTEGRATION-20 commits are present in order.
+- The RP-SKILLS repo has no staged files.
+- Remaining untracked files are only `supabase/.branches/` and `supabase/.temp/`.
+- Qwen beta files exist in `/Users/macuser/Developer/REeditpro`.
+- The listed Qwen runtime and marker-chat files are absent from the current RP-SKILLS repo.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `smoke:beta-readiness`: passed.
+- `smoke:api`: passed.
+- `smoke:sound-music-audio-contracts`: passed.
+- `smoke:sound-music-audio-planner`: passed.
+
+Boundaries:
+
+- No staging, commit, merge, push, deploy, remote Supabase, Qwen mutation, Qwen file copy, migration edit, manifest edit, TypeScript contract edit, mock fixture edit, package edit, provider call, worker execution, UI change, or app behavior change occurred.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-22 - Qwen Beta Clone Reconciliation Plan`
+
+## RP-BETA-INTEGRATION-22 Completion
+
+RP-BETA-INTEGRATION-22 created the Qwen beta clone reconciliation plan packet.
+
+Created docs:
+
+- `docs/creative-skills/qwen-beta-clone-reconciliation-plan.md`
+- `docs/creative-skills/qwen-beta-clone-reconciliation-plan-checklist.md`
+
+Decision:
+
+- `qwen_reconciliation_blocked_mixed_dirty_clone`
+
+Findings:
+
+- Current RP-SKILLS repo remains on `codex/reeditpro-tool-calling-worker-runtime-sound-cpu-contract-owner-review-merged-reconciliation-1`.
+- Current RP-SKILLS repo has no Qwen runtime or marker-chat beta files.
+- Qwen clone remains separate at `/Users/macuser/Developer/REeditpro`.
+- Qwen clone is on `codex/reeditpro-tool-calling-fixture-bound-export-validation-1`.
+- Qwen clone has `0` staged files, `144` tracked modified files, `2234` untracked files, and `414` Qwen/project-edit-brief/script-like untracked paths.
+- Reported Qwen files exist in the Qwen clone, but they are untracked and depend on additional untracked project-edit-brief/Qwen runtime files.
+- Qwen package/script changes are broad and dirty, including `@google-cloud/secret-manager`, `@playwright/test`, Qwen checks, project-edit-brief smokes, frontend-boundary checks, and Supabase safety scripts.
+
+Validation:
+
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `smoke:beta-readiness`: passed.
+- `smoke:api`: passed.
+- `smoke:sound-music-audio-contracts`: passed.
+- `smoke:sound-music-audio-planner`: passed.
+
+Boundaries:
+
+- No Qwen clone mutation, Qwen file copy, package change, migration edit, manifest edit, TypeScript contract edit, mock fixture edit, runtime edit, UI edit, provider call, worker execution, staging, commit, merge, push, deploy, or remote Supabase action occurred.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-23 - Qwen Clone Cleanup and Commit Preparation Plan`
+
+## RP-BETA-INTEGRATION-23 Completion
+
+RP-BETA-INTEGRATION-23 created the Qwen clone cleanup and commit-preparation plan packet.
+
+Created docs:
+
+- `docs/creative-skills/qwen-clone-cleanup-and-commit-preparation-plan.md`
+- `docs/creative-skills/qwen-clone-cleanup-and-commit-preparation-plan-checklist.md`
+
+Decision:
+
+- `qwen_cleanup_plan_ready_for_owner_approval`
+
+Findings:
+
+- Current RP-SKILLS repo remains on `codex/reeditpro-tool-calling-worker-runtime-sound-cpu-contract-owner-review-merged-reconciliation-1`.
+- Qwen clone remains separate at `/Users/macuser/Developer/REeditpro`.
+- Qwen clone is on `codex/reeditpro-tool-calling-fixture-bound-export-validation-1`.
+- Qwen clone has `0` staged files, `144` tracked modified files, `2234` untracked files, and `414` Qwen/project-edit-brief/script-like untracked paths.
+- Required future bundle groups are Qwen type contracts, backend Qwen runtime, Project Edit Brief integration, browser-safe marker-chat adapters, validation scripts/smokes, package changes, and curated docs.
+- Package/script changes require owner review before import, including `@google-cloud/secret-manager`, `@playwright/test`, Qwen checks, Project Edit Brief smokes, frontend-boundary checks, and Supabase safety scripts.
+
+Recommended strategy:
+
+- Future owner-approved Codex cleanup commits inside the Qwen clone using exact path lists.
+- Direct dirty-clone import remains blocked.
+
+Boundaries:
+
+- No Qwen clone mutation, Qwen file copy, package change, migration edit, manifest edit, TypeScript contract edit, mock fixture edit, runtime edit, UI edit, provider call, worker execution, staging, commit, merge, push, deploy, or remote Supabase action occurred.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-24 - Qwen Clone Owner-Approved Cleanup and Local Commit Execution`
+
+## RP-BETA-INTEGRATION-24 Completion
+
+RP-BETA-INTEGRATION-24 attempted the owner-approved Qwen clone cleanup and local commit execution.
+
+Created docs:
+
+- `docs/creative-skills/qwen-clone-owner-approved-cleanup-and-local-commit-execution.md`
+- `docs/creative-skills/qwen-clone-owner-approved-cleanup-and-local-commit-execution-checklist.md`
+
+Execution decision:
+
+- `blocked_before_qwen_staging`
+
+Specific blocker:
+
+- `blocked_qwen_package_conflict`
+
+Findings:
+
+- Owner approval was accepted for local Qwen clone cleanup commits only.
+- Qwen clone had `0` staged files at start.
+- Qwen candidate manifests were written to `/tmp` only.
+- Dependency additions were limited to `@google-cloud/secret-manager` and `@playwright/test`.
+- Package scripts were mixed beyond Qwen beta-only scope, including production/readiness, monitoring, rollback, user-facing editing, media, storage, E2E, Qwen, Project Edit Brief, frontend-boundary, and Supabase safety commands.
+- Package files were not staged.
+- No Qwen commits were created.
+
+Qwen validation before staging:
+
+- `npm run lint`: passed.
+- `npm run build`: passed with chunk-size warnings.
+- `npm run check:qwen-secret-leakage`: passed.
+- `npm run smoke:qwen-runtime-boundary`: passed.
+- `npm run check:qwen-runtime-boundary`: passed.
+- `npm run smoke:qwen-marker-chat-bridge`: passed.
+- `npm run smoke:project-edit-brief-marker-chat`: passed.
+- `npm run check:frontend-boundary`: passed.
+- `npm run smoke:supabase-command-safety`: passed.
+- `npm run check:supabase-command-safety`: passed.
+
+Boundaries:
+
+- No Qwen clone staging, Qwen commit, Qwen file copy into RP-SKILLS, RP-SKILLS package/migration/manifest/type/mock change, push, deploy, merge, remote Supabase, provider call, worker execution, runtime, UI, or app behavior change occurred.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-25 - Qwen Package Script Split and Cleanup Commit Repair`
+
+## RP-BETA-INTEGRATION-25 Completion
+
+RP-BETA-INTEGRATION-25 repaired the Qwen package/script staging blocker and created local Qwen cleanup commits in the separate Qwen clone.
+
+Created docs:
+
+- `docs/creative-skills/qwen-package-script-split-and-cleanup-commit-repair.md`
+- `docs/creative-skills/qwen-package-script-split-and-cleanup-commit-repair-checklist.md`
+
+Decision:
+
+- `qwen_package_script_split_repaired_and_local_commits_created`
+
+Qwen commits:
+
+- `92d3111e5` - `types(qwen): add marker chat runtime contracts`
+- `f9d52f8ff` - `feat(qwen): add backend marker chat runtime bridge`
+- `f87a40d65` - `feat(project-edit-brief): add marker chat runtime adapter`
+- `f53b52621` - `test(qwen): add beta runtime validation checks`
+- `df5f25c86` - `chore(qwen): add beta runtime dependencies and scripts`
+- `11ffea3b6` - `docs(qwen): document beta runtime readiness`
+
+Package repair:
+
+- `package.json` was staged by index-only patch.
+- Staged scripts were limited to the eight approved Qwen, Project Edit Brief marker-chat, frontend-boundary, and Supabase command-safety commands.
+- Staged dependencies were limited to `@google-cloud/secret-manager` and `@playwright/test`.
+- Broad production/readiness, monitoring, rollback, unrelated E2E, user-facing editing, media/storage, deployment, remote Supabase, and live-provider scripts remain unstaged in the Qwen clone.
+
+Validation:
+
+- Qwen pre-stage validation passed for lint, build, Qwen secret leakage, Qwen runtime boundary, Qwen marker chat bridge, Project Edit Brief marker chat, frontend boundary, and Supabase command safety checks.
+- Qwen post-commit validation passed for the same suite.
+- Qwen index is empty after commits.
+- Qwen clone remains dirty outside the committed slice: `143` tracked modified entries and `1174` untracked entries.
+
+Boundaries:
+
+- No Qwen files were copied into RP-SKILLS.
+- No Qwen push, merge, rebase, tag, deploy, remote Supabase command, provider call, worker execution, package install, reset, stash, clean, delete, or broad staging occurred.
+- RP-SKILLS received Markdown documentation updates only.
+
+Recommended next prompt:
+
+`RP-BETA-INTEGRATION-26 - Qwen Beta Commit Import into RP-SKILLS Repo`

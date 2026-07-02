@@ -52,7 +52,24 @@ const readyRollupFiles = [
   'scripts/validation/rp-external-beta-gstreamer-mkvtoolnix-external-agent-runtime-ready-rollup-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...readyRollupFiles])
+const gpacQaRollupDir =
+  'docs/track-a/native-container-render-tools/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1'
+const gpacQaRollupFiles = [
+  `${gpacQaRollupDir}/source-audit.md`,
+  `${gpacQaRollupDir}/evidence-matrix.md`,
+  `${gpacQaRollupDir}/runtime-evidence.md`,
+  `${gpacQaRollupDir}/readiness.md`,
+  `${gpacQaRollupDir}/safety-boundary.md`,
+  `${gpacQaRollupDir}/validation-results.md`,
+  `${gpacQaRollupDir}/gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-record.json`,
+  'docs/activation-phase-tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-runtime-ready-rollup-1.md',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1-diagnostics.mjs',
+  'scripts/validation/tracka-gpac-mp4box-guarded-runtime-dispatch-route-enablement-source-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...readyRollupFiles, ...gpacQaRollupFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
@@ -237,7 +254,16 @@ for (const file of uniqueChangedFiles) {
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path: ${file}`)
 }
 const changedCorpus = uniqueChangedFiles
-  .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile() && /^(docs\/|scripts\/validation\/|package\.json$)/.test(file))
+  .filter(
+    (file) =>
+      fs.existsSync(file) &&
+      fs.statSync(file).isFile() &&
+      (packetFiles.includes(file) ||
+        readyRollupFiles.includes(file) ||
+        gpacQaRollupFiles.includes(file) ||
+        file === 'package.json') &&
+      (file.startsWith('docs/') || file === 'package.json')
+  )
   .map(read)
   .join('\n')
 for (const pattern of forbiddenClaimPatterns) {

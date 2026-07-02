@@ -19,6 +19,7 @@ export function createToolExecutionGatewayRoutes(): Router {
       response,
       {
         gateway: result.gateway,
+        trackBAdapterResult: result.trackBAdapterResult,
         workerResult: result.workerResult,
       },
       result.warnings,

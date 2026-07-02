@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { trackBAdapterExecutionModeSchema, trackBAdapterToolIdSchema } from '../trackb-adapters'
 import { PRODUCTION_TOOL_IDS, type ProductionToolId } from '../tool-registry'
 import { idSchema } from './common-schemas'
 
@@ -82,6 +83,8 @@ export const toolExecutionGatewayDispatchSchema = z.object({
   workerType: workerTypeSchema,
   executionMode: executionModeSchema.default('mock_safe'),
   adapterId: adapterSchema.optional(),
+  trackBAdapterToolId: trackBAdapterToolIdSchema.optional(),
+  trackBAdapterExecutionMode: trackBAdapterExecutionModeSchema.optional(),
   requestedToolIds: z.array(productionToolIdSchema).min(1),
   requestedRecipeIds: z.array(idSchema).default([]),
   artifactReferences: z.array(z.object({

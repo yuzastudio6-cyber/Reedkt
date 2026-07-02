@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'bounded no-idle L4 proof prompt is required before any VM or inference path; do not create VMs from this rollup',
+        'bounded no-idle L4 proof prompt is prepared, but the lifecycle execution prompt is still required before any VM or inference path; do not create VMs from this rollup',
       afterBlockerClears:
-        'prepare a separate bounded no-idle L4 proof prompt with mandatory cleanup before any inference path',
+        'run a separate bounded no-idle L4 lifecycle execution prompt with mandatory cleanup before any inference path',
     }
   }
 

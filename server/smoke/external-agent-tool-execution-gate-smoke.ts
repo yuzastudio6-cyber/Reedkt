@@ -238,8 +238,14 @@ const reportQwenGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'qwen2_5_vl_7b_instruct',
 )
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
-assert.equal(reportBrollGateRow.currentBlocker, 'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference')
-assert.equal(reportBrollGateRow.safeNextCommand, 'npm run ai-video-broll-wan-gpu-global-quota:verify')
+assert.equal(
+  reportBrollGateRow.currentBlocker,
+  'bounded_no_idle_l4_lifecycle_execute_prompt_required_before_vm_or_inference',
+)
+assert.equal(
+  reportBrollGateRow.safeNextCommand,
+  'npm run smoke:ai-video-broll-gen-9k-no-idle-l4-proof-prompt',
+)
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.externalIpAllowed, false)

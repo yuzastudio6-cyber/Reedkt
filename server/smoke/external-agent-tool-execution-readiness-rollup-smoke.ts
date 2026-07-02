@@ -9,8 +9,12 @@ const DOC_PATH = 'docs/external-agent-tool-execution-readiness-rollup.md'
 const SPEC_PATH = 'src/backend/mock/mock-external-agent-tool-execution-readiness-rollup.ts'
 const SMOKE_PATH = 'server/smoke/external-agent-tool-execution-readiness-rollup-smoke.ts'
 const PACKAGE_SCRIPT = 'smoke:external-agent-tool-execution-readiness-rollup'
-const NEXT_PROMPT =
+const QWEN_NEXT_PROMPT =
   'EXTERNAL-AGENT-TOOL-EXECUTION-READY-QWEN: Qwen controlled approved-fixture private inference is ready for the explicit external-agent gate; keep beta/production blocked'
+const BROLL_NEXT_PROMPT =
+  'AI-VIDEO-BROLL-GEN-9K-NO-IDLE-L4-PROOF-PROMPT: prepare bounded no-idle L4 proof execution with mandatory cleanup, no VM/no inference in the planning prompt'
+const BROLL_EXECUTE_NEXT_PROMPT =
+  'AI-VIDEO-BROLL-GEN-9L-NO-IDLE-L4-PROOF-EXECUTE: run bounded no-idle L4 VM lifecycle proof with mandatory cleanup, no model inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -65,14 +69,14 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_prepared',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
   '`supabase_local_fixture_harness`',
   'ready for explicit external-agent gate',
   '`GPUS_ALL_REGIONS=1` and regional `NVIDIA_L4_GPUS=1` are verified',
-  'B-roll still requires a future bounded no-idle proof prompt',
+  'B-roll still requires a future bounded lifecycle execution prompt',
   'Qwen selected GPU: `nvidia_l4`',
   'Qwen Cloud Run minimum instances: `0`',
   'B-roll selected proof GPU: `nvidia_l4`',
@@ -135,7 +139,11 @@ for (const required of [
   '`supabase_local_harness_supporting_evidence_only`',
   'docs/supabase-local-harness-external-agent-wrapper-blocked-result.md',
   'B-roll external-agent execution must not leave an idle GPU running',
-  NEXT_PROMPT,
+  QWEN_NEXT_PROMPT,
+  BROLL_NEXT_PROMPT,
+  BROLL_EXECUTE_NEXT_PROMPT,
+  'docs/implementation-prompts/prompt-ai-video-broll-gen-9k-no-idle-l4-proof.md',
+  'src/backend/mock/mock-ai-video-broll-gen-9k-no-idle-l4-proof-prompt.ts',
 ]) {
   assert.equal(doc.includes(required), true, `Rollup doc missing ${required}`)
 }
@@ -143,7 +151,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_quota_verified_no_idle_prompt_prepared',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -153,7 +161,7 @@ assert.equal(rollup.sourceRules.approvedSnapshotRequired, true)
 assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
-assert.equal(rollup.recommendedNextPrompt, NEXT_PROMPT)
+assert.equal(rollup.recommendedNextPrompt, BROLL_EXECUTE_NEXT_PROMPT)
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
@@ -236,7 +244,7 @@ assert.equal(qwen?.scaleToZeroRequired, true)
 assert.equal(qwen?.readyForExternalAgentExecutionNow, true)
 assert.equal(qwen?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(qwen?.primaryBlocker, 'none_explicit_gate_ready_live_preflight_required')
-assert.equal(qwen?.nextAction, NEXT_PROMPT)
+assert.equal(qwen?.nextAction, QWEN_NEXT_PROMPT)
 assert.equal(qwen?.manualBlockerActions?.length, 0)
 assert.equal(qwen?.evidence.includes('docs/qwen2-5-vl-7b-58dx-private-inference-result-review.md'), true)
 assert.equal(
@@ -404,7 +412,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference',
+  'bounded_no_idle_l4_lifecycle_execute_prompt_required_before_vm_or_inference',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-wan-gpu-global-quota-verify-result.md'),
@@ -439,6 +447,10 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-9k-no-idle-l4-proof-prompt.ts'),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'),
   true,
 )
@@ -454,6 +466,15 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts'),
   true,
 )
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-9k-no-idle-l4-proof-prompt-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('docs/implementation-prompts/prompt-ai-video-broll-gen-9k-no-idle-l4-proof.md'),
+  true,
+)
+assert.equal(broll?.nextAction, BROLL_EXECUTE_NEXT_PROMPT)
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(broll?.manualBlockerActions?.length, 0)
@@ -483,8 +504,8 @@ assert.equal(
   'npm run ai-video-broll-wan-gpu-global-quota:verify',
 )
 assert.equal(
-  broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears.includes('NO-IDLE-L4-PROOF-PROMPT'),
-  true,
+  broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
+  BROLL_EXECUTE_NEXT_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

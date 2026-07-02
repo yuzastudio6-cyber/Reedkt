@@ -276,8 +276,14 @@ const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') 
 }
 assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
-assert.equal(brollGateSummary.currentBlocker, 'bounded_no_idle_l4_proof_prompt_required_before_vm_or_inference')
-assert.equal(brollGateSummary.safeNextCommand, 'npm run ai-video-broll-wan-gpu-global-quota:verify')
+assert.equal(
+  brollGateSummary.currentBlocker,
+  'bounded_no_idle_l4_lifecycle_execute_prompt_required_before_vm_or_inference',
+)
+assert.equal(
+  brollGateSummary.safeNextCommand,
+  'npm run smoke:ai-video-broll-gen-9k-no-idle-l4-proof-prompt',
+)
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateSummary.noIdleLifecycleGate.noPublicIpRequired, true)

@@ -88,7 +88,7 @@ for (const required of [
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'broll_gpus_all_regions_quota_not_sufficient',
-  'broll_vm_execution_requires_future_no_idle_proof_prompt',
+  'broll_vm_lifecycle_requires_future_no_idle_execute_prompt',
   'parseJsonOutput',
   'runtimeRunNow: false',
   'computeVmCreated: false',

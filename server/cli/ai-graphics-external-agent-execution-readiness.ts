@@ -18,6 +18,8 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.md'
+const canonicalGpuWorkerProofImage =
+  'reeditpro/ai-graphics-gpu-worker:proof-local'
 
 type ReadinessState =
   | 'callable'
@@ -102,7 +104,7 @@ function localInputKeys(row: JsonRecord | undefined): string[] {
     .map((requirement: JsonRecord) => requirement.key)
 }
 
-function nextGpuCommand(toolId: string): string {
+function hostPythonGpuCommand(toolId: string): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
     '--attempt-local-runtime',
@@ -117,6 +119,32 @@ function nextGpuCommand(toolId: string): string {
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
       : '',
   ].filter(Boolean).join(' ')
+}
+
+function containerGpuCommand(toolId: string): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
+    '--attempt-local-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    '--runtime-container-platform linux/amd64',
+    `--tool ${toolId}`,
+    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+    '--source-image <private-approved-frame.png>',
+    toolId === 'sam2' ? '--sam2-checkpoint <private-sam2-checkpoint.pt>' : '',
+    toolId === 'birefnet' ? '--birefnet-model <private-birefnet-model>' : '',
+    toolId === 'real_esrgan' ? '--real-esrgan-model <private-real-esrgan-model.pth>' : '',
+    toolId === 'rembg' ? '--rembg-model <private-rembg-model.onnx>' : '',
+    toolId === 'transparent_background'
+      ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+  ].filter(Boolean).join(' ')
+}
+
+function nextGpuCommand(toolId: string): string {
+  return toolId === 'kornia'
+    ? containerGpuCommand(toolId)
+    : hostPythonGpuCommand(toolId)
 }
 
 function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
@@ -204,9 +232,21 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
       outputKind: routeRow.outputKind ?? null,
       outputSha256: routeRow.outputSha256 ?? null,
       blockingPrerequisite,
+      recommendedGpuProofBackend: group === 'gpu_model'
+        ? toolId === 'kornia'
+          ? 'docker_container'
+          : 'host_python_or_docker_container'
+        : null,
+      fastestGpuModelUnlockCandidate: toolId === 'kornia',
       nextExactCommand: group === 'gpu_model'
         ? nextGpuCommand(toolId)
         : 'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+      nextExactHostPythonCommand: group === 'gpu_model'
+        ? hostPythonGpuCommand(toolId)
+        : null,
+      nextExactContainerCommand: group === 'gpu_model'
+        ? containerGpuCommand(toolId)
+        : null,
       routeStatus: routeRow.routeStatus ?? null,
       adapterStatus: group === 'gpu_model'
         ? gpuRow?.adapterStatus ?? routeRow.routeStatus ?? null
@@ -357,6 +397,8 @@ function buildReport() {
         toolRows.filter((row) => row.externalBetaReadyNow).length,
       productionReadyNowTools:
         toolRows.filter((row) => row.productionReadyNow).length,
+      fastestGpuModelUnlockCandidateTools:
+        toolRows.filter((row) => row.fastestGpuModelUnlockCandidate).length,
     },
     booleans: {
       externalAgentExecutionReadinessCompleted: true,
@@ -414,8 +456,20 @@ function buildReport() {
       packageLockMutationPerformed: false,
     },
     toolReadinessRows: toolRows,
+    fastestGpuModelUnlockCandidate: {
+      toolId: 'kornia',
+      reason:
+        'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, requires CUDA plus a private approved frame and output directory, and does not require a model-weight manifest.',
+      recommendedBackend: 'docker_container',
+      canonicalProofImage: canonicalGpuWorkerProofImage,
+      nextExactCommand: containerGpuCommand('kornia'),
+      expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
+        'gpu_model_runtime_container_gpu_unavailable',
+      remainsBlockedUntil:
+        'Run on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image available and a private approved source frame mounted locally.',
+    },
     nextExactAction:
-      'Run GPU/model local-dev harness on an approved native CUDA host with reviewed private model/checkpoint paths, private source frame/media, and private output directory; then feed accepted per-tool proof back into this readiness report.',
+      'First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, repeat per GPU/model tool with reviewed model/checkpoint paths where required and feed accepted proof back into this readiness report.',
   }
 }
 
@@ -447,6 +501,15 @@ ${rows}
 ## Counts
 
 ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
+
+## Fastest GPU/Model Unlock Candidate
+
+- Tool: \`${report.fastestGpuModelUnlockCandidate.toolId}\`
+- Recommended backend: \`${report.fastestGpuModelUnlockCandidate.recommendedBackend}\`
+- Canonical proof image: \`${report.fastestGpuModelUnlockCandidate.canonicalProofImage}\`
+- Reason: ${report.fastestGpuModelUnlockCandidate.reason}
+- Expected current-host blocker without attached NVIDIA GPU: \`${report.fastestGpuModelUnlockCandidate.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached}\`
+- Next command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
 
 ## Booleans
 

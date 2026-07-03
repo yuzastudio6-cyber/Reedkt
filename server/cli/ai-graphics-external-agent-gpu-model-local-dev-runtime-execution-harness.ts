@@ -20,6 +20,8 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md'
+const canonicalGpuWorkerProofImage =
+  'reeditpro/ai-graphics-gpu-worker:proof-local'
 
 type HarnessArgs = {
   attemptLocalRuntime: boolean
@@ -530,12 +532,12 @@ async function buildReport(args: HarnessArgs) {
       privateLocalRuntimeAttemptCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
       privateContainerRuntimeAttemptCommand:
-        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro-ai-graphics-gpu-install-proof:local --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+        `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>`,
       privateScopedRuntimeAttemptExamples: {
         kornia:
           'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>',
         korniaContainer:
-          'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro-ai-graphics-gpu-install-proof:local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>',
+          `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>`,
         sam2:
           'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --sam2-checkpoint <private-sam2-checkpoint.pt>',
       },

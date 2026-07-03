@@ -243,6 +243,9 @@ if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').incl
 if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-container-image')) {
   fail('missing_private_container_runtime_image_command')
 }
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+  fail('private_container_runtime_command_not_canonical_image')
+}
 if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-container-platform')) {
   fail('missing_private_container_runtime_platform_command')
 }
@@ -260,6 +263,9 @@ if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContai
 }
 if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContainer ?? '').includes('--tool kornia')) {
   fail('scoped_kornia_container_runtime_attempt_not_scoped')
+}
+if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContainer ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+  fail('scoped_kornia_container_runtime_attempt_not_canonical_image')
 }
 
 const rows = Array.isArray(report.gpuModelLocalDevRuntimeExecutionHarnessRows)

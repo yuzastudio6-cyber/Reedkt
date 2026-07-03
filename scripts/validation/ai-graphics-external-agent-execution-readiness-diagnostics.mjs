@@ -176,6 +176,7 @@ function checkReport(label, report) {
     runtimeReadyNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
+    fastestGpuModelUnlockCandidateTools: 1,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_mismatch:${key}:${counts[key]}`)
@@ -278,6 +279,28 @@ function checkReport(label, report) {
       if (!String(row.nextExactCommand ?? '').includes(`--tool ${toolId}`)) {
         fail(`${label}_${toolId}_gpu_next_command_not_tool_scoped`)
       }
+      if (!String(row.nextExactContainerCommand ?? '').includes('--runtime-backend docker_container')) {
+        fail(`${label}_${toolId}_missing_gpu_container_command`)
+      }
+      if (!String(row.nextExactContainerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+        fail(`${label}_${toolId}_gpu_container_command_not_canonical_image`)
+      }
+      if (!String(row.nextExactHostPythonCommand ?? '').includes('--attempt-local-runtime')) {
+        fail(`${label}_${toolId}_missing_gpu_host_python_command`)
+      }
+      if (toolId === 'kornia') {
+        if (row.fastestGpuModelUnlockCandidate !== true) {
+          fail(`${label}_${toolId}_not_fastest_gpu_unlock_candidate`)
+        }
+        if (row.recommendedGpuProofBackend !== 'docker_container') {
+          fail(`${label}_${toolId}_recommended_backend_not_container`)
+        }
+        if (!String(row.nextExactCommand ?? '').includes('--runtime-backend docker_container')) {
+          fail(`${label}_${toolId}_next_command_not_container_first`)
+        }
+      } else if (row.fastestGpuModelUnlockCandidate !== false) {
+        fail(`${label}_${toolId}_unexpected_fastest_gpu_unlock_candidate`)
+      }
     } else {
       if (row.readinessState !== 'executable') {
         fail(`${label}_${toolId}_non_gpu_state_not_executable:${row.readinessState}`)
@@ -310,6 +333,23 @@ const gpuHarness = json(
 const executionGate = json(
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
 )
+
+if (docs.fastestGpuModelUnlockCandidate?.toolId !== 'kornia') {
+  fail('fastest_gpu_unlock_candidate_not_kornia')
+}
+if (
+  docs.fastestGpuModelUnlockCandidate?.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached !==
+  'gpu_model_runtime_container_gpu_unavailable'
+) {
+  fail('fastest_gpu_unlock_candidate_missing_expected_gpu_unavailable_blocker')
+}
+if (
+  !String(docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '').includes(
+    'reeditpro/ai-graphics-gpu-worker:proof-local',
+  )
+) {
+  fail('fastest_gpu_unlock_candidate_not_using_canonical_image')
+}
 
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
@@ -345,6 +385,8 @@ for (const phrase of [
   'failed_with_diagnostics',
   'GPU runtime is on-demand only',
   '13 tools execute controlled local adapters now',
+  'Fastest GPU/Model Unlock Candidate',
+  'gpu_model_runtime_container_gpu_unavailable',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)
 }

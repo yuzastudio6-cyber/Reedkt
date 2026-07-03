@@ -58,6 +58,16 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `runtimeReadyNowTools`: 0
 - `externalBetaReadyNowTools`: 0
 - `productionReadyNowTools`: 0
+- `fastestGpuModelUnlockCandidateTools`: 1
+
+## Fastest GPU/Model Unlock Candidate
+
+- Tool: `kornia`
+- Recommended backend: `docker_container`
+- Canonical proof image: `reeditpro/ai-graphics-gpu-worker:proof-local`
+- Reason: Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, requires CUDA plus a private approved frame and output directory, and does not require a model-weight manifest.
+- Expected current-host blocker without attached NVIDIA GPU: `gpu_model_runtime_container_gpu_unavailable`
+- Next command: `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>`
 
 ## Booleans
 
@@ -109,4 +119,4 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 
 ## Next Action
 
-Run GPU/model local-dev harness on an approved native CUDA host with reviewed private model/checkpoint paths, private source frame/media, and private output directory; then feed accepted per-tool proof back into this readiness report.
+First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, repeat per GPU/model tool with reviewed model/checkpoint paths where required and feed accepted proof back into this readiness report.

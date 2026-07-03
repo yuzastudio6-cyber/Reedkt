@@ -211,6 +211,8 @@ function main() {
           spec.readyForBroll10wIapLookupReadinessFixPrompt,
         readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt:
           spec.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt,
+        readyForBroll10yRunnerRawJsonCleanupFixPrompt:
+          spec.readyForBroll10yRunnerRawJsonCleanupFixPrompt,
         nextAction: spec.nextAction,
       },
       null,

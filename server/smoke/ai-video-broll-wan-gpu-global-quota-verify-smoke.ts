@@ -64,7 +64,7 @@ for (const file of [DOC_PATH, SPEC_PATH, RESULT_SPEC_PATH, CLI_PATH, SMOKE_PATH,
 const doc = read(DOC_PATH)
 for (const required of [
   '# AI Video B-roll Wan GPU Global Quota Verify Result',
-  'Decision: `ai_video_broll_wan_gpu_global_quota_verified_10x_iap_lookup_readiness_retry_required`',
+  'Decision: `ai_video_broll_wan_gpu_global_quota_verified_10y_runner_cleanup_fix_required`',
   'Recorded at: `2026-07-02T13:09:27Z`',
   'This packet records a read-only B-roll quota verification result',
   'Project: `reeditpro`',
@@ -93,7 +93,7 @@ for (const required of [
   '10O no-VM strategy result selected `northamerica-northeast2-a`',
   '10P proof then successfully created and deleted the no-public-IP',
   '`Permission denied (publickey)`',
-  'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS',
+  'AI-VIDEO-BROLL-GEN-10Y-RUNNER-RAW-JSON-CLEANUP-FIX',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -127,14 +127,14 @@ assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
 assert.equal(
   spec.nextActionIfQuotaCleared.includes(
-    '10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS',
+    '10Y-RUNNER-RAW-JSON-CLEANUP-FIX',
   ),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(
   resultSpec.decision,
-  'ai_video_broll_wan_gpu_global_quota_verified_10x_iap_lookup_readiness_retry_required',
+  'ai_video_broll_wan_gpu_global_quota_verified_10y_runner_cleanup_fix_required',
 )
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')
 assert.equal(resultSpec.recordedAt, '2026-07-02T13:09:27Z')
@@ -162,8 +162,9 @@ assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10vNoIdleL4PayloadInsta
 assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10wIapLookupReadinessFixPrompt, false)
 assert.equal(
   resultSpec.noIdleLifecycleGate.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt,
-  true,
+  false,
 )
+assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10yRunnerRawJsonCleanupFixPrompt, true)
 assert.equal(resultSpec.noIdleLifecycleGate.postCreateIapLookupReadinessBackoffRequired, true)
 assert.equal(resultSpec.noIdleLifecycleGate.postCreateIapLookupMaxAttempts, 8)
 assert.equal(resultSpec.noIdleLifecycleGate.durableReadinessSummaryRequired, true)
@@ -180,8 +181,9 @@ assert.equal(resultSpec.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt, false
 assert.equal(resultSpec.readyForBroll10wIapLookupReadinessFixPrompt, false)
 assert.equal(
   resultSpec.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt,
-  true,
+  false,
 )
+assert.equal(resultSpec.readyForBroll10yRunnerRawJsonCleanupFixPrompt, true)
 assert.equal(resultSpec.dryRunPassedClaimed, false)
 assert.equal(resultSpec.generatedLocalFixturePassedClaimed, false)
 assert.equal(resultSpec.recommendedNextPrompt, spec.nextActionIfQuotaCleared)
@@ -291,6 +293,10 @@ assert.equal(
 )
 assert.equal(
   live.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt,
+  false,
+)
+assert.equal(
+  live.readyForBroll10yRunnerRawJsonCleanupFixPrompt,
   live.quotaSufficientForOneL4Vm,
 )
 assert.equal(typeof live.recommendedNextPrompt, 'string')

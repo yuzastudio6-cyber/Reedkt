@@ -19,6 +19,7 @@ try {
   applyMigration(databaseName, 'supabase/migrations/202606270001_tool_cost_metering_events.sql')
   applyMigration(databaseName, 'supabase/migrations/202606270002_beta_readiness_evidence_packets.sql')
   applyMigration(databaseName, 'supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql')
+  applyMigration(databaseName, 'supabase/migrations/20260702221112_production_tool_execution_readiness_evidence_packets.sql')
   runSql(databaseName, buildFixtureSql())
 
   queryScalar(databaseName, `
@@ -41,6 +42,12 @@ try {
     memberUserId,
     'select count(*) from public.beta_readiness_evidence_packets;',
     'authenticated users should not directly read backend-only beta readiness evidence packets',
+  )
+  assertAuthenticatedSelectDenied(
+    databaseName,
+    memberUserId,
+    'select count(*) from public.production_tool_execution_readiness_evidence_packets;',
+    'authenticated users should not directly read backend-only production readiness evidence packets',
   )
 
   assertAuthenticatedInsertDenied(
@@ -108,6 +115,10 @@ try {
   assertTablePrivilege(databaseName, 'authenticated', 'public.beta_readiness_evidence_packets', 'select', false)
   assertTablePrivilege(databaseName, 'service_role', 'public.beta_readiness_evidence_packets', 'select', true)
   assertTablePrivilege(databaseName, 'service_role', 'public.beta_readiness_evidence_packets', 'insert', true)
+  assertTablePrivilege(databaseName, 'anon', 'public.production_tool_execution_readiness_evidence_packets', 'select', false)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.production_tool_execution_readiness_evidence_packets', 'select', false)
+  assertTablePrivilege(databaseName, 'service_role', 'public.production_tool_execution_readiness_evidence_packets', 'select', true)
+  assertTablePrivilege(databaseName, 'service_role', 'public.production_tool_execution_readiness_evidence_packets', 'insert', true)
   assertFunctionPrivilege(databaseName, 'anon', 'public.settle_tool_cost_event(text,text,text)', 'execute', false)
   assertFunctionPrivilege(databaseName, 'authenticated', 'public.settle_tool_cost_event(text,text,text)', 'execute', false)
   assertFunctionPrivilege(databaseName, 'service_role', 'public.settle_tool_cost_event(text,text,text)', 'execute', true)
@@ -121,6 +132,7 @@ try {
     nonMemberSettlementRows,
     authenticatedInsertDenied: true,
     authenticatedEvidenceReadDenied: true,
+    authenticatedProductionEvidenceReadDenied: true,
     explicitDataApiGrantsVerified: true,
     settlementRpcServiceRoleOnly: true,
     remoteSupabaseTouched: false,

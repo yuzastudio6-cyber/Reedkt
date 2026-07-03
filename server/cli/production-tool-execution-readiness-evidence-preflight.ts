@@ -21,6 +21,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED?: string
+  REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED?: string
   REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED?: string
   REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED?: string
   REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED?: string
@@ -182,6 +183,7 @@ function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEn
       rlsMemberReadPathVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED),
       explicitDataApiGrantsVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED),
       betaEvidenceBackendOnlyAccessVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED),
+      productionEvidenceBackendOnlyAccessVerified: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED),
       backupPitrApproved: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED),
       securityAdvisorReviewed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED),
       performanceAdvisorReviewed: parseBoolean(env.REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED),
@@ -324,6 +326,7 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED', requiredFor: 'production_evidence' },

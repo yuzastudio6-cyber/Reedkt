@@ -58,6 +58,19 @@ assert.ok(
   'missing production evidence packet migration proof should name the durable production evidence table',
 )
 
+const productionEvidenceBackendOnlyBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  supabasePersistence: {
+    ...completeEvidence.supabasePersistence!,
+    productionEvidenceBackendOnlyAccessVerified: false,
+  },
+})
+assert.equal(productionEvidenceBackendOnlyBlocked.productionToolExecutionAllowed, false, 'missing production evidence backend-only proof should block production')
+assert.ok(
+  productionEvidenceBackendOnlyBlocked.blockers.some((blocker) => blocker.includes('backend-only production readiness evidence access')),
+  'missing production evidence backend-only proof should name the production readiness evidence access gap',
+)
+
 const refundBlocked = evaluateProductionToolExecutionReadinessGate({
   ...completeEvidence,
   walletSettlement: {
@@ -100,6 +113,7 @@ console.log(JSON.stringify({
   defaultBlocked: defaultBlocked.blockers.length,
   stagingBlocked: stagingBlocked.blockers.length,
   productionEvidenceMigrationBlocked: productionEvidenceMigrationBlocked.blockers.length,
+  productionEvidenceBackendOnlyBlocked: productionEvidenceBackendOnlyBlocked.blockers.length,
   refundBlocked: refundBlocked.blockers.length,
   provenanceBlocked: provenanceBlocked.blockers.length,
   paidProductionAllowed: passingReport.paidProductionAllowed,
@@ -121,6 +135,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       rlsMemberReadPathVerified: true,
       explicitDataApiGrantsVerified: true,
       betaEvidenceBackendOnlyAccessVerified: true,
+      productionEvidenceBackendOnlyAccessVerified: true,
       backupPitrApproved: true,
       securityAdvisorReviewed: true,
       performanceAdvisorReviewed: true,

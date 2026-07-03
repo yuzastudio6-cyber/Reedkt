@@ -88,6 +88,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       rlsMemberReadPathVerified: true,
       explicitDataApiGrantsVerified: true,
       betaEvidenceBackendOnlyAccessVerified: true,
+      productionEvidenceBackendOnlyAccessVerified: true,
       backupPitrApproved: true,
       securityAdvisorReviewed: true,
       performanceAdvisorReviewed: true,

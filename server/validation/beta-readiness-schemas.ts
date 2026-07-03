@@ -210,6 +210,7 @@ const productionSupabasePersistenceEvidenceSchema = productionEvidenceNotesSchem
   rlsMemberReadPathVerified: z.boolean(),
   explicitDataApiGrantsVerified: z.boolean(),
   betaEvidenceBackendOnlyAccessVerified: z.boolean(),
+  productionEvidenceBackendOnlyAccessVerified: z.boolean(),
   backupPitrApproved: z.boolean(),
   securityAdvisorReviewed: z.boolean(),
   performanceAdvisorReviewed: z.boolean(),

@@ -38,6 +38,8 @@ const expectedJobTypes = [
 ]
 const proposedSourceFile = 'server/routes/sound-cpu-no-media-agent-call-routes.ts'
 const proposedRoutePath = '/api/internal/workers/sound-cpu/no-media-agent-call'
+const actualSourceCreationResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-actual-disabled-route-source-result.md'
 
 const files = {
   plan: {
@@ -170,7 +172,12 @@ function assertNoForbiddenTrueClaims(file) {
 
 for (const value of Object.values(files)) assertNoForbiddenTrueClaims(value.path)
 for (const file of requiredSourceFiles) read(file)
-assert(!fs.existsSync(path.join(process.cwd(), proposedSourceFile)), `${proposedSourceFile} must not exist in this planning gate`)
+if (fs.existsSync(path.join(process.cwd(), proposedSourceFile))) {
+  assert(
+    fs.existsSync(path.join(process.cwd(), actualSourceCreationResultPath)),
+    `${proposedSourceFile} exists without actual source-creation evidence`,
+  )
+}
 
 const parsed = Object.fromEntries(
   Object.entries(files).map(([key, value]) => [key, parse(value.path, value.label)]),

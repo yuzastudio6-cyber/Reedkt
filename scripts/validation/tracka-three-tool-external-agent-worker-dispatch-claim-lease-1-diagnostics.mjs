@@ -55,7 +55,25 @@ const workerProcessExecutionFiles = [
   'docs/activation-phase-tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1-results.md',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...workerProcessExecutionFiles])
+const externalBetaReadinessRollupDir =
+  'docs/external-beta/tracka-three-tool-external-agent-external-beta-readiness-rollup-1'
+const externalBetaReadinessRollupFiles = [
+  `${externalBetaReadinessRollupDir}/source-chain.md`,
+  `${externalBetaReadinessRollupDir}/tool-readiness.md`,
+  `${externalBetaReadinessRollupDir}/safety-boundary.md`,
+  `${externalBetaReadinessRollupDir}/validation-results.md`,
+  `${externalBetaReadinessRollupDir}/tracka-three-tool-external-agent-external-beta-readiness-rollup-1-record.json`,
+  'docs/activation-phase-tracka-three-tool-external-agent-external-beta-readiness-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-orchestration-three-tool-generated-fixture-job-enablement-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-external-beta-readiness-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...workerProcessExecutionFiles,
+  ...externalBetaReadinessRollupFiles,
+])
 
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
@@ -300,6 +318,7 @@ for (const file of uniqueChangedFiles) {
 }
 const changedCorpus = uniqueChangedFiles
   .filter((file) => !workerProcessExecutionFiles.includes(file))
+  .filter((file) => !externalBetaReadinessRollupFiles.includes(file))
   .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
   .map(read)
   .join('\n')

@@ -136,7 +136,7 @@ for (const required of [
 }
 
 assert.equal(rollupDoc.includes('10X'), true)
-assert.equal(rollupDoc.includes('broll_10y_runner_raw_json_cleanup_fix_required'), true)
+assert.equal(rollupDoc.includes('broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'), true)
 assert.equal(rollupDoc.includes(AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT), true)
 
 const result = AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_RESULT

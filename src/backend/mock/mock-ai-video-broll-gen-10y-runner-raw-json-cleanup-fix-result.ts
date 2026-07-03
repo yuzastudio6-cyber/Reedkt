@@ -1,0 +1,118 @@
+import { AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT } from './mock-ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness-result'
+
+export const AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_RESULT = {
+  decision:
+    'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_applied_no_execution_10z_retry_ready',
+  mode: 'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_result',
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'ai_video_broll_generation_wan',
+  selectedModelFamily: 'Wan/Wan2.1',
+  selectedGpuForProof: 'nvidia_l4',
+  targetRegion: 'northamerica-northeast2',
+  targetZone: 'northamerica-northeast2-a',
+  machineType: 'g2-standard-4',
+  proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
+  claimsDryRunPassed: false,
+  claimsGeneratedLocalFixturePassed: false,
+  sourceEvidence: {
+    tenXResultDoc:
+      'docs/ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness-result.md',
+    tenXResultSpec:
+      'src/backend/mock/mock-ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness-result.ts',
+    tenXResultSmoke:
+      'server/smoke/ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness-result-smoke.ts',
+    tenYPrompt: 'docs/implementation-prompts/prompt-ai-video-broll-gen-10y-runner-raw-json-cleanup-fix.md',
+    tenZPrompt:
+      'docs/implementation-prompts/prompt-ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix.md',
+  },
+  failureRepaired: {
+    previousFailureClass: 'local_runner_sanitized_describe_parse_cleanup_bug',
+    previousRunnerParsedSanitizedStdoutSummaryInsteadOfRawStdout: true,
+    previousCleanupPathDependedOnParsedDescribeResult: true,
+    repairedBySourceControlledRunnerContract: true,
+    repairedRunnerContractPath:
+      'server/cli/ai-video-broll-gen-10y-l4-payload-install-runner-contract.ts',
+  },
+  runnerFix: {
+    rawStdoutIsOnlyJsonParseInput: true,
+    stdoutSummaryIsLogOnly: true,
+    stderrSummaryIsLogOnly: true,
+    parseBeforeSanitizeOrTruncate: true,
+    machineStateFromSanitizedSummaryAllowed: false,
+    compactDescribeShapeRequired: true,
+    exactNameCleanupAfterAnyCreateAttempt: true,
+    cleanupIndependentOfDescribeParse: true,
+    exactAbsenceChecksRequired: true,
+    durableSummaryRequired: true,
+    shellFormatQuotingBugAvoidedByArgArrays: true,
+  },
+  requiredFuture10zRunnerChecks: {
+    postCreateProbeCommandIds: [
+      'describe_prompt_vm_compact_raw_json',
+      'describe_prompt_vm_status_value',
+    ],
+    cleanupCommandIds: [
+      'delete_prompt_scoped_vm_exact_name',
+      'verify_prompt_vm_absent_exact_name',
+      'verify_prompt_disk_absent_exact_name',
+      'verify_prompt_address_absent_exact_name',
+      'verify_prompt_reservation_absent_exact_name',
+    ],
+    exactAbsenceChecks: [
+      'verify_prompt_vm_absent_exact_name',
+      'verify_prompt_disk_absent_exact_name',
+      'verify_prompt_address_absent_exact_name',
+      'verify_prompt_reservation_absent_exact_name',
+    ],
+    deletePromptVmAfterAnyCreateAttempt: true,
+    notFoundMeansAbsentDuringCleanupVerification: true,
+    durableSummaryMustRecordEveryPhaseAndFinalCleanupState: true,
+  },
+  runtimeAttempt: {
+    vmCreateAttemptedBy10y: false,
+    computeVmCreatedBy10y: false,
+    sshAttemptedBy10y: false,
+    payloadTransferAttemptedBy10y: false,
+    dependencyInstallAttemptedBy10y: false,
+    modelImportAttemptedBy10y: false,
+    modelInferenceAttemptedBy10y: false,
+  },
+  runtimeSideEffects: {
+    gcpReadOnlyCommandsExecuted: false,
+    gcpMutatingCommandsExecuted: false,
+    computeVmCreated: false,
+    computeVmDeleted: false,
+    diskCreated: false,
+    staticAddressCreated: false,
+    reservationCreated: false,
+    sshSessionOpened: false,
+    iapTransferExecuted: false,
+    fullWheelhousePayloadTransferred: false,
+    remoteWheelhouseValidationRun: false,
+    dependencyInstalledOnVm: false,
+    dependencyImportReadinessRun: false,
+    dockerRun: false,
+    modelDownloaded: false,
+    modelImportRun: false,
+    modelInferenceRun: false,
+    generatedVideoCreated: false,
+    generatedAssetsCreated: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    storageObjectsCreated: false,
+    signedUrlsCreated: false,
+    publicArtifactsCreated: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  readyForBroll10zNoIdleL4PayloadInstallRetryAfterRunnerFixPrompt: true,
+  nextPrompt: AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
+} as const
+
+export type AiVideoBrollGen10yRunnerRawJsonCleanupFixResult =
+  typeof AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_RESULT

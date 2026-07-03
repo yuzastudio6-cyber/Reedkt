@@ -17,7 +17,7 @@ export type AiVideoBrollWanFastCacheManifestEntry = {
 
 export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   decision:
-    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10y_runner_cleanup_fix',
+    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10z_retry_after_runner_fix',
   mode: 'stat_only_private_cache_readiness_check',
   toolId: 'ai_video_broll_generation_wan',
   modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
@@ -53,9 +53,10 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
   readyForBroll10wIapLookupReadinessFixPrompt: false,
   readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt: false,
-  readyForBroll10yRunnerRawJsonCleanupFixPrompt: true,
+  readyForBroll10yRunnerRawJsonCleanupFixPrompt: false,
+  readyForBroll10zNoIdleL4PayloadInstallRetryAfterRunnerFixPrompt: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-10Y-RUNNER-RAW-JSON-CLEANUP-FIX: fix L4 payload/install runner to parse raw describe JSON before sanitizing logs and delete prompt VM after any create attempt, no VM/no model/no inference',
+    'AI-VIDEO-BROLL-GEN-10Z-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-AFTER-RUNNER-FIX: retry bounded no-idle L4 payload/install readiness after raw JSON cleanup runner fix, no model import/no inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

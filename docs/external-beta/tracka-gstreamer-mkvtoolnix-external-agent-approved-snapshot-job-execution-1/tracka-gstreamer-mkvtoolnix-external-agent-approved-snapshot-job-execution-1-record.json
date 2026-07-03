@@ -1,0 +1,97 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-EXECUTION-1",
+  "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_job_execution",
+  "execution": "completed_confirmation_gated_approved_snapshot_job_execution_for_gstreamer_mkvtoolnix_generated_fixture_only",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_EXTERNAL_AGENT_APPROVED_SNAPSHOT_JOB_EXECUTION=true",
+  "runId": "2026-07-03T03-25-34-270Z-d1b6d1f6",
+  "outputDir": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1/2026-07-03T03-25-34-270Z-d1b6d1f6",
+  "sourceWorkerLeaseNoop": {
+    "mergeSha": "6f48c37de5da54b91480b03ebab7c2d61fe98025",
+    "headSha": "2b12cce17dee7836c6bcc8d1ad5e3cc6cce239cc",
+    "runId": "2026-07-03T03-18-07-159Z-a8bfe642",
+    "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_worker_lease_noop",
+    "leaseNoopId": "8b740ef8f6fe600e6be61acd2891b9740865b8c1a0622c6b4bdd38c5d977635b",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "approvedSnapshotJobExecution": {
+    "status": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_job_execution",
+    "approvedSnapshotId": "approved-snapshot-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "jobId": "job-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "sourceClass": "controlled_generated_fixture_only",
+    "childRunId": "2026-07-03T03-25-34-334Z-35d3d62c",
+    "childOutputDir": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/2026-07-03T03-25-34-334Z-35d3d62c",
+    "dockerImageTag": "reeditpro-tracka-native-container-render-tools-build-proof-3:2026-06-22T01-24-10-232Z-4e862aa8",
+    "dockerNetwork": "none",
+    "gstreamerExecution": "completed_controlled_generated_fixture_only",
+    "mkvtoolnixExecution": "completed_controlled_generated_fixture_only",
+    "gpacMp4boxExecution": "not_run_excluded_pending_package_source_install_proof",
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "finalRenderExport": false
+  },
+  "commandResults": [
+    "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+    "gst_controlled_generated_fixture_pipeline_v1",
+    "mkvmerge_generated_subtitle_only_package_v1",
+    "mkvmerge_identify_generated_subtitle_only_v1"
+  ],
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1-report.json",
+      "bytes": 7124,
+      "sha256": "41e04b8cf92877d42787c620b4f812f98569a961c8e2fa016634674615bb3cce"
+    },
+    {
+      "fileName": "approved-snapshot-runtime-envelope.json",
+      "bytes": 2287,
+      "sha256": "de31d9e780ee34297dd1d8310d6c7bb8f32f80d2f8b07de20edd1f6693d4e6d9"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 813,
+      "sha256": "04e06c6eab20082130becc430941eab81a884c4a24f04fdfc30220bd3377d8e0"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 837,
+      "sha256": "347e854b28ebd1d63dd477bdf19cb7b1180fd80d4726b410fbe69bdd2a92e47a"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1-manifest.json",
+      "bytes": 1496,
+      "sha256": "345b38ba65bee17f68c7cc53f240278b3f2be6646bb5caea7d26720c4b240360"
+    }
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "external_agent_approved_snapshot_job_execution_passed",
+    "mkvtoolnix_container_validation": "external_agent_approved_snapshot_job_execution_passed",
+    "gpac_mp4box_packaging_validation": "blocked_pending_package_source_install_proof"
+  },
+  "safety": {
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "gpacMp4boxExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "providerCall": false,
+    "modelCall": false,
+    "creditMutation": false,
+    "deployment": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-PRODUCTION-READINESS-REVIEW-1"
+}

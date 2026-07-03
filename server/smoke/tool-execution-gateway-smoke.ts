@@ -1730,6 +1730,27 @@ function createGatewayPersistentReadinessAdminClient(
       return builder
     },
     async rpc(functionName: string) {
+      if (functionName === 'claim_production_gateway_worker_lease') {
+        if (options.failWorkerLeaseInsert) {
+          return {
+            data: null,
+            error: {
+              code: 'P0001',
+              message: 'production worker lease claim conflict for job 33333333-3333-4333-8333-333333333333',
+            },
+          }
+        }
+        return {
+          data: {
+            leaseId: '44444444-4444-4444-8444-444444444444',
+            workspaceJobCreationCountLastHour: 0,
+            projectActiveJobCount: 0,
+            workerActiveJobCount: 0,
+          },
+          error: null,
+        }
+      }
+
       assert.equal(functionName, 'settle_tool_cost_event', 'gateway billing preflight should probe the settlement RPC by name')
       if (options.missingBillingBackend) {
         return { data: null, error: { code: '42883', message: 'function settle_tool_cost_event does not exist' } }

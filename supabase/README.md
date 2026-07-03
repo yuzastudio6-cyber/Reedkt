@@ -387,6 +387,8 @@ The table is append-only from the user/API perspective. No authenticated insert,
 
 `migrations/20260702221112_production_tool_execution_readiness_evidence_packets.sql` adds a backend-only append-only packet table for the final paid-production tool execution readiness evidence and report. It explicitly grants service-role `select, insert`, revokes anon/authenticated access, creates no authenticated RLS policy, and keeps idempotent replay scoped by workspace plus idempotency key. Paid-production readiness now requires deployment/readback evidence for this table in addition to `tool_cost_events` and `beta_readiness_evidence_packets`.
 
+`migrations/20260703215843_production_gateway_ops_admission_rpc.sql` adds the service-role-only `claim_production_gateway_worker_lease` RPC for production gateway operations admission. The RPC serializes admission per workspace, checks persistent workspace rate-limit counts from `api_idempotency_keys`, checks project and worker concurrency counts from `worker_leases`, inserts the durable admission lease atomically, and revokes public/anon/authenticated execution. It does not deploy the migration, call Supabase remotely, dispatch workers, run tools, process media, mutate wallets, call Stripe, or activate production.
+
 These migrations have not been run in staging or production. They do not connect to Supabase remotely, settle wallet charges in a deployed project, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
 
 ## Future Migrations

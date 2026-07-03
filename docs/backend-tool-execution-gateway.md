@@ -88,7 +88,7 @@ The gateway also performs a live, mutation-free persistent billing backend prefl
 - project concurrent job limit;
 - worker-type concurrent job limit.
 
-Local/mock runtime uses in-memory counters for deterministic smoke coverage. Non-mock runtime defaults production kill switches active unless backend env opens them, reads persistent `api_idempotency_keys` and `worker_leases` for rate/concurrency checks, then creates a durable `worker_leases` admission row before dispatch. Missing deployed control sources, non-UUID production identifiers, active lease conflicts, or inability to claim the durable lease fail closed before worker dispatch or billing audit. After dispatch the gateway attempts to release that durable admission lease and surfaces sanitized release warnings if the backend release path fails.
+Local/mock runtime uses in-memory counters for deterministic smoke coverage. Non-mock runtime defaults production kill switches active unless backend env opens them, reads persistent `api_idempotency_keys`, and then calls the service-role-only `claim_production_gateway_worker_lease` RPC. The RPC serializes admission per workspace, rechecks workspace rate limits plus project and worker concurrency limits inside the same transaction, and inserts the durable `worker_leases` admission row only when every counter is still within policy. Missing deployed control sources, a missing RPC, non-UUID production identifiers, active lease conflicts, or inability to atomically claim the durable lease fail closed before worker dispatch or billing audit. After dispatch the gateway attempts to release that durable admission lease and surfaces sanitized release warnings if the backend release path fails.
 
 When the `production_ready` operations-control step runs, the gateway response includes a sanitized `productionOpsControls` audit record with the admission result, blocker codes, warnings, active kill-switch state, workspace rate-limit counter, project concurrency counter, worker concurrency counter, configured limits, and whether persistent backend counters were checked. Agent/tool-call orchestration should use this structured record to explain why a backend-approved tool call was admitted or blocked instead of parsing freeform warning text.
 
@@ -102,6 +102,7 @@ Run:
 
 ```bash
 npm run smoke:tool-execution-gateway
+npm run smoke:production-gateway-ops-admission:sql
 npm run smoke:tool-call-cost-credit-gate
 npm run smoke:tool-call-intent-planner
 npm run smoke:tool-cost-metering

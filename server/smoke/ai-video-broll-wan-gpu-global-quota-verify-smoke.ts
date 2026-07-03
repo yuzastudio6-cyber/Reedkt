@@ -64,7 +64,7 @@ for (const file of [DOC_PATH, SPEC_PATH, RESULT_SPEC_PATH, CLI_PATH, SMOKE_PATH,
 const doc = read(DOC_PATH)
 for (const required of [
   '# AI Video B-roll Wan GPU Global Quota Verify Result',
-  'Decision: `ai_video_broll_wan_gpu_global_quota_verified_10u_no_gpu_iap_ssh_canary_rerun_required`',
+  'Decision: `ai_video_broll_wan_gpu_global_quota_verified_10v_no_idle_l4_payload_install_retry_required`',
   'Recorded at: `2026-07-02T13:09:27Z`',
   'This packet records a read-only B-roll quota verification result',
   'Project: `reeditpro`',
@@ -93,7 +93,7 @@ for (const required of [
   '10O no-VM strategy result selected `northamerica-northeast2-a`',
   '10P proof then successfully created and deleted the no-public-IP',
   '`Permission denied (publickey)`',
-  'AI-VIDEO-BROLL-GEN-10U-NO-GPU-IAP-SSH-CANARY-RERUN',
+  'AI-VIDEO-BROLL-GEN-10V-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -127,14 +127,14 @@ assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
 assert.equal(
   spec.nextActionIfQuotaCleared.includes(
-    '10U-NO-GPU-IAP-SSH-CANARY-RERUN',
+    '10V-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY',
   ),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
 assert.equal(
   resultSpec.decision,
-  'ai_video_broll_wan_gpu_global_quota_verified_10u_no_gpu_iap_ssh_canary_rerun_required',
+  'ai_video_broll_wan_gpu_global_quota_verified_10v_no_idle_l4_payload_install_retry_required',
 )
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')
 assert.equal(resultSpec.recordedAt, '2026-07-02T13:09:27Z')
@@ -157,7 +157,8 @@ assert.equal(resultSpec.noIdleLifecycleGate.readyForNonGpuIapSshCanaryPrompt, fa
 assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10rBoundedRunnerFixPrompt, false)
 assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10sFixedCanaryExecutePrompt, false)
 assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10tIapSshFlagFixPrompt, false)
-assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, true)
+assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, false)
+assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt, true)
 assert.equal(resultSpec.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(resultSpec.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 assert.equal(resultSpec.readyForExternalAgentExecutionNow, false)
@@ -166,7 +167,8 @@ assert.equal(resultSpec.readyForNonGpuIapSshCanaryPrompt, false)
 assert.equal(resultSpec.readyForBroll10rBoundedRunnerFixPrompt, false)
 assert.equal(resultSpec.readyForBroll10sFixedCanaryExecutePrompt, false)
 assert.equal(resultSpec.readyForBroll10tIapSshFlagFixPrompt, false)
-assert.equal(resultSpec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, true)
+assert.equal(resultSpec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, false)
+assert.equal(resultSpec.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt, true)
 assert.equal(resultSpec.dryRunPassedClaimed, false)
 assert.equal(resultSpec.generatedLocalFixturePassedClaimed, false)
 assert.equal(resultSpec.recommendedNextPrompt, spec.nextActionIfQuotaCleared)
@@ -264,6 +266,10 @@ assert.equal(live.readyForBroll10sFixedCanaryExecutePrompt, false)
 assert.equal(live.readyForBroll10tIapSshFlagFixPrompt, false)
 assert.equal(
   live.readyForBroll10uNoGpuIapSshCanaryRerunPrompt,
+  false,
+)
+assert.equal(
+  live.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt,
   live.quotaSufficientForOneL4Vm,
 )
 assert.equal(typeof live.recommendedNextPrompt, 'string')

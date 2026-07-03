@@ -35,6 +35,7 @@ const adapterSchema = z.enum([
   'render_worker_caption_metadata',
   'render_worker_final_render_metadata',
   'render_worker_placeholder',
+  'qa_worker_caption_metadata',
   'qa_worker_placeholder',
   'tool_readiness_worker_core_checks',
   'tool_readiness_worker_placeholder',

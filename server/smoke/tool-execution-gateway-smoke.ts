@@ -668,6 +668,70 @@ assert.equal(productionReadyCaptionMetadataDispatch.toolCostEvents?.[0]?.metadat
 assert.equal(productionReadyCaptionMetadataDispatch.walletSettlements?.length, 1, 'caption metadata dispatch should create one wallet settlement audit row')
 assert.equal(productionReadyCaptionMetadataDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyCaptionMetadataDispatch.toolCostEvents![0].toolCostCredits, 'caption metadata wallet settlement should spend the emitted tool-cost credits')
 
+const productionReadyCaptionQaMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyCaptionQaMetadataInput({
+  jobId: 'job-production-ready-caption-qa-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const captionQaMetadataResult = productionReadyCaptionQaMetadataDispatch.workerResult?.output?.captionExecutionResult as {
+  status?: string
+  captionSegments?: unknown[]
+  captionFiles?: Array<{ format?: string; localFilePath?: string }>
+  artifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+    previewAllowed?: boolean
+  }>
+  qaResults?: Array<{ gateType?: string }>
+  skippedReasons?: unknown[]
+} | undefined
+const captionQaGateTypes = new Set(captionQaMetadataResult?.qaResults?.map((gate) => gate.gateType) ?? [])
+const captionQaArtifacts = productionReadyCaptionQaMetadataDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'caption_segments_json' || artifact.artifactType === 'qa_report') ?? []
+assert.equal(
+  productionReadyCaptionQaMetadataDispatch.gateway.status,
+  'dispatched',
+  `complete evidence plus caption QA metadata adapter should allow backend gateway dispatch: ${JSON.stringify(productionReadyCaptionQaMetadataDispatch.gateway.blockers)}`,
+)
+assert.equal(productionReadyCaptionQaMetadataDispatch.workerResult?.status, 'completed', 'caption QA metadata real handler should complete')
+assert.equal(productionReadyCaptionQaMetadataDispatch.workerResult?.output?.mockOnly, false, 'caption QA metadata production handler should be non-mock')
+assert.equal(productionReadyCaptionQaMetadataDispatch.workerResult?.output?.realToolExecution, true, 'caption QA metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyCaptionQaMetadataDispatch.workerResult?.output?.futureHandler,
+  'qa_worker_caption_metadata_production_handler',
+  'caption QA metadata production handler should use the reviewed QA metadata handler',
+)
+assert.equal(captionQaMetadataResult?.status, 'completed', 'caption QA metadata production handler should complete metadata-only caption QA')
+assert.ok((captionQaMetadataResult?.captionSegments?.length ?? 0) > 0, 'caption QA metadata handler should build caption segments from supplied approved transcript timing')
+assert.ok(
+  captionQaGateTypes.has('caption_readability') &&
+    captionQaGateTypes.has('caption_timing') &&
+    captionQaGateTypes.has('caption_safe_zone') &&
+    captionQaGateTypes.has('transcript_alignment'),
+  'caption QA metadata handler should preserve readability, timing, safe-zone, and transcript-alignment QA gates',
+)
+assert.ok(
+  captionQaMetadataResult?.captionFiles?.every((file) => file.localFilePath === undefined),
+  'caption QA metadata handler must not write local caption files in production_ready mode',
+)
+assert.equal(captionQaMetadataResult?.skippedReasons?.length ?? 0, 0, 'caption QA metadata handler should not skip into preview/render paths')
+assert.ok(captionQaArtifacts.length >= 4, 'worker runtime artifact manifest should include private caption QA metadata artifacts')
+assert.ok(
+  captionQaArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.previewAllowed === false &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'caption QA metadata artifacts must stay private, source-of-truth, non-preview, project-scoped, and unsigned',
+)
+assert.equal(productionReadyCaptionQaMetadataDispatch.toolCostEvents?.length, 1, 'caption QA metadata dispatch should emit one gateway cost event for libass metadata work')
+assert.equal(productionReadyCaptionQaMetadataDispatch.toolCostEvents?.[0]?.toolId, 'libass', 'caption QA metadata dispatch should scope billing audit to libass')
+assert.equal(productionReadyCaptionQaMetadataDispatch.toolCostEvents?.[0]?.billableToUser, true, 'caption QA metadata event should be billable only after approval/reservation/readiness gates')
+assert.equal(productionReadyCaptionQaMetadataDispatch.walletSettlements?.length, 1, 'caption QA metadata dispatch should create one wallet settlement audit row')
+
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
@@ -1076,6 +1140,8 @@ console.log(JSON.stringify({
   realColorMetadataHandler: productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
   realCaptionMetadataDispatchCovered: productionReadyCaptionMetadataDispatch.gateway.status === 'dispatched',
   realCaptionMetadataHandler: productionReadyCaptionMetadataDispatch.workerResult?.output?.futureHandler,
+  realCaptionQaMetadataDispatchCovered: productionReadyCaptionQaMetadataDispatch.gateway.status === 'dispatched',
+  realCaptionQaMetadataHandler: productionReadyCaptionQaMetadataDispatch.workerResult?.output?.futureHandler,
   realFinalRenderMetadataDispatchCovered: productionReadyFinalRenderMetadataDispatch.gateway.status === 'dispatched',
   realFinalRenderMetadataHandler: productionReadyFinalRenderMetadataDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
@@ -1602,6 +1668,20 @@ function productionReadyCaptionMetadataInput(input: {
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyCaptionQaMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  const request = productionReadyCaptionMetadataInput(input)
+  return {
+    ...request,
+    workerType: 'qa_worker',
+    adapterId: 'qa_worker_caption_metadata',
+    requestedRecipeIds: ['caption-qa-metadata-production-handler-recipe'],
   }
 }
 

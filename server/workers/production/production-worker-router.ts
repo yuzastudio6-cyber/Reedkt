@@ -447,6 +447,32 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'render_worker_placeholder',
       }
     case 'qa_worker':
+      if (hasCaptionQaMetadataExecutionRequest(payload)) {
+        const captionExecutionResult = await runCaptionExecution(buildCaptionMetadataExecutionInput(payload))
+        const realCaptionQaMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'qa_worker_caption_metadata' &&
+          captionExecutionResult.mode === 'production_ready' &&
+          captionExecutionResult.status !== 'blocked' &&
+          captionExecutionResult.captionSegments.length > 0 &&
+          captionExecutionResult.captionFiles.length >= 3 &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'caption_segments_json' && artifact.sourceOfTruth) &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'qa_report' && artifact.sourceOfTruth) &&
+          captionExecutionResult.qaResults.length > 0 &&
+          captionExecutionResult.skippedReasons.length === 0
+        return {
+          summary: realCaptionQaMetadataHandler
+            ? 'QA worker caption metadata production handler completed bounded caption readability, timing, safe-zone, and transcript-alignment QA from approved transcript timing without transcription, preview burn-in, or final export.'
+            : 'Milestone 13 QA worker caption metadata route completed in explicit captionMetadata mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realCaptionQaMetadataHandler,
+          realToolExecution: realCaptionQaMetadataHandler,
+          futureHandler: realCaptionQaMetadataHandler
+            ? 'qa_worker_caption_metadata_production_handler'
+            : 'qa_worker_caption_metadata',
+          captionExecutionResult,
+        }
+      }
+
       if (hasFinalRenderQARequest(payload)) {
         const finalRenderExecutionResult = await runFinalRenderExecutionPipeline(buildFinalRenderExecutionInput(payload, { qaOnly: true }))
         return {
@@ -1278,6 +1304,17 @@ function hasCaptionMetadataExecutionRequest(payload: ProductionWorkerJobPayload)
   if (!request || typeof request !== 'object') return false
   const record = request as Record<string, unknown>
   return stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_caption_metadata' &&
+    payload.workerType === 'render_worker' &&
+    record.mode === 'production_ready' &&
+    record.buildCaptions !== false
+}
+
+function hasCaptionQaMetadataExecutionRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.speechCaptionExecution
+  if (!request || typeof request !== 'object') return false
+  const record = request as Record<string, unknown>
+  return stringValue(payload.metadata?.gatewayAdapterId) === 'qa_worker_caption_metadata' &&
+    payload.workerType === 'qa_worker' &&
     record.mode === 'production_ready' &&
     record.buildCaptions !== false
 }

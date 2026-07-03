@@ -92,7 +92,7 @@ These routes produce audio plans, artifacts, and QA gates only. They do not down
 
 ## Caption Metadata Production Handler
 
-`render_worker_caption_metadata` is a reviewed production-ready gateway adapter for private caption metadata only. It consumes approved transcript segments or word timestamps from `metadata.speechCaptionExecution`, builds SRT, WebVTT, ASS, caption segment, and caption QA artifact records, and keeps speech transcription, model downloads, local file writes, preview burn-in, final export, public delivery, and frontend execution blocked. The adapter scopes requested tool accounting to `libass` because it prepares the ASS/caption QA handoff for render, but it does not execute libass.
+`render_worker_caption_metadata` and `qa_worker_caption_metadata` are reviewed production-ready gateway adapters for private caption metadata and QA only. They consume approved transcript segments or word timestamps from `metadata.speechCaptionExecution`, build SRT, WebVTT, ASS, caption segment, and caption QA artifact records, and keep speech transcription, model downloads, local file writes, preview burn-in, final export, public delivery, and frontend execution blocked. The adapters scope requested tool accounting to `libass` because they prepare and validate the ASS/caption QA handoff for render, but they do not execute libass.
 
 ## Milestone 16B Full E2E Workflow Orchestrator
 

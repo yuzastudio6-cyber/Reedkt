@@ -17,6 +17,8 @@ const activationPath =
   'docs/activation-phase-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1-results.md'
 const nextPromptPath =
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1.md'
+const finalExecutionDir =
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const runId = '2026-07-03T03-18-07-159Z-a8bfe642'
@@ -54,7 +56,21 @@ const implementationFiles = [
   'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const followUpFiles = [
+  `${finalExecutionDir}/source-audit.md`,
+  `${finalExecutionDir}/execution-result.md`,
+  `${finalExecutionDir}/command-matrix.md`,
+  `${finalExecutionDir}/artifact-manifest-summary.md`,
+  `${finalExecutionDir}/safety-boundary.md`,
+  `${finalExecutionDir}/validation-results.md`,
+  `${finalExecutionDir}/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1-record.json`,
+  'docs/activation-phase-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-external-agent-production-readiness-review-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...followUpFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

@@ -226,6 +226,31 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         }
       }
 
+      const billingBackendPreflight = await preflightProductionBillingBackend({
+        context,
+        input,
+        workerIdempotencyKey,
+      })
+      if (billingBackendPreflight.blockers.length > 0) {
+        return {
+          gateway: buildGatewayRecord({
+            input,
+            adapterId,
+            blockers: billingBackendPreflight.blockers,
+            status: 'blocked',
+            dispatchedAt: createdAt,
+            workerIdempotencyKey,
+          }),
+          productionReadinessReport: productionReadiness.report,
+          trackBAdapterResult,
+          warnings: [
+            ...warnings,
+            ...billingBackendPreflight.warnings,
+          ],
+        }
+      }
+      warnings.push(...billingBackendPreflight.warnings)
+
       const replay = getWorkerRuntimeArtifactReplay(workerIdempotencyKey)
       if (replay) {
         const billingAudit = await recordGatewayBillingAudit({
@@ -1971,6 +1996,85 @@ async function getProductionReadinessEvidencePacket(
   return {
     packet: getMockProductionToolExecutionReadinessEvidencePacket(workspaceId, packetId),
     latestPacket: packets.at(-1),
+  }
+}
+
+async function preflightProductionBillingBackend(input: {
+  context: ServiceContext
+  input: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string }
+  workerIdempotencyKey: string
+}): Promise<{ blockers: ToolExecutionGatewayBlocker[]; warnings: string[] }> {
+  if (input.input.executionMode !== 'production_ready') return { blockers: [], warnings: [] }
+  if (!input.context.clients.admin || input.context.env.mockOnly) return { blockers: [], warnings: [] }
+
+  const admin = input.context.clients.admin
+  const blockers: ToolExecutionGatewayBlocker[] = []
+
+  const toolCostEventsProbe = await admin
+    .from('tool_cost_events')
+    .select('id')
+    .limit(1)
+  if (toolCostEventsProbe.error) {
+    blockers.push({
+      code: 'PRODUCTION_BILLING_TOOL_COST_EVENTS_BACKEND_UNAVAILABLE',
+      gateName: 'billing_audit',
+      message: 'Production-ready gateway dispatch requires readable tool_cost_events persistence before worker dispatch.',
+      details: {
+        reason: toolCostEventsProbe.error.message,
+        code: toolCostEventsProbe.error.code,
+      },
+    })
+  }
+
+  const walletSettlementsProbe = await admin
+    .from('tool_cost_wallet_settlements')
+    .select('id')
+    .limit(1)
+  if (walletSettlementsProbe.error) {
+    blockers.push({
+      code: 'PRODUCTION_BILLING_WALLET_SETTLEMENT_BACKEND_UNAVAILABLE',
+      gateName: 'billing_audit',
+      message: 'Production-ready gateway dispatch requires readable tool_cost_wallet_settlements persistence before worker dispatch.',
+      details: {
+        reason: walletSettlementsProbe.error.message,
+        code: walletSettlementsProbe.error.code,
+      },
+    })
+  }
+
+  const settlementRpcProbe = await admin.rpc('settle_tool_cost_event', {
+    p_idempotency_key: `${input.workerIdempotencyKey}:billing-preflight`,
+    p_tool_cost_event_id: `${input.workerIdempotencyKey}:missing-tool-cost-event-preflight`,
+    p_settlement_type: 'spend',
+  })
+  const rpcErrorMessage = settlementRpcProbe.error?.message ?? ''
+  const rpcProbeConfirmed = settlementRpcProbe.error
+    ? /tool cost event not found/i.test(rpcErrorMessage)
+    : true
+  if (!rpcProbeConfirmed) {
+    blockers.push({
+      code: 'PRODUCTION_BILLING_WALLET_SETTLEMENT_RPC_UNAVAILABLE',
+      gateName: 'billing_audit',
+      message: 'Production-ready gateway dispatch requires the service-role-only settle_tool_cost_event RPC before worker dispatch.',
+      details: {
+        reason: rpcErrorMessage || 'settle_tool_cost_event RPC did not confirm availability.',
+        code: settlementRpcProbe.error?.code,
+      },
+    })
+  }
+
+  if (blockers.length > 0) {
+    return {
+      blockers,
+      warnings: ['Production billing backend preflight blocked before worker dispatch; no tool work or billing audit ran.'],
+    }
+  }
+
+  return {
+    blockers: [],
+    warnings: [
+      'Production billing backend preflight confirmed tool_cost_events, tool_cost_wallet_settlements, and settle_tool_cost_event before worker dispatch.',
+    ],
   }
 }
 

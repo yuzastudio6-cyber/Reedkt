@@ -1,0 +1,77 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-WORKER-LEASE-NOOP-1",
+  "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_worker_lease_noop",
+  "execution": "completed_confirmation_gated_worker_lease_noop_contract_validation_no_persistent_queue_write_worker_process_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_EXTERNAL_AGENT_APPROVED_SNAPSHOT_WORKER_LEASE_NOOP=true",
+  "runId": "2026-07-03T03-18-07-159Z-a8bfe642",
+  "outputDir": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1/2026-07-03T03-18-07-159Z-a8bfe642",
+  "sourceRouteDryRun": {
+    "mergeSha": "217426b0730f45644deeb0f9fe3f4f75e13f68ae",
+    "headSha": "13b45f805182fbd8252d1f65cc9a27ee0021e4b0",
+    "runId": "2026-07-03T03-10-51-404Z-c37eaafa",
+    "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_job_route_dry_run",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "workerLeaseNoop": {
+    "workerLane": "tracka_gstreamer_mkvtoolnix_external_agent_generated_fixture",
+    "approvedSnapshotId": "approved-snapshot-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "jobId": "job-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "sourceRouteIdempotencyKey": "edd9e5a10252c85e8f0b34867b08dad5c6f4a10fc2fa3038a278678911fe330b",
+    "leaseNoopId": "8b740ef8f6fe600e6be61acd2891b9740865b8c1a0622c6b4bdd38c5d977635b",
+    "leaseNoopTokenHash": "8b0fcdd803227d393789622fb05c7bb73c3f79b667337ab04d4f06e79b52a5c9",
+    "leaseEnvelopeValidation": "passed",
+    "approvedSnapshotReferenceValidation": "passed",
+    "routeEvidenceValidation": "passed",
+    "cleanupPolicyValidation": "passed",
+    "persistentJobQueueWrite": false,
+    "persistentLeaseClaim": false,
+    "realWorkerDispatch": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "toolExecution": false
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-report.json",
+      "bytes": 4077,
+      "sha256": "aa575523b3dd753965f07bad97df571603d514847510d41b3354bc10b2e5a3bb"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-manifest.json",
+      "bytes": 1259,
+      "sha256": "d95d4478a0c2790c0ad2fc622b94e0e055db2bf4468dd1d51cda3ae649fffcb3"
+    }
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_external_agent_approved_snapshot_job_execution",
+    "mkvtoolnix_container_validation": "ready_for_external_agent_approved_snapshot_job_execution",
+    "gpac_mp4box_packaging_validation": "blocked_pending_package_source_install_proof"
+  },
+  "safety": {
+    "persistentJobQueueWrite": false,
+    "persistentLeaseClaim": false,
+    "realWorkerDispatch": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "toolExecution": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "gpacMp4boxExecution": false,
+    "dockerExecution": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-EXECUTION-1"
+}

@@ -680,6 +680,8 @@
     "tracka:gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-1-diagnostics.mjs",
     "tracka:gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1": "tsx server/cli/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1.ts",
     "tracka:gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1-diagnostics.mjs",
+    "tracka:gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1": "tsx server/cli/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1.ts",
+    "tracka:gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1-diagnostics.mjs",
     "tracka:gpac-mp4box-disabled-runtime-scaffold:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-runtime-scaffold-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-disabled-runtime-scaffold": "tsx server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts",
     "tracka:gpac-mp4box-runtime-scaffold-negative-tests:diagnostics": "node scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs",

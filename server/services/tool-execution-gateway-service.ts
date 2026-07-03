@@ -30,6 +30,7 @@ import {
   getProductionToolProfile,
 } from '../tool-registry'
 import type { ProductionToolId } from '../tool-registry'
+import { listM10CoreCpuRenderToolIds } from '../workers/production-readiness/core-cpu-render-readiness-checks'
 import { validateProductionStorageReference } from '../workers/production/production-worker-artifact-policy'
 import {
   getProjectWorkerRuntimeOutputManifest,
@@ -58,6 +59,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'gpu_ai_worker_placeholder'
   | 'render_worker_placeholder'
   | 'qa_worker_placeholder'
+  | 'tool_readiness_worker_core_checks'
   | 'tool_readiness_worker_placeholder'
 
 export interface ToolExecutionGatewayBlocker {
@@ -101,6 +103,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
   render_worker_placeholder: 'render_worker',
   qa_worker_placeholder: 'qa_worker',
+  tool_readiness_worker_core_checks: 'tool_readiness_worker',
   tool_readiness_worker_placeholder: 'tool_readiness_worker',
 }
 
@@ -126,7 +129,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
       const productionReadiness = await validateProductionReadinessGate(context, input)
       blockers.push(...await validateApprovedSnapshotAndCreditReservation(context, input))
       blockers.push(...validateGatewayAdapter(adapterId, input))
-      blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId))
+      blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId, adapterId))
       blockers.push(...validateArtifactPrivacy(input))
       blockers.push(...validateMetadataSafety(input.metadata, adapterId))
       blockers.push(...validateCostCreditGate(input))
@@ -607,6 +610,33 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'tool_readiness_worker_core_checks') {
+    const toolReadiness = input.metadata?.toolReadiness
+    const mode = toolReadiness && typeof toolReadiness === 'object'
+      ? (toolReadiness as Record<string, unknown>).mode
+      : undefined
+    const allowedToolIds = new Set<ProductionToolId>(listM10CoreCpuRenderToolIds())
+    const outOfScopeToolIds = input.requestedToolIds.filter((toolId) => !allowedToolIds.has(toolId))
+
+    if (outOfScopeToolIds.length > 0) {
+      blockers.push({
+        code: 'TOOL_READINESS_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'tool_readiness_worker_core_checks may inspect only the reviewed M10 core CPU/render readiness tool set.',
+        details: { requestedToolIds: input.requestedToolIds, outOfScopeToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'TOOL_READINESS_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'tool_readiness_worker_core_checks production dispatch requires metadata.toolReadiness.mode=production_ready.',
+        details: { toolReadinessMode: mode },
+      })
+    }
+  }
+
   return blockers
 }
 
@@ -615,6 +645,7 @@ function validateToolReadiness(
   workerType: ProductionWorkerRuntimeType,
   executionMode: ProductionWorkerExecutionMode,
   trackBAdapterToolId?: string,
+  adapterId?: ToolExecutionGatewayAdapterId,
 ): ToolExecutionGatewayBlocker[] {
   const blockers: ToolExecutionGatewayBlocker[] = []
 
@@ -633,12 +664,14 @@ function validateToolReadiness(
       continue
     }
 
-    const runtime = evaluateRuntimePolicy(profile, workerType)
+    const runtime = adapterId === 'tool_readiness_worker_core_checks' && workerType === 'tool_readiness_worker'
+      ? evaluateRuntimePolicy(profile)
+      : evaluateRuntimePolicy(profile, workerType)
     blockers.push(...runtime.blockingReasons.map((message) => ({
       code: 'TOOL_NOT_READY',
       gateName: 'tool_readiness',
       message,
-      details: { toolId, workerType, executionMode },
+      details: { toolId, workerType, executionMode, adapterId },
     })))
 
     if (executionMode === 'production_ready') {
@@ -648,13 +681,13 @@ function validateToolReadiness(
         code: 'LICENSE_REVIEW_REQUIRED',
         gateName: 'license_model_weight',
         message,
-        details: { toolId },
+        details: { toolId, adapterId },
       })))
       blockers.push(...modelWeight.blockingReasons.map((message) => ({
         code: 'MODEL_WEIGHT_REVIEW_REQUIRED',
         gateName: 'license_model_weight',
         message,
-        details: { toolId },
+        details: { toolId, adapterId },
       })))
     }
   }
@@ -1003,7 +1036,7 @@ async function recordGatewayBillingAudit(input: {
         wallClockMs: Math.max(0, Date.parse(input.workerResult.completedAt) - Date.parse(input.workerResult.startedAt)),
         retryAttempt: input.input.attempt,
         failureCategory,
-        billableToUser: input.workerResult.status === 'completed',
+        billableToUser: shouldBillGatewayEventToUser(input.input, input.workerResult),
         approvedReservationRemainingCredits: input.input.approvedReservationRemainingCredits,
         gpuCount: coverage.gpuRequired ? 1 : 0,
         metadata: {
@@ -1051,6 +1084,14 @@ async function recordGatewayBillingAudit(input: {
   }
 
   return { toolCostEvents, walletSettlements, warnings, blockers }
+}
+
+function shouldBillGatewayEventToUser(
+  input: ToolExecutionGatewayDispatchBody,
+  workerResult: ProductionWorkerExecutionResult,
+): boolean {
+  if (input.workerType === 'tool_readiness_worker') return false
+  return workerResult.status === 'completed'
 }
 
 function mapWorkerFailureCategory(category: ProductionWorkerFailureCategory | undefined): ToolCostFailureCategory {

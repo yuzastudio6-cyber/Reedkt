@@ -207,7 +207,6 @@ function main() {
           '--zone',
           SPEC.boundedRunnerRequirements.targetZone,
           '--tunnel-through-iap',
-          '--internal-ip',
           '--quiet',
           '--ssh-flag=-o ConnectTimeout=15',
           '--ssh-flag=-o BatchMode=yes',

@@ -203,6 +203,8 @@ function main() {
         readyForBroll10rBoundedRunnerFixPrompt: spec.readyForBroll10rBoundedRunnerFixPrompt,
         readyForBroll10sFixedCanaryExecutePrompt: spec.readyForBroll10sFixedCanaryExecutePrompt,
         readyForBroll10tIapSshFlagFixPrompt: spec.readyForBroll10tIapSshFlagFixPrompt,
+        readyForBroll10uNoGpuIapSshCanaryRerunPrompt:
+          spec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt,
         nextAction: spec.nextAction,
       },
       null,

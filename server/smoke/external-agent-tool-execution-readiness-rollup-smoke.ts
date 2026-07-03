@@ -81,8 +81,8 @@ const BROLL_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT =
   'AI-VIDEO-BROLL-GEN-10R-FIX-IAP-SSH-CANARY-BOUNDED-RUNNER: fix bounded no-GPU IAP SSH canary runner timeout and durable cleanup-summary capture, no GPU/no model/no inference'
 const BROLL_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-10S-NO-GPU-IAP-SSH-CANARY-BOUNDED-RUNNER-EXECUTE: run the fixed bounded no-GPU IAP SSH canary with hard timeouts, durable summaries, and mandatory cleanup; no GPU/no model/no inference'
-const BROLL_10T_IAP_SSH_FLAG_FIX_PROMPT =
-  'AI-VIDEO-BROLL-GEN-10T-IAP-SSH-FLAG-FIX: remove mutually exclusive IAP SSH flags from the bounded no-GPU canary runner, no VM/no model/no inference'
+const BROLL_10U_NO_GPU_IAP_SSH_CANARY_RERUN_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10U-NO-GPU-IAP-SSH-CANARY-RERUN: rerun the bounded no-GPU IAP SSH canary after removing mutually exclusive flags; no GPU/no model/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -137,7 +137,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10t_iap_ssh_flag_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10u_no_gpu_iap_ssh_canary_rerun_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -213,10 +213,13 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_10t_iap_ssh_flag_fix_required`',
+  '`broll_10u_no_gpu_iap_ssh_canary_rerun_required`',
   'docs/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.md',
   'server/smoke/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result-smoke.ts',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10t-iap-ssh-flag-fix.md',
+  'docs/ai-video-broll-gen-10t-iap-ssh-flag-fix-result.md',
+  'server/smoke/ai-video-broll-gen-10t-iap-ssh-flag-fix-result-smoke.ts',
+  'docs/implementation-prompts/prompt-ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun.md',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -396,7 +399,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10t_iap_ssh_flag_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10u_no_gpu_iap_ssh_canary_rerun_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -406,7 +409,7 @@ assert.equal(rollup.sourceRules.approvedSnapshotRequired, true)
 assert.equal(rollup.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
-assert.equal(rollup.recommendedNextPrompt, BROLL_10T_IAP_SSH_FLAG_FIX_PROMPT)
+assert.equal(rollup.recommendedNextPrompt, BROLL_10U_NO_GPU_IAP_SSH_CANARY_RERUN_PROMPT)
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
@@ -669,7 +672,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_10t_iap_ssh_flag_fix_required',
+  'broll_10u_no_gpu_iap_ssh_canary_rerun_required',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1105,12 +1108,25 @@ assert.equal(
   broll?.evidence.includes('docs/implementation-prompts/prompt-ai-video-broll-gen-10t-iap-ssh-flag-fix.md'),
   true,
 )
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-10t-iap-ssh-flag-fix-result.md'), true)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-10t-iap-ssh-flag-fix-result.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-10t-iap-ssh-flag-fix-result-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('docs/implementation-prompts/prompt-ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun.md'),
+  true,
+)
 assert.equal(broll?.evidence.includes('server/cli/ai-video-broll-gen-10r-iap-ssh-canary-bounded-runner.ts'), true)
 assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_10T_IAP_SSH_FLAG_FIX_PROMPT)
+assert.equal(broll?.nextAction, BROLL_10U_NO_GPU_IAP_SSH_CANARY_RERUN_PROMPT)
 assert.equal(broll?.evidence.includes('server/cli/external-agent-tool-blocker-preflight.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(broll?.manualBlockerActions?.length, 0)
@@ -1141,7 +1157,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_10T_IAP_SSH_FLAG_FIX_PROMPT,
+  BROLL_10U_NO_GPU_IAP_SSH_CANARY_RERUN_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

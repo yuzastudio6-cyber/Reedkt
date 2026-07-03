@@ -1,5 +1,5 @@
 import {
-  AI_VIDEO_BROLL_GEN_10T_IAP_SSH_FLAG_FIX_PROMPT,
+  AI_VIDEO_BROLL_GEN_10U_NO_GPU_IAP_SSH_CANARY_RERUN_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -118,12 +118,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10R non-GPU no-public-IP IAP SSH canary result must remain recorded as interrupted with cleanup repaired and no durable SSH pass/fail evidence',
         '10R-FIX bounded runner packet must remain recorded with hard timeouts, durable summaries, and cleanup verification',
         '10S no-GPU canary result must remain recorded as blocked by mutually exclusive gcloud SSH flags with cleanup verified',
-        '10T flag fix must run before any further canary or GPU VM attempt',
+        '10T flag fix result must remain recorded with --tunnel-through-iap retained and --internal-ip removed',
+        '10U no-GPU IAP SSH canary rerun must capture real SSH pass/fail evidence before any GPU VM attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'broll_10t_iap_ssh_flag_fix_required',
+      currentBlocker: 'broll_10u_no_gpu_iap_ssh_canary_rerun_required',
       safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result',
+        'npm run smoke:ai-video-broll-gen-10t-iap-ssh-flag-fix-result',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -170,7 +171,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10T_IAP_SSH_FLAG_FIX_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10U_NO_GPU_IAP_SSH_CANARY_RERUN_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

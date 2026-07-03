@@ -1,5 +1,5 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
-  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10t_iap_ssh_flag_fix_required',
+  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10u_no_gpu_iap_ssh_canary_rerun_required',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
@@ -36,7 +36,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     readyForNonGpuIapSshCanaryPrompt: false,
     readyForBroll10rBoundedRunnerFixPrompt: false,
     readyForBroll10sFixedCanaryExecutePrompt: false,
-    readyForBroll10tIapSshFlagFixPrompt: true,
+    readyForBroll10tIapSshFlagFixPrompt: false,
+    readyForBroll10uNoGpuIapSshCanaryRerunPrompt: true,
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
@@ -53,7 +54,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   readyForNonGpuIapSshCanaryPrompt: false,
   readyForBroll10rBoundedRunnerFixPrompt: false,
   readyForBroll10sFixedCanaryExecutePrompt: false,
-  readyForBroll10tIapSshFlagFixPrompt: true,
+  readyForBroll10tIapSshFlagFixPrompt: false,
+  readyForBroll10uNoGpuIapSshCanaryRerunPrompt: true,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
   runtimeSideEffects: {
@@ -83,7 +85,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10T-IAP-SSH-FLAG-FIX: remove mutually exclusive IAP SSH flags from the bounded no-GPU canary runner, no VM/no model/no inference',
+    'AI-VIDEO-BROLL-GEN-10U-NO-GPU-IAP-SSH-CANARY-RERUN: rerun the bounded no-GPU IAP SSH canary after removing mutually exclusive flags; no GPU/no model/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

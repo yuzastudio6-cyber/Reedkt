@@ -93,7 +93,7 @@ assert.equal(cliSource.includes('stat-only cache readiness check'), true)
 const spec = AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC
 assert.equal(
   spec.decision,
-  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10t_iap_ssh_flag_fix',
+  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10u_no_gpu_iap_ssh_canary_rerun',
 )
 assert.equal(spec.mode, 'stat_only_private_cache_readiness_check')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
@@ -123,7 +123,8 @@ assert.equal(spec.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(spec.readyForNonGpuIapSshCanaryPrompt, false)
 assert.equal(spec.readyForBroll10rBoundedRunnerFixPrompt, false)
 assert.equal(spec.readyForBroll10sFixedCanaryExecutePrompt, false)
-assert.equal(spec.readyForBroll10tIapSshFlagFixPrompt, true)
+assert.equal(spec.readyForBroll10tIapSshFlagFixPrompt, false)
+assert.equal(spec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, true)
 assert.equal(spec.manifest.length, spec.runtimeEssentialFileCount)
 assert.equal(
   spec.manifest.reduce((total, entry) => total + entry.expectedBytes, 0),
@@ -162,11 +163,12 @@ assert.equal(summary.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(summary.readyForNonGpuIapSshCanaryPrompt, false)
 assert.equal(summary.readyForBroll10rBoundedRunnerFixPrompt, false)
 assert.equal(summary.readyForBroll10sFixedCanaryExecutePrompt, false)
-assert.equal(summary.readyForBroll10tIapSshFlagFixPrompt, true)
+assert.equal(summary.readyForBroll10tIapSshFlagFixPrompt, false)
+assert.equal(summary.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, true)
 assert.equal(summary.nextAction, spec.nextAction)
 assert.equal(
   summary.nextAction,
-  'AI-VIDEO-BROLL-GEN-10T-IAP-SSH-FLAG-FIX: remove mutually exclusive IAP SSH flags from the bounded no-GPU canary runner, no VM/no model/no inference',
+  'AI-VIDEO-BROLL-GEN-10U-NO-GPU-IAP-SSH-CANARY-RERUN: rerun the bounded no-GPU IAP SSH canary after removing mutually exclusive flags; no GPU/no model/no inference',
 )
 
 for (const [flag, value] of Object.entries(summary.runtimeSideEffects as Record<string, boolean>)) {

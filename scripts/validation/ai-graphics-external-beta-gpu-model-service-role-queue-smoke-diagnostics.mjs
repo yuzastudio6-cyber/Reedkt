@@ -366,6 +366,8 @@ function checkPackageJson() {
     '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.ts",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke-proof": "tsx server/cli/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-proof.ts",',
+    '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-proof-diagnostics.mjs",',
   ])
   for (const line of packageDiffLines) {
     if (!allowedPackageAdditions.has(line)) {

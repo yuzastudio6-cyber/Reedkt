@@ -96,6 +96,36 @@ await assert.rejects(
   'Mock settlement replay must fail closed when the caller supplies a mismatched workspace.',
 )
 
+await assert.rejects(
+  settleToolCostWallet(context, {
+    workspaceId: eventResult.event.workspaceId,
+    projectId: eventResult.event.projectId,
+    toolCostEventId: eventResult.event.id,
+    creditEstimateId: eventResult.event.creditEstimateId,
+    toolCostCredits: eventResult.event.toolCostCredits,
+    billableToUser: true,
+    failureCategory: 'none',
+    settlementType: 'spend',
+  }, 'tool-cost-wallet-settlement-smoke-missing-reservation'),
+  /creditReservationId|CREDITS_NOT_RESERVED/,
+  'Billable mock settlement must require a caller-supplied creditReservationId.',
+)
+
+await assert.rejects(
+  settleToolCostWallet(context, {
+    workspaceId: eventResult.event.workspaceId,
+    projectId: eventResult.event.projectId,
+    toolCostEventId: eventResult.event.id,
+    creditEstimateId: eventResult.event.creditEstimateId,
+    toolCostCredits: 1,
+    billableToUser: false,
+    failureCategory: 'provider_error',
+    settlementType: 'release',
+  }, 'tool-cost-wallet-settlement-smoke-release-missing-reservation'),
+  /creditReservationId|CREDITS_NOT_RESERVED/,
+  'Release mock settlement must require a caller-supplied creditReservationId.',
+)
+
 const nonBillable = await settleToolCostWallet(context, {
   workspaceId: eventResult.event.workspaceId,
   projectId: eventResult.event.projectId,

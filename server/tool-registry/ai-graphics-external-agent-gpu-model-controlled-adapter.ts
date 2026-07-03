@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 import {
   runAiGraphicsFoundationRuntimeCheck,
@@ -117,6 +118,222 @@ function optionalNumber(
 
 function optionalBoolean(payload: Record<string, unknown>, key: string): boolean {
   return payload[key] === true
+}
+
+const runtimePythonModulesByTool: Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  string[]
+> = {
+  torch_torchvision: ['torch', 'torchvision'],
+  transformers: ['torch', 'transformers'],
+  sam2: ['torch', 'torchvision', 'numpy', 'PIL', 'sam2'],
+  birefnet: [
+    'torch',
+    'torchvision',
+    'transformers',
+    'PIL',
+    'timm',
+    'kornia',
+    'einops',
+    'scipy',
+    'skimage',
+  ],
+  real_esrgan: ['torch', 'torchvision', 'PIL', 'cv2', 'basicsr', 'realesrgan'],
+  kornia: ['torch', 'PIL', 'numpy', 'kornia'],
+  rembg: ['numpy', 'PIL', 'onnxruntime', 'rembg'],
+  transparent_background: ['torch', 'PIL', 'numpy', 'transparent_background'],
+}
+
+function hasScopedLocalRuntimeInputs(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): boolean {
+  const outputDirectory = optionalString(payload, 'outputDirectory')
+  const sourceFrame =
+    optionalString(payload, 'sourceImageLocalPath') ??
+    optionalString(payload, 'representativeFrameLocalPath')
+  if (!outputDirectory) return false
+
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') return true
+  if (toolId === 'sam2') return Boolean(optionalString(payload, 'sam2CheckpointLocalPath'))
+  if (toolId === 'birefnet') {
+    return Boolean(sourceFrame && optionalString(payload, 'birefnetModelLocalPath'))
+  }
+  if (toolId === 'real_esrgan') {
+    return Boolean(sourceFrame && optionalString(payload, 'realEsrganModelLocalPath'))
+  }
+  if (toolId === 'kornia') return Boolean(sourceFrame)
+  if (toolId === 'rembg') {
+    return Boolean(sourceFrame && optionalString(payload, 'rembgModelLocalPath'))
+  }
+  return Boolean(
+    sourceFrame &&
+      optionalString(payload, 'transparentBackgroundCheckpointLocalPath'),
+  )
+}
+
+function runtimePreflightPython(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): Record<string, unknown> | null {
+  const modules = runtimePythonModulesByTool[toolId]
+  const pythonBin = process.env.AI_GRAPHICS_PYTHON_BIN ?? process.env.PYTHON_BIN ?? 'python3'
+  const code = `
+import importlib.util
+import json
+import sys
+
+tool_id = sys.argv[1]
+modules = sys.argv[2:]
+missing = [module for module in modules if importlib.util.find_spec(module) is None]
+cuda_available = False
+cuda_provider_available = False
+if not missing:
+    if tool_id == "rembg":
+        import onnxruntime as ort
+        cuda_provider_available = "CUDAExecutionProvider" in ort.get_available_providers()
+        cuda_available = cuda_provider_available
+    else:
+        import torch
+        cuda_available = bool(torch.cuda.is_available())
+print(json.dumps({
+    "missingModules": missing,
+    "cudaAvailable": cuda_available,
+    "cudaProviderAvailable": cuda_provider_available,
+}))
+`
+  try {
+    return JSON.parse(execFileSync(pythonBin, ['-c', code, toolId, ...modules], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        HF_DATASETS_OFFLINE: '1',
+        HF_HUB_OFFLINE: '1',
+        MODEL_DOWNLOADS_ENABLED: 'false',
+        PROVIDER_EXECUTION_ENABLED: 'false',
+        REAL_MEDIA_INPUT_ENABLED: 'false',
+        TRANSFORMERS_OFFLINE: '1',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 30_000,
+    })) as Record<string, unknown>
+  } catch (error) {
+    return {
+      preflightError: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+function runtimePrerequisiteBlock(
+  request: AiGraphicsExternalAgentGpuModelControlledAdapterRequest,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (optionalString(payload, 'mode') !== 'local_dev') return null
+  if (!executionEnabled(payload)) return null
+  if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
+
+  const preflight = runtimePreflightPython(request.toolId)
+  const missingModules = Array.isArray(preflight?.missingModules)
+    ? preflight.missingModules.filter((module): module is string => typeof module === 'string')
+    : []
+  const preflightError = typeof preflight?.preflightError === 'string'
+    ? preflight.preflightError
+    : null
+  const cudaAvailable = preflight?.cudaAvailable === true
+  const cudaProviderAvailable = preflight?.cudaProviderAvailable === true
+
+  if (preflightError) {
+    return {
+      executionInputMode: 'local_dev',
+      result: {
+        status: 'skipped',
+        tool: request.toolId,
+        commandPlan: {
+          tool: request.toolId,
+          command: 'python',
+          args: ['-c', 'importlib.util.find_spec(...)'],
+          executes: false,
+          summary:
+            'GPU/model Python runtime prerequisite preflight failed before execution.',
+        },
+        skipReason: {
+          code: 'gpu_model_python_runtime_unavailable',
+          message: preflightError,
+          tool: request.toolId,
+        },
+        warningCount: 1,
+        errorMessage: undefined,
+      },
+      localRuntimeExecutionPerformed: false,
+      warnings: [
+        'GPU/model runtime did not start because Python runtime prerequisite preflight failed.',
+      ],
+    }
+  }
+
+  if (missingModules.length > 0) {
+    return {
+      executionInputMode: 'local_dev',
+      result: {
+        status: 'skipped',
+        tool: request.toolId,
+        commandPlan: {
+          tool: request.toolId,
+          command: 'python',
+          args: ['-c', 'importlib.util.find_spec(...)'],
+          executes: false,
+          summary:
+            'GPU/model Python package prerequisite preflight blocked execution before runtime start.',
+        },
+        skipReason: {
+          code: 'gpu_model_python_package_missing',
+          message: `Missing Python package/module prerequisite(s): ${missingModules.join(', ')}`,
+          tool: request.toolId,
+        },
+        missingModules,
+        warningCount: 1,
+        errorMessage: undefined,
+      },
+      localRuntimeExecutionPerformed: false,
+      warnings: [
+        'GPU/model runtime did not start because Python package prerequisites are missing.',
+      ],
+    }
+  }
+
+  if (!cudaAvailable || (request.toolId === 'rembg' && !cudaProviderAvailable)) {
+    return {
+      executionInputMode: 'local_dev',
+      result: {
+        status: 'skipped',
+        tool: request.toolId,
+        commandPlan: {
+          tool: request.toolId,
+          command: 'python',
+          args: ['-c', 'torch.cuda.is_available() / onnxruntime CUDAExecutionProvider'],
+          executes: false,
+          summary:
+            'GPU/model native CUDA prerequisite preflight blocked execution before runtime start.',
+        },
+        skipReason: {
+          code: request.toolId === 'rembg'
+            ? 'gpu_model_onnxruntime_cuda_provider_missing'
+            : 'gpu_model_native_cuda_runtime_missing',
+          message: request.toolId === 'rembg'
+            ? 'onnxruntime CUDAExecutionProvider is unavailable; no CPU fallback is accepted.'
+            : 'torch.cuda.is_available() is false; no CPU fallback is accepted.',
+          tool: request.toolId,
+        },
+        warningCount: 1,
+        errorMessage: undefined,
+      },
+      localRuntimeExecutionPerformed: false,
+      warnings: [
+        'GPU/model runtime did not start because native CUDA runtime proof is missing.',
+      ],
+    }
+  }
+
+  return null
 }
 
 function privateRef(value: string, field: string): void {
@@ -417,18 +634,25 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
   }
 
   const payload = asObject(request.payload)
-  const runtimeOutput = request.toolId === 'torch_torchvision' ||
+  const prerequisiteBlock = runtimePrerequisiteBlock(request, payload)
+  const runtimeOutput = prerequisiteBlock ?? (request.toolId === 'torch_torchvision' ||
       request.toolId === 'transformers'
     ? await runFoundationTool(request, payload)
     : request.toolId === 'real_esrgan'
     ? await runEnhancementTool(request, payload)
-    : await runMaskTool(request, payload)
+    : await runMaskTool(request, payload))
 
   const localRuntimeExecutionPerformed =
     runtimeOutput.localRuntimeExecutionPerformed === true
   const skipped = (
     runtimeOutput.result as { status?: unknown } | undefined
   )?.status === 'skipped'
+  const skipCode = (
+    (runtimeOutput.result as { skipReason?: { code?: unknown } } | undefined)
+      ?.skipReason
+      ?.code
+  )
+  const skipReasonCode = typeof skipCode === 'string' ? skipCode : null
   const failed = (
     runtimeOutput.result as { status?: unknown } | undefined
   )?.status === 'failed'
@@ -468,7 +692,9 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
           ? runtimeOutput.warnings.filter((warning): warning is string => typeof warning === 'string')
           : []
       ),
-      ...(skipped
+      ...(skipped &&
+        !skipReasonCode?.startsWith('gpu_model_python') &&
+        !skipReasonCode?.includes('cuda')
         ? ['GPU/model runtime did not start because explicit local-dev execution inputs were not provided.']
         : []),
       'GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked.',

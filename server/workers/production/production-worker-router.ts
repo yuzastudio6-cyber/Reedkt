@@ -33,12 +33,20 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
     case 'cpu_analysis_worker':
       if (hasMediaFoundationRequest(payload)) {
         const mediaFoundationResult = await runMediaAnalysisFoundation(buildMediaFoundationInput(payload))
+        const realMediaProbeHandler = mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined
         return {
-          summary: 'Milestone 6 CPU media foundation route completed in explicit mediaFoundation mode.',
+          summary: realMediaProbeHandler
+            ? 'CPU media probe production handler completed bounded ffprobe execution.'
+            : 'Milestone 6 CPU media foundation route completed in explicit mediaFoundation mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_media_foundation',
+          mockOnly: !realMediaProbeHandler,
+          realToolExecution: realMediaProbeHandler,
+          futureHandler: realMediaProbeHandler
+            ? 'cpu_analysis_worker_media_probe_production_handler'
+            : 'cpu_analysis_worker_media_foundation',
           mediaFoundationResult,
         }
       }
@@ -1334,12 +1342,12 @@ function hasMediaFoundationRequest(payload: ProductionWorkerJobPayload): boolean
   const request = payload.metadata?.mediaFoundation
   if (!request || typeof request !== 'object') return false
   const mode = (request as Record<string, unknown>).mode
-  return mode === 'dry_run' || mode === 'local_dev'
+  return mode === 'dry_run' || mode === 'local_dev' || mode === 'production_ready'
 }
 
 function buildMediaFoundationInput(payload: ProductionWorkerJobPayload) {
   const request = payload.metadata?.mediaFoundation as Record<string, unknown>
-  const mode = request.mode as Extract<MediaFoundationRunMode, 'dry_run' | 'local_dev'>
+  const mode = request.mode as Extract<MediaFoundationRunMode, 'dry_run' | 'local_dev' | 'production_ready'>
   const sourceObjectPath = stringValue(request.sourceStorageObjectPath) ?? payload.storageReferenceIds[0] ?? 'source_media/not-set'
   const sourceLocalPath = stringValue(request.sourceLocalPath)
   const sourceStorageObjectId = stringValue(request.sourceStorageObjectId) ?? payload.storageReferenceIds[0] ?? 'source-storage-object-not-set'

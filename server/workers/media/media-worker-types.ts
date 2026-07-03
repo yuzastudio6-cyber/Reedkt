@@ -3,7 +3,7 @@ import type { ProductionStorageBucketPurpose, ToolArtifactType } from '../../../
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 import type { ProductionWorkerJobPayload } from '../production/production-worker-types'
 
-export type MediaFoundationRunMode = 'dry_run' | 'local_dev' | 'production_blocked'
+export type MediaFoundationRunMode = 'dry_run' | 'local_dev' | 'production_ready' | 'production_blocked'
 
 export type MediaFoundationTask =
   | 'probe'

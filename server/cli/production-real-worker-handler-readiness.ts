@@ -1,8 +1,12 @@
 import { readFileSync } from 'node:fs'
 
-type HandlerReadinessStatus = 'ready_for_real_tool_execution' | 'blocked_by_placeholder_worker_handlers'
+type HandlerReadinessStatus =
+  | 'ready_for_real_tool_execution'
+  | 'partial_real_handler_coverage'
+  | 'blocked_by_placeholder_worker_handlers'
 type HandlerReadinessDecision =
   | 'production_real_worker_handler_readiness_ready_for_real_tool_execution_gate'
+  | 'production_real_worker_handler_readiness_blocked_by_partial_handler_coverage'
   | 'production_real_worker_handler_readiness_blocked_by_mock_safe_placeholder_dispatch'
 
 interface HandlerReadinessCheck {
@@ -17,6 +21,8 @@ export interface ProductionRealWorkerHandlerReadinessReport {
   status: HandlerReadinessStatus
   decision: HandlerReadinessDecision
   readyForRealToolExecution: boolean
+  boundedRealHandlerReady: boolean
+  allProductionHandlerCoverageReady: boolean
   backendCallsAttempted: false
   toolExecutionAttempted: false
   mediaProcessingAttempted: false
@@ -38,6 +44,9 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
   const sources = Object.fromEntries(
     Object.entries(sourceFiles).map(([key, path]) => [key, readSource(path)]),
   ) as Record<keyof typeof sourceFiles, string>
+  const routerLiteralNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: false')
+  const routerConditionalNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler')
+  const routerHasReviewedNonMockOutput = routerLiteralNonMockOutputs + routerConditionalNonMockOutputs > 0
 
   const checks: HandlerReadinessCheck[] = [
     {
@@ -51,19 +60,20 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     },
     {
       id: 'router_has_non_mock_outputs',
-      passed: countOccurrences(sources.workerRouter, 'mockOnly: true') === 0 && countOccurrences(sources.workerRouter, 'mockOnly: false') > 0,
+      passed: routerHasReviewedNonMockOutput,
       message: 'Production worker router must expose non-mock handler outputs for paid production.',
       evidence: {
         file: sourceFiles.workerRouter,
         mockOnlyTrueOccurrences: countOccurrences(sources.workerRouter, 'mockOnly: true'),
-        mockOnlyFalseOccurrences: countOccurrences(sources.workerRouter, 'mockOnly: false'),
+        mockOnlyFalseOccurrences: routerLiteralNonMockOutputs,
+        conditionalNonMockOccurrences: routerConditionalNonMockOutputs,
         futureHandlerOccurrences: countOccurrences(sources.workerRouter, 'futureHandler'),
       },
     },
     {
-      id: 'dispatcher_messages_are_not_placeholder',
-      passed: !/placeholder route|placeholder step|placeholder job|mock-safe dispatcher/i.test(sources.workerDispatcher),
-      message: 'Production worker dispatcher must not describe accepted production jobs as placeholder/mock-safe execution.',
+      id: 'dispatcher_has_real_handler_completion_copy',
+      passed: /real backend handler step completed/i.test(sources.workerDispatcher),
+      message: 'Production worker dispatcher must distinguish real backend handler completion from mock-safe completion.',
       evidence: {
         file: sourceFiles.workerDispatcher,
         placeholderMentions: countCaseInsensitive(sources.workerDispatcher, 'placeholder'),
@@ -71,22 +81,36 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       },
     },
     {
-      id: 'gateway_adapters_are_real_not_placeholder',
-      passed: !sources.gatewaySchemas.includes('_placeholder'),
-      message: 'Production gateway adapter IDs must point at real backend handler adapters, not placeholder adapters.',
+      id: 'gateway_has_real_backend_adapter',
+      passed: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
+      message: 'Production gateway adapter IDs must include at least one reviewed real backend handler adapter.',
       evidence: {
         file: sourceFiles.gatewaySchemas,
+        realAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
       },
     },
     {
-      id: 'gateway_smoke_no_longer_expects_mock_only_production_ready',
-      passed: !/production_ready[\s\S]{0,1600}mock-safe placeholder output|production_ready[\s\S]{0,1600}output\?\.mockOnly[\s\S]{0,240}true/i.test(sources.gatewaySmoke),
-      message: 'Production gateway smoke coverage must stop accepting mock-only output for production_ready dispatch.',
+      id: 'gateway_smoke_proves_real_production_ready_handler',
+      passed: sources.gatewaySmoke.includes('cpu_analysis_worker_media_probe') &&
+        /production_ready[\s\S]{0,2400}output\?\.mockOnly[\s\S]{0,240}false/i.test(sources.gatewaySmoke),
+      message: 'Production gateway smoke coverage must prove at least one production_ready request reaches a non-mock backend handler.',
       evidence: {
         file: sourceFiles.gatewaySmoke,
         productionReadyMentions: countOccurrences(sources.gatewaySmoke, 'production_ready'),
-        mockOnlyTrueAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly') + countOccurrences(sources.gatewaySmoke, 'mock-safe placeholder output'),
+        realMediaProbeAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_probe'),
+        mockOnlyFalseAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, false'),
+        mockOnlyTrueAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, true') + countOccurrences(sources.gatewaySmoke, 'mock-safe placeholder output'),
+      },
+    },
+    {
+      id: 'placeholder_handler_coverage_retired',
+      passed: countOccurrences(sources.gatewaySchemas, '_placeholder') === 0 &&
+        countOccurrences(sources.workerRouter, 'mockOnly: true') === 0,
+      message: 'All production gateway and worker routes must be real-handler backed before the all-up production execution gate can pass.',
+      evidence: {
+        gatewayPlaceholderMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
+        routerMockOnlyTrueMentions: countOccurrences(sources.workerRouter, 'mockOnly: true'),
       },
     },
   ]
@@ -94,15 +118,29 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
   const blockers = checks
     .filter((check) => !check.passed)
     .map((check) => `${check.id}: ${check.message}`)
-  const readyForRealToolExecution = blockers.length === 0
+  const boundedRealHandlerReady = checks
+    .filter((check) => check.id !== 'placeholder_handler_coverage_retired')
+    .every((check) => check.passed)
+  const allProductionHandlerCoverageReady = checks.every((check) => check.passed)
+  const readyForRealToolExecution = allProductionHandlerCoverageReady
+  const status: HandlerReadinessStatus = readyForRealToolExecution
+    ? 'ready_for_real_tool_execution'
+    : boundedRealHandlerReady
+      ? 'partial_real_handler_coverage'
+      : 'blocked_by_placeholder_worker_handlers'
+  const decision: HandlerReadinessDecision = readyForRealToolExecution
+    ? 'production_real_worker_handler_readiness_ready_for_real_tool_execution_gate'
+    : boundedRealHandlerReady
+      ? 'production_real_worker_handler_readiness_blocked_by_partial_handler_coverage'
+      : 'production_real_worker_handler_readiness_blocked_by_mock_safe_placeholder_dispatch'
 
   return {
     reportId: `production-real-worker-handler-readiness-${new Date().toISOString()}`,
-    status: readyForRealToolExecution ? 'ready_for_real_tool_execution' : 'blocked_by_placeholder_worker_handlers',
-    decision: readyForRealToolExecution
-      ? 'production_real_worker_handler_readiness_ready_for_real_tool_execution_gate'
-      : 'production_real_worker_handler_readiness_blocked_by_mock_safe_placeholder_dispatch',
+    status,
+    decision,
     readyForRealToolExecution,
+    boundedRealHandlerReady,
+    allProductionHandlerCoverageReady,
     backendCallsAttempted: false,
     toolExecutionAttempted: false,
     mediaProcessingAttempted: false,
@@ -110,11 +148,13 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     checks,
     nextAction: readyForRealToolExecution
       ? 'Run the final production tool execution gate against deployed evidence before enabling production dispatch.'
+      : boundedRealHandlerReady
+        ? 'Continue replacing placeholder gateway adapters and mock-only worker routes, or narrow the production go/no-go to the reviewed real handler coverage.'
       : 'Replace placeholder gateway adapters and mock-only production worker routes with reviewed real backend handlers, then rerun this gate.',
     warnings: [
       'This readiness report is static and no-runtime: it reads source files only.',
       'It does not call backend routes, dispatch workers, run tools, process media, call Supabase, call Stripe, or activate production.',
-      'Passing billing/readiness evidence is necessary but not sufficient while production worker handlers remain mock-only.',
+      'Passing billing/readiness evidence is necessary but not sufficient while production worker handler coverage remains partial.',
     ],
   }
 }
@@ -142,6 +182,8 @@ function renderText(report: ProductionRealWorkerHandlerReadinessReport): string 
     `status=${report.status}`,
     `decision=${report.decision}`,
     `readyForRealToolExecution=${report.readyForRealToolExecution}`,
+    `boundedRealHandlerReady=${report.boundedRealHandlerReady}`,
+    `allProductionHandlerCoverageReady=${report.allProductionHandlerCoverageReady}`,
     `backendCallsAttempted=${report.backendCallsAttempted}`,
     `toolExecutionAttempted=${report.toolExecutionAttempted}`,
     `mediaProcessingAttempted=${report.mediaProcessingAttempted}`,

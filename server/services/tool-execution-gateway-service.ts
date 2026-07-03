@@ -53,6 +53,7 @@ import type { ToolExecutionPlan } from '../../src/backend/contracts/tool-executi
 import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
 export type ToolExecutionGatewayAdapterId =
+  | 'cpu_analysis_worker_media_probe'
   | 'cpu_analysis_worker_placeholder'
   | 'gpu_ai_worker_placeholder'
   | 'render_worker_placeholder'
@@ -95,6 +96,7 @@ export interface ToolExecutionGatewayDispatchResult {
 }
 
 const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerRuntimeType> = {
+  cpu_analysis_worker_media_probe: 'cpu_analysis_worker',
   cpu_analysis_worker_placeholder: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
   render_worker_placeholder: 'render_worker',
@@ -123,10 +125,10 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         : undefined
       const productionReadiness = await validateProductionReadinessGate(context, input)
       blockers.push(...await validateApprovedSnapshotAndCreditReservation(context, input))
-      blockers.push(...validateGatewayAdapter(adapterId, input.workerType))
+      blockers.push(...validateGatewayAdapter(adapterId, input))
       blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId))
       blockers.push(...validateArtifactPrivacy(input))
-      blockers.push(...validateMetadataSafety(input.metadata))
+      blockers.push(...validateMetadataSafety(input.metadata, adapterId))
       blockers.push(...validateCostCreditGate(input))
       blockers.push(...validateTrackBAdapterSelection(input, trackBAdapterResult))
       blockers.push(...productionReadiness.blockers)
@@ -275,7 +277,9 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           ...(opsAdmission?.warnings ?? []),
           ...billingAudit.warnings,
           ...workerRuntimeArtifactPipeline.warnings,
-          'Tool execution gateway dispatched only through mock-safe backend worker adapters; no frontend tool execution occurred.',
+          workerResult.output?.mockOnly === false
+            ? 'Tool execution gateway dispatched through a reviewed real backend worker handler; no frontend tool execution occurred.'
+            : 'Tool execution gateway dispatched only through mock-safe backend worker adapters; no frontend tool execution occurred.',
         ],
       }
     },
@@ -557,16 +561,53 @@ async function validateApprovedSnapshotAndCreditReservation(
 
 function validateGatewayAdapter(
   adapterId: ToolExecutionGatewayAdapterId,
-  workerType: ProductionWorkerRuntimeType,
+  input: ToolExecutionGatewayDispatchBody,
 ): ToolExecutionGatewayBlocker[] {
+  const blockers: ToolExecutionGatewayBlocker[] = []
   const expectedWorkerType = adapterWorkerType[adapterId]
-  if (expectedWorkerType === workerType) return []
+  if (expectedWorkerType !== input.workerType) {
+    blockers.push({
+      code: 'ADAPTER_WORKER_MISMATCH',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} can dispatch only ${expectedWorkerType}, not ${input.workerType}.`,
+    })
+  }
 
-  return [{
-    code: 'ADAPTER_WORKER_MISMATCH',
-    gateName: 'adapter_dispatch',
-    message: `${adapterId} can dispatch only ${expectedWorkerType}, not ${workerType}.`,
-  }]
+  if (input.executionMode === 'production_ready' && adapterId.endsWith('_placeholder')) {
+    blockers.push({
+      code: 'PRODUCTION_READY_PLACEHOLDER_ADAPTER_BLOCKED',
+      gateName: 'adapter_dispatch',
+      message: 'production_ready gateway dispatch requires a reviewed real backend handler adapter, not a placeholder adapter.',
+      details: { adapterId },
+    })
+  }
+
+  if (adapterId === 'cpu_analysis_worker_media_probe') {
+    const mediaFoundation = input.metadata?.mediaFoundation
+    const mode = mediaFoundation && typeof mediaFoundation === 'object'
+      ? (mediaFoundation as Record<string, unknown>).mode
+      : undefined
+
+    if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== 'ffprobe') {
+      blockers.push({
+        code: 'MEDIA_PROBE_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_probe may dispatch only one requested tool: ffprobe.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'MEDIA_PROBE_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_probe production dispatch requires metadata.mediaFoundation.mode=production_ready.',
+        details: { mediaFoundationMode: mode },
+      })
+    }
+  }
+
+  return blockers
 }
 
 function validateToolReadiness(
@@ -689,7 +730,10 @@ function validateArtifactPrivacy(input: ToolExecutionGatewayDispatchBody): ToolE
   return blockers
 }
 
-function validateMetadataSafety(metadata: Record<string, unknown> | undefined): ToolExecutionGatewayBlocker[] {
+function validateMetadataSafety(
+  metadata: Record<string, unknown> | undefined,
+  adapterId?: ToolExecutionGatewayAdapterId,
+): ToolExecutionGatewayBlocker[] {
   if (!metadata) return []
 
   const reservedRouterKeys = [
@@ -712,7 +756,13 @@ function validateMetadataSafety(metadata: Record<string, unknown> | undefined): 
     'captionFoundation',
     'mediaFoundation',
   ]
-  const reservedFound = reservedRouterKeys.filter((key) => Object.prototype.hasOwnProperty.call(metadata, key))
+  const allowedReservedKeys = new Set<string>()
+  if (adapterId === 'cpu_analysis_worker_media_probe') {
+    allowedReservedKeys.add('mediaFoundation')
+  }
+  const reservedFound = reservedRouterKeys
+    .filter((key) => !allowedReservedKeys.has(key))
+    .filter((key) => Object.prototype.hasOwnProperty.call(metadata, key))
   if (reservedFound.length > 0) {
     return [{
       code: 'RESERVED_ADAPTER_METADATA',

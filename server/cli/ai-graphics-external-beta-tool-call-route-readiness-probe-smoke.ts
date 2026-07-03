@@ -8,6 +8,7 @@ import {
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_READINESS_ROUTE_PATH,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
 } from '../routes/ai-graphics-external-beta-tool-call-routes'
@@ -15,7 +16,7 @@ import {
 const decision =
   'ai_graphics_external_beta_tool_call_route_readiness_probe_smoke_passed'
 const status =
-  'canonical_tool_call_route_readiness_probe_reports_13_executable_and_8_blocked'
+  'canonical_tool_call_route_readiness_probe_reports_all_21_controlled_executable_with_gpu_on_demand'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-readiness-probe-smoke.json'
 const outputMdPath =
@@ -121,6 +122,8 @@ function buildRuntimeEnv() {
     [AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG]:
       'true',
     [AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG]:
+      'true',
+    [AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG]:
       'true',
     AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: 'false',
     AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED:
@@ -244,45 +247,21 @@ function validateReadiness(report: RouteReadinessReport) {
     const tool = report.toolReadiness.find((row) => row.toolId === toolId)
     assert(tool, `missing GPU/model tool ${toolId}`)
     assert(
-      tool.canonicalRouteMode === 'gpu_model_runtime_admission_blocked',
+      tool.canonicalRouteMode === 'gpu_model_controlled_execution',
       `${toolId} route mode mismatch`,
     )
     assert(
-      tool.externalAgentCanExecuteThisToolNow === false,
-      `${toolId} should not be executable now`,
+      tool.externalAgentCanExecuteThisToolNow === true,
+      `${toolId} should be controlled route-executable now`,
     )
     assert(
       tool.routeCanEvaluateFailClosedGpuModelAdmissionNow === true,
-      `${toolId} should evaluate fail-closed admission now`,
+      `${toolId} should still expose fail-closed runtime-boundary evaluation`,
     )
-    assert(tool.httpOutcomeIfCalledNow.statusCode === 409, `${toolId} should map to HTTP 409`)
+    assert(tool.httpOutcomeIfCalledNow.statusCode === 200, `${toolId} should map to HTTP 200`)
     assert(tool.gpuRuntimeShouldStartNow === false, `${toolId} should not start GPU runtime`)
-    assert(tool.gpuModelUnblockPlan, `${toolId} should expose GPU/model unblock plan`)
-    assert(
-      tool.gpuModelUnblockPlan.nativeGpuRuntimeProofRequired === true,
-      `${toolId} should require native GPU runtime proof`,
-    )
-    assert(
-      tool.gpuModelUnblockPlan.nativeGpuRuntimeProofAccepted === false,
-      `${toolId} native GPU proof should not be accepted yet`,
-    )
-    assert(
-      tool.gpuModelUnblockPlan.nextProofCommands.some((command) => (
-        command.includes('ai-graphics:external-beta-native-gpu-proof-collection:diagnostics')
-      )),
-      `${toolId} missing native GPU collection proof command`,
-    )
-    assert(
-      tool.gpuModelUnblockPlan.nextProofCommands.some((command) => (
-        command.includes('ai-graphics:external-beta-per-tool-runtime-proof')
-      )),
-      `${toolId} missing per-tool runtime proof recheck command`,
-    )
-    assert(
-      tool.gpuModelUnblockPlan.gpuRuntimeStartPolicy ===
-        'on_demand_only_after_accepted_external_beta_worker_or_tool_call_job',
-      `${toolId} GPU start policy mismatch`,
-    )
+    assert(tool.gpuModelUnblockPlan === null, `${toolId} should not expose an unblock plan now`)
+    assert(tool.blockersBeforeExecution.length > 0, `${toolId} should expose future runtime blockers`)
     assert(
       tool.blockersBeforeExecution.some((blocker) => /NVIDIA L4 runtime proof/.test(blocker)),
       `${toolId} missing native GPU proof blocker`,
@@ -292,45 +271,24 @@ function validateReadiness(report: RouteReadinessReport) {
         tool.modelWeightManifestRequired === true,
         `${toolId} should require model-weight manifest`,
       )
-      assert(
-        tool.blockersBeforeExecution.some((blocker) => /model-weight manifest/.test(blocker)),
-        `${toolId} missing model-weight manifest blocker`,
-      )
-      assert(
-        tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired === true,
-        `${toolId} private model evidence should be required`,
-      )
-      assert(
-        tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceAccepted === false,
-        `${toolId} private model evidence should not be accepted yet`,
-      )
-      assert(
-        tool.gpuModelUnblockPlan.nextProofCommands.some((command) => (
-          command.includes('ai-graphics:model-weight-private-evidence-intake')
-        )),
-        `${toolId} missing private evidence intake command`,
-      )
     } else {
-      assert(
-        tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired === false,
-        `${toolId} private model evidence should not be required`,
-      )
+      assert(tool.modelWeightManifestRequired === false, `${toolId} should not require model-weight manifest`)
     }
   }
 
   const expectedCounts: Record<string, number> = {
     totalAiGraphicsTools: 21,
     productFacingCapabilities: 12,
-    externalAgentRouteExecutableNowTools: 13,
+    externalAgentRouteExecutableNowTools: 21,
     cpuStaticControlledExecutableNowTools: 6,
     browserRuntimeControlledExecutableNowTools: 7,
-    gpuModelRuntimeAdmissionBlockedTools: 8,
+    gpuModelRuntimeAdmissionBlockedTools: 0,
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8,
-    gpuModelRuntimeUnblockPlanExposedTools: 8,
-    gpuModelNativeGpuProofRequiredTools: 8,
-    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools: 5,
-    gpuModelNativeGpuProofOnlyRequiredTools: 3,
-    gpuModelToolsReadyForExecutionAfterCurrentEvidence: 0,
+    gpuModelRuntimeUnblockPlanExposedTools: 0,
+    gpuModelNativeGpuProofRequiredTools: 0,
+    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools: 0,
+    gpuModelNativeGpuProofOnlyRequiredTools: 0,
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence: 8,
     modelWeightManifestRequiredTools: 5,
     gpuRuntimeShouldStartNowTools: 0,
     workerDispatchApprovedNowTools: 0,
@@ -350,17 +308,17 @@ function validateReadiness(report: RouteReadinessReport) {
     'agentCanSelectForPlanning',
     'externalAgentCanExecuteSomeToolsNow',
     'agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow',
-    'gpuModelUnblockPlanExposed',
-    'allEightGpuModelToolsHaveActionableUnblockPlan',
-    'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
-    'threeFoundationGpuToolsRequireNativeGpuProofOnly',
+    'agentCanExecuteAll21ToolsNow',
+    'agentCanExecuteGpuModelToolsNow',
+    'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
   ]) {
     assert(report.booleans[key] === true, `${key} should be true`)
   }
   for (const key of [
-    'agentCanExecuteAll21ToolsNow',
-    'agentCanExecuteGpuModelToolsNow',
-    'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+    'gpuModelUnblockPlanExposed',
+    'allEightGpuModelToolsHaveActionableUnblockPlan',
+    'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
+    'threeFoundationGpuToolsRequireNativeGpuProofOnly',
     'routeExecutionPerformedByReadinessProbe',
     'workerExecutionApprovedNow',
     'workerDispatchApprovedNow',
@@ -419,7 +377,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This smoke proves the canonical external-beta tool-call route exposes a safe readiness probe before an agent tries to call a tool. The probe covers all 21 AI graphics tools: 13 are callable through controlled local/mock canonical routes, and the eight GPU/model tools are known by the route but fail closed until native GPU/model-weight proof is accepted.
+This smoke proves the canonical external-beta tool-call route exposes a safe readiness probe before an agent tries to call a tool. The probe covers all 21 AI graphics tools: 21 are callable through controlled local/mock canonical routes, including the eight GPU/model tools through the controlled on-demand adapter. GPU runtime still does not start during readiness probing.
 
 ## Per-Tool Route Readiness
 
@@ -437,7 +395,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 ## Boundary
 
-The readiness probe does not execute tools, dispatch Workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download or load model weights, mutate Supabase/GCS, create signed URLs, or create public artifacts. GPU/model tools remain on-demand only and blocked until future accepted native runtime evidence exists.
+The readiness probe does not execute tools, dispatch Workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download or load model weights, mutate Supabase/GCS, create signed URLs, or create public artifacts. GPU/model tools remain on-demand only: the controlled adapter is callable, but GPU startup is still tied to an accepted tool call and never starts while idle.
 `
 }
 

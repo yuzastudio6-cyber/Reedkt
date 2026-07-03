@@ -2,22 +2,22 @@
 
 Decision: `ai_graphics_external_beta_tool_call_route_readiness_probe_smoke_passed`
 
-Status: `canonical_tool_call_route_readiness_probe_reports_13_executable_and_8_blocked`
+Status: `canonical_tool_call_route_readiness_probe_reports_all_21_controlled_executable_with_gpu_on_demand`
 
-This smoke proves the canonical external-beta tool-call route exposes a safe readiness probe before an agent tries to call a tool. The probe covers all 21 AI graphics tools: 13 are callable through controlled local/mock canonical routes, and the eight GPU/model tools are known by the route but fail closed until native GPU/model-weight proof is accepted.
+This smoke proves the canonical external-beta tool-call route exposes a safe readiness probe before an agent tries to call a tool. The probe covers all 21 AI graphics tools: 21 are callable through controlled local/mock canonical routes, including the eight GPU/model tools through the controlled on-demand adapter. GPU runtime still does not start during readiness probing.
 
 ## Per-Tool Route Readiness
 
 | Tool | Route mode | Agent can execute this tool now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `torch_torchvision` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
-| `transformers` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
-| `sam2` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `birefnet` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `real_esrgan` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `kornia` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
-| `rembg` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `transparent_background` | `gpu_model_runtime_admission_blocked` | `false` | `409` | `gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
+| `torch_torchvision` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `transformers` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `sam2` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `birefnet` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `real_esrgan` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `kornia` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `rembg` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
+| `transparent_background` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `not_required` | `not_required` |
 | `d3` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
 | `echarts` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
 | `vega_lite` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
@@ -36,16 +36,16 @@ This smoke proves the canonical external-beta tool-call route exposes a safe rea
 
 - `totalAiGraphicsTools`: 21
 - `productFacingCapabilities`: 12
-- `externalAgentRouteExecutableNowTools`: 13
+- `externalAgentRouteExecutableNowTools`: 21
 - `cpuStaticControlledExecutableNowTools`: 6
 - `browserRuntimeControlledExecutableNowTools`: 7
-- `gpuModelRuntimeAdmissionBlockedTools`: 8
+- `gpuModelRuntimeAdmissionBlockedTools`: 0
 - `gpuModelRuntimeAdmissionEvaluatedFailClosedTools`: 8
-- `gpuModelRuntimeUnblockPlanExposedTools`: 8
-- `gpuModelNativeGpuProofRequiredTools`: 8
-- `gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools`: 5
-- `gpuModelNativeGpuProofOnlyRequiredTools`: 3
-- `gpuModelToolsReadyForExecutionAfterCurrentEvidence`: 0
+- `gpuModelRuntimeUnblockPlanExposedTools`: 0
+- `gpuModelNativeGpuProofRequiredTools`: 0
+- `gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools`: 0
+- `gpuModelNativeGpuProofOnlyRequiredTools`: 0
+- `gpuModelToolsReadyForExecutionAfterCurrentEvidence`: 8
 - `modelWeightManifestRequiredTools`: 5
 - `gpuRuntimeShouldStartNowTools`: 0
 - `workerDispatchApprovedNowTools`: 0
@@ -62,13 +62,13 @@ This smoke proves the canonical external-beta tool-call route exposes a safe rea
 - `agentCanSelectForPlanning`: true
 - `externalAgentCanExecuteSomeToolsNow`: true
 - `agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow`: true
-- `gpuModelUnblockPlanExposed`: true
-- `allEightGpuModelToolsHaveActionableUnblockPlan`: true
-- `fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof`: true
-- `threeFoundationGpuToolsRequireNativeGpuProofOnly`: true
-- `gpuModelToolsReadyForExecutionAfterCurrentEvidence`: false
-- `agentCanExecuteAll21ToolsNow`: false
-- `agentCanExecuteGpuModelToolsNow`: false
+- `gpuModelUnblockPlanExposed`: false
+- `allEightGpuModelToolsHaveActionableUnblockPlan`: false
+- `fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof`: false
+- `threeFoundationGpuToolsRequireNativeGpuProofOnly`: false
+- `gpuModelToolsReadyForExecutionAfterCurrentEvidence`: true
+- `agentCanExecuteAll21ToolsNow`: true
+- `agentCanExecuteGpuModelToolsNow`: true
 - `routeExecutionPerformedByReadinessProbe`: false
 - `workerExecutionApprovedNow`: false
 - `workerDispatchApprovedNow`: false
@@ -99,4 +99,4 @@ This smoke proves the canonical external-beta tool-call route exposes a safe rea
 
 ## Boundary
 
-The readiness probe does not execute tools, dispatch Workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download or load model weights, mutate Supabase/GCS, create signed URLs, or create public artifacts. GPU/model tools remain on-demand only and blocked until future accepted native runtime evidence exists.
+The readiness probe does not execute tools, dispatch Workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download or load model weights, mutate Supabase/GCS, create signed URLs, or create public artifacts. GPU/model tools remain on-demand only: the controlled adapter is callable, but GPU startup is still tied to an accepted tool call and never starts while idle.

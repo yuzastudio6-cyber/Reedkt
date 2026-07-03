@@ -21,6 +21,7 @@ import {
 } from '../beta-readiness/platform-supabase-deployed-evidence-transport'
 import { buildBetaReadinessBackendOperatorStatus } from '../beta-readiness/beta-readiness-operator-status'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
+import { runBetaPlatformWalletLifecycleQa } from '../beta-readiness/platform-wallet-lifecycle-qa'
 import { createProductionToolExecutionReadinessEvidenceService } from '../beta-readiness/production-tool-execution-readiness-evidence-service'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
@@ -30,6 +31,7 @@ import {
   betaReadinessPlatformBillingQaSchema,
   betaReadinessPlatformDeployedEvidenceSchema,
   betaReadinessPlatformSupabaseDeployedProbeSchema,
+  betaReadinessPlatformWalletLifecycleQaSchema,
   productionToolExecutionReadinessGateSchema,
   type BetaReadinessPlatformDeployedEvidenceBody,
   type BetaReadinessPlatformSupabaseDeployedProbeBody,
@@ -171,6 +173,19 @@ export function createBetaReadinessRoutes(): Router {
         ? 'Persistent billing QA was explicitly confirmed and may write controlled tool-cost and wallet-settlement rows through service-role backend paths.'
         : 'No persistent billing writes ran unless explicitly confirmed with approved deployed fixture ids.',
       ...report.missingPlatformEvidence.map((item) => `Missing platform evidence: ${item}`),
+    ])
+  }))
+
+  router.post('/v1/beta-readiness/platform-wallet-lifecycle-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformWalletLifecycleQaSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const report = await runBetaPlatformWalletLifecycleQa(getServiceContext(request), body, getIdempotencyKey(request))
+    sendOk(response, { report }, [
+      'Platform wallet lifecycle QA ran only backend settlement QA paths; no media, provider, Stripe, beta, or production action ran.',
+      report.persistenceMode === 'supabase_service_role'
+        ? 'Persistent wallet lifecycle QA was explicitly confirmed and may write controlled tool-cost and wallet-settlement rows through service-role backend paths.'
+        : 'No persistent wallet lifecycle writes ran unless explicitly confirmed with approved deployed fixture ids.',
+      ...report.missingProductionEvidence.map((item) => `Missing production evidence: ${item}`),
     ])
   }))
 

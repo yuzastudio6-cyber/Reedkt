@@ -185,9 +185,9 @@ for (const [key, value] of Object.entries(parsed.claims.claimsNotAllowedNow)) {
 
 for (const tool of expectedTools) assert(runnerText.includes(`"toolId": "${tool}"`) || runnerText.includes(`"${tool}"`), `runner missing ${tool}`)
 for (const phrase of [
-  'subprocess',
   'os.system',
   'Popen',
+  'shell=True',
   'docker build',
   'docker run',
   'ffmpeg',

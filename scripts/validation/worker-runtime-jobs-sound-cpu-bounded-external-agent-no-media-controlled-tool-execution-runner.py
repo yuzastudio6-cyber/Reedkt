@@ -2,8 +2,10 @@
 """Controlled no-media SOUND CPU tool execution runner.
 
 This source is intentionally fail-closed. It executes only synthetic in-memory
-operations and writes only a JSON report to stdout. It must not open media
-files, spawn child processes, persist artifacts, contact services, or dispatch
+operations and writes only a JSON report to stdout. The parent proof process
+uses same-interpreter child processes with hard timeouts so an import hang is
+recorded as a failed tool instead of freezing the proof. It must not open media
+files, invoke a shell, persist artifacts, contact services, or dispatch
 workers/routes.
 """
 
@@ -14,6 +16,8 @@ import importlib
 import importlib.metadata
 import json
 import math
+import os
+import subprocess
 import sys
 import traceback
 from typing import Any, Callable
@@ -42,6 +46,7 @@ ALIAS_TOOLS = [
 
 TOOLS = DIRECT_TOOLS + ALIAS_TOOLS
 TOOL_IDS = [tool["toolId"] for tool in TOOLS]
+TOOL_TIMEOUT_SECONDS = int(os.environ.get("REEDITPRO_SOUND_CPU_TOOL_TIMEOUT_SECONDS", "180"))
 WORKERS = ["sound-cpu-analysis-worker", "sound-audio-metadata-worker"]
 IMAGES = ["reeditpro/sound-cpu-analysis-worker", "reeditpro/sound-audio-metadata-worker"]
 JOB_TYPES = [
@@ -248,7 +253,7 @@ def op_pyloudnorm() -> dict[str, Any]:
     numpy = import_module("numpy")
     pyloudnorm = import_module("pyloudnorm")
     meter = pyloudnorm.Meter(48000)
-    loudness = meter.integrated_loudness(numpy.zeros(4800, dtype=float))
+    loudness = meter.integrated_loudness(numpy.zeros(48000, dtype=float))
     return {"loudnessFiniteOrSilent": bool(math.isfinite(loudness) or math.isinf(loudness))}
 
 
@@ -329,28 +334,85 @@ OPERATIONS: dict[str, Callable[[], dict[str, Any]]] = {
 }
 
 
+def run_single_tool_direct(tool_id: str) -> dict[str, Any]:
+    meta = next(tool for tool in TOOLS if tool["toolId"] == tool_id)
+    record: dict[str, Any] = {
+        "toolId": tool_id,
+        "package": meta["package"],
+        "module": meta["module"],
+        "version": version_for(meta["package"]),
+        "passed": False,
+        "operation": None,
+        "error": None,
+    }
+    try:
+        import_module(meta["module"])
+        record["operation"] = OPERATIONS[tool_id]()
+        record["passed"] = True
+    except Exception as exc:  # noqa: BLE001 - sanitized below for proof output
+        record["error"] = sanitize_error(exc)
+    return record
+
+
+def run_single_tool_isolated(tool_id: str) -> dict[str, Any]:
+    meta = next(tool for tool in TOOLS if tool["toolId"] == tool_id)
+    base_record: dict[str, Any] = {
+        "toolId": tool_id,
+        "package": meta["package"],
+        "module": meta["module"],
+        "version": "unknown",
+        "passed": False,
+        "operation": None,
+        "error": None,
+    }
+    env = dict(os.environ)
+    env["REEDITPRO_SOUND_CPU_CONTROLLED_TOOL_EXECUTION_CHILD"] = "1"
+    try:
+        completed = subprocess.run(
+            [sys.executable, __file__, "--run-single-tool", tool_id],
+            check=False,
+            capture_output=True,
+            env=env,
+            text=True,
+            timeout=TOOL_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        base_record["error"] = {
+            "type": "ToolTimeoutError",
+            "message": f"tool_operation_timeout_after_{TOOL_TIMEOUT_SECONDS}_seconds",
+        }
+        return base_record
+
+    stdout = completed.stdout.strip()
+    if not stdout:
+        base_record["error"] = {
+            "type": "ToolChildProcessError",
+            "message": f"tool_child_empty_stdout_exit_{completed.returncode}",
+        }
+        return base_record
+    try:
+        parsed = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        base_record["error"] = sanitize_error(exc)
+        return base_record
+    if not isinstance(parsed, dict):
+        base_record["error"] = {
+            "type": "ToolChildProcessError",
+            "message": "tool_child_json_object_required",
+        }
+        return base_record
+    if completed.returncode not in (0, 1):
+        parsed["passed"] = False
+        parsed["error"] = parsed.get("error") or {
+            "type": "ToolChildProcessError",
+            "message": f"tool_child_exit_{completed.returncode}",
+        }
+    return parsed
+
+
 def run_tools(selected_tool_id: str) -> list[dict[str, Any]]:
     selected = TOOL_IDS if selected_tool_id == "all" else [selected_tool_id]
-    results: list[dict[str, Any]] = []
-    for tool_id in selected:
-        meta = next(tool for tool in TOOLS if tool["toolId"] == tool_id)
-        record: dict[str, Any] = {
-            "toolId": tool_id,
-            "package": meta["package"],
-            "module": meta["module"],
-            "version": version_for(meta["package"]),
-            "passed": False,
-            "operation": None,
-            "error": None,
-        }
-        try:
-            import_module(meta["module"])
-            record["operation"] = OPERATIONS[tool_id]()
-            record["passed"] = True
-        except Exception as exc:  # noqa: BLE001 - sanitized below for proof output
-            record["error"] = sanitize_error(exc)
-        results.append(record)
-    return results
+    return [run_single_tool_isolated(tool_id) for tool_id in selected]
 
 
 def describe_contract() -> dict[str, Any]:
@@ -360,6 +422,7 @@ def describe_contract() -> dict[str, Any]:
         "directPinnedPackageCount": len(DIRECT_TOOLS),
         "aliasCoveredToolCount": len(ALIAS_TOOLS),
         "tools": TOOL_IDS,
+        "toolTimeoutSeconds": TOOL_TIMEOUT_SECONDS,
         "workers": WORKERS,
         "images": IMAGES,
         "jobTypes": JOB_TYPES,
@@ -379,11 +442,17 @@ def describe_contract() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--describe-contract", action="store_true")
+    parser.add_argument("--run-single-tool", choices=TOOL_IDS)
     args = parser.parse_args()
 
     if args.describe_contract:
         print(json.dumps(describe_contract(), indent=2, sort_keys=True))
         return 0
+
+    if args.run_single_tool:
+        result = run_single_tool_direct(args.run_single_tool)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0 if result["passed"] is True else 1
 
     request = read_request()
     stop_reasons = validate_request(request)

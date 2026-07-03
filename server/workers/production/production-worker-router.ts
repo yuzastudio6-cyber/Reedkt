@@ -49,9 +49,29 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mediaFoundationResult.status !== 'blocked' &&
           mediaFoundationResult.probe !== undefined &&
           mediaFoundationResult.proxy?.status === 'created'
-        const realMediaHandler = realMediaProbeHandler || realMediaAudioExtractHandler || realMediaProxyHandler
+        const realMediaKeyframesHandler = gatewayAdapterId === 'cpu_analysis_worker_media_keyframes' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.keyframes?.status === 'created' &&
+          mediaFoundationResult.keyframes.artifacts.length > 0
+        const realMediaRepresentativeFramesHandler = gatewayAdapterId === 'cpu_analysis_worker_media_representative_frames' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.representativeFrames?.status === 'created' &&
+          mediaFoundationResult.representativeFrames.artifacts.length > 0
+        const realMediaHandler = realMediaProbeHandler ||
+          realMediaAudioExtractHandler ||
+          realMediaProxyHandler ||
+          realMediaKeyframesHandler ||
+          realMediaRepresentativeFramesHandler
         return {
-          summary: realMediaProxyHandler
+          summary: realMediaRepresentativeFramesHandler
+            ? 'CPU media representative-frame production handler completed bounded ffprobe plus FFmpeg private representative-frame extraction.'
+            : realMediaKeyframesHandler
+            ? 'CPU media keyframe production handler completed bounded ffprobe plus FFmpeg private keyframe extraction.'
+            : realMediaProxyHandler
             ? 'CPU media proxy production handler completed bounded ffprobe plus FFmpeg private proxy execution.'
             : realMediaAudioExtractHandler
             ? 'CPU media audio-extract production handler completed bounded ffprobe plus FFmpeg extracted-audio execution.'
@@ -62,7 +82,11 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           executionMode: payload.executionMode,
           mockOnly: !realMediaHandler,
           realToolExecution: realMediaHandler,
-          futureHandler: realMediaProxyHandler
+          futureHandler: realMediaRepresentativeFramesHandler
+            ? 'cpu_analysis_worker_media_representative_frames_production_handler'
+            : realMediaKeyframesHandler
+            ? 'cpu_analysis_worker_media_keyframes_production_handler'
+            : realMediaProxyHandler
             ? 'cpu_analysis_worker_media_proxy_production_handler'
             : realMediaAudioExtractHandler
             ? 'cpu_analysis_worker_media_audio_extract_production_handler'

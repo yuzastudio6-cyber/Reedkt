@@ -51,8 +51,10 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
   const routerHasReviewedNonMockOutput = routerLiteralNonMockOutputs + routerConditionalNonMockOutputs > 0
   const realAdapterCount = [
     'cpu_analysis_worker_media_audio_extract',
+    'cpu_analysis_worker_media_keyframes',
     'cpu_analysis_worker_media_probe',
     'cpu_analysis_worker_media_proxy',
+    'cpu_analysis_worker_media_representative_frames',
     'tool_readiness_worker_core_checks',
   ].filter((adapterId) => sources.gatewaySchemas.includes(adapterId)).length
 
@@ -96,8 +98,10 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         file: sourceFiles.gatewaySchemas,
         realAdapterCount,
         mediaAudioExtractAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_audio_extract'),
+        mediaKeyframesAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_keyframes'),
         mediaProbeAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
         mediaProxyAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_proxy'),
+        mediaRepresentativeFramesAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_representative_frames'),
         toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
       },
@@ -107,7 +111,9 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       passed: (
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_probe') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_audio_extract') ||
+        sources.gatewaySmoke.includes('cpu_analysis_worker_media_keyframes') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_proxy') ||
+        sources.gatewaySmoke.includes('cpu_analysis_worker_media_representative_frames') ||
         sources.gatewaySmoke.includes('tool_readiness_worker_core_checks')
       ) &&
         /production_ready[\s\S]{0,2400}output\?\.mockOnly[\s\S]{0,240}false/i.test(sources.gatewaySmoke),
@@ -116,8 +122,10 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         file: sourceFiles.gatewaySmoke,
         productionReadyMentions: countOccurrences(sources.gatewaySmoke, 'production_ready'),
         realMediaAudioExtractAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_audio_extract'),
+        realMediaKeyframesAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_keyframes'),
         realMediaProbeAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_probe'),
         realMediaProxyAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_proxy'),
+        realMediaRepresentativeFramesAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_representative_frames'),
         realToolReadinessAdapterMentions: countOccurrences(sources.gatewaySmoke, 'tool_readiness_worker_core_checks'),
         mockOnlyFalseAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, false'),
         mockOnlyTrueAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, true') + countOccurrences(sources.gatewaySmoke, 'mock-safe placeholder output'),

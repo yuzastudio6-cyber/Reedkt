@@ -311,6 +311,86 @@ assert.ok(
   'tool-readiness wallet settlement audit rows must not spend user credits',
 )
 
+const productionReadyTrackANativeDispatches = [
+  await service.dispatchApprovedToolCall(productionReadyTrackANativeValidationInput({
+    jobId: 'job-production-ready-track-a-streamer-render-support',
+    adapterId: 'tool_readiness_worker_streamer_render_pipeline_support',
+    requestedToolId: 'gstreamer',
+    capabilityId: 'streamer_render_pipeline_support',
+    tasks: ['validate_render_pipeline_support', 'validate_backend_boundary', 'validate_no_media_output'],
+    extra: {
+      renderSupportManifestId: 'render-support-manifest-smoke',
+      privateFixtureScopeId: 'track-a-private-fixture-scope-smoke',
+    },
+    productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  })),
+  await service.dispatchApprovedToolCall(productionReadyTrackANativeValidationInput({
+    jobId: 'job-production-ready-track-a-mkvtoolnix-container-validation',
+    adapterId: 'tool_readiness_worker_mkvtoolnix_container_validation',
+    requestedToolId: 'mkvtoolnix',
+    capabilityId: 'mkvtoolnix_container_validation',
+    tasks: ['validate_container_manifest', 'validate_cleanup_evidence', 'validate_no_media_processing'],
+    extra: {
+      privateArtifactManifestId: 'private-artifact-manifest-smoke',
+      cleanupEvidenceId: 'cleanup-evidence-smoke',
+    },
+    productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  })),
+  await service.dispatchApprovedToolCall(productionReadyTrackANativeValidationInput({
+    jobId: 'job-production-ready-track-a-gpac-mp4box-packaging-validation',
+    adapterId: 'tool_readiness_worker_gpac_mp4box_packaging_validation',
+    requestedToolId: 'gpac_mp4box',
+    capabilityId: 'gpac_mp4box_packaging_validation',
+    tasks: ['validate_package_source_provenance', 'validate_mp4box_binary_presence', 'validate_no_packaging_execution'],
+    extra: {
+      officialAptSourceApproved: true,
+      repoUri: 'https://dist.gpac.io/gpac/linux/debian',
+      codename: 'bookworm',
+      component: 'main',
+      packageName: 'gpac',
+      packageVersion: '26.02-rev0-g118e60a90-HEAD',
+      architecture: 'arm64',
+      binaryPath: '/usr/bin/MP4Box',
+      installSourceEvidenceId: 'pr-738-install-source-evidence-smoke',
+    },
+    productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  })),
+]
+
+for (const dispatch of productionReadyTrackANativeDispatches) {
+  const result = dispatch.workerResult?.output?.trackANativeValidationResult as {
+    status?: string
+    noRuntimeExecution?: boolean
+    noMediaProcessing?: boolean
+    noPublicArtifacts?: boolean
+    artifactRecords?: Array<{ isPrivate?: boolean; sourceOfTruth?: boolean; storageObjectPath?: string }>
+    qaResults?: unknown[]
+  } | undefined
+  assert.equal(dispatch.gateway.status, 'dispatched', `Track A native validation should dispatch: ${JSON.stringify(dispatch.gateway.blockers)}`)
+  assert.equal(dispatch.workerResult?.status, 'completed', 'Track A native validation worker should complete')
+  assert.equal(dispatch.workerResult?.output?.mockOnly, false, 'Track A native validation production handler should be non-mock')
+  assert.equal(dispatch.workerResult?.output?.realToolExecution, true, 'Track A native validation should record reviewed backend handler execution')
+  assert.equal(result?.status, 'completed', 'Track A native validation result should complete')
+  assert.equal(result?.noRuntimeExecution, true, 'Track A native validation must not run native binaries in this gateway smoke')
+  assert.equal(result?.noMediaProcessing, true, 'Track A native validation must not process media in this gateway smoke')
+  assert.equal(result?.noPublicArtifacts, true, 'Track A native validation must not produce public artifacts')
+  assert.ok((result?.artifactRecords?.length ?? 0) === 1, 'Track A native validation should produce one private QA report artifact')
+  assert.ok(
+    result?.artifactRecords?.every((artifact) => (
+      artifact.isPrivate === true &&
+      artifact.sourceOfTruth === true &&
+      artifact.storageObjectPath?.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) === true &&
+      !artifact.storageObjectPath.includes('signed')
+    )),
+    'Track A native validation artifacts must be private, source-of-truth, project-scoped, and unsigned',
+  )
+  assert.ok((result?.qaResults?.length ?? 0) > 0, 'Track A native validation should emit QA gate results')
+  assert.equal(dispatch.toolCostEvents?.length, 1, 'Track A native validation should emit one non-billable audit event')
+  assert.equal(dispatch.toolCostEvents?.[0]?.billableToUser, false, 'Track A native validation audit event must not bill the user')
+  assert.equal(dispatch.walletSettlements?.length, 1, 'Track A native validation should create one non-billable wallet settlement audit row')
+  assert.equal(dispatch.walletSettlements?.[0]?.creditsDelta, 0, 'Track A native validation settlement must not spend credits')
+}
+
 const productionReadySmartCutTimelineDispatch = await service.dispatchApprovedToolCall(productionReadySmartCutTimelineInput({
   jobId: 'job-production-ready-smart-cut-timeline',
   productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
@@ -1130,6 +1210,16 @@ if (mediaProbeFixture.ok) {
   })
   assert.equal(productionReadyStoredPacketDispatch.gateway.status, 'blocked', 'stored packet real dispatch should not run when fixture tools are unavailable')
 }
+assert.equal(
+  productionReadyStoredPacketDispatch.gateway.productionOpsControls?.allowed,
+  true,
+  'stored production readiness packet dispatch should expose successful production ops-control admission',
+)
+assert.equal(
+  productionReadyStoredPacketDispatch.gateway.productionOpsControls?.snapshot.persistentBackendChecked,
+  false,
+  'mock/local production ops-control admission should identify in-memory counter mode',
+)
 
 setMockProductionGatewayOpsControlState({
   activeKillSwitches: {
@@ -1148,6 +1238,16 @@ assert.equal(productionReadyKillSwitchBlocked.toolCostEvents, undefined, 'active
 assert.ok(
   productionReadyKillSwitchBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_GLOBAL_KILL_SWITCH_ACTIVE'),
   'active production kill switch should identify the kill-switch blocker',
+)
+assert.equal(
+  productionReadyKillSwitchBlocked.gateway.productionOpsControls?.allowed,
+  false,
+  'active production kill switch should expose blocked production ops-control admission',
+)
+assert.equal(
+  productionReadyKillSwitchBlocked.gateway.productionOpsControls?.snapshot.activeKillSwitches.globalGeneration,
+  true,
+  'active production kill switch should expose the exact kill-switch snapshot',
 )
 
 const nowMs = Date.now()
@@ -1168,6 +1268,21 @@ assert.equal(productionReadyRateLimitBlocked.workerResult, undefined, 'workspace
 assert.ok(
   productionReadyRateLimitBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_WORKSPACE_RATE_LIMIT_EXCEEDED'),
   'workspace production rate limit should identify rate-limit blocker',
+)
+assert.equal(
+  productionReadyRateLimitBlocked.gateway.productionOpsControls?.allowed,
+  false,
+  'workspace production rate limit should expose blocked production ops-control admission',
+)
+assert.equal(
+  productionReadyRateLimitBlocked.gateway.productionOpsControls?.snapshot.workspaceJobCreationCountLastHour,
+  rateLimitPolicy.perWorkspaceJobCreationPerHour,
+  'workspace production rate limit should expose the counter used by the admission decision',
+)
+assert.equal(
+  productionReadyRateLimitBlocked.gateway.productionOpsControls?.snapshot.workspaceJobCreationLimitPerHour,
+  rateLimitPolicy.perWorkspaceJobCreationPerHour,
+  'workspace production rate limit should expose the configured admission limit',
 )
 
 setMockProductionGatewayOpsControlState({
@@ -1195,6 +1310,21 @@ assert.ok(
 assert.ok(
   productionReadyConcurrencyBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_WORKER_CONCURRENCY_LIMIT_EXCEEDED'),
   'production worker concurrency blocker should be reported',
+)
+assert.equal(
+  productionReadyConcurrencyBlocked.gateway.productionOpsControls?.allowed,
+  false,
+  'production concurrency limits should expose blocked production ops-control admission',
+)
+assert.equal(
+  productionReadyConcurrencyBlocked.gateway.productionOpsControls?.snapshot.projectActiveJobCount,
+  rateLimitPolicy.perProjectConcurrentJobs,
+  'production project concurrency should expose the project active job count',
+)
+assert.equal(
+  productionReadyConcurrencyBlocked.gateway.productionOpsControls?.snapshot.workerActiveJobCount,
+  workerConcurrencyPolicy.maxConcurrentJobsByWorkerType[baseInput.workerType],
+  'production worker concurrency should expose the worker active job count',
 )
 resetMockProductionGatewayOpsControlState()
 
@@ -1254,6 +1384,8 @@ console.log(JSON.stringify({
   realMediaKeyframesHandler: productionReadyKeyframesDispatch?.workerResult?.output?.futureHandler,
   realMediaRepresentativeFramesDispatchCovered: Boolean(productionReadyRepresentativeFramesDispatch),
   realMediaRepresentativeFramesHandler: productionReadyRepresentativeFramesDispatch?.workerResult?.output?.futureHandler,
+  realTrackANativeValidationDispatchCount: productionReadyTrackANativeDispatches.length,
+  realTrackANativeValidationHandlers: productionReadyTrackANativeDispatches.map((dispatch) => dispatch.workerResult?.output?.futureHandler),
 }, null, 2))
 
 function productionEvidenceFixture(
@@ -2154,6 +2286,68 @@ function productionReadyToolReadinessInput(input: {
         strict: false,
         timeoutMs: 15_000,
         maxBuffer: 1024 * 1024,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyTrackANativeValidationInput(input: {
+  jobId: string
+  adapterId:
+    | 'tool_readiness_worker_streamer_render_pipeline_support'
+    | 'tool_readiness_worker_mkvtoolnix_container_validation'
+    | 'tool_readiness_worker_gpac_mp4box_packaging_validation'
+  requestedToolId: 'gstreamer' | 'mkvtoolnix' | 'gpac_mp4box'
+  capabilityId: 'streamer_render_pipeline_support' | 'mkvtoolnix_container_validation' | 'gpac_mp4box_packaging_validation'
+  tasks: string[]
+  extra: Record<string, unknown>
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    mediaAssetId: 'track-a-native-validation-media-not-required',
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    workerType: 'tool_readiness_worker',
+    executionMode: 'production_ready',
+    adapterId: input.adapterId,
+    requestedToolIds: [input.requestedToolId],
+    requestedRecipeIds: [`${input.capabilityId}-production-handler-recipe`],
+    artifactReferences: [{
+      id: `${input.capabilityId}-private-input-manifest`,
+      storageBucketPurpose: 'qa_artifacts',
+      storageObjectPath: `workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/track-a-native-validation/${input.jobId}/input-manifest.json`,
+      isPrivate: true,
+      sourceOfTruth: true,
+    }],
+    requiredQualityGateTypes: input.requestedToolId === 'gstreamer'
+      ? ['render_timeline_integrity']
+      : ['export_codec_format'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      trackANativeValidation: {
+        mode: 'production_ready',
+        capabilityId: input.capabilityId,
+        tasks: input.tasks,
+        sourceEvidenceIds: [
+          'pr-652-controlled-synthetic-proof',
+          'pr-673-controlled-generated-private-fixture-execution',
+          'pr-682-generated-private-fixture-qa',
+          'pr-738-gpac-install-source-execution',
+        ],
+        allowMediaProcessing: false,
+        allowPublicDelivery: false,
+        allowUserMedia: false,
+        runToolBinary: false,
+        runMediaCommand: false,
+        allowFrontendExecution: false,
+        allowFinalExport: false,
+        useTemporaryAccessLinkSourceTruth: false,
+        ...input.extra,
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

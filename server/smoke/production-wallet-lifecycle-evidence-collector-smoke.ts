@@ -109,6 +109,27 @@ function fakeFetch(
             productionToolExecutionAllowed: true,
             paidProductionAllowed: true,
           },
+          latestPacket: {
+            id: 'production-wallet-lifecycle-evidence-packet-smoke',
+            workspaceId: 'workspace-production-wallet-lifecycle-smoke',
+          },
+          packets: [
+            {
+              id: 'production-wallet-lifecycle-evidence-packet-smoke',
+              workspaceId: 'workspace-production-wallet-lifecycle-smoke',
+            },
+          ],
+          readinessSummary: {
+            workspaceId: 'workspace-production-wallet-lifecycle-smoke',
+            evidencePacketCount: 1,
+            latestEvidencePacketId: 'production-wallet-lifecycle-evidence-packet-smoke',
+            latestGateStatus: 'ready_for_paid_production',
+            latestProductionToolExecutionAllowed: true,
+            latestPaidProductionAllowed: true,
+            durableEvidenceStored: true,
+            backendPersistenceMode: 'persistent_supabase',
+            productionActivationAttempted: false,
+          },
         },
         warnings: ['Production wallet lifecycle readback smoke response.'],
       })

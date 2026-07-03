@@ -28,6 +28,7 @@ import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 import { runCoreCpuRenderReadinessChecks } from '../production-readiness/core-cpu-render-readiness-checks'
+import { runTrackANativeValidation } from '../track-a-native'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   switch (payload.workerType) {
@@ -595,6 +596,27 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'qa_worker_placeholder',
       }
     case 'tool_readiness_worker':
+      if (hasTrackANativeValidationRequest(payload)) {
+        const trackANativeValidationResult = runTrackANativeValidation(buildTrackANativeValidationInput(payload))
+        const gatewayAdapterId = stringValue(payload.metadata?.gatewayAdapterId)
+        const realTrackANativeValidationHandler = payload.executionMode === 'production_ready' &&
+          trackANativeValidationResult.mode === 'production_ready' &&
+          trackANativeValidationResult.status === 'completed'
+        return {
+          summary: realTrackANativeValidationHandler
+            ? 'Track A native validation production handler completed bounded private metadata validation without running media tools.'
+            : 'Track A native validation worker completed in dry-run or blocked mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realTrackANativeValidationHandler,
+          realToolExecution: realTrackANativeValidationHandler,
+          futureHandler: realTrackANativeValidationHandler && gatewayAdapterId
+            ? `${gatewayAdapterId}_production_handler`
+            : 'tool_readiness_worker_track_a_native_validation',
+          trackANativeValidationResult,
+        }
+      }
+
       if (hasToolReadinessCoreCheckRequest(payload)) {
         const toolReadinessResult = runCoreCpuRenderReadinessChecks(buildToolReadinessCoreCheckInput(payload))
         const realToolReadinessHandler = payload.executionMode === 'production_ready' &&
@@ -629,6 +651,38 @@ function hasToolReadinessCoreCheckRequest(payload: ProductionWorkerJobPayload): 
   if (!request || typeof request !== 'object') return false
   const mode = (request as Record<string, unknown>).mode
   return mode === 'dry_run' || mode === 'production_ready'
+}
+
+function hasTrackANativeValidationRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.trackANativeValidation
+  if (!request || typeof request !== 'object') return false
+  const mode = (request as Record<string, unknown>).mode
+  const gatewayAdapterId = stringValue(payload.metadata?.gatewayAdapterId)
+  return (mode === 'dry_run' || mode === 'production_ready') &&
+    (
+      gatewayAdapterId === 'tool_readiness_worker_streamer_render_pipeline_support' ||
+      gatewayAdapterId === 'tool_readiness_worker_mkvtoolnix_container_validation' ||
+      gatewayAdapterId === 'tool_readiness_worker_gpac_mp4box_packaging_validation'
+    )
+}
+
+function buildTrackANativeValidationInput(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.trackANativeValidation as Record<string, unknown>
+  return {
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    mediaAssetId: payload.mediaAssetId,
+    jobId: payload.jobId,
+    approvedSnapshotId: payload.approvedSnapshotId,
+    toolExecutionPlanId: payload.toolExecutionPlanId,
+    idempotencyKey: payload.idempotencyKey,
+    requestedToolIds: payload.requestedToolIds,
+    storageReferenceIds: payload.storageReferenceIds,
+    request: {
+      ...request,
+      gatewayAdapterId: stringValue(payload.metadata?.gatewayAdapterId),
+    },
+  }
 }
 
 function buildToolReadinessCoreCheckInput(payload: ProductionWorkerJobPayload) {

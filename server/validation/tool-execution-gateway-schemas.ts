@@ -39,6 +39,9 @@ const adapterSchema = z.enum([
   'qa_worker_final_render_qa_metadata',
   'qa_worker_placeholder',
   'tool_readiness_worker_core_checks',
+  'tool_readiness_worker_streamer_render_pipeline_support',
+  'tool_readiness_worker_mkvtoolnix_container_validation',
+  'tool_readiness_worker_gpac_mp4box_packaging_validation',
   'tool_readiness_worker_placeholder',
 ])
 

@@ -2,6 +2,7 @@ import { buildToolCostSummaryFromEvents } from './tool-cost-summary'
 import type { ToolCostEvent, ToolCostSummary } from './types'
 
 const eventsByIdempotencyKey = new Map<string, ToolCostEvent>()
+const eventsById = new Map<string, ToolCostEvent>()
 const eventsByProject = new Map<string, ToolCostEvent[]>()
 
 export function recordMockToolCostEvent(idempotencyKey: string, event: ToolCostEvent): {
@@ -12,9 +13,14 @@ export function recordMockToolCostEvent(idempotencyKey: string, event: ToolCostE
   if (existing) return { event: existing, replayed: true }
 
   eventsByIdempotencyKey.set(idempotencyKey, event)
+  eventsById.set(event.id, event)
   const projectKey = projectStoreKey(event.workspaceId, event.projectId)
   eventsByProject.set(projectKey, [...(eventsByProject.get(projectKey) ?? []), event])
   return { event, replayed: false }
+}
+
+export function getMockToolCostEventById(eventId: string): ToolCostEvent | undefined {
+  return eventsById.get(eventId)
 }
 
 export function buildMockToolCostSummary(workspaceId: string, projectId: string): ToolCostSummary {
@@ -27,6 +33,7 @@ export function buildMockToolCostSummary(workspaceId: string, projectId: string)
 
 export function resetMockToolCostStore(): void {
   eventsByIdempotencyKey.clear()
+  eventsById.clear()
   eventsByProject.clear()
 }
 

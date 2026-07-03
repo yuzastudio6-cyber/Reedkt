@@ -22,6 +22,9 @@ const commandChecks: Partial<Record<ProductionToolId, ProductionReadinessCommand
   signalsmith_stretch: [{ command: 'signalsmith-stretch', versionArgs: ['--help'] }],
   soundtouch: [{ command: 'soundstretch', versionArgs: ['--help'] }],
   rubber_band: [{ command: 'rubberband', versionArgs: ['--help'] }],
+  gstreamer: [{ command: 'gst-launch-1.0', versionArgs: ['--version'], expectedPattern: 'GStreamer' }],
+  mkvtoolnix: [{ command: 'mkvmerge', versionArgs: ['--version'], expectedPattern: 'mkvmerge' }],
+  gpac_mp4box: [{ command: 'MP4Box', versionArgs: ['-version'], expectedPattern: 'MP4Box' }],
 }
 
 const pythonImports: Partial<Record<ProductionToolId, ProductionReadinessImportCheck[]>> = {
@@ -106,6 +109,9 @@ const workerOverrides: Partial<Record<ProductionToolId, ProductionRegistryWorker
   babylon_js: ['render_worker'],
   lottie: ['render_worker'],
   playwright: ['cpu_analysis_worker'],
+  gstreamer: ['tool_readiness_worker'],
+  mkvtoolnix: ['tool_readiness_worker'],
+  gpac_mp4box: ['tool_readiness_worker'],
   vapoursynth: ['cpu_analysis_worker'],
 }
 
@@ -139,6 +145,9 @@ const imageRoleOverrides: Partial<Record<ProductionToolId, ProductionContainerIm
   deck_gl: ['render_worker', 'tool_readiness_worker'],
   cesium_js: ['render_worker', 'tool_readiness_worker'],
   konva: ['render_worker', 'tool_readiness_worker'],
+  gstreamer: ['render_worker', 'tool_readiness_worker'],
+  mkvtoolnix: ['render_worker', 'tool_readiness_worker'],
+  gpac_mp4box: ['render_worker', 'tool_readiness_worker'],
   vapoursynth: ['cpu_worker', 'tool_readiness_worker'],
   revideo: ['tool_readiness_worker'],
 }

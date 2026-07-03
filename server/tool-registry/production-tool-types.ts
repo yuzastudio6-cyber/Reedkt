@@ -48,6 +48,9 @@ export type ProductionToolId =
   | 'deck_gl'
   | 'cesium_js'
   | 'konva'
+  | 'gstreamer'
+  | 'mkvtoolnix'
+  | 'gpac_mp4box'
   | 'vapoursynth'
   | 'revideo'
 
@@ -99,6 +102,9 @@ export const PRODUCTION_TOOL_IDS = [
   'deck_gl',
   'cesium_js',
   'konva',
+  'gstreamer',
+  'mkvtoolnix',
+  'gpac_mp4box',
   'vapoursynth',
   'revideo',
 ] as const satisfies readonly ProductionToolId[]

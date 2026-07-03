@@ -6,18 +6,45 @@ import type { ProductionToolExecutionReadinessGateInput } from './production-too
 import {
   listMockProductionToolExecutionReadinessEvidencePackets,
   listPersistentProductionToolExecutionReadinessEvidencePackets,
+  type ProductionToolExecutionReadinessEvidencePacket,
   recordMockProductionToolExecutionReadinessEvidencePacket,
   recordPersistentProductionToolExecutionReadinessEvidencePacket,
 } from './production-tool-execution-readiness-evidence-store'
+
+export interface ProductionToolExecutionReadinessEvidenceServiceReadbackSummary {
+  workspaceId: string
+  evidencePacketCount: number
+  latestEvidencePacketId?: string
+  latestSourceId?: string
+  latestSourceSha?: string
+  latestCreatedAt?: string
+  latestCreatedByUserId?: string
+  latestGateStatus?: string
+  latestProductionToolExecutionAllowed?: boolean
+  latestPaidProductionAllowed?: boolean
+  latestBlockerCount: number
+  latestWarningCount: number
+  durableEvidenceStored: boolean
+  backendPersistenceMode: 'persistent_supabase' | 'mock_memory'
+  productionActivationAttempted: false
+}
 
 export function createProductionToolExecutionReadinessEvidenceService(context: ServiceContext) {
   return {
     async listEvidence(workspaceId: string) {
       await assertWorkspaceEvidenceAccess(context, workspaceId)
       const packets = await listPackets(context, workspaceId)
+      const latestPacket = packets.at(-1)
+      const readinessSummary = buildReadbackSummary(
+        workspaceId,
+        packets,
+        context.clients.admin && !context.env.mockOnly ? 'persistent_supabase' : 'mock_memory',
+      )
       return {
         packets,
-        latestReport: packets.at(-1)?.readinessReport,
+        latestPacket,
+        latestReport: latestPacket?.readinessReport,
+        readinessSummary,
         evidencePacketCount: packets.length,
         warnings: context.clients.admin && !context.env.mockOnly
           ? ['Persistent Supabase-backed production readiness evidence packets.']
@@ -80,6 +107,32 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
           ],
       }
     },
+  }
+}
+
+function buildReadbackSummary(
+  workspaceId: string,
+  packets: ProductionToolExecutionReadinessEvidencePacket[],
+  backendPersistenceMode: ProductionToolExecutionReadinessEvidenceServiceReadbackSummary['backendPersistenceMode'],
+): ProductionToolExecutionReadinessEvidenceServiceReadbackSummary {
+  const latestPacket = packets.at(-1)
+  const latestReport = latestPacket?.readinessReport
+  return {
+    workspaceId,
+    evidencePacketCount: packets.length,
+    latestEvidencePacketId: latestPacket?.id,
+    latestSourceId: latestPacket?.sourceId,
+    latestSourceSha: latestPacket?.sourceSha,
+    latestCreatedAt: latestPacket?.createdAt,
+    latestCreatedByUserId: latestPacket?.createdByUserId,
+    latestGateStatus: latestReport?.status,
+    latestProductionToolExecutionAllowed: latestReport?.productionToolExecutionAllowed,
+    latestPaidProductionAllowed: latestReport?.paidProductionAllowed,
+    latestBlockerCount: latestReport?.blockers.length ?? 0,
+    latestWarningCount: latestReport?.warnings.length ?? 0,
+    durableEvidenceStored: packets.length > 0,
+    backendPersistenceMode,
+    productionActivationAttempted: false,
   }
 }
 

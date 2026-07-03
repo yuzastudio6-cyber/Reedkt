@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
+import { getMockToolCostEventById } from './mock-tool-cost-store'
 import { assertNoSecretLikeCostPayload } from './secret-safety'
-import type { ToolCostFailureCategory } from './types'
+import type { ToolCostEvent, ToolCostFailureCategory } from './types'
 
 export type ToolCostWalletSettlementType = 'spend' | 'release' | 'refund'
 export type ToolCostWalletSettlementStatus = 'settled_mock' | 'settled_persistent' | 'not_billable'
@@ -74,9 +75,21 @@ export async function settleToolCostWallet(
     return settlePersistentToolCostWallet(context.clients.admin, input, idempotencyKey)
   }
 
+  const event = getMockToolCostEventById(input.toolCostEventId)
+  if (!event) {
+    throw new ApiError(
+      'TOOL_COST_EVENT_NOT_FOUND',
+      'Tool cost wallet settlement requires a recorded tool cost event before spend, release, or refund can be recorded.',
+      409,
+      { toolCostEventId: input.toolCostEventId },
+    )
+  }
+  assertSettlementInputMatchesEvent(input, event)
+  const eventBackedInput = settlementInputFromEvent(input, event)
+
   const replay = mockSettlementsByIdempotencyKey.get(idempotencyKey)
   if (replay) {
-    assertSettlementMatchesInput(replay, input)
+    assertSettlementMatchesInput(replay, eventBackedInput)
     return {
       settlement: replay,
       replayed: true,
@@ -86,7 +99,7 @@ export async function settleToolCostWallet(
     }
   }
 
-  const settlement = buildMockSettlement(input, idempotencyKey)
+  const settlement = buildMockSettlement(eventBackedInput, idempotencyKey)
   mockSettlementsByIdempotencyKey.set(idempotencyKey, settlement)
   return {
     settlement,
@@ -163,6 +176,7 @@ async function settlePersistentToolCostWallet(
   if (existing.data) {
     const settlement = rowToSettlement(existing.data as ToolCostWalletSettlementRow)
     assertSettlementMatchesInput(settlement, input)
+    assertSettlementFinancialsMatchInput(settlement, input)
     return {
       settlement,
       replayed: true,
@@ -183,6 +197,7 @@ async function settlePersistentToolCostWallet(
 
   const settlement = rowToSettlement(result.data as ToolCostWalletSettlementRow)
   assertSettlementMatchesInput(settlement, input)
+  assertSettlementFinancialsMatchInput(settlement, input)
   return {
     settlement,
     replayed: false,
@@ -190,6 +205,43 @@ async function settlePersistentToolCostWallet(
       'Persistent wallet settlement recorded through the backend service-role path.',
       'Stripe was not called and ReEditPro service/edit fees remain outside tool owner cost events.',
     ],
+  }
+}
+
+function settlementInputFromEvent(
+  input: ToolCostWalletSettlementInput,
+  event: ToolCostEvent,
+): ToolCostWalletSettlementInput {
+  return {
+    ...input,
+    workspaceId: event.workspaceId,
+    projectId: event.projectId,
+    creditEstimateId: event.creditEstimateId,
+    creditReservationId: event.creditReservationId,
+    toolCostCredits: event.toolCostCredits,
+    billableToUser: event.billableToUser,
+    failureCategory: event.failureCategory,
+  }
+}
+
+function assertSettlementInputMatchesEvent(input: ToolCostWalletSettlementInput, event: ToolCostEvent): void {
+  const mismatches: string[] = []
+  if (input.workspaceId !== event.workspaceId) mismatches.push('workspaceId')
+  if (input.projectId !== event.projectId) mismatches.push('projectId')
+  if (input.toolCostEventId !== event.id) mismatches.push('toolCostEventId')
+  if (input.creditEstimateId && input.creditEstimateId !== event.creditEstimateId) mismatches.push('creditEstimateId')
+  if (input.creditReservationId && input.creditReservationId !== event.creditReservationId) mismatches.push('creditReservationId')
+  if (input.toolCostCredits !== event.toolCostCredits) mismatches.push('toolCostCredits')
+  if (input.billableToUser !== event.billableToUser) mismatches.push('billableToUser')
+  if (input.failureCategory && input.failureCategory !== event.failureCategory) mismatches.push('failureCategory')
+
+  if (mismatches.length > 0) {
+    throw new ApiError(
+      'TOOL_COST_SETTLEMENT_EVENT_MISMATCH',
+      'Tool cost wallet settlement must match the recorded tool cost event before spend, release, or refund can be recorded.',
+      409,
+      { mismatches, toolCostEventId: event.id },
+    )
   }
 }
 
@@ -209,6 +261,43 @@ function assertSettlementMatchesInput(settlement: ToolCostWalletSettlement, inpu
       409,
       { mismatches },
     )
+  }
+}
+
+function assertSettlementFinancialsMatchInput(settlement: ToolCostWalletSettlement, input: ToolCostWalletSettlementInput): void {
+  const expected = expectedSettlementFinancials(input)
+  const mismatches: string[] = []
+  if (settlement.billableToUser !== expected.billableToUser) mismatches.push('billableToUser')
+  if (settlement.creditsDelta !== expected.creditsDelta) mismatches.push('creditsDelta')
+  if (settlement.settlementType !== expected.settlementType) mismatches.push('settlementType')
+
+  if (mismatches.length > 0) {
+    throw new ApiError(
+      'TOOL_COST_SETTLEMENT_FINANCIAL_MISMATCH',
+      'Tool cost wallet settlement financial result does not match the recorded tool cost event and requested settlement type.',
+      409,
+      { mismatches, expected, actual: {
+        billableToUser: settlement.billableToUser,
+        creditsDelta: settlement.creditsDelta,
+        settlementType: settlement.settlementType,
+      } },
+    )
+  }
+}
+
+function expectedSettlementFinancials(input: ToolCostWalletSettlementInput): {
+  settlementType: ToolCostWalletSettlementType
+  billableToUser: boolean
+  creditsDelta: number
+} {
+  const settlementType = input.settlementType ?? 'spend'
+  const failureCategory = input.failureCategory ?? 'none'
+  const normalizedCredits = Math.max(0, Math.ceil(input.toolCostCredits))
+  const billableToUser = input.billableToUser && normalizedCredits > 0 && failureCategoryAllowsCharge(failureCategory)
+  return {
+    settlementType,
+    billableToUser,
+    creditsDelta: billableToUser ? settlementCreditsDelta(settlementType, normalizedCredits) : 0,
   }
 }
 

@@ -9,6 +9,22 @@ const empty = await buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
 assert.equal(empty.ok, false, 'empty production evidence bundle should remain blocked')
 assert.equal(empty.backendCallsAttempted, false, 'bundle must not call backend routes')
 assert.equal(empty.sections.some((section) => section.id === 'all_up_preflight' && section.ready === false), true)
+assert.equal(empty.summary.productionToolCount >= 52, true, 'bundle summary should include the full production tool registry, including Track A native tools')
+assert.equal(empty.summary.productReadyLocalOssCount, 0, 'product-ready local OSS count must remain zero')
+assert.equal(empty.summary.reviewedRealBackendAdapterCount >= 16, true, 'bundle summary should expose reviewed real backend adapter coverage')
+assert.equal(empty.summary.readyForScopedReviewedToolExecution, true, 'scoped reviewed handler coverage should be ready even when production evidence is missing')
+assert.equal(empty.summary.paidProductionEvidenceReady, false, 'empty evidence should not be production-ready')
+assert.equal(empty.milestone10Checklist.length, 10, 'bundle should publish the Milestone 10 production checklist')
+assert.equal(
+  empty.milestone10Checklist.some((item) => item.id === 'supabase_production_persistence' && item.status === 'blocked'),
+  true,
+  'empty bundle should show Supabase persistence as a real evidence blocker',
+)
+assert.equal(
+  empty.milestone10Checklist.some((item) => item.id === 'scoped_real_backend_handlers' && item.status === 'ready'),
+  true,
+  'scoped real backend handlers should be ready in the local source while evidence remains blocked',
+)
 assert.equal(empty.recommendedSequence.length, 10, 'bundle should publish the full operator sequence')
 
 const complete = await buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
@@ -25,6 +41,30 @@ assert.equal(complete.ok, true, 'complete production evidence should pass when s
 assert.equal(complete.mode, 'dry_run', 'bundle should be dry-run only')
 assert.equal(complete.readyForAllUpRecord, true, 'bundle should identify all-up record readiness')
 assert.equal(complete.backendCallsAttempted, false, 'complete bundle must still not call backend routes')
+assert.equal(complete.summary.readySectionCount, complete.sections.length, 'complete fixture should mark every section ready')
+assert.equal(complete.summary.blockedSectionCount, 0, 'complete fixture should have no blocked sections')
+assert.equal(complete.summary.paidProductionEvidenceReady, true, 'complete fixture should mark paid production evidence ready')
+assert.equal(
+  complete.milestone10Checklist.every((item) => item.status === 'ready'),
+  true,
+  'complete fixture should mark every Milestone 10 checklist item ready',
+)
+assert.deepEqual(
+  complete.milestone10Checklist.map((item) => item.id),
+  [
+    'supabase_production_persistence',
+    'tool_cost_ledger_writes',
+    'wallet_reserve_spend_release_refund',
+    'stripe_boundary_confirmation',
+    'observability_alerts',
+    'rollback_kill_switches',
+    'rate_concurrency_limits',
+    'final_owner_signoff',
+    'all_up_evidence_record_readback',
+    'scoped_real_backend_handlers',
+  ],
+  'Milestone 10 checklist should preserve the professional production-readiness sequence',
+)
 assert.equal(
   complete.sections.filter((section) => section.id !== 'real_worker_handlers').every((section) => section.ready),
   true,
@@ -70,6 +110,12 @@ console.log(JSON.stringify({
     id: section.id,
     ready: section.ready,
     blockers: section.blockers.length,
+  })),
+  summary: complete.summary,
+  milestone10Checklist: complete.milestone10Checklist.map((item) => ({
+    id: item.id,
+    status: item.status,
+    blockers: item.blockerCount,
   })),
   sequence: complete.recommendedSequence.map((item) => item.command),
   backendCallsAttempted: complete.backendCallsAttempted,

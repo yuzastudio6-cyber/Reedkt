@@ -140,7 +140,9 @@ export function createBetaReadinessRoutes(): Router {
     const result = await createProductionToolExecutionReadinessEvidenceService(getServiceContext(request)).listEvidence(workspaceId)
     sendOk(response, {
       packets: result.packets,
+      latestPacket: result.latestPacket,
       latestReport: result.latestReport,
+      readinessSummary: result.readinessSummary,
       evidencePacketCount: result.evidencePacketCount,
     }, result.warnings)
   }))

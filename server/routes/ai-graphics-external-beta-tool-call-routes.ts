@@ -204,6 +204,74 @@ export type AiGraphicsExternalBetaToolCallRequest = z.infer<
   typeof aiGraphicsExternalBetaToolCallRequestSchema
 >
 
+export type AiGraphicsExternalAgentToolCallExecutionState =
+  | 'executable'
+  | 'blocked_with_reason'
+  | 'failed_with_diagnostics'
+
+interface AiGraphicsExternalAgentToolCallResultInput {
+  requestId: string
+  toolId: string
+  capabilityId: string
+  routeStatus: string
+  executionState: AiGraphicsExternalAgentToolCallExecutionState
+  blockingReasonCode?: string | null
+  failureDiagnostics?: string | null
+  callable?: boolean
+  executable?: boolean
+  controlledAdapterInvokedNow?: boolean
+  controlledAdapterExecutedNow?: boolean
+  localPackageExecutionPerformed?: boolean
+  localGpuModelRuntimeExecutionPerformed?: boolean
+  routeExecutionPerformed?: boolean
+  gpuRuntimeShouldStartNow?: boolean
+  privateArtifactManifestRef?: string | null
+  publicArtifactCreated?: boolean
+  signedUrlCreated?: boolean
+  nextExternalAgentAction?: string | null
+}
+
+export function buildAiGraphicsExternalAgentToolCallResult(
+  input: AiGraphicsExternalAgentToolCallResultInput,
+) {
+  const callable = input.callable !== false
+  const executable =
+    input.executable ?? input.executionState === 'executable'
+  const blockedWithReason = input.executionState === 'blocked_with_reason'
+  const failedWithDiagnostics =
+    input.executionState === 'failed_with_diagnostics'
+
+  return {
+    contractVersion:
+      '2026-07-03.ai-graphics.external-agent-tool-call-result',
+    requestId: input.requestId,
+    toolId: input.toolId,
+    capabilityId: input.capabilityId,
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routeStatus: input.routeStatus,
+    callable,
+    executable,
+    blockedWithReason,
+    failedWithDiagnostics,
+    executionState: input.executionState,
+    blockingReasonCode: input.blockingReasonCode ?? null,
+    failureDiagnostics: input.failureDiagnostics ?? null,
+    controlledAdapterInvokedNow: input.controlledAdapterInvokedNow === true,
+    controlledAdapterExecutedNow: input.controlledAdapterExecutedNow === true,
+    localPackageExecutionPerformed: input.localPackageExecutionPerformed === true,
+    localGpuModelRuntimeExecutionPerformed:
+      input.localGpuModelRuntimeExecutionPerformed === true,
+    routeExecutionPerformed: input.routeExecutionPerformed === true,
+    gpuRuntimeShouldStartNow: input.gpuRuntimeShouldStartNow === true,
+    outputAccess: {
+      privateArtifactManifestRef: input.privateArtifactManifestRef ?? null,
+      publicArtifactCreated: input.publicArtifactCreated === true,
+      signedUrlCreated: input.signedUrlCreated === true,
+    },
+    nextExternalAgentAction: input.nextExternalAgentAction ?? null,
+  }
+}
+
 function hasAcceptedPrivateRef(value?: string): boolean {
   return privateRefSchema.safeParse(value).success
 }
@@ -262,6 +330,21 @@ export function buildAiGraphicsExternalBetaToolCallBlockedDetails(
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       selectedTool?.gpuRequiredForRuntime === true,
     gpuRuntimeShouldStartNow: false,
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus: 'external_agent_execution_gates_missing',
+      executionState: 'blocked_with_reason',
+      blockingReasonCode: 'external_agent_execution_gates_missing',
+      controlledAdapterInvokedNow: false,
+      controlledAdapterExecutedNow: false,
+      routeExecutionPerformed: false,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: request.privateArtifactManifestRef,
+      nextExternalAgentAction:
+        'submit through an approved controlled adapter route or provide the missing runtime proof gates',
+    }),
     externalBetaReadyNow: false,
     productionReadyNow: false,
   }
@@ -382,6 +465,22 @@ export async function admitAiGraphicsExternalBetaToolCallToMockQueue(
     privateArtifactManifestRef: request.privateArtifactManifestRef,
     queueName: 'ai_graphics_external_beta_tool_runtime',
     queueAdmissionMode: 'mock_only',
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus:
+        'external_beta_tool_call_route_mock_queue_admission_accepted_runtime_still_blocked',
+      executionState: 'blocked_with_reason',
+      blockingReasonCode: 'mock_queue_admission_runtime_still_blocked',
+      controlledAdapterInvokedNow: false,
+      controlledAdapterExecutedNow: false,
+      routeExecutionPerformed: true,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: request.privateArtifactManifestRef,
+      nextExternalAgentAction:
+        'wait for a later worker execution lane before treating queue admission as runtime execution',
+    }),
     queueResult: {
       jobBatchId: queueResult.jobBatchId ?? null,
       jobIds: Array.isArray(queueResult.jobIds) ? queueResult.jobIds : [],
@@ -514,6 +613,26 @@ export async function executeAiGraphicsExternalBetaToolCallCpuStaticControlledAd
     externalBetaReadyNow: false,
     productionReadyNow: false,
     globalAllToolExecutionStillBlocked: true,
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus:
+        'external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready',
+      executionState: 'executable',
+      blockingReasonCode: null,
+      failureDiagnostics: null,
+      controlledAdapterInvokedNow: true,
+      controlledAdapterExecutedNow: true,
+      localPackageExecutionPerformed: true,
+      routeExecutionPerformed: true,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: adapterResult.privateArtifactManifestRef,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      nextExternalAgentAction:
+        'use the returned private artifact manifest ref in the approved downstream planning or worker lane',
+    }),
     adapterResult,
     outputAccess: {
       privateArtifactManifestRef: adapterResult.privateArtifactManifestRef,
@@ -647,6 +766,26 @@ export async function executeAiGraphicsExternalBetaToolCallBrowserRuntimeControl
     externalBetaReadyNow: false,
     productionReadyNow: false,
     globalAllToolExecutionStillBlocked: true,
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus:
+        'external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready',
+      executionState: 'executable',
+      blockingReasonCode: null,
+      failureDiagnostics: null,
+      controlledAdapterInvokedNow: true,
+      controlledAdapterExecutedNow: true,
+      localPackageExecutionPerformed: true,
+      routeExecutionPerformed: true,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: adapterResult.privateArtifactManifestRef,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      nextExternalAgentAction:
+        'use the returned private artifact manifest ref in the approved downstream planning or worker lane',
+    }),
     adapterResult,
     outputAccess: {
       privateArtifactManifestRef: adapterResult.privateArtifactManifestRef,
@@ -812,6 +951,21 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     missingRuntimeJobGates: admission.missingRuntimeJobGates,
     missingRuntimeProofGates,
     missingPrivateModelWeightEvidence,
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus:
+        'gpu_model_runtime_admission_blocked_pending_native_gpu_and_model_weight_evidence',
+      executionState: 'blocked_with_reason',
+      blockingReasonCode: gpuModelUnblockPlan.status,
+      controlledAdapterInvokedNow: false,
+      controlledAdapterExecutedNow: false,
+      routeExecutionPerformed: true,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: request.privateArtifactManifestRef,
+      nextExternalAgentAction,
+    }),
     nextRequiredProofs: [
       'collect reviewed private checksum evidence for model-weight tools',
       'validate reviewed private model-weight manifests for tools that require weights',
@@ -1050,6 +1204,23 @@ export async function admitAiGraphicsExternalBetaToolCallGpuModelRuntime(
       gpuRuntimeShouldStartNow: false,
       queueName: 'ai_graphics_external_beta_tool_runtime',
       queueAdmissionMode: 'mock_only_gpu_model_proof_ref',
+      externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+        requestId: request.requestId,
+        toolId: request.toolId,
+        capabilityId: request.capabilityId,
+        routeStatus:
+          'external_beta_tool_call_route_gpu_model_proof_ref_mock_queue_admission_accepted_runtime_still_blocked',
+        executionState: 'blocked_with_reason',
+        blockingReasonCode:
+          'gpu_model_proof_ref_queue_admission_runtime_still_blocked',
+        controlledAdapterInvokedNow: false,
+        controlledAdapterExecutedNow: false,
+        routeExecutionPerformed: true,
+        gpuRuntimeShouldStartNow: false,
+        privateArtifactManifestRef: request.privateArtifactManifestRef,
+        nextExternalAgentAction:
+          'wait for live worker enqueue authorization before GPU runtime may start on demand',
+      }),
       queueResult: {
         jobBatchId: queueResult.jobBatchId ?? null,
         jobIds: Array.isArray(queueResult.jobIds) ? queueResult.jobIds : [],
@@ -1738,6 +1909,31 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
         externalAgentExecutionState: gpuModelExecutionState,
         blockingReasonCode: execution.blockingReasonCode,
         failureDiagnostics: execution.failureDiagnostics,
+        externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+          requestId: body.requestId,
+          toolId: body.toolId,
+          capabilityId: body.capabilityId,
+          routeStatus: gpuModelExecutionPassed
+            ? 'controlled_gpu_model_route_executed_private_output_ready'
+            : gpuModelFailedWithDiagnostics
+            ? 'controlled_gpu_model_route_failed_with_diagnostics'
+            : 'controlled_gpu_model_route_blocked_with_reason',
+          executionState: gpuModelExecutionState,
+          blockingReasonCode: execution.blockingReasonCode,
+          failureDiagnostics: execution.failureDiagnostics,
+          controlledAdapterInvokedNow: execution.controlledAdapterInvokedNow,
+          controlledAdapterExecutedNow: execution.controlledAdapterExecutedNow,
+          localGpuModelRuntimeExecutionPerformed:
+            execution.localGpuModelRuntimeExecutionPerformed,
+          routeExecutionPerformed: true,
+          gpuRuntimeShouldStartNow: execution.gpuRuntimeShouldStartNow,
+          privateArtifactManifestRef: execution.privateArtifactManifestRef,
+          publicArtifactCreated: execution.publicArtifactCreated,
+          signedUrlCreated: execution.signedUrlCreated,
+          nextExternalAgentAction: gpuModelExecutionPassed
+            ? 'use the private runtime output in the approved downstream planning or worker lane'
+            : 'provide the scoped private CUDA/model/input prerequisites listed by blockingReasonCode before retrying this tool call',
+        }),
         routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
         routeFlag:
           AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,

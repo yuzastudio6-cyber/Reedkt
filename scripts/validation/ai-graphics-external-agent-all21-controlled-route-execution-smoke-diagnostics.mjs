@@ -172,6 +172,62 @@ function checkReport(label, report) {
     ].includes(row.externalAgentExecutionState)) {
       fail(`${label}_${toolId}_external_agent_state_missing`)
     }
+    const normalized = row.externalAgentToolCallResult
+    if (!normalized || typeof normalized !== 'object') {
+      fail(`${label}_${toolId}_missing_normalized_tool_call_result`)
+    } else {
+      if (
+        normalized.contractVersion !==
+        '2026-07-03.ai-graphics.external-agent-tool-call-result'
+      ) {
+        fail(`${label}_${toolId}_normalized_contract_version_mismatch`)
+      }
+      if (normalized.callable !== true) {
+        fail(`${label}_${toolId}_normalized_callable_not_true`)
+      }
+      if (normalized.executionState !== row.externalAgentExecutionState) {
+        fail(`${label}_${toolId}_normalized_state_mismatch`)
+      }
+      if (
+        normalized.blockedWithReason !==
+        (row.externalAgentExecutionState === 'blocked_with_reason')
+      ) {
+        fail(`${label}_${toolId}_normalized_blocked_flag_mismatch`)
+      }
+      if (
+        normalized.failedWithDiagnostics !==
+        (row.externalAgentExecutionState === 'failed_with_diagnostics')
+      ) {
+        fail(`${label}_${toolId}_normalized_failed_flag_mismatch`)
+      }
+      if (
+        normalized.controlledAdapterInvokedNow !==
+        row.controlledAdapterInvokedNow
+      ) {
+        fail(`${label}_${toolId}_normalized_adapter_invoked_mismatch`)
+      }
+      if (
+        normalized.controlledAdapterExecutedNow !==
+        row.controlledAdapterExecutedNow
+      ) {
+        fail(`${label}_${toolId}_normalized_adapter_executed_mismatch`)
+      }
+      if (normalized.routeExecutionPerformed !== true) {
+        fail(`${label}_${toolId}_normalized_route_execution_not_true`)
+      }
+      if (normalized.gpuRuntimeShouldStartNow !== false) {
+        fail(`${label}_${toolId}_normalized_gpu_start_not_false`)
+      }
+      if (normalized.outputAccess?.publicArtifactCreated !== false) {
+        fail(`${label}_${toolId}_normalized_public_artifact_not_false`)
+      }
+      if (normalized.outputAccess?.signedUrlCreated !== false) {
+        fail(`${label}_${toolId}_normalized_signed_url_not_false`)
+      }
+      if (!normalized.nextExternalAgentAction) {
+        fail(`${label}_${toolId}_normalized_next_action_missing`)
+      }
+    }
     for (const key of [
       'gpuRuntimeShouldStartNow',
       'publicArtifactCreated',
@@ -194,6 +250,15 @@ function checkReport(label, report) {
     }
     if (row.externalAgentExecutionState !== 'executable') {
       fail(`${label}_${toolId}_not_executable_state`)
+    }
+    if (row.externalAgentToolCallResult?.executable !== true) {
+      fail(`${label}_${toolId}_normalized_not_executable`)
+    }
+    if (row.externalAgentToolCallResult?.blockedWithReason !== false) {
+      fail(`${label}_${toolId}_normalized_unexpected_blocked`)
+    }
+    if (row.externalAgentToolCallResult?.failedWithDiagnostics !== false) {
+      fail(`${label}_${toolId}_normalized_unexpected_failure`)
     }
     if (row.blockingReasonCode !== null) {
       fail(`${label}_${toolId}_unexpected_blocking_reason`)
@@ -218,6 +283,15 @@ function checkReport(label, report) {
     }
     if (row.externalAgentExecutionState !== 'blocked_with_reason') {
       fail(`${label}_${toolId}_gpu_not_blocked_with_reason_state`)
+    }
+    if (row.externalAgentToolCallResult?.executable !== false) {
+      fail(`${label}_${toolId}_normalized_gpu_executable_not_false`)
+    }
+    if (row.externalAgentToolCallResult?.blockedWithReason !== true) {
+      fail(`${label}_${toolId}_normalized_gpu_blocked_not_true`)
+    }
+    if (row.externalAgentToolCallResult?.failedWithDiagnostics !== false) {
+      fail(`${label}_${toolId}_normalized_gpu_failed_not_false`)
     }
     if (!row.blockingReasonCode) {
       fail(`${label}_${toolId}_gpu_missing_blocking_reason`)
@@ -246,6 +320,11 @@ function checkReport(label, report) {
     executableStateTools: 13,
     blockedWithReasonStateTools: 8,
     failedWithDiagnosticsStateTools: 0,
+    normalizedExternalAgentToolCallResultTools: 21,
+    normalizedExternalAgentCallableResultTools: 21,
+    normalizedExternalAgentExecutableResultTools: 13,
+    normalizedExternalAgentBlockedWithReasonResultTools: 8,
+    normalizedExternalAgentFailedWithDiagnosticsResultTools: 0,
     cpuStaticControlledRouteExecutedTools: 6,
     browserRuntimeControlledRouteExecutedTools: 7,
     gpuModelControlledRouteInvokedTools: 8,
@@ -347,6 +426,21 @@ function checkReport(label, report) {
     if (scopedResult.externalAgentExecutionState !== 'blocked_with_reason') {
       fail(`${label}_scoped_attempt_state_mismatch:${scopedResult.externalAgentExecutionState}`)
     }
+    if (scopedResult.externalAgentToolCallResult?.callable !== true) {
+      fail(`${label}_scoped_attempt_normalized_callable_not_true`)
+    }
+    if (scopedResult.externalAgentToolCallResult?.executable !== false) {
+      fail(`${label}_scoped_attempt_normalized_executable_not_false`)
+    }
+    if (scopedResult.externalAgentToolCallResult?.blockedWithReason !== true) {
+      fail(`${label}_scoped_attempt_normalized_blocked_not_true`)
+    }
+    if (
+      scopedResult.externalAgentToolCallResult?.executionState !==
+      'blocked_with_reason'
+    ) {
+      fail(`${label}_scoped_attempt_normalized_state_mismatch`)
+    }
     if (scopedResult.blockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
       fail(`${label}_scoped_attempt_block_code_mismatch:${scopedResult.blockingReasonCode}`)
     }
@@ -427,6 +521,21 @@ function checkReport(label, report) {
     }
     if (scopedResult.externalAgentExecutionState !== 'blocked_with_reason') {
       fail(`${label}_${toolId}_scoped_state_mismatch:${scopedResult.externalAgentExecutionState}`)
+    }
+    if (scopedResult.externalAgentToolCallResult?.callable !== true) {
+      fail(`${label}_${toolId}_scoped_normalized_callable_not_true`)
+    }
+    if (scopedResult.externalAgentToolCallResult?.executable !== false) {
+      fail(`${label}_${toolId}_scoped_normalized_executable_not_false`)
+    }
+    if (scopedResult.externalAgentToolCallResult?.blockedWithReason !== true) {
+      fail(`${label}_${toolId}_scoped_normalized_blocked_not_true`)
+    }
+    if (
+      scopedResult.externalAgentToolCallResult?.executionState !==
+      'blocked_with_reason'
+    ) {
+      fail(`${label}_${toolId}_scoped_normalized_state_mismatch`)
     }
     if (scopedResult.blockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
       fail(`${label}_${toolId}_scoped_block_code_mismatch:${scopedResult.blockingReasonCode}`)
@@ -536,6 +645,9 @@ function checkReport(label, report) {
     'browserRuntimeControlledAdaptersExecuted',
     'gpuModelControlledAdaptersInvoked',
     'normalizedExternalAgentExecutionStatesReturned',
+    'normalizedExternalAgentToolCallResultsReturned',
+    'normalizedExternalAgentToolCallResultsMatchStates',
+    'normalizedExternalAgentToolCallResultsPreserveSafetyGates',
     'thirteenToolsReturnExecutableState',
     'eightGpuModelToolsReturnBlockedWithReasonState',
     'noToolsReturnFailedWithDiagnosticsState',

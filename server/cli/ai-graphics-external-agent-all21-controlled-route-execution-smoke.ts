@@ -45,6 +45,34 @@ const gpuModelTools = new Set<string>(
 
 type ControlledToolGroup = 'cpu_static' | 'browser_runtime' | 'gpu_model'
 
+type ExternalAgentToolCallExecutionState =
+  | 'executable'
+  | 'blocked_with_reason'
+  | 'failed_with_diagnostics'
+
+interface ExternalAgentToolCallResult {
+  contractVersion: string | null
+  callable: boolean
+  executable: boolean
+  blockedWithReason: boolean
+  failedWithDiagnostics: boolean
+  executionState: ExternalAgentToolCallExecutionState | null
+  blockingReasonCode: string | null
+  failureDiagnostics: string | null
+  controlledAdapterInvokedNow: boolean
+  controlledAdapterExecutedNow: boolean
+  localPackageExecutionPerformed: boolean
+  localGpuModelRuntimeExecutionPerformed: boolean
+  routeExecutionPerformed: boolean
+  gpuRuntimeShouldStartNow: boolean
+  outputAccess: {
+    privateArtifactManifestRef: string | null
+    publicArtifactCreated: boolean
+    signedUrlCreated: boolean
+  }
+  nextExternalAgentAction: string | null
+}
+
 interface ControlledRouteExecutionResult {
   toolId: string
   capabilityId: string
@@ -53,10 +81,9 @@ interface ControlledRouteExecutionResult {
   ok: boolean
   routeStatus: string | null
   externalAgentExecutionState:
-    | 'executable'
-    | 'blocked_with_reason'
-    | 'failed_with_diagnostics'
+    | ExternalAgentToolCallExecutionState
     | null
+  externalAgentToolCallResult: ExternalAgentToolCallResult | null
   blockingReasonCode: string | null
   failureDiagnostics: string | null
   controlledAdapterExecutedNow: boolean
@@ -119,6 +146,58 @@ interface ScopedGpuModelLocalDevRouteAttemptOptions {
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
+}
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
+}
+
+function nullableString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null
+}
+
+function externalAgentExecutionState(
+  value: unknown,
+): ExternalAgentToolCallExecutionState | null {
+  return value === 'executable' ||
+    value === 'blocked_with_reason' ||
+    value === 'failed_with_diagnostics'
+    ? value
+    : null
+}
+
+function parseExternalAgentToolCallResult(
+  value: unknown,
+): ExternalAgentToolCallResult | null {
+  const raw = objectValue(value)
+  if (!raw || Object.keys(raw).length === 0) return null
+  const outputAccess = objectValue(raw.outputAccess)
+  return {
+    contractVersion: nullableString(raw.contractVersion),
+    callable: raw.callable === true,
+    executable: raw.executable === true,
+    blockedWithReason: raw.blockedWithReason === true,
+    failedWithDiagnostics: raw.failedWithDiagnostics === true,
+    executionState: externalAgentExecutionState(raw.executionState),
+    blockingReasonCode: nullableString(raw.blockingReasonCode),
+    failureDiagnostics: nullableString(raw.failureDiagnostics),
+    controlledAdapterInvokedNow: raw.controlledAdapterInvokedNow === true,
+    controlledAdapterExecutedNow: raw.controlledAdapterExecutedNow === true,
+    localPackageExecutionPerformed: raw.localPackageExecutionPerformed === true,
+    localGpuModelRuntimeExecutionPerformed:
+      raw.localGpuModelRuntimeExecutionPerformed === true,
+    routeExecutionPerformed: raw.routeExecutionPerformed === true,
+    gpuRuntimeShouldStartNow: raw.gpuRuntimeShouldStartNow === true,
+    outputAccess: {
+      privateArtifactManifestRef:
+        nullableString(outputAccess.privateArtifactManifestRef),
+      publicArtifactCreated: outputAccess.publicArtifactCreated === true,
+      signedUrlCreated: outputAccess.signedUrlCreated === true,
+    },
+    nextExternalAgentAction: nullableString(raw.nextExternalAgentAction),
+  }
 }
 
 function stringArg(name: string): string | undefined {
@@ -427,6 +506,9 @@ async function runControlledCase(
   const adapterResult = data.adapterResult ?? data.controlledAdapterResult ?? {}
   const output = adapterResult.output ?? {}
   const group = groupForTool(request.toolId)
+  const externalAgentToolCallResult = parseExternalAgentToolCallResult(
+    data.externalAgentToolCallResult,
+  )
   const localGpuModelRuntimeExecutionPerformed =
     adapterResult.localGpuModelRuntimeExecutionPerformed === true
 
@@ -440,11 +522,8 @@ async function runControlledCase(
       ? data.routeStatus
       : null,
     externalAgentExecutionState:
-      data.externalAgentExecutionState === 'executable' ||
-      data.externalAgentExecutionState === 'blocked_with_reason' ||
-      data.externalAgentExecutionState === 'failed_with_diagnostics'
-        ? data.externalAgentExecutionState
-        : null,
+      externalAgentExecutionState(data.externalAgentExecutionState),
+    externalAgentToolCallResult,
     blockingReasonCode: typeof data.blockingReasonCode === 'string'
       ? data.blockingReasonCode
       : null,
@@ -663,6 +742,41 @@ function validateResults(
     assert(result.statusCode === 200, `${result.toolId} did not return HTTP 200`)
     assert(result.ok === true, `${result.toolId} did not return ok envelope`)
     assert(result.controlledAdapterInvokedNow === true, `${result.toolId} adapter was not invoked`)
+    assert(
+      result.externalAgentToolCallResult !== null,
+      `${result.toolId} missing normalized external agent tool-call result`,
+    )
+    assert(
+      result.externalAgentToolCallResult.callable === true,
+      `${result.toolId} normalized result not callable`,
+    )
+    assert(
+      result.externalAgentToolCallResult.executionState ===
+        result.externalAgentExecutionState,
+      `${result.toolId} normalized execution state mismatch`,
+    )
+    assert(
+      result.externalAgentToolCallResult.controlledAdapterInvokedNow ===
+        result.controlledAdapterInvokedNow,
+      `${result.toolId} normalized adapter invoked mismatch`,
+    )
+    assert(
+      result.externalAgentToolCallResult.controlledAdapterExecutedNow ===
+        result.controlledAdapterExecutedNow,
+      `${result.toolId} normalized adapter executed mismatch`,
+    )
+    assert(
+      result.externalAgentToolCallResult.gpuRuntimeShouldStartNow === false,
+      `${result.toolId} normalized result started GPU runtime unexpectedly`,
+    )
+    assert(
+      result.externalAgentToolCallResult.outputAccess.publicArtifactCreated === false,
+      `${result.toolId} normalized result created public artifact`,
+    )
+    assert(
+      result.externalAgentToolCallResult.outputAccess.signedUrlCreated === false,
+      `${result.toolId} normalized result created signed URL`,
+    )
     assert(result.publicArtifactCreated === false, `${result.toolId} created public artifact`)
     assert(result.signedUrlCreated === false, `${result.toolId} created signed URL`)
     assert(result.workerDispatchPerformed === false, `${result.toolId} dispatched worker`)
@@ -674,6 +788,9 @@ function validateResults(
 
     if (result.group === 'cpu_static') {
       assert(result.externalAgentExecutionState === 'executable', `${result.toolId} CPU/static execution state mismatch`)
+      assert(result.externalAgentToolCallResult.executable === true, `${result.toolId} normalized CPU/static executable mismatch`)
+      assert(result.externalAgentToolCallResult.blockedWithReason === false, `${result.toolId} normalized CPU/static blocked mismatch`)
+      assert(result.externalAgentToolCallResult.failedWithDiagnostics === false, `${result.toolId} normalized CPU/static failure mismatch`)
       assert(result.blockingReasonCode === null, `${result.toolId} CPU/static returned blocking reason`)
       assert(result.failureDiagnostics === null, `${result.toolId} CPU/static returned failure diagnostics`)
       assert(
@@ -689,6 +806,9 @@ function validateResults(
 
     if (result.group === 'browser_runtime') {
       assert(result.externalAgentExecutionState === 'executable', `${result.toolId} browser execution state mismatch`)
+      assert(result.externalAgentToolCallResult.executable === true, `${result.toolId} normalized browser executable mismatch`)
+      assert(result.externalAgentToolCallResult.blockedWithReason === false, `${result.toolId} normalized browser blocked mismatch`)
+      assert(result.externalAgentToolCallResult.failedWithDiagnostics === false, `${result.toolId} normalized browser failure mismatch`)
       assert(result.blockingReasonCode === null, `${result.toolId} browser returned blocking reason`)
       assert(result.failureDiagnostics === null, `${result.toolId} browser returned failure diagnostics`)
       assert(
@@ -704,6 +824,9 @@ function validateResults(
 
     if (result.group === 'gpu_model') {
       assert(result.externalAgentExecutionState === 'blocked_with_reason', `${result.toolId} GPU/model execution state mismatch`)
+      assert(result.externalAgentToolCallResult.executable === false, `${result.toolId} normalized GPU/model executable mismatch`)
+      assert(result.externalAgentToolCallResult.blockedWithReason === true, `${result.toolId} normalized GPU/model block mismatch`)
+      assert(result.externalAgentToolCallResult.failedWithDiagnostics === false, `${result.toolId} normalized GPU/model failure mismatch`)
       assert(Boolean(result.blockingReasonCode), `${result.toolId} GPU/model missing blocking reason code`)
       assert(result.failureDiagnostics === null, `${result.toolId} GPU/model returned failure diagnostics in blocked state`)
       assert(
@@ -779,6 +902,16 @@ function buildReport(
         results.filter((item) => item.externalAgentExecutionState === 'blocked_with_reason').length,
       failedWithDiagnosticsStateTools:
         results.filter((item) => item.externalAgentExecutionState === 'failed_with_diagnostics').length,
+      normalizedExternalAgentToolCallResultTools:
+        results.filter((item) => item.externalAgentToolCallResult !== null).length,
+      normalizedExternalAgentCallableResultTools:
+        results.filter((item) => item.externalAgentToolCallResult?.callable).length,
+      normalizedExternalAgentExecutableResultTools:
+        results.filter((item) => item.externalAgentToolCallResult?.executable).length,
+      normalizedExternalAgentBlockedWithReasonResultTools:
+        results.filter((item) => item.externalAgentToolCallResult?.blockedWithReason).length,
+      normalizedExternalAgentFailedWithDiagnosticsResultTools:
+        results.filter((item) => item.externalAgentToolCallResult?.failedWithDiagnostics).length,
       cpuStaticControlledRouteExecutedTools:
         results.filter((item) => item.group === 'cpu_static' && item.controlledAdapterExecutedNow).length,
       browserRuntimeControlledRouteExecutedTools:
@@ -821,6 +954,20 @@ function buildReport(
           item.externalAgentExecutionState === 'executable' ||
           item.externalAgentExecutionState === 'blocked_with_reason' ||
           item.externalAgentExecutionState === 'failed_with_diagnostics'
+        )),
+      normalizedExternalAgentToolCallResultsReturned:
+        results.every((item) => item.externalAgentToolCallResult !== null),
+      normalizedExternalAgentToolCallResultsMatchStates:
+        results.every((item) => (
+          item.externalAgentToolCallResult?.executionState ===
+            item.externalAgentExecutionState
+        )),
+      normalizedExternalAgentToolCallResultsPreserveSafetyGates:
+        results.every((item) => (
+          item.externalAgentToolCallResult?.callable === true &&
+          item.externalAgentToolCallResult?.gpuRuntimeShouldStartNow === false &&
+          item.externalAgentToolCallResult?.outputAccess.publicArtifactCreated === false &&
+          item.externalAgentToolCallResult?.outputAccess.signedUrlCreated === false
         )),
       thirteenToolsReturnExecutableState:
         results.filter((item) => item.externalAgentExecutionState === 'executable').length === 13,
@@ -895,7 +1042,7 @@ function buildReport(
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.results
     .map((item) => (
-      `| \`${item.toolId}\` | \`${item.group}\` | \`${item.capabilityId}\` | \`${item.externalAgentExecutionState}\` | \`${item.statusCode}\` | \`${item.controlledAdapterInvokedNow}\` | \`${item.controlledAdapterExecutedNow}\` | \`${item.localPackageExecutionPerformed}\` | \`${item.localGpuModelRuntimeExecutionPerformed}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
+      `| \`${item.toolId}\` | \`${item.group}\` | \`${item.capabilityId}\` | \`${item.externalAgentExecutionState}\` | \`${item.externalAgentToolCallResult?.callable}\` | \`${item.externalAgentToolCallResult?.executable}\` | \`${item.externalAgentToolCallResult?.blockedWithReason}\` | \`${item.statusCode}\` | \`${item.controlledAdapterInvokedNow}\` | \`${item.controlledAdapterExecutedNow}\` | \`${item.localPackageExecutionPerformed}\` | \`${item.localGpuModelRuntimeExecutionPerformed}\` | \`${item.gpuRuntimeShouldStartNow}\` |`
     ))
     .join('\n')
   const scopedRows = report.scopedGpuModelLocalDevRouteAttempts
@@ -914,8 +1061,8 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 
 ## Tool Results
 
-| Tool | Group | Capability | External-agent state | HTTP status | Adapter invoked | Adapter executed | Local package execution | Local GPU/model runtime | GPU starts now |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Tool | Group | Capability | External-agent state | Callable | Executable | Blocked with reason | HTTP status | Adapter invoked | Adapter executed | Local package execution | Local GPU/model runtime | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts

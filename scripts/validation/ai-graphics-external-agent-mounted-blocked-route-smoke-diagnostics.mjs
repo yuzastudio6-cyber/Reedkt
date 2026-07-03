@@ -74,6 +74,9 @@ const trueBooleanKeys = [
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
   'requestAcceptedForPlanningMetadataForAll21',
+  'normalizedToolCallResultReturnedForAll33',
+  'normalizedToolCallResultBlockedWithReasonForAll33',
+  'normalizedToolCallResultPreservesSafetyForAll33',
   'structuredToolNotReadyReturnedForAll21',
   'structuredToolNotReadyReturnedForAll12Capabilities',
   'localHttpSmokePerformed',
@@ -199,6 +202,11 @@ function assertCounts(label, report) {
     gpuRuntimeTargetedTools: 8,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     gpuRuntimeShouldStartNowTools: 0,
+    normalizedToolCallResultResponses: 33,
+    normalizedToolCallCallableResponses: 33,
+    normalizedToolCallExecutableResponses: 0,
+    normalizedToolCallBlockedWithReasonResponses: 33,
+    normalizedToolCallFailedWithDiagnosticsResponses: 0,
     queueWriteApprovedNowTools: 0,
     workerEnqueueApprovedNowTools: 0,
     workerDispatchApprovedNowTools: 0,
@@ -230,6 +238,31 @@ function assertToolRows(label, rows) {
       fail(`${label}_${toolId}_planning_metadata_not_true`)
     }
     if (row.selectedRequestedTool !== true) fail(`${label}_${toolId}_selected_tool_not_true`)
+    if (row.normalizedToolCallResultReturned !== true) {
+      fail(`${label}_${toolId}_normalized_result_missing`)
+    }
+    if (row.normalizedToolCallCallable !== true) {
+      fail(`${label}_${toolId}_normalized_callable_not_true`)
+    }
+    if (row.normalizedToolCallExecutable !== false) {
+      fail(`${label}_${toolId}_normalized_executable_not_false`)
+    }
+    if (row.normalizedToolCallBlockedWithReason !== true) {
+      fail(`${label}_${toolId}_normalized_blocked_not_true`)
+    }
+    if (row.normalizedToolCallFailedWithDiagnostics !== false) {
+      fail(`${label}_${toolId}_normalized_failed_not_false`)
+    }
+    if (row.normalizedToolCallExecutionState !== 'blocked_with_reason') {
+      fail(`${label}_${toolId}_normalized_state_mismatch:${row.normalizedToolCallExecutionState}`)
+    }
+    for (const key of [
+      'normalizedToolCallGpuRuntimeShouldStartNow',
+      'normalizedToolCallPublicArtifactCreated',
+      'normalizedToolCallSignedUrlCreated',
+    ]) {
+      if (row[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
+    }
     if (row.gpuRuntimeTargetedTool !== gpuTools.has(toolId)) {
       fail(`${label}_${toolId}_gpu_target_mismatch`)
     }
@@ -273,6 +306,31 @@ function assertCapabilityRows(label, rows) {
     }
     if (row.selectedRequestedTool !== true) {
       fail(`${label}_${capabilityId}_selected_tool_not_true`)
+    }
+    if (row.normalizedToolCallResultReturned !== true) {
+      fail(`${label}_${capabilityId}_normalized_result_missing`)
+    }
+    if (row.normalizedToolCallCallable !== true) {
+      fail(`${label}_${capabilityId}_normalized_callable_not_true`)
+    }
+    if (row.normalizedToolCallExecutable !== false) {
+      fail(`${label}_${capabilityId}_normalized_executable_not_false`)
+    }
+    if (row.normalizedToolCallBlockedWithReason !== true) {
+      fail(`${label}_${capabilityId}_normalized_blocked_not_true`)
+    }
+    if (row.normalizedToolCallFailedWithDiagnostics !== false) {
+      fail(`${label}_${capabilityId}_normalized_failed_not_false`)
+    }
+    if (row.normalizedToolCallExecutionState !== 'blocked_with_reason') {
+      fail(`${label}_${capabilityId}_normalized_state_mismatch:${row.normalizedToolCallExecutionState}`)
+    }
+    for (const key of [
+      'normalizedToolCallGpuRuntimeShouldStartNow',
+      'normalizedToolCallPublicArtifactCreated',
+      'normalizedToolCallSignedUrlCreated',
+    ]) {
+      if (row[key] !== false) fail(`${label}_${capabilityId}_${key}_not_false`)
     }
     for (const key of [
       'directAgentToolExecutionApprovedNow',

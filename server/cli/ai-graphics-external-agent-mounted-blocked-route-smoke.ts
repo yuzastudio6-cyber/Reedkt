@@ -1,4 +1,5 @@
 import { once } from 'node:events'
+import fs from 'node:fs'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
@@ -14,6 +15,10 @@ const decision =
   'ai_graphics_external_agent_mounted_blocked_route_smoke_passed_with_runtime_blocks'
 const status = 'mounted_route_returns_structured_tool_not_ready_for_all_21'
 const routeMountFlag = 'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+const outputJsonPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-mounted-blocked-route-smoke.json'
+const outputMdPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-mounted-blocked-route-smoke.md'
 
 const falseExecutionKeys = [
   'directAgentToolExecutionApprovedNow',
@@ -44,6 +49,15 @@ interface SmokeResult {
   errorCode: string | undefined
   requestAcceptedForPlanningMetadata: boolean
   selectedRequestedTool: boolean
+  normalizedToolCallResultReturned: boolean
+  normalizedToolCallCallable: boolean
+  normalizedToolCallExecutable: boolean
+  normalizedToolCallBlockedWithReason: boolean
+  normalizedToolCallFailedWithDiagnostics: boolean
+  normalizedToolCallExecutionState: string | null
+  normalizedToolCallGpuRuntimeShouldStartNow: boolean
+  normalizedToolCallPublicArtifactCreated: boolean
+  normalizedToolCallSignedUrlCreated: boolean
   missingProofCount: number
   missingExecutionGateCount: number
   gpuRuntimeStartAllowedForAcceptedExternalBetaJob: boolean
@@ -201,6 +215,16 @@ async function runMountedSmokeCase(baseUrl: string, smokeCase: SmokeCase): Promi
   const missingExecutionGates = Array.isArray(details.missingExecutionGates)
     ? details.missingExecutionGates
     : []
+  const normalizedToolCallResult =
+    details.externalAgentToolCallResult &&
+    typeof details.externalAgentToolCallResult === 'object'
+      ? details.externalAgentToolCallResult as Record<string, unknown>
+      : {}
+  const normalizedOutputAccess =
+    normalizedToolCallResult.outputAccess &&
+    typeof normalizedToolCallResult.outputAccess === 'object'
+      ? normalizedToolCallResult.outputAccess as Record<string, unknown>
+      : {}
 
   return {
     kind: smokeCase.kind,
@@ -213,6 +237,24 @@ async function runMountedSmokeCase(baseUrl: string, smokeCase: SmokeCase): Promi
       details.requestAcceptedForPlanningMetadata === true,
     selectedRequestedTool:
       selectedPlanningTools.some((tool) => tool.toolId === smokeCase.request.toolId),
+    normalizedToolCallResultReturned:
+      Object.keys(normalizedToolCallResult).length > 0,
+    normalizedToolCallCallable: normalizedToolCallResult.callable === true,
+    normalizedToolCallExecutable: normalizedToolCallResult.executable === true,
+    normalizedToolCallBlockedWithReason:
+      normalizedToolCallResult.blockedWithReason === true,
+    normalizedToolCallFailedWithDiagnostics:
+      normalizedToolCallResult.failedWithDiagnostics === true,
+    normalizedToolCallExecutionState:
+      typeof normalizedToolCallResult.executionState === 'string'
+        ? normalizedToolCallResult.executionState
+        : null,
+    normalizedToolCallGpuRuntimeShouldStartNow:
+      normalizedToolCallResult.gpuRuntimeShouldStartNow === true,
+    normalizedToolCallPublicArtifactCreated:
+      normalizedOutputAccess.publicArtifactCreated === true,
+    normalizedToolCallSignedUrlCreated:
+      normalizedOutputAccess.signedUrlCreated === true,
     missingProofCount: missingProofBeforeExecution.length,
     missingExecutionGateCount: missingExecutionGates.length,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
@@ -242,6 +284,33 @@ function assertMountedSmokeResult(result: SmokeResult) {
   }
   if (!result.selectedRequestedTool) {
     throw new Error(`Expected selected planning tools to include requested tool for ${result.id}`)
+  }
+  if (!result.normalizedToolCallResultReturned) {
+    throw new Error(`Expected normalized tool-call result for ${result.id}`)
+  }
+  if (!result.normalizedToolCallCallable) {
+    throw new Error(`Expected normalized callable=true for ${result.id}`)
+  }
+  if (result.normalizedToolCallExecutable) {
+    throw new Error(`Expected normalized executable=false for ${result.id}`)
+  }
+  if (!result.normalizedToolCallBlockedWithReason) {
+    throw new Error(`Expected normalized blockedWithReason=true for ${result.id}`)
+  }
+  if (result.normalizedToolCallFailedWithDiagnostics) {
+    throw new Error(`Expected normalized failedWithDiagnostics=false for ${result.id}`)
+  }
+  if (result.normalizedToolCallExecutionState !== 'blocked_with_reason') {
+    throw new Error(`Expected normalized blocked state for ${result.id}`)
+  }
+  if (result.normalizedToolCallGpuRuntimeShouldStartNow) {
+    throw new Error(`Expected normalized GPU runtime to stay cold for ${result.id}`)
+  }
+  if (result.normalizedToolCallPublicArtifactCreated) {
+    throw new Error(`Expected no normalized public artifact for ${result.id}`)
+  }
+  if (result.normalizedToolCallSignedUrlCreated) {
+    throw new Error(`Expected no normalized signed URL for ${result.id}`)
   }
   if (result.missingProofCount < 1) {
     throw new Error(`Expected missing proof details for ${result.id}`)
@@ -322,6 +391,21 @@ const report = {
     gpuRuntimeShouldStartNowTools: toolResults.filter((result) =>
       result.gpuRuntimeShouldStartNow,
     ).length,
+    normalizedToolCallResultResponses: mountedResults.filter((result) =>
+      result.normalizedToolCallResultReturned,
+    ).length,
+    normalizedToolCallCallableResponses: mountedResults.filter((result) =>
+      result.normalizedToolCallCallable,
+    ).length,
+    normalizedToolCallExecutableResponses: mountedResults.filter((result) =>
+      result.normalizedToolCallExecutable,
+    ).length,
+    normalizedToolCallBlockedWithReasonResponses: mountedResults.filter((result) =>
+      result.normalizedToolCallBlockedWithReason,
+    ).length,
+    normalizedToolCallFailedWithDiagnosticsResponses: mountedResults.filter((result) =>
+      result.normalizedToolCallFailedWithDiagnostics,
+    ).length,
     queueWriteApprovedNowTools: toolResults.filter((result) =>
       result.queueWriteApprovedNow,
     ).length,
@@ -349,6 +433,21 @@ const report = {
     errorCode: result.errorCode,
     requestAcceptedForPlanningMetadata: result.requestAcceptedForPlanningMetadata,
     selectedRequestedTool: result.selectedRequestedTool,
+    normalizedToolCallResultReturned:
+      result.normalizedToolCallResultReturned,
+    normalizedToolCallCallable: result.normalizedToolCallCallable,
+    normalizedToolCallExecutable: result.normalizedToolCallExecutable,
+    normalizedToolCallBlockedWithReason:
+      result.normalizedToolCallBlockedWithReason,
+    normalizedToolCallFailedWithDiagnostics:
+      result.normalizedToolCallFailedWithDiagnostics,
+    normalizedToolCallExecutionState: result.normalizedToolCallExecutionState,
+    normalizedToolCallGpuRuntimeShouldStartNow:
+      result.normalizedToolCallGpuRuntimeShouldStartNow,
+    normalizedToolCallPublicArtifactCreated:
+      result.normalizedToolCallPublicArtifactCreated,
+    normalizedToolCallSignedUrlCreated:
+      result.normalizedToolCallSignedUrlCreated,
     gpuRuntimeTargetedTool: gpuToolIds.includes(result.toolId as (typeof gpuToolIds)[number]),
     gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
       result.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
@@ -369,6 +468,21 @@ const report = {
     errorCode: result.errorCode,
     requestAcceptedForPlanningMetadata: result.requestAcceptedForPlanningMetadata,
     selectedRequestedTool: result.selectedRequestedTool,
+    normalizedToolCallResultReturned:
+      result.normalizedToolCallResultReturned,
+    normalizedToolCallCallable: result.normalizedToolCallCallable,
+    normalizedToolCallExecutable: result.normalizedToolCallExecutable,
+    normalizedToolCallBlockedWithReason:
+      result.normalizedToolCallBlockedWithReason,
+    normalizedToolCallFailedWithDiagnostics:
+      result.normalizedToolCallFailedWithDiagnostics,
+    normalizedToolCallExecutionState: result.normalizedToolCallExecutionState,
+    normalizedToolCallGpuRuntimeShouldStartNow:
+      result.normalizedToolCallGpuRuntimeShouldStartNow,
+    normalizedToolCallPublicArtifactCreated:
+      result.normalizedToolCallPublicArtifactCreated,
+    normalizedToolCallSignedUrlCreated:
+      result.normalizedToolCallSignedUrlCreated,
     directAgentToolExecutionApprovedNow: result.directAgentToolExecutionApprovedNow,
     routeExecutionApprovedNow: result.routeExecutionApprovedNow,
     gpuRuntimeShouldStartNow: result.gpuRuntimeShouldStartNow,
@@ -386,6 +500,21 @@ const report = {
     all8GpuToolsTargetGpuRuntime: gpuToolIds.length === 8,
     requestAcceptedForPlanningMetadataForAll21: toolResults.every((result) =>
       result.requestAcceptedForPlanningMetadata,
+    ),
+    normalizedToolCallResultReturnedForAll33: mountedResults.every((result) =>
+      result.normalizedToolCallResultReturned,
+    ),
+    normalizedToolCallResultBlockedWithReasonForAll33: mountedResults.every((result) =>
+      result.normalizedToolCallCallable &&
+      !result.normalizedToolCallExecutable &&
+      result.normalizedToolCallBlockedWithReason &&
+      !result.normalizedToolCallFailedWithDiagnostics &&
+      result.normalizedToolCallExecutionState === 'blocked_with_reason',
+    ),
+    normalizedToolCallResultPreservesSafetyForAll33: mountedResults.every((result) =>
+      !result.normalizedToolCallGpuRuntimeShouldStartNow &&
+      !result.normalizedToolCallPublicArtifactCreated &&
+      !result.normalizedToolCallSignedUrlCreated,
     ),
     structuredToolNotReadyReturnedForAll21: toolResults.every((result) =>
       result.statusCode === 409 && result.errorCode === 'TOOL_NOT_READY',
@@ -427,6 +556,78 @@ const report = {
     publicArtifactCreated: false,
     signedUrlCreated: false,
   },
+}
+
+function makeMarkdown(packet: typeof report): string {
+  return `# AI Graphics External Agent Mounted Blocked Route Smoke
+
+Decision: \`${packet.decision}\`
+
+Status: \`${packet.status}\`
+
+This packet proves the external-agent AI graphics tool-call route can be mounted locally behind \`${routeMountFlag}=true\` and still fail closed for every AI graphics tool and every product-facing capability. The smoke uses the real Express app and the source-controlled route, then verifies structured \`409 TOOL_NOT_READY\` envelopes. With the feature flag disabled, the same path remains unmounted and returns \`404\`.
+
+## Scope
+
+- Route path: \`${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}\`
+- Route mount flag: \`${routeMountFlag}\`
+- AI graphics tools covered: \`${packet.counts.totalAiGraphicsTools}\`
+- Product-facing capabilities covered: \`${packet.counts.totalProductFacingCapabilities}\`
+- Per-tool smoke requests: \`${packet.counts.toolSmokeCases}\`
+- Per-capability smoke requests: \`${packet.counts.capabilitySmokeCases}\`
+- Total mounted blocked-route requests: \`${packet.counts.mountedBlockedRouteSmokeCases}\`
+- \`409 TOOL_NOT_READY\` responses with flag enabled: \`${packet.counts.flagEnabledToolNotReadyResponses}\`
+- Disabled-route status with flag off: \`${packet.counts.flagDisabledRouteStatus}\`
+- GPU/runtime-targeted tools: \`${packet.counts.gpuRuntimeTargetedTools}\`
+- GPU start allowed only as metadata for accepted future jobs: \`${packet.counts.gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools}\`
+- Normalized blocked tool-call results: \`${packet.counts.normalizedToolCallBlockedWithReasonResponses}\`
+- GPU runtime started now: \`${packet.counts.gpuRuntimeShouldStartNowTools}\`
+- Queue writes approved now: \`${packet.counts.queueWriteApprovedNowTools}\`
+- Worker enqueue approved now: \`${packet.counts.workerEnqueueApprovedNowTools}\`
+- Worker dispatch approved now: \`${packet.counts.workerDispatchApprovedNowTools}\`
+- Tool execution approved now: \`${packet.counts.toolExecutionApprovedNowTools}\`
+- External-agent executable tools now: \`${packet.counts.externalAgentExecutableNowTools}\`
+- External-beta-ready-now tools: \`${packet.counts.externalBetaReadyNowTools}\`
+- Production-ready-now tools: \`${packet.counts.productionReadyNowTools}\`
+
+## What This Proves
+
+- An external agent can hit the mounted API shape in a local mock app and receive a machine-readable blocker.
+- Every one of the 21 AI graphics tools returns \`TOOL_NOT_READY\` instead of executing.
+- Every one of the 12 product-facing capabilities returns \`TOOL_NOT_READY\` with planning metadata accepted.
+- The blocked response includes the requested tool, selected planning tools, missing proof, missing execution gates, GPU on-demand metadata, and a normalized blocked \`externalAgentToolCallResult\`.
+- GPU/model tools are recognized as GPU-targeted, but \`gpuRuntimeShouldStartNow=false\`.
+- The default flag-off behavior keeps the route absent.
+
+## Tool Coverage
+
+${packet.tools.map((item) => `- \`${item.toolId}\`: \`${item.capabilityId}\`, state=\`${item.normalizedToolCallExecutionState}\`, executable=\`${item.normalizedToolCallExecutable}\``).join('\n')}
+
+## Capability Coverage
+
+${packet.capabilities.map((item) => `- \`${item.capabilityId}\`: representative tool \`${item.representativeToolId}\`, state=\`${item.normalizedToolCallExecutionState}\``).join('\n')}
+
+## Required Booleans
+
+${Object.entries(packet.booleans).map(([key, value]) => `- \`${key}=${value}\``).join('\n')}
+
+## Safe Commands
+
+1. \`npm run ai-graphics:external-agent-mounted-blocked-route-smoke\`
+2. \`npm run ai-graphics:external-agent-mounted-blocked-route-smoke:diagnostics\`
+3. \`npm run ai-graphics:external-agent-execution-gate:diagnostics\`
+4. \`npm run ai-graphics:external-beta-api-route-mount-readiness:diagnostics\`
+5. \`npm run ai-graphics:external-beta-api-route-mount-implementation-qa:diagnostics\`
+
+## Result
+
+This keeps the 21-tool AI graphics route fail-closed when mounted without controlled execution flags. It does not make the tools executable through this blocked-route packet. Controlled execution is proven by the all-21 controlled route smoke, where the 13 CPU/static and browser-runtime tools execute through their approved adapters and the eight GPU/model tools return \`blocked_with_reason\`.
+`
+}
+
+if (process.argv.includes('--write-records')) {
+  fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)
+  fs.writeFileSync(outputMdPath, makeMarkdown(report))
 }
 
 console.log(JSON.stringify(report, null, 2))

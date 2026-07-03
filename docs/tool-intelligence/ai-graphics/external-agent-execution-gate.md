@@ -107,6 +107,13 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - externalAgentGpuModelRuntimeQueueServiceBridgeWorkerDispatchPerformedToolsWithProvidedEvidence: `0`
 - externalAgentGpuModelRuntimeQueueServiceBridgeToolExecutionPerformedToolsWithProvidedEvidence: `0`
 - externalAgentGpuModelRuntimeQueueServiceBridgeGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence: `8`
+- externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence: `8`
+- externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence: `8`
+- externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelLocalDevRuntimeHarnessPublicArtifactCreatedToolsWithProvidedEvidence: `0`
 - mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence: `21`
 - mockQueueInsertedJobsWithProvidedEvidence: `21`
 - mockWorkerClaimsCreatedWithProvidedEvidence: `21`
@@ -192,6 +199,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - Controlled worker-route execution smoke accepted: `true`
 - GPU/model proof-ref queue admission accepted: `true`
 - GPU/model runtime queue-service bridge accepted: `true`
+- GPU/model local-dev runtime harness accepted: `true`
 - Mock queue worker-claim smoke accepted: `true`
 - External-agent tool-adapter authorization accepted: `true`
 
@@ -228,6 +236,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - `npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics`
 - `npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics`
 - `npm run ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics`
+- `npm run ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics`
 - `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
 - `npm run ai-graphics:browser-runtime-proof:diagnostics`
 - `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
@@ -278,6 +287,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted=true
 - sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted=true
 - sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted=true
+- sourceExternalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted=true
 - sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted=true
 - sourceExternalAgentToolAdapterAuthorizationAccepted=true
 - sourceSatoriFontRuntimeProofAccepted=true
@@ -375,6 +385,11 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - allEightGpuModelRuntimeQueueServiceBridgeWorkerClaimsAcceptedWithProvidedEvidence=true
 - gpuModelRuntimeQueueBridgeKeepsGpuRuntimeIdle=true
 - gpuModelRuntimeQueueBridgeKeepsLiveExecutionBlocked=true
+- gpuModelLocalDevRuntimeHarnessAcceptedWithProvidedEvidence=true
+- allEightGpuModelLocalDevAdapterBranchesInvokedWithProvidedEvidence=true
+- gpuModelLocalDevRuntimeHarnessKeepsGpuRuntimeIdle=true
+- gpuModelLocalDevRuntimeHarnessPrerequisitesDocumented=true
+- gpuModelLocalDevRuntimeHarnessKeepsToolExecutionBlocked=true
 - all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence=true
 - all21RouteAdmittedMockJobsClaimedWithProvidedEvidence=true
 - mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked=true

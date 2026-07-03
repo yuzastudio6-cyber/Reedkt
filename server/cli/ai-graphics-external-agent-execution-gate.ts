@@ -10,6 +10,7 @@ import {
   type AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket,
   type AiGraphicsExternalAgentGpuModelRuntimeQueueServiceBridgePacket,
+  type AiGraphicsExternalAgentGpuModelLocalDevRuntimeExecutionHarnessPacket,
   type AiGraphicsExternalAgentControlledWorkerRouteExecutionSmokePacket,
 } from '../tool-registry/ai-graphics-external-agent-execution-gate'
 import type {
@@ -147,6 +148,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsExternalAgentGpuModelRuntimeQueueServiceBridgePacket>>(
       '--external-agent-gpu-model-runtime-queue-service-bridge-packet',
     ),
+  sourceExternalAgentGpuModelLocalDevRuntimeExecutionHarnessPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentGpuModelLocalDevRuntimeExecutionHarnessPacket>>(
+      '--external-agent-gpu-model-local-dev-runtime-execution-harness-packet',
+    ),
   sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket:
     readJsonFile<Partial<AiGraphicsExternalBetaToolCallRouteMockQueueWorkerClaimSmokePacket>>(
       '--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet',
@@ -209,6 +214,8 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-packet')),
     externalAgentGpuModelRuntimeQueueServiceBridgePacketRead:
       Boolean(valueAfterFlag('--external-agent-gpu-model-runtime-queue-service-bridge-packet')),
+    externalAgentGpuModelLocalDevRuntimeExecutionHarnessPacketRead:
+      Boolean(valueAfterFlag('--external-agent-gpu-model-local-dev-runtime-execution-harness-packet')),
     externalBetaToolCallRouteMockQueueWorkerClaimSmokePacketRead:
       Boolean(valueAfterFlag('--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet')),
     externalAgentToolAdapterAuthorizationPacketRead:

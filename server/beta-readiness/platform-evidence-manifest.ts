@@ -219,12 +219,13 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
       ],
       sourceFiles: [
         'supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql',
+        'supabase/migrations/20260703234354_wallet_settlement_state_updates.sql',
         'server/tool-cost-metering/tool-cost-wallet-settlement.ts',
         'server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts',
         'server/smoke/tool-cost-wallet-settlement-service-role-smoke.ts',
       ],
       localEvidence: [
-        'Local SQL smoke proves billable spend, idempotent replay, non-billable provider failure, service-fee exclusion, Stripe isolation, and RLS metadata.',
+        'Local SQL smoke proves billable spend/release/refund, reservation spent/released/refunded counters, cached wallet available/reserved/spent/refunded balances, idempotent replay, non-billable provider failure, service-fee exclusion, Stripe isolation, and RLS metadata.',
         'Service-role smoke proves the non-mock RPC call shape with a controlled fake admin client.',
       ],
       remainingEvidence: [

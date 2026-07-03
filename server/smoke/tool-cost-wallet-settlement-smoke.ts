@@ -206,11 +206,19 @@ assert.equal(nonBillable.settlement.status, 'not_billable', 'Provider failure sh
 assert.equal(nonBillable.settlement.creditsDelta, 0, 'Non-billable settlement should have no credit delta.')
 
 const migrationSource = readFileSync('supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql', 'utf8')
+const stateMigrationSource = readFileSync('supabase/migrations/20260703234354_wallet_settlement_state_updates.sql', 'utf8')
 assert.ok(migrationSource.includes('create table if not exists public.tool_cost_wallet_settlements'), 'Settlement migration should create the settlement table.')
 assert.ok(migrationSource.includes('create or replace function public.settle_tool_cost_event'), 'Settlement migration should define the settlement RPC.')
-assert.ok(migrationSource.includes('credit_ledger_entries'), 'Settlement RPC should write to the credit ledger.')
-assert.ok(migrationSource.includes('stripe_call_attempted'), 'Settlement RPC should preserve Stripe isolation metadata.')
-assert.ok(migrationSource.includes('service_fee_included'), 'Settlement RPC should preserve service-fee exclusion metadata.')
+assert.ok(stateMigrationSource.includes('create or replace function public.settle_tool_cost_event'), 'State migration should replace the settlement RPC body.')
+assert.ok(stateMigrationSource.includes('credit_ledger_entries'), 'Settlement RPC should write to the credit ledger.')
+assert.ok(stateMigrationSource.includes('cached_reserved_credits'), 'Settlement RPC should move cached wallet reserved credits.')
+assert.ok(stateMigrationSource.includes('spent_credits'), 'Settlement RPC should update reservation spent credits.')
+assert.ok(stateMigrationSource.includes('released_credits'), 'Settlement RPC should update reservation released credits.')
+assert.ok(stateMigrationSource.includes('refunded_credits'), 'Settlement RPC should update reservation refunded credits.')
+assert.ok(stateMigrationSource.includes('wallet_state_updated'), 'Settlement RPC should mark wallet state update metadata.')
+assert.ok(stateMigrationSource.includes('grant execute on function public.settle_tool_cost_event(text, text, text) to service_role'), 'Settlement RPC should grant execute only to service-role.')
+assert.ok(stateMigrationSource.includes('stripe_call_attempted'), 'Settlement RPC should preserve Stripe isolation metadata.')
+assert.ok(stateMigrationSource.includes('service_fee_included'), 'Settlement RPC should preserve service-fee exclusion metadata.')
 
 await assert.rejects(settleToolCostWallet(context, {
     workspaceId: eventResult.event.workspaceId,

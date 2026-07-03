@@ -130,7 +130,7 @@ function buildReadbackSummary(
     latestPaidProductionAllowed: latestReport?.paidProductionAllowed,
     latestBlockerCount: latestReport?.blockers.length ?? 0,
     latestWarningCount: latestReport?.warnings.length ?? 0,
-    durableEvidenceStored: packets.length > 0,
+    durableEvidenceStored: backendPersistenceMode === 'persistent_supabase' && packets.length > 0,
     backendPersistenceMode,
     productionActivationAttempted: false,
   }

@@ -33,6 +33,13 @@ assert.equal(mockReplay.replayed, true, 'second mock record should replay')
 assert.equal(mockReplay.packet.id, mockRecord.packet.id, 'mock replay should return original packet')
 assert.equal(mockList.length, 1, 'mock list should include one idempotent packet')
 
+const mockService = createProductionToolExecutionReadinessEvidenceService(createMockProductionReadinessEvidenceServiceContext())
+const mockServiceReadback = await mockService.listEvidence(readinessInput.workspaceId)
+assert.equal(mockServiceReadback.evidencePacketCount, 1, 'mock service should read back the mock production evidence packet')
+assert.equal(mockServiceReadback.readinessSummary.latestEvidencePacketId, mockRecord.packet.id, 'mock readback summary should expose the latest mock packet id')
+assert.equal(mockServiceReadback.readinessSummary.backendPersistenceMode, 'mock_memory', 'mock service readback should report mock-memory mode')
+assert.equal(mockServiceReadback.readinessSummary.durableEvidenceStored, false, 'mock-memory evidence must not be reported as durable production evidence')
+
 const admin = createFakeProductionReadinessAdminClient()
 const persistentRecord = await recordPersistentProductionToolExecutionReadinessEvidencePacket(
   admin,
@@ -323,6 +330,26 @@ function createProductionReadinessEvidenceServiceContext(
       userId: `user-production-readiness-${role}`,
       email: `${role}@reeditpro.local`,
       isMockUser: false,
+    },
+  }
+}
+
+function createMockProductionReadinessEvidenceServiceContext(): ServiceContext {
+  return {
+    env: {
+      mockOnly: true,
+      allowMockWithoutSupabase: true,
+      hasSupabaseAdmin: false,
+    } as never,
+    clients: {
+      admin: null,
+      public: null,
+    },
+    requestId: 'production-readiness-evidence-store-smoke:mock',
+    auth: {
+      userId: 'user-production-readiness-mock',
+      email: 'mock@reeditpro.local',
+      isMockUser: true,
     },
   }
 }

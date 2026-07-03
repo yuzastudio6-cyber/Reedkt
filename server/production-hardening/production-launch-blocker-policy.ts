@@ -22,6 +22,13 @@ export interface ClassifyProductionLaunchBlockersOptions {
   finalE2EDryRunPassed?: boolean
   blockingQAFailuresPresent?: boolean
   productionDeploymentApproved?: boolean
+  supabaseProductionPersistenceApproved?: boolean
+  toolCostLedgerWritesApproved?: boolean
+  walletLifecycleApproved?: boolean
+  stripeBoundaryConfirmed?: boolean
+  observabilityAlertsApproved?: boolean
+  rollbackKillSwitchesApproved?: boolean
+  finalOwnerSignoffApproved?: boolean
 }
 
 export function classifyProductionLaunchBlockers(options: ClassifyProductionLaunchBlockersOptions = {}): ProductionLaunchBlockerSummary {
@@ -55,6 +62,13 @@ export function classifyProductionLaunchBlockers(options: ClassifyProductionLaun
   if (options.finalE2EDryRunPassed === false) hardBlockers.push('Final full E2E dry-run has not passed.')
   if (options.blockingQAFailuresPresent) hardBlockers.push('Blocking QA gates failed in E2E validation.')
   if (options.productionDeploymentApproved !== true) warnings.push('No production deployment has been approved or performed.')
+  if (options.supabaseProductionPersistenceApproved !== true) hardBlockers.push('Supabase production persistence approval/evidence is missing.')
+  if (options.toolCostLedgerWritesApproved !== true) hardBlockers.push('Tool cost ledger write approval/evidence is missing.')
+  if (options.walletLifecycleApproved !== true) hardBlockers.push('Wallet reserve/spend/release/refund approval/evidence is missing.')
+  if (options.stripeBoundaryConfirmed !== true) hardBlockers.push('Stripe boundary confirmation is missing.')
+  if (options.observabilityAlertsApproved !== true) hardBlockers.push('Observability/alert approval/evidence is missing.')
+  if (options.rollbackKillSwitchesApproved !== true) hardBlockers.push('Rollback/kill-switch approval/evidence is missing.')
+  if (options.finalOwnerSignoffApproved !== true) hardBlockers.push('Final owner signoff is missing.')
 
   warnings.push('Optional/future tools may still be missing.')
   warnings.push('OpenColorIO/OpenImageIO manual review may remain pending.')

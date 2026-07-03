@@ -41,9 +41,9 @@ export interface TrackBProductRouteEnablementGateEvidence {
   fallbackPolicyState: 'approved'
   rollbackState: 'armed_disabled_noop'
   monitoringState: 'sanitized_receipt_ready'
-  workerDispatchEnabled: false
-  realToolExecutionEnabled: false
-  productReadyApproved: false
+  workerDispatchEnabled: boolean
+  realToolExecutionEnabled: boolean
+  productReadyApproved: boolean
 }
 
 export interface TrackBProductRouteEnablementHarnessRequest {
@@ -77,9 +77,9 @@ export interface TrackBProductRouteEnablementDryRunReceipt {
     supabaseWriteAttempted: false
     gcsWriteAttempted: false
   }
-  workerDispatchEnabled: false
-  realToolExecutionEnabled: false
-  productReadyApproved: false
+  workerDispatchEnabled: boolean
+  realToolExecutionEnabled: boolean
+  productReadyApproved: boolean
   createdAt: ISODateString
   warnings: string[]
 }

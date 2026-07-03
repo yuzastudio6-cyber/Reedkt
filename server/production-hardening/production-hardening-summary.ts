@@ -9,6 +9,8 @@ export function buildProductionHardeningSummary(): string {
     `Warnings: ${report.warnings.length}`,
     `Production ready allowed: ${report.productionReadyAllowed}`,
     `Limited beta allowed: ${report.limitedBetaAllowed}`,
-    'Production/external beta remains blocked until human-run approvals pass.',
+    report.productionReadyAllowed
+      ? 'Production is allowed only while the named owner approvals, billing/audit, privacy, and ops gates remain satisfied.'
+      : 'Production/external beta remains blocked until human-run approvals pass.',
   ].join('\n')
 }

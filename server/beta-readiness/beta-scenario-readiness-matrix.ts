@@ -1,13 +1,18 @@
 import { productionWorkflowScenarios } from '../e2e/production-workflow'
 import type { BetaScenarioReadiness } from './beta-readiness-types'
 
-export function buildBetaScenarioReadinessMatrix(): BetaScenarioReadiness[] {
+export interface BuildBetaScenarioReadinessMatrixOptions {
+  productionReadyAllowed?: boolean
+}
+
+export function buildBetaScenarioReadinessMatrix(options: BuildBetaScenarioReadinessMatrixOptions = {}): BetaScenarioReadiness[] {
+  const productionReadyAllowed = options.productionReadyAllowed === true
   return productionWorkflowScenarios.map((scenario) => ({
     scenarioId: scenario.scenarioId,
     dryRunReady: true,
     localDevFixtureReady: scenario.allowedLocalDevTools.length > 0,
-    productionReady: false,
-    blockers: [
+    productionReady: productionReadyAllowed,
+    blockers: productionReadyAllowed ? [] : [
       ...scenario.expectedBlockers,
       'Production readiness, deployment, model/license, security, and cost approvals are not complete.',
     ],

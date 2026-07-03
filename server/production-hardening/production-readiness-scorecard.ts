@@ -1,7 +1,14 @@
 import { productionHardeningCategories } from './production-hardening-policy'
 import type { ProductionHardeningCategory, ProductionHardeningCheck, ProductionReadinessScorecard } from './production-hardening-types'
 
-export function computeProductionReadinessScorecard(checks: ProductionHardeningCheck[]): ProductionReadinessScorecard {
+export interface ComputeProductionReadinessScorecardOptions {
+  productionGateEvidenceApproved?: boolean
+}
+
+export function computeProductionReadinessScorecard(
+  checks: ProductionHardeningCheck[],
+  options: ComputeProductionReadinessScorecardOptions = {},
+): ProductionReadinessScorecard {
   const blockers = checks.filter((check) => check.status === 'blocked')
   const warnings = checks.filter((check) => check.status === 'warning')
   const manualReviewCount = checks.filter((check) => check.manualReviewRequired).length
@@ -20,7 +27,9 @@ export function computeProductionReadinessScorecard(checks: ProductionHardeningC
     warningCount: warnings.length,
     manualReviewCount,
     categoryScores,
-    productionReadyAllowed: false,
+    productionReadyAllowed: blockers.length === 0 &&
+      manualReviewCount === 0 &&
+      options.productionGateEvidenceApproved === true,
     limitedBetaAllowed: blockers.length === 0 && manualReviewCount === 0,
   }
 }

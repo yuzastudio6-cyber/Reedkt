@@ -38,13 +38,24 @@ const requiredFiles = [
 
 const supportChangedFiles = [
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-diagnostics.mjs',
+  'docs/activation-phase-tracka-three-tool-external-agent-execution-bridge-dry-run-1-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/dry-run-result.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/bridge-envelope.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/tracka-three-tool-external-agent-execution-bridge-dry-run-1-record.json',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-route-worker-dispatch-dry-run-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-execution-bridge-dry-run-1-diagnostics.mjs',
+  'server/services/tracka-three-tool-external-agent-execution-bridge-dry-run-1.ts',
+  'server/cli/tracka-three-tool-external-agent-execution-bridge-dry-run-1.ts',
 ]
 
 const allowedChangedFiles = new Set([...requiredFiles, ...supportChangedFiles])
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!services\/tracka-three-tool-external-agent-execution-bridge-1\.ts$|smoke\/tracka-three-tool-external-agent-execution-bridge-1-smoke\.ts$)/,
+  /^server\/(?!services\/tracka-three-tool-external-agent-execution-bridge-1\.ts$|smoke\/tracka-three-tool-external-agent-execution-bridge-1-smoke\.ts$|services\/tracka-three-tool-external-agent-execution-bridge-dry-run-1\.ts$|cli\/tracka-three-tool-external-agent-execution-bridge-dry-run-1\.ts$)/,
   /^docker\//,
   /^\.dockerignore$/,
   /^supabase\//,

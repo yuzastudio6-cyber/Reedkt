@@ -80,6 +80,22 @@ const replayed = await settleToolCostWallet(context, {
   settlementType: 'spend',
 }, 'tool-cost-wallet-settlement-smoke-settle')
 
+await assert.rejects(
+  settleToolCostWallet(context, {
+    workspaceId: 'tool-cost-wallet-settlement-smoke-other-workspace',
+    projectId: eventResult.event.projectId,
+    toolCostEventId: eventResult.event.id,
+    creditEstimateId: eventResult.event.creditEstimateId,
+    creditReservationId: eventResult.event.creditReservationId,
+    toolCostCredits: eventResult.event.toolCostCredits,
+    billableToUser: eventResult.event.billableToUser,
+    failureCategory: eventResult.event.failureCategory,
+    settlementType: 'spend',
+  }, 'tool-cost-wallet-settlement-smoke-settle'),
+  /TOOL_COST_SETTLEMENT_CONTEXT_MISMATCH|context does not match/,
+  'Mock settlement replay must fail closed when the caller supplies a mismatched workspace.',
+)
+
 const nonBillable = await settleToolCostWallet(context, {
   workspaceId: eventResult.event.workspaceId,
   projectId: eventResult.event.projectId,

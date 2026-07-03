@@ -57,6 +57,42 @@ const replayed = await settleToolCostWallet(buildPersistentContext(replayAdmin),
   settlementType: 'spend',
 }, 'service-role-smoke-replay')
 
+await assert.rejects(
+  settleToolCostWallet(buildPersistentContext(replayAdmin), {
+    workspaceId: 'workspace-service-role-smoke-other',
+    projectId: 'project-service-role-smoke',
+    toolCostEventId: 'tool-cost-event-service-role-smoke',
+    creditReservationId: 'credit-reservation-service-role-smoke',
+    toolCostCredits: 3,
+    billableToUser: true,
+    settlementType: 'spend',
+  }, 'service-role-smoke-replay'),
+  (error) => error instanceof ApiError && error.code === 'TOOL_COST_SETTLEMENT_CONTEXT_MISMATCH',
+  'persistent settlement replay should fail closed when workspace context mismatches',
+)
+
+const mismatchRpcAdmin = createFakeAdminClient({
+  existingRows: new Map(),
+  rpcRows: new Map([['service-role-smoke-rpc-mismatch', {
+    ...settlementRow,
+    workspace_id: 'workspace-service-role-smoke-other',
+  }]]),
+})
+
+await assert.rejects(
+  settleToolCostWallet(buildPersistentContext(mismatchRpcAdmin), {
+    workspaceId: 'workspace-service-role-smoke',
+    projectId: 'project-service-role-smoke',
+    toolCostEventId: 'tool-cost-event-service-role-smoke',
+    creditReservationId: 'credit-reservation-service-role-smoke',
+    toolCostCredits: 3,
+    billableToUser: true,
+    settlementType: 'spend',
+  }, 'service-role-smoke-rpc-mismatch'),
+  (error) => error instanceof ApiError && error.code === 'TOOL_COST_SETTLEMENT_CONTEXT_MISMATCH',
+  'persistent settlement RPC result should fail closed when returned workspace context mismatches',
+)
+
 const missingRpcAdmin = createFakeAdminClient({
   existingRows: new Map(),
   rpcRows: new Map(),

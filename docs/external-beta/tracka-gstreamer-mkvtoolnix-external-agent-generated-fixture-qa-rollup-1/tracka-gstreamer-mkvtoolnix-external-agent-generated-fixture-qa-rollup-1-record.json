@@ -1,0 +1,107 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-GENERATED-FIXTURE-QA-ROLLUP-1",
+  "decision": "qa_passed_gstreamer_mkvtoolnix_external_agent_generated_fixture_execution_evidence",
+  "execution": "completed_docs_only_gstreamer_mkvtoolnix_execution_qa_no_new_runtime_execution",
+  "sourceChain": {
+    "executionMergeSha": "900db68dc6c1feffc272ab35874d9140556b9300",
+    "executionDecision": "completed_gstreamer_mkvtoolnix_external_agent_generated_fixture_execution",
+    "executionRunId": "2026-07-03T02-41-43-899Z-665590e9",
+    "childRunId": "2026-07-03T02-41-43-966Z-3daa5b9d",
+    "guardedRuntimeRunId": "2026-07-03T02-41-44-030Z-5c8e826a",
+    "workerProcessNoopMergeSha": "4f5d526e27973ca130d12139a586e2c2a997458f",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "qa": {
+    "acceptance": "qa_passed_external_agent_generated_fixture_execution_evidence",
+    "sourceEvidenceReviewOnly": true,
+    "newRuntimeExecutionInThisQaPhase": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "finalRenderExport": false
+  },
+  "commandEvidence": [
+    {
+      "templateId": "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+      "tool": "gstreamer_render_pipeline_support",
+      "result": "passed"
+    },
+    {
+      "templateId": "gst_controlled_generated_fixture_pipeline_v1",
+      "tool": "gstreamer_render_pipeline_support",
+      "result": "passed"
+    },
+    {
+      "templateId": "mkvmerge_generated_subtitle_only_package_v1",
+      "tool": "mkvtoolnix_container_validation",
+      "result": "passed"
+    },
+    {
+      "templateId": "mkvmerge_identify_generated_subtitle_only_v1",
+      "tool": "mkvtoolnix_container_validation",
+      "result": "passed"
+    }
+  ],
+  "artifactEvidence": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1-report.json",
+      "bytes": 8023,
+      "sha256": "d5c5af00bd16619f2a92e7586e3309eaa4320caee69f85b1cb3cb4223805a6aa"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1-manifest.json",
+      "bytes": 1464,
+      "sha256": "71392b0eb2176048b67f661264df13e717664731c9c7d43156816867b21d7307"
+    },
+    {
+      "fileName": "external-agent-runtime-envelope.json",
+      "bytes": 2367,
+      "sha256": "dde7675b3c4368558aaa672035809d04c2466e850821f67762942aa16be14511"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 986,
+      "sha256": "6d02c22c43ed96224db0aeb7477bf0f5e9a3a6716e036c4ee71d768b1eeab40b"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 1017,
+      "sha256": "18c2467a10c07b5dc52cd53cfba9bc3de1277d338238ba5c2aeeccdcd15ccd02"
+    }
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_external_agent_generated_fixture_post_qa_execution_lane",
+    "mkvtoolnix_container_validation": "ready_for_external_agent_generated_fixture_post_qa_execution_lane",
+    "gpac_mp4box_packaging_validation": "blocked_pending_package_source_install_proof"
+  },
+  "blockedScope": {
+    "gpacMp4boxExecution": true,
+    "ffmpegFfprobeExecution": true,
+    "privateMediaProcessing": true,
+    "userMediaProcessing": true,
+    "routeExecution": true,
+    "realWorkerDispatch": true,
+    "workerProcessStart": true,
+    "workerExecution": true,
+    "workerLeaseClaim": true,
+    "persistentJobQueueWrite": true,
+    "supabaseMutation": true,
+    "sqlExecution": true,
+    "secretPayloadAccess": true,
+    "signedUrlCreation": true,
+    "publicArtifactCreation": true,
+    "providerModelCall": true,
+    "creditMutation": true,
+    "deployment": true,
+    "internalBetaUnlock": true,
+    "externalBetaExpansion": true,
+    "productionUnlock": true,
+    "finalRenderExport": true
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-EXECUTION-DRY-RUN-1"
+}

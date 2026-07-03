@@ -240,11 +240,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'broll_10s_fixed_no_gpu_iap_ssh_canary_execution_required',
+  'broll_10t_iap_ssh_flag_fix_required',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner',
+  'npm run smoke:ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

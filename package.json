@@ -684,6 +684,7 @@
     "tracka:three-tool-external-agent-worker-dispatch-claim-lease-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1-diagnostics.mjs",
     "tracka:three-tool-external-agent-worker-process-approved-snapshot-execution-1": "node scripts/validation/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1.mjs",
     "tracka:three-tool-external-agent-worker-process-approved-snapshot-execution-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1-diagnostics.mjs",
+    "tracka:three-tool-external-agent-external-beta-readiness-rollup-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-external-beta-readiness-rollup-1-diagnostics.mjs",
     "tracka:gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1": "node scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1.mjs",
     "tracka:gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1-diagnostics.mjs",
     "tracka:gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1:diagnostics": "node scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1-diagnostics.mjs",

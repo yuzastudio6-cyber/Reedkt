@@ -34,7 +34,24 @@ const implementationFiles = [
   'scripts/validation/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const externalBetaReadinessRollupDir =
+  'docs/external-beta/tracka-three-tool-external-agent-external-beta-readiness-rollup-1'
+const externalBetaReadinessRollupFiles = [
+  `${externalBetaReadinessRollupDir}/source-chain.md`,
+  `${externalBetaReadinessRollupDir}/tool-readiness.md`,
+  `${externalBetaReadinessRollupDir}/safety-boundary.md`,
+  `${externalBetaReadinessRollupDir}/validation-results.md`,
+  `${externalBetaReadinessRollupDir}/tracka-three-tool-external-agent-external-beta-readiness-rollup-1-record.json`,
+  'docs/activation-phase-tracka-three-tool-external-agent-external-beta-readiness-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-rp-external-beta-orchestration-three-tool-generated-fixture-job-enablement-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-external-beta-readiness-rollup-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...implementationFiles,
+  ...externalBetaReadinessRollupFiles,
+])
 
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
@@ -250,6 +267,7 @@ for (const file of uniqueChangedFiles) {
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path: ${file}`)
 }
 const changedCorpus = uniqueChangedFiles
+  .filter((file) => !externalBetaReadinessRollupFiles.includes(file))
   .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
   .map(read)
   .join('\n')

@@ -21,6 +21,7 @@ import {
 } from '../beta-readiness/platform-supabase-deployed-evidence-transport'
 import { buildBetaReadinessBackendOperatorStatus } from '../beta-readiness/beta-readiness-operator-status'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
+import { runBetaPlatformCreditReservationHoldQa } from '../beta-readiness/platform-credit-reservation-hold-qa'
 import { runBetaPlatformWalletLifecycleQa } from '../beta-readiness/platform-wallet-lifecycle-qa'
 import { createProductionToolExecutionReadinessEvidenceService } from '../beta-readiness/production-tool-execution-readiness-evidence-service'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
@@ -29,6 +30,7 @@ import {
   betaReadinessEvidenceEvaluationSchema,
   betaReadinessEvidencePacketSchema,
   betaReadinessPlatformBillingQaSchema,
+  betaReadinessPlatformCreditReservationHoldQaSchema,
   betaReadinessPlatformDeployedEvidenceSchema,
   betaReadinessPlatformSupabaseDeployedProbeSchema,
   betaReadinessPlatformWalletLifecycleQaSchema,
@@ -173,6 +175,19 @@ export function createBetaReadinessRoutes(): Router {
         ? 'Persistent billing QA was explicitly confirmed and may write controlled tool-cost and wallet-settlement rows through service-role backend paths.'
         : 'No persistent billing writes ran unless explicitly confirmed with approved deployed fixture ids.',
       ...report.missingPlatformEvidence.map((item) => `Missing platform evidence: ${item}`),
+    ])
+  }))
+
+  router.post('/v1/beta-readiness/platform-credit-reservation-hold-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformCreditReservationHoldQaSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const report = await runBetaPlatformCreditReservationHoldQa(getServiceContext(request), body, getIdempotencyKey(request))
+    sendOk(response, { report }, [
+      'Platform credit reservation hold QA ran only backend reservation QA paths; no media, provider, Stripe, beta, or production action ran.',
+      report.persistenceMode === 'supabase_service_role'
+        ? 'Persistent reservation hold QA was explicitly confirmed and may write a controlled credit reservation row through service-role backend paths.'
+        : 'No persistent reservation hold writes ran unless explicitly confirmed with approved deployed fixture ids.',
+      ...report.missingProductionEvidence.map((item) => `Missing production evidence: ${item}`),
     ])
   }))
 

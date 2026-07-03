@@ -54,6 +54,7 @@
     "smoke:production-supabase-persistence-evidence-collector": "tsx server/smoke/production-supabase-persistence-evidence-collector-smoke.ts",
     "smoke:production-wallet-lifecycle-evidence-collector": "tsx server/smoke/production-wallet-lifecycle-evidence-collector-smoke.ts",
     "smoke:production-stripe-boundary-evidence-collector": "tsx server/smoke/production-stripe-boundary-evidence-collector-smoke.ts",
+    "smoke:platform-credit-reservation-hold-qa": "tsx server/smoke/platform-credit-reservation-hold-qa-smoke.ts",
     "smoke:platform-wallet-lifecycle-qa": "tsx server/smoke/platform-wallet-lifecycle-qa-smoke.ts",
     "smoke:production-real-worker-handler-readiness": "tsx server/smoke/production-real-worker-handler-readiness-smoke.ts",
     "smoke:production-gateway-ops-admission:sql": "tsx server/smoke/production-gateway-ops-admission-rpc-sql-smoke.ts",

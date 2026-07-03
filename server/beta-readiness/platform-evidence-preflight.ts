@@ -50,6 +50,13 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'Deploy and verify transactional wallet spend/release/refund settlement in staging or production.',
     ),
     migrationFileCheck(
+      'tool_cost_wallet_settlement_state_rpc_source_present',
+      'tool cost wallet settlement state-update RPC source is present',
+      'supabase/migrations/20260703234354_wallet_settlement_state_updates.sql',
+      ['create or replace function public.settle_tool_cost_event', 'cached_reserved_credits', 'spent_credits', 'released_credits', 'refunded_credits', 'wallet_state_updated'],
+      'Deploy and verify wallet cached-balance and reservation state movement in staging or production.',
+    ),
+    migrationFileCheck(
       'credit_reservation_hold_rpc_source_present',
       'credit reservation hold RPC source is present',
       'supabase/migrations/20260703232842_credit_reservation_hold_rpc.sql',
@@ -67,7 +74,7 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'tool_cost_wallet_settlement_rpc_sql_smoke_present',
       'tool cost wallet settlement RPC local SQL smoke is present',
       'server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts',
-      ['settle_tool_cost_event', 'credit_ledger_entries', 'service_fee_included', 'stripe_call_attempted', 'relrowsecurity'],
+      ['settle_tool_cost_event', 'credit_ledger_entries', 'cached_reserved_credits', 'spent_credits', 'released_credits', 'refunded_credits', 'relrowsecurity'],
       'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent checks against staging Supabase.',
     ),
     sourceFileCheck(

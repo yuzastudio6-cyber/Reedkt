@@ -197,13 +197,24 @@ function controlledRouteGpuCommand(toolId: string): string {
   ].join(' ')
 }
 
+function proofRefBridgeCommand(): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge --',
+    '--local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+  ].join(' ')
+}
+
 function nextGpuCommand(toolId: string): string {
   return toolId === 'kornia'
     ? containerGpuCommand(toolId)
     : hostPythonGpuCommand(toolId)
 }
 
-function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
+function buildToolRows(
+  routeSmoke: JsonRecord,
+  gpuHarness: JsonRecord,
+  gpuProofRefBridge: JsonRecord,
+) {
   const routeRows = new Map<string, JsonRecord>(
     (Array.isArray(routeSmoke.results) ? routeSmoke.results : [])
       .map((row: JsonRecord) => [row.toolId, row]),
@@ -215,6 +226,13 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
         : []
     ).map((row: JsonRecord) => [row.toolId, row]),
   )
+  const bridgeRows = new Map<string, JsonRecord>(
+    (
+      Array.isArray(gpuProofRefBridge.gpuModelRuntimeProofRefBridgeRows)
+        ? gpuProofRefBridge.gpuModelRuntimeProofRefBridgeRows
+        : []
+    ).map((row: JsonRecord) => [row.toolId, row]),
+  )
 
   return AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => {
     const readiness = getAiGraphicsToolCallReadiness(toolId)
@@ -223,6 +241,9 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
     const routeRow = routeRows.get(toolId)
     assert(routeRow, `Missing all-21 route smoke row for ${toolId}`)
     const gpuRow = gpuRows.get(toolId)
+    const bridgeRow = groupForTool(toolId) === 'gpu_model'
+      ? bridgeRows.get(toolId)
+      : undefined
 
     const routeCallable =
       routeRow.statusCode === 200 && routeRow.controlledAdapterInvokedNow === true
@@ -315,6 +336,15 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
       nextExactControlledRouteCommand: group === 'gpu_model'
         ? controlledRouteGpuCommand(toolId)
         : null,
+      nextExactProofRefBridgeCommand: group === 'gpu_model'
+        ? proofRefBridgeCommand()
+        : null,
+      proofRefBridgeStatus: group === 'gpu_model'
+        ? bridgeRow?.proofRefBridgeStatus ?? null
+        : null,
+      routeSubmissionReadyWithAcceptedPrivateProof: group === 'gpu_model'
+        ? bridgeRow?.routeSubmissionReadyWithAcceptedPrivateProof === true
+        : false,
       routeStatus: routeRow.routeStatus ?? null,
       adapterStatus: group === 'gpu_model'
         ? gpuRow?.adapterStatus ?? routeRow.routeStatus ?? null
@@ -350,6 +380,9 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
         gpuLocalDevHarness: group === 'gpu_model'
           ? 'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'
           : null,
+        gpuRuntimeProofRefBridge: group === 'gpu_model'
+          ? 'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json'
+          : null,
         executionGate:
           'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
       },
@@ -372,6 +405,10 @@ function buildReport() {
     stringFlag('--execution-gate-packet') ??
       'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
   )
+  const gpuProofRefBridge = readJson(
+    stringFlag('--gpu-runtime-proof-ref-bridge-packet') ??
+      'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
+  )
 
   assert(
     routeSmoke.decision ===
@@ -388,8 +425,13 @@ function buildReport() {
       'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings',
     'external-agent execution gate decision mismatch',
   )
+  assert(
+    gpuProofRefBridge.decision ===
+      'ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks',
+    'GPU/model runtime proof-ref bridge decision mismatch',
+  )
 
-  const toolRows = buildToolRows(routeSmoke, gpuHarness)
+  const toolRows = buildToolRows(routeSmoke, gpuHarness, gpuProofRefBridge)
   const executableTools = toolRows.filter((row) => row.executable)
   const nonGpuExecutableTools = executableTools.filter(
     (row) => row.group !== 'gpu_model',
@@ -434,6 +476,11 @@ function buildReport() {
         status: executionGate.status,
         accepted: true,
       },
+      gpuModelRuntimeProofRefBridge: {
+        decision: gpuProofRefBridge.decision,
+        status: gpuProofRefBridge.status,
+        accepted: true,
+      },
     },
     counts: {
       totalToolsCovered: toolRows.length,
@@ -446,6 +493,13 @@ function buildReport() {
         (row) => row.group === 'browser_runtime' && row.executable,
       ).length,
       gpuToolsWithValidRuntimeProof: gpuExecutableTools.length,
+      gpuModelProofRefBridgeAcceptedTools:
+        toolRows.filter((row) => row.routeSubmissionReadyWithAcceptedPrivateProof).length,
+      gpuModelProofRefBridgeBlockedTools:
+        toolRows.filter((row) => (
+          row.group === 'gpu_model' &&
+          row.routeSubmissionReadyWithAcceptedPrivateProof === false
+        )).length,
       gpuModelBlockedWithReasonTools: gpuBlockedRows.length,
       blockedWithReasonTools: blockedRows.length,
       failedWithDiagnosticsTools: failedRows.length,
@@ -478,6 +532,10 @@ function buildReport() {
       all8GpuModelToolsEvaluated: toolRows.filter((row) => row.group === 'gpu_model').length === 8,
       gpuModelToolsBlockedUntilPrerequisites:
         gpuBlockedRows.length + gpuExecutableTools.length === 8,
+      gpuModelProofRefBridgeBlocksUntilPrivateProof:
+        toolRows
+          .filter((row) => row.group === 'gpu_model')
+          .every((row) => row.routeSubmissionReadyWithAcceptedPrivateProof === false),
       scopedGpuModelRuntimeProofAcceptedTools: gpuExecutableTools.length,
       strictCallableExecutableBlockedFailedContractCreated: true,
       gpuRuntimeOnDemandOnly: true,
@@ -532,13 +590,14 @@ function buildReport() {
       canonicalProofImage: canonicalGpuWorkerProofImage,
       nextExactCommand: containerGpuCommand('kornia'),
       nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
+      nextExactProofRefBridgeCommand: proofRefBridgeCommand(),
       expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
         'gpu_model_runtime_container_gpu_unavailable',
       remainsBlockedUntil:
         'Run on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image available and a private approved source frame mounted locally.',
     },
     nextExactAction:
-      'First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, repeat per GPU/model tool with reviewed model/checkpoint paths where required and feed accepted proof back into this readiness report.',
+      'First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.',
   }
 }
 
@@ -580,6 +639,7 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Expected current-host blocker without attached NVIDIA GPU: \`${report.fastestGpuModelUnlockCandidate.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached}\`
 - Next direct harness command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
 - Next controlled route command: \`${report.fastestGpuModelUnlockCandidate.nextExactControlledRouteCommand}\`
+- Next proof-ref bridge command: \`${report.fastestGpuModelUnlockCandidate.nextExactProofRefBridgeCommand}\`
 
 ## Booleans
 

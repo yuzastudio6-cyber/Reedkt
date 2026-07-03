@@ -47,6 +47,8 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `cpuStaticExecutableTools`: 6
 - `browserRuntimeExecutableTools`: 7
 - `gpuToolsWithValidRuntimeProof`: 0
+- `gpuModelProofRefBridgeAcceptedTools`: 0
+- `gpuModelProofRefBridgeBlockedTools`: 8
 - `gpuModelBlockedWithReasonTools`: 8
 - `blockedWithReasonTools`: 8
 - `failedWithDiagnosticsTools`: 0
@@ -69,6 +71,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - Expected current-host blocker without attached NVIDIA GPU: `gpu_model_runtime_container_gpu_unavailable`
 - Next direct harness command: `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>`
 - Next controlled route command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
+- Next proof-ref bridge command: `npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
 
 ## Booleans
 
@@ -79,6 +82,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `all13NonGpuControlledAdapterOutputsValidated`: true
 - `all8GpuModelToolsEvaluated`: true
 - `gpuModelToolsBlockedUntilPrerequisites`: true
+- `gpuModelProofRefBridgeBlocksUntilPrivateProof`: true
 - `scopedGpuModelRuntimeProofAcceptedTools`: 0
 - `strictCallableExecutableBlockedFailedContractCreated`: true
 - `gpuRuntimeOnDemandOnly`: true
@@ -120,4 +124,4 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 
 ## Next Action
 
-First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, repeat per GPU/model tool with reviewed model/checkpoint paths where required and feed accepted proof back into this readiness report.
+First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.

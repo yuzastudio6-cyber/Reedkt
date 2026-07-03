@@ -51,6 +51,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.md',
   'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
   'package.json',
 ]
@@ -219,6 +220,8 @@ function checkReport(label, report) {
     cpuStaticExecutableTools: 6,
     browserRuntimeExecutableTools: 7,
     gpuToolsWithValidRuntimeProof: 0,
+    gpuModelProofRefBridgeAcceptedTools: 0,
+    gpuModelProofRefBridgeBlockedTools: 8,
     gpuModelBlockedWithReasonTools: 8,
     blockedWithReasonTools: 8,
     failedWithDiagnosticsTools: 0,
@@ -245,6 +248,7 @@ function checkReport(label, report) {
     'all13NonGpuControlledAdapterOutputsValidated',
     'all8GpuModelToolsEvaluated',
     'gpuModelToolsBlockedUntilPrerequisites',
+    'gpuModelProofRefBridgeBlocksUntilPrivateProof',
     'strictCallableExecutableBlockedFailedContractCreated',
     'gpuRuntimeOnDemandOnly',
     'noIdleGpuRuntimeApproved',
@@ -378,6 +382,25 @@ function checkReport(label, report) {
       if (!String(row.nextExactControlledRouteCommand ?? '').includes(`--scoped-gpu-tool ${toolId}`)) {
         fail(`${label}_${toolId}_controlled_route_command_not_tool_scoped`)
       }
+      if (
+        row.proofRefBridgeStatus !==
+        'blocked_missing_private_local_runtime_proof_result'
+      ) {
+        fail(`${label}_${toolId}_proof_ref_bridge_status_mismatch:${row.proofRefBridgeStatus}`)
+      }
+      if (row.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
+        fail(`${label}_${toolId}_proof_ref_route_submission_unexpectedly_ready`)
+      }
+      if (
+        !String(row.nextExactProofRefBridgeCommand ?? '').includes(
+          'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge',
+        )
+      ) {
+        fail(`${label}_${toolId}_missing_proof_ref_bridge_command`)
+      }
+      if (!String(row.nextExactProofRefBridgeCommand ?? '').includes('--local-runtime-proof-result')) {
+        fail(`${label}_${toolId}_proof_ref_bridge_command_missing_private_result_flag`)
+      }
       for (const flag of expectedControlledRouteFlags(toolId)) {
         if (!String(row.nextExactControlledRouteCommand ?? '').includes(flag)) {
           fail(`${label}_${toolId}_controlled_route_command_missing:${flag}`)
@@ -433,6 +456,9 @@ const routeSmoke = json(
 const gpuHarness = json(
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
 )
+const gpuProofRefBridge = json(
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
+)
 const executionGate = json(
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
 )
@@ -459,6 +485,20 @@ if (
   ).includes('ai-graphics:external-agent-all21-controlled-route-execution-smoke')
 ) {
   fail('fastest_gpu_unlock_candidate_missing_controlled_route_command')
+}
+if (
+  !String(
+    docs.fastestGpuModelUnlockCandidate?.nextExactProofRefBridgeCommand ?? '',
+  ).includes('ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge')
+) {
+  fail('fastest_gpu_unlock_candidate_missing_proof_ref_bridge_command')
+}
+if (
+  !String(
+    docs.fastestGpuModelUnlockCandidate?.nextExactProofRefBridgeCommand ?? '',
+  ).includes('--local-runtime-proof-result')
+) {
+  fail('fastest_gpu_unlock_candidate_proof_ref_bridge_missing_private_result_flag')
 }
 for (const flag of [
   '--scoped-gpu-tool kornia',
@@ -492,6 +532,12 @@ if (gpuHarness.counts?.localRuntimeExecutionPerformedTools !== 0) {
 if (gpuHarness.counts?.gpuRuntimeShouldStartNowTools !== 0) {
   fail('gpu_harness_default_started_gpu')
 }
+if (gpuProofRefBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 0) {
+  fail('proof_ref_bridge_default_accepted_private_proof')
+}
+if (gpuProofRefBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 0) {
+  fail('proof_ref_bridge_default_route_submission_ready')
+}
 if (executionGate.counts?.externalAgentExecutableNowTools !== 13) {
   fail('execution_gate_executable_now_not_13')
 }
@@ -512,6 +558,7 @@ for (const phrase of [
   '13 tools execute controlled local adapters now',
   'Fastest GPU/Model Unlock Candidate',
   'Next controlled route command',
+  'Next proof-ref bridge command',
   'gpu_model_runtime_container_gpu_unavailable',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)

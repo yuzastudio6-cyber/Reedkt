@@ -40,11 +40,25 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const supportChangedFiles = [
+  'docs/activation-phase-tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1/worker-dispatch-noop-result.md',
+  'docs/external-beta/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1/worker-dispatch-contract.md',
+  'docs/external-beta/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1-record.json',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-persistent-job-queue-dry-run-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1-diagnostics.mjs',
+  'server/services/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1.ts',
+  'server/cli/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1.ts',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...supportChangedFiles])
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\/(?!services\/tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1\.ts$|cli\/tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1\.ts$)/,
+  /^server\/(?!services\/tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1\.ts$|cli\/tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1\.ts$|services\/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1\.ts$|cli\/tracka-three-tool-external-agent-guarded-worker-dispatch-noop-invoke-1\.ts$)/,
   /^docker\//,
   /^\.dockerignore$/,
   /^supabase\//,

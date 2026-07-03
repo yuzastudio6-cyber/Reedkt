@@ -40,7 +40,21 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const followUpFiles = [
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/source-chain.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/execution-result.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/command-matrix.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/artifact-manifest-summary.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/safety-boundary.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/validation-results.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1-record.json',
+  'docs/activation-phase-tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1.mjs',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-execution-1-diagnostics.mjs',
+]
+const followUpFileSet = new Set(followUpFiles)
+const allowedChangedFiles = new Set([...requiredFiles, ...followUpFiles])
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^src\//,
@@ -292,6 +306,7 @@ for (const file of uniqueChangedFiles) {
   if (blockedChangedPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path: ${file}`)
 }
 const changedCorpus = uniqueChangedFiles
+  .filter((file) => !followUpFileSet.has(file))
   .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
   .map(read)
   .join('\n')

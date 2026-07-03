@@ -9,7 +9,7 @@ const empty = await buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
 assert.equal(empty.ok, false, 'empty production evidence bundle should remain blocked')
 assert.equal(empty.backendCallsAttempted, false, 'bundle must not call backend routes')
 assert.equal(empty.sections.some((section) => section.id === 'all_up_preflight' && section.ready === false), true)
-assert.equal(empty.recommendedSequence.length, 9, 'bundle should publish the full operator sequence')
+assert.equal(empty.recommendedSequence.length, 10, 'bundle should publish the full operator sequence')
 
 const complete = await buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
   ...completeEnv(),
@@ -21,15 +21,29 @@ const complete = await buildProductionToolExecutionReadinessEvidenceBundleFromEn
   REEDITPRO_PRODUCTION_OWNER_SIGNOFF_CONFIRM_RECORD_EVIDENCE: 'true',
   REEDITPRO_PRODUCTION_BILLING_CONFIRM_ROUTE_EVIDENCE: 'true',
 })
-assert.equal(complete.ok, true, 'complete production evidence bundle should pass dry-run readiness')
+assert.equal(complete.ok, false, 'complete production evidence is not enough while real worker handlers are still placeholder-only')
 assert.equal(complete.mode, 'dry_run', 'bundle should be dry-run only')
 assert.equal(complete.readyForAllUpRecord, true, 'bundle should identify all-up record readiness')
 assert.equal(complete.backendCallsAttempted, false, 'complete bundle must still not call backend routes')
-assert.equal(complete.sections.every((section) => section.ready), true, 'all sections should be ready for a complete fixture')
+assert.equal(
+  complete.sections.filter((section) => section.id !== 'real_worker_handlers').every((section) => section.ready),
+  true,
+  'evidence sections should be ready for a complete fixture',
+)
+assert.equal(
+  complete.sections.some((section) => section.id === 'real_worker_handlers' && section.ready === false),
+  true,
+  'bundle should keep production blocked until real worker handlers replace placeholder routes',
+)
 assert.equal(
   complete.recommendedSequence.map((item) => item.command).includes('npm run prod:readiness:tool-execution-evidence-collector'),
   true,
-  'bundle should end with the final all-up evidence collector path',
+  'bundle should include the final all-up evidence collector path',
+)
+assert.equal(
+  complete.recommendedSequence.map((item) => item.command).includes('npm run prod:readiness:real-worker-handler-readiness'),
+  true,
+  'bundle should include the real worker handler readiness check',
 )
 
 await assert.rejects(

@@ -71,6 +71,19 @@ assert.ok(
   'missing production evidence backend-only proof should name the production readiness evidence access gap',
 )
 
+const opsAdmissionRpcBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  operationsControls: {
+    ...completeEvidence.operationsControls!,
+    opsAdmissionRpcDeployed: false,
+  },
+})
+assert.equal(opsAdmissionRpcBlocked.productionToolExecutionAllowed, false, 'missing ops admission RPC deployment proof should block production')
+assert.ok(
+  opsAdmissionRpcBlocked.blockers.some((blocker) => blocker.includes('claim_production_gateway_worker_lease RPC deployment')),
+  'missing ops admission RPC proof should name the exact RPC deployment gap',
+)
+
 const refundBlocked = evaluateProductionToolExecutionReadinessGate({
   ...completeEvidence,
   walletSettlement: {
@@ -114,6 +127,7 @@ console.log(JSON.stringify({
   stagingBlocked: stagingBlocked.blockers.length,
   productionEvidenceMigrationBlocked: productionEvidenceMigrationBlocked.blockers.length,
   productionEvidenceBackendOnlyBlocked: productionEvidenceBackendOnlyBlocked.blockers.length,
+  opsAdmissionRpcBlocked: opsAdmissionRpcBlocked.blockers.length,
   refundBlocked: refundBlocked.blockers.length,
   provenanceBlocked: provenanceBlocked.blockers.length,
   paidProductionAllowed: passingReport.paidProductionAllowed,
@@ -179,6 +193,9 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       killSwitchesVerified: true,
       rateLimitsVerified: true,
       concurrencyLimitsVerified: true,
+      opsAdmissionRpcDeployed: true,
+      opsAdmissionRpcServiceRoleOnlyVerified: true,
+      opsAdmissionRpcReadbackVerified: true,
       incidentRunbookApproved: true,
     },
     toolEvidence: {

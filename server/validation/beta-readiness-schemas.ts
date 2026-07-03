@@ -254,6 +254,9 @@ const productionOperationsControlEvidenceSchema = productionEvidenceNotesSchema.
   killSwitchesVerified: z.boolean(),
   rateLimitsVerified: z.boolean(),
   concurrencyLimitsVerified: z.boolean(),
+  opsAdmissionRpcDeployed: z.boolean(),
+  opsAdmissionRpcServiceRoleOnlyVerified: z.boolean(),
+  opsAdmissionRpcReadbackVerified: z.boolean(),
   incidentRunbookApproved: z.boolean(),
 }).strict()
 

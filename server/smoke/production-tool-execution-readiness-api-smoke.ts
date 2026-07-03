@@ -229,6 +229,9 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       killSwitchesVerified: true,
       rateLimitsVerified: true,
       concurrencyLimitsVerified: true,
+      opsAdmissionRpcDeployed: true,
+      opsAdmissionRpcServiceRoleOnlyVerified: true,
+      opsAdmissionRpcReadbackVerified: true,
       incidentRunbookApproved: true,
     },
     toolEvidence: {

@@ -43,6 +43,13 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     task === 'extract_keyframes' ||
     task === 'extract_representative_frames'
   ))
+  const gatewayAdapterId = typeof input.workerPayload?.metadata?.gatewayAdapterId === 'string'
+    ? input.workerPayload.metadata.gatewayAdapterId
+    : undefined
+  const productionAudioExtractAllowed = input.mode === 'production_ready' &&
+    gatewayAdapterId === 'cpu_analysis_worker_media_audio_extract' &&
+    outputTasks.length === 1 &&
+    outputTasks[0] === 'extract_audio'
 
   if (input.mode === 'production_blocked') {
     return {
@@ -58,7 +65,7 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     }
   }
 
-  if (input.mode === 'production_ready' && outputTasks.length > 0) {
+  if (input.mode === 'production_ready' && outputTasks.length > 0 && !productionAudioExtractAllowed) {
     return {
       mode: input.mode,
       status: 'blocked',
@@ -171,10 +178,15 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
       ...(representativeFrames?.skipReason ? [representativeFrames.skipReason] : []),
     ],
     warnings: input.mode === 'production_ready'
-      ? [
-        'Production-ready media foundation ran only the bounded ffprobe probe/report handler.',
-        'No FFmpeg output tasks, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
-      ]
+      ? productionAudioExtractAllowed
+        ? [
+          'Production-ready media foundation ran only bounded ffprobe plus FFmpeg extracted-audio handler.',
+          'No proxy, keyframe, representative-frame, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
+        ]
+        : [
+          'Production-ready media foundation ran only the bounded ffprobe probe/report handler.',
+          'No FFmpeg output tasks, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
+        ]
       : ['Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.'],
   }
 }

@@ -34,18 +34,30 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
     case 'cpu_analysis_worker':
       if (hasMediaFoundationRequest(payload)) {
         const mediaFoundationResult = await runMediaAnalysisFoundation(buildMediaFoundationInput(payload))
-        const realMediaProbeHandler = mediaFoundationResult.mode === 'production_ready' &&
+        const gatewayAdapterId = stringValue(payload.metadata?.gatewayAdapterId)
+        const realMediaProbeHandler = gatewayAdapterId === 'cpu_analysis_worker_media_probe' &&
+          mediaFoundationResult.mode === 'production_ready' &&
           mediaFoundationResult.status !== 'blocked' &&
           mediaFoundationResult.probe !== undefined
+        const realMediaAudioExtractHandler = gatewayAdapterId === 'cpu_analysis_worker_media_audio_extract' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.audio?.status === 'created'
+        const realMediaHandler = realMediaProbeHandler || realMediaAudioExtractHandler
         return {
-          summary: realMediaProbeHandler
+          summary: realMediaAudioExtractHandler
+            ? 'CPU media audio-extract production handler completed bounded ffprobe plus FFmpeg extracted-audio execution.'
+            : realMediaProbeHandler
             ? 'CPU media probe production handler completed bounded ffprobe execution.'
             : 'Milestone 6 CPU media foundation route completed in explicit mediaFoundation mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: !realMediaProbeHandler,
-          realToolExecution: realMediaProbeHandler,
-          futureHandler: realMediaProbeHandler
+          mockOnly: !realMediaHandler,
+          realToolExecution: realMediaHandler,
+          futureHandler: realMediaAudioExtractHandler
+            ? 'cpu_analysis_worker_media_audio_extract_production_handler'
+            : realMediaProbeHandler
             ? 'cpu_analysis_worker_media_probe_production_handler'
             : 'cpu_analysis_worker_media_foundation',
           mediaFoundationResult,

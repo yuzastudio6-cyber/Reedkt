@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import path from 'node:path'
 
 import {
   evaluateProductionToolExecutionReadinessGate,
@@ -287,6 +288,7 @@ assert.ok(
 
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
+let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyStoredPacketDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>>
 
 if (mediaProbeFixture.ok) {
@@ -321,6 +323,61 @@ if (mediaProbeFixture.ok) {
     assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.stripeCallAttempted, false, 'gateway wallet settlement must preserve Stripe isolation')
     assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.serviceFeeIncluded, false, 'gateway wallet settlement must exclude service fees')
     assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyRealDispatch.toolCostEvents![0].toolCostCredits, 'completed real production_ready gateway settlement should spend the tool event credits')
+
+    productionReadyAudioExtractDispatch = await service.dispatchApprovedToolCall(productionReadyAudioExtractInput({
+      jobId: 'job-production-ready-real-audio-extract',
+      productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+      sourceLocalPath: mediaProbeFixture.fixture.sourceVideoPath,
+      outputRoot: path.join(mediaProbeFixture.fixture.tempDir, 'audio-extract-output'),
+    }))
+    const audioExtractResult = productionReadyAudioExtractDispatch.workerResult?.output?.mediaFoundationResult as {
+      audio?: { status?: string }
+      artifactRecords?: Array<{
+        artifactType?: string
+        storageObjectPath?: string
+        isPrivate?: boolean
+        sourceOfTruth?: boolean
+        contentType?: string
+      }>
+    } | undefined
+    const audioManifestArtifacts = productionReadyAudioExtractDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+      .filter((artifact) => artifact.artifactType === 'extracted_audio') ?? []
+    assert.equal(productionReadyAudioExtractDispatch.gateway.status, 'dispatched', 'complete evidence plus real audio-extract adapter should allow backend gateway dispatch')
+    assert.equal(productionReadyAudioExtractDispatch.workerResult?.status, 'completed', 'audio-extract real handler should complete')
+    assert.equal(productionReadyAudioExtractDispatch.workerResult?.output?.mockOnly, false, 'audio-extract production handler should be non-mock')
+    assert.equal(productionReadyAudioExtractDispatch.workerResult?.output?.realToolExecution, true, 'audio-extract production handler should record real tool execution')
+    assert.equal(
+      productionReadyAudioExtractDispatch.workerResult?.output?.futureHandler,
+      'cpu_analysis_worker_media_audio_extract_production_handler',
+      'audio-extract production handler should use the reviewed FFmpeg audio extract handler',
+    )
+    assert.equal(audioExtractResult?.audio?.status, 'created', 'audio-extract production handler should create an extracted audio artifact')
+    assert.ok(audioExtractResult?.artifactRecords?.some((artifact) => artifact.artifactType === 'extracted_audio'), 'audio-extract result should include an extracted audio artifact record')
+    assert.ok(audioManifestArtifacts.length > 0, 'worker runtime artifact manifest should include the private extracted audio artifact')
+    assert.ok(
+      audioManifestArtifacts.every((artifact) => (
+        artifact.isPrivate === true &&
+        artifact.sourceOfTruth === true &&
+        artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+        !artifact.storageObjectPath.includes('signed')
+      )),
+      'extracted audio artifacts must stay private, source-of-truth, project-scoped, and unsigned',
+    )
+    assert.equal(productionReadyAudioExtractDispatch.toolCostEvents?.length, 2, 'audio-extract dispatch should emit gateway cost events for ffmpeg and ffprobe')
+    assert.deepEqual(
+      productionReadyAudioExtractDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+      ['ffmpeg', 'ffprobe'],
+      'audio-extract dispatch should scope billing audit events to ffmpeg and ffprobe',
+    )
+    assert.ok(
+      productionReadyAudioExtractDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+      'audio-extract tool cost events should be billable tool-cost-only events after approval/reservation gates',
+    )
+    assert.equal(productionReadyAudioExtractDispatch.walletSettlements?.length, 2, 'audio-extract dispatch should create wallet settlements for both tool-cost events')
+    assert.ok(
+      productionReadyAudioExtractDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+      'audio-extract wallet settlements should spend user credits only for the completed real handler',
+    )
 
     productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
       ...productionReadyMediaProbeInput({
@@ -459,6 +516,8 @@ console.log(JSON.stringify({
   toolReadinessBillable: productionReadyToolReadinessDispatch.toolCostEvents?.map((event) => event.billableToUser),
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
+  realMediaAudioExtractDispatchCovered: Boolean(productionReadyAudioExtractDispatch),
+  realMediaAudioExtractHandler: productionReadyAudioExtractDispatch?.workerResult?.output?.futureHandler,
 }, null, 2))
 
 function productionEvidenceFixture(
@@ -598,6 +657,42 @@ function productionReadyMediaProbeInput(input: {
         sourceLocalPath: input.sourceLocalPath ?? '/tmp/reeditpro-production-media-probe-not-run.mp4',
         contentType: 'video/mp4',
         ffprobeBin: 'ffprobe',
+        timeoutMs: 20_000,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyAudioExtractInput(input: {
+  jobId: string
+  sourceLocalPath: string
+  outputRoot: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_media_audio_extract',
+    requestedToolIds: ['ffmpeg', 'ffprobe'],
+    requestedRecipeIds: ['media-audio-extract-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      mediaFoundation: {
+        mode: 'production_ready',
+        tasks: ['probe', 'extract_audio', 'build_analysis_report'],
+        sourceStorageObjectId: 'source-storage-object-smoke',
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        sourceLocalPath: input.sourceLocalPath,
+        outputRoot: input.outputRoot,
+        contentType: 'video/mp4',
+        ffprobeBin: 'ffprobe',
+        ffmpegBin: 'ffmpeg',
         timeoutMs: 20_000,
       },
     },

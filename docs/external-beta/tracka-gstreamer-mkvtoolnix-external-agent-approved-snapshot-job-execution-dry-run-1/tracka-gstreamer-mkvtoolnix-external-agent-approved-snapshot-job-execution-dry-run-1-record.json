@@ -1,0 +1,88 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-EXECUTION-DRY-RUN-1",
+  "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_job_execution_dry_run",
+  "execution": "completed_confirmation_gated_approved_snapshot_job_execution_envelope_validation_no_queue_write_worker_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_EXTERNAL_AGENT_APPROVED_SNAPSHOT_JOB_EXECUTION_DRY_RUN=true",
+  "runId": "2026-07-03T03-00-07-116Z-cf848654",
+  "outputDir": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-1/2026-07-03T03-00-07-116Z-cf848654",
+  "sourceQaRollup": {
+    "mergeSha": "ec23c913705b58f5124e8d7a4bebee08c1b47ee0",
+    "headSha": "12a99b6b9ac169d5351dd5e1fe5a09a8a22b67d2",
+    "executionRunId": "2026-07-03T02-41-43-899Z-665590e9",
+    "qaDecision": "qa_passed_gstreamer_mkvtoolnix_external_agent_generated_fixture_execution_evidence",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "approvedSnapshotJobExecutionDryRun": {
+    "approvedSnapshotId": "approved-snapshot-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "approvedSnapshotStatus": "approved",
+    "approvedSnapshotSourceClass": "controlled_generated_fixture_only",
+    "jobId": "job-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "jobType": "gstreamer_mkvtoolnix_external_agent_generated_fixture",
+    "jobExecutionMode": "metadata_only_dry_run_no_queue_write_no_worker_execution",
+    "idempotencyKey": "9462c9809eb45806596dbe914d83cffc1ddf4041973b6605682f53b4940c0bf3",
+    "commandTemplates": [
+      "gst_fakesrc_fakesink_no_media_healthcheck_v1",
+      "gst_controlled_generated_fixture_pipeline_v1",
+      "mkvmerge_generated_subtitle_only_package_v1",
+      "mkvmerge_identify_generated_subtitle_only_v1"
+    ],
+    "payloadShapeValidation": "passed",
+    "qaEvidenceValidation": "passed",
+    "idempotencyKeyValidation": "passed",
+    "artifactManifestReferenceValidation": "passed",
+    "cleanupPolicyValidation": "passed",
+    "persistentJobQueueWrite": false,
+    "routeExecution": false,
+    "realWorkerDispatch": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "toolExecution": false
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-report.json",
+      "bytes": 4241,
+      "sha256": "5c0175407e8717658093e4ce9303d90dc2d738e10fd6cb352072b132b57aa380"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-manifest.json",
+      "bytes": 1330,
+      "sha256": "2f3099ba483e3c22f1d108a06a7e677e135d19294f995e08e47c3108699f9b28"
+    }
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_approved_snapshot_job_route_dry_run",
+    "mkvtoolnix_container_validation": "ready_for_approved_snapshot_job_route_dry_run",
+    "gpac_mp4box_packaging_validation": "blocked_pending_package_source_install_proof"
+  },
+  "safety": {
+    "persistentJobQueueWrite": false,
+    "routeExecution": false,
+    "realWorkerDispatch": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "toolExecution": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "gpacMp4boxExecution": false,
+    "dockerExecution": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-ROUTE-DRY-RUN-1"
+}

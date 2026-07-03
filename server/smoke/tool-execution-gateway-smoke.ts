@@ -596,6 +596,78 @@ assert.ok(
   'final-render metadata wallet settlements should spend user credits only for the completed real handler',
 )
 
+const productionReadyCaptionMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyCaptionMetadataInput({
+  jobId: 'job-production-ready-caption-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const captionMetadataResult = productionReadyCaptionMetadataDispatch.workerResult?.output?.captionExecutionResult as {
+  status?: string
+  captionSegments?: unknown[]
+  captionFiles?: Array<{ format?: string; localFilePath?: string }>
+  artifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+    previewAllowed?: boolean
+  }>
+  qaResults?: Array<{ gateType?: string }>
+  skippedReasons?: unknown[]
+} | undefined
+const captionMetadataArtifacts = productionReadyCaptionMetadataDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'caption_segments_json' || artifact.artifactType === 'qa_report') ?? []
+const captionMetadataQaGateTypes = new Set(captionMetadataResult?.qaResults?.map((gate) => gate.gateType) ?? [])
+assert.equal(productionReadyCaptionMetadataDispatch.gateway.status, 'dispatched', 'complete evidence plus caption metadata adapter should allow backend gateway dispatch')
+assert.equal(productionReadyCaptionMetadataDispatch.workerResult?.status, 'completed', 'caption metadata real handler should complete')
+assert.equal(productionReadyCaptionMetadataDispatch.workerResult?.output?.mockOnly, false, 'caption metadata production handler should be non-mock')
+assert.equal(productionReadyCaptionMetadataDispatch.workerResult?.output?.realToolExecution, true, 'caption metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyCaptionMetadataDispatch.workerResult?.output?.futureHandler,
+  'render_worker_caption_metadata_production_handler',
+  'caption metadata production handler should use the reviewed caption metadata handler',
+)
+assert.equal(captionMetadataResult?.status, 'completed', 'caption metadata production handler should complete metadata-only caption generation')
+assert.ok((captionMetadataResult?.captionSegments?.length ?? 0) > 0, 'caption metadata handler should build caption segments from supplied approved transcript timing')
+assert.deepEqual(
+  captionMetadataResult?.captionFiles?.map((file) => file.format).sort(),
+  ['ass', 'srt', 'webvtt'],
+  'caption metadata handler should build the reviewed SRT, WebVTT, and ASS caption file metadata set',
+)
+assert.ok(
+  captionMetadataResult?.captionFiles?.every((file) => file.localFilePath === undefined),
+  'caption metadata handler must not write local caption files in production_ready mode',
+)
+assert.ok((captionMetadataResult?.qaResults?.length ?? 0) >= 4, 'caption metadata handler should emit caption QA gate results')
+assert.ok(
+  captionMetadataQaGateTypes.has('caption_readability') &&
+    captionMetadataQaGateTypes.has('caption_timing') &&
+    captionMetadataQaGateTypes.has('caption_safe_zone') &&
+    captionMetadataQaGateTypes.has('transcript_alignment'),
+  'caption metadata handler should preserve readability, timing, safe-zone, and transcript-alignment QA gates',
+)
+assert.equal(captionMetadataResult?.skippedReasons?.length ?? 0, 0, 'caption metadata handler should not skip into preview/render paths')
+assert.ok(captionMetadataArtifacts.length >= 4, 'worker runtime artifact manifest should include private caption files, segments, and QA artifacts')
+assert.ok(
+  captionMetadataArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.previewAllowed === false &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'caption metadata artifacts must stay private, source-of-truth, non-preview, project-scoped, and unsigned',
+)
+assert.ok(
+  (productionReadyCaptionMetadataDispatch.workerResult?.qualityGateResults.length ?? 0) >= 4,
+  'caption metadata worker result should preserve QA gate results',
+)
+assert.equal(productionReadyCaptionMetadataDispatch.toolCostEvents?.length, 1, 'caption metadata dispatch should emit one gateway cost event for libass metadata work')
+assert.equal(productionReadyCaptionMetadataDispatch.toolCostEvents?.[0]?.toolId, 'libass', 'caption metadata dispatch should scope billing audit to libass')
+assert.equal(productionReadyCaptionMetadataDispatch.toolCostEvents?.[0]?.billableToUser, true, 'caption metadata event should be billable only after approval/reservation/readiness gates')
+assert.equal(productionReadyCaptionMetadataDispatch.toolCostEvents?.[0]?.metadata.serviceFeeIncluded, false, 'caption metadata cost event must exclude service fees')
+assert.equal(productionReadyCaptionMetadataDispatch.walletSettlements?.length, 1, 'caption metadata dispatch should create one wallet settlement audit row')
+assert.equal(productionReadyCaptionMetadataDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyCaptionMetadataDispatch.toolCostEvents![0].toolCostCredits, 'caption metadata wallet settlement should spend the emitted tool-cost credits')
+
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
@@ -1002,6 +1074,8 @@ console.log(JSON.stringify({
   realAudioMetadataHandler: productionReadyAudioMetadataDispatch.workerResult?.output?.futureHandler,
   realColorMetadataDispatchCovered: productionReadyColorMetadataDispatch.gateway.status === 'dispatched',
   realColorMetadataHandler: productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
+  realCaptionMetadataDispatchCovered: productionReadyCaptionMetadataDispatch.gateway.status === 'dispatched',
+  realCaptionMetadataHandler: productionReadyCaptionMetadataDispatch.workerResult?.output?.futureHandler,
   realFinalRenderMetadataDispatchCovered: productionReadyFinalRenderMetadataDispatch.gateway.status === 'dispatched',
   realFinalRenderMetadataHandler: productionReadyFinalRenderMetadataDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
@@ -1398,6 +1472,133 @@ function productionReadyFinalRenderMetadataInput(input: {
           blockers: [],
           warnings: [],
         },
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyCaptionMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    workerType: 'render_worker',
+    renderMode: 'qa_probe',
+    executionMode: 'production_ready',
+    adapterId: 'render_worker_caption_metadata',
+    requestedToolIds: ['libass'],
+    requestedRecipeIds: ['caption-metadata-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    requiredQualityGateTypes: ['caption_readability', 'caption_timing', 'caption_safe_zone', 'transcript_alignment'],
+    artifactReferences: [{
+      id: 'artifact-approved-word-timestamps',
+      storageBucketPurpose: 'transcripts',
+      storageObjectPath: `workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/media/${baseInput.mediaAssetId}/transcripts/word-timestamps.json`,
+      isPrivate: true,
+      sourceOfTruth: true,
+    }],
+    metadata: {
+      gatewaySmoke: true,
+      speechCaptionExecution: {
+        mode: 'production_ready',
+        tasks: ['build_caption_segments', 'build_caption_files', 'build_caption_qa_report'],
+        buildSpeech: false,
+        buildCaptions: true,
+        enableRealTranscription: false,
+        allowModelDownload: false,
+        enableCaptionPreview: false,
+        buildPreview: false,
+        captionFormats: ['srt', 'webvtt', 'ass'],
+        captionStyle: 'clean_subtitle',
+        platform: 'internal-beta-fixture',
+        aspectRatio: '16:9',
+        transcriptArtifactId: 'artifact-approved-transcript',
+        wordTimestampArtifactId: 'artifact-approved-word-timestamps',
+        transcriptSegments: [{
+          segmentId: 'caption-metadata-segment-1',
+          startSeconds: 0,
+          endSeconds: 2.55,
+          text: 'Caption metadata is generated from approved timing.',
+          confidence: 0.96,
+          words: [{
+            word: 'Caption',
+            startSeconds: 0,
+            endSeconds: 0.42,
+            segmentId: 'caption-metadata-segment-1',
+          }, {
+            word: 'metadata',
+            startSeconds: 0.42,
+            endSeconds: 0.92,
+            segmentId: 'caption-metadata-segment-1',
+          }, {
+            word: 'is',
+            startSeconds: 0.92,
+            endSeconds: 1.08,
+            segmentId: 'caption-metadata-segment-1',
+          }, {
+            word: 'generated',
+            startSeconds: 1.08,
+            endSeconds: 1.65,
+            segmentId: 'caption-metadata-segment-1',
+          }, {
+            word: 'from',
+            startSeconds: 1.65,
+            endSeconds: 1.85,
+            segmentId: 'caption-metadata-segment-1',
+          }, {
+            word: 'approved',
+            startSeconds: 1.85,
+            endSeconds: 2.25,
+            segmentId: 'caption-metadata-segment-1',
+          }, {
+            word: 'timing.',
+            startSeconds: 2.25,
+            endSeconds: 2.55,
+            segmentId: 'caption-metadata-segment-1',
+          }],
+        }],
+        wordTimestamps: [{
+          word: 'Caption',
+          startSeconds: 0,
+          endSeconds: 0.42,
+          segmentId: 'caption-metadata-segment-1',
+        }, {
+          word: 'metadata',
+          startSeconds: 0.42,
+          endSeconds: 0.92,
+          segmentId: 'caption-metadata-segment-1',
+        }, {
+          word: 'is',
+          startSeconds: 0.92,
+          endSeconds: 1.08,
+          segmentId: 'caption-metadata-segment-1',
+        }, {
+          word: 'generated',
+          startSeconds: 1.08,
+          endSeconds: 1.65,
+          segmentId: 'caption-metadata-segment-1',
+        }, {
+          word: 'from',
+          startSeconds: 1.65,
+          endSeconds: 1.85,
+          segmentId: 'caption-metadata-segment-1',
+        }, {
+          word: 'approved',
+          startSeconds: 1.85,
+          endSeconds: 2.25,
+          segmentId: 'caption-metadata-segment-1',
+        }, {
+          word: 'timing.',
+          startSeconds: 2.25,
+          endSeconds: 2.55,
+          segmentId: 'caption-metadata-segment-1',
+        }],
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

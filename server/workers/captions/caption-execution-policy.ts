@@ -49,7 +49,32 @@ export function validateCaptionExecutionPolicy(input: CaptionExecutionInput): Ca
   }
 
   if (input.mode === 'production_ready') {
-    blockingReasons.push('M13 production_ready caption render/export remains blocked until final render milestones.')
+    const transcriptSegmentCount = input.transcriptSegments?.length ??
+      input.transcript?.segments.length ??
+      0
+    const wordTimestampCount = Array.isArray(input.wordTimestamps)
+      ? input.wordTimestamps.length
+      : input.wordTimestamps?.words.length ?? 0
+
+    if (transcriptSegmentCount === 0 && wordTimestampCount === 0) {
+      blockingReasons.push('production_ready caption metadata requires approved transcript segments or word timestamps; mock caption text is not allowed.')
+    }
+
+    if (input.buildPreview || input.enableCaptionPreview) {
+      blockingReasons.push('production_ready caption metadata cannot render previews or burn captions.')
+    }
+
+    if (input.sourceVideoLocalPath) {
+      blockingReasons.push('production_ready caption metadata cannot consume local source video paths.')
+    }
+
+    if (input.outputDirectory) {
+      blockingReasons.push('production_ready caption metadata cannot write local caption files; it may only record private artifact metadata.')
+    }
+
+    if (blockingReasons.length === 0) {
+      warnings.push('production_ready caption metadata is limited to private caption text artifacts and QA; final render/export remains blocked.')
+    }
   }
 
   if (input.buildPreview && !input.enableCaptionPreview) {

@@ -64,6 +64,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'cpu_analysis_worker_color_metadata'
   | 'cpu_analysis_worker_smart_cut_timeline'
   | 'gpu_ai_worker_placeholder'
+  | 'render_worker_caption_metadata'
   | 'render_worker_final_render_metadata'
   | 'render_worker_placeholder'
   | 'qa_worker_placeholder'
@@ -116,6 +117,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   cpu_analysis_worker_color_metadata: 'cpu_analysis_worker',
   cpu_analysis_worker_smart_cut_timeline: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
+  render_worker_caption_metadata: 'render_worker',
   render_worker_final_render_metadata: 'render_worker',
   render_worker_placeholder: 'render_worker',
   qa_worker_placeholder: 'qa_worker',
@@ -1187,6 +1189,111 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'render_worker_caption_metadata') {
+    const captionExecution = input.metadata?.speechCaptionExecution
+    const captionRecord = captionExecution && typeof captionExecution === 'object'
+      ? captionExecution as Record<string, unknown>
+      : undefined
+    const mode = captionRecord?.mode
+    const tasks = Array.isArray(captionRecord?.tasks)
+      ? captionRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['build_caption_segments', 'build_caption_files', 'build_caption_qa_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+    const transcriptSegments = Array.isArray(captionRecord?.transcriptSegments)
+      ? captionRecord.transcriptSegments
+      : []
+    const wordTimestamps = Array.isArray(captionRecord?.wordTimestamps)
+      ? captionRecord.wordTimestamps
+      : []
+    const captionFormats = Array.isArray(captionRecord?.captionFormats)
+      ? captionRecord.captionFormats
+      : []
+    const captionFormatSet = new Set(captionFormats)
+    const requiredFormats = ['srt', 'webvtt', 'ass']
+    const missingFormats = requiredFormats.filter((format) => !captionFormatSet.has(format))
+    const unexpectedFormats = captionFormats.filter((format) => !requiredFormats.includes(String(format)))
+
+    if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== 'libass') {
+      blockers.push({
+        code: 'CAPTION_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata may dispatch only the reviewed libass caption metadata/QA adapter scope.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'CAPTION_METADATA_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata production dispatch requires metadata.speechCaptionExecution.mode=production_ready.',
+        details: { speechCaptionExecutionMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'CAPTION_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata is limited to caption segmentation, caption file text, and caption QA metadata tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && transcriptSegments.length === 0 && wordTimestamps.length === 0) {
+      blockers.push({
+        code: 'CAPTION_METADATA_TRANSCRIPT_TIMING_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata requires approved transcript segments or word timestamps and cannot invent captions from mock text.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (captionFormats.length !== requiredFormats.length || missingFormats.length > 0 || unexpectedFormats.length > 0)) {
+      blockers.push({
+        code: 'CAPTION_METADATA_FORMAT_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata must build only the reviewed SRT, WebVTT, and ASS private caption file metadata set.',
+        details: { captionFormats, missingFormats, unexpectedFormats },
+      })
+    }
+
+    if (
+      input.executionMode === 'production_ready' &&
+      (
+        captionRecord?.buildSpeech === true ||
+        captionRecord?.enableRealTranscription === true ||
+        captionRecord?.allowModelDownload === true ||
+        typeof captionRecord?.modelWeightManifestId === 'string' ||
+        typeof captionRecord?.localModelPath === 'string'
+      )
+    ) {
+      blockers.push({
+        code: 'CAPTION_METADATA_SPEECH_MODEL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata cannot run speech transcription, use model weights, or download models.',
+      })
+    }
+
+    if (
+      input.executionMode === 'production_ready' &&
+      (
+        captionRecord?.enableCaptionPreview === true ||
+        captionRecord?.buildPreview === true ||
+        typeof captionRecord?.sourceVideoLocalPath === 'string' ||
+        typeof captionRecord?.outputDirectory === 'string'
+      )
+    ) {
+      blockers.push({
+        code: 'CAPTION_METADATA_RENDER_PREVIEW_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_caption_metadata cannot run preview burn-in, use local source video paths, or write local output files.',
+      })
+    }
+  }
+
   if (adapterId === 'tool_readiness_worker_core_checks') {
     const toolReadiness = input.metadata?.toolReadiness
     const mode = toolReadiness && typeof toolReadiness === 'object'
@@ -1251,6 +1358,8 @@ function validateToolReadiness(
       adapterId === 'cpu_analysis_worker_media_keyframes' && workerType === 'cpu_analysis_worker'
     ) || (
       adapterId === 'cpu_analysis_worker_media_representative_frames' && workerType === 'cpu_analysis_worker'
+    ) || (
+      adapterId === 'render_worker_caption_metadata' && workerType === 'render_worker'
     )
     const runtime = reviewedCrossWorkerAdapter
       ? evaluateRuntimePolicy(profile)
@@ -1398,6 +1507,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'render_worker_final_render_metadata') {
     allowedReservedKeys.add('finalRenderExecution')
+  }
+  if (adapterId === 'render_worker_caption_metadata') {
+    allowedReservedKeys.add('speechCaptionExecution')
   }
   const reservedFound = reservedRouterKeys
     .filter((key) => !allowedReservedKeys.has(key))

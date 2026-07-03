@@ -3,7 +3,7 @@ import { buildStorageArtifactReference, runMediaAnalysisFoundation } from '../me
 import type { MediaFoundationRunMode, MediaFoundationTask } from '../media'
 import { runSpeechFoundation } from '../speech'
 import type { SpeechFoundationRunMode } from '../speech'
-import { runCaptionFoundation } from '../captions'
+import { runCaptionExecution, runCaptionFoundation } from '../captions'
 import type { CaptionFileFormat, CaptionFoundationRunMode, CaptionStylePresetId } from '../captions'
 import { runSpeechCaptionExecutionPipeline } from '../speech-caption'
 import type { SpeechCaptionExecutionMode } from '../speech-caption'
@@ -374,6 +374,32 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'render_worker_smart_cut_timeline_preview_execution',
           smartCutTimelineExecutionResult,
+        }
+      }
+
+      if (hasCaptionMetadataExecutionRequest(payload)) {
+        const captionExecutionResult = await runCaptionExecution(buildCaptionMetadataExecutionInput(payload))
+        const realCaptionMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_caption_metadata' &&
+          captionExecutionResult.mode === 'production_ready' &&
+          captionExecutionResult.status !== 'blocked' &&
+          captionExecutionResult.captionSegments.length > 0 &&
+          captionExecutionResult.captionFiles.length >= 3 &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'caption_segments_json' && artifact.sourceOfTruth) &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'qa_report' && artifact.sourceOfTruth) &&
+          captionExecutionResult.qaResults.length > 0 &&
+          captionExecutionResult.skippedReasons.length === 0
+        return {
+          summary: realCaptionMetadataHandler
+            ? 'Render worker caption metadata production handler completed bounded caption segmentation, private SRT/WebVTT/ASS artifact metadata, and caption QA without transcription, preview burn-in, or final export.'
+            : 'Milestone 13 render worker caption metadata route completed in explicit captionMetadata mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realCaptionMetadataHandler,
+          realToolExecution: realCaptionMetadataHandler,
+          futureHandler: realCaptionMetadataHandler
+            ? 'render_worker_caption_metadata_production_handler'
+            : 'render_worker_caption_metadata',
+          captionExecutionResult,
         }
       }
 
@@ -1245,6 +1271,47 @@ function hasSpeechCaptionExecutionRequest(payload: ProductionWorkerJobPayload): 
   if (!request || typeof request !== 'object') return false
   const mode = (request as Record<string, unknown>).mode
   return isSpeechCaptionExecutionMode(mode)
+}
+
+function hasCaptionMetadataExecutionRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.speechCaptionExecution
+  if (!request || typeof request !== 'object') return false
+  const record = request as Record<string, unknown>
+  return stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_caption_metadata' &&
+    record.mode === 'production_ready' &&
+    record.buildCaptions !== false
+}
+
+function buildCaptionMetadataExecutionInput(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.speechCaptionExecution as Record<string, unknown>
+  const captionFormats = Array.isArray(request.captionFormats)
+    ? request.captionFormats.filter(isCaptionFileFormat)
+    : undefined
+
+  return {
+    mode: 'production_ready' as const,
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    mediaAssetId: payload.mediaAssetId ?? 'media-asset-not-set',
+    approvedSnapshotId: payload.approvedSnapshotId,
+    toolExecutionPlanId: payload.toolExecutionPlanId,
+    idempotencyKey: payload.idempotencyKey,
+    transcriptArtifactId: stringValue(request.transcriptArtifactId),
+    transcriptSegments: Array.isArray(request.transcriptSegments) ? request.transcriptSegments as never[] : undefined,
+    wordTimestampArtifactId: stringValue(request.wordTimestampArtifactId),
+    wordTimestamps: Array.isArray(request.wordTimestamps) ? request.wordTimestamps as never[] : undefined,
+    captionStyle: isCaptionStylePresetId(request.captionStyle) ? request.captionStyle : undefined,
+    platform: stringValue(request.platform),
+    aspectRatio: stringValue(request.aspectRatio),
+    safeZoneArtifactIds: Array.isArray(request.safeZoneArtifactIds) ? request.safeZoneArtifactIds.filter(isStringValue) : undefined,
+    ocrTextRegionArtifactIds: Array.isArray(request.ocrTextRegionArtifactIds) ? request.ocrTextRegionArtifactIds.filter(isStringValue) : undefined,
+    buildSrt: captionFormats ? captionFormats.includes('srt') : true,
+    buildWebVtt: captionFormats ? captionFormats.includes('webvtt') : true,
+    buildAss: captionFormats ? captionFormats.includes('ass') : true,
+    buildPreview: false,
+    enableCaptionPreview: false,
+    workerPayload: payload,
+  }
 }
 
 function buildSpeechCaptionExecutionInput(

@@ -165,6 +165,7 @@ const falseBooleanKeys = [
   'agentCanExecuteAll21ToolsNow',
   'agentCanExecuteGpuModelToolsNow',
   'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+  'reviewedPrivateModelWeightManifestsAcceptedNow',
   'globalAll21ExecutionAllowedNow',
   'externalAgentCanInvokeAdapterNow',
   'routeExecutionPerformed',
@@ -199,6 +200,8 @@ const trueBooleanKeys = [
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
+  'threeModelWeightToolsHaveExistingEvidenceForPrivateManifestAuthoring',
+  'twoModelWeightToolsRequireSourceChecksumReview',
   'externalBetaCallableCandidatesWithProvidedEvidence',
   'externalBetaCallableRequestAdmissionReadyWithProvidedEvidence',
   'routeMountReadyWithProvidedEvidence',
@@ -723,6 +726,30 @@ function assertRuntimeRows(label, rows) {
           fail(`${label}_${row.toolId}_model_weight_private_evidence_accepted_not_false`)
         }
         if (
+          ['sam2', 'birefnet', 'real_esrgan'].includes(row.toolId) &&
+          row.modelWeightExistingInternalEvidenceReadyForManifestAuthoring !== true
+        ) {
+          fail(`${label}_${row.toolId}_existing_evidence_manifest_authoring_not_true`)
+        }
+        if (
+          ['sam2', 'birefnet', 'real_esrgan'].includes(row.toolId) &&
+          row.modelWeightSourceReviewStillRequired !== false
+        ) {
+          fail(`${label}_${row.toolId}_source_review_still_required_not_false`)
+        }
+        if (
+          ['rembg', 'transparent_background'].includes(row.toolId) &&
+          row.modelWeightExistingInternalEvidenceReadyForManifestAuthoring !== false
+        ) {
+          fail(`${label}_${row.toolId}_existing_evidence_manifest_authoring_not_false`)
+        }
+        if (
+          ['rembg', 'transparent_background'].includes(row.toolId) &&
+          row.modelWeightSourceReviewStillRequired !== true
+        ) {
+          fail(`${label}_${row.toolId}_source_review_still_required_not_true`)
+        }
+        if (
           row.gpuModelExternalBetaReadinessBlocker !==
           'gpu_model_runtime_queue_service_bridge_accepted_non_production_service_role_queue_write_worker_dispatch_and_tool_execution_proof_pending'
         ) {
@@ -735,6 +762,12 @@ function assertRuntimeRows(label, rows) {
         }
         if (row.modelWeightPrivateEvidenceAccepted !== false) {
           fail(`${label}_${row.toolId}_model_weight_private_evidence_accepted_not_false`)
+        }
+        if (row.modelWeightExistingInternalEvidenceReadyForManifestAuthoring !== false) {
+          fail(`${label}_${row.toolId}_existing_evidence_manifest_authoring_not_false`)
+        }
+        if (row.modelWeightSourceReviewStillRequired !== false) {
+          fail(`${label}_${row.toolId}_source_review_still_required_not_false`)
         }
         if (
           row.gpuModelExternalBetaReadinessBlocker !==
@@ -863,6 +896,18 @@ if (docs.counts?.nativeGpuRuntimeProofPendingTools !== 8) {
 }
 if (docs.counts?.modelWeightManifestPendingTools !== 5) {
   fail('docs_model_weight_manifest_pending_not_5')
+}
+if (docs.counts?.modelWeightExistingEvidenceBackedManifestAuthoringReadyTools !== 3) {
+  fail('docs_model_weight_existing_evidence_manifest_authoring_ready_not_3')
+}
+if (docs.counts?.modelWeightSourceReviewBlockedTools !== 2) {
+  fail('docs_model_weight_source_review_blocked_not_2')
+}
+if (docs.counts?.reviewedPrivateModelWeightManifestAcceptedTools !== 0) {
+  fail('docs_reviewed_private_model_weight_manifest_accepted_not_0')
+}
+if (docs.counts?.gpuFoundationNativeProofOnlyTools !== 3) {
+  fail('docs_gpu_foundation_native_proof_only_not_3')
 }
 if (docs.counts?.externalBetaCallableInstallReadyNowTools !== 0) {
   fail('docs_external_beta_callable_install_ready_not_0')
@@ -1217,6 +1262,10 @@ for (const phrase of [
   'scopedControlledRouteCpuStaticExecutableNowTools: `6`',
   'scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`',
   'scopedControlledRouteGpuModelBlockedTools: `8`',
+  'modelWeightExistingEvidenceBackedManifestAuthoringReadyTools: `3`',
+  'modelWeightSourceReviewBlockedTools: `2`',
+  'reviewedPrivateModelWeightManifestAcceptedTools: `0`',
+  'gpuFoundationNativeProofOnlyTools: `3`',
   'agentCanExecute13ControlledRouteToolsNow',
   'CPU/static adapter/enqueue admission accepted: `true`',
   'cpuStaticAdapterInvocationEnqueueAdmissionReadyTools: `5`',
@@ -1268,6 +1317,9 @@ for (const phrase of [
   'GPU/model tools ready for execution after current evidence: `0`',
   'Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`',
   'Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`',
+  'Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`',
+  'Source/checksum review still required before private manifest authoring: `rembg` and `transparent_background`',
+  'Reviewed private model-weight manifests accepted now: `0`',
   'gpuModelExternalBetaReadinessBlocker',
   'modelWeightPrivateEvidenceRequired',
   'Route readiness probe evidence is accepted',
@@ -1554,6 +1606,18 @@ if (acceptedSourceReport.nativeGpuRuntimeProofPendingTools !== 8) {
 }
 if (acceptedSourceReport.modelWeightManifestPendingTools !== 5) {
   fail('accepted_report_model_manifest_pending_not_5')
+}
+if (acceptedSourceReport.modelWeightExistingEvidenceBackedManifestAuthoringReadyTools !== 3) {
+  fail('accepted_report_model_weight_existing_evidence_manifest_authoring_ready_not_3')
+}
+if (acceptedSourceReport.modelWeightSourceReviewBlockedTools !== 2) {
+  fail('accepted_report_model_weight_source_review_blocked_not_2')
+}
+if (acceptedSourceReport.reviewedPrivateModelWeightManifestAcceptedTools !== 0) {
+  fail('accepted_report_reviewed_private_model_weight_manifest_accepted_not_0')
+}
+if (acceptedSourceReport.gpuFoundationNativeProofOnlyTools !== 3) {
+  fail('accepted_report_gpu_foundation_native_proof_only_not_3')
 }
 if (acceptedSourceReport.externalBetaCallableInstallReadyNowTools !== 0) {
   fail('accepted_report_external_beta_callable_install_not_0')

@@ -20,6 +20,10 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - runtimeProofPassedButToolCallBlockedTools: `13`
 - nativeGpuRuntimeProofPendingTools: `8`
 - modelWeightManifestPendingTools: `5`
+- modelWeightExistingEvidenceBackedManifestAuthoringReadyTools: `3`
+- modelWeightSourceReviewBlockedTools: `2`
+- reviewedPrivateModelWeightManifestAcceptedTools: `0`
+- gpuFoundationNativeProofOnlyTools: `3`
 - externalBetaCallableInstallReadyNowTools: `0`
 - controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`
 - controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: `21`
@@ -166,6 +170,9 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - GPU/model tools ready for execution after current evidence: `0`
 - Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`
 - Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`
+- Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`
+- Source/checksum review still required before private manifest authoring: `rembg` and `transparent_background`
+- Reviewed private model-weight manifests accepted now: `0`
 - gpuModelExternalBetaReadinessBlocker
 - modelWeightPrivateEvidenceRequired
 - Route readiness probe evidence is accepted

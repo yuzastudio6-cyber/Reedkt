@@ -946,6 +946,8 @@ export interface AiGraphicsExternalAgentExecutionGateToolRow {
   nativeGpuRuntimeProofAccepted: boolean
   modelWeightPrivateEvidenceRequired: boolean
   modelWeightPrivateEvidenceAccepted: boolean
+  modelWeightExistingInternalEvidenceReadyForManifestAuthoring: boolean
+  modelWeightSourceReviewStillRequired: boolean
   gpuModelProofRefQueueAdmissionStatus: string | null
   gpuModelProofRefQueueAdmissionAcceptedWithProvidedEvidence: boolean
   gpuModelRuntimeJobAdmissionReadyWithProvidedProofRefs: boolean
@@ -1047,6 +1049,10 @@ export interface AiGraphicsExternalAgentExecutionGate {
   runtimeProofPassedButToolCallBlockedTools: 0 | 13
   nativeGpuRuntimeProofPendingTools: 0 | 8
   modelWeightManifestPendingTools: 0 | 5
+  modelWeightExistingEvidenceBackedManifestAuthoringReadyTools: 0 | 3
+  modelWeightSourceReviewBlockedTools: 0 | 2
+  reviewedPrivateModelWeightManifestAcceptedTools: 0
+  gpuFoundationNativeProofOnlyTools: 0 | 3
   externalBetaCallableInstallReadyNowTools: 0
   controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: 0 | 21
   controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence: 0 | 21
@@ -1201,6 +1207,9 @@ export interface AiGraphicsExternalAgentExecutionGate {
     all21ToolsCovered: boolean
     all12CapabilitiesCovered: boolean
     all8GpuToolsTargetGpuRuntime: boolean
+    threeModelWeightToolsHaveExistingEvidenceForPrivateManifestAuthoring: boolean
+    twoModelWeightToolsRequireSourceChecksumReview: boolean
+    reviewedPrivateModelWeightManifestsAcceptedNow: false
     externalBetaCallableCandidatesWithProvidedEvidence: boolean
     externalBetaCallableRequestAdmissionReadyWithProvidedEvidence: boolean
     routeMountReadyWithProvidedEvidence: boolean
@@ -1393,6 +1402,17 @@ const browserRuntimeProofTools = new Set<AiGraphicsCanonicalToolId>([
   'pixi_js',
   'konva',
   'babylonjs',
+])
+
+const gpuModelWeightExistingEvidenceBackedTools = new Set<AiGraphicsCanonicalToolId>([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+])
+
+const gpuModelWeightSourceReviewBlockedTools = new Set<AiGraphicsCanonicalToolId>([
+  'rembg',
+  'transparent_background',
 ])
 
 function safeNextCommand(input: {
@@ -3525,6 +3545,12 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     const modelWeightPrivateEvidenceAccepted =
       routeReadinessProbeAccepted &&
       routeReadinessProbeToolSummaryRow?.modelWeightPrivateEvidenceAccepted === true
+    const modelWeightExistingInternalEvidenceReadyForManifestAuthoring =
+      modelWeightPrivateEvidenceRequired &&
+      gpuModelWeightExistingEvidenceBackedTools.has(tool.toolId)
+    const modelWeightSourceReviewStillRequired =
+      modelWeightPrivateEvidenceRequired &&
+      gpuModelWeightSourceReviewBlockedTools.has(tool.toolId)
     const gpuModelProofRefQueueAdmissionAccepted =
       routeGpuModelProofRefQueueAdmissionSmokeAccepted &&
       gpuModelProofRefQueueAdmissionRow?.runtimeJobAdmissionReadyWithProvidedEvidence ===
@@ -3677,6 +3703,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       nativeGpuRuntimeProofAccepted,
       modelWeightPrivateEvidenceRequired,
       modelWeightPrivateEvidenceAccepted,
+      modelWeightExistingInternalEvidenceReadyForManifestAuthoring,
+      modelWeightSourceReviewStillRequired,
       gpuModelProofRefQueueAdmissionStatus:
         gpuModelProofRefQueueAdmissionAccepted
           ? 'gpu_model_proof_ref_queue_admission_accepted_runtime_still_blocked'
@@ -3961,6 +3989,13 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     runtimeProofPassedButToolCallBlockedTools: installAccepted ? 13 : 0,
     nativeGpuRuntimeProofPendingTools: installAccepted ? 8 : 0,
     modelWeightManifestPendingTools: installAccepted ? 5 : 0,
+    modelWeightExistingEvidenceBackedManifestAuthoringReadyTools:
+      installAccepted ? 3 : 0,
+    modelWeightSourceReviewBlockedTools:
+      installAccepted ? 2 : 0,
+    reviewedPrivateModelWeightManifestAcceptedTools: 0,
+    gpuFoundationNativeProofOnlyTools:
+      installAccepted ? 3 : 0,
     externalBetaCallableInstallReadyNowTools: 0,
     controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence:
       controlledOnDemandAccepted ? 21 : 0,
@@ -4251,6 +4286,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       all21ToolsCovered: toolRows.length === 21,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
+      threeModelWeightToolsHaveExistingEvidenceForPrivateManifestAuthoring:
+        installAccepted,
+      twoModelWeightToolsRequireSourceChecksumReview:
+        installAccepted,
+      reviewedPrivateModelWeightManifestsAcceptedNow: false,
       externalBetaCallableCandidatesWithProvidedEvidence: candidateTools === 21,
       externalBetaCallableRequestAdmissionReadyWithProvidedEvidence:
         requestAdmissionReadyTools >= 1,

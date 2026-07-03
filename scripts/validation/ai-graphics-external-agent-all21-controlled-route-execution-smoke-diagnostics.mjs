@@ -156,6 +156,13 @@ function checkReport(label, report) {
     if (row.controlledAdapterInvokedNow !== true) {
       fail(`${label}_${toolId}_adapter_not_invoked`)
     }
+    if (![
+      'executable',
+      'blocked_with_reason',
+      'failed_with_diagnostics',
+    ].includes(row.externalAgentExecutionState)) {
+      fail(`${label}_${toolId}_external_agent_state_missing`)
+    }
     for (const key of [
       'gpuRuntimeShouldStartNow',
       'publicArtifactCreated',
@@ -176,6 +183,15 @@ function checkReport(label, report) {
     if (row.controlledAdapterExecutedNow !== true) {
       fail(`${label}_${toolId}_adapter_not_executed`)
     }
+    if (row.externalAgentExecutionState !== 'executable') {
+      fail(`${label}_${toolId}_not_executable_state`)
+    }
+    if (row.blockingReasonCode !== null) {
+      fail(`${label}_${toolId}_unexpected_blocking_reason`)
+    }
+    if (row.failureDiagnostics !== null) {
+      fail(`${label}_${toolId}_unexpected_failure_diagnostics`)
+    }
     if (row.localPackageExecutionPerformed !== true) {
       fail(`${label}_${toolId}_local_package_not_executed`)
     }
@@ -190,6 +206,15 @@ function checkReport(label, report) {
     if (!row) continue
     if (row.controlledAdapterExecutedNow !== false) {
       fail(`${label}_${toolId}_gpu_adapter_should_skip_runtime`)
+    }
+    if (row.externalAgentExecutionState !== 'blocked_with_reason') {
+      fail(`${label}_${toolId}_gpu_not_blocked_with_reason_state`)
+    }
+    if (!row.blockingReasonCode) {
+      fail(`${label}_${toolId}_gpu_missing_blocking_reason`)
+    }
+    if (row.failureDiagnostics !== null) {
+      fail(`${label}_${toolId}_gpu_unexpected_failure_diagnostics`)
     }
     if (row.localPackageExecutionPerformed !== false) {
       fail(`${label}_${toolId}_gpu_local_package_should_not_execute`)
@@ -209,6 +234,9 @@ function checkReport(label, report) {
     controlledRouteAdapterInvokedTools: 21,
     controlledRouteAdapterExecutedTools: 13,
     realRuntimeExecutedTools: 13,
+    executableStateTools: 13,
+    blockedWithReasonStateTools: 8,
+    failedWithDiagnosticsStateTools: 0,
     cpuStaticControlledRouteExecutedTools: 6,
     browserRuntimeControlledRouteExecutedTools: 7,
     gpuModelControlledRouteInvokedTools: 8,
@@ -234,6 +262,10 @@ function checkReport(label, report) {
     'cpuStaticControlledAdaptersExecuted',
     'browserRuntimeControlledAdaptersExecuted',
     'gpuModelControlledAdaptersInvoked',
+    'normalizedExternalAgentExecutionStatesReturned',
+    'thirteenToolsReturnExecutableState',
+    'eightGpuModelToolsReturnBlockedWithReasonState',
+    'noToolsReturnFailedWithDiagnosticsState',
     'agentCanCallAll21ControlledRoutesNow',
     'agentCanExecuteRealRuntimeFor13ToolsNow',
     'routeExecutionApprovedNow',
@@ -325,6 +357,9 @@ for (const phrase of [
   'executeAiGraphicsExternalAgentGpuModelControlledAdapter',
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG',
   'controlled_gpu_model_route_blocked_with_reason',
+  'externalAgentExecutionState',
+  'blockingReasonCode',
+  'failureDiagnostics',
 ]) {
   if (!routeSource.includes(phrase)) fail(`route_missing:${phrase}`)
 }

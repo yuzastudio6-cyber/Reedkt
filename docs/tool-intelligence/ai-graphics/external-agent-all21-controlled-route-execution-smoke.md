@@ -8,29 +8,29 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 
 ## Tool Results
 
-| Tool | Group | Capability | HTTP status | Adapter invoked | Adapter executed | Local package execution | Local GPU/model runtime | GPU starts now |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `torch_torchvision` | `gpu_model` | `model_runtime_foundation` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `transformers` | `gpu_model` | `model_runtime_foundation` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `sam2` | `gpu_model` | `subject_segmentation` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `birefnet` | `gpu_model` | `background_removal` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `real_esrgan` | `gpu_model` | `upscaling` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `kornia` | `gpu_model` | `tensor_image_ops` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `rembg` | `gpu_model` | `background_removal` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `transparent_background` | `gpu_model` | `background_removal` | `200` | `true` | `false` | `false` | `false` | `false` |
-| `d3` | `cpu_static` | `chart_overlay` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `echarts` | `browser_runtime` | `chart_overlay` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `vega_lite` | `cpu_static` | `data_visualization` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `vega` | `cpu_static` | `data_visualization` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `satori` | `cpu_static` | `svg_graphics` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `svgdotjs_svg_js` | `cpu_static` | `svg_graphics` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `viz_js` | `cpu_static` | `diagram_graphics` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `lottie_web` | `browser_runtime` | `animation_overlay` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `animejs` | `browser_runtime` | `animation_overlay` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `three_js` | `browser_runtime` | `webgl_3d_scene` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `pixi_js` | `browser_runtime` | `canvas_scene` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `konva` | `browser_runtime` | `canvas_scene` | `200` | `true` | `true` | `true` | `false` | `false` |
-| `babylonjs` | `browser_runtime` | `webgl_3d_scene` | `200` | `true` | `true` | `true` | `false` | `false` |
+| Tool | Group | Capability | External-agent state | HTTP status | Adapter invoked | Adapter executed | Local package execution | Local GPU/model runtime | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `gpu_model` | `model_runtime_foundation` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `transformers` | `gpu_model` | `model_runtime_foundation` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `sam2` | `gpu_model` | `subject_segmentation` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `birefnet` | `gpu_model` | `background_removal` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `real_esrgan` | `gpu_model` | `upscaling` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `kornia` | `gpu_model` | `tensor_image_ops` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `rembg` | `gpu_model` | `background_removal` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `transparent_background` | `gpu_model` | `background_removal` | `blocked_with_reason` | `200` | `true` | `false` | `false` | `false` | `false` |
+| `d3` | `cpu_static` | `chart_overlay` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `echarts` | `browser_runtime` | `chart_overlay` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `vega_lite` | `cpu_static` | `data_visualization` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `vega` | `cpu_static` | `data_visualization` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `satori` | `cpu_static` | `svg_graphics` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `svgdotjs_svg_js` | `cpu_static` | `svg_graphics` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `viz_js` | `cpu_static` | `diagram_graphics` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `lottie_web` | `browser_runtime` | `animation_overlay` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `animejs` | `browser_runtime` | `animation_overlay` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `three_js` | `browser_runtime` | `webgl_3d_scene` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `pixi_js` | `browser_runtime` | `canvas_scene` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `konva` | `browser_runtime` | `canvas_scene` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
+| `babylonjs` | `browser_runtime` | `webgl_3d_scene` | `executable` | `200` | `true` | `true` | `true` | `false` | `false` |
 
 ## Counts
 
@@ -40,6 +40,9 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `controlledRouteAdapterInvokedTools`: 21
 - `controlledRouteAdapterExecutedTools`: 13
 - `realRuntimeExecutedTools`: 13
+- `executableStateTools`: 13
+- `blockedWithReasonStateTools`: 8
+- `failedWithDiagnosticsStateTools`: 0
 - `cpuStaticControlledRouteExecutedTools`: 6
 - `browserRuntimeControlledRouteExecutedTools`: 7
 - `gpuModelControlledRouteInvokedTools`: 8
@@ -61,6 +64,10 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `cpuStaticControlledAdaptersExecuted`: true
 - `browserRuntimeControlledAdaptersExecuted`: true
 - `gpuModelControlledAdaptersInvoked`: true
+- `normalizedExternalAgentExecutionStatesReturned`: true
+- `thirteenToolsReturnExecutableState`: true
+- `eightGpuModelToolsReturnBlockedWithReasonState`: true
+- `noToolsReturnFailedWithDiagnosticsState`: true
 - `agentCanCallAll21ControlledRoutesNow`: true
 - `agentCanExecuteToolsNow`: false
 - `agentCanExecuteAll21ToolsNow`: false

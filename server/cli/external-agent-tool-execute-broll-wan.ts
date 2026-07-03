@@ -6,10 +6,13 @@ import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-ex
 type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
+const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_10ZB_L4_PAYLOAD_INSTALL_RETRY'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
-const NEXT_AFTER_QUOTA =
-  'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference'
+const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-10zb:l4-payload-install-runner'
+const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-10zb-l4-payload-install-runner.json'
+const NEXT_AFTER_DEPENDENCY_INSTALL =
+  'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -24,6 +27,8 @@ function main() {
       executeRequired: true,
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      delegatedRunnerConfirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+      delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
       canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
       noIdleLifecycleGate: brollTool?.noIdleLifecycleGate,
       runtimeRunNow: false,
@@ -72,25 +77,82 @@ function main() {
   const cache = runJson('broll_private_cache_readiness', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
   const blockers = validateReadiness(quota.json, cache.json)
 
+  if (blockers.length > 0) {
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_execution_preflight_result',
+      status: 'blocked',
+      blockers,
+      brollQuota: summarizeBrollQuota(quota.json),
+      cacheReadiness: summarizeCacheReadiness(cache.json),
+      nextPrompt:
+        blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
+        blockers.includes('broll_live_quota_verify_missing')
+          ? 'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
+          : 'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference',
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelInferenceRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  const delegated = runJson(
+    'broll_10zb_l4_payload_install_runner',
+    'npm',
+    [
+      'run',
+      DELEGATED_RUNNER_SCRIPT,
+      '--',
+      '--execute',
+      '--summary-path',
+      DELEGATED_SUMMARY_PATH,
+    ],
+    {
+      [DELEGATED_RUNNER_CONFIRM_ENV]: 'true',
+    },
+    1024 * 1024 * 24,
+  )
+
   print({
-    ok: false,
-    mode: 'external_agent_broll_wan_execution_preflight_result',
-    status: 'blocked',
+    ok: delegated.ok && delegated.json?.ok === true,
+    mode: 'external_agent_broll_wan_execution_delegated_result',
+    status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
     blockers,
     brollQuota: summarizeBrollQuota(quota.json),
     cacheReadiness: summarizeCacheReadiness(cache.json),
-    nextPrompt:
-      blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
-      blockers.includes('broll_live_quota_verify_missing')
-        ? 'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
-        : NEXT_AFTER_QUOTA,
-    runtimeRunNow: false,
-    computeVmCreated: false,
+    delegatedRunner: {
+      script: DELEGATED_RUNNER_SCRIPT,
+      confirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+      summaryPath: DELEGATED_SUMMARY_PATH,
+      exitCode: delegated.exitCode,
+    },
+    delegatedResult: delegated.json,
+    stderrSummary: delegated.stderrSummary,
+    nextPrompt: delegated.ok && delegated.json?.ok === true
+      ? NEXT_AFTER_DEPENDENCY_INSTALL
+      : 'AI-VIDEO-BROLL-GEN-10ZC-FIX-FIXED-DELIVERY-RETRY-FAILURE: fix the failing phase from the fixed-delivery payload/install retry, no model import/no inference',
+    runtimeRunNow: true,
+    computeVmCreated: delegated.json?.computeVmCreated === true,
     dockerRun: false,
-    modelImportRun: false,
-    modelInferenceRun: false,
-    generatedVideoCreated: false,
-    generatedAssetsCreated: false,
+    modelImportRun: delegated.json?.runtimeSideEffects &&
+      asRecord(delegated.json.runtimeSideEffects).modelImportRun === true,
+    modelInferenceRun: delegated.json?.runtimeSideEffects &&
+      asRecord(delegated.json.runtimeSideEffects).modelInferenceRun === true,
+    generatedVideoCreated: delegated.json?.runtimeSideEffects &&
+      asRecord(delegated.json.runtimeSideEffects).generatedVideoCreated === true,
+    generatedAssetsCreated: delegated.json?.runtimeSideEffects &&
+      asRecord(delegated.json.runtimeSideEffects).generatedAssetsCreated === true,
     supabaseTouched: false,
     sqlExecuted: false,
     creditMutationCreated: false,
@@ -113,7 +175,6 @@ function validateReadiness(quota: JsonRecord | undefined, cache: JsonRecord | un
   if (cache?.modelIndexClassNameMatches !== true) blockers.push('broll_private_cache_model_index_mismatch')
   if (cache?.indexRefsLocal !== true) blockers.push('broll_private_cache_refs_not_local')
 
-  blockers.push('broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required')
   return Array.from(new Set(blockers))
 }
 
@@ -153,6 +214,8 @@ function runJson(
   id: string,
   command: string,
   args: string[],
+  env: Record<string, string> = {},
+  maxBuffer = 1024 * 1024 * 12,
 ): {
   id: string
   ok: boolean
@@ -162,9 +225,12 @@ function runJson(
 } {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: process.env,
+    env: {
+      ...process.env,
+      ...env,
+    },
     encoding: 'utf8',
-    maxBuffer: 1024 * 1024 * 12,
+    maxBuffer,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
 

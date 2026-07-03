@@ -223,14 +223,17 @@ assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
 assert.equal(report.staticExplicitToolGateReady, true)
-assert.deepEqual(report.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
 assert.equal(report.requiresLivePreflightBeforeRuntime, true)
 assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.equal(report.blockedToolIds.length, 3)
+assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+assert.equal(report.blockedToolIds.length, 2)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
@@ -240,11 +243,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
+  'live_preflight_and_explicit_confirmation_required_before_broll_dependency_runner',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10za-payload-delivery-timeout-fix-result',
+  'npm run external-agent-tool-execute-broll-wan',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

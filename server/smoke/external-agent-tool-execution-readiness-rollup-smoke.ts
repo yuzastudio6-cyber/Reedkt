@@ -85,8 +85,8 @@ const BROLL_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10Y-RUNNER-RAW-JSON-CLEANUP-FIX: fix L4 payload/install runner to parse raw describe JSON before sanitizing logs and delete prompt VM after any create attempt, no VM/no model/no inference'
 const BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference'
-const BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT =
-  'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference'
+const BROLL_11A_MODEL_IMPORT_PLAN_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -141,7 +141,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10zb_fixed_delivery_retry_required',
+  'external_agent_tool_execution_readiness_qwen_and_broll_dependency_runner_ready_for_explicit_gate',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -217,7 +217,8 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required`',
+  '`npm run ai-video-broll-gen-10zb:l4-payload-install-runner -- --execute`',
+  'prompt-scoped no-public-IP L4 proof VM',
   'docs/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.md',
   'server/smoke/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result-smoke.ts',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10t-iap-ssh-flag-fix.md',
@@ -228,7 +229,7 @@ for (const required of [
   'server/smoke/ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun-result-smoke.ts',
   BROLL_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
   BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
-  BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
+  BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -408,7 +409,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10zb_fixed_delivery_retry_required',
+  'external_agent_tool_execution_readiness_qwen_and_broll_dependency_runner_ready_for_explicit_gate',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -420,7 +421,7 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
+  BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
 )
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
@@ -677,14 +678,14 @@ assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-d
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
-assert.equal(broll?.status, 'auth_verified_runtime_blocked')
+assert.equal(broll?.status, 'ready_for_explicit_tool_gate')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
-assert.equal(broll?.readyForExternalAgentExecutionNow, false)
-assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
+assert.equal(broll?.readyForExternalAgentExecutionNow, true)
+assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
+  'none_explicit_gate_ready_live_preflight_required',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1146,7 +1147,15 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT)
+assert.equal(broll?.nextAction, BROLL_11A_MODEL_IMPORT_PLAN_PROMPT)
+assert.equal(
+  broll?.evidence.includes('server/cli/ai-video-broll-gen-10zb-l4-payload-install-runner.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/cli/external-agent-tool-execute-broll-wan.ts'),
+  true,
+)
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-10za-payload-delivery-timeout-fix-result.md'),
   true,
@@ -1258,7 +1267,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
+  BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')
@@ -1337,13 +1346,13 @@ assert.equal(
 )
 
 for (const tool of rollup.tools) {
-  if (tool.toolId === 'qwen2_5_vl_7b_instruct') {
+  if (tool.toolId === 'qwen2_5_vl_7b_instruct' || tool.toolId === 'ai_video_broll_generation_wan') {
     assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for the explicit gate`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,
       false,
-      `${tool.toolId} must not be execution-ready on the Qwen retry-2 branch`,
+      `${tool.toolId} must not be execution-ready on the Qwen/B-roll explicit-gate branch`,
     )
   }
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)

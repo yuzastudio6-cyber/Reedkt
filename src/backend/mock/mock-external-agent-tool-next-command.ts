@@ -59,7 +59,9 @@ export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
   verifiesPrivateCacheBeforeAnyVmAction: true
   requiresNoIdleLifecycleGate: true
   blocksWhenGpusAllRegionsQuotaInsufficient: true
-  createsComputeVm: false
+  createsComputeVm: true
+  deletesComputeVmAndVerifiesCleanup: true
+  dependencyInstallOnly: true
   runsModel: false
   createsGeneratedAssets: false
   touchesSupabase: false
@@ -202,7 +204,9 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     verifiesPrivateCacheBeforeAnyVmAction: true,
     requiresNoIdleLifecycleGate: true,
     blocksWhenGpusAllRegionsQuotaInsufficient: true,
-    createsComputeVm: false,
+    createsComputeVm: true,
+    deletesComputeVmAndVerifiesCleanup: true,
+    dependencyInstallOnly: true,
     runsModel: false,
     createsGeneratedAssets: false,
     touchesSupabase: false,
@@ -248,7 +252,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   forbiddenRuntimeActions: [
     'do not invoke Cloud Run without the explicit Qwen tool gate and live preflight',
     'do not execute Cloud Run jobs without the explicit Qwen tool gate and live preflight',
-    'do not create Compute Engine VMs',
+    'do not create Compute Engine VMs except the bounded B-roll no-idle proof VM through the explicit wrapper gate',
     'do not request quota',
     'do not run Docker',
     'do not import models outside the bounded approved-fixture Qwen gate',

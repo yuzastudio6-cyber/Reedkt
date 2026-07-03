@@ -128,7 +128,9 @@ assert.equal(spec.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeAnyVm
 assert.equal(spec.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
 assert.equal(spec.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
 assert.equal(spec.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
-assert.equal(spec.brollWanExternalAgentProofCommand.createsComputeVm, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.createsComputeVm, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.deletesComputeVmAndVerifiesCleanup, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.dependencyInstallOnly, true)
 assert.equal(spec.brollWanExternalAgentProofCommand.runsModel, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
@@ -275,14 +277,14 @@ const brollGateSummary = gateToolSummaries.get('ai_video_broll_generation_wan') 
   }
 }
 assert.equal(brollGateSummary.executionAllowedNow, false)
-assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
+assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
+  'live_preflight_and_explicit_confirmation_required_before_broll_dependency_runner',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10za-payload-delivery-timeout-fix-result',
+  'npm run external-agent-tool-execute-broll-wan',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
@@ -360,7 +362,9 @@ assert.equal(decision.brollWanExternalAgentProofCommand.verifiesPrivateCacheBefo
 assert.equal(decision.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.executionAllowedNow, false)
-assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.deletesComputeVmAndVerifiesCleanup, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.dependencyInstallOnly, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.runsModel, false)
 assert.equal(decision.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
 assert.equal(decision.brollWanExternalAgentProofCommand.touchesSupabase, false)

@@ -199,7 +199,7 @@ assertQwenManualActions(rollupQwenActions, 'rollup.qwen')
 assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
 for (const tool of rollup.tools) {
-  if (tool.toolId === QWEN_TOOL_ID) {
+  if (tool.toolId === QWEN_TOOL_ID || tool.toolId === BROLL_TOOL_ID) {
     assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for the explicit gate`)
   } else {
     assert.equal(
@@ -242,8 +242,6 @@ const qwenSurfaceActions = [
 
 const brollSurfaceActions = [
   ['actionPlan.toolActions', manualActionsFromRows(actionPlan.toolActions, BROLL_TOOL_ID, 'actionPlan.toolActions')],
-  ['actionPlan.manualBlockers', manualActionsFromRows(actionPlan.manualBlockers, BROLL_TOOL_ID, 'actionPlan.manualBlockers')],
-  ['readiness.blockers', manualActionsFromRows(readiness.blockers, BROLL_TOOL_ID, 'readiness.blockers')],
   ['executionGate.toolRows', manualActionsFromRows(executionGate.toolRows, BROLL_TOOL_ID, 'executionGate.toolRows')],
   [
     'blockerPreflight.broll',
@@ -279,6 +277,20 @@ assert.equal(
   ),
   false,
   'readiness.blockers must not include explicit-gate-ready Qwen',
+)
+assert.equal(
+  asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
+    (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === BROLL_TOOL_ID,
+  ),
+  false,
+  'actionPlan.manualBlockers must not include explicit-gate-ready B-roll',
+)
+assert.equal(
+  asArray(readiness.blockers, 'readiness.blockers').some(
+    (row) => asRecord(row, 'readiness.blockers row').toolId === BROLL_TOOL_ID,
+  ),
+  false,
+  'readiness.blockers must not include explicit-gate-ready B-roll',
 )
 
 for (const [label, actions] of brollSurfaceActions) {
@@ -395,6 +407,8 @@ const brollExecutionCommandKeys = [
   'requiresNoIdleLifecycleGate',
   'blocksWhenGpusAllRegionsQuotaInsufficient',
   'createsComputeVm',
+  'deletesComputeVmAndVerifiesCleanup',
+  'dependencyInstallOnly',
   'runsModel',
   'createsGeneratedAssets',
   'touchesSupabase',

@@ -1,5 +1,5 @@
 import {
-  AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
+  AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -76,6 +76,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     {
       toolId: 'ai_video_broll_generation_wan',
       executionAllowedNow: false,
+      staticExplicitToolGateReady: true,
       requiredBeforeExecution: [
         'auth-readable live preflight must verify GPUS_ALL_REGIONS quota at or above 1',
         'auth-readable live preflight must verify regional NVIDIA_L4 quota at or above 1',
@@ -125,12 +126,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10Y runner fix must remain recorded with raw describe JSON parsed before sanitization and exact-name cleanup after any create attempt',
         '10Z bounded no-idle L4 payload/install retry failed at recursive IAP wheelhouse transfer timeout after VM/IAP/Python readiness passed and cleanup verified',
         '10ZA payload delivery timeout fix must remain recorded with archive/chunk delivery selected before another paid GPU retry',
-        '10ZB bounded retry must use fixed archive/chunk payload delivery and must not repeat the same 2.8 GB recursive IAP scp path',
+        '10ZB bounded fixed-delivery retry must remain passed with no-public-IP L4 VM, exact private GCS payload download, offline dependency install, dependency import readiness, and cleanup verified',
+        'external-agent B-roll wrapper must delegate only to the 10ZB no-idle dependency/install runner after quota/cache preflight and explicit confirmation',
+        '11A model import proof plan must be completed before any Wan model import attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
-      safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10za-payload-delivery-timeout-fix-result',
+      currentBlocker: 'live_preflight_and_explicit_confirmation_required_before_broll_dependency_runner',
+      safeNextCommand: 'npm run external-agent-tool-execute-broll-wan',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -177,7 +179,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

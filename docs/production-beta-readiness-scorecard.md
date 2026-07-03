@@ -1019,6 +1019,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Proof result: the probe is copied into the GPU images and requires `REEDITPRO_AI_GRAPHICS_GPU_RUNTIME_PROOF=true`, `docker run --gpus all`, successful `nvidia-smi`, `torch.cuda.is_available()`, CUDA compute capability `8.9` or higher, a tiny CUDA tensor probe, and optional reviewed model manifest checks. The script refuses model downloads, provider execution, real media input, Tool Route execution, Worker execution, public artifacts, signed URLs, Supabase mutation, and GCS upload flags.
 - Runtime/beta/production: no unlock; `agentCanExecuteToolsNow=false`, `runtimeBetaReadyNow=false`, and `productionReadyNow=false`. Native NVIDIA runtime, reviewed model manifests, model-loading proof, minimal fixture proof, Tool Route gating, Worker gating, QA, internal beta, external beta, paid production, and production remain false.
 
+## AI Graphics GPU Model Worker Execution Hooks
+
+- Decision: `ai_graphics_gpu_model_worker_execution_hooks_diagnostics`.
+- Scope: production worker route integration for the eight GPU/model AI graphics tools: `torch_torchvision`, `transformers`, `sam2`, `birefnet`, `real_esrgan`, `kornia`, `rembg`, and `transparent_background`.
+- Result: `gpu_ai_worker` jobs can now opt into `metadata.aiGraphicsGpuModelControlledAdapter`, which invokes the existing guarded GPU/model controlled adapter instead of stopping at planning-only AI graphics handoff metadata. The route preserves private refs, approved snapshot, credit reservation, runtime enqueue approval, owner runtime approval, and per-tool payloads before invoking the adapter. The adapter remains on-demand only: default dry-run metadata skips runtime, while explicit local-dev worker inputs can call the underlying private Python runtime hooks for the matching tool.
+- Runtime/beta/production: no global unlock; this route does not make the eight GPU/model tools external-beta-ready now. Native NVIDIA runtime proof, reviewed model-weight manifests where required, live non-production service-role queue write proof, worker claim/dispatch proof, private artifact isolation, and require-go authorization remain required before external beta execution.
+
 ## AI Graphics Tool Call Readiness Contract
 
 - Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.

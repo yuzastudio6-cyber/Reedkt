@@ -27,6 +27,11 @@ import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runAiGraphicsFoundationRuntimeCheck } from '../model-runtime-foundation'
 import type { AiGraphicsFoundationRuntimeInput, AiGraphicsFoundationRuntimeToolId } from '../model-runtime-foundation'
+import {
+  executeAiGraphicsExternalAgentGpuModelControlledAdapter,
+  isAiGraphicsExternalAgentGpuModelControlledAdapterTool,
+  type AiGraphicsExternalAgentGpuModelControlledAdapterRequest,
+} from '../../tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 
@@ -148,6 +153,21 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'cpu_analysis_worker_placeholder',
       }
     case 'gpu_ai_worker':
+      if (hasAiGraphicsGpuModelControlledAdapterRequest(payload)) {
+        const aiGraphicsGpuModelControlledAdapterResult =
+          await executeAiGraphicsExternalAgentGpuModelControlledAdapter(
+            buildAiGraphicsGpuModelControlledAdapterRequest(payload),
+          )
+        return {
+          summary: 'AI graphics GPU/model controlled adapter route completed in explicit aiGraphicsGpuModelControlledAdapter mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: true,
+          futureHandler: 'gpu_ai_worker_ai_graphics_gpu_model_controlled_adapter',
+          aiGraphicsGpuModelControlledAdapterResult,
+        }
+      }
+
       if (hasAiGraphicsFoundationRuntimeRequest(payload)) {
         const aiGraphicsFoundationRuntimeResult = await runAiGraphicsFoundationRuntimeCheck(buildAiGraphicsFoundationRuntimeInput(payload))
         return {
@@ -486,6 +506,74 @@ function buildAiGraphicsToolCallHandoffResult(payload: ProductionWorkerJobPayloa
     publicArtifactCreated: false,
     signedUrlCreated: false,
   }
+}
+
+function hasAiGraphicsGpuModelControlledAdapterRequest(payload: ProductionWorkerJobPayload): boolean {
+  if (payload.workerType !== 'gpu_ai_worker') return false
+  const request = payload.metadata?.aiGraphicsGpuModelControlledAdapter
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return false
+  const record = request as Record<string, unknown>
+  const toolId = stringValue(record.toolId)
+  return Boolean(toolId && isAiGraphicsExternalAgentGpuModelControlledAdapterTool(toolId))
+}
+
+function buildAiGraphicsGpuModelControlledAdapterRequest(
+  payload: ProductionWorkerJobPayload,
+): AiGraphicsExternalAgentGpuModelControlledAdapterRequest {
+  const request = payload.metadata?.aiGraphicsGpuModelControlledAdapter as Record<string, unknown>
+  const toolId = stringValue(request.toolId)
+  if (!toolId || !isAiGraphicsExternalAgentGpuModelControlledAdapterTool(toolId)) {
+    throw new Error(`Unsupported AI graphics GPU/model tool id: ${String(toolId)}`)
+  }
+  const requestPayload = request.payload && typeof request.payload === 'object' && !Array.isArray(request.payload)
+    ? request.payload as Record<string, unknown>
+    : {}
+
+  return {
+    workspaceId: payload.workspaceId,
+    requestId: stringValue(request.requestId) ?? payload.jobId,
+    toolId,
+    capabilityId:
+      stringValue(request.capabilityId) ??
+      aiGraphicsGpuModelDefaultCapability(toolId),
+    approvedPlanSnapshotId:
+      stringValue(request.approvedPlanSnapshotId) ??
+      payload.approvedSnapshotId,
+    creditReservationId:
+      stringValue(request.creditReservationId) ??
+      payload.creditReservationId ??
+      '',
+    privateArtifactManifestRef:
+      stringValue(request.privateArtifactManifestRef) ?? '',
+    toolRouteApprovalRef:
+      stringValue(request.toolRouteApprovalRef) ?? '',
+    workerApprovalRef:
+      stringValue(request.workerApprovalRef) ?? '',
+    runtimeEnqueueApprovalRef:
+      stringValue(request.runtimeEnqueueApprovalRef) ?? '',
+    ownerRuntimeApprovalRef:
+      stringValue(request.ownerRuntimeApprovalRef) ?? '',
+    nativeGpuRuntimeProofRef: stringValue(request.nativeGpuRuntimeProofRef),
+    modelWeightManifestRef: stringValue(request.modelWeightManifestRef),
+    externalBetaPerToolRuntimeProofRef:
+      stringValue(request.externalBetaPerToolRuntimeProofRef),
+    traceId:
+      stringValue(request.traceId) ??
+      payload.idempotencyKey,
+    payload: requestPayload,
+  }
+}
+
+function aiGraphicsGpuModelDefaultCapability(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterRequest['toolId'],
+): string {
+  if (toolId === 'sam2') return 'subject_segmentation'
+  if (toolId === 'birefnet' || toolId === 'rembg' || toolId === 'transparent_background') {
+    return 'background_removal'
+  }
+  if (toolId === 'real_esrgan') return 'upscaling'
+  if (toolId === 'kornia') return 'tensor_image_ops'
+  return 'model_runtime_foundation'
 }
 
 function hasAiGraphicsFoundationRuntimeRequest(payload: ProductionWorkerJobPayload): boolean {

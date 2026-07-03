@@ -753,6 +753,7 @@ const allowedPackageAdditions = new Set([
   `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
   '+    "ai-graphics:external-beta-evidence-admission-bundle": "tsx server/cli/ai-graphics-external-beta-evidence-admission-bundle.ts",',
   '+    "ai-graphics:external-beta-evidence-admission-bundle:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-admission-bundle-diagnostics.mjs",',
+  '+    "ai-graphics:gpu-model-worker-execution-hooks:diagnostics": "node scripts/validation/ai-graphics-gpu-model-worker-execution-hooks-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split(/\r?\n/)) {
   if (line.startsWith('+') && allowedPackageAdditions.has(line)) continue

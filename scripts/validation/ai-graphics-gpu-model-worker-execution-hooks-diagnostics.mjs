@@ -7,6 +7,8 @@ const repoRoot = process.cwd()
 
 const requiredFiles = [
   'server/workers/ai-graphics-runtime-script-runner.ts',
+  'server/workers/production/production-worker-router.ts',
+  'server/workers/production/production-worker-types.ts',
   'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
   'server/workers/model-runtime-foundation/index.ts',
   'server/workers/masks/sam2-execution-runner.ts',
@@ -22,6 +24,7 @@ const requiredFiles = [
   'docker/prod/rembg-runtime/rembg_local.py',
   'docker/prod/transparent-background-runtime/transparent_background_local.py',
   'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
+  'package.json',
 ]
 
 const failures = []
@@ -51,6 +54,42 @@ for (const token of [
   if (!helper.includes(token)) {
     failures.push(`Runtime script helper is missing expected guard: ${token}`)
   }
+}
+
+const productionRouter = requireFile('server/workers/production/production-worker-router.ts')
+for (const token of [
+  'executeAiGraphicsExternalAgentGpuModelControlledAdapter',
+  'aiGraphicsGpuModelControlledAdapter',
+  'hasAiGraphicsGpuModelControlledAdapterRequest',
+  'buildAiGraphicsGpuModelControlledAdapterRequest',
+  'gpu_ai_worker_ai_graphics_gpu_model_controlled_adapter',
+  'aiGraphicsGpuModelControlledAdapterResult',
+  'isAiGraphicsExternalAgentGpuModelControlledAdapterTool',
+]) {
+  if (!productionRouter.includes(token)) {
+    failures.push(`Production worker router is missing GPU/model controlled adapter route token: ${token}`)
+  }
+}
+
+const productionTypes = requireFile('server/workers/production/production-worker-types.ts')
+if (!productionTypes.includes('aiGraphicsGpuModelControlledAdapterResult?: unknown')) {
+  failures.push('Production worker route output type is missing aiGraphicsGpuModelControlledAdapterResult.')
+}
+
+const controlledAdapterSource = requireFile('server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts')
+if (!controlledAdapterSource.includes('toolExecutionApprovedNow: localRuntimeExecutionPerformed')) {
+  failures.push('GPU/model controlled adapter must only set toolExecutionApprovedNow when local runtime actually executed.')
+}
+if (!controlledAdapterSource.includes('gpuRuntimeApprovedForScopedControlledToolCall: localRuntimeExecutionPerformed')) {
+  failures.push('GPU/model controlled adapter must only approve scoped GPU runtime when local runtime actually executed.')
+}
+
+const packageJson = JSON.parse(requireFile('package.json'))
+if (
+  packageJson.scripts?.['ai-graphics:gpu-model-worker-execution-hooks:diagnostics'] !==
+  'node scripts/validation/ai-graphics-gpu-model-worker-execution-hooks-diagnostics.mjs'
+) {
+  failures.push('package.json is missing ai-graphics:gpu-model-worker-execution-hooks:diagnostics script.')
 }
 
 const runnerExpectations = [

@@ -85,6 +85,8 @@ const BROLL_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10Y-RUNNER-RAW-JSON-CLEANUP-FIX: fix L4 payload/install runner to parse raw describe JSON before sanitizing logs and delete prompt VM after any create attempt, no VM/no model/no inference'
 const BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference'
+const BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -139,7 +141,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10za_payload_delivery_timeout_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10zb_fixed_delivery_retry_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -215,7 +217,7 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_10za_payload_delivery_timeout_fix_required`',
+  '`broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required`',
   'docs/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.md',
   'server/smoke/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result-smoke.ts',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10t-iap-ssh-flag-fix.md',
@@ -225,6 +227,8 @@ for (const required of [
   'docs/ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun-result.md',
   'server/smoke/ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun-result-smoke.ts',
   BROLL_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
+  BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+  BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -404,7 +408,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10za_payload_delivery_timeout_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10zb_fixed_delivery_retry_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -416,7 +420,7 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+  BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
 )
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
@@ -680,7 +684,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_10za_payload_delivery_timeout_fix_required',
+  'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1142,7 +1146,25 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT)
+assert.equal(broll?.nextAction, BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT)
+assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-gen-10za-payload-delivery-timeout-fix-result.md'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-10za-payload-delivery-timeout-fix-result.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-10za-payload-delivery-timeout-fix-result-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes(
+    'docs/implementation-prompts/prompt-ai-video-broll-gen-10zb-no-idle-l4-payload-install-retry-with-fixed-delivery.md',
+  ),
+  true,
+)
 assert.equal(
   broll?.evidence.includes(
     'docs/ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result.md',
@@ -1236,7 +1258,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+  BROLL_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

@@ -11,7 +11,7 @@ import {
   AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
 } from '../../src/backend/mock/mock-ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner'
 import {
-  AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+  AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
   AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
 } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
@@ -195,15 +195,21 @@ const brollTool = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
   (tool) => tool.toolId === 'ai_video_broll_generation_wan',
 )
 assert.ok(brollTool, 'B-roll tool missing from rollup')
-assert.equal(brollTool.primaryBlocker, 'broll_10za_payload_delivery_timeout_fix_required')
-assert.equal(brollTool.nextAction, AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT)
+assert.equal(
+  brollTool.primaryBlocker,
+  'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
+)
+assert.equal(brollTool.nextAction, AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT)
 assert.equal(
   brollTool.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+  AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
 )
 assert.equal(rollupDoc.includes('docs/ai-video-broll-gen-10w-iap-lookup-readiness-fix-result.md'), true)
 assert.equal(rollupDoc.includes(AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT), true)
-assert.equal(rollupDoc.includes('broll_10za_payload_delivery_timeout_fix_required'), true)
+assert.equal(
+  rollupDoc.includes('broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required'),
+  true,
+)
 
 const forbiddenFindings = scanForbiddenValues({ doc, prompt, nextPrompt, result, rollupDoc })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

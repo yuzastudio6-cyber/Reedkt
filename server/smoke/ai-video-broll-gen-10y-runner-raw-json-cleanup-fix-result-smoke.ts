@@ -32,9 +32,9 @@ const PACKAGE_SCRIPT = 'smoke:ai-video-broll-gen-10y-runner-raw-json-cleanup-fix
 const DECISION =
   'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_applied_no_execution_10z_retry_ready'
 const HISTORICAL_10Y_BLOCKER = 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'
-const CURRENT_ROLLUP_BLOCKER = 'broll_10za_payload_delivery_timeout_fix_required'
+const CURRENT_ROLLUP_BLOCKER = 'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required'
 const CURRENT_ROLLUP_NEXT_PROMPT =
-  'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference'
+  'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')

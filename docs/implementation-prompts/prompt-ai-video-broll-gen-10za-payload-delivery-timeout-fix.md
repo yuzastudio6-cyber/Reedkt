@@ -14,7 +14,9 @@ Boundary phrase for diagnostics: no VM/no model/no inference.
 - `src/backend/mock/mock-ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result.ts`
 - `server/cli/ai-video-broll-gen-10z-l4-payload-install-runner.ts`
 - `server/cli/ai-video-broll-gen-10y-l4-payload-install-runner-contract.ts`
-- `docs/ai-video-broll-wan-fast-cache-readiness-result.md`
+- `src/backend/mock/mock-ai-video-broll-wan-fast-cache-readiness.ts`
+- `server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts`
+- `server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts`
 - `docs/ai-video-broll-wan-gpu-global-quota-verify-result.md`
 
 ## Required Fix Direction

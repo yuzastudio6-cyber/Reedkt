@@ -278,11 +278,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'broll_10za_payload_delivery_timeout_fix_required',
+  'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result',
+  'npm run smoke:ai-video-broll-gen-10za-payload-delivery-timeout-fix-result',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

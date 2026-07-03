@@ -13,6 +13,8 @@ const nextPrompt =
   'WORKER_RUNTIME_JOBS-SOUND-CPU-BOUNDED-EXTERNAL-AGENT-NO-MEDIA-ACTUAL-DISABLED-ROUTE-SOURCE-CREATION'
 const proposedSourceFile = 'server/routes/sound-cpu-no-media-agent-call-routes.ts'
 const proposedRoutePath = '/api/internal/workers/sound-cpu/no-media-agent-call'
+const actualSourceCreationResultPath =
+  'docs/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-actual-disabled-route-source-result.md'
 
 const expectedTools = [
   'librosa',
@@ -168,7 +170,12 @@ for (const value of Object.values(files)) {
   assertNoForbiddenTrueClaims(value.path)
 }
 for (const file of requiredSourceFiles) read(file)
-assert(!fs.existsSync(path.join(process.cwd(), proposedSourceFile)), `${proposedSourceFile} must not exist in owner review`)
+if (fs.existsSync(path.join(process.cwd(), proposedSourceFile))) {
+  assert(
+    fs.existsSync(path.join(process.cwd(), actualSourceCreationResultPath)),
+    `${proposedSourceFile} exists without actual source-creation evidence`,
+  )
+}
 
 const packageJson = JSON.parse(read('package.json'))
 assert(

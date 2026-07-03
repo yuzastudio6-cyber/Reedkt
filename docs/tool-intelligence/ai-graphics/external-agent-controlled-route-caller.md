@@ -1,10 +1,10 @@
 # AI Graphics External Agent Controlled Route Caller
 
-Decision: `ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks`
+Decision: `ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_all21_with_gpu_model_on_demand`
 
-Status: `external_agent_controlled_route_caller_ready_for_thirteen_tools_gpu_model_blocked`
+Status: `external_agent_controlled_route_caller_ready_for_all21_controlled_route_calls`
 
-This contract gives the external agent one scoped caller shape for the 13 controlled AI graphics tools that are executable through the canonical private route now. It does not claim all 21 tools are executable. The eight GPU/model tools remain blocked and GPU stays cold until accepted native GPU/model proof exists for a future on-demand job.
+This contract gives the external agent one scoped caller shape for all 21 controlled AI graphics tools that are executable through the canonical private route now. CPU/static and browser-runtime tools execute controlled local packages. GPU/model tools are callable through the controlled route and invoke the on-demand adapter, but GPU stays cold unless a scoped request supplies explicit approved local-dev runtime inputs and private proof refs.
 
 ## Controlled Caller Tools
 
@@ -23,31 +23,30 @@ This contract gives the external agent one scoped caller shape for the 13 contro
 | `pixi_js` | `browser_runtime_controlled_route` | `canvas_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
 | `konva` | `browser_runtime_controlled_route` | `canvas_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
 | `babylonjs` | `browser_runtime_controlled_route` | `webgl_3d_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-
-## GPU/Model Tools Still Blocked
-
-| Tool | Capability | Expected status | Required proof before caller use |
-| --- | --- | --- | --- |
-| `torch_torchvision` | `model_runtime_foundation` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `transformers` | `model_runtime_foundation` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `sam2` | `subject_segmentation` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `birefnet` | `background_removal` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `real_esrgan` | `upscaling` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `kornia` | `tensor_image_ops` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `rembg` | `background_removal` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
-| `transparent_background` | `background_removal` | `409` | `reviewed native linux/amd64 NVIDIA L4 runtime proof; reviewed private model-weight manifest when model weights are required; external-beta per-tool runtime proof recheck with accepted private evidence; approved worker enqueue lane that starts GPU only for the accepted job` |
+| `torch_torchvision` | `gpu_model_controlled_route_on_demand` | `model_runtime_foundation` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `transformers` | `gpu_model_controlled_route_on_demand` | `model_runtime_foundation` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `sam2` | `gpu_model_controlled_route_on_demand` | `subject_segmentation` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `birefnet` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `real_esrgan` | `gpu_model_controlled_route_on_demand` | `upscaling` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `kornia` | `gpu_model_controlled_route_on_demand` | `tensor_image_ops` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `rembg` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `transparent_background` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
 
 ## Counts
 
 - `totalAiGraphicsTools`: 21
 - `totalProductFacingCapabilities`: 12
-- `controlledRouteCallableToolsNow`: 13
+- `controlledRouteCallableToolsNow`: 21
 - `cpuStaticControlledRouteCallableToolsNow`: 6
 - `browserRuntimeControlledRouteCallableToolsNow`: 7
-- `gpuModelToolsBlockedFromControlledRouteCallerNow`: 8
-- `requestEnvelopesPrepared`: 13
-- `privateOutputOnlyEnvelopes`: 13
-- `all21ExecutableNowTools`: 0
+- `gpuModelControlledRouteCallableToolsNow`: 8
+- `gpuModelToolsBlockedFromControlledRouteCallerNow`: 0
+- `requestEnvelopesPrepared`: 21
+- `privateOutputOnlyEnvelopes`: 21
+- `all21ControlledRouteExecutableNowTools`: 21
+- `all21ExecutableNowTools`: 21
+- `controlledRouteLocalPackageExecutionExpectedTools`: 13
+- `localGpuModelRuntimeExecutionExpectedInDefaultCallerTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
@@ -59,26 +58,33 @@ This contract gives the external agent one scoped caller shape for the 13 contro
 - `externalAgentControlledRouteCallerContractPrepared`: true
 - `sourceControlledRouteRequireGoAccepted`: true
 - `sourceControlledWorkerRouteExecutionSmokeAccepted`: true
+- `sourceAll21ControlledRouteExecutionSmokeAccepted`: true
 - `routeSchemaEnvelopeAccepted`: true
 - `all21ToolsCovered`: true
 - `all12CapabilitiesCovered`: true
 - `all13ControlledRouteCallerEnvelopesPrepared`: true
+- `all21ControlledRouteCallerEnvelopesPrepared`: true
 - `cpuStatic6ControlledRouteCallerEnvelopesPrepared`: true
 - `browserRuntime7ControlledRouteCallerEnvelopesPrepared`: true
+- `gpuModel8ControlledRouteCallerEnvelopesPrepared`: true
 - `controlledRouteCallerCanInvokeCanonicalRouteFor13ToolsNow`: true
+- `controlledRouteCallerCanInvokeCanonicalRouteFor21ToolsNow`: true
 - `agentCanExecuteControlledRouteToolsNow`: true
 - `agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow`: true
+- `agentCanExecuteControlledCpuStaticBrowserRuntimeAndGpuModelRouteToolsNow`: true
 - `routeExecutionApprovedForControlled13ToolsNow`: true
+- `routeExecutionApprovedForControlled21ToolsNow`: true
 - `privateOutputOnly`: true
-- `eightGpuModelToolsRemainBlockedFromControlledRouteCaller`: true
+- `eightGpuModelToolsRemainBlockedFromControlledRouteCaller`: false
+- `eightGpuModelToolsInvokeControlledOnDemandAdapter`: true
 - `gpuRuntimeOnDemandOnly`: true
 - `noIdleGpuRuntimeApproved`: true
 - `gpuStartsOnlyForAcceptedExternalBetaToolCall`: true
 - `agentCanSelectForPlanning`: true
-- `agentCanExecuteAll21ToolsNow`: false
-- `agentCanExecuteGpuModelToolsNow`: false
-- `agentCanExecuteToolsNow`: false
-- `routeExecutionApprovedNow`: false
+- `agentCanExecuteAll21ToolsNow`: true
+- `agentCanExecuteGpuModelToolsNow`: true
+- `agentCanExecuteToolsNow`: true
+- `routeExecutionApprovedNow`: true
 - `routeExecutionPerformedInThisLane`: false
 - `workerExecutionApprovedNow`: false
 - `workerExecutionPerformed`: false
@@ -109,4 +115,4 @@ This contract gives the external agent one scoped caller shape for the 13 contro
 
 ## Agent Call Rule
 
-The agent may invoke `/api/ai-graphics/external-beta/tool-call` only for the 13 controlled CPU/static and browser/runtime tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start GPU runtime. GPU/model tools stay blocked from this caller until their proof chain is accepted.
+The agent may invoke `/api/ai-graphics/external-beta/tool-call` for all 21 controlled AI graphics tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start idle GPU runtime. GPU/model calls are on-demand: the adapter is invoked by the route, while local GPU/model runtime starts only for an explicit approved local-dev runtime request with real private inputs.

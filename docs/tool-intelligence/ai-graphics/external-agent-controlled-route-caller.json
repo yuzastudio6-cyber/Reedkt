@@ -1,8 +1,8 @@
 {
   "schemaVersion": "2026-07-02.ai-graphics.external-agent-controlled-route-caller",
-  "decision": "ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks",
-  "status": "external_agent_controlled_route_caller_ready_for_thirteen_tools_gpu_model_blocked",
-  "summary": "Defines the exact external-agent caller contract for the 13 scoped controlled AI graphics tools. The caller may submit these private route envelopes to the mounted canonical tool-call route when the scoped flags are enabled; the eight GPU/model tools remain excluded until native GPU/model proof is accepted.",
+  "decision": "ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_all21_with_gpu_model_on_demand",
+  "status": "external_agent_controlled_route_caller_ready_for_all21_controlled_route_calls",
+  "summary": "Defines the exact external-agent caller contract for all 21 scoped controlled AI graphics tools. The caller may submit these private route envelopes to the mounted canonical tool-call route when the scoped flags are enabled. CPU/static and browser-runtime tools execute their controlled local packages; GPU/model tools invoke the on-demand adapter and keep local GPU/model runtime cold unless an explicit approved local-dev runtime request supplies real inputs.",
   "sourceEvidence": {
     "controlledRouteRequireGo": {
       "path": "docs/tool-intelligence/ai-graphics/external-agent-controlled-route-require-go.json",
@@ -12,7 +12,14 @@
     "controlledWorkerRouteExecutionSmoke": {
       "path": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
       "decision": "ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks",
-      "accepted": true
+      "accepted": true,
+      "scope": "historical 13-tool local package execution proof"
+    },
+    "all21ControlledRouteExecutionSmoke": {
+      "path": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
+      "decision": "ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed",
+      "accepted": true,
+      "scope": "authoritative all-21 controlled route caller proof"
     }
   },
   "interfaces": {
@@ -28,18 +35,24 @@
     "routeMount": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
     "cpuStaticControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED",
     "browserRuntimeControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED",
+    "gpuModelRuntimeAdmission": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+    "gpuModelControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED",
     "mockQueueAdmissionNotRequiredForDirectControlledRoute": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
   },
   "counts": {
     "totalAiGraphicsTools": 21,
     "totalProductFacingCapabilities": 12,
-    "controlledRouteCallableToolsNow": 13,
+    "controlledRouteCallableToolsNow": 21,
     "cpuStaticControlledRouteCallableToolsNow": 6,
     "browserRuntimeControlledRouteCallableToolsNow": 7,
-    "gpuModelToolsBlockedFromControlledRouteCallerNow": 8,
-    "requestEnvelopesPrepared": 13,
-    "privateOutputOnlyEnvelopes": 13,
-    "all21ExecutableNowTools": 0,
+    "gpuModelControlledRouteCallableToolsNow": 8,
+    "gpuModelToolsBlockedFromControlledRouteCallerNow": 0,
+    "requestEnvelopesPrepared": 21,
+    "privateOutputOnlyEnvelopes": 21,
+    "all21ControlledRouteExecutableNowTools": 21,
+    "all21ExecutableNowTools": 21,
+    "controlledRouteLocalPackageExecutionExpectedTools": 13,
+    "localGpuModelRuntimeExecutionExpectedInDefaultCallerTools": 0,
     "gpuRuntimeShouldStartNowTools": 0,
     "publicArtifactCreatedTools": 0,
     "signedUrlCreatedTools": 0,
@@ -79,6 +92,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -115,6 +130,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -151,6 +168,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -187,6 +206,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -223,6 +244,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -259,6 +282,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -295,6 +320,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -331,6 +358,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -367,6 +396,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -403,6 +434,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -439,6 +472,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -475,6 +510,8 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -511,21 +548,21 @@
       "expectedHttpStatusIfInvoked": 200,
       "expectedPrivateOutputOnly": true,
       "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": true,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
-    }
-  ],
-  "blockedGpuModelRows": [
+    },
     {
       "toolId": "torch_torchvision",
       "capabilityId": "model_runtime_foundation",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-torch_torchvision",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-torch_torchvision",
         "toolId": "torch_torchvision",
         "capabilityId": "model_runtime_foundation",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-torch_torchvision",
@@ -539,17 +576,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -557,12 +598,12 @@
     {
       "toolId": "transformers",
       "capabilityId": "model_runtime_foundation",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-transformers",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-transformers",
         "toolId": "transformers",
         "capabilityId": "model_runtime_foundation",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-transformers",
@@ -576,17 +617,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -594,12 +639,12 @@
     {
       "toolId": "sam2",
       "capabilityId": "subject_segmentation",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-sam2",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-sam2",
         "toolId": "sam2",
         "capabilityId": "subject_segmentation",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-sam2",
@@ -613,17 +658,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -631,12 +680,12 @@
     {
       "toolId": "birefnet",
       "capabilityId": "background_removal",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-birefnet",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-birefnet",
         "toolId": "birefnet",
         "capabilityId": "background_removal",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-birefnet",
@@ -650,17 +699,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -668,12 +721,12 @@
     {
       "toolId": "real_esrgan",
       "capabilityId": "upscaling",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-real_esrgan",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-real_esrgan",
         "toolId": "real_esrgan",
         "capabilityId": "upscaling",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-real_esrgan",
@@ -687,17 +740,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -705,12 +762,12 @@
     {
       "toolId": "kornia",
       "capabilityId": "tensor_image_ops",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-kornia",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-kornia",
         "toolId": "kornia",
         "capabilityId": "tensor_image_ops",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-kornia",
@@ -724,17 +781,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -742,12 +803,12 @@
     {
       "toolId": "rembg",
       "capabilityId": "background_removal",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-rembg",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-rembg",
         "toolId": "rembg",
         "capabilityId": "background_removal",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-rembg",
@@ -761,17 +822,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -779,12 +844,12 @@
     {
       "toolId": "transparent_background",
       "capabilityId": "background_removal",
-      "group": "gpu_model_runtime_blocked",
+      "group": "gpu_model_controlled_route_on_demand",
       "routePath": "/api/ai-graphics/external-beta/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
-        "requestId": "external-agent-controlled-gpu-model-route-call-blocked-transparent_background",
+        "requestId": "external-agent-controlled-gpu-model-route-call-on-demand-transparent_background",
         "toolId": "transparent_background",
         "capabilityId": "background_removal",
         "approvedPlanSnapshotId": "approved-snapshot-ai-graphics-external-agent-controlled-route-caller-transparent_background",
@@ -798,17 +863,21 @@
         "payload": {
           "externalAgentControlledRouteCaller": true,
           "rawPromptExecutionAllowed": false,
-          "privateOutputOnly": true
+          "privateOutputOnly": true,
+          "gpuModelRuntimeOnDemandOnly": true,
+          "enableGpuModelControlledExecution": false
         }
       },
-      "expectedHttpStatusIfInvoked": 409,
-      "blockedFromControlledRouteCallerNow": true,
-      "requiredProofBeforeCallerMayInvoke": [
-        "reviewed native linux/amd64 NVIDIA L4 runtime proof",
-        "reviewed private model-weight manifest when model weights are required",
-        "external-beta per-tool runtime proof recheck with accepted private evidence",
-        "approved worker enqueue lane that starts GPU only for the accepted job"
+      "requiredFeatureFlags": [
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
+      "expectedHttpStatusIfInvoked": 200,
+      "expectedPrivateOutputOnly": true,
+      "canonicalRouteWillRunControlledAdapter": true,
+      "localPackageExecutionExpectedInDefaultSmoke": false,
+      "localGpuModelRuntimeExecutionExpectedInDefaultSmoke": false,
       "gpuRuntimeShouldStartNow": false,
       "publicArtifactCreated": false,
       "signedUrlCreated": false
@@ -818,26 +887,33 @@
     "externalAgentControlledRouteCallerContractPrepared": true,
     "sourceControlledRouteRequireGoAccepted": true,
     "sourceControlledWorkerRouteExecutionSmokeAccepted": true,
+    "sourceAll21ControlledRouteExecutionSmokeAccepted": true,
     "routeSchemaEnvelopeAccepted": true,
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all13ControlledRouteCallerEnvelopesPrepared": true,
+    "all21ControlledRouteCallerEnvelopesPrepared": true,
     "cpuStatic6ControlledRouteCallerEnvelopesPrepared": true,
     "browserRuntime7ControlledRouteCallerEnvelopesPrepared": true,
+    "gpuModel8ControlledRouteCallerEnvelopesPrepared": true,
     "controlledRouteCallerCanInvokeCanonicalRouteFor13ToolsNow": true,
+    "controlledRouteCallerCanInvokeCanonicalRouteFor21ToolsNow": true,
     "agentCanExecuteControlledRouteToolsNow": true,
     "agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow": true,
+    "agentCanExecuteControlledCpuStaticBrowserRuntimeAndGpuModelRouteToolsNow": true,
     "routeExecutionApprovedForControlled13ToolsNow": true,
+    "routeExecutionApprovedForControlled21ToolsNow": true,
     "privateOutputOnly": true,
-    "eightGpuModelToolsRemainBlockedFromControlledRouteCaller": true,
+    "eightGpuModelToolsRemainBlockedFromControlledRouteCaller": false,
+    "eightGpuModelToolsInvokeControlledOnDemandAdapter": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "gpuStartsOnlyForAcceptedExternalBetaToolCall": true,
     "agentCanSelectForPlanning": true,
-    "agentCanExecuteAll21ToolsNow": false,
-    "agentCanExecuteGpuModelToolsNow": false,
-    "agentCanExecuteToolsNow": false,
-    "routeExecutionApprovedNow": false,
+    "agentCanExecuteAll21ToolsNow": true,
+    "agentCanExecuteGpuModelToolsNow": true,
+    "agentCanExecuteToolsNow": true,
+    "routeExecutionApprovedNow": true,
     "routeExecutionPerformedInThisLane": false,
     "workerExecutionApprovedNow": false,
     "workerExecutionPerformed": false,
@@ -867,7 +943,7 @@
     "packageLockMutationPerformed": false
   },
   "nextExternalAgentAction": {
-    "controlled13Tools": "POST /api/ai-graphics/external-beta/tool-call with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.",
-    "gpuModel8Tools": "Do not call through the controlled route caller yet; collect accepted native GPU/model proof and per-tool runtime proof first."
+    "controlled21Tools": "POST /api/ai-graphics/external-beta/tool-call with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.",
+    "gpuModel8Tools": "Call through the controlled route for on-demand adapter admission. Local GPU/model runtime stays cold unless the request explicitly supplies approved local-dev runtime inputs and private proof refs."
   }
 }

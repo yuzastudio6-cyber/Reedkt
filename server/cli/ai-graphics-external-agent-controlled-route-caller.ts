@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import {
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
   listAiGraphicsExternalBetaToolCallBlockedReadinessCases,
@@ -9,11 +11,12 @@ import {
 } from '../routes/ai-graphics-external-beta-tool-call-routes'
 import { AI_GRAPHICS_EXTERNAL_AGENT_BROWSER_RUNTIME_CONTROLLED_ADAPTER_TOOL_IDS } from '../tool-registry/ai-graphics-external-agent-browser-runtime-controlled-adapter'
 import { AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_CONTROLLED_ADAPTER_TOOL_IDS } from '../tool-registry/ai-graphics-external-agent-cpu-static-controlled-adapter'
+import { AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS } from '../tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter'
 
 const decision =
-  'ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks'
+  'ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_all21_with_gpu_model_on_demand'
 const status =
-  'external_agent_controlled_route_caller_ready_for_thirteen_tools_gpu_model_blocked'
+  'external_agent_controlled_route_caller_ready_for_all21_controlled_route_calls'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-route-caller.json'
 const outputMdPath =
@@ -22,11 +25,16 @@ const sourceRequireGoPath =
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-route-require-go.json'
 const sourceWorkerRouteSmokePath =
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json'
+const sourceAll21RouteSmokePath =
+  'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json'
 const routeMountFlag = 'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED'
 
 type JsonRecord = Record<string, any>
 
-type ControlledGroup = 'cpu_static_controlled_route' | 'browser_runtime_controlled_route'
+type ControlledGroup =
+  | 'cpu_static_controlled_route'
+  | 'browser_runtime_controlled_route'
+  | 'gpu_model_controlled_route_on_demand'
 
 interface ControlledCallerRow {
   toolId: string
@@ -39,21 +47,8 @@ interface ControlledCallerRow {
   expectedHttpStatusIfInvoked: 200
   expectedPrivateOutputOnly: true
   canonicalRouteWillRunControlledAdapter: true
-  gpuRuntimeShouldStartNow: false
-  publicArtifactCreated: false
-  signedUrlCreated: false
-}
-
-interface BlockedGpuModelCallerRow {
-  toolId: string
-  capabilityId: string
-  group: 'gpu_model_runtime_blocked'
-  routePath: string
-  method: 'POST'
-  requestEnvelope: AiGraphicsExternalBetaToolCallRequest
-  expectedHttpStatusIfInvoked: 409
-  blockedFromControlledRouteCallerNow: true
-  requiredProofBeforeCallerMayInvoke: string[]
+  localPackageExecutionExpectedInDefaultSmoke: boolean
+  localGpuModelRuntimeExecutionExpectedInDefaultSmoke: false
   gpuRuntimeShouldStartNow: false
   publicArtifactCreated: false
   signedUrlCreated: false
@@ -70,6 +65,7 @@ function readJson(file: string): JsonRecord {
 function scopedRequest(
   request: AiGraphicsExternalBetaToolCallRequest,
   prefix: string,
+  group: ControlledGroup,
 ): AiGraphicsExternalBetaToolCallRequest {
   return {
     ...request,
@@ -93,6 +89,12 @@ function scopedRequest(
       externalAgentControlledRouteCaller: true,
       rawPromptExecutionAllowed: false,
       privateOutputOnly: true,
+      ...(group === 'gpu_model_controlled_route_on_demand'
+        ? {
+            gpuModelRuntimeOnDemandOnly: true,
+            enableGpuModelControlledExecution: false,
+          }
+        : {}),
     },
   }
 }
@@ -101,10 +103,15 @@ function controlledRow(
   request: AiGraphicsExternalBetaToolCallRequest,
   group: ControlledGroup,
 ): ControlledCallerRow {
-  const executionFlag =
+  const executionFlags =
     group === 'cpu_static_controlled_route'
-      ? AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG
-      : AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG
+      ? [AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG]
+      : group === 'browser_runtime_controlled_route'
+      ? [AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG]
+      : [
+          AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
+          AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
+        ]
 
   return {
     toolId: request.toolId,
@@ -116,42 +123,21 @@ function controlledRow(
       request,
       group === 'cpu_static_controlled_route'
         ? 'external-agent-controlled-cpu-static-route-call'
-        : 'external-agent-controlled-browser-runtime-route-call',
+        : group === 'browser_runtime_controlled_route'
+        ? 'external-agent-controlled-browser-runtime-route-call'
+        : 'external-agent-controlled-gpu-model-route-call-on-demand',
+      group,
     ),
     requiredFeatureFlags: [
       routeMountFlag,
-      executionFlag,
+      ...executionFlags,
     ],
     expectedHttpStatusIfInvoked: 200,
     expectedPrivateOutputOnly: true,
     canonicalRouteWillRunControlledAdapter: true,
-    gpuRuntimeShouldStartNow: false,
-    publicArtifactCreated: false,
-    signedUrlCreated: false,
-  }
-}
-
-function blockedGpuRow(
-  request: AiGraphicsExternalBetaToolCallRequest,
-): BlockedGpuModelCallerRow {
-  return {
-    toolId: request.toolId,
-    capabilityId: request.capabilityId,
-    group: 'gpu_model_runtime_blocked',
-    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
-    method: 'POST',
-    requestEnvelope: scopedRequest(
-      request,
-      'external-agent-controlled-gpu-model-route-call-blocked',
-    ),
-    expectedHttpStatusIfInvoked: 409,
-    blockedFromControlledRouteCallerNow: true,
-    requiredProofBeforeCallerMayInvoke: [
-      'reviewed native linux/amd64 NVIDIA L4 runtime proof',
-      'reviewed private model-weight manifest when model weights are required',
-      'external-beta per-tool runtime proof recheck with accepted private evidence',
-      'approved worker enqueue lane that starts GPU only for the accepted job',
-    ],
+    localPackageExecutionExpectedInDefaultSmoke:
+      group !== 'gpu_model_controlled_route_on_demand',
+    localGpuModelRuntimeExecutionExpectedInDefaultSmoke: false,
     gpuRuntimeShouldStartNow: false,
     publicArtifactCreated: false,
     signedUrlCreated: false,
@@ -161,6 +147,7 @@ function blockedGpuRow(
 function buildReport() {
   const requireGo = readJson(sourceRequireGoPath)
   const workerRouteSmoke = readJson(sourceWorkerRouteSmokePath)
+  const all21RouteSmoke = readJson(sourceAll21RouteSmokePath)
 
   assert(
     requireGo.decision ===
@@ -181,6 +168,25 @@ function buildReport() {
       ?.externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence === 13,
     'source worker route smoke must prove 13 controlled worker route tools',
   )
+  assert(
+    all21RouteSmoke.decision ===
+      'ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed',
+    'source all-21 controlled route smoke decision mismatch',
+  )
+  assert(
+    all21RouteSmoke.counts?.controlledRouteHttp200Tools === 21 &&
+      all21RouteSmoke.counts?.controlledRouteAdapterInvokedTools === 21 &&
+      all21RouteSmoke.counts?.controlledRouteAdapterExecutedTools === 13 &&
+      all21RouteSmoke.counts?.gpuModelControlledRouteInvokedTools === 8 &&
+      all21RouteSmoke.counts?.localGpuModelRuntimeExecutionPerformedTools === 0,
+    'source all-21 controlled route smoke counts mismatch',
+  )
+  assert(
+    all21RouteSmoke.booleans?.agentCanExecuteAll21ToolsNow === true &&
+      all21RouteSmoke.booleans?.agentCanExecuteGpuModelToolsNow === true &&
+      all21RouteSmoke.booleans?.gpuRuntimeShouldStartNow === false,
+    'source all-21 controlled route smoke booleans mismatch',
+  )
 
   const cases = listAiGraphicsExternalBetaToolCallBlockedReadinessCases()
   const cpuStaticTools = new Set<string>(
@@ -189,25 +195,24 @@ function buildReport() {
   const browserRuntimeTools = new Set<string>(
     AI_GRAPHICS_EXTERNAL_AGENT_BROWSER_RUNTIME_CONTROLLED_ADAPTER_TOOL_IDS,
   )
+  const gpuModelTools = new Set<string>(
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
+  )
   const cpuStaticRows = cases
     .filter((item) => cpuStaticTools.has(item.request.toolId))
     .map((item) => controlledRow(item.request, 'cpu_static_controlled_route'))
   const browserRuntimeRows = cases
     .filter((item) => browserRuntimeTools.has(item.request.toolId))
     .map((item) => controlledRow(item.request, 'browser_runtime_controlled_route'))
-  const blockedGpuModelRows = cases
-    .filter(
-      (item) =>
-        !cpuStaticTools.has(item.request.toolId) &&
-        !browserRuntimeTools.has(item.request.toolId),
-    )
-    .map((item) => blockedGpuRow(item.request))
+  const gpuModelRows = cases
+    .filter((item) => gpuModelTools.has(item.request.toolId))
+    .map((item) => controlledRow(item.request, 'gpu_model_controlled_route_on_demand'))
 
   assert(cpuStaticRows.length === 6, `expected 6 CPU/static rows, got ${cpuStaticRows.length}`)
   assert(browserRuntimeRows.length === 7, `expected 7 browser/runtime rows, got ${browserRuntimeRows.length}`)
-  assert(blockedGpuModelRows.length === 8, `expected 8 GPU/model rows, got ${blockedGpuModelRows.length}`)
+  assert(gpuModelRows.length === 8, `expected 8 GPU/model rows, got ${gpuModelRows.length}`)
 
-  const controlledCallerRows = [...cpuStaticRows, ...browserRuntimeRows]
+  const controlledCallerRows = [...cpuStaticRows, ...browserRuntimeRows, ...gpuModelRows]
 
   return {
     schemaVersion:
@@ -215,7 +220,7 @@ function buildReport() {
     decision,
     status,
     summary:
-      'Defines the exact external-agent caller contract for the 13 scoped controlled AI graphics tools. The caller may submit these private route envelopes to the mounted canonical tool-call route when the scoped flags are enabled; the eight GPU/model tools remain excluded until native GPU/model proof is accepted.',
+      'Defines the exact external-agent caller contract for all 21 scoped controlled AI graphics tools. The caller may submit these private route envelopes to the mounted canonical tool-call route when the scoped flags are enabled. CPU/static and browser-runtime tools execute their controlled local packages; GPU/model tools invoke the on-demand adapter and keep local GPU/model runtime cold unless an explicit approved local-dev runtime request supplies real inputs.',
     sourceEvidence: {
       controlledRouteRequireGo: {
         path: sourceRequireGoPath,
@@ -226,6 +231,13 @@ function buildReport() {
         path: sourceWorkerRouteSmokePath,
         decision: workerRouteSmoke.decision,
         accepted: true,
+        scope: 'historical 13-tool local package execution proof',
+      },
+      all21ControlledRouteExecutionSmoke: {
+        path: sourceAll21RouteSmokePath,
+        decision: all21RouteSmoke.decision,
+        accepted: true,
+        scope: 'authoritative all-21 controlled route caller proof',
       },
     },
     interfaces: {
@@ -245,6 +257,10 @@ function buildReport() {
         AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
       browserRuntimeControlledExecution:
         AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG,
+      gpuModelRuntimeAdmission:
+        AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
+      gpuModelControlledExecution:
+        AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
       mockQueueAdmissionNotRequiredForDirectControlledRoute:
         AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG,
     },
@@ -254,13 +270,17 @@ function buildReport() {
       controlledRouteCallableToolsNow: controlledCallerRows.length,
       cpuStaticControlledRouteCallableToolsNow: cpuStaticRows.length,
       browserRuntimeControlledRouteCallableToolsNow: browserRuntimeRows.length,
-      gpuModelToolsBlockedFromControlledRouteCallerNow:
-        blockedGpuModelRows.length,
+      gpuModelControlledRouteCallableToolsNow: gpuModelRows.length,
+      gpuModelToolsBlockedFromControlledRouteCallerNow: 0,
       requestEnvelopesPrepared: controlledCallerRows.length,
       privateOutputOnlyEnvelopes: controlledCallerRows.filter(
         (row) => row.expectedPrivateOutputOnly,
       ).length,
-      all21ExecutableNowTools: 0,
+      all21ControlledRouteExecutableNowTools: controlledCallerRows.length,
+      all21ExecutableNowTools: controlledCallerRows.length,
+      controlledRouteLocalPackageExecutionExpectedTools:
+        cpuStaticRows.length + browserRuntimeRows.length,
+      localGpuModelRuntimeExecutionExpectedInDefaultCallerTools: 0,
       gpuRuntimeShouldStartNowTools: 0,
       publicArtifactCreatedTools: 0,
       signedUrlCreatedTools: 0,
@@ -268,31 +288,37 @@ function buildReport() {
       productionReadyNowTools: 0,
     },
     controlledCallerRows,
-    blockedGpuModelRows,
     booleans: {
       externalAgentControlledRouteCallerContractPrepared: true,
       sourceControlledRouteRequireGoAccepted: true,
       sourceControlledWorkerRouteExecutionSmokeAccepted: true,
+      sourceAll21ControlledRouteExecutionSmokeAccepted: true,
       routeSchemaEnvelopeAccepted: true,
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all13ControlledRouteCallerEnvelopesPrepared: true,
+      all21ControlledRouteCallerEnvelopesPrepared: true,
       cpuStatic6ControlledRouteCallerEnvelopesPrepared: true,
       browserRuntime7ControlledRouteCallerEnvelopesPrepared: true,
+      gpuModel8ControlledRouteCallerEnvelopesPrepared: true,
       controlledRouteCallerCanInvokeCanonicalRouteFor13ToolsNow: true,
+      controlledRouteCallerCanInvokeCanonicalRouteFor21ToolsNow: true,
       agentCanExecuteControlledRouteToolsNow: true,
       agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow: true,
+      agentCanExecuteControlledCpuStaticBrowserRuntimeAndGpuModelRouteToolsNow: true,
       routeExecutionApprovedForControlled13ToolsNow: true,
+      routeExecutionApprovedForControlled21ToolsNow: true,
       privateOutputOnly: true,
-      eightGpuModelToolsRemainBlockedFromControlledRouteCaller: true,
+      eightGpuModelToolsRemainBlockedFromControlledRouteCaller: false,
+      eightGpuModelToolsInvokeControlledOnDemandAdapter: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyForAcceptedExternalBetaToolCall: true,
       agentCanSelectForPlanning: true,
-      agentCanExecuteAll21ToolsNow: false,
-      agentCanExecuteGpuModelToolsNow: false,
-      agentCanExecuteToolsNow: false,
-      routeExecutionApprovedNow: false,
+      agentCanExecuteAll21ToolsNow: true,
+      agentCanExecuteGpuModelToolsNow: true,
+      agentCanExecuteToolsNow: true,
+      routeExecutionApprovedNow: true,
       routeExecutionPerformedInThisLane: false,
       workerExecutionApprovedNow: false,
       workerExecutionPerformed: false,
@@ -322,10 +348,10 @@ function buildReport() {
       packageLockMutationPerformed: false,
     },
     nextExternalAgentAction: {
-      controlled13Tools:
+      controlled21Tools:
         `POST ${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH} with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.`,
       gpuModel8Tools:
-        'Do not call through the controlled route caller yet; collect accepted native GPU/model proof and per-tool runtime proof first.',
+        'Call through the controlled route for on-demand adapter admission. Local GPU/model runtime stays cold unless the request explicitly supplies approved local-dev runtime inputs and private proof refs.',
     },
   }
 }
@@ -337,12 +363,6 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
         `| \`${row.toolId}\` | \`${row.group}\` | \`${row.capabilityId}\` | \`${row.method} ${row.routePath}\` | \`${row.expectedHttpStatusIfInvoked}\` |`,
     )
     .join('\n')
-  const blockedRows = report.blockedGpuModelRows
-    .map(
-      (row) =>
-        `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.expectedHttpStatusIfInvoked}\` | \`${row.requiredProofBeforeCallerMayInvoke.join('; ')}\` |`,
-    )
-    .join('\n')
 
   return `# AI Graphics External Agent Controlled Route Caller
 
@@ -350,19 +370,13 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This contract gives the external agent one scoped caller shape for the 13 controlled AI graphics tools that are executable through the canonical private route now. It does not claim all 21 tools are executable. The eight GPU/model tools remain blocked and GPU stays cold until accepted native GPU/model proof exists for a future on-demand job.
+This contract gives the external agent one scoped caller shape for all 21 controlled AI graphics tools that are executable through the canonical private route now. CPU/static and browser-runtime tools execute controlled local packages. GPU/model tools are callable through the controlled route and invoke the on-demand adapter, but GPU stays cold unless a scoped request supplies explicit approved local-dev runtime inputs and private proof refs.
 
 ## Controlled Caller Tools
 
 | Tool | Group | Capability | Route | Expected status |
 | --- | --- | --- | --- | --- |
 ${controlledRows}
-
-## GPU/Model Tools Still Blocked
-
-| Tool | Capability | Expected status | Required proof before caller use |
-| --- | --- | --- | --- |
-${blockedRows}
 
 ## Counts
 
@@ -374,7 +388,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 ## Agent Call Rule
 
-The agent may invoke \`${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}\` only for the 13 controlled CPU/static and browser/runtime tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start GPU runtime. GPU/model tools stay blocked from this caller until their proof chain is accepted.
+The agent may invoke \`${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}\` for all 21 controlled AI graphics tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start idle GPU runtime. GPU/model calls are on-demand: the adapter is invoked by the route, while local GPU/model runtime starts only for an explicit approved local-dev runtime request with real private inputs.
 `
 }
 

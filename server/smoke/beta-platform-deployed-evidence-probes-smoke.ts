@@ -31,10 +31,11 @@ const report = await runBetaPlatformDeployedEvidenceVerifier({
 }, probes)
 
 assert.equal(report.evidencePacketReady, true, 'passing deployed probe transport should produce a platform evidence packet')
-assert.equal(report.checks.length, 9, 'all deployed platform probes should run')
+assert.equal(report.checks.length, 10, 'all deployed platform probes should run')
 assert.deepEqual(callOrder, [
   'verifyToolCostEventsMigration',
   'verifyBetaReadinessEvidenceMigration',
+  'verifyProductionReadinessEvidenceMigration',
   'verifyServiceRoleWritePath',
   'verifyAuthenticatedRlsMemberReadback',
   'verifyIdempotentReplay',
@@ -98,6 +99,7 @@ function passingTransport(callLog: string[]): BetaPlatformDeployedEvidenceProbeT
   return {
     verifyToolCostEventsMigration: () => observation(callLog, 'verifyToolCostEventsMigration'),
     verifyBetaReadinessEvidenceMigration: () => observation(callLog, 'verifyBetaReadinessEvidenceMigration'),
+    verifyProductionReadinessEvidenceMigration: () => observation(callLog, 'verifyProductionReadinessEvidenceMigration'),
     verifyServiceRoleWritePath: () => observation(callLog, 'verifyServiceRoleWritePath'),
     verifyAuthenticatedRlsMemberReadback: () => observation(callLog, 'verifyAuthenticatedRlsMemberReadback'),
     verifyIdempotentReplay: () => observation(callLog, 'verifyIdempotentReplay'),

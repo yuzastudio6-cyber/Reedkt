@@ -11,6 +11,7 @@ import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 const allProbeIds: BetaPlatformDeployedProbeId[] = [
   'tool_cost_events_migration_deployed',
   'beta_readiness_evidence_migration_deployed',
+  'production_readiness_evidence_migration_deployed',
   'service_role_write_path_verified',
   'authenticated_rls_member_readback_verified',
   'idempotent_replay_verified',
@@ -49,6 +50,7 @@ assert.equal(passingReport.ownerApprovalGaps.length, 0, 'complete approvals shou
 assert.equal(passingReport.evidencePacket?.workspaceId, input.workspaceId, 'evidence packet should keep workspace id')
 assert.equal(passingReport.evidencePacket?.platformEvidence?.environment, 'staging', 'evidence packet should target staging')
 assert.equal(passingReport.evidencePacket?.platformEvidence?.toolCostEventsMigrationDeployed, true, 'migration deployment should be true')
+assert.equal(passingReport.evidencePacket?.platformEvidence?.productionReadinessEvidenceMigrationDeployed, true, 'production readiness evidence migration deployment should be true')
 assert.equal(passingReport.evidencePacket?.platformEvidence?.serviceRoleWritePathVerified, true, 'service-role write should be true')
 assert.equal(passingReport.evidencePacket?.platformEvidence?.rlsMemberReadPathVerified, true, 'RLS readback should be true')
 assert.equal(passingReport.evidencePacket?.platformEvidence?.idempotentReplayVerified, true, 'idempotency should be true')

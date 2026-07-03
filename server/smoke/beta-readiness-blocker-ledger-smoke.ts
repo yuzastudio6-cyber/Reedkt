@@ -75,6 +75,7 @@ const platformEvidence: ToolBetaPlatformReadinessEvidence = {
   sourceSha: '4444444444444444444444444444444444444444',
   environment: 'staging',
   toolCostEventsMigrationDeployed: true,
+  productionReadinessEvidenceMigrationDeployed: true,
   serviceRoleWritePathVerified: true,
   rlsMemberReadPathVerified: true,
   idempotentReplayVerified: true,

@@ -50,6 +50,12 @@ export function createBetaPlatformSupabaseDeployedEvidenceProbeTransport(
       'beta_readiness_evidence_packets table read probe succeeded through backend service-role client.',
       'Deploy the beta_readiness_evidence_packets migration and verify backend-only evidence access in staging.',
     ),
+    verifyProductionReadinessEvidenceMigration: () => verifyReadableTable(
+      options.admin,
+      'production_tool_execution_readiness_evidence_packets',
+      'production_tool_execution_readiness_evidence_packets table read probe succeeded through backend service-role client.',
+      'Deploy the production_tool_execution_readiness_evidence_packets migration and verify backend-only evidence access in staging.',
+    ),
     verifyServiceRoleWritePath: () => verifyPersistentEvidenceWrite(options, 'service-role-write'),
     verifyAuthenticatedRlsMemberReadback: () => attestedProbe(
       options,

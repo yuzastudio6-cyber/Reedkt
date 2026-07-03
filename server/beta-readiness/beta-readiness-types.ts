@@ -80,6 +80,7 @@ export interface ToolBetaPlatformReadinessEvidence {
   sourceSha?: string
   environment: 'staging' | 'production'
   toolCostEventsMigrationDeployed: boolean
+  productionReadinessEvidenceMigrationDeployed: boolean
   serviceRoleWritePathVerified: boolean
   rlsMemberReadPathVerified: boolean
   idempotentReplayVerified: boolean

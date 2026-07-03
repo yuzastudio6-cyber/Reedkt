@@ -42,12 +42,20 @@ const report = await runBetaPlatformDeployedEvidenceVerifier({
 }, createBetaPlatformDeployedEvidenceProbeRunners(transport))
 
 assert.equal(report.evidencePacketReady, true, 'complete Supabase transport evidence should build a platform packet')
-assert.equal(report.checks.length, 9, 'Supabase transport should satisfy every deployed evidence probe')
+assert.equal(report.checks.length, 10, 'Supabase transport should satisfy every deployed evidence probe')
 assert.equal(report.evaluatedReadiness.toolExecutionReadiness.platformBlockers.length, 0, 'complete Supabase transport evidence should clear the shared platform blocker')
 assert.equal(report.evaluatedReadiness.toolExecutionReadiness.externalBetaToolExecutionAllowed, false, 'platform evidence alone must not enable tool beta execution')
 assert.equal(report.externalBetaAllowed, false, 'Supabase transport smoke must not enable external beta')
 assert.equal(report.productionAllowed, false, 'Supabase transport smoke must not enable production')
-assert.deepEqual(admin.calls.tables.slice(0, 2), ['tool_cost_events', 'beta_readiness_evidence_packets'], 'migration probes should read both deployed tables')
+assert.deepEqual(
+  admin.calls.tables.slice(0, 3),
+  [
+    'tool_cost_events',
+    'beta_readiness_evidence_packets',
+    'production_tool_execution_readiness_evidence_packets',
+  ],
+  'migration probes should read all deployed table prerequisites',
+)
 assert.equal(admin.calls.inserts.length, 2, 'service-role write and replay probes should insert only controlled evidence packets')
 assert.equal(admin.calls.rpc.length, 1, 'wallet settlement probe should call exactly one RPC')
 assert.deepEqual(admin.calls.rpc[0], {

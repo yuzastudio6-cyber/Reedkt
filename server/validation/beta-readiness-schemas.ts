@@ -37,6 +37,7 @@ const platformEvidenceSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['staging', 'production']),
   toolCostEventsMigrationDeployed: z.boolean(),
+  productionReadinessEvidenceMigrationDeployed: z.boolean(),
   serviceRoleWritePathVerified: z.boolean(),
   rlsMemberReadPathVerified: z.boolean(),
   idempotentReplayVerified: z.boolean(),
@@ -117,6 +118,7 @@ export const betaReadinessPlatformBillingQaSchema = z.object({
 const deployedPlatformProbeIdSchema = z.enum([
   'tool_cost_events_migration_deployed',
   'beta_readiness_evidence_migration_deployed',
+  'production_readiness_evidence_migration_deployed',
   'service_role_write_path_verified',
   'authenticated_rls_member_readback_verified',
   'idempotent_replay_verified',
@@ -171,7 +173,7 @@ export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
   ownerApprovals: deployedPlatformOwnerApprovalsSchema,
   monitoringDeploymentEvidence: deployedMonitoringCoverageSchema.optional(),
   notes: z.array(noteSchema).min(1).max(20),
-  probes: z.array(deployedPlatformProbeObservationSchema).min(1).max(9),
+  probes: z.array(deployedPlatformProbeObservationSchema).min(1).max(10),
   recordEvidence: z.boolean().optional(),
   confirmRecordEvidence: z.boolean().optional(),
 }).strict()

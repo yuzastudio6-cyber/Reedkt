@@ -407,6 +407,7 @@ function buildCompleteEvidencePacketBody(): {
       sourceSha: '4444444444444444444444444444444444444444',
       environment: 'staging',
       toolCostEventsMigrationDeployed: true,
+      productionReadinessEvidenceMigrationDeployed: true,
       serviceRoleWritePathVerified: true,
       rlsMemberReadPathVerified: true,
       idempotentReplayVerified: true,
@@ -459,6 +460,7 @@ function buildPassingDeployedProbeObservations() {
   return [
     'tool_cost_events_migration_deployed',
     'beta_readiness_evidence_migration_deployed',
+    'production_readiness_evidence_migration_deployed',
     'service_role_write_path_verified',
     'authenticated_rls_member_readback_verified',
     'idempotent_replay_verified',

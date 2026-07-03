@@ -7,6 +7,7 @@ import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 export type BetaPlatformDeployedProbeId =
   | 'tool_cost_events_migration_deployed'
   | 'beta_readiness_evidence_migration_deployed'
+  | 'production_readiness_evidence_migration_deployed'
   | 'service_role_write_path_verified'
   | 'authenticated_rls_member_readback_verified'
   | 'idempotent_replay_verified'
@@ -83,6 +84,7 @@ export interface BetaPlatformDeployedEvidenceVerificationReport {
 const orderedProbeIds: BetaPlatformDeployedProbeId[] = [
   'tool_cost_events_migration_deployed',
   'beta_readiness_evidence_migration_deployed',
+  'production_readiness_evidence_migration_deployed',
   'service_role_write_path_verified',
   'authenticated_rls_member_readback_verified',
   'idempotent_replay_verified',
@@ -153,6 +155,7 @@ function buildEvidencePacket(input: BetaPlatformDeployedEvidenceVerifierInput): 
       sourceSha: input.sourceSha,
       environment: input.environment,
       toolCostEventsMigrationDeployed: true,
+      productionReadinessEvidenceMigrationDeployed: true,
       serviceRoleWritePathVerified: true,
       rlsMemberReadPathVerified: true,
       idempotentReplayVerified: true,
@@ -276,6 +279,8 @@ function nextActionForProbe(id: BetaPlatformDeployedProbeId): string {
       return 'Verify the tool_cost_events migration in staging or production.'
     case 'beta_readiness_evidence_migration_deployed':
       return 'Verify the beta_readiness_evidence_packets migration and backend-only access in staging or production.'
+    case 'production_readiness_evidence_migration_deployed':
+      return 'Verify the production_tool_execution_readiness_evidence_packets migration and backend-only access in staging or production.'
     case 'service_role_write_path_verified':
       return 'Verify service-role event/evidence writes through backend runtime without exposing service-role secrets.'
     case 'authenticated_rls_member_readback_verified':

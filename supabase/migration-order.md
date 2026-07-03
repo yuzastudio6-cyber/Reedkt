@@ -147,3 +147,12 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Creates: `beta_readiness_evidence_packets`, `production_tool_execution_readiness_evidence_packets`, workspace/idempotency uniqueness for production evidence, comments, RLS, and explicit service-role `select, insert` grants with anon/authenticated access revoked.
 - Does not create: external beta activation, paid production approval, Supabase deployment, tool execution, media processing, wallet mutation, Stripe integration, provider calls, worker dispatch, public artifacts, signed URLs, or production billing.
 - Notes: Evidence packet storage is durable source-of-truth readback only. The production evidence table stores passing all-up readiness evidence and the resulting gate report, but it does not enable production by itself. Paid-production readiness requires deployment/readback evidence for both packet tables plus the tool-cost ledger before Supabase production persistence can pass.
+
+## 17. Production Gateway Operations Admission RPC
+
+- File: `migrations/20260703215843_production_gateway_ops_admission_rpc.sql`
+- Purpose: Adds a service-role-only RPC for atomic production gateway worker-lease admission.
+- Depends on: `api_idempotency_keys`, `worker_leases`, and backend production gateway service-role execution.
+- Creates: `claim_production_gateway_worker_lease(...)`, which serializes admission per workspace, checks workspace rate limits, checks project and worker concurrency, inserts the durable `worker_leases` admission row, and returns sanitized admission counters.
+- Does not create: Supabase remote deployment, worker dispatch, tool execution, media processing, wallet mutation, Stripe integration, public artifacts, signed URLs, or production activation.
+- Notes: Non-mock `production_ready` gateway dispatch should call this RPC before worker dispatch and billing audit. Missing RPC deployment, non-UUID production identifiers, active lease conflicts, or rate/concurrency excess fail closed.

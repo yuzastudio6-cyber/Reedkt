@@ -60,6 +60,15 @@ export interface ProductionGatewayActiveKillSwitches {
   finalExport: boolean
 }
 
+interface PersistentAdmissionLeaseClaim {
+  leaseId?: string
+  leaseToken?: string
+  workspaceJobCreationCountLastHour: number
+  projectActiveJobCount: number
+  workerActiveJobCount: number
+  blocker?: ProductionGatewayOpsControlBlocker
+}
+
 interface MockProductionGatewayOpsControlState {
   activeKillSwitches: Partial<ProductionGatewayActiveKillSwitches>
   workspaceJobCreationTimestamps: Map<string, number[]>
@@ -203,83 +212,31 @@ async function admitPersistentProductionGatewayOpsControls(
     }])
   }
 
-  const oneHourAgo = new Date(nowMs - HOUR_MS).toISOString()
-  const nowIso = new Date(nowMs).toISOString()
   const persistentIdBlockers = buildPersistentIdBlockers(input)
   if (persistentIdBlockers.length > 0) {
     return blockedAdmission(baseSnapshot, persistentIdBlockers)
   }
 
-  const { count: workspaceJobCount, error: idempotencyError } = await admin
-    .from('api_idempotency_keys')
-    .select('id', { count: 'exact', head: true })
-    .eq('workspace_id', input.workspaceId)
-    .eq('request_method', 'POST')
-    .ilike('request_path', '%/v1/tool-executions/dispatch%')
-    .gte('created_at', oneHourAgo)
-
-  if (idempotencyError) {
-    return blockedAdmission(baseSnapshot, [{
-      code: 'PRODUCTION_RATE_LIMIT_BACKEND_UNAVAILABLE',
-      gateName: 'production_ops_backend',
-      message: 'Could not read persistent API idempotency records for production rate-limit enforcement.',
-      details: { reason: idempotencyError.message },
-    }])
-  }
-
-  const activeStatuses = ['claimed', 'active', 'renewed']
-  const { count: projectActiveJobCount, error: projectLeaseError } = await admin
-    .from('worker_leases')
-    .select('id', { count: 'exact', head: true })
-    .eq('workspace_id', input.workspaceId)
-    .eq('project_id', input.projectId)
-    .in('status', activeStatuses)
-    .gt('expires_at', nowIso)
-
-  if (projectLeaseError) {
-    return blockedAdmission(baseSnapshot, [{
-      code: 'PRODUCTION_PROJECT_CONCURRENCY_BACKEND_UNAVAILABLE',
-      gateName: 'production_ops_backend',
-      message: 'Could not read persistent worker leases for project concurrency enforcement.',
-      details: { reason: projectLeaseError.message },
-    }])
-  }
-
-  const { count: workerActiveJobCount, error: workerLeaseError } = await admin
-    .from('worker_leases')
-    .select('id', { count: 'exact', head: true })
-    .eq('workspace_id', input.workspaceId)
-    .eq('worker_kind', input.workerType)
-    .in('status', activeStatuses)
-    .gt('expires_at', nowIso)
-
-  if (workerLeaseError) {
-    return blockedAdmission(baseSnapshot, [{
-      code: 'PRODUCTION_WORKER_CONCURRENCY_BACKEND_UNAVAILABLE',
-      gateName: 'production_ops_backend',
-      message: 'Could not read persistent worker leases for worker concurrency enforcement.',
-      details: { reason: workerLeaseError.message },
-    }])
-  }
+  const lease = await createPersistentAdmissionLease(context, input, nowMs)
 
   const snapshot = buildSnapshot({
     input,
     activeKillSwitches,
-    workspaceJobCreationCountLastHour: workspaceJobCount ?? 0,
-    projectActiveJobCount: projectActiveJobCount ?? 0,
-    workerActiveJobCount: workerActiveJobCount ?? 0,
+    workspaceJobCreationCountLastHour: lease.workspaceJobCreationCountLastHour,
+    projectActiveJobCount: lease.projectActiveJobCount,
+    workerActiveJobCount: lease.workerActiveJobCount,
     persistentBackendChecked: true,
   })
+
+  if (lease.blocker) {
+    return blockedAdmission(snapshot, [lease.blocker], [
+      'Production gateway ops controls blocked before worker dispatch because atomic durable admission failed.',
+    ])
+  }
+
   const blockers = buildPolicyBlockers(input, snapshot)
   if (blockers.length > 0) {
     return blockedAdmission(snapshot, blockers)
-  }
-
-  const lease = await createPersistentAdmissionLease(context, input, nowMs)
-  if (lease.blocker) {
-    return blockedAdmission(snapshot, [lease.blocker], [
-      'Production gateway ops controls blocked before worker dispatch because durable admission lease creation failed.',
-    ])
   }
 
   const admittedSnapshot: ProductionGatewayOpsControlSnapshot = {
@@ -291,7 +248,7 @@ async function admitPersistentProductionGatewayOpsControls(
     allowed: true,
     blockers: [],
     warnings: [
-      'Production gateway ops controls passed against persistent idempotency readback, worker-lease readback, and durable admission lease creation.',
+      'Production gateway ops controls passed against persistent idempotency readback and atomic durable worker-lease admission.',
     ],
     snapshot: admittedSnapshot,
     release: () => releasePersistentAdmissionLease(context, {
@@ -305,14 +262,16 @@ async function createPersistentAdmissionLease(
   context: ServiceContext,
   input: ProductionGatewayOpsControlAdmissionInput,
   nowMs: number,
-): Promise<{
-  leaseId?: string
-  leaseToken?: string
-  blocker?: ProductionGatewayOpsControlBlocker
-}> {
+): Promise<PersistentAdmissionLeaseClaim> {
+  const emptyClaim = {
+    workspaceJobCreationCountLastHour: 0,
+    projectActiveJobCount: 0,
+    workerActiveJobCount: 0,
+  }
   const admin = context.clients.admin
   if (!admin) {
     return {
+      ...emptyClaim,
       blocker: {
         code: 'PRODUCTION_OPS_CONTROLS_BACKEND_REQUIRED',
         gateName: 'production_ops_backend',
@@ -325,49 +284,135 @@ async function createPersistentAdmissionLease(
   const workerId = `production-gateway:${input.userId}`
   const nowIso = new Date(nowMs).toISOString()
   const expiresAt = new Date(nowMs + 5 * 60 * 1000).toISOString()
-  const inserted = await admin
-    .from('worker_leases')
-    .insert({
-      workspace_id: input.workspaceId,
-      project_id: input.projectId,
-      job_id: input.jobId,
-      worker_id: workerId,
-      worker_kind: input.workerType,
-      status: 'claimed',
-      lease_token: leaseToken,
-      claimed_at: nowIso,
-      heartbeat_at: nowIso,
-      expires_at: expiresAt,
-      metadata: {
-        productionGatewayOpsAdmission: true,
-        renderMode: input.renderMode ?? null,
-      },
-    })
-    .select('id')
-    .single()
+  const result = await admin.rpc('claim_production_gateway_worker_lease', {
+    p_workspace_id: input.workspaceId,
+    p_project_id: input.projectId,
+    p_job_id: input.jobId,
+    p_worker_id: workerId,
+    p_worker_kind: input.workerType,
+    p_lease_token: leaseToken,
+    p_expires_at: expiresAt,
+    p_workspace_job_creation_limit: rateLimitPolicy.perWorkspaceJobCreationPerHour,
+    p_project_concurrent_limit: rateLimitPolicy.perProjectConcurrentJobs,
+    p_worker_concurrent_limit: workerConcurrencyPolicy.maxConcurrentJobsByWorkerType[input.workerType] ?? 0,
+    p_request_path_pattern: '%/v1/tool-executions/dispatch%',
+    p_now: nowIso,
+    p_render_mode: input.renderMode ?? null,
+  })
 
-  if (inserted.error || !inserted.data?.id) {
+  if (result.error) {
     return {
+      ...emptyClaim,
+      blocker: blockerForAdmissionRpcError(result.error),
+    }
+  }
+
+  const data = normalizeAdmissionRpcData(result.data)
+  if (!data.leaseId) {
+    return {
+      ...data,
       blocker: {
-        code: inserted.error?.code === '23505'
-          ? 'PRODUCTION_WORKER_LEASE_CLAIM_CONFLICT'
-          : 'PRODUCTION_WORKER_LEASE_BACKEND_UNAVAILABLE',
+        code: 'PRODUCTION_OPS_ADMISSION_RPC_INVALID_RESULT',
         gateName: 'production_ops_backend',
-        message: inserted.error?.code === '23505'
-          ? 'A durable production worker lease already exists for this job.'
-          : 'Could not create a durable production worker lease before dispatch.',
-        details: {
-          reason: inserted.error?.message ?? 'worker_leases insert did not return an id.',
-          code: inserted.error?.code,
-        },
+        message: 'Production gateway ops admission RPC did not return a lease id.',
       },
     }
   }
 
   return {
-    leaseId: String(inserted.data.id),
+    ...data,
     leaseToken,
   }
+}
+
+function blockerForAdmissionRpcError(
+  error: { code?: string; message?: string; hint?: string },
+): ProductionGatewayOpsControlBlocker {
+  const message = error.message ?? 'production gateway ops admission RPC failed'
+  const lowerMessage = message.toLowerCase()
+  if (lowerMessage.includes('workspace rate limit exceeded')) {
+    return {
+      code: 'PRODUCTION_WORKSPACE_RATE_LIMIT_EXCEEDED',
+      gateName: 'production_ops_rate_limit',
+      message: 'Workspace production tool execution rate limit has been reached.',
+      details: { reason: message, code: error.code },
+    }
+  }
+  if (lowerMessage.includes('project concurrency limit exceeded')) {
+    return {
+      code: 'PRODUCTION_PROJECT_CONCURRENCY_LIMIT_EXCEEDED',
+      gateName: 'production_ops_concurrency',
+      message: 'Project production tool execution concurrency limit has been reached.',
+      details: { reason: message, code: error.code },
+    }
+  }
+  if (lowerMessage.includes('worker concurrency limit exceeded')) {
+    return {
+      code: 'PRODUCTION_WORKER_CONCURRENCY_LIMIT_EXCEEDED',
+      gateName: 'production_ops_concurrency',
+      message: 'Worker production tool execution concurrency limit has been reached.',
+      details: { reason: message, code: error.code },
+    }
+  }
+  if (lowerMessage.includes('lease claim conflict') || error.code === '23505') {
+    return {
+      code: 'PRODUCTION_WORKER_LEASE_CLAIM_CONFLICT',
+      gateName: 'production_ops_backend',
+      message: 'A durable production worker lease already exists for this job.',
+      details: { reason: message, code: error.code },
+    }
+  }
+  if (
+    error.code === '42883' ||
+    /claim_production_gateway_worker_lease|function .* does not exist/i.test(message)
+  ) {
+    return {
+      code: 'PRODUCTION_OPS_ADMISSION_RPC_UNAVAILABLE',
+      gateName: 'production_ops_backend',
+      message: 'Production-ready gateway dispatch requires the service-role-only claim_production_gateway_worker_lease RPC before worker dispatch.',
+      details: { reason: message, code: error.code, hint: error.hint },
+    }
+  }
+  if (
+    error.code === '42P01' ||
+    /api_idempotency_keys|worker_leases|does not exist|schema cache/i.test(message)
+  ) {
+    return {
+      code: 'PRODUCTION_OPS_CONTROLS_BACKEND_UNAVAILABLE',
+      gateName: 'production_ops_backend',
+      message: 'Production-ready gateway dispatch requires deployed persistent ops-control tables before worker dispatch.',
+      details: { reason: message, code: error.code, hint: error.hint },
+    }
+  }
+  return {
+    code: 'PRODUCTION_OPS_ADMISSION_RPC_FAILED',
+    gateName: 'production_ops_backend',
+    message: 'Production-ready gateway dispatch could not complete atomic ops admission.',
+    details: { reason: message, code: error.code, hint: error.hint },
+  }
+}
+
+function normalizeAdmissionRpcData(data: unknown): Omit<PersistentAdmissionLeaseClaim, 'leaseToken' | 'blocker'> {
+  const record = data && typeof data === 'object'
+    ? data as Record<string, unknown>
+    : {}
+  return {
+    leaseId: typeof record.leaseId === 'string'
+      ? record.leaseId
+      : typeof record.leaseid === 'string'
+        ? record.leaseid
+        : undefined,
+    workspaceJobCreationCountLastHour: numberField(record, 'workspaceJobCreationCountLastHour', 'workspacejobcreationcountlasthour'),
+    projectActiveJobCount: numberField(record, 'projectActiveJobCount', 'projectactivejobcount'),
+    workerActiveJobCount: numberField(record, 'workerActiveJobCount', 'workeractivejobcount'),
+  }
+}
+
+function numberField(record: Record<string, unknown>, camelKey: string, lowerKey: string): number {
+  const value = record[camelKey] ?? record[lowerKey]
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) return Number(value)
+  return 0
 }
 
 async function releasePersistentAdmissionLease(

@@ -55,6 +55,7 @@
     "smoke:production-wallet-lifecycle-evidence-collector": "tsx server/smoke/production-wallet-lifecycle-evidence-collector-smoke.ts",
     "smoke:production-stripe-boundary-evidence-collector": "tsx server/smoke/production-stripe-boundary-evidence-collector-smoke.ts",
     "smoke:production-real-worker-handler-readiness": "tsx server/smoke/production-real-worker-handler-readiness-smoke.ts",
+    "smoke:production-gateway-ops-admission:sql": "tsx server/smoke/production-gateway-ops-admission-rpc-sql-smoke.ts",
     "smoke:tool-cost-metering": "tsx server/smoke/professional-tool-cost-metering-smoke.ts",
     "smoke:tool-cost-wallet-settlement": "tsx server/smoke/tool-cost-wallet-settlement-smoke.ts",
     "smoke:tool-cost-wallet-settlement:service-role": "tsx server/smoke/tool-cost-wallet-settlement-service-role-smoke.ts",

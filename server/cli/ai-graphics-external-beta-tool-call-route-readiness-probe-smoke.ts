@@ -64,6 +64,7 @@ interface RouteReadinessTool {
   toolId: string
   capabilityId: string
   canonicalRouteMode: string
+  externalAgentCanCallThisToolNow: boolean
   externalAgentCanExecuteThisToolNow: boolean
   routeCanEvaluateFailClosedGpuModelAdmissionNow: boolean
   modelWeightManifestRequired: boolean
@@ -170,6 +171,8 @@ function summarizeTool(tool: RouteReadinessTool) {
     toolId: tool.toolId,
     capabilityId: tool.capabilityId,
     canonicalRouteMode: tool.canonicalRouteMode,
+    externalAgentCanCallThisToolNow:
+      tool.externalAgentCanCallThisToolNow,
     externalAgentCanExecuteThisToolNow:
       tool.externalAgentCanExecuteThisToolNow,
     routeCanEvaluateFailClosedGpuModelAdmissionNow:
@@ -251,8 +254,12 @@ function validateReadiness(report: RouteReadinessReport) {
       `${toolId} route mode mismatch`,
     )
     assert(
-      tool.externalAgentCanExecuteThisToolNow === true,
-      `${toolId} should be controlled route-executable now`,
+      tool.externalAgentCanCallThisToolNow === true,
+      `${toolId} should be controlled route-callable now`,
+    )
+    assert(
+      tool.externalAgentCanExecuteThisToolNow === false,
+      `${toolId} should remain blocked from runtime execution until GPU/model proof is accepted`,
     )
     assert(
       tool.routeCanEvaluateFailClosedGpuModelAdmissionNow === true,
@@ -288,11 +295,11 @@ function validateReadiness(report: RouteReadinessReport) {
     totalAiGraphicsTools: 21,
     productFacingCapabilities: 12,
     externalAgentRouteCallableNowTools: 21,
-    externalAgentRouteExecutableNowTools: 21,
+    externalAgentRouteExecutableNowTools: 13,
     realRuntimeExecutableNowTools: 13,
     cpuStaticControlledExecutableNowTools: 6,
     browserRuntimeControlledExecutableNowTools: 7,
-    gpuModelRuntimeAdmissionBlockedTools: 0,
+    gpuModelRuntimeAdmissionBlockedTools: 8,
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8,
     gpuModelRuntimeUnblockPlanExposedTools: 8,
     gpuModelNativeGpuProofRequiredTools: 8,
@@ -381,7 +388,7 @@ function buildReport(routeReadiness: RouteReadinessReport) {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolSummary
     .map((tool) => (
-      `| \`${tool.toolId}\` | \`${tool.canonicalRouteMode}\` | \`${tool.externalAgentCanExecuteThisToolNow}\` | \`${tool.httpStatusIfCalledNow}\` | \`${tool.httpRouteStatusIfCalledNow}\` | \`${tool.gpuRuntimeShouldStartNow}\` | \`${tool.gpuModelUnblockPlanStatus ?? 'not_required'}\` | \`${tool.nextExternalAgentAction ?? 'not_required'}\` |`
+      `| \`${tool.toolId}\` | \`${tool.canonicalRouteMode}\` | \`${tool.externalAgentCanCallThisToolNow}\` | \`${tool.externalAgentCanExecuteThisToolNow}\` | \`${tool.httpStatusIfCalledNow}\` | \`${tool.httpRouteStatusIfCalledNow}\` | \`${tool.gpuRuntimeShouldStartNow}\` | \`${tool.gpuModelUnblockPlanStatus ?? 'not_required'}\` | \`${tool.nextExternalAgentAction ?? 'not_required'}\` |`
     ))
     .join('\n')
 
@@ -395,8 +402,8 @@ This smoke proves the canonical external-beta tool-call route exposes a safe rea
 
 ## Per-Tool Route Readiness
 
-| Tool | Route mode | Route callable now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| Tool | Route mode | Route callable now | Route executable now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts

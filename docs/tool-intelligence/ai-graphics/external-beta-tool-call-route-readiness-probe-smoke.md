@@ -8,40 +8,40 @@ This smoke proves the canonical external-beta tool-call route exposes a safe rea
 
 ## Per-Tool Route Readiness
 
-| Tool | Route mode | Route callable now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `torch_torchvision` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
-| `transformers` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
-| `sam2` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `birefnet` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `real_esrgan` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `kornia` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
-| `rembg` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `transparent_background` | `gpu_model_controlled_execution` | `true` | `200` | `controlled_gpu_model_private_output_or_skip_ready` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
-| `d3` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `echarts` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `vega_lite` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `vega` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `satori` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `svgdotjs_svg_js` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `viz_js` | `cpu_static_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `lottie_web` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `animejs` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `three_js` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `pixi_js` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `konva` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
-| `babylonjs` | `browser_runtime_controlled_execution` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| Tool | Route mode | Route callable now | Route executable now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
+| `transformers` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
+| `sam2` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
+| `birefnet` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
+| `real_esrgan` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
+| `kornia` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_native_gpu_runtime_proof` | `provide_native_gpu_runtime_result` |
+| `rembg` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
+| `transparent_background` | `gpu_model_controlled_execution` | `true` | `false` | `200` | `controlled_gpu_model_route_blocked_with_reason` | `false` | `blocked_pending_private_model_weight_evidence_and_native_gpu_runtime_proof` | `provide_reviewed_private_model_weight_evidence_then_native_gpu_runtime_result` |
+| `d3` | `cpu_static_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `echarts` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `vega_lite` | `cpu_static_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `vega` | `cpu_static_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `satori` | `cpu_static_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `svgdotjs_svg_js` | `cpu_static_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `viz_js` | `cpu_static_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `lottie_web` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `animejs` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `three_js` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `pixi_js` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `konva` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
+| `babylonjs` | `browser_runtime_controlled_execution` | `true` | `true` | `200` | `controlled_private_output_ready` | `false` | `not_required` | `not_required` |
 
 ## Counts
 
 - `totalAiGraphicsTools`: 21
 - `productFacingCapabilities`: 12
 - `externalAgentRouteCallableNowTools`: 21
-- `externalAgentRouteExecutableNowTools`: 21
+- `externalAgentRouteExecutableNowTools`: 13
 - `realRuntimeExecutableNowTools`: 13
 - `cpuStaticControlledExecutableNowTools`: 6
 - `browserRuntimeControlledExecutableNowTools`: 7
-- `gpuModelRuntimeAdmissionBlockedTools`: 0
+- `gpuModelRuntimeAdmissionBlockedTools`: 8
 - `gpuModelRuntimeAdmissionEvaluatedFailClosedTools`: 8
 - `gpuModelRuntimeUnblockPlanExposedTools`: 8
 - `gpuModelNativeGpuProofRequiredTools`: 8

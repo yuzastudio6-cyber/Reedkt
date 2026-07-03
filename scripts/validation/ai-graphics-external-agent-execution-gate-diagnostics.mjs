@@ -1074,8 +1074,8 @@ if (docs.counts?.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
 if (docs.counts?.scopedControlledRouteGpuModelBlockedTools !== 8) {
   fail('docs_scoped_controlled_route_gpu_model_blocked_not_8')
 }
-if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 21) {
-  fail('docs_route_executable_with_readiness_probe_not_21')
+if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
+  fail('docs_route_executable_with_readiness_probe_not_13')
 }
 if (docs.counts?.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
   fail('docs_cpu_static_route_executable_with_readiness_probe_not_6')
@@ -1817,8 +1817,8 @@ if (acceptedSourceReport.scopedControlledRouteBrowserRuntimeExecutableNowTools !
 if (acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools !== 8) {
   fail('accepted_report_scoped_controlled_route_gpu_model_blocked_not_8')
 }
-if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 21) {
-  fail('accepted_report_route_executable_with_readiness_probe_not_21')
+if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
+  fail('accepted_report_route_executable_with_readiness_probe_not_13')
 }
 if (acceptedSourceReport.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
   fail('accepted_report_cpu_static_route_executable_with_readiness_probe_not_6')

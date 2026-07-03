@@ -164,7 +164,7 @@ function checkReport(label, report) {
   }
   if (
     report.routeStatus !==
-    'canonical_tool_call_route_readiness_reports_all_twenty_one_route_callable_and_eight_gpu_model_runtime_proof_required'
+    'canonical_tool_call_route_readiness_reports_thirteen_runtime_executable_and_eight_gpu_model_runtime_proof_required'
   ) {
     fail(`${label}_route_status_mismatch`)
   }
@@ -199,6 +199,9 @@ function checkReport(label, report) {
     if (row.canonicalRouteMode !== 'cpu_static_controlled_execution') {
       fail(`${label}_${toolId}_mode_mismatch`)
     }
+    if (row.externalAgentCanCallThisToolNow !== true) {
+      fail(`${label}_${toolId}_not_callable_now`)
+    }
     if (row.externalAgentCanExecuteThisToolNow !== true) {
       fail(`${label}_${toolId}_not_executable_now`)
     }
@@ -209,6 +212,9 @@ function checkReport(label, report) {
     if (!row) continue
     if (row.canonicalRouteMode !== 'browser_runtime_controlled_execution') {
       fail(`${label}_${toolId}_mode_mismatch`)
+    }
+    if (row.externalAgentCanCallThisToolNow !== true) {
+      fail(`${label}_${toolId}_not_callable_now`)
     }
     if (row.externalAgentCanExecuteThisToolNow !== true) {
       fail(`${label}_${toolId}_not_executable_now`)
@@ -221,13 +227,22 @@ function checkReport(label, report) {
     if (row.canonicalRouteMode !== 'gpu_model_controlled_execution') {
       fail(`${label}_${toolId}_mode_mismatch`)
     }
-    if (row.externalAgentCanExecuteThisToolNow !== true) {
-      fail(`${label}_${toolId}_not_executable_now`)
+    if (row.externalAgentCanCallThisToolNow !== true) {
+      fail(`${label}_${toolId}_not_callable_now`)
+    }
+    if (row.externalAgentCanExecuteThisToolNow !== false) {
+      fail(`${label}_${toolId}_unexpectedly_executable_now`)
     }
     if (row.routeCanEvaluateFailClosedGpuModelAdmissionNow !== true) {
       fail(`${label}_${toolId}_gpu_admission_not_evaluated`)
     }
     if (row.httpStatusIfCalledNow !== 200) fail(`${label}_${toolId}_status_not_200`)
+    if (
+      row.httpRouteStatusIfCalledNow !==
+      'controlled_gpu_model_route_blocked_with_reason'
+    ) {
+      fail(`${label}_${toolId}_gpu_route_status_not_blocked`)
+    }
     if (row.gpuModelUnblockPlanStatus === null) {
       fail(`${label}_${toolId}_missing_gpu_unblock_plan_status`)
     }
@@ -263,11 +278,11 @@ function checkReport(label, report) {
     totalAiGraphicsTools: 21,
     productFacingCapabilities: 12,
     externalAgentRouteCallableNowTools: 21,
-    externalAgentRouteExecutableNowTools: 21,
+    externalAgentRouteExecutableNowTools: 13,
     realRuntimeExecutableNowTools: 13,
     cpuStaticControlledExecutableNowTools: 6,
     browserRuntimeControlledExecutableNowTools: 7,
-    gpuModelRuntimeAdmissionBlockedTools: 0,
+    gpuModelRuntimeAdmissionBlockedTools: 8,
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8,
     gpuModelRuntimeUnblockPlanExposedTools: 8,
     gpuModelNativeGpuProofRequiredTools: 8,
@@ -380,6 +395,7 @@ for (const phrase of [
 for (const phrase of [
   'expected 21 tools',
   'expectedCounts',
+  'externalAgentCanCallThisToolNow',
   'externalAgentCanExecuteThisToolNow',
   'nextExternalAgentAction',
   'nativeGpuRuntimeProofRequired',
@@ -400,7 +416,7 @@ if (
 ) {
   fail('scorecard_missing_route_readiness_probe_section')
 }
-if (!scorecard.includes('externalAgentRouteExecutableNowTools=21')) {
+if (!scorecard.includes('externalAgentRouteExecutableNowTools=13')) {
   fail('scorecard_missing_route_executable_count')
 }
 if (!scorecard.includes('agentCanCallAll21ControlledRoutesNow=true')) {

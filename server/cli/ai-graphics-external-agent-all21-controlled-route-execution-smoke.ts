@@ -270,7 +270,7 @@ function validateResults(
     if (result.group === 'gpu_model') {
       assert(
         result.routeStatus ===
-          'controlled_gpu_model_route_invoked_on_demand_adapter_with_private_runtime_blocks',
+          'controlled_gpu_model_route_blocked_with_reason',
         `${result.toolId} GPU/model route status mismatch`,
       )
       assert(result.controlledAdapterExecutedNow === false, `${result.toolId} GPU/model adapter should not perform local runtime in default smoke`)

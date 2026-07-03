@@ -46,6 +46,11 @@ export type AiGraphicsExternalAgentGpuModelControlledAdapterStatus =
   | 'controlled_gpu_model_adapter_failed_before_output'
   | 'controlled_gpu_model_adapter_rejected_unsupported_tool'
 
+export type AiGraphicsExternalAgentGpuModelExecutionState =
+  | 'executable'
+  | 'blocked_with_reason'
+  | 'failed_with_diagnostics'
+
 export interface AiGraphicsExternalAgentGpuModelControlledAdapterRequest {
   workspaceId: string
   requestId: string
@@ -72,10 +77,14 @@ export interface AiGraphicsExternalAgentGpuModelControlledAdapterResult {
   traceId: string
   toolId: AiGraphicsCanonicalToolId
   capabilityId: string
+  executionState: AiGraphicsExternalAgentGpuModelExecutionState
+  blockingReasonCode: string | null
+  failureDiagnostics: string | null
   controlledAdapterExecutableNow: boolean
+  controlledAdapterExecutedNow: boolean
   controlledAdapterInvokedNow: boolean
   localGpuModelRuntimeExecutionPerformed: boolean
-  externalAgentCanExecuteViaMountedRouteNow: false
+  externalAgentCanExecuteViaMountedRouteNow: boolean
   routeExecutionApprovedNow: false
   workerExecutionApprovedNow: false
   toolExecutionApprovedNow: boolean
@@ -229,6 +238,9 @@ function runtimePrerequisiteBlock(
 ): Record<string, unknown> | null {
   if (optionalString(payload, 'mode') !== 'local_dev') return null
   if (!executionEnabled(payload)) return null
+  if (!isAiGraphicsExternalAgentGpuModelControlledAdapterTool(request.toolId)) {
+    return null
+  }
   if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
 
   const preflight = runtimePreflightPython(request.toolId)
@@ -610,7 +622,11 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
       traceId: request.traceId,
       toolId: request.toolId,
       capabilityId: request.capabilityId,
+      executionState: 'failed_with_diagnostics',
+      blockingReasonCode: null,
+      failureDiagnostics: 'unsupported GPU/model tool id',
       controlledAdapterExecutableNow: false,
+      controlledAdapterExecutedNow: false,
       controlledAdapterInvokedNow: false,
       localGpuModelRuntimeExecutionPerformed: false,
       externalAgentCanExecuteViaMountedRouteNow: false,
@@ -656,6 +672,19 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
   const failed = (
     runtimeOutput.result as { status?: unknown } | undefined
   )?.status === 'failed'
+  const executionState: AiGraphicsExternalAgentGpuModelExecutionState =
+    localRuntimeExecutionPerformed
+      ? 'executable'
+      : failed
+      ? 'failed_with_diagnostics'
+      : 'blocked_with_reason'
+  const failureDiagnostics =
+    typeof (runtimeOutput.result as { errorMessage?: unknown } | undefined)
+      ?.errorMessage === 'string'
+      ? (runtimeOutput.result as { errorMessage: string }).errorMessage
+      : failed
+      ? 'GPU/model controlled adapter failed before producing private output.'
+      : null
 
   return {
     decision: AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_DECISION,
@@ -668,10 +697,16 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
     traceId: request.traceId,
     toolId: request.toolId,
     capabilityId: request.capabilityId,
-    controlledAdapterExecutableNow: true,
+    executionState,
+    blockingReasonCode: executionState === 'blocked_with_reason'
+      ? skipReasonCode ?? 'gpu_model_runtime_prerequisites_missing'
+      : null,
+    failureDiagnostics,
+    controlledAdapterExecutableNow: localRuntimeExecutionPerformed,
+    controlledAdapterExecutedNow: localRuntimeExecutionPerformed,
     controlledAdapterInvokedNow: true,
     localGpuModelRuntimeExecutionPerformed: localRuntimeExecutionPerformed,
-    externalAgentCanExecuteViaMountedRouteNow: false,
+    externalAgentCanExecuteViaMountedRouteNow: localRuntimeExecutionPerformed,
     routeExecutionApprovedNow: false,
     workerExecutionApprovedNow: false,
     toolExecutionApprovedNow: localRuntimeExecutionPerformed,

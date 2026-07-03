@@ -1306,14 +1306,16 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
     const gpuModelRuntimeAdmissionEvaluated =
       mode === 'gpu_model_controlled_execution' &&
       serviceContext.env.aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled
-    const gpuModelControlledExecutable =
+    const gpuModelControlledCallable =
       mode === 'gpu_model_controlled_execution' &&
       serviceContext.env.mockOnly &&
       serviceContext.env.aiGraphicsExternalBetaToolCallRouteGpuModelControlledExecutionEnabled
     const routeCanExecuteNow =
       cpuStaticControlledExecutable ||
-      browserRuntimeControlledExecutable ||
-      gpuModelControlledExecutable
+      browserRuntimeControlledExecutable
+    const routeCanCallControlledAdapterNow =
+      routeCanExecuteNow ||
+      gpuModelControlledCallable
     const routeCanEvaluateFailClosedGpuModelAdmissionNow =
       gpuModelRuntimeAdmissionEvaluated
     const modelWeightManifestRequired =
@@ -1384,9 +1386,13 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
     const httpOutcomeIfCalledNow = routeCanExecuteNow
       ? {
           statusCode: 200,
-          status: gpuModelControlledExecutable
-            ? 'controlled_gpu_model_private_output_or_skip_ready'
-            : 'controlled_private_output_ready',
+          status: 'controlled_private_output_ready',
+          routeExecutionPerformed: true,
+        }
+      : gpuModelControlledCallable
+      ? {
+          statusCode: 200,
+          status: 'controlled_gpu_model_route_blocked_with_reason',
           routeExecutionPerformed: true,
         }
       : routeCanEvaluateFailClosedGpuModelAdmissionNow
@@ -1422,7 +1428,9 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
       installStatus: readiness.installStatus,
       proofStatus: readiness.proofStatus,
       externalAgentCanSelectForPlanning: readiness.agentCanSelectForPlanning,
+      externalAgentCanCallThisToolNow: routeCanCallControlledAdapterNow,
       externalAgentCanExecuteThisToolNow: routeCanExecuteNow,
+      routeCanCallControlledAdapterNow,
       routeCanExecuteControlledAdapterNow: routeCanExecuteNow,
       routeCanEvaluateFailClosedGpuModelAdmissionNow,
       modelWeightManifestRequired,
@@ -1439,6 +1447,7 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
       nextProofMilestone: readiness.nextProofMilestone,
       booleans: {
         externalAgentCanSelectForPlanning: readiness.agentCanSelectForPlanning,
+        externalAgentCanCallThisToolNow: routeCanCallControlledAdapterNow,
         externalAgentCanExecuteThisToolNow: routeCanExecuteNow,
         routeExecutionApprovedNow: routeCanExecuteNow,
         routeExecutionPerformedByReadinessProbe: false,
@@ -1472,6 +1481,9 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
 
   const executableTools = toolReadiness.filter(
     (tool) => tool.externalAgentCanExecuteThisToolNow,
+  )
+  const callableTools = toolReadiness.filter(
+    (tool) => tool.externalAgentCanCallThisToolNow,
   )
   const realRuntimeExecutableTools = toolReadiness.filter(
     (tool) => (
@@ -1524,7 +1536,7 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
     counts: {
       totalAiGraphicsTools: toolReadiness.length,
       productFacingCapabilities: 12,
-      externalAgentRouteCallableNowTools: executableTools.length,
+      externalAgentRouteCallableNowTools: callableTools.length,
       externalAgentRouteExecutableNowTools: executableTools.length,
       realRuntimeExecutableNowTools: realRuntimeExecutableTools.length,
       cpuStaticControlledExecutableNowTools:
@@ -1585,7 +1597,7 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
         serviceContext.env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
       mockOnlyRuntimeModeEnforced: serviceContext.env.mockOnly,
       agentCanSelectForPlanning: true,
-      agentCanCallAll21ControlledRoutesNow: executableTools.length === 21,
+      agentCanCallAll21ControlledRoutesNow: callableTools.length === 21,
       externalAgentCanExecuteSomeToolsNow: executableTools.length > 0,
       agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow:
         executableTools.filter((tool) => !tool.gpuRequiredForRuntime).length === 13,
@@ -1691,11 +1703,23 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
           ...body,
           payload: body.payload ?? {},
         })
+      const gpuModelExecutionState = execution.executionState
+      const gpuModelExecutionPassed = gpuModelExecutionState === 'executable'
+      const gpuModelBlockedWithReason =
+        gpuModelExecutionState === 'blocked_with_reason'
+      const gpuModelFailedWithDiagnostics =
+        gpuModelExecutionState === 'failed_with_diagnostics'
       sendOk(response, {
         routeDecision:
           'ai_graphics_external_beta_tool_call_route_gpu_model_controlled_execution_accepted',
-        routeStatus:
-          'controlled_gpu_model_route_invoked_on_demand_adapter_with_private_runtime_blocks',
+        routeStatus: gpuModelExecutionPassed
+          ? 'controlled_gpu_model_route_executed_private_output_ready'
+          : gpuModelFailedWithDiagnostics
+          ? 'controlled_gpu_model_route_failed_with_diagnostics'
+          : 'controlled_gpu_model_route_blocked_with_reason',
+        externalAgentExecutionState: gpuModelExecutionState,
+        blockingReasonCode: execution.blockingReasonCode,
+        failureDiagnostics: execution.failureDiagnostics,
         routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
         routeFlag:
           AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
@@ -1705,7 +1729,13 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
         controlledAdapterResult: execution,
         counts: {
           totalAiGraphicsTools: 21,
-          gpuModelControlledExecutableNowTools: 8,
+          gpuModelControlledCallableTools: 1,
+          gpuModelControlledExecutableNowTools:
+            gpuModelExecutionPassed ? 1 : 0,
+          gpuModelBlockedWithReasonTools:
+            gpuModelBlockedWithReason ? 1 : 0,
+          gpuModelFailedWithDiagnosticsTools:
+            gpuModelFailedWithDiagnostics ? 1 : 0,
           gpuRuntimeShouldStartNowTools: execution.gpuRuntimeShouldStartNow ? 1 : 0,
           localGpuModelRuntimeExecutionPerformedTools:
             execution.localGpuModelRuntimeExecutionPerformed ? 1 : 0,
@@ -1721,14 +1751,16 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
           noIdleGpuRuntimeApproved: true,
           gpuStartsOnlyForApprovedWorkerOrToolCall: true,
           agentCanSelectForPlanning: true,
-          agentCanExecuteGpuModelToolsNow: true,
-          agentCanExecuteAll21ToolsNow: true,
-          agentCanExecuteToolsNow: true,
+          agentCanCallRequestedToolNow: true,
+          agentCanExecuteRequestedToolNow: gpuModelExecutionPassed,
+          agentCanExecuteGpuModelToolsNow: gpuModelExecutionPassed,
+          agentCanExecuteAll21ToolsNow: false,
+          agentCanExecuteToolsNow: gpuModelExecutionPassed,
           routeExecutionApprovedNow: true,
           routeExecutionPerformed: true,
           workerExecutionApprovedNow: false,
           workerExecutionPerformed: false,
-          toolExecutionApprovedNow: true,
+          toolExecutionApprovedNow: gpuModelExecutionPassed,
           toolExecutionPerformed:
             execution.localGpuModelRuntimeExecutionPerformed,
           providerRuntimeApprovedNow: false,

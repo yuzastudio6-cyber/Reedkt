@@ -324,7 +324,7 @@ for (const phrase of [
 for (const phrase of [
   'executeAiGraphicsExternalAgentGpuModelControlledAdapter',
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG',
-  'controlled_gpu_model_route_invoked_on_demand_adapter_with_private_runtime_blocks',
+  'controlled_gpu_model_route_blocked_with_reason',
 ]) {
   if (!routeSource.includes(phrase)) fail(`route_missing:${phrase}`)
 }
@@ -337,8 +337,11 @@ for (const phrase of [
   if (!gpuAdapterSource.includes(phrase)) fail(`gpu_adapter_missing:${phrase}`)
 }
 
-if (readinessProbe.counts?.externalAgentRouteExecutableNowTools !== 21) {
-  fail('readiness_probe_not_all21_executable')
+if (readinessProbe.counts?.externalAgentRouteCallableNowTools !== 21) {
+  fail('readiness_probe_not_all21_callable')
+}
+if (readinessProbe.counts?.externalAgentRouteExecutableNowTools !== 13) {
+  fail('readiness_probe_executable_not_13')
 }
 if (readinessProbe.booleans?.agentCanCallAll21ControlledRoutesNow !== true) {
   fail('readiness_probe_all21_callable_boolean_not_true')

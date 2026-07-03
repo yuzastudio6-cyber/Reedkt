@@ -74,7 +74,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`
 - scopedControlledRouteGpuModelBlockedTools: `8`
 - disabledRouteBlockedDetailCasesWithProvidedEvidence: `21`
-- externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `21`
+- externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `13`
 - cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `6`
 - browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `7`
 - controlledCanonicalRouteExecutedToolsWithProvidedEvidence: `13`

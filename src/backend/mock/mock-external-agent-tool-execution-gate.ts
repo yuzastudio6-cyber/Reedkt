@@ -1,5 +1,5 @@
 import {
-  AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
+  AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -123,12 +123,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10V bounded no-idle L4 payload/install retry result must remain recorded as blocked by IAP instance lookup before payload transfer with cleanup verified',
         '10W IAP lookup readiness fix must remain recorded before another L4 VM payload/install retry or any model import/inference attempt',
         '10Y runner fix must remain recorded with raw describe JSON parsed before sanitization and exact-name cleanup after any create attempt',
-        '10Z bounded no-idle L4 payload/install retry must run only through the source-controlled runner contract and must stop before model import or inference',
+        '10Z bounded no-idle L4 payload/install retry failed at recursive IAP wheelhouse transfer timeout after VM/IAP/Python readiness passed and cleanup verified',
+        '10ZA payload delivery timeout fix must run before another paid GPU retry; do not repeat the same 2.8 GB recursive IAP scp path',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required',
+      currentBlocker: 'broll_10za_payload_delivery_timeout_fix_required',
       safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result',
+        'npm run smoke:ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -175,7 +176,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

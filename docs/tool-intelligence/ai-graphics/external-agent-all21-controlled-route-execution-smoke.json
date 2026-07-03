@@ -1035,6 +1035,13 @@
       }
     }
   ],
+  "gpuModelRuntimePolicy": {
+    "scopedGpuModelPrivateInputPreflightBeforeGpuAttachment": true,
+    "scopedGpuModelMissingPrivateInputsBlockBeforeGpuStartup": true,
+    "scopedGpuModelRuntimeImageMissingBlocksBeforeInputInspection": true,
+    "scopedGpuModelGpuStartsOnlyAfterPrivateInputsAndRuntimeProof": true,
+    "noIdleGpuRuntimeApproved": true
+  },
   "counts": {
     "totalAiGraphicsTools": 21,
     "controlledRouteHttp200Tools": 21,

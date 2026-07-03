@@ -494,6 +494,7 @@ function buildScopedGpuModelLocalDevRouteAttempt(
   const runtimeContainerImageProvided = Boolean(runtimeContainerImage)
   const expectedBlockingReasonCodes = runtimeContainerImageProvided
     ? [
+        ...privateInputBlockingReasonCodes(toolId),
         'gpu_model_runtime_container_image_unavailable',
         'gpu_model_runtime_container_gpu_unavailable',
         'gpu_model_python_runtime_unavailable',
@@ -563,6 +564,31 @@ function buildScopedGpuModelLocalDevRouteAttempt(
       scopedGpuModelSignedUrlCreated: false,
     },
   }
+}
+
+function privateInputBlockingReasonCodes(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string[] {
+  const codesByTool: Record<
+    AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+    string[]
+  > = {
+    torch_torchvision: [],
+    transformers: [],
+    sam2: ['sam2_checkpoint_missing'],
+    birefnet: ['birefnet_model_missing', 'birefnet_source_frame_missing'],
+    real_esrgan: [
+      'real_esrgan_model_missing',
+      'real_esrgan_source_frame_missing',
+    ],
+    kornia: ['kornia_source_frame_missing'],
+    rembg: ['rembg_model_missing', 'rembg_source_frame_missing'],
+    transparent_background: [
+      'transparent_background_checkpoint_missing',
+      'transparent_background_source_frame_missing',
+    ],
+  }
+  return codesByTool[toolId]
 }
 
 function validateResults(
@@ -720,6 +746,13 @@ function buildReport(
     results,
     scopedGpuModelLocalDevRouteAttempt,
     scopedGpuModelLocalDevRouteAttempts,
+    gpuModelRuntimePolicy: {
+      scopedGpuModelPrivateInputPreflightBeforeGpuAttachment: true,
+      scopedGpuModelMissingPrivateInputsBlockBeforeGpuStartup: true,
+      scopedGpuModelRuntimeImageMissingBlocksBeforeInputInspection: true,
+      scopedGpuModelGpuStartsOnlyAfterPrivateInputsAndRuntimeProof: true,
+      noIdleGpuRuntimeApproved: true,
+    },
     counts: {
       totalAiGraphicsTools: 21,
       controlledRouteHttp200Tools: results.filter((item) => item.statusCode === 200).length,
@@ -906,6 +939,8 @@ ${report.scopedGpuModelLocalDevRouteAttempt.summary}
 ## Boundary
 
 This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, download model weights, unlock paid production, or mark runtime/beta/production ready. CPU/static and browser-runtime adapters execute in the explicit mock/local controlled route. GPU/model adapters are invoked through the controlled route, but local GPU/model runtime does not start until a scoped request supplies explicit local-dev runtime inputs, reviewed private manifests, accepted native GPU proof, and approval refs.
+
+Missing private source/model/checkpoint paths block before Docker GPU attachment. If no Docker runtime image is supplied, the scoped request blocks at the missing image prerequisite before inspecting local private inputs.
 `
 }
 

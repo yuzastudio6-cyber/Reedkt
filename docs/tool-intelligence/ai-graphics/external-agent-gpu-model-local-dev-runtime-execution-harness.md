@@ -6,6 +6,8 @@ Status: `local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute`
 
 This harness exercises the real GPU/model controlled adapter for all eight GPU/model tools in explicit `local_dev` mode. The committed record is prerequisite-check only: it records the guarded adapter branch and the exact private local inputs needed before runtime can start. It does not start GPU runtime, load model weights, process media, call providers, create public artifacts, create signed URLs, unlock external beta, or unlock production.
 
+Missing private source/model/checkpoint paths block before Python runtime or Docker GPU attachment. GPU starts only after the scoped tool call supplies the required private inputs and runtime proof.
+
 ## Tool rows
 
 | Tool | Capability | Harness mode | Adapter status | Skip reason | Error message | Local runtime executed | Tool execution approved | GPU starts now |

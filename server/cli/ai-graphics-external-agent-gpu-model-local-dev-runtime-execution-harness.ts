@@ -558,6 +558,8 @@ async function buildReport(args: HarnessArgs) {
       dockerContainerBackendSupported: true,
       dockerContainerBackendRequiresRuntimeImage: true,
       dockerContainerBackendRequiresScopedGpuAttachment: true,
+      privateInputPreflightBeforeGpuAttachment: true,
+      missingPrivateInputsBlockBeforeGpuStartup: true,
       dockerContainerBackendAutoMountsPrivateRuntimePaths: true,
       dockerContainerBackendMountsSourceAndModelPathsReadOnly: true,
       dockerContainerBackendMountsOutputPathsReadWrite: true,
@@ -655,6 +657,8 @@ Decision: \`${report.decision}\`
 Status: \`${report.status}\`
 
 This harness exercises the real GPU/model controlled adapter for all eight GPU/model tools in explicit \`local_dev\` mode. The committed record is prerequisite-check only: it records the guarded adapter branch and the exact private local inputs needed before runtime can start. It does not start GPU runtime, load model weights, process media, call providers, create public artifacts, create signed URLs, unlock external beta, or unlock production.
+
+Missing private source/model/checkpoint paths block before Python runtime or Docker GPU attachment. GPU starts only after the scoped tool call supplies the required private inputs and runtime proof.
 
 ## Tool rows
 

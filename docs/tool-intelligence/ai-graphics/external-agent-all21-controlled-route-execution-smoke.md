@@ -141,3 +141,5 @@ POSTs a scoped GPU/model local-dev runtime request through the mounted external-
 ## Boundary
 
 This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, download model weights, unlock paid production, or mark runtime/beta/production ready. CPU/static and browser-runtime adapters execute in the explicit mock/local controlled route. GPU/model adapters are invoked through the controlled route, but local GPU/model runtime does not start until a scoped request supplies explicit local-dev runtime inputs, reviewed private manifests, accepted native GPU proof, and approval refs.
+
+Missing private source/model/checkpoint paths block before Docker GPU attachment. If no Docker runtime image is supplied, the scoped request blocks at the missing image prerequisite before inspecting local private inputs.

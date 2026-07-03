@@ -258,6 +258,19 @@ function checkReport(label, report) {
     if (counts[key] !== value) fail(`${label}_count_${key}_mismatch:${counts[key]}`)
   }
 
+  const gpuModelRuntimePolicy = report.gpuModelRuntimePolicy ?? {}
+  for (const key of [
+    'scopedGpuModelPrivateInputPreflightBeforeGpuAttachment',
+    'scopedGpuModelMissingPrivateInputsBlockBeforeGpuStartup',
+    'scopedGpuModelRuntimeImageMissingBlocksBeforeInputInspection',
+    'scopedGpuModelGpuStartsOnlyAfterPrivateInputsAndRuntimeProof',
+    'noIdleGpuRuntimeApproved',
+  ]) {
+    if (gpuModelRuntimePolicy[key] !== true) {
+      fail(`${label}_gpu_model_runtime_policy_not_true:${key}`)
+    }
+  }
+
   const scopedAttempt = report.scopedGpuModelLocalDevRouteAttempt
   if (!scopedAttempt || typeof scopedAttempt !== 'object') {
     fail(`${label}_missing_scoped_gpu_model_local_dev_route_attempt`)

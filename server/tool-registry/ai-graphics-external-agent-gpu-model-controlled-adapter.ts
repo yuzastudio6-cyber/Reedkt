@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 import {
   runAiGraphicsFoundationRuntimeCheck,
@@ -326,6 +327,8 @@ function runtimePrerequisiteBlock(
         ],
       }
     }
+    const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
+    if (privateInputBlock) return privateInputBlock
     try {
       execFileSync('docker', ['image', 'inspect', image], {
         encoding: 'utf8',
@@ -412,6 +415,9 @@ function runtimePrerequisiteBlock(
       }
     }
   }
+
+  const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
+  if (privateInputBlock) return privateInputBlock
 
   const preflight = runtimePreflightPython(request.toolId)
   const missingModules = Array.isArray(preflight?.missingModules)
@@ -516,6 +522,139 @@ function runtimePrerequisiteBlock(
   }
 
   return null
+}
+
+function skippedPrerequisiteBlock(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  code: string
+  message: string
+  summary: string
+  warning: string
+}): Record<string, unknown> {
+  return {
+    executionInputMode: 'local_dev',
+    result: {
+      status: 'skipped',
+      tool: input.toolId,
+      commandPlan: {
+        tool: input.toolId,
+        command: 'private-input-preflight',
+        args: ['existsSync(<private-local-runtime-input>)'],
+        executes: false,
+        summary: input.summary,
+      },
+      skipReason: {
+        code: input.code,
+        message: input.message,
+        tool: input.toolId,
+      },
+      warningCount: 1,
+      errorMessage: undefined,
+    },
+    localRuntimeExecutionPerformed: false,
+    warnings: [input.warning],
+  }
+}
+
+function missingLocalPathBlock(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  pathValue: string | undefined
+  code: string
+  label: string
+}): Record<string, unknown> | null {
+  if (input.pathValue && existsSync(input.pathValue)) return null
+  return skippedPrerequisiteBlock({
+    toolId: input.toolId,
+    code: input.code,
+    message: `${input.label} is missing or not readable at the supplied private local path; no download or public fetch is allowed.`,
+    summary:
+      'GPU/model local-dev execution prerequisite blocked before Docker/GPU startup because a required private local runtime input was missing.',
+    warning:
+      'GPU/model runtime did not start because a required private local input path was missing.',
+  })
+}
+
+function privateLocalRuntimeInputBlock(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  const sourceFrame =
+    optionalString(payload, 'sourceImageLocalPath') ??
+    optionalString(payload, 'representativeFrameLocalPath')
+
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') return null
+
+  if (toolId === 'sam2') {
+    return missingLocalPathBlock({
+      toolId,
+      pathValue: optionalString(payload, 'sam2CheckpointLocalPath'),
+      code: 'sam2_checkpoint_missing',
+      label: 'SAM2 checkpoint',
+    })
+  }
+
+  if (toolId === 'birefnet') {
+    return missingLocalPathBlock({
+      toolId,
+      pathValue: optionalString(payload, 'birefnetModelLocalPath'),
+      code: 'birefnet_model_missing',
+      label: 'BiRefNet model/checkpoint',
+    }) ?? missingLocalPathBlock({
+      toolId,
+      pathValue: sourceFrame,
+      code: 'birefnet_source_frame_missing',
+      label: 'BiRefNet private source image/frame',
+    })
+  }
+
+  if (toolId === 'real_esrgan') {
+    return missingLocalPathBlock({
+      toolId,
+      pathValue: optionalString(payload, 'realEsrganModelLocalPath'),
+      code: 'real_esrgan_model_missing',
+      label: 'Real-ESRGAN model',
+    }) ?? missingLocalPathBlock({
+      toolId,
+      pathValue: sourceFrame,
+      code: 'real_esrgan_source_frame_missing',
+      label: 'Real-ESRGAN private source image/frame',
+    })
+  }
+
+  if (toolId === 'kornia') {
+    return missingLocalPathBlock({
+      toolId,
+      pathValue: sourceFrame,
+      code: 'kornia_source_frame_missing',
+      label: 'Kornia private source image/frame',
+    })
+  }
+
+  if (toolId === 'rembg') {
+    return missingLocalPathBlock({
+      toolId,
+      pathValue: optionalString(payload, 'rembgModelLocalPath'),
+      code: 'rembg_model_missing',
+      label: 'rembg ONNX model',
+    }) ?? missingLocalPathBlock({
+      toolId,
+      pathValue: sourceFrame,
+      code: 'rembg_source_frame_missing',
+      label: 'rembg private source image/frame',
+    })
+  }
+
+  return missingLocalPathBlock({
+    toolId,
+    pathValue: optionalString(payload, 'transparentBackgroundCheckpointLocalPath'),
+    code: 'transparent_background_checkpoint_missing',
+    label: 'transparent-background checkpoint',
+  }) ?? missingLocalPathBlock({
+    toolId,
+    pathValue: sourceFrame,
+    code: 'transparent_background_source_frame_missing',
+    label: 'transparent-background private source image/frame',
+  })
 }
 
 function privateRef(value: string, field: string): void {

@@ -50,6 +50,8 @@
     "dockerContainerBackendSupported": true,
     "dockerContainerBackendRequiresRuntimeImage": true,
     "dockerContainerBackendRequiresScopedGpuAttachment": true,
+    "privateInputPreflightBeforeGpuAttachment": true,
+    "missingPrivateInputsBlockBeforeGpuStartup": true,
     "dockerContainerBackendAutoMountsPrivateRuntimePaths": true,
     "dockerContainerBackendMountsSourceAndModelPathsReadOnly": true,
     "dockerContainerBackendMountsOutputPathsReadWrite": true

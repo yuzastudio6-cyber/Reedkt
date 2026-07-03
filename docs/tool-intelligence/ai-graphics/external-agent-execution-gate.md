@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_w
 
 Status: `external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked`
 
-Controlled-route-ready external-agent execution gate for all 21 AI graphics tools. It now accepts claimed-worker controlled route execution for the 13 CPU/static and browser/runtime tools, plus GPU/model proof-ref queue admission for all eight GPU/model tools, while preserving direct/global execution, live worker dispatch, GPU/model runtime, public artifacts, beta, and production blocks.
+Controlled-route-ready external-agent execution gate for all 21 AI graphics tools. It now accepts claimed-worker controlled route execution for the 13 CPU/static and browser/runtime tools, plus GPU/model proof-ref queue admission and runtime queue-service bridge evidence for all eight GPU/model tools, while preserving direct/global execution, live worker dispatch, GPU/model runtime, public artifacts, beta, and production blocks.
 
 This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route-mount readiness evidence, and preserves the proper-install audit boundary.
 
@@ -94,6 +94,13 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProofRefEvidence: `8`
 - gpuModelProofRefQueueAdmissionGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - gpuModelProofRefQueueAdmissionToolExecutionPerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedToolsWithProvidedEvidence: `8`
+- externalAgentGpuModelRuntimeQueueServiceBridgeMockJobsWithProvidedEvidence: `8`
+- externalAgentGpuModelRuntimeQueueServiceBridgeMockWorkerClaimsWithProvidedEvidence: `8`
+- externalAgentGpuModelRuntimeQueueServiceBridgeLiveQueueWritePerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeWorkerDispatchPerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeToolExecutionPerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence: `21`
 - mockQueueInsertedJobsWithProvidedEvidence: `21`
 - mockWorkerClaimsCreatedWithProvidedEvidence: `21`
@@ -185,6 +192,16 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - gpuModelProofRefQueueAdmissionGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - gpuModelProofRefQueueAdmissionToolExecutionPerformedToolsWithProvidedEvidence: `0`
 - `npm run ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics`
+- GPU/model runtime queue-service bridge accepted: `true`
+- externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedToolsWithProvidedEvidence: `8`
+- externalAgentGpuModelRuntimeQueueServiceBridgeMockJobsWithProvidedEvidence: `8`
+- externalAgentGpuModelRuntimeQueueServiceBridgeMockWorkerClaimsWithProvidedEvidence: `8`
+- externalAgentGpuModelRuntimeQueueServiceBridgeLiveQueueWritePerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeWorkerDispatchPerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeToolExecutionPerformedToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelRuntimeQueueServiceBridgeGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
+- `npm run ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics`
+- `npm run ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics`
 - Mock queue worker-claim smoke accepted: `true`
 
 ## Booleans

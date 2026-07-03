@@ -39,11 +39,25 @@ const implementationFiles = [
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const bridgeFollowupFiles = [
+  'docs/activation-phase-tracka-three-tool-external-agent-execution-bridge-1-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-1/bridge-contract.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-1/request-envelope.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-1/tracka-three-tool-external-agent-execution-bridge-1-record.json',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-execution-bridge-dry-run-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-execution-bridge-1-diagnostics.mjs',
+  'server/services/tracka-three-tool-external-agent-execution-bridge-1.ts',
+  'server/smoke/tracka-three-tool-external-agent-execution-bridge-1-smoke.ts',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...bridgeFollowupFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,
-  /^server\//,
+  /^server\/(?!services\/tracka-three-tool-external-agent-execution-bridge-1\.ts$|smoke\/tracka-three-tool-external-agent-execution-bridge-1-smoke\.ts$)/,
   /^supabase\//,
   /^database\//,
   /^migrations?\//,

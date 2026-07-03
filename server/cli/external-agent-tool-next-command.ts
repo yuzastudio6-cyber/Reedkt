@@ -235,9 +235,13 @@ function main() {
           : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
   const chosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
-    : qwenLivePreflightVerificationRequired
-      ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
-    : diagnosticRecommendedNextPrompt ?? nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
+    : !qwenAuthRefreshPassed
+      ? diagnosticRecommendedNextPrompt ??
+        nestedString(liveBlocker.json, ['recommendedNextPrompt']) ??
+        spec.nextCommandRules.whenQwenAuthRefreshFails
+      : qwenLivePreflightVerificationRequired
+        ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
+        : nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
   const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required
   const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined

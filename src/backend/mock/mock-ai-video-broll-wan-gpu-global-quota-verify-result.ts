@@ -1,5 +1,5 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
-  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10y_runner_cleanup_fix_required',
+  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10z_retry_after_runner_fix_required',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
@@ -41,7 +41,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
     readyForBroll10wIapLookupReadinessFixPrompt: false,
     readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt: false,
-    readyForBroll10yRunnerRawJsonCleanupFixPrompt: true,
+    readyForBroll10yRunnerRawJsonCleanupFixPrompt: false,
+    readyForBroll10zNoIdleL4PayloadInstallRetryAfterRunnerFixPrompt: true,
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
@@ -70,7 +71,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
   readyForBroll10wIapLookupReadinessFixPrompt: false,
   readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt: false,
-  readyForBroll10yRunnerRawJsonCleanupFixPrompt: true,
+  readyForBroll10yRunnerRawJsonCleanupFixPrompt: false,
+  readyForBroll10zNoIdleL4PayloadInstallRetryAfterRunnerFixPrompt: true,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
   runtimeSideEffects: {
@@ -100,7 +102,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10Y-RUNNER-RAW-JSON-CLEANUP-FIX: fix L4 payload/install runner to parse raw describe JSON before sanitizing logs and delete prompt VM after any create attempt, no VM/no model/no inference',
+    'AI-VIDEO-BROLL-GEN-10Z-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-AFTER-RUNNER-FIX: retry bounded no-idle L4 payload/install readiness after raw JSON cleanup runner fix, no model import/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

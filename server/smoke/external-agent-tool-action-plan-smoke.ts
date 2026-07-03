@@ -181,10 +181,11 @@ assert.equal(broll.externalManualBlocker.includes('10S exposed a runner flag con
 assert.equal(broll.externalManualBlocker.includes('10T repaired that flag conflict'), true)
 assert.equal(broll.externalManualBlocker.includes('10U proved the no-GPU IAP SSH canary'), true)
 assert.equal(broll.externalManualBlocker.includes('10W recorded the no-execution post-create IAP lookup readiness fix'), true)
-assert.equal(broll.externalManualBlocker.includes('10Y runner raw JSON cleanup fix'), true)
+assert.equal(broll.externalManualBlocker.includes('10Y fixed the source-controlled runner contract'), true)
+assert.equal(broll.externalManualBlocker.includes('10Z bounded no-idle L4 payload/install retry'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run the separate 10Y no-execution runner fix before another L4 proof so raw describe JSON is parsed before sanitized summaries and exact-name cleanup runs after any create attempt',
+  'run the separate 10Z bounded no-idle L4 payload/install retry after the 10Y runner fix; stop before model import or inference and cleanup exact-name prompt resources after any create attempt',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

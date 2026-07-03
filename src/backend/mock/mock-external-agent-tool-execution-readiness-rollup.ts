@@ -200,10 +200,12 @@ export const AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LO
   'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS: retry bounded no-idle L4 payload/install readiness with post-create IAP lookup readiness and mandatory cleanup, no model import/no inference' as const
 export const AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10Y-RUNNER-RAW-JSON-CLEANUP-FIX: fix L4 payload/install runner to parse raw describe JSON before sanitizing logs and delete prompt VM after any create attempt, no VM/no model/no inference' as const
+export const AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10Z-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-AFTER-RUNNER-FIX: retry bounded no-idle L4 payload/install readiness after raw JSON cleanup runner fix, no model import/no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10y_runner_cleanup_fix_required',
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10z_retry_after_runner_fix_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -428,14 +430,19 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_10x_blocked_runner_parse_cleanup_bug_10y_fix_required',
+        'controlled_l4_no_idle_payload_install_proof_10y_runner_raw_json_cleanup_fix_recorded_10z_retry_required',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
-      primaryBlocker: 'broll_10y_runner_raw_json_cleanup_fix_required',
+      primaryBlocker: 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required',
       evidence: [
+        'docs/ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result.md',
+        'src/backend/mock/mock-ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result.ts',
+        'server/cli/ai-video-broll-gen-10y-l4-payload-install-runner-contract.ts',
+        'server/smoke/ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result-smoke.ts',
+        'docs/implementation-prompts/prompt-ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix.md',
         'docs/ai-video-broll-gen-10w-iap-lookup-readiness-fix-result.md',
         'src/backend/mock/mock-ai-video-broll-gen-10w-iap-lookup-readiness-fix-result.ts',
         'server/smoke/ai-video-broll-gen-10w-iap-lookup-readiness-fix-result-smoke.ts',
@@ -627,7 +634,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -657,7 +664,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
+          AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
       },
     },
     {
@@ -710,7 +717,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
+    AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

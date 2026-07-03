@@ -8,6 +8,7 @@ import {
 } from '../../src/backend/mock/mock-ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun-result'
 import {
   AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER,
+  AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
 } from '../../src/backend/mock/mock-ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
@@ -135,7 +136,7 @@ for (const required of [
 assert.equal(prompt.includes('Do not create a GPU VM.'), true, '10U prompt must keep GPU blocked')
 assert.equal(runner.includes("'--tunnel-through-iap'"), true, 'runner must keep IAP tunneling')
 assert.equal(runner.includes("'--internal-ip'"), false, 'runner must not pass --internal-ip with IAP tunneling')
-assert.equal(runnerSpecSource.includes(AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT), true)
+assert.equal(runnerSpecSource.includes(AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT), true)
 
 const result = AI_VIDEO_BROLL_GEN_10U_NO_GPU_IAP_SSH_CANARY_RERUN_RESULT
 assert.equal(result.decision, DECISION)
@@ -163,7 +164,7 @@ assert.equal(result.nextPrompt, AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTAL
 
 assert.equal(
   AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER.failureRouting.success,
-  AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT,
+  AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
 )
 
 for (const [flag, value] of Object.entries(result.runtimeSideEffects)) {
@@ -190,14 +191,14 @@ const brollTool = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
   (tool) => tool.toolId === 'ai_video_broll_generation_wan',
 )
 assert.ok(brollTool, 'B-roll tool missing from rollup')
-assert.equal(brollTool.primaryBlocker, 'broll_10v_no_idle_l4_payload_install_retry_required')
-assert.equal(brollTool.nextAction, AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT)
+assert.equal(brollTool.primaryBlocker, 'broll_10w_iap_lookup_readiness_fix_required')
+assert.equal(brollTool.nextAction, AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT)
 assert.equal(
   brollTool.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT,
+  AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
 )
-assert.equal(rollupDoc.includes(AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT), true)
-assert.equal(rollupDoc.includes('broll_10v_no_idle_l4_payload_install_retry_required'), true)
+assert.equal(rollupDoc.includes(AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT), true)
+assert.equal(rollupDoc.includes('broll_10w_iap_lookup_readiness_fix_required'), true)
 
 const forbiddenFindings = scanForbiddenValues({ doc, prompt, nextPrompt, result, rollupDoc })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

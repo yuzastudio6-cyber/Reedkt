@@ -17,7 +17,7 @@ export type AiVideoBrollWanFastCacheManifestEntry = {
 
 export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   decision:
-    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10v_no_idle_l4_payload_install_retry',
+    'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10w_iap_lookup_readiness_fix',
   mode: 'stat_only_private_cache_readiness_check',
   toolId: 'ai_video_broll_generation_wan',
   modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
@@ -50,9 +50,10 @@ export const AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC = {
   readyForBroll10sFixedCanaryExecutePrompt: false,
   readyForBroll10tIapSshFlagFixPrompt: false,
   readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
-  readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: true,
+  readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
+  readyForBroll10wIapLookupReadinessFixPrompt: true,
   nextAction:
-    'AI-VIDEO-BROLL-GEN-10V-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY: retry bounded no-idle L4 payload/install readiness after no-GPU IAP SSH canary passed; mandatory cleanup, no model import/no inference',
+    'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference',
   manifest: [
     { relativePath: 'model_index.json', expectedBytes: 400, role: 'pipeline_index' },
     { relativePath: 'scheduler/scheduler_config.json', expectedBytes: 751, role: 'scheduler_config' },

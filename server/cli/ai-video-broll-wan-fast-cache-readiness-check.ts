@@ -207,6 +207,8 @@ function main() {
           spec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt,
         readyForBroll10vNoIdleL4PayloadInstallRetryPrompt:
           spec.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt,
+        readyForBroll10wIapLookupReadinessFixPrompt:
+          spec.readyForBroll10wIapLookupReadinessFixPrompt,
         nextAction: spec.nextAction,
       },
       null,

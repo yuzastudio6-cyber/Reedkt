@@ -1,5 +1,5 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
-  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10v_no_idle_l4_payload_install_retry_required',
+  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10w_iap_lookup_readiness_fix_required',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
@@ -38,7 +38,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     readyForBroll10sFixedCanaryExecutePrompt: false,
     readyForBroll10tIapSshFlagFixPrompt: false,
     readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
-    readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: true,
+    readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
+    readyForBroll10wIapLookupReadinessFixPrompt: true,
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
@@ -57,7 +58,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   readyForBroll10sFixedCanaryExecutePrompt: false,
   readyForBroll10tIapSshFlagFixPrompt: false,
   readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
-  readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: true,
+  readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
+  readyForBroll10wIapLookupReadinessFixPrompt: true,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
   runtimeSideEffects: {
@@ -87,7 +89,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10V-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY: retry bounded no-idle L4 payload/install readiness after no-GPU IAP SSH canary passed; mandatory cleanup, no model import/no inference',
+    'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

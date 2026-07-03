@@ -180,10 +180,10 @@ assert.equal(broll.externalManualBlocker.includes('10Q recorded an inconclusive 
 assert.equal(broll.externalManualBlocker.includes('10S exposed a runner flag conflict'), true)
 assert.equal(broll.externalManualBlocker.includes('10T repaired that flag conflict'), true)
 assert.equal(broll.externalManualBlocker.includes('10U proved the no-GPU IAP SSH canary'), true)
-assert.equal(broll.externalManualBlocker.includes('10V bounded no-idle L4 payload/install retry'), true)
+assert.equal(broll.externalManualBlocker.includes('10W post-create IAP lookup readiness fix'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run the separate 10V bounded no-idle L4 payload/install proof retry before any model import or inference attempt',
+  'run the separate 10W no-execution IAP lookup readiness fix before another L4 payload/install proof retry or any model import/inference attempt',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

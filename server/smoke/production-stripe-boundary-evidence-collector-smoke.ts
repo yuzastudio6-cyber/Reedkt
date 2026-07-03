@@ -109,6 +109,27 @@ function fakeFetch(
             productionToolExecutionAllowed: true,
             paidProductionAllowed: true,
           },
+          latestPacket: {
+            id: 'production-stripe-boundary-evidence-packet-smoke',
+            workspaceId: 'workspace-production-stripe-boundary-smoke',
+          },
+          packets: [
+            {
+              id: 'production-stripe-boundary-evidence-packet-smoke',
+              workspaceId: 'workspace-production-stripe-boundary-smoke',
+            },
+          ],
+          readinessSummary: {
+            workspaceId: 'workspace-production-stripe-boundary-smoke',
+            evidencePacketCount: 1,
+            latestEvidencePacketId: 'production-stripe-boundary-evidence-packet-smoke',
+            latestGateStatus: 'ready_for_paid_production',
+            latestProductionToolExecutionAllowed: true,
+            latestPaidProductionAllowed: true,
+            durableEvidenceStored: true,
+            backendPersistenceMode: 'persistent_supabase',
+            productionActivationAttempted: false,
+          },
         },
         warnings: ['Production Stripe boundary readback smoke response.'],
       })

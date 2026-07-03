@@ -61,6 +61,9 @@ const reviewedRealAdapterIds = [
   'qa_worker_caption_metadata',
   'qa_worker_final_render_qa_metadata',
   'tool_readiness_worker_core_checks',
+  'tool_readiness_worker_streamer_render_pipeline_support',
+  'tool_readiness_worker_mkvtoolnix_container_validation',
+  'tool_readiness_worker_gpac_mp4box_packaging_validation',
 ]
 
 const placeholderAdapterIds = [
@@ -85,7 +88,8 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     countOccurrences(sources.workerRouter, 'mockOnly: !realFinalRenderMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realFinalRenderQaMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler') +
-    countOccurrences(sources.workerRouter, 'mockOnly: !realToolReadinessHandler')
+    countOccurrences(sources.workerRouter, 'mockOnly: !realToolReadinessHandler') +
+    countOccurrences(sources.workerRouter, 'mockOnly: !realTrackANativeValidationHandler')
   const routerHasReviewedNonMockOutput = routerLiteralNonMockOutputs + routerConditionalNonMockOutputs > 0
   const presentRealAdapterIds = reviewedRealAdapterIds
     .filter((adapterId) => sources.gatewaySchemas.includes(adapterId))
@@ -147,6 +151,9 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         captionQaMetadataAdapterPresent: sources.gatewaySchemas.includes('qa_worker_caption_metadata'),
         finalRenderQaMetadataAdapterPresent: sources.gatewaySchemas.includes('qa_worker_final_render_qa_metadata'),
         toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
+        trackANativeStreamerAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_streamer_render_pipeline_support'),
+        trackANativeMkvToolNixAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_mkvtoolnix_container_validation'),
+        trackANativeGpacMp4BoxAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_gpac_mp4box_packaging_validation'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
       },
     },

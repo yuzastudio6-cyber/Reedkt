@@ -109,6 +109,27 @@ function fakeFetch(
             productionToolExecutionAllowed: true,
             paidProductionAllowed: true,
           },
+          latestPacket: {
+            id: 'production-final-owner-signoff-evidence-packet-smoke',
+            workspaceId: 'workspace-production-final-owner-signoff-smoke',
+          },
+          packets: [
+            {
+              id: 'production-final-owner-signoff-evidence-packet-smoke',
+              workspaceId: 'workspace-production-final-owner-signoff-smoke',
+            },
+          ],
+          readinessSummary: {
+            workspaceId: 'workspace-production-final-owner-signoff-smoke',
+            evidencePacketCount: 1,
+            latestEvidencePacketId: 'production-final-owner-signoff-evidence-packet-smoke',
+            latestGateStatus: 'ready_for_paid_production',
+            latestProductionToolExecutionAllowed: true,
+            latestPaidProductionAllowed: true,
+            durableEvidenceStored: true,
+            backendPersistenceMode: 'persistent_supabase',
+            productionActivationAttempted: false,
+          },
         },
         warnings: ['Production final owner signoff readback smoke response.'],
       })

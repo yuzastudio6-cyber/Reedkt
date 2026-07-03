@@ -113,6 +113,27 @@ function fakeFetch(
             productionToolExecutionAllowed: true,
             paidProductionAllowed: true,
           },
+          latestPacket: {
+            id: 'production-ops-observability-evidence-packet-smoke',
+            workspaceId: 'workspace-production-ops-observability-smoke',
+          },
+          packets: [
+            {
+              id: 'production-ops-observability-evidence-packet-smoke',
+              workspaceId: 'workspace-production-ops-observability-smoke',
+            },
+          ],
+          readinessSummary: {
+            workspaceId: 'workspace-production-ops-observability-smoke',
+            evidencePacketCount: 1,
+            latestEvidencePacketId: 'production-ops-observability-evidence-packet-smoke',
+            latestGateStatus: 'ready_for_paid_production',
+            latestProductionToolExecutionAllowed: true,
+            latestPaidProductionAllowed: true,
+            durableEvidenceStored: true,
+            backendPersistenceMode: 'persistent_supabase',
+            productionActivationAttempted: false,
+          },
         },
         warnings: ['Production ops/observability readback smoke response.'],
       })

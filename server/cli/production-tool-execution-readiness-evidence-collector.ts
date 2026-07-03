@@ -46,9 +46,12 @@ export interface ProductionToolExecutionReadinessEvidenceReadbackSummary {
   status: number
   endpoint: string
   evidencePacketCount?: number
+  latestEvidencePacketId?: string
   latestGateStatus?: string
   latestProductionToolExecutionAllowed?: boolean
   latestPaidProductionAllowed?: boolean
+  recordedEvidencePacketPresent?: boolean
+  recordedEvidencePacketLatest?: boolean
   warnings: string[]
 }
 
@@ -138,12 +141,22 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
       accept: 'application/json',
     },
   })
-  const readback = summarizeReadbackResponse(readbackEndpoint, readbackResponse.status, await readbackResponse.json())
+  const readback = summarizeReadbackResponse(
+    readbackEndpoint,
+    readbackResponse.status,
+    await readbackResponse.json(),
+    record.evidencePacketId,
+  )
   if (
     requireRecordedReadback &&
-    (readback.ok !== true || readback.latestProductionToolExecutionAllowed !== true || readback.latestPaidProductionAllowed !== true)
+    (
+      readback.ok !== true ||
+      readback.latestProductionToolExecutionAllowed !== true ||
+      readback.latestPaidProductionAllowed !== true ||
+      readback.recordedEvidencePacketPresent !== true
+    )
   ) {
-    throw new Error('Production readiness evidence readback did not confirm the recorded passing production gate report.')
+    throw new Error('Production readiness evidence readback did not confirm the recorded passing production gate report and exact evidence packet id.')
   }
 
   return {
@@ -199,17 +212,36 @@ function summarizeReadbackResponse(
   endpoint: string,
   status: number,
   payload: unknown,
+  recordedEvidencePacketId?: string,
 ): ProductionToolExecutionReadinessEvidenceReadbackSummary {
   const data = isRecord(payload) && isRecord(payload.data) ? payload.data : {}
+  const packets = Array.isArray(data.packets) ? data.packets.filter(isRecord) : []
+  const latestPacket = isRecord(data.latestPacket)
+    ? data.latestPacket
+    : packets.length > 0
+      ? packets[packets.length - 1]
+      : {}
   const latestReport = isRecord(data.latestReport) ? data.latestReport : {}
+  const readinessSummary = isRecord(data.readinessSummary) ? data.readinessSummary : {}
+  const latestEvidencePacketId = stringValue(readinessSummary.latestEvidencePacketId) ?? stringValue(latestPacket.id)
+  const packetIds = packets.map((packet) => stringValue(packet.id)).filter((id): id is string => Boolean(id))
+  const recordedEvidencePacketPresent = recordedEvidencePacketId
+    ? packetIds.includes(recordedEvidencePacketId) || latestEvidencePacketId === recordedEvidencePacketId
+    : undefined
+  const recordedEvidencePacketLatest = recordedEvidencePacketId
+    ? latestEvidencePacketId === recordedEvidencePacketId
+    : undefined
   return {
     ok: isRecord(payload) && payload.ok === true,
     status,
     endpoint,
     evidencePacketCount: numberValue(data.evidencePacketCount),
+    latestEvidencePacketId,
     latestGateStatus: stringValue(latestReport.status),
     latestProductionToolExecutionAllowed: booleanValue(latestReport.productionToolExecutionAllowed),
     latestPaidProductionAllowed: booleanValue(latestReport.paidProductionAllowed),
+    recordedEvidencePacketPresent,
+    recordedEvidencePacketLatest,
     warnings: stringArray(isRecord(payload) ? payload.warnings : undefined),
   }
 }

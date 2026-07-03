@@ -12,7 +12,13 @@ assert.equal(report.boundedRealHandlerReady, true, 'bounded real handler coverag
 assert.equal(report.scopedReviewedHandlerReady, true, 'scoped reviewed real handler coverage should be ready')
 assert.equal(report.allProductionHandlerCoverageReady, false, 'broad all-route production handler coverage should remain incomplete while placeholder routes remain')
 assert.equal(report.productionScope, 'reviewed_real_backend_adapters_only', 'readiness should be scoped to reviewed real backend adapters')
-assert.ok(report.reviewedRealAdapterIds.length >= 13, 'report should list reviewed real backend adapters')
+assert.ok(report.reviewedRealAdapterIds.length >= 16, 'report should list reviewed real backend adapters, including Track A native validation adapters')
+assert.ok(
+  report.reviewedRealAdapterIds.includes('tool_readiness_worker_streamer_render_pipeline_support') &&
+    report.reviewedRealAdapterIds.includes('tool_readiness_worker_mkvtoolnix_container_validation') &&
+    report.reviewedRealAdapterIds.includes('tool_readiness_worker_gpac_mp4box_packaging_validation'),
+  'report should include the Track A native validation backend adapters',
+)
 assert.ok(report.blockedPlaceholderAdapterIds.length >= 5, 'report should list placeholder adapters that remain blocked for production_ready dispatch')
 assert.equal(
   report.decision,

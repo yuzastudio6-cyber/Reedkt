@@ -126,6 +126,9 @@ const fallbackChainByTool: Record<ProductionToolId, string[]> = {
   deck_gl: [],
   cesium_js: [],
   konva: [],
+  gstreamer: [],
+  mkvtoolnix: [],
+  gpac_mp4box: [],
   vapoursynth: ['final_export_fallback'],
   revideo: ['final_export_fallback'],
 }

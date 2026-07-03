@@ -56,6 +56,9 @@ assert.equal(recorded.record?.status, 201, 'first evidence record should return 
 assert.equal(recorded.record?.replayed, false, 'first evidence record should not be replayed')
 assert.equal(recorded.record?.productionToolExecutionAllowed, true, 'record response should preserve production tool execution readiness')
 assert.equal(recorded.readback?.evidencePacketCount, 1, 'readback should include one recorded production readiness evidence packet')
+assert.equal(recorded.readback?.latestEvidencePacketId, 'production-readiness-evidence-packet-smoke', 'readback should expose the latest evidence packet id')
+assert.equal(recorded.readback?.recordedEvidencePacketPresent, true, 'readback should prove the exact recorded evidence packet is present')
+assert.equal(recorded.readback?.recordedEvidencePacketLatest, true, 'single-packet smoke readback should mark the recorded packet as latest')
 assert.equal(recorded.readback?.latestPaidProductionAllowed, true, 'readback should preserve paid-production readiness')
 assert.equal(calls.length, 2, 'collector should POST once and read back once')
 assert.equal(calls[0]?.method, 'POST', 'first call should record evidence')
@@ -119,6 +122,27 @@ function fakeFetch(
             status: ready ? 'ready_for_paid_production' : 'blocked',
             productionToolExecutionAllowed: ready,
             paidProductionAllowed: ready,
+          },
+          latestPacket: {
+            id: 'production-readiness-evidence-packet-smoke',
+            workspaceId: 'workspace-production-readiness-collector-smoke',
+          },
+          packets: [
+            {
+              id: 'production-readiness-evidence-packet-smoke',
+              workspaceId: 'workspace-production-readiness-collector-smoke',
+            },
+          ],
+          readinessSummary: {
+            workspaceId: 'workspace-production-readiness-collector-smoke',
+            evidencePacketCount: 1,
+            latestEvidencePacketId: 'production-readiness-evidence-packet-smoke',
+            latestGateStatus: ready ? 'ready_for_paid_production' : 'blocked',
+            latestProductionToolExecutionAllowed: ready,
+            latestPaidProductionAllowed: ready,
+            durableEvidenceStored: true,
+            backendPersistenceMode: 'persistent_supabase',
+            productionActivationAttempted: false,
           },
         },
         warnings: ['Production readiness evidence readback route smoke response.'],

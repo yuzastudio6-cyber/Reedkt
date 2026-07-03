@@ -31,7 +31,7 @@ If any gate fails, the response is `409` with precise blocker records. The gatew
 
 ## Adapter Boundary
 
-Milestone 4 intentionally allows only mock-safe placeholder adapters:
+The gateway keeps mock-safe placeholder adapters for planning and dry-run routes:
 
 - `cpu_analysis_worker_placeholder`
 - `gpu_ai_worker_placeholder`
@@ -39,11 +39,17 @@ Milestone 4 intentionally allows only mock-safe placeholder adapters:
 - `qa_worker_placeholder`
 - `tool_readiness_worker_placeholder`
 
-Each adapter must match its worker type. Unfinished lanes, frontend-preview-only tools, planning-only tools, evaluation-only tools, blocked tools, worker-owner mismatches, and over-budget requests return blockers.
+`production_ready` requests cannot use those placeholders. They must use an explicitly reviewed backend adapter such as the media-foundation handlers, caption/render metadata handlers, core tool-readiness checks, or the Track A native validation adapters:
 
-Gateway metadata is not allowed to contain lower-level worker router selector keys such as `mediaFoundation`, `finalRenderExecution`, `audioExecution`, `colorExecution`, `maskComposition`, or QA equivalents unless an explicitly reviewed adapter allowlists the exact key. Current exceptions are limited to `mediaFoundation` for reviewed media-foundation handlers, `smartCutTimelineExecution` for the smart-cut/timeline metadata handler, `audioExecution` for the bounded audio metadata/QA handler, `colorExecution` for the bounded color metadata/QA handler, and `finalRenderExecution` for the bounded render-manifest/command-plan/QA metadata handler. Other keys remain reserved for later explicitly approved adapter milestones.
+- `tool_readiness_worker_streamer_render_pipeline_support`
+- `tool_readiness_worker_mkvtoolnix_container_validation`
+- `tool_readiness_worker_gpac_mp4box_packaging_validation`
 
-The lower production worker dispatcher remains mock-safe in this milestone. Its outputs are placeholder/future-handler records, not real media processing.
+Each adapter must match its worker type and exact reviewed tool scope. Unfinished lanes, frontend-preview-only tools, planning-only tools, evaluation-only tools, blocked tools, worker-owner mismatches, and over-budget requests return blockers.
+
+Gateway metadata is not allowed to contain lower-level worker router selector keys such as `mediaFoundation`, `finalRenderExecution`, `audioExecution`, `colorExecution`, `maskComposition`, `trackANativeValidation`, or QA equivalents unless an explicitly reviewed adapter allowlists the exact key. Current exceptions are limited to `mediaFoundation` for reviewed media-foundation handlers, `smartCutTimelineExecution` for the smart-cut/timeline metadata handler, `audioExecution` for the bounded audio metadata/QA handler, `colorExecution` for the bounded color metadata/QA handler, `finalRenderExecution` for the bounded render-manifest/command-plan/QA metadata handler, `speechCaptionExecution` for reviewed caption metadata/QA handlers, and `trackANativeValidation` for the three Track A native validation adapters. Other keys remain reserved for later explicitly approved adapter milestones.
+
+The Track A native validation adapters produce private QA report artifacts and QA gate results only. They do not run GStreamer, MKVToolNix, GPAC/MP4Box media commands, process user media, create public artifacts, or approve final export/product delivery by themselves.
 
 ## Artifact Privacy
 
@@ -81,6 +87,8 @@ For `production_ready`, post-dispatch billing audit uses the persistent service-
 - worker-type concurrent job limit.
 
 Local/mock runtime uses in-memory counters for deterministic smoke coverage. Non-mock runtime defaults production kill switches active unless backend env opens them, and reads persistent `api_idempotency_keys` and `worker_leases` for rate/concurrency checks. Missing deployed control sources fail closed before worker dispatch or billing audit.
+
+When the `production_ready` operations-control step runs, the gateway response includes a sanitized `productionOpsControls` audit record with the admission result, blocker codes, warnings, active kill-switch state, workspace rate-limit counter, project concurrency counter, worker concurrency counter, configured limits, and whether persistent backend counters were checked. Agent/tool-call orchestration should use this structured record to explain why a backend-approved tool call was admitted or blocked instead of parsing freeform warning text.
 
 ## Non-Goals
 

@@ -7,7 +7,11 @@ import {
   getMockProductionToolExecutionReadinessEvidencePacket,
   getPersistentProductionToolExecutionReadinessEvidencePacket,
 } from '../beta-readiness/production-tool-execution-readiness-evidence-store'
-import { admitProductionGatewayOpsControls } from '../cost-controls'
+import {
+  admitProductionGatewayOpsControls,
+  type ProductionGatewayOpsControlAdmission,
+  type ProductionGatewayOpsControlSnapshot,
+} from '../cost-controls'
 import {
   assertToolExecutionCostCreditGate,
   createToolCostMeteringService,
@@ -71,6 +75,9 @@ export type ToolExecutionGatewayAdapterId =
   | 'qa_worker_final_render_qa_metadata'
   | 'qa_worker_placeholder'
   | 'tool_readiness_worker_core_checks'
+  | 'tool_readiness_worker_streamer_render_pipeline_support'
+  | 'tool_readiness_worker_mkvtoolnix_container_validation'
+  | 'tool_readiness_worker_gpac_mp4box_packaging_validation'
   | 'tool_readiness_worker_placeholder'
 
 export interface ToolExecutionGatewayBlocker {
@@ -78,6 +85,13 @@ export interface ToolExecutionGatewayBlocker {
   gateName: string
   message: string
   details?: Record<string, unknown>
+}
+
+export interface ToolExecutionGatewayProductionOpsControls {
+  allowed: boolean
+  blockerCodes: string[]
+  warnings: string[]
+  snapshot: ProductionGatewayOpsControlSnapshot
 }
 
 export interface ToolExecutionGatewayDispatchResult {
@@ -97,6 +111,7 @@ export interface ToolExecutionGatewayDispatchResult {
     adapterId: ToolExecutionGatewayAdapterId
     requestedToolIds: ProductionToolId[]
     blockers: ToolExecutionGatewayBlocker[]
+    productionOpsControls?: ToolExecutionGatewayProductionOpsControls
     dispatchedAt: string
   }
   productionReadinessReport?: ProductionToolExecutionReadinessGateReport
@@ -126,8 +141,33 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   qa_worker_final_render_qa_metadata: 'qa_worker',
   qa_worker_placeholder: 'qa_worker',
   tool_readiness_worker_core_checks: 'tool_readiness_worker',
+  tool_readiness_worker_streamer_render_pipeline_support: 'tool_readiness_worker',
+  tool_readiness_worker_mkvtoolnix_container_validation: 'tool_readiness_worker',
+  tool_readiness_worker_gpac_mp4box_packaging_validation: 'tool_readiness_worker',
   tool_readiness_worker_placeholder: 'tool_readiness_worker',
 }
+
+const trackANativeValidationAdapters = {
+  tool_readiness_worker_streamer_render_pipeline_support: {
+    toolId: 'gstreamer',
+    capabilityId: 'streamer_render_pipeline_support',
+    expectedTasks: ['validate_render_pipeline_support', 'validate_backend_boundary', 'validate_no_media_output'],
+  },
+  tool_readiness_worker_mkvtoolnix_container_validation: {
+    toolId: 'mkvtoolnix',
+    capabilityId: 'mkvtoolnix_container_validation',
+    expectedTasks: ['validate_container_manifest', 'validate_cleanup_evidence', 'validate_no_media_processing'],
+  },
+  tool_readiness_worker_gpac_mp4box_packaging_validation: {
+    toolId: 'gpac_mp4box',
+    capabilityId: 'gpac_mp4box_packaging_validation',
+    expectedTasks: ['validate_package_source_provenance', 'validate_mp4box_binary_presence', 'validate_no_packaging_execution'],
+  },
+} as const satisfies Partial<Record<ToolExecutionGatewayAdapterId, {
+  toolId: ProductionToolId
+  capabilityId: string
+  expectedTasks: readonly string[]
+}>>
 
 export function createToolExecutionGatewayService(context: ServiceContext) {
   return {
@@ -237,6 +277,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
             status: 'blocked',
             dispatchedAt: createdAt,
             workerIdempotencyKey,
+            productionOpsControls: buildGatewayProductionOpsControls(opsAdmission),
           }),
           productionReadinessReport: productionReadiness.report,
           trackBAdapterResult,
@@ -290,6 +331,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           status: blockers.length > 0 ? 'blocked' : 'dispatched',
           dispatchedAt: createdAt,
           workerIdempotencyKey,
+          productionOpsControls: buildGatewayProductionOpsControls(opsAdmission),
         }),
         productionReadinessReport: productionReadiness.report,
         toolCostEvents: billingAudit.toolCostEvents,
@@ -361,7 +403,7 @@ function buildGatewayWorkerPayload(input: {
     requiredQualityGateTypes: input.input.requiredQualityGateTypes,
     createdAt: input.createdAt,
     metadata: {
-      ...(input.input.metadata ?? {}),
+      ...sanitizeGatewayWorkerMetadata(input.input.metadata ?? {}, input.adapterId),
       gatewayAdapterId: input.adapterId,
       trackBAdapterToolId: input.input.trackBAdapterToolId,
       trackBAdapterExecutionMode: input.input.trackBAdapterExecutionMode,
@@ -370,6 +412,30 @@ function buildGatewayWorkerPayload(input: {
       estimatedHighCredits: input.input.estimatedHighCredits,
       apiIdempotencyKey: input.input.apiIdempotencyKey,
       productionReadinessEvidencePacketId: input.input.productionReadinessEvidencePacketId,
+    },
+  }
+}
+
+function sanitizeGatewayWorkerMetadata(
+  metadata: Record<string, unknown>,
+  adapterId: ToolExecutionGatewayAdapterId,
+): Record<string, unknown> {
+  if (adapterId !== 'tool_readiness_worker_gpac_mp4box_packaging_validation') {
+    return metadata
+  }
+
+  const nativeValidation = metadata.trackANativeValidation
+  if (!nativeValidation || typeof nativeValidation !== 'object') {
+    return metadata
+  }
+
+  const { repoUri: _repoUri, ...safeNativeValidation } = nativeValidation as Record<string, unknown>
+  return {
+    ...metadata,
+    trackANativeValidation: {
+      ...safeNativeValidation,
+      repoSourceClass: 'official_gpac_apt_debian_bookworm_main',
+      gatewayRepoUriValidated: true,
     },
   }
 }
@@ -453,6 +519,7 @@ function buildGatewayRecord(input: {
   status: 'dispatched' | 'blocked'
   dispatchedAt: string
   workerIdempotencyKey?: string
+  productionOpsControls?: ToolExecutionGatewayProductionOpsControls
 }): ToolExecutionGatewayDispatchResult['gateway'] {
   return {
     id: `tool-execution-gateway:${input.input.workspaceId}:${input.input.projectId}:${input.input.jobId}`,
@@ -470,7 +537,21 @@ function buildGatewayRecord(input: {
     adapterId: input.adapterId,
     requestedToolIds: input.input.requestedToolIds,
     blockers: input.blockers,
+    productionOpsControls: input.productionOpsControls,
     dispatchedAt: input.dispatchedAt,
+  }
+}
+
+function buildGatewayProductionOpsControls(
+  opsAdmission?: ProductionGatewayOpsControlAdmission,
+): ToolExecutionGatewayProductionOpsControls | undefined {
+  if (!opsAdmission) return undefined
+
+  return {
+    allowed: opsAdmission.allowed && opsAdmission.blockers.length === 0,
+    blockerCodes: opsAdmission.blockers.map((blocker) => blocker.code),
+    warnings: [...opsAdmission.warnings],
+    snapshot: opsAdmission.snapshot,
   }
 }
 
@@ -1328,7 +1409,150 @@ function validateGatewayAdapter(
     }
   }
 
+  blockers.push(...validateTrackANativeValidationAdapter(adapterId, input))
+
   return blockers
+}
+
+function validateTrackANativeValidationAdapter(
+  adapterId: ToolExecutionGatewayAdapterId,
+  input: ToolExecutionGatewayDispatchBody,
+): ToolExecutionGatewayBlocker[] {
+  if (!isTrackANativeValidationGatewayAdapterId(adapterId)) return []
+  const adapter = trackANativeValidationAdapters[adapterId]
+
+  const blockers: ToolExecutionGatewayBlocker[] = []
+  const nativeValidation = input.metadata?.trackANativeValidation
+  const nativeValidationRecord = nativeValidation && typeof nativeValidation === 'object'
+    ? nativeValidation as Record<string, unknown>
+    : undefined
+  const mode = nativeValidationRecord?.mode
+  const capabilityId = nativeValidationRecord?.capabilityId
+  const tasks = Array.isArray(nativeValidationRecord?.tasks)
+    ? nativeValidationRecord.tasks.map(String)
+    : []
+  const taskSet = new Set(tasks)
+  const unexpectedTasks = tasks.filter((task) => !adapter.expectedTasks.some((expectedTask) => expectedTask === task))
+  const missingTasks = adapter.expectedTasks.filter((task) => !taskSet.has(task))
+  const sourceEvidenceIds = Array.isArray(nativeValidationRecord?.sourceEvidenceIds)
+    ? nativeValidationRecord.sourceEvidenceIds.filter((value): value is string => typeof value === 'string' && value.length > 0)
+    : []
+  const forbiddenFlags = [
+    'allowMediaProcessing',
+    'allowPublicDelivery',
+    'allowUserMedia',
+    'runToolBinary',
+    'runMediaCommand',
+    'allowFrontendExecution',
+    'allowFinalExport',
+    'useTemporaryAccessLinkSourceTruth',
+  ].filter((key) => nativeValidationRecord?.[key] === true)
+
+  if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== adapter.toolId) {
+    blockers.push({
+      code: 'TRACKA_NATIVE_VALIDATION_TOOL_SCOPE_BLOCKED',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} may dispatch only ${adapter.toolId}.`,
+      details: { requestedToolIds: input.requestedToolIds, expectedToolId: adapter.toolId },
+    })
+  }
+
+  if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+    blockers.push({
+      code: 'TRACKA_NATIVE_VALIDATION_METADATA_REQUIRED',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} production dispatch requires metadata.trackANativeValidation.mode=production_ready.`,
+      details: { trackANativeValidationMode: mode },
+    })
+  }
+
+  if (capabilityId !== adapter.capabilityId) {
+    blockers.push({
+      code: 'TRACKA_NATIVE_VALIDATION_CAPABILITY_MISMATCH',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} requires capability ${adapter.capabilityId}.`,
+      details: { capabilityId, expectedCapabilityId: adapter.capabilityId },
+    })
+  }
+
+  if (tasks.length !== adapter.expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0) {
+    blockers.push({
+      code: 'TRACKA_NATIVE_VALIDATION_TASK_SCOPE_BLOCKED',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} is limited to its reviewed Track A native validation task set.`,
+      details: { tasks, expectedTasks: adapter.expectedTasks, unexpectedTasks, missingTasks },
+    })
+  }
+
+  if (sourceEvidenceIds.length === 0) {
+    blockers.push({
+      code: 'TRACKA_NATIVE_VALIDATION_SOURCE_EVIDENCE_REQUIRED',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} requires accepted Track A source-evidence IDs before backend routing.`,
+    })
+  }
+
+  if (forbiddenFlags.length > 0) {
+    blockers.push({
+      code: 'TRACKA_NATIVE_VALIDATION_FORBIDDEN_SCOPE',
+      gateName: 'adapter_dispatch',
+      message: `${adapterId} cannot enable media processing, tool binary execution, frontend execution, public delivery, final export, user media, or signed URL source truth.`,
+      details: { forbiddenFlags },
+    })
+  }
+
+  if (
+    adapterId === 'tool_readiness_worker_streamer_render_pipeline_support' &&
+    typeof nativeValidationRecord?.renderSupportManifestId !== 'string'
+  ) {
+    blockers.push({
+      code: 'TRACKA_STREAMER_RENDER_SUPPORT_MANIFEST_REQUIRED',
+      gateName: 'adapter_dispatch',
+      message: 'streamer_render_pipeline_support requires an approved render support manifest id.',
+    })
+  }
+
+  if (
+    adapterId === 'tool_readiness_worker_mkvtoolnix_container_validation' &&
+    typeof nativeValidationRecord?.privateArtifactManifestId !== 'string'
+  ) {
+    blockers.push({
+      code: 'TRACKA_MKVTOOLNIX_PRIVATE_MANIFEST_REQUIRED',
+      gateName: 'adapter_dispatch',
+      message: 'mkvtoolnix_container_validation requires an approved private artifact manifest id.',
+    })
+  }
+
+  if (adapterId === 'tool_readiness_worker_gpac_mp4box_packaging_validation') {
+    const expected = {
+      officialAptSourceApproved: true,
+      repoUri: 'https://dist.gpac.io/gpac/linux/debian',
+      codename: 'bookworm',
+      component: 'main',
+      packageName: 'gpac',
+      binaryPath: '/usr/bin/MP4Box',
+    }
+    const mismatches = Object.entries(expected)
+      .filter(([key, value]) => nativeValidationRecord?.[key] !== value)
+      .map(([key, value]) => ({ key, expected: value, actual: nativeValidationRecord?.[key] }))
+
+    if (mismatches.length > 0) {
+      blockers.push({
+        code: 'TRACKA_GPAC_MP4BOX_OFFICIAL_APT_PROVENANCE_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'gpac_mp4box_packaging_validation requires approved official GPAC APT source provenance and /usr/bin/MP4Box binary presence metadata.',
+        details: { mismatches },
+      })
+    }
+  }
+
+  return blockers
+}
+
+function isTrackANativeValidationGatewayAdapterId(
+  adapterId: ToolExecutionGatewayAdapterId,
+): adapterId is keyof typeof trackANativeValidationAdapters {
+  return Object.prototype.hasOwnProperty.call(trackANativeValidationAdapters, adapterId)
 }
 
 function validateToolReadiness(
@@ -1496,6 +1720,7 @@ function validateMetadataSafety(
     'speechFoundation',
     'captionFoundation',
     'mediaFoundation',
+    'trackANativeValidation',
   ]
   const allowedReservedKeys = new Set<string>()
   if (
@@ -1524,6 +1749,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'render_worker_caption_metadata' || adapterId === 'qa_worker_caption_metadata') {
     allowedReservedKeys.add('speechCaptionExecution')
+  }
+  if (adapterId && isTrackANativeValidationGatewayAdapterId(adapterId)) {
+    allowedReservedKeys.add('trackANativeValidation')
   }
   const reservedFound = reservedRouterKeys
     .filter((key) => !allowedReservedKeys.has(key))

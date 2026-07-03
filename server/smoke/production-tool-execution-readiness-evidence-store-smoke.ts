@@ -33,6 +33,13 @@ assert.equal(mockReplay.replayed, true, 'second mock record should replay')
 assert.equal(mockReplay.packet.id, mockRecord.packet.id, 'mock replay should return original packet')
 assert.equal(mockList.length, 1, 'mock list should include one idempotent packet')
 
+const mockService = createProductionToolExecutionReadinessEvidenceService(createMockProductionReadinessEvidenceServiceContext())
+const mockServiceReadback = await mockService.listEvidence(readinessInput.workspaceId)
+assert.equal(mockServiceReadback.evidencePacketCount, 1, 'mock service should read back the mock production evidence packet')
+assert.equal(mockServiceReadback.readinessSummary.latestEvidencePacketId, mockRecord.packet.id, 'mock readback summary should expose the latest mock packet id')
+assert.equal(mockServiceReadback.readinessSummary.backendPersistenceMode, 'mock_memory', 'mock service readback should report mock-memory mode')
+assert.equal(mockServiceReadback.readinessSummary.durableEvidenceStored, false, 'mock-memory evidence must not be reported as durable production evidence')
+
 const admin = createFakeProductionReadinessAdminClient()
 const persistentRecord = await recordPersistentProductionToolExecutionReadinessEvidencePacket(
   admin,
@@ -71,6 +78,13 @@ const ownerReadback = await ownerService.listEvidence(readinessInput.workspaceId
 assert.equal(ownerRecord.replayed, false, 'workspace owner should record persistent production evidence')
 assert.equal(ownerRecord.packet.createdByUserId, ownerServiceContext.auth?.userId, 'recorded packet should keep the authenticated owner user id')
 assert.equal(ownerReadback.evidencePacketCount, 1, 'workspace owner should read back recorded production evidence')
+assert.equal(ownerReadback.latestPacket?.id, ownerRecord.packet.id, 'readback should expose the latest production evidence packet')
+assert.equal(ownerReadback.readinessSummary.latestEvidencePacketId, ownerRecord.packet.id, 'readback summary should expose the latest packet id')
+assert.equal(ownerReadback.readinessSummary.latestProductionToolExecutionAllowed, true, 'readback summary should preserve production execution readiness')
+assert.equal(ownerReadback.readinessSummary.latestPaidProductionAllowed, true, 'readback summary should preserve paid-production readiness')
+assert.equal(ownerReadback.readinessSummary.durableEvidenceStored, true, 'readback summary should identify durable stored evidence')
+assert.equal(ownerReadback.readinessSummary.backendPersistenceMode, 'persistent_supabase', 'persistent service readback should report Supabase-backed mode')
+assert.equal(ownerReadback.readinessSummary.productionActivationAttempted, false, 'evidence readback must not imply production activation')
 
 const adminService = createProductionToolExecutionReadinessEvidenceService(createProductionReadinessEvidenceServiceContext('admin'))
 const adminReadback = await adminService.listEvidence(readinessInput.workspaceId)
@@ -316,6 +330,26 @@ function createProductionReadinessEvidenceServiceContext(
       userId: `user-production-readiness-${role}`,
       email: `${role}@reeditpro.local`,
       isMockUser: false,
+    },
+  }
+}
+
+function createMockProductionReadinessEvidenceServiceContext(): ServiceContext {
+  return {
+    env: {
+      mockOnly: true,
+      allowMockWithoutSupabase: true,
+      hasSupabaseAdmin: false,
+    } as never,
+    clients: {
+      admin: null,
+      public: null,
+    },
+    requestId: 'production-readiness-evidence-store-smoke:mock',
+    auth: {
+      userId: 'user-production-readiness-mock',
+      email: 'mock@reeditpro.local',
+      isMockUser: true,
     },
   }
 }

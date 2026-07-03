@@ -109,6 +109,27 @@ function fakeFetch(
             productionToolExecutionAllowed: true,
             paidProductionAllowed: true,
           },
+          latestPacket: {
+            id: 'production-supabase-persistence-evidence-packet-smoke',
+            workspaceId: 'workspace-production-supabase-persistence-smoke',
+          },
+          packets: [
+            {
+              id: 'production-supabase-persistence-evidence-packet-smoke',
+              workspaceId: 'workspace-production-supabase-persistence-smoke',
+            },
+          ],
+          readinessSummary: {
+            workspaceId: 'workspace-production-supabase-persistence-smoke',
+            evidencePacketCount: 1,
+            latestEvidencePacketId: 'production-supabase-persistence-evidence-packet-smoke',
+            latestGateStatus: 'ready_for_paid_production',
+            latestProductionToolExecutionAllowed: true,
+            latestPaidProductionAllowed: true,
+            durableEvidenceStored: true,
+            backendPersistenceMode: 'persistent_supabase',
+            productionActivationAttempted: false,
+          },
         },
         warnings: ['Production Supabase persistence readback smoke response.'],
       })

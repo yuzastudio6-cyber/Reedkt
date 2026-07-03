@@ -29,6 +29,7 @@ import {
   runProductionWalletLifecycleEvidenceCollectorFromEnv,
   type ProductionWalletLifecycleEvidenceCollectorEnv,
 } from './production-wallet-lifecycle-evidence-collector'
+import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 
 export type ProductionToolExecutionReadinessEvidenceBundleEnv =
   ProductionToolExecutionReadinessEvidenceCollectorEnv &
@@ -44,7 +45,9 @@ export interface ProductionToolExecutionReadinessEvidenceBundleResult {
   mode: 'dry_run'
   readyForAllUpRecord: boolean
   backendCallsAttempted: false
+  summary: ProductionToolExecutionReadinessEvidenceBundleSummary
   sections: ProductionToolExecutionReadinessEvidenceBundleSection[]
+  milestone10Checklist: ProductionToolExecutionMilestone10ChecklistItem[]
   recommendedSequence: Array<{
     step: number
     command: string
@@ -69,6 +72,37 @@ export interface ProductionToolExecutionReadinessEvidenceBundleSection {
   mode: 'dry_run'
   blockers: string[]
   warnings: string[]
+}
+
+export interface ProductionToolExecutionReadinessEvidenceBundleSummary {
+  productionToolCount: number
+  productReadyLocalOssCount: 0
+  readySectionCount: number
+  blockedSectionCount: number
+  reviewedRealBackendAdapterCount: number
+  blockedPlaceholderAdapterCount: number
+  readyForScopedReviewedToolExecution: boolean
+  allProductionHandlerCoverageReady: boolean
+  paidProductionEvidenceReady: boolean
+}
+
+export interface ProductionToolExecutionMilestone10ChecklistItem {
+  id:
+    | 'supabase_production_persistence'
+    | 'tool_cost_ledger_writes'
+    | 'wallet_reserve_spend_release_refund'
+    | 'stripe_boundary_confirmation'
+    | 'observability_alerts'
+    | 'rollback_kill_switches'
+    | 'rate_concurrency_limits'
+    | 'final_owner_signoff'
+    | 'all_up_evidence_record_readback'
+    | 'scoped_real_backend_handlers'
+  label: string
+  status: 'ready' | 'blocked'
+  sourceSectionIds: ProductionToolExecutionReadinessEvidenceBundleSection['id'][]
+  blockerCount: number
+  nextAction: string
 }
 
 export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv(
@@ -158,13 +192,17 @@ export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv
       warnings: realWorkerHandlers.warnings,
     },
   ]
+  const summary = buildSummary(sections, realWorkerHandlers)
+  const milestone10Checklist = buildMilestone10Checklist(sections)
 
   return {
     ok: sections.every((section) => section.ready),
     mode: 'dry_run',
     readyForAllUpRecord: allUp.readyForRecord,
     backendCallsAttempted: false,
+    summary,
     sections,
+    milestone10Checklist,
     recommendedSequence: recommendedSequence(),
     warnings: [
       'This bundle is dry-run only and forces all record confirmations off before invoking collectors.',
@@ -172,6 +210,128 @@ export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv
       'All-up production evidence must still be paired with the real-worker handler readiness report; production dispatch stays scoped to reviewed real backend adapters and placeholder adapters remain blocked.',
       'Use the focused collectors to collect slice evidence, then use prod:readiness:tool-execution-evidence-collector for the final authenticated all-up record/readback.',
     ],
+  }
+}
+
+function buildSummary(
+  sections: ProductionToolExecutionReadinessEvidenceBundleSection[],
+  realWorkerHandlers: ReturnType<typeof buildProductionRealWorkerHandlerReadinessReport>,
+): ProductionToolExecutionReadinessEvidenceBundleSummary {
+  const readySectionCount = sections.filter((section) => section.ready).length
+  return {
+    productionToolCount: PRODUCTION_TOOL_IDS.length,
+    productReadyLocalOssCount: 0,
+    readySectionCount,
+    blockedSectionCount: sections.length - readySectionCount,
+    reviewedRealBackendAdapterCount: realWorkerHandlers.reviewedRealAdapterIds.length,
+    blockedPlaceholderAdapterCount: realWorkerHandlers.blockedPlaceholderAdapterIds.length,
+    readyForScopedReviewedToolExecution: realWorkerHandlers.scopedReviewedHandlerReady,
+    allProductionHandlerCoverageReady: realWorkerHandlers.allProductionHandlerCoverageReady,
+    paidProductionEvidenceReady: sections.every((section) => section.ready),
+  }
+}
+
+function buildMilestone10Checklist(
+  sections: ProductionToolExecutionReadinessEvidenceBundleSection[],
+): ProductionToolExecutionMilestone10ChecklistItem[] {
+  const byId = new Map(sections.map((section) => [section.id, section]))
+  const section = (id: ProductionToolExecutionReadinessEvidenceBundleSection['id']) => {
+    const found = byId.get(id)
+    if (!found) throw new Error(`Missing production readiness evidence section ${id}.`)
+    return found
+  }
+  const ops = section('ops_observability')
+
+  return [
+    checklistItem({
+      id: 'supabase_production_persistence',
+      label: 'Supabase production persistence',
+      sections: [section('supabase_persistence')],
+      readyAction: 'Record and retain Supabase persistence evidence with the all-up packet.',
+      blockedAction: 'Collect production Supabase migration, RLS/readback, grant, advisor, backup/PITR, and storage-policy evidence.',
+    }),
+    checklistItem({
+      id: 'tool_cost_ledger_writes',
+      label: 'Tool cost ledger writes',
+      sections: [section('billing_route')],
+      readyAction: 'Record tool-cost event write, replay, and summary readback evidence in the all-up packet.',
+      blockedAction: 'Collect durable tool-cost event write, append-only ledger, idempotent replay, and project summary readback evidence.',
+    }),
+    checklistItem({
+      id: 'wallet_reserve_spend_release_refund',
+      label: 'Wallet reserve/spend/release/refund',
+      sections: [section('wallet_lifecycle')],
+      readyAction: 'Record wallet lifecycle evidence with service-role-only settlement and idempotent replay proof.',
+      blockedAction: 'Collect wallet reservation, spend, release, refund, settlement RPC, service-role-only, replay, and no-silent-charge evidence.',
+    }),
+    checklistItem({
+      id: 'stripe_boundary_confirmation',
+      label: 'Stripe boundary confirmation',
+      sections: [section('stripe_boundary')],
+      readyAction: 'Record Stripe boundary evidence and keep service fees out of tool-cost events.',
+      blockedAction: 'Collect billing-owner approval, no Stripe tool-cost calls, service-fee exclusion, and webhook separation evidence.',
+    }),
+    checklistItem({
+      id: 'observability_alerts',
+      label: 'Observability and alerts',
+      sections: [ops],
+      readyAction: 'Record deployed dashboard, alert routing, and billing QA monitoring evidence.',
+      blockedAction: 'Collect deployed dashboards, alerts, alert routing, and billing QA monitoring evidence.',
+    }),
+    checklistItem({
+      id: 'rollback_kill_switches',
+      label: 'Rollback and kill switches',
+      sections: [ops],
+      readyAction: 'Record rollback, kill-switch, and incident-runbook evidence.',
+      blockedAction: 'Collect rollback approval, kill-switch verification, and incident-runbook approval evidence.',
+    }),
+    checklistItem({
+      id: 'rate_concurrency_limits',
+      label: 'Rate and concurrency limits',
+      sections: [ops],
+      readyAction: 'Record rate-limit and concurrency-limit evidence.',
+      blockedAction: 'Collect workspace rate-limit, project concurrency, and worker-type concurrency evidence.',
+    }),
+    checklistItem({
+      id: 'final_owner_signoff',
+      label: 'Final owner signoff',
+      sections: [section('final_owner_signoff')],
+      readyAction: 'Record final deployment, security, privacy, legal, support, billing, operations, media, production, and delivery/share signoff.',
+      blockedAction: 'Collect all final owner approvals, including real-user-media, paid-production, artifact privacy, and delivery/share approval.',
+    }),
+    checklistItem({
+      id: 'all_up_evidence_record_readback',
+      label: 'All-up evidence record/readback',
+      sections: [section('all_up_preflight')],
+      readyAction: 'Run the authenticated all-up evidence collector with idempotency and readback.',
+      blockedAction: 'Resolve all all-up preflight blockers, then record and read back the production readiness evidence packet.',
+    }),
+    checklistItem({
+      id: 'scoped_real_backend_handlers',
+      label: 'Scoped reviewed real backend handlers',
+      sections: [section('real_worker_handlers')],
+      readyAction: 'Use only reviewed real backend adapters; keep placeholder adapters blocked from production_ready dispatch.',
+      blockedAction: 'Replace placeholder/mock-only adapters or narrow production dispatch to reviewed real backend handlers.',
+    }),
+  ]
+}
+
+function checklistItem(input: {
+  id: ProductionToolExecutionMilestone10ChecklistItem['id']
+  label: string
+  sections: ProductionToolExecutionReadinessEvidenceBundleSection[]
+  readyAction: string
+  blockedAction: string
+}): ProductionToolExecutionMilestone10ChecklistItem {
+  const blockerCount = input.sections.reduce((total, section) => total + section.blockers.length, 0)
+  const ready = input.sections.every((section) => section.ready)
+  return {
+    id: input.id,
+    label: input.label,
+    status: ready ? 'ready' : 'blocked',
+    sourceSectionIds: input.sections.map((section) => section.id),
+    blockerCount,
+    nextAction: ready ? input.readyAction : input.blockedAction,
   }
 }
 
@@ -272,11 +432,19 @@ function renderText(result: ProductionToolExecutionReadinessEvidenceBundleResult
     `mode=${result.mode}`,
     `readyForAllUpRecord=${result.readyForAllUpRecord}`,
     `backendCallsAttempted=${result.backendCallsAttempted}`,
+    `productionToolCount=${result.summary.productionToolCount}`,
+    `reviewedRealBackendAdapterCount=${result.summary.reviewedRealBackendAdapterCount}`,
+    `readyForScopedReviewedToolExecution=${result.summary.readyForScopedReviewedToolExecution}`,
+    `paidProductionEvidenceReady=${result.summary.paidProductionEvidenceReady}`,
     '',
     'Sections:',
   ]
   for (const section of result.sections) {
     lines.push(`- ${section.id}: ready=${section.ready}; blockers=${section.blockers.length}`)
+  }
+  lines.push('', 'Milestone 10 checklist:')
+  for (const item of result.milestone10Checklist) {
+    lines.push(`- ${item.id}: status=${item.status}; blockers=${item.blockerCount}; next=${item.nextAction}`)
   }
   lines.push('', 'Recommended sequence:')
   for (const item of result.recommendedSequence) {

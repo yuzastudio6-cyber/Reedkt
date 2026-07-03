@@ -70,6 +70,24 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   deck_gl: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   cesium_js: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   konva: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
+  gstreamer: {
+    ...empty,
+    gateTypes: ['render_timeline_integrity', 'render_asset_integrity'],
+    requiredBeforePreview: ['render_timeline_integrity'],
+    notes: ['Backend-gated native render-pipeline validation only; not final render/export approval.'],
+  },
+  mkvtoolnix: {
+    ...empty,
+    gateTypes: ['export_codec_format', 'render_asset_integrity'],
+    requiredBeforeFinalExport: ['export_codec_format'],
+    notes: ['Backend-gated private container validation only; no public delivery by itself.'],
+  },
+  gpac_mp4box: {
+    ...empty,
+    gateTypes: ['export_codec_format', 'render_asset_integrity'],
+    requiredBeforeFinalExport: ['export_codec_format'],
+    notes: ['Backend-gated GPAC/MP4Box package-source and binary presence validation only.'],
+  },
   vapoursynth: { ...empty, gateTypes: ['render_asset_integrity', 'export_duration_sync'], requiredBeforePreview: ['render_asset_integrity'] },
   revideo: { ...empty, gateTypes: ['render_asset_integrity', 'render_timeline_integrity'], notes: ['Evaluation-only; not a core render QA path.'] },
 }

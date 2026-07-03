@@ -146,6 +146,7 @@ export interface ProductionWorkerRouteOutput {
   finalRenderExecutionResult?: unknown
   captionExecutionResult?: unknown
   toolReadinessResult?: unknown
+  trackANativeValidationResult?: unknown
 }
 
 export interface ProductionWorkerExecutionResult {

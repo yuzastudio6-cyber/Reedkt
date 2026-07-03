@@ -1,0 +1,65 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-EXECUTION-BRIDGE-DRY-RUN-1",
+  "decision": "completed_three_tool_external_agent_execution_bridge_dry_run",
+  "execution": "completed_confirmation_gated_three_tool_bridge_envelope_validation_no_route_worker_tool_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_EXECUTION_BRIDGE_DRY_RUN=true",
+  "runId": "2026-07-03T00-58-17-632Z-4d15bfd3",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-execution-bridge-dry-run-1/2026-07-03T00-58-17-632Z-4d15bfd3",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-execution-bridge-dry-run-1/2026-07-03T00-58-17-632Z-4d15bfd3/three-tool-external-agent-execution-bridge-dry-run-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-execution-bridge-dry-run-1/2026-07-03T00-58-17-632Z-4d15bfd3/three-tool-external-agent-execution-bridge-dry-run-manifest.json",
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-execution-bridge-dry-run-report.json",
+      "bytes": 12335,
+      "sha256": "d3d78ec7d55050d178f8eb6ee4204e21d57b9d2bb8f23e9b34f8ef9f6e7326c8"
+    },
+    {
+      "fileName": "three-tool-external-agent-execution-bridge-dry-run-manifest.json",
+      "bytes": 1065,
+      "sha256": "82687b93e240524439c5c0504bbd9797fb35103a132a36036bfd193ffb0343ef"
+    }
+  ],
+  "sourceBridge": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-EXECUTION-BRIDGE-1",
+    "mergeSha": "30f0b17287ca16b9da06930dd15e575bdb03de24",
+    "headSha": "2e59a52cc44953e7f7be27fe27c07892b0cb6d2e"
+  },
+  "sourceEvidence": {
+    "threeToolQaRollupMergeSha": "13c922b3cc8d40223920c45bb800729dbbe3e7b5",
+    "threeToolExecutionMergeSha": "6ad10faf36bdc447e232044e3857d5d0220ffa54",
+    "combinedExecutionRunId": "2026-07-02T23-06-37-783Z-735edf80",
+    "gstreamerMkvtoolnixRunId": "2026-07-02T23-06-37-953Z-ee1ebbec",
+    "gpacMp4boxRunId": "2026-07-02T23-06-42-095Z-21ff9b93",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "bridgeValidation": {
+    "structuredBridgeEnvelopeValidation": "passed",
+    "gstreamerMkvtoolnixChildRouteInputValidation": "passed",
+    "gpacMp4boxChildRouteInputValidation": "passed",
+    "rawCommandStringsAllowed": false
+  },
+  "safety": {
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "gstreamerExecutionInThisDryRun": false,
+    "mkvtoolnixExecutionInThisDryRun": false,
+    "gpacMp4boxExecutionInThisDryRun": false,
+    "dockerExecutionInThisDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-ROUTE-WORKER-DISPATCH-DRY-RUN-1"
+}

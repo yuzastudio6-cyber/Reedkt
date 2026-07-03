@@ -119,6 +119,20 @@ export const betaReadinessPlatformBillingQaSchema = z.object({
   notes: z.array(noteSchema).min(1).max(20).optional(),
 }).strict()
 
+export const betaReadinessPlatformWalletLifecycleQaSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  environment: z.enum(['local_mock', 'staging_persistent', 'production_persistent']).optional(),
+  allowPersistentWalletLifecycleQa: z.boolean().optional(),
+  editPlanId: idSchema.optional(),
+  jobIdPrefix: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
+  creditReservationId: idSchema.optional(),
+  notes: z.array(noteSchema).min(1).max(20).optional(),
+}).strict()
+
 const deployedPlatformProbeIdSchema = z.enum([
   'tool_cost_events_migration_deployed',
   'beta_readiness_evidence_migration_deployed',

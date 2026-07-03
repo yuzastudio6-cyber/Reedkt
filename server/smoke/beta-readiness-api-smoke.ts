@@ -236,6 +236,29 @@ try {
     'platform billing QA should still name wallet settlement as missing production evidence',
   )
 
+  const platformWalletLifecycleQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-wallet-lifecycle-qa`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-wallet-lifecycle-qa' },
+    body: JSON.stringify({
+      workspaceId: smokeWorkspaceId,
+      projectId: 'beta-readiness-api-smoke-platform-project',
+      sourceId: 'beta-readiness-api-smoke:platform-wallet-lifecycle-qa',
+      sourceSha: '7777777777777777777777777777777777777777',
+      environment: 'local_mock',
+      notes: ['Smoke runs platform wallet lifecycle QA in mock-safe mode only.'],
+    }),
+  })
+  assert.equal(platformWalletLifecycleQaResponse.ok, true, 'platform wallet lifecycle QA route should return ok')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.persistenceMode, 'mock_memory', 'platform wallet lifecycle QA smoke must use mock memory persistence')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.spendVerified, true, 'platform wallet lifecycle QA should verify spend settlement')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.releaseVerified, true, 'platform wallet lifecycle QA should verify release settlement')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.refundVerified, true, 'platform wallet lifecycle QA should verify refund settlement')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.idempotentReplayVerified, true, 'platform wallet lifecycle QA should prove idempotent replay')
+  assert.ok(
+    platformWalletLifecycleQaResponse.data.report.missingProductionEvidence.some((item: string) => item.includes('credit reservation creation')),
+    'platform wallet lifecycle QA should still require reservation creation evidence',
+  )
+
   const settlementResponse = await requestJson(`${baseUrl}/v1/tool-costs/events/${encodeURIComponent(platformBillingQaResponse.data.report.toolEventId)}/settle`, {
     method: 'POST',
     headers: { 'idempotency-key': 'beta-readiness-api-smoke-tool-cost-wallet-settlement' },

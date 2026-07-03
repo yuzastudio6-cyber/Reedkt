@@ -166,7 +166,10 @@ export function createBetaReadinessRoutes(): Router {
     assertNoSecretLikeBetaReadinessEvidence(body)
     const report = await runBetaPlatformBillingQa(getServiceContext(request), body, getIdempotencyKey(request))
     sendOk(response, { report }, [
-      'Platform billing QA ran only the tool-cost event/summary path; no media, provider, Stripe, wallet settlement, beta, or production action ran.',
+      'Platform billing QA ran only backend billing QA paths; no media, provider, Stripe, beta, or production action ran.',
+      report.persistenceMode === 'supabase_service_role'
+        ? 'Persistent billing QA was explicitly confirmed and may write controlled tool-cost and wallet-settlement rows through service-role backend paths.'
+        : 'No persistent billing writes ran unless explicitly confirmed with approved deployed fixture ids.',
       ...report.missingPlatformEvidence.map((item) => `Missing platform evidence: ${item}`),
     ])
   }))

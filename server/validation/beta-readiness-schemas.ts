@@ -112,6 +112,10 @@ export const betaReadinessPlatformBillingQaSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['local_mock', 'staging_persistent', 'production_persistent']).optional(),
   allowPersistentStoreQa: z.boolean().optional(),
+  editPlanId: idSchema.optional(),
+  jobId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
+  creditReservationId: idSchema.optional(),
   notes: z.array(noteSchema).min(1).max(20).optional(),
 }).strict()
 

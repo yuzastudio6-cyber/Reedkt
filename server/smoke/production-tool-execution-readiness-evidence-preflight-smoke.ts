@@ -33,6 +33,10 @@ assert.ok(
   'preflight should document backend-only production readiness evidence access variable',
 )
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_READBACK_VERIFIED'),
+  'preflight should document worker artifact manifest readback evidence variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED'),
   'preflight should document wallet refund evidence variable',
 )
@@ -122,6 +126,9 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_SERVICE_ROLE_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_READBACK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED: yes,

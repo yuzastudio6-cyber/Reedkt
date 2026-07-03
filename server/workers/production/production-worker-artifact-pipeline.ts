@@ -58,7 +58,8 @@ export interface WorkerRuntimeJobRecord {
   createdAt: string
   updatedAt: string
   replayCount: number
-  mockOnly: true
+  mockOnly: boolean
+  persistenceMode: 'mock_memory' | 'persistent_supabase'
 }
 
 export interface WorkerRuntimeOutputManifest {
@@ -66,7 +67,8 @@ export interface WorkerRuntimeOutputManifest {
   projectId: string
   artifactRecords: ToolArtifact[]
   updatedAt: string
-  mockOnly: true
+  mockOnly: boolean
+  persistenceMode: 'mock_memory' | 'persistent_supabase'
 }
 
 export interface WorkerRuntimeArtifactPipelineResult {
@@ -180,6 +182,7 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
     updatedAt: createdAt,
     replayCount: 0,
     mockOnly: true,
+    persistenceMode: 'mock_memory',
   }
 
   const workerOutputMockOnly = input.workerResult.output?.mockOnly !== false
@@ -216,6 +219,7 @@ export function getProjectWorkerRuntimeOutputManifest(input: {
     artifactRecords: [],
     updatedAt: nowIso(),
     mockOnly: true,
+    persistenceMode: 'mock_memory',
   }
 }
 
@@ -315,7 +319,8 @@ function mergeProjectOutputManifest(
     projectId,
     artifactRecords,
     updatedAt: nowIso(),
-    mockOnly: true as const,
+    mockOnly: true,
+    persistenceMode: 'mock_memory' as const,
   }
 
   mockWorkerRuntimeArtifactState.projectManifests.set(key, merged)

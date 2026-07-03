@@ -24,6 +24,9 @@ export interface ProductionSupabasePersistenceEvidence extends ProductionToolExe
   toolCostEventsMigrationDeployed: boolean
   betaReadinessEvidenceMigrationDeployed: boolean
   productionReadinessEvidenceMigrationDeployed: boolean
+  workerRuntimeArtifactManifestMigrationDeployed: boolean
+  workerRuntimeArtifactManifestServiceRoleOnlyVerified: boolean
+  workerRuntimeArtifactManifestReadbackVerified: boolean
   serviceRoleWritePathVerified: boolean
   rlsMemberReadPathVerified: boolean
   explicitDataApiGrantsVerified: boolean
@@ -275,6 +278,9 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.supabasePersistence?.toolCostEventsMigrationDeployed, 'tool_cost_events migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.betaReadinessEvidenceMigrationDeployed, 'beta_readiness_evidence migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.productionReadinessEvidenceMigrationDeployed, 'production_tool_execution_readiness_evidence_packets migration deployment is unverified.'),
+      requireBoolean(input.supabasePersistence?.workerRuntimeArtifactManifestMigrationDeployed, 'production_worker_runtime artifact manifest migration deployment is unverified.'),
+      requireBoolean(input.supabasePersistence?.workerRuntimeArtifactManifestServiceRoleOnlyVerified, 'production worker artifact manifest service-role-only access is unverified.'),
+      requireBoolean(input.supabasePersistence?.workerRuntimeArtifactManifestReadbackVerified, 'production worker artifact manifest readback is unverified.'),
       requireBoolean(input.supabasePersistence?.serviceRoleWritePathVerified, 'service-role write path is unverified.'),
       requireBoolean(input.supabasePersistence?.rlsMemberReadPathVerified, 'authenticated RLS member readback is unverified.'),
       requireBoolean(input.supabasePersistence?.explicitDataApiGrantsVerified, 'explicit Supabase Data API grants are unverified.'),
@@ -443,6 +449,9 @@ function isSupabasePersistenceReady(input: ProductionToolExecutionReadinessGateI
     evidence.toolCostEventsMigrationDeployed &&
     evidence.betaReadinessEvidenceMigrationDeployed &&
     evidence.productionReadinessEvidenceMigrationDeployed &&
+    evidence.workerRuntimeArtifactManifestMigrationDeployed &&
+    evidence.workerRuntimeArtifactManifestServiceRoleOnlyVerified &&
+    evidence.workerRuntimeArtifactManifestReadbackVerified &&
     evidence.serviceRoleWritePathVerified &&
     evidence.rlsMemberReadPathVerified &&
     evidence.explicitDataApiGrantsVerified &&

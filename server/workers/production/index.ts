@@ -1,5 +1,6 @@
 export * from './production-worker-artifact-policy'
 export * from './production-worker-artifact-pipeline'
+export * from './production-worker-artifact-persistent-store'
 export * from './production-worker-dispatcher'
 export * from './production-worker-events'
 export * from './production-worker-gates'

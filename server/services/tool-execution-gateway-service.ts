@@ -44,6 +44,11 @@ import {
   recordWorkerRuntimeArtifactPipeline,
   type WorkerRuntimeArtifactPipelineResult,
 } from '../workers/production/production-worker-artifact-pipeline'
+import {
+  getPersistentProjectWorkerRuntimeOutputManifest,
+  getPersistentWorkerRuntimeArtifactReplay,
+  recordPersistentWorkerRuntimeArtifactPipeline,
+} from '../workers/production/production-worker-artifact-persistent-store'
 import { dispatchProductionWorkerJob } from '../workers/production/production-worker-dispatcher'
 import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
 import type {
@@ -284,6 +289,30 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         }
       }
 
+      if (context.clients.admin && !context.env.mockOnly) {
+        const persistentReplay = await getPersistentWorkerRuntimeArtifactReplay(context.clients.admin, workerIdempotencyKey)
+        if (persistentReplay) {
+          return {
+            gateway: buildGatewayRecord({
+              input,
+              adapterId,
+              blockers,
+              status: 'dispatched',
+              dispatchedAt: createdAt,
+              workerIdempotencyKey,
+            }),
+            productionReadinessReport: productionReadiness.report,
+            trackBAdapterResult,
+            workerRuntimeArtifactPipeline: persistentReplay,
+            warnings: [
+              ...warnings,
+              ...persistentReplay.warnings,
+              'Tool execution gateway returned an idempotent persistent worker/runtime artifact replay without redispatching work.',
+            ],
+          }
+        }
+      }
+
       const opsAdmission = input.executionMode === 'production_ready'
         ? await admitProductionGatewayOpsControls(context, {
           workspaceId: input.workspaceId,
@@ -339,12 +368,18 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           })))
       }
 
-      const workerRuntimeArtifactPipeline = recordWorkerRuntimeArtifactPipeline({
+      let workerRuntimeArtifactPipeline = recordWorkerRuntimeArtifactPipeline({
         payload,
         workerResult,
         trackBAdapterResult,
         apiIdempotencyKey: input.apiIdempotencyKey,
       })
+      if (context.clients.admin && !context.env.mockOnly) {
+        workerRuntimeArtifactPipeline = await recordPersistentWorkerRuntimeArtifactPipeline(
+          context.clients.admin,
+          workerRuntimeArtifactPipeline,
+        )
+      }
       const billingAudit = await recordGatewayBillingAudit({
         context,
         input,
@@ -392,11 +427,13 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
       }))
 
       if (context.clients.admin && !context.env.mockOnly) {
-        throw new ApiError(
-          'MOCK_ONLY',
-          'Durable production artifact manifest persistence is not connected yet; use mock-safe runtime artifact manifests or add the backend artifact table/RPC first.',
-          409,
-        )
+        return {
+          outputManifest: await getPersistentProjectWorkerRuntimeOutputManifest(context.clients.admin, input),
+          warnings: [
+            ...warnings,
+            'Persistent Supabase-backed worker runtime output manifest readback.',
+          ],
+        }
       }
 
       return {

@@ -27,6 +27,7 @@ import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
+import { runCoreCpuRenderReadinessChecks } from '../production-readiness/core-cpu-render-readiness-checks'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   switch (payload.workerType) {
@@ -419,6 +420,25 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'qa_worker_placeholder',
       }
     case 'tool_readiness_worker':
+      if (hasToolReadinessCoreCheckRequest(payload)) {
+        const toolReadinessResult = runCoreCpuRenderReadinessChecks(buildToolReadinessCoreCheckInput(payload))
+        const realToolReadinessHandler = payload.executionMode === 'production_ready' &&
+          toolReadinessResult.realCheckMode
+        return {
+          summary: realToolReadinessHandler
+            ? 'Tool readiness production handler completed bounded core command/import/package readiness checks.'
+            : 'Tool readiness worker completed in dry-run core readiness mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realToolReadinessHandler,
+          realToolExecution: realToolReadinessHandler,
+          futureHandler: realToolReadinessHandler
+            ? 'tool_readiness_worker_core_checks_production_handler'
+            : 'tool_readiness_worker_core_checks',
+          toolReadinessResult,
+        }
+      }
+
       return {
         summary: 'Dry-run only: future tool readiness worker will check installed tool versions, imports, capabilities, and review status.',
         workerType: payload.workerType,
@@ -426,6 +446,23 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         mockOnly: true,
         futureHandler: 'tool_readiness_worker_placeholder',
       }
+  }
+}
+
+function hasToolReadinessCoreCheckRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.toolReadiness
+  if (!request || typeof request !== 'object') return false
+  const mode = (request as Record<string, unknown>).mode
+  return mode === 'dry_run' || mode === 'production_ready'
+}
+
+function buildToolReadinessCoreCheckInput(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.toolReadiness as Record<string, unknown>
+  return {
+    realCheckMode: payload.executionMode === 'production_ready' && request.mode === 'production_ready',
+    strict: booleanValue(request.strict),
+    timeoutMs: numberValue(request.timeoutMs),
+    maxBuffer: numberValue(request.maxBuffer),
   }
 }
 
@@ -1440,4 +1477,8 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined
 }

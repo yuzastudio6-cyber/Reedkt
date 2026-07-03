@@ -144,6 +144,7 @@ export interface ProductionWorkerRouteOutput {
   maskCompositionResult?: unknown
   enhancementSlowMotionResult?: unknown
   finalRenderExecutionResult?: unknown
+  toolReadinessResult?: unknown
 }
 
 export interface ProductionWorkerExecutionResult {

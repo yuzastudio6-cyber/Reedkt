@@ -45,8 +45,13 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     Object.entries(sourceFiles).map(([key, path]) => [key, readSource(path)]),
   ) as Record<keyof typeof sourceFiles, string>
   const routerLiteralNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: false')
-  const routerConditionalNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler')
+  const routerConditionalNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler') +
+    countOccurrences(sources.workerRouter, 'mockOnly: !realToolReadinessHandler')
   const routerHasReviewedNonMockOutput = routerLiteralNonMockOutputs + routerConditionalNonMockOutputs > 0
+  const realAdapterCount = [
+    'cpu_analysis_worker_media_probe',
+    'tool_readiness_worker_core_checks',
+  ].filter((adapterId) => sources.gatewaySchemas.includes(adapterId)).length
 
   const checks: HandlerReadinessCheck[] = [
     {
@@ -82,23 +87,29 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     },
     {
       id: 'gateway_has_real_backend_adapter',
-      passed: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
+      passed: realAdapterCount > 0,
       message: 'Production gateway adapter IDs must include at least one reviewed real backend handler adapter.',
       evidence: {
         file: sourceFiles.gatewaySchemas,
-        realAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
+        realAdapterCount,
+        mediaProbeAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
+        toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
       },
     },
     {
       id: 'gateway_smoke_proves_real_production_ready_handler',
-      passed: sources.gatewaySmoke.includes('cpu_analysis_worker_media_probe') &&
+      passed: (
+        sources.gatewaySmoke.includes('cpu_analysis_worker_media_probe') ||
+        sources.gatewaySmoke.includes('tool_readiness_worker_core_checks')
+      ) &&
         /production_ready[\s\S]{0,2400}output\?\.mockOnly[\s\S]{0,240}false/i.test(sources.gatewaySmoke),
       message: 'Production gateway smoke coverage must prove at least one production_ready request reaches a non-mock backend handler.',
       evidence: {
         file: sourceFiles.gatewaySmoke,
         productionReadyMentions: countOccurrences(sources.gatewaySmoke, 'production_ready'),
         realMediaProbeAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_probe'),
+        realToolReadinessAdapterMentions: countOccurrences(sources.gatewaySmoke, 'tool_readiness_worker_core_checks'),
         mockOnlyFalseAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, false'),
         mockOnlyTrueAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, true') + countOccurrences(sources.gatewaySmoke, 'mock-safe placeholder output'),
       },

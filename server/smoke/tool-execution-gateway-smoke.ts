@@ -254,6 +254,37 @@ assert.ok(
   'placeholder adapter blocker should be explicit',
 )
 
+const productionReadyToolReadinessDispatch = await service.dispatchApprovedToolCall(productionReadyToolReadinessInput({
+  jobId: 'job-production-ready-tool-readiness-core-checks',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const toolReadinessResult = productionReadyToolReadinessDispatch.workerResult?.output?.toolReadinessResult as {
+  realCheckMode?: boolean
+  results?: unknown[]
+  report?: { overallStatus?: string }
+} | undefined
+assert.equal(productionReadyToolReadinessDispatch.gateway.status, 'dispatched', 'complete evidence plus real tool-readiness adapter should dispatch')
+assert.equal(productionReadyToolReadinessDispatch.workerResult?.status, 'completed', 'tool-readiness real handler should complete')
+assert.equal(productionReadyToolReadinessDispatch.workerResult?.output?.mockOnly, false, 'tool-readiness production handler should be non-mock')
+assert.equal(productionReadyToolReadinessDispatch.workerResult?.output?.realToolExecution, true, 'tool-readiness production handler should record real backend handler execution')
+assert.equal(
+  productionReadyToolReadinessDispatch.workerResult?.output?.futureHandler,
+  'tool_readiness_worker_core_checks_production_handler',
+  'tool-readiness production handler should use the reviewed core checks handler',
+)
+assert.equal(toolReadinessResult?.realCheckMode, true, 'tool-readiness handler should run real readiness checks in production_ready mode')
+assert.ok((toolReadinessResult?.results?.length ?? 0) > 0, 'tool-readiness handler should return command/import/package readiness results')
+assert.equal(productionReadyToolReadinessDispatch.toolCostEvents?.length, 2, 'tool-readiness dispatch should emit audit events for requested readiness tools')
+assert.ok(
+  productionReadyToolReadinessDispatch.toolCostEvents?.every((event) => event.billableToUser === false),
+  'tool-readiness audit events must not bill the user',
+)
+assert.equal(productionReadyToolReadinessDispatch.walletSettlements?.length, 2, 'tool-readiness dispatch should create non-billable wallet settlement audit rows')
+assert.ok(
+  productionReadyToolReadinessDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === false && settlement.creditsDelta === 0),
+  'tool-readiness wallet settlement audit rows must not spend user credits',
+)
+
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyStoredPacketDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>>
@@ -424,6 +455,8 @@ console.log(JSON.stringify({
   ],
   storedProductionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
   productionReadyPlaceholderBlocked: productionReadyPlaceholderBlocked.gateway.status,
+  toolReadinessHandler: productionReadyToolReadinessDispatch.workerResult?.output?.futureHandler,
+  toolReadinessBillable: productionReadyToolReadinessDispatch.toolCostEvents?.map((event) => event.billableToUser),
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
 }, null, 2))
@@ -566,6 +599,35 @@ function productionReadyMediaProbeInput(input: {
         contentType: 'video/mp4',
         ffprobeBin: 'ffprobe',
         timeoutMs: 20_000,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyToolReadinessInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    workerType: 'tool_readiness_worker',
+    executionMode: 'production_ready',
+    adapterId: 'tool_readiness_worker_core_checks',
+    requestedToolIds: ['ffmpeg', 'ffprobe'],
+    requestedRecipeIds: ['core-tool-readiness-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      toolReadiness: {
+        mode: 'production_ready',
+        strict: false,
+        timeoutMs: 15_000,
+        maxBuffer: 1024 * 1024,
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

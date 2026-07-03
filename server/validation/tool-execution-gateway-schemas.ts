@@ -27,6 +27,7 @@ const adapterSchema = z.enum([
   'gpu_ai_worker_placeholder',
   'render_worker_placeholder',
   'qa_worker_placeholder',
+  'tool_readiness_worker_core_checks',
   'tool_readiness_worker_placeholder',
 ])
 

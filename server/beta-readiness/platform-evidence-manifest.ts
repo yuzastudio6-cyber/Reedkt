@@ -240,15 +240,18 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
       id: 'credit_reservation_hold_qa',
       label: 'credit reservation creation and hold QA is completed',
       status: 'deployed_evidence_required',
-      localProofCommands: ['smoke:platform-credit-reservation-hold-qa'],
+      localProofCommands: ['smoke:credit-reservation-hold:sql', 'smoke:platform-credit-reservation-hold-qa'],
       sourceFiles: [
+        'supabase/migrations/20260703232842_credit_reservation_hold_rpc.sql',
         'server/beta-readiness/platform-credit-reservation-hold-qa.ts',
         'server/services/credit-gate-service.ts',
+        'server/smoke/credit-reservation-hold-rpc-sql-smoke.ts',
         'server/smoke/platform-credit-reservation-hold-qa-smoke.ts',
       ],
       localEvidence: [
+        'Local SQL smoke proves reserve_credit_hold creates one reservation, debits available credits, increases reserved credits, appends one reservation ledger row, replays idempotently, and remains service-role only.',
         'Mock-safe reservation hold QA proves positive reserved credits, idempotent replay, wallet/approval/estimate linkage, Stripe isolation, and persistent-mode fail-closed behavior.',
-        'Fake service-role smoke proves the non-mock insert/replay shape without contacting remote Supabase.',
+        'Fake service-role smoke proves the non-mock RPC/replay shape without contacting remote Supabase.',
       ],
       remainingEvidence: [
         'Deploy and verify the production credit reservation schema/RPC before paid production.',

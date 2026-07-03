@@ -120,32 +120,30 @@ export function createCreditGateService(context: ServiceContext) {
         return { creditReservation: existing, warnings: ['Persistent credit reservation replayed idempotently through the service-role path.'], replayed: true }
       }
 
-      const { data, error } = await context.clients.admin
-        .from('credit_reservations')
-        .insert({
-          credit_wallet_id: input.creditWalletId,
-          workspace_id: input.workspaceId,
-          project_id: input.projectId,
-          credit_approval_id: input.creditApprovalId,
-          edit_plan_id: input.editPlanId ?? null,
-          credit_estimate_id: input.creditEstimateId,
-          reserved_credits: reservedCredits,
-          status: 'reserved',
-          idempotency_key: idempotencyKey,
-          reserved_at: nowIso(),
-          expires_at: input.expiresAt ?? null,
-          metadata: {
-            ...(input.metadata ?? {}),
-            credit_reservation_service: true,
-            stripe_call_attempted: false,
-            service_fee_included: false,
-          },
-        })
-        .select('*')
-        .single()
+      const { data, error } = await context.clients.admin.rpc('reserve_credit_hold', {
+        p_idempotency_key: idempotencyKey,
+        p_workspace_id: input.workspaceId,
+        p_project_id: input.projectId,
+        p_credit_wallet_id: input.creditWalletId,
+        p_credit_approval_id: input.creditApprovalId,
+        p_credit_estimate_id: input.creditEstimateId,
+        p_edit_plan_id: input.editPlanId ?? null,
+        p_reserved_credits: reservedCredits,
+        p_expires_at: input.expiresAt ?? null,
+        p_metadata: {
+          ...(input.metadata ?? {}),
+          credit_reservation_service: true,
+          stripe_call_attempted: false,
+          service_fee_included: false,
+        },
+      })
 
       throwOnSupabaseError(error, 'CREDITS_NOT_RESERVED')
-      return { creditReservation: data, warnings: [], replayed: false }
+      return {
+        creditReservation: data,
+        warnings: ['Persistent credit reservation was recorded through reserve_credit_hold RPC.'],
+        replayed: false,
+      }
     },
 
     async getCreditBalance(workspaceId: string) {

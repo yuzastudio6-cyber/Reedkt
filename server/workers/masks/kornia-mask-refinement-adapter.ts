@@ -1,6 +1,9 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { runAiGraphicsPythonRuntimeScript } from '../ai-graphics-runtime-script-runner'
+import {
+  buildAiGraphicsRuntimeContainerBindMounts,
+  runAiGraphicsPythonRuntimeScript,
+} from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolExecutionResult } from './mask-execution-types'
 
@@ -53,6 +56,10 @@ export async function runKorniaMaskRefinement(input: {
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
       containerGpu: executionInput.runtimeContainerGpu,
+      containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
+        readOnlyPaths: [sourcePath],
+        readWritePaths: [executionInput.outputDirectory],
+      }),
     })
     return {
       status: 'completed',

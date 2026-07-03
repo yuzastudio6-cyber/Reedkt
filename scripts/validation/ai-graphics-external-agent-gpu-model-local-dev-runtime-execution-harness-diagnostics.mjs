@@ -101,6 +101,14 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md',
   'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
+  'server/workers/ai-graphics-runtime-script-runner.ts',
+  'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
+  'server/workers/masks/kornia-mask-refinement-adapter.ts',
+  'server/workers/masks/sam2-execution-runner.ts',
+  'server/workers/masks/birefnet-execution-runner.ts',
+  'server/workers/enhancement/real-esrgan-execution-runner.ts',
+  'server/workers/masks/rembg-adapter.ts',
+  'server/workers/masks/transparent-background-adapter.ts',
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-controlled-worker-dispatch-proof.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json',
@@ -227,6 +235,44 @@ if (report.localRuntimePolicy?.dockerContainerBackendRequiresRuntimeImage !== tr
 }
 if (report.localRuntimePolicy?.dockerContainerBackendRequiresScopedGpuAttachment !== true) {
   fail('docker_container_scoped_gpu_attachment_not_required')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendAutoMountsPrivateRuntimePaths !== true) {
+  fail('docker_container_private_runtime_path_mounts_not_recorded')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendMountsSourceAndModelPathsReadOnly !== true) {
+  fail('docker_container_readonly_input_model_mounts_not_recorded')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendMountsOutputPathsReadWrite !== true) {
+  fail('docker_container_readwrite_output_mounts_not_recorded')
+}
+
+const runtimeRunnerSource = read('server/workers/ai-graphics-runtime-script-runner.ts')
+for (const requiredSnippet of [
+  'AiGraphicsRuntimeContainerBindMount',
+  'buildAiGraphicsRuntimeContainerBindMounts',
+  'normalizeContainerBindMounts',
+  'containerBindMountPath cannot be the filesystem root',
+]) {
+  if (!runtimeRunnerSource.includes(requiredSnippet)) {
+    fail(`runtime_runner_missing_private_bind_mount_support:${requiredSnippet}`)
+  }
+}
+for (const workerFile of [
+  'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
+  'server/workers/masks/kornia-mask-refinement-adapter.ts',
+  'server/workers/masks/sam2-execution-runner.ts',
+  'server/workers/masks/birefnet-execution-runner.ts',
+  'server/workers/enhancement/real-esrgan-execution-runner.ts',
+  'server/workers/masks/rembg-adapter.ts',
+  'server/workers/masks/transparent-background-adapter.ts',
+]) {
+  const source = read(workerFile)
+  if (!source.includes('buildAiGraphicsRuntimeContainerBindMounts')) {
+    fail(`worker_missing_private_bind_mount_builder:${workerFile}`)
+  }
+  if (!source.includes('containerBindMounts')) {
+    fail(`worker_missing_private_bind_mounts:${workerFile}`)
+  }
 }
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--attempt-local-runtime')) {
   fail('missing_private_runtime_attempt_command')

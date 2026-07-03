@@ -1,6 +1,9 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { runAiGraphicsPythonRuntimeScript } from '../ai-graphics-runtime-script-runner'
+import {
+  buildAiGraphicsRuntimeContainerBindMounts,
+  runAiGraphicsPythonRuntimeScript,
+} from '../ai-graphics-runtime-script-runner'
 import { buildEnhancementArtifactRecord } from './enhancement-artifact-writer'
 import type { EnhancementExecutionInput, EnhancementTaskPlan, EnhancementToolCommandPlan, EnhancementToolExecutionResult } from './enhancement-execution-types'
 
@@ -79,6 +82,13 @@ export async function runRealEsrganEnhancement(input: {
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
       containerGpu: executionInput.runtimeContainerGpu,
+      containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
+        readOnlyPaths: [
+          sourcePath,
+          executionInput.realEsrganModelLocalPath,
+        ],
+        readWritePaths: [executionInput.outputDirectory],
+      }),
     })
     return {
       status: 'completed',

@@ -558,6 +558,9 @@ async function buildReport(args: HarnessArgs) {
       dockerContainerBackendSupported: true,
       dockerContainerBackendRequiresRuntimeImage: true,
       dockerContainerBackendRequiresScopedGpuAttachment: true,
+      dockerContainerBackendAutoMountsPrivateRuntimePaths: true,
+      dockerContainerBackendMountsSourceAndModelPathsReadOnly: true,
+      dockerContainerBackendMountsOutputPathsReadWrite: true,
     },
     counts: {
       totalAiGraphicsTools: 21,

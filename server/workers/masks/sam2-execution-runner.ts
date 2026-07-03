@@ -1,6 +1,9 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { runAiGraphicsPythonRuntimeScript } from '../ai-graphics-runtime-script-runner'
+import {
+  buildAiGraphicsRuntimeContainerBindMounts,
+  runAiGraphicsPythonRuntimeScript,
+} from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
 
@@ -62,6 +65,10 @@ export async function runSam2Tracking(input: {
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
       containerGpu: executionInput.runtimeContainerGpu,
+      containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
+        readOnlyPaths: [executionInput.sam2CheckpointLocalPath],
+        readWritePaths: [executionInput.outputDirectory],
+      }),
       extraEnv: {
         REAL_MEDIA_INPUT_ENABLED: 'false',
       },

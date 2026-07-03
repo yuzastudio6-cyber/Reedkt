@@ -1,5 +1,8 @@
 import path from 'node:path'
-import { runAiGraphicsPythonRuntimeScript } from '../ai-graphics-runtime-script-runner'
+import {
+  buildAiGraphicsRuntimeContainerBindMounts,
+  runAiGraphicsPythonRuntimeScript,
+} from '../ai-graphics-runtime-script-runner'
 
 export type AiGraphicsFoundationRuntimeToolId = 'torch_torchvision' | 'transformers'
 
@@ -95,6 +98,9 @@ export async function runAiGraphicsFoundationRuntimeCheck(
       containerImage: input.runtimeContainerImage,
       containerPlatform: input.runtimeContainerPlatform,
       containerGpu: input.runtimeContainerGpu,
+      containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
+        readWritePaths: [input.outputDirectory],
+      }),
     })
     return {
       status: 'completed',

@@ -49,7 +49,10 @@
     "hostPythonBackendSupported": true,
     "dockerContainerBackendSupported": true,
     "dockerContainerBackendRequiresRuntimeImage": true,
-    "dockerContainerBackendRequiresScopedGpuAttachment": true
+    "dockerContainerBackendRequiresScopedGpuAttachment": true,
+    "dockerContainerBackendAutoMountsPrivateRuntimePaths": true,
+    "dockerContainerBackendMountsSourceAndModelPathsReadOnly": true,
+    "dockerContainerBackendMountsOutputPathsReadWrite": true
   },
   "counts": {
     "totalAiGraphicsTools": 21,

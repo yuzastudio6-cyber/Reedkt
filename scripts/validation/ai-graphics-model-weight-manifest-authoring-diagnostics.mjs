@@ -169,6 +169,9 @@ if (manifestPacket.decision !== 'ai_graphics_model_weight_manifest_review_packet
 if (packet.contractSurface?.localPrivateManifestAuthoringScript !== authoringScriptName) {
   fail('packet_missing_authoring_script')
 }
+if (packet.contractSurface?.localPrivateManifestPartialAuthoringFlag !== '--allow-partial') {
+  fail('packet_missing_partial_authoring_flag')
+}
 if (packet.contractSurface?.localPrivateManifestValidatorScript !== 'ai-graphics:model-weight-manifest-review:validate') {
   fail('packet_missing_manifest_review_validator_script')
 }
@@ -233,7 +236,9 @@ for (const token of [
   '--supplement-dir',
   '--out-dir',
   '--force',
+  '--allow-partial',
   'localPrivateManifestDraftFilesWritten',
+  'partialAuthoringAccepted',
   'privateArtifactRefsLogged: 0',
   'manifest-authoring-checklist.json',
 ]) {
@@ -330,9 +335,10 @@ function writeSupplementFixtures(directory, override = {}, skipTools = []) {
   }
 }
 
-function runAuthoring(evidenceDir, supplementDir, outDir) {
+function runAuthoring(evidenceDir, supplementDir, outDir, extraArgs = []) {
   const args = ['--evidence-dir', evidenceDir, '--supplement-dir', supplementDir]
   if (outDir) args.push('--out-dir', outDir)
+  args.push(...extraArgs)
   return runNpm(authoringScriptName, args)
 }
 
@@ -372,6 +378,56 @@ try {
   fail(`valid_authoring_flow_failed:${error.message}`)
 } finally {
   fs.rmSync(validRoot, { recursive: true, force: true })
+}
+
+const partialRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-manifest-authoring-partial-'))
+try {
+  const evidenceDir = path.join(partialRoot, 'checksum-evidence')
+  const supplementDir = path.join(partialRoot, 'supplements')
+  const outDir = path.join(partialRoot, 'model-weight-manifests')
+  fs.mkdirSync(evidenceDir)
+  fs.mkdirSync(supplementDir)
+  writeChecksumEvidenceFixtures(evidenceDir, {}, ['rembg', 'transparent_background'])
+  writeSupplementFixtures(supplementDir, {}, ['rembg', 'transparent_background'])
+
+  const authoringOutput = runAuthoring(evidenceDir, supplementDir, outDir, ['--allow-partial'])
+  assertNoPrivateLeak(authoringOutput, 'partial_authoring_stdout')
+  const authoringPacket = parseJsonOutput(authoringOutput, 'partial_authoring')
+  if (authoringPacket.localPrivateManifestDraftsReady !== 3) {
+    fail(`partial_authoring_drafts_ready_not_3:${authoringPacket.localPrivateManifestDraftsReady}`)
+  }
+  if (authoringPacket.input?.partialAuthoringAccepted !== true) {
+    fail('partial_authoring_not_accepted')
+  }
+  if (authoringPacket.input?.localPrivateManifestDraftFilesWritten !== 3) {
+    fail(`partial_authoring_files_written_not_3:${authoringPacket.input?.localPrivateManifestDraftFilesWritten}`)
+  }
+  for (const toolId of ['sam2', 'birefnet', 'real_esrgan']) {
+    if (!fs.existsSync(path.join(outDir, relativeDraftPathByTool[toolId]))) {
+      fail(`partial_authoring_missing_draft_file:${toolId}`)
+    }
+  }
+  for (const toolId of ['rembg', 'transparent_background']) {
+    if (fs.existsSync(path.join(outDir, relativeDraftPathByTool[toolId]))) {
+      fail(`partial_authoring_unexpected_blocked_tool_draft:${toolId}`)
+    }
+  }
+
+  const manifestOutput = runNpm('ai-graphics:model-weight-manifest-review:validate', [
+    '--manifest-dir',
+    outDir,
+    '--allow-partial',
+  ])
+  assertNoPrivateLeak(manifestOutput, 'partial_manifest_validator_stdout')
+  const manifestReview = parseJsonOutput(manifestOutput, 'partial_manifest_review')
+  if (manifestReview.manifestRecordsProvided !== 3) fail('partial_manifest_records_provided_not_3')
+  if (manifestReview.reviewAcceptedManifestRecords !== 3) fail('partial_manifest_records_accepted_not_3')
+  if (manifestReview.nativeGpuProofInputEligibleRecords !== 3) fail('partial_manifest_gpu_input_not_3')
+  if (manifestReview.input?.partialValidationAccepted !== true) fail('partial_manifest_validation_not_accepted')
+} catch (error) {
+  fail(`partial_authoring_flow_failed:${error.message}`)
+} finally {
+  fs.rmSync(partialRoot, { recursive: true, force: true })
 }
 
 const missingSupplementRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-manifest-authoring-missing-supplement-'))

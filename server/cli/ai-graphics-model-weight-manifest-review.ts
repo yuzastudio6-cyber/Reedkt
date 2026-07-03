@@ -22,6 +22,10 @@ function valuesAfterFlag(flag: string): string[] {
   return values
 }
 
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag)
+}
+
 function jsonFilesInDirectory(directory: string): string[] {
   if (!existsSync(directory)) {
     throw new Error(`Manifest directory does not exist: ${directory}`)
@@ -73,6 +77,16 @@ function collectManifestRecords(): ManifestInput[] {
 
 const manifestRecords = collectManifestRecords()
 const packet = buildAiGraphicsModelWeightManifestReviewPacket(manifestRecords)
+const allowPartial = hasFlag('--allow-partial')
+const providedToolIds = new Set(manifestRecords
+  .map((record) => record.toolId)
+  .filter((toolId): toolId is string => typeof toolId === 'string' && toolId.length > 0))
+const providedResults = packet.validationResults.filter((result) =>
+  typeof result.toolId === 'string' && providedToolIds.has(result.toolId))
+const allProvidedRecordsAccepted = manifestRecords.length > 0 &&
+  providedToolIds.size === manifestRecords.length &&
+  providedResults.length === providedToolIds.size &&
+  providedResults.every((result) => result.reviewAccepted && result.eligibleForNativeGpuProofInput)
 const output = {
   ...packet,
   input: {
@@ -80,6 +94,8 @@ const output = {
       valuesAfterFlag('--manifest-file').length +
       valuesAfterFlag('--manifest-dir').reduce((count, directory) => count + jsonFilesInDirectory(directory).length, 0),
     privateArtifactRefsLogged: 0,
+    partialModeAllowed: allowPartial,
+    partialValidationAccepted: allowPartial && allProvidedRecordsAccepted,
   },
 }
 
@@ -91,5 +107,5 @@ const allRequiredRecordsAccepted = packet.manifestRecordsProvided === 5 &&
   packet.nativeGpuProofInputEligibleRecords === 5
 
 if (manifestRecords.length > 0 && !allRequiredRecordsAccepted) {
-  process.exitCode = 2
+  process.exitCode = allowPartial && allProvidedRecordsAccepted ? 0 : 2
 }

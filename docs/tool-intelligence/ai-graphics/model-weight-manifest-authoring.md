@@ -82,6 +82,14 @@ It writes the five local `model_tree_manifest.json` drafts only when all five
 checksum evidence records and all five supplements are valid. Existing local
 drafts are not overwritten unless `--force` is supplied.
 
+For staged model-tool readiness, the same command may use `--allow-partial` to
+write only the supplied valid tool drafts. Partial mode is strict: every
+supplied checksum evidence record and supplement must validate, missing tools
+remain blocked, and no runtime or execution gate is unlocked. This lets
+`sam2`, `birefnet`, and `real_esrgan` advance from existing internal evidence
+without pretending `rembg` or `transparent_background` are ready before their
+source/checksum review is complete.
+
 Validate the result with the existing manifest-review validator:
 
 ```sh
@@ -98,6 +106,9 @@ npm run --silent ai-graphics:model-weight-manifest-review:validate -- \
 - Local private manifest drafts ready from committed docs: 0.
 - Manifest-review validator input ready from committed docs: 0.
 - Private artifact refs logged: 0.
+- Partial local authoring support: available through `--allow-partial` for
+  valid supplied private records only; committed public records still approve
+  zero model manifests.
 
 ## Runtime Boundary
 

@@ -154,10 +154,22 @@ const checksumEvidenceRecords = collectChecksumEvidenceRecords()
 const manifestSupplements = collectManifestSupplementRecords()
 const authoring = buildAiGraphicsModelWeightManifestAuthoringDrafts(checksumEvidenceRecords, manifestSupplements)
 const outDir = valuesAfterFlag('--out-dir')[0]
+const allowPartial = hasFlag('--allow-partial')
+const providedToolIds = new Set([
+  ...checksumEvidenceRecords.map((record) => record.toolId),
+  ...manifestSupplements.map((record) => record.toolId),
+].filter((toolId): toolId is string => typeof toolId === 'string' && toolId.length > 0))
+const providedResults = authoring.packet.validationResults.filter((result) => providedToolIds.has(result.toolId))
+const allRequiredDraftsReady = authoring.packet.localPrivateManifestDraftsReady === 5
+const allProvidedRecordsReady = providedToolIds.size > 0 &&
+  providedResults.length === providedToolIds.size &&
+  authoring.drafts.length === providedToolIds.size &&
+  providedResults.every((result) =>
+    result.localPrivateManifestDraftReady && result.manifestReviewValidatorInputReady)
 let localPrivateManifestDraftFilesWritten = 0
 
 if (outDir) {
-  if (authoring.packet.localPrivateManifestDraftsReady !== 5) {
+  if (!allRequiredDraftsReady && !(allowPartial && allProvidedRecordsReady)) {
     process.exitCode = 2
   } else {
     localPrivateManifestDraftFilesWritten = writeDrafts(outDir, authoring.drafts, authoring.draftRelativeFilePaths)
@@ -180,12 +192,15 @@ const output = {
         ]).length, 0),
     localPrivateManifestDraftFilesWritten,
     privateArtifactRefsLogged: 0,
+    partialModeAllowed: allowPartial,
+    partialAuthoringAccepted: allowPartial && allProvidedRecordsReady,
+    partialManifestDraftFilesReady: allowPartial ? authoring.drafts.length : 0,
   },
 }
 
 console.log(JSON.stringify(output, null, 2))
 
 const anyInputSupplied = checksumEvidenceRecords.length > 0 || manifestSupplements.length > 0
-if (anyInputSupplied && authoring.packet.localPrivateManifestDraftsReady !== 5) {
-  process.exitCode = 2
+if (anyInputSupplied && !allRequiredDraftsReady) {
+  process.exitCode = allowPartial && allProvidedRecordsReady ? 0 : 2
 }

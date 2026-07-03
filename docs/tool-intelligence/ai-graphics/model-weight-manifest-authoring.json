@@ -26,6 +26,7 @@
     "serverExport": "server/tool-registry/index.ts",
     "localPrivateManifestAuthoringCli": "server/cli/ai-graphics-model-weight-manifest-authoring.ts",
     "localPrivateManifestAuthoringScript": "ai-graphics:model-weight-manifest-authoring",
+    "localPrivateManifestPartialAuthoringFlag": "--allow-partial",
     "localPrivateManifestSupplementValidator": "server/cli/ai-graphics-model-weight-manifest-supplement.ts",
     "localPrivateManifestSupplementValidatorScript": "ai-graphics:model-weight-manifest-supplement:validate",
     "localPrivateManifestSupplementScaffoldScript": "ai-graphics:model-weight-manifest-supplement-scaffold",
@@ -134,6 +135,7 @@
   "globalBlockers": [
     "No private checksum evidence, source artifact refs, source license refs, model card refs, or private manifests are committed in this public packet.",
     "Manifest authoring needs both reviewed private checksum evidence and a reviewed private manifest supplement for every model-weight tool.",
+    "Partial local manifest authoring is allowed only with --allow-partial when every supplied private checksum evidence record and supplement validates; omitted tools remain blocked.",
     "Generated manifest drafts are local/private files only and must stay under ignored local evidence paths such as .local-artifacts.",
     "Local private manifest drafts are only input for the existing manifest-review validator and later native GPU proof.",
     "GPU runtime remains on-demand only and must start only inside an approved future worker or tool-call job.",

@@ -256,6 +256,7 @@ function missingPlatformEvidence(platformEvidence?: ToolBetaPlatformReadinessEvi
     return [
       'platform evidence packet missing',
       'migration deployment unverified',
+      'production evidence migration deployment unverified',
       'service-role write path unverified',
       'RLS member read path unverified',
       'idempotent replay unverified',
@@ -271,6 +272,9 @@ function missingPlatformEvidence(platformEvidence?: ToolBetaPlatformReadinessEvi
   if (!platformEvidence.sourceId.trim()) missing.push('sourceId missing')
   if (platformEvidence.environment !== 'staging' && platformEvidence.environment !== 'production') missing.push('staging or production environment missing')
   if (!platformEvidence.toolCostEventsMigrationDeployed) missing.push('tool_cost_events migration not deployed')
+  if (!platformEvidence.productionReadinessEvidenceMigrationDeployed) {
+    missing.push('production_tool_execution_readiness_evidence_packets migration not deployed')
+  }
   if (!platformEvidence.serviceRoleWritePathVerified) missing.push('service-role write path not verified')
   if (!platformEvidence.rlsMemberReadPathVerified) missing.push('RLS member read path not verified')
   if (!platformEvidence.idempotentReplayVerified) missing.push('idempotent replay not verified')

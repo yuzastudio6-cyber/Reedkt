@@ -13,6 +13,7 @@ export interface BetaPlatformDeployedEvidenceObservation {
 export interface BetaPlatformDeployedEvidenceProbeTransport {
   verifyToolCostEventsMigration(): Promise<BetaPlatformDeployedEvidenceObservation>
   verifyBetaReadinessEvidenceMigration(): Promise<BetaPlatformDeployedEvidenceObservation>
+  verifyProductionReadinessEvidenceMigration(): Promise<BetaPlatformDeployedEvidenceObservation>
   verifyServiceRoleWritePath(): Promise<BetaPlatformDeployedEvidenceObservation>
   verifyAuthenticatedRlsMemberReadback(): Promise<BetaPlatformDeployedEvidenceObservation>
   verifyIdempotentReplay(): Promise<BetaPlatformDeployedEvidenceObservation>
@@ -33,6 +34,10 @@ export function createBetaPlatformDeployedEvidenceProbeRunners(
     beta_readiness_evidence_migration_deployed: () => transportProbe(
       'beta_readiness_evidence_migration_deployed',
       transport.verifyBetaReadinessEvidenceMigration(),
+    ),
+    production_readiness_evidence_migration_deployed: () => transportProbe(
+      'production_readiness_evidence_migration_deployed',
+      transport.verifyProductionReadinessEvidenceMigration(),
     ),
     service_role_write_path_verified: () => transportProbe(
       'service_role_write_path_verified',

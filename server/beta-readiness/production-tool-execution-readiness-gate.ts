@@ -381,6 +381,7 @@ function buildPlatformEvidence(input: ProductionToolExecutionReadinessGateInput)
     sourceSha: input.sourceSha,
     environment: 'production',
     toolCostEventsMigrationDeployed: true,
+    productionReadinessEvidenceMigrationDeployed: true,
     serviceRoleWritePathVerified: true,
     rlsMemberReadPathVerified: true,
     idempotentReplayVerified: true,

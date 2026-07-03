@@ -47,6 +47,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
   const routerLiteralNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: false')
   const routerConditionalNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: !realMediaHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realSmartCutTimelineHandler') +
+    countOccurrences(sources.workerRouter, 'mockOnly: !realAudioMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realColorMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realToolReadinessHandler')
@@ -57,6 +58,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     'cpu_analysis_worker_media_probe',
     'cpu_analysis_worker_media_proxy',
     'cpu_analysis_worker_media_representative_frames',
+    'cpu_analysis_worker_audio_metadata',
     'cpu_analysis_worker_color_metadata',
     'cpu_analysis_worker_smart_cut_timeline',
     'tool_readiness_worker_core_checks',
@@ -106,6 +108,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         mediaProbeAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
         mediaProxyAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_proxy'),
         mediaRepresentativeFramesAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_representative_frames'),
+        audioMetadataAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_audio_metadata'),
         colorMetadataAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_color_metadata'),
         smartCutTimelineAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_smart_cut_timeline'),
         toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
@@ -120,6 +123,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_keyframes') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_proxy') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_representative_frames') ||
+        sources.gatewaySmoke.includes('cpu_analysis_worker_audio_metadata') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_color_metadata') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_smart_cut_timeline') ||
         sources.gatewaySmoke.includes('tool_readiness_worker_core_checks')
@@ -134,6 +138,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         realMediaProbeAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_probe'),
         realMediaProxyAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_proxy'),
         realMediaRepresentativeFramesAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_representative_frames'),
+        realAudioMetadataAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_audio_metadata'),
         realColorMetadataAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_color_metadata'),
         realSmartCutTimelineAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_smart_cut_timeline'),
         realToolReadinessAdapterMentions: countOccurrences(sources.gatewaySmoke, 'tool_readiness_worker_core_checks'),

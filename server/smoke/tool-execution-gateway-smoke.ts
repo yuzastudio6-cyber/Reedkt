@@ -73,6 +73,20 @@ const baseInput: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string 
 
 const service = createToolExecutionGatewayService(context)
 const storedProductionEvidence = productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId)
+const staleProductionEvidencePacket = recordMockProductionToolExecutionReadinessEvidencePacket(
+  'tool-execution-gateway-smoke-stale-production-readiness-packet',
+  {
+    readinessInput: {
+      ...storedProductionEvidence,
+      sourceId: 'tool-execution-gateway-smoke:stale-production-readiness',
+    },
+    readinessReport: evaluateProductionToolExecutionReadinessGate({
+      ...storedProductionEvidence,
+      sourceId: 'tool-execution-gateway-smoke:stale-production-readiness',
+    }),
+  },
+  context.auth!.userId,
+).packet
 const storedProductionEvidencePacket = recordMockProductionToolExecutionReadinessEvidencePacket(
   'tool-execution-gateway-smoke-production-readiness-packet',
   {
@@ -196,6 +210,19 @@ assert.equal(productionReadyMissingEvidencePacket.workerResult, undefined, 'miss
 assert.ok(
   productionReadyMissingEvidencePacket.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_EVIDENCE_PACKET_NOT_FOUND'),
   'missing production evidence packet should identify the packet lookup blocker',
+)
+
+const productionReadyStaleEvidencePacket = await service.dispatchApprovedToolCall({
+  ...baseInput,
+  jobId: 'job-production-ready-stale-evidence-packet',
+  executionMode: 'production_ready',
+  productionReadinessEvidencePacketId: staleProductionEvidencePacket.id,
+})
+assert.equal(productionReadyStaleEvidencePacket.gateway.status, 'blocked', 'production_ready dispatch should block stale production readiness evidence packets')
+assert.equal(productionReadyStaleEvidencePacket.workerResult, undefined, 'stale production evidence packet should not dispatch a worker')
+assert.ok(
+  productionReadyStaleEvidencePacket.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_EVIDENCE_PACKET_STALE'),
+  'stale production evidence packet should identify the latest-packet gate',
 )
 
 const productionReadyBlockedEvidence = await service.dispatchApprovedToolCall({

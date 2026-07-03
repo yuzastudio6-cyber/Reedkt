@@ -5,7 +5,9 @@ import {
 } from '../beta-readiness'
 import {
   getMockProductionToolExecutionReadinessEvidencePacket,
-  getPersistentProductionToolExecutionReadinessEvidencePacket,
+  listMockProductionToolExecutionReadinessEvidencePackets,
+  listPersistentProductionToolExecutionReadinessEvidencePackets,
+  type ProductionToolExecutionReadinessEvidencePacket,
 } from '../beta-readiness/production-tool-execution-readiness-evidence-store'
 import {
   admitProductionGatewayOpsControls,
@@ -1842,7 +1844,7 @@ async function validateProductionReadinessGate(context: ServiceContext, input: T
   let productionReadinessEvidence = input.productionReadinessEvidence
   if (!productionReadinessEvidence && input.productionReadinessEvidencePacketId) {
     try {
-      const packet = await getProductionReadinessEvidencePacket(context, input.workspaceId, input.productionReadinessEvidencePacketId)
+      const { packet, latestPacket } = await getProductionReadinessEvidencePacket(context, input.workspaceId, input.productionReadinessEvidencePacketId)
       if (!packet) {
         return {
           blockers: [{
@@ -1852,6 +1854,21 @@ async function validateProductionReadinessGate(context: ServiceContext, input: T
             details: {
               productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
               workspaceId: input.workspaceId,
+            },
+          }],
+        }
+      }
+      if (latestPacket && latestPacket.id !== packet.id) {
+        return {
+          blockers: [{
+            code: 'PRODUCTION_READINESS_EVIDENCE_PACKET_STALE',
+            gateName: 'production_readiness_gate',
+            message: 'production_ready gateway dispatch requires the latest production readiness evidence packet for this workspace.',
+            details: {
+              suppliedProductionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+              latestProductionReadinessEvidencePacketId: latestPacket.id,
+              latestSourceId: latestPacket.sourceId,
+              latestSourceSha: latestPacket.sourceSha,
             },
           }],
         }
@@ -1939,11 +1956,22 @@ async function getProductionReadinessEvidencePacket(
   context: ServiceContext,
   workspaceId: string,
   packetId: string,
-) {
+): Promise<{
+  packet: ProductionToolExecutionReadinessEvidencePacket | null
+  latestPacket?: ProductionToolExecutionReadinessEvidencePacket
+}> {
   if (context.clients.admin && !context.env.mockOnly) {
-    return getPersistentProductionToolExecutionReadinessEvidencePacket(context.clients.admin, workspaceId, packetId)
+    const packets = await listPersistentProductionToolExecutionReadinessEvidencePackets(context.clients.admin, workspaceId)
+    return {
+      packet: packets.find((packet) => packet.id === packetId) ?? null,
+      latestPacket: packets.at(-1),
+    }
   }
-  return getMockProductionToolExecutionReadinessEvidencePacket(workspaceId, packetId)
+  const packets = listMockProductionToolExecutionReadinessEvidencePackets(workspaceId)
+  return {
+    packet: getMockProductionToolExecutionReadinessEvidencePacket(workspaceId, packetId),
+    latestPacket: packets.at(-1),
+  }
 }
 
 async function recordGatewayBillingAudit(input: {

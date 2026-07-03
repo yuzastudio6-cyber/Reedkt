@@ -7,6 +7,7 @@ import {
   runProductionFinalOwnerSignoffEvidenceCollectorFromEnv,
   type ProductionFinalOwnerSignoffEvidenceCollectorEnv,
 } from './production-final-owner-signoff-evidence-collector'
+import { buildProductionRealWorkerHandlerReadinessReport } from './production-real-worker-handler-readiness'
 import {
   runProductionOpsObservabilityEvidenceCollectorFromEnv,
   type ProductionOpsObservabilityEvidenceCollectorEnv,
@@ -62,6 +63,7 @@ export interface ProductionToolExecutionReadinessEvidenceBundleSection {
     | 'ops_observability'
     | 'final_owner_signoff'
     | 'all_up_preflight'
+    | 'real_worker_handlers'
   label: string
   ready: boolean
   mode: 'dry_run'
@@ -80,6 +82,7 @@ export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv
   const ops = await runProductionOpsObservabilityEvidenceCollectorFromEnv(safeEnv, disabledReadinessFetch)
   const owners = await runProductionFinalOwnerSignoffEvidenceCollectorFromEnv(safeEnv, disabledReadinessFetch)
   const allUp = await runProductionToolExecutionReadinessEvidenceCollectorFromEnv(safeEnv, disabledReadinessFetch)
+  const realWorkerHandlers = buildProductionRealWorkerHandlerReadinessReport()
 
   const sections: ProductionToolExecutionReadinessEvidenceBundleSection[] = [
     {
@@ -146,6 +149,14 @@ export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv
       ],
       warnings: allUp.warnings,
     },
+    {
+      id: 'real_worker_handlers',
+      label: 'Real production worker handlers',
+      ready: realWorkerHandlers.readyForRealToolExecution,
+      mode: 'dry_run',
+      blockers: realWorkerHandlers.blockers,
+      warnings: realWorkerHandlers.warnings,
+    },
   ]
 
   return {
@@ -158,6 +169,7 @@ export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv
     warnings: [
       'This bundle is dry-run only and forces all record confirmations off before invoking collectors.',
       'It does not call backend routes, Supabase, Stripe, workers, tools, media processors, deployments, or production.',
+      'All-up production evidence is necessary but not sufficient while real production worker handlers remain blocked.',
       'Use the focused collectors to collect slice evidence, then use prod:readiness:tool-execution-evidence-collector for the final authenticated all-up record/readback.',
     ],
   }
@@ -229,6 +241,11 @@ function recommendedSequence(): ProductionToolExecutionReadinessEvidenceBundleRe
     },
     {
       step: 9,
+      command: 'npm run prod:readiness:real-worker-handler-readiness',
+      purpose: 'Verify production gateway adapters and worker routes no longer resolve to mock-only placeholder handlers.',
+    },
+    {
+      step: 10,
       command: 'npm run prod:readiness:tool-execution-gate',
       purpose: 'Render the final local paid-production readiness gate report from the same evidence inputs.',
     },

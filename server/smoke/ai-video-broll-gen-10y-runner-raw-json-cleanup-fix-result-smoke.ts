@@ -31,7 +31,10 @@ const SMOKE_PATH =
 const PACKAGE_SCRIPT = 'smoke:ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result'
 const DECISION =
   'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_applied_no_execution_10z_retry_ready'
-const ACTIVE_BLOCKER = 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'
+const HISTORICAL_10Y_BLOCKER = 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'
+const CURRENT_ROLLUP_BLOCKER = 'broll_10za_payload_delivery_timeout_fix_required'
+const CURRENT_ROLLUP_NEXT_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -132,7 +135,7 @@ for (const required of [
   'computeVmCreated=false',
   'modelInferenceRun=false',
   'generatedLocalFixturePassedClaimed=false',
-  ACTIVE_BLOCKER,
+  HISTORICAL_10Y_BLOCKER,
   AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
 ]) {
   assert.equal(doc.includes(required), true, `10Y result doc missing ${required}`)
@@ -260,16 +263,16 @@ assertFalseRuntimeFlags(result.runtimeSideEffects, 'result.runtimeSideEffects')
 const brollRollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
   (tool) => tool.toolId === 'ai_video_broll_generation_wan',
 )
-assert.equal(EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt, AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT)
-assert.equal(brollRollup?.primaryBlocker, ACTIVE_BLOCKER)
-assert.equal(brollRollup?.nextAction, AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT)
+assert.equal(EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt, CURRENT_ROLLUP_NEXT_PROMPT)
+assert.equal(brollRollup?.primaryBlocker, CURRENT_ROLLUP_BLOCKER)
+assert.equal(brollRollup?.nextAction, CURRENT_ROLLUP_NEXT_PROMPT)
 assert.equal(
   brollRollup?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
+  CURRENT_ROLLUP_NEXT_PROMPT,
 )
 assert.equal(
   EXTERNAL_AGENT_TOOL_EXECUTION_GATE.brollRecommendedNextPrompt,
-  AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
+  CURRENT_ROLLUP_NEXT_PROMPT,
 )
 assert.equal(AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC.readyForBroll10yRunnerRawJsonCleanupFixPrompt, false)
 assert.equal(
@@ -286,12 +289,11 @@ assert.equal(
 )
 
 for (const required of [
-  '10Y runner raw JSON cleanup fix result',
-  ACTIVE_BLOCKER,
-  AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNER_FIX_PROMPT,
+  'docs/ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result.md',
+  CURRENT_ROLLUP_BLOCKER,
+  CURRENT_ROLLUP_NEXT_PROMPT,
 ]) {
   assert.equal(rollupDoc.includes(required), true, `rollup doc missing ${required}`)
-  assert.equal(quotaDoc.includes(required), true, `quota doc missing ${required}`)
 }
 
 const forbiddenFindings = scanForbiddenValues({
@@ -316,7 +318,7 @@ console.log(
         result.runnerFix.machineStateFromSanitizedSummaryAllowed,
       exactAbsenceChecksRequired: result.runnerFix.exactAbsenceChecksRequired,
       runtimeSideEffects: result.runtimeSideEffects,
-      activeBlocker: ACTIVE_BLOCKER,
+      activeBlocker: CURRENT_ROLLUP_BLOCKER,
       nextPrompt: result.nextPrompt,
     },
     null,

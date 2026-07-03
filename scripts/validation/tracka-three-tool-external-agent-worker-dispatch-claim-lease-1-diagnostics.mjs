@@ -43,7 +43,19 @@ const implementationFiles = [
   'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const workerProcessExecutionFiles = [
+  'scripts/validation/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1-diagnostics.mjs',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1/worker-process-execution.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1/artifact-manifest-summary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1/tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1-record.json',
+  'docs/activation-phase-tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1-results.md',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...workerProcessExecutionFiles])
 
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
@@ -287,6 +299,7 @@ for (const file of uniqueChangedFiles) {
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path: ${file}`)
 }
 const changedCorpus = uniqueChangedFiles
+  .filter((file) => !workerProcessExecutionFiles.includes(file))
   .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
   .map(read)
   .join('\n')

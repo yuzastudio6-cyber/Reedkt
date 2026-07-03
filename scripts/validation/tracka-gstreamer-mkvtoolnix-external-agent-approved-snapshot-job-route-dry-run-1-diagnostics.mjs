@@ -17,6 +17,8 @@ const activationPath =
   'docs/activation-phase-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1-results.md'
 const nextPromptPath =
   'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1.md'
+const workerLeaseDir =
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1'
 const gitEnv = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
 
 const runId = '2026-07-03T03-10-51-404Z-c37eaafa'
@@ -55,7 +57,22 @@ const implementationFiles = [
   'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const followUpFiles = [
+  `${workerLeaseDir}/source-audit.md`,
+  `${workerLeaseDir}/worker-lease-noop-result.md`,
+  `${workerLeaseDir}/worker-lease-contract.md`,
+  `${workerLeaseDir}/artifact-manifest-summary.md`,
+  `${workerLeaseDir}/safety-boundary.md`,
+  `${workerLeaseDir}/validation-results.md`,
+  `${workerLeaseDir}/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1-record.json`,
+  'docs/activation-phase-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-1.md',
+  'server/services/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1.ts',
+  'server/cli/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1.ts',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-worker-lease-noop-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...followUpFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

@@ -94,18 +94,15 @@ assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
 assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
-assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
-assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [
-  'qwen2_5_vl_7b_instruct',
-  'ai_video_broll_generation_wan',
-])
+assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
-assert.equal(plan.blockedToolCount, rollup.tools.length - 2)
+assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
-assert.equal(plan.manualBlockers.length, rollup.tools.length - 2)
+assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
 assert.equal(plan.sourceRules.approvedSnapshotRequired, true)
 assert.equal(plan.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
@@ -181,10 +178,11 @@ assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-bl
 assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
 assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
 assert.equal(broll.externalManualBlocker.includes('11B added the no-inference model import/load runner'), true)
-assert.equal(broll.externalManualBlocker.includes('private GCS Wan model-cache marker is missing'), true)
+assert.equal(broll.externalManualBlocker.includes('private GCS Wan model-cache staging is blocked'), true)
+assert.equal(broll.externalManualBlocker.includes('11C private URL-list Storage Transfer test failed with HTTP 403'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run npm run external-agent-tool-prepare-broll-wan-cache with its explicit cache-fill confirmation, then rerun npm run external-agent-tool-next-command before the bounded 11B no-idle L4 model import/load proof',
+  'run AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX before retrying private cache preparation or the bounded 11B no-idle L4 model import/load proof',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

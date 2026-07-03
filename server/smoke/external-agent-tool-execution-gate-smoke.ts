@@ -232,8 +232,8 @@ assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
-assert.equal(report.blockedToolIds.length, 2)
+assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(report.blockedToolIds.length, 3)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )

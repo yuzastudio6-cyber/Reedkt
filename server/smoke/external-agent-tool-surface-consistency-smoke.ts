@@ -199,13 +199,13 @@ assertQwenManualActions(rollupQwenActions, 'rollup.qwen')
 assertBrollManualActions(rollupBrollActions, 'rollup.broll')
 assertAllRuntimeFlagsFalse(rollup.runtimeSideEffects, 'rollup.runtimeSideEffects')
 for (const tool of rollup.tools) {
-  if (tool.toolId === QWEN_TOOL_ID || tool.toolId === BROLL_TOOL_ID) {
+  if (tool.toolId === QWEN_TOOL_ID) {
     assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for the explicit gate`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,
       false,
-      `${tool.toolId} must not be execution-ready on the Qwen retry-2 branch`,
+      `${tool.toolId} must not be execution-ready unless its runtime blocker is cleared`,
     )
   }
 }
@@ -282,15 +282,15 @@ assert.equal(
   asArray(actionPlan.manualBlockers, 'actionPlan.manualBlockers').some(
     (row) => asRecord(row, 'actionPlan.manualBlockers row').toolId === BROLL_TOOL_ID,
   ),
-  false,
-  'actionPlan.manualBlockers must not include explicit-gate-ready B-roll',
+  true,
+  'actionPlan.manualBlockers must include B-roll while cache staging strategy is blocked',
 )
 assert.equal(
   asArray(readiness.blockers, 'readiness.blockers').some(
     (row) => asRecord(row, 'readiness.blockers row').toolId === BROLL_TOOL_ID,
   ),
-  false,
-  'readiness.blockers must not include explicit-gate-ready B-roll',
+  true,
+  'readiness.blockers must include B-roll while cache staging strategy is blocked',
 )
 
 for (const [label, actions] of brollSurfaceActions) {

@@ -210,10 +210,12 @@ export const AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference' as const
 export const AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT =
   'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference' as const
+export const AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_and_broll_11b_model_import_runner_ready_for_explicit_gate',
+    'external_agent_tool_execution_readiness_qwen_ready_broll_cache_staging_strategy_fix_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -446,16 +448,20 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
-      status: 'ready_for_explicit_tool_gate',
+      status: 'callable_cache_staging_strategy_fix_required_before_gpu_import_proof',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_passed_11b_model_import_runner_ready_for_explicit_gate',
+        'controlled_l4_no_idle_payload_install_proof_passed_11b_model_import_runner_ready_but_private_gcs_model_cache_staging_blocked',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
-      readyForExternalAgentExecutionNow: true,
-      readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill',
+      readyForExternalAgentExecutionNow: false,
+      readyForBoundedRetryAfterBlockerClears: false,
+      primaryBlocker: 'broll_private_gcs_model_cache_staging_blocked_local_upload_stalled_private_url_list_403',
       evidence: [
+        'docs/ai-video-broll-gen-11c-storage-transfer-naming-test-result.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11c-storage-transfer-naming-test-result.ts',
+        'server/smoke/ai-video-broll-gen-11c-storage-transfer-naming-test-result-smoke.ts',
+        'package_json_script:smoke:ai-video-broll-gen-11c-storage-transfer-naming-test-result',
         'docs/ai-video-broll-gen-11a-model-import-plan.md',
         'src/backend/mock/mock-ai-video-broll-gen-11a-model-import-plan.ts',
         'server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts',
@@ -680,7 +686,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -710,7 +716,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+          AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
       },
     },
     {
@@ -763,7 +769,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+    AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

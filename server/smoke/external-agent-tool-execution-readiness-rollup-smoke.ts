@@ -87,8 +87,8 @@ const BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference'
 const BROLL_11A_MODEL_IMPORT_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference'
-const BROLL_11B_MODEL_IMPORT_PROOF_PROMPT =
-  'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
+const BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -143,7 +143,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_and_broll_11b_model_import_runner_ready_for_explicit_gate',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_cache_staging_strategy_fix_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -234,8 +234,9 @@ for (const required of [
   BROLL_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
   BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
   BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
-  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
+  BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
   '11B adds the narrower no-inference import/load runner',
+  '11C proved that a private GCS-hosted URL-list through HTTPS fails with HTTP 403',
   'Wan inference, prompt encoding, denoising, VAE decode, frame/video creation, generated assets, Supabase, SQL, signed URLs, credits, beta, and production remain blocked',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
@@ -416,7 +417,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_and_broll_11b_model_import_runner_ready_for_explicit_gate',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_cache_staging_strategy_fix_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -428,7 +429,7 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
+  BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
 )
 assert.equal(rollup.safeNextCommands.length, 13)
 assert.equal(
@@ -689,14 +690,14 @@ assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-d
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
-assert.equal(broll?.status, 'ready_for_explicit_tool_gate')
+assert.equal(broll?.status, 'callable_cache_staging_strategy_fix_required_before_gpu_import_proof')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
-assert.equal(broll?.readyForExternalAgentExecutionNow, true)
-assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
+assert.equal(broll?.readyForExternalAgentExecutionNow, false)
+assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill',
+  'broll_private_gcs_model_cache_staging_blocked_local_upload_stalled_private_url_list_403',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1170,10 +1171,23 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_11B_MODEL_IMPORT_PROOF_PROMPT)
+assert.equal(broll?.nextAction, BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill',
+  'broll_private_gcs_model_cache_staging_blocked_local_upload_stalled_private_url_list_403',
+)
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11c-storage-transfer-naming-test-result.md'), true)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11c-storage-transfer-naming-test-result.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-11c-storage-transfer-naming-test-result-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11c-storage-transfer-naming-test-result'),
+  true,
 )
 assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11a-model-import-plan.md'), true)
 assert.equal(broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11a-model-import-plan.ts'), true)
@@ -1322,7 +1336,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
+  BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')
@@ -1401,13 +1415,13 @@ assert.equal(
 )
 
 for (const tool of rollup.tools) {
-  if (tool.toolId === 'qwen2_5_vl_7b_instruct' || tool.toolId === 'ai_video_broll_generation_wan') {
+  if (tool.toolId === 'qwen2_5_vl_7b_instruct') {
     assert.equal(tool.readyForExternalAgentExecutionNow, true, `${tool.toolId} must be ready for the explicit gate`)
   } else {
     assert.equal(
       tool.readyForExternalAgentExecutionNow,
       false,
-      `${tool.toolId} must not be execution-ready on the Qwen/B-roll explicit-gate branch`,
+      `${tool.toolId} must not be execution-ready while B-roll cache staging, Sound runtime, or Supabase runtime remains blocked`,
     )
   }
   assert.equal(tool.evidence.length > 0, true, `${tool.toolId} needs evidence references`)

@@ -33,9 +33,9 @@ const DECISION =
   'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_applied_no_execution_10z_retry_ready'
 const HISTORICAL_10Y_BLOCKER = 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'
 const CURRENT_ROLLUP_BLOCKER =
-  'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill'
+  'broll_private_gcs_model_cache_staging_blocked_local_upload_stalled_private_url_list_403'
 const CURRENT_ROLLUP_NEXT_PROMPT =
-  'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
+  'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')

@@ -1,0 +1,44 @@
+{
+  "packet": "TRACKA-AGENT-TOOL-CALL-ARCHITECTURE-SUPPORT-1",
+  "decision": "tracka_agent_tool_call_architecture_support_passed_three_scoped_tools_registered",
+  "sourceBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "scopedToolIds": [
+    "gstreamer_render_pipeline_support",
+    "mkvtoolnix_container_validation",
+    "gpac_mp4box_packaging_validation"
+  ],
+  "agentFacingAliases": {
+    "streamer_render_pipeline_support": "gstreamer_render_pipeline_support"
+  },
+  "architecture": {
+    "registry": "server/tool-registry",
+    "workerPayload": "ProductionWorkerJobPayload.requestedToolIds",
+    "ownerWorker": "render_worker",
+    "executionMode": "render_pipeline",
+    "routeContracts": [
+      "RP-EXTERNAL-BETA-GSTREAMER-MKVTOOLNIX-NARROW-EXECUTION-READY-ROUTE-WORKER-BRIDGE-1",
+      "TRACKA-GPAC-MP4BOX-EXECUTION-READY-ROUTE-WORKER-BRIDGE-1",
+      "TRACKA-THREE-TOOL-EXTERNAL-AGENT-EXECUTION-BRIDGE-1"
+    ]
+  },
+  "toolReadiness": {
+    "gstreamer_render_pipeline_support": "ready_for_agent_worker_payload_routing",
+    "mkvtoolnix_container_validation": "ready_for_agent_worker_payload_routing",
+    "gpac_mp4box_packaging_validation": "ready_for_agent_worker_payload_routing"
+  },
+  "uiPolicy": {
+    "showExactToolNamesToEndUser": false,
+    "recommendedSummary": "Packaging and container validation checks are queued or running.",
+    "developerAuditSurface": "Exact scoped tool IDs remain available in backend logs, registry profiles, QA packets, and operator diagnostics."
+  },
+  "safety": {
+    "frontendExecutionAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "arbitraryCommandAllowed": false,
+    "signedUrlSourceTruthAllowed": false,
+    "supabaseMutationEnabled": false,
+    "publicArtifactEnabled": false,
+    "finalRenderExportApprovedByThisChange": false,
+    "productReadyEndToEndLocalOssTools": 0
+  }
+}

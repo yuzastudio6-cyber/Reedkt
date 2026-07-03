@@ -1,9 +1,14 @@
 import { productionToolProfiles } from './production-tool-profiles'
-import { PRODUCTION_TOOL_IDS } from './production-tool-types'
+import {
+  PRODUCTION_TOOL_ID_ALIASES,
+  PRODUCTION_TOOL_IDS,
+} from './production-tool-types'
 import type {
   ProductionRegistryWorkerType,
   ProductionToolCategory,
+  ProductionToolCallId,
   ProductionToolId,
+  ProductionToolIdAlias,
   ProductionToolProfile,
   ProductionToolRegistrySummary,
   ProductionToolStatus,
@@ -20,13 +25,22 @@ export * from './model-weight-policy'
 export * from './tool-fallback-policy'
 export * from './tool-qa-policy'
 
+export function normalizeProductionToolId(toolId: string): string {
+  return PRODUCTION_TOOL_ID_ALIASES[toolId as ProductionToolIdAlias] ?? toolId
+}
+
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)
 }
 
-export function getProductionToolProfile(toolId: ProductionToolId | string): ProductionToolProfile | undefined {
-  return isProductionToolId(toolId)
-    ? productionToolProfiles.find((profile) => profile.toolId === toolId)
+export function isKnownProductionToolId(toolId: string): boolean {
+  return isProductionToolId(normalizeProductionToolId(toolId))
+}
+
+export function getProductionToolProfile(toolId: ProductionToolCallId | string): ProductionToolProfile | undefined {
+  const normalizedToolId = normalizeProductionToolId(toolId)
+  return isProductionToolId(normalizedToolId)
+    ? productionToolProfiles.find((profile) => profile.toolId === normalizedToolId)
     : undefined
 }
 

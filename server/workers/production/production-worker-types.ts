@@ -2,7 +2,7 @@ import type { QualityGateType, ProductionStorageBucketPurpose } from '../../../s
 import type { FallbackDecision, ToolRunResult } from '../../../src/backend/contracts/tool-execution-contracts'
 import type { QualityGateResult } from '../../../src/backend/contracts/quality-gate-contracts'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
-import type { ProductionToolId } from '../../tool-registry'
+import type { ProductionToolCallId } from '../../tool-registry'
 
 export type ProductionWorkerRuntimeType =
   | 'cpu_analysis_worker'
@@ -82,7 +82,7 @@ export interface ProductionWorkerJobPayload {
   idempotencyKey: string
   attempt: number
   maxAttempts: number
-  requestedToolIds: ProductionToolId[]
+  requestedToolIds: ProductionToolCallId[]
   requestedRecipeIds: string[]
   storageReferenceIds: string[]
   creditReservationId?: string

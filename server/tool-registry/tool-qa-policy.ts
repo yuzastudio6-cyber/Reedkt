@@ -72,6 +72,24 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   konva: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   vapoursynth: { ...empty, gateTypes: ['render_asset_integrity', 'export_duration_sync'], requiredBeforePreview: ['render_asset_integrity'] },
   revideo: { ...empty, gateTypes: ['render_asset_integrity', 'render_timeline_integrity'], notes: ['Evaluation-only; not a core render QA path.'] },
+  gstreamer_render_pipeline_support: {
+    ...empty,
+    gateTypes: ['render_asset_integrity', 'render_timeline_integrity'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    notes: ['Track A scoped render-pipeline support capability for approved snapshot agent calls.'],
+  },
+  mkvtoolnix_container_validation: {
+    ...empty,
+    gateTypes: ['render_asset_integrity', 'export_codec_format'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    notes: ['Track A scoped container validation capability for generated subtitle-only fixture packaging checks.'],
+  },
+  gpac_mp4box_packaging_validation: {
+    ...empty,
+    gateTypes: ['render_asset_integrity', 'export_codec_format'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    notes: ['Track A scoped MP4Box packaging validation capability for generated subtitle-only fixture packaging checks.'],
+  },
 }
 
 export function getToolQAPolicy(toolId: ProductionToolId): ProductionQAProfile {

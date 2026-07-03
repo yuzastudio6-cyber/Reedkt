@@ -13,6 +13,8 @@ assert.equal(empty.summary.productionToolCount >= 52, true, 'bundle summary shou
 assert.equal(empty.summary.productReadyLocalOssCount, 0, 'product-ready local OSS count must remain zero')
 assert.equal(empty.summary.reviewedRealBackendAdapterCount >= 16, true, 'bundle summary should expose reviewed real backend adapter coverage')
 assert.equal(empty.summary.readyForScopedReviewedToolExecution, true, 'scoped reviewed handler coverage should be ready even when production evidence is missing')
+assert.equal(empty.summary.allProductionHandlerCoverageReady, true, 'dry-run placeholders should be excluded from production handler coverage')
+assert.equal(empty.summary.blockedPlaceholderAdapterCount >= 5, true, 'dry-run placeholder adapters should remain listed as production_ready blocked')
 assert.equal(empty.summary.paidProductionEvidenceReady, false, 'empty evidence should not be production-ready')
 assert.equal(empty.milestone10Checklist.length, 10, 'bundle should publish the Milestone 10 production checklist')
 assert.equal(
@@ -44,6 +46,7 @@ assert.equal(complete.backendCallsAttempted, false, 'complete bundle must still 
 assert.equal(complete.summary.readySectionCount, complete.sections.length, 'complete fixture should mark every section ready')
 assert.equal(complete.summary.blockedSectionCount, 0, 'complete fixture should have no blocked sections')
 assert.equal(complete.summary.paidProductionEvidenceReady, true, 'complete fixture should mark paid production evidence ready')
+assert.equal(complete.summary.allProductionHandlerCoverageReady, true, 'complete fixture should mark reviewed production handler coverage ready')
 assert.equal(
   complete.milestone10Checklist.every((item) => item.status === 'ready'),
   true,

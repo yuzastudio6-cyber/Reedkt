@@ -1601,6 +1601,16 @@ async function validateProductionReadinessGate(context: ServiceContext, input: T
     }
   }
 
+  if (context.clients.admin && !context.env.mockOnly && input.productionReadinessEvidence) {
+    return {
+      blockers: [{
+        code: 'PRODUCTION_READINESS_EVIDENCE_PACKET_REQUIRED',
+        gateName: 'production_readiness_gate',
+        message: 'Persistent production_ready gateway dispatch must reference a stored production readiness evidence packet; inline readiness evidence is mock-only.',
+      }],
+    }
+  }
+
   let productionReadinessEvidence = input.productionReadinessEvidence
   if (!productionReadinessEvidence && input.productionReadinessEvidencePacketId) {
     try {

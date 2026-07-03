@@ -65,6 +65,15 @@ The gateway validates full artifact reference records before reducing them to wo
 
 Worker payloads receive storage reference IDs only.
 
+## Output Manifest Persistence
+
+Gateway-dispatched workers return a private `workerRuntimeArtifactPipeline` record. In local/mock mode the runtime job and project output manifest remain in memory for deterministic smoke tests. In non-mock production mode the gateway persists the same private manifest contract through backend/service-role-only Supabase tables:
+
+- `production_worker_runtime_jobs`
+- `production_worker_runtime_artifacts`
+
+The gateway checks persistent worker idempotency before dispatch so retries replay the stored job/output manifest instead of running work again. `GET /v1/projects/:projectId/tool-output-manifest?workspaceId=...` reads the persistent project manifest in non-mock mode and continues to read in-memory manifests in mock mode. Missing production manifest tables fail closed with `TOOL_RUNTIME_ARTIFACT_BACKEND_REQUIRED`; signed URLs, public artifact paths, secrets, service-role material, and non-private rows remain invalid.
+
 ## Cost And Credit
 
 The gateway uses the Milestone 3 cost/credit assertion:
@@ -105,6 +114,7 @@ Run:
 ```bash
 npm run smoke:tool-execution-gateway
 npm run smoke:production-gateway-ops-admission:sql
+npm run smoke:production-worker-artifact-manifest-persistence:sql
 npm run smoke:tool-call-cost-credit-gate
 npm run smoke:tool-call-intent-planner
 npm run smoke:tool-cost-metering

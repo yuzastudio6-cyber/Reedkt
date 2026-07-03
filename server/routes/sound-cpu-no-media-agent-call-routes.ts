@@ -1,3 +1,5 @@
+import { Router } from 'express'
+
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH =
   '/api/internal/workers/sound-cpu/no-media-agent-call' as const
 
@@ -6,9 +8,11 @@ export const SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_FILE =
 
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_DECISION =
   'worker_runtime_jobs_sound_cpu_bounded_external_agent_no_media_actual_disabled_route_source_created_with_warnings_ready_for_source_owner_review' as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION =
+  'worker_runtime_jobs_sound_cpu_bounded_external_agent_no_media_actual_disabled_route_registration_source_gate_completed_with_warnings_ready_for_disabled_route_registration_source_owner_review' as const
 
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_EXECUTION_ENABLED = false as const
-export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = true as const
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_DISABLED_REASON =
   'bounded_external_agent_no_media_route_not_enabled' as const
 
@@ -157,10 +161,11 @@ export type SoundCpuNoMediaAgentCallDisabledResult = Readonly<{
   routePath: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH
   sourceFile: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_FILE
   sourceDecision: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_DECISION
+  registrationSourceDecision: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION
   reason: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_DISABLED_REASON
   validation: SoundCpuNoMediaAgentCallValidationResult
   acceptedForExecution: false
-  routeRegisteredInApp: false
+  routeRegisteredInApp: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP
   routeExecutionEnabled: false
   ownerGateRequired: 'WORKER_RUNTIME_JOBS'
   acceptedToolCount: 15
@@ -395,6 +400,7 @@ export function createSoundCpuNoMediaAgentCallDisabledResult(
     routePath: SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH,
     sourceFile: SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_FILE,
     sourceDecision: SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_DECISION,
+    registrationSourceDecision: SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION,
     reason: SOUND_CPU_NO_MEDIA_AGENT_CALL_DISABLED_REASON,
     validation: validateSoundCpuNoMediaAgentCallEnvelope(value),
     acceptedForExecution: false,
@@ -436,14 +442,14 @@ export function soundCpuNoMediaAgentCallDisabledRouteHandler(
     error: {
       code: 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_NOT_ENABLED',
       message:
-        'SOUND CPU no-media agent-call route source exists but remains unregistered and disabled pending owner gates.',
+        'SOUND CPU no-media agent-call route is registered as a disabled fail-closed handler pending owner gates.',
       reason: SOUND_CPU_NO_MEDIA_AGENT_CALL_DISABLED_REASON,
     },
     data: {
       soundCpuNoMediaAgentCall: createSoundCpuNoMediaAgentCallDisabledResult(request.body),
     },
     warnings: [
-      'route_source_created_but_not_registered',
+      'route_registered_disabled_handler_only',
       'route_execution_not_enabled',
       'worker_dispatch_execution_not_enabled',
       'tool_execution_not_enabled',
@@ -452,4 +458,10 @@ export function soundCpuNoMediaAgentCallDisabledRouteHandler(
       'artifact_creation_not_enabled',
     ],
   })
+}
+
+export function createSoundCpuNoMediaAgentCallRoutes(): Router {
+  const router = Router()
+  router.post(SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH, soundCpuNoMediaAgentCallDisabledRouteHandler)
+  return router
 }

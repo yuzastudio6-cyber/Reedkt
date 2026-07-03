@@ -13,6 +13,7 @@ import { createJobRoutes } from './routes/job-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
+import { createSoundCpuNoMediaAgentCallRoutes } from './routes/sound-cpu-no-media-agent-call-routes'
 import { createSoundCpuWorkerRoutes } from './routes/sound-cpu-worker-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
@@ -46,6 +47,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createSoundCpuWorkerRoutes())
+  app.use(createSoundCpuNoMediaAgentCallRoutes())
   app.use(createRenderRoutes())
   app.use(createProviderGatewayRoutes())
 

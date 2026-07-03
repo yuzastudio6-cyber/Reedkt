@@ -305,7 +305,15 @@ assert(parsed.policy.allowedClaims.futureRegistrationSourceGateMayProceed === tr
 for (const [key, value] of Object.entries(parsed.policy.claimsForbidden)) assert(value === 'forbidden', `claimsForbidden.${key}`)
 assertNoop(parsed.policy.supabaseClassification, 'policy.supabaseClassification')
 
-assert(sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false'), 'route registered source constant changed')
+const laterRegistrationSourceGatePresent = sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION')
+assert(
+  sourceText.includes(
+    laterRegistrationSourceGatePresent
+      ? 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = true'
+      : 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false',
+  ),
+  'route registered source constant mismatch',
+)
 assert(sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_EXECUTION_ENABLED = false'), 'route execution source constant changed')
 assert(sourceText.includes('soundCpuNoMediaAgentCallDisabledRouteHandler'), 'disabled handler missing from source')
 assert(sourceText.includes('status(409)'), 'disabled source must return 409')

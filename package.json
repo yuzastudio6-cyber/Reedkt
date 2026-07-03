@@ -700,6 +700,7 @@
     "worker-runtime-jobs:sound-cpu-bounded-external-agent-no-media-actual-disabled-route-source-creation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-actual-disabled-route-source-creation-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-bounded-external-agent-no-media-actual-disabled-route-source-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-actual-disabled-route-source-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-bounded-external-agent-no-media-disabled-route-registration-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-disabled-route-registration-plan-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-bounded-external-agent-no-media-actual-disabled-route-registration-source-gate:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-actual-disabled-route-registration-source-gate-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

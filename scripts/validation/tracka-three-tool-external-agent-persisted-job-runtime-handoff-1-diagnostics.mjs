@@ -56,6 +56,16 @@ const routeInvocationFiles = [
   'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/tracka-three-tool-external-agent-persisted-job-route-invocation-1-record.json',
   'docs/activation-phase-tracka-three-tool-external-agent-persisted-job-route-invocation-1-results.md',
   'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-worker-dispatch-claim-lease-1.md',
+  'server/services/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1.ts',
+  'server/smoke/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1-smoke.ts',
+  'scripts/validation/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1-diagnostics.mjs',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1/worker-claim-lease.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1/tracka-three-tool-external-agent-worker-dispatch-claim-lease-1-record.json',
+  'docs/activation-phase-tracka-three-tool-external-agent-worker-dispatch-claim-lease-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-worker-process-approved-snapshot-execution-1.md',
 ]
 
 const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...routeInvocationFiles])

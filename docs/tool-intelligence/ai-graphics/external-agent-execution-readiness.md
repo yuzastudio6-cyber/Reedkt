@@ -68,10 +68,12 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `all13NonGpuControlledAdapterOutputsValidated`: true
 - `all8GpuModelToolsEvaluated`: true
 - `gpuModelToolsBlockedUntilPrerequisites`: true
+- `scopedGpuModelRuntimeProofAcceptedTools`: 0
 - `strictCallableExecutableBlockedFailedContractCreated`: true
 - `gpuRuntimeOnDemandOnly`: true
 - `noIdleGpuRuntimeApproved`: true
 - `gpuRuntimeShouldStartNow`: false
+- `sourceScopedGpuRuntimeStartedOnlyDuringAcceptedProof`: true
 - `agentCanSelectForPlanning`: true
 - `agentCanExecuteToolsNow`: true
 - `agentCanExecute13ControlledToolsNow`: true

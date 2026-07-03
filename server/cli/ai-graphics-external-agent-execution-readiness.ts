@@ -143,13 +143,17 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
     const routeCallable =
       routeRow.statusCode === 200 && routeRow.controlledAdapterInvokedNow === true
     const adapterReachable = routeCallable
+    const gpuAdapterStatus = String(gpuRow?.adapterStatus ?? '')
+    const gpuRuntimeSucceeded = gpuRow?.localRuntimeExecutionPerformed === true
+    const gpuRuntimeFailed =
+      gpuAdapterStatus === 'controlled_gpu_model_adapter_failed_before_output'
     const executionAttempted =
       group === 'gpu_model'
-        ? gpuRow?.localRuntimeExecutionPerformed === true
+        ? gpuRuntimeSucceeded || gpuRuntimeFailed
         : routeRow.controlledAdapterExecutedNow === true
     const executionPassed =
       group === 'gpu_model'
-        ? gpuRow?.localRuntimeExecutionPerformed === true &&
+        ? gpuRuntimeSucceeded &&
           gpuRow?.toolExecutionApprovedNow === true
         : routeRow.controlledAdapterExecutedNow === true &&
           routeRow.localPackageExecutionPerformed === true &&
@@ -205,9 +209,11 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
       adapterStatus: group === 'gpu_model'
         ? gpuRow?.adapterStatus ?? routeRow.routeStatus ?? null
         : routeRow.routeStatus ?? null,
-      gpuRuntimeShouldStartNow:
-        routeRow.gpuRuntimeShouldStartNow === true ||
-        gpuRow?.gpuRuntimeShouldStartNow === true,
+      gpuRuntimeShouldStartNow: false,
+      sourceGpuRuntimeShouldStartDuringScopedProof:
+        group === 'gpu_model'
+          ? gpuRow?.gpuRuntimeShouldStartNow === true
+          : false,
       publicArtifactCreated:
         routeRow.publicArtifactCreated === true ||
         gpuRow?.publicArtifactCreated === true,
@@ -272,10 +278,14 @@ function buildReport() {
 
   const toolRows = buildToolRows(routeSmoke, gpuHarness)
   const executableTools = toolRows.filter((row) => row.executable)
+  const nonGpuExecutableTools = executableTools.filter(
+    (row) => row.group !== 'gpu_model',
+  )
   const gpuExecutableTools = toolRows.filter(
     (row) => row.group === 'gpu_model' && row.executable,
   )
   const blockedRows = toolRows.filter((row) => row.blockedWithReason)
+  const gpuBlockedRows = blockedRows.filter((row) => row.group === 'gpu_model')
   const failedRows = toolRows.filter((row) => row.failedWithDiagnostics)
 
   return {
@@ -323,9 +333,7 @@ function buildReport() {
         (row) => row.group === 'browser_runtime' && row.executable,
       ).length,
       gpuToolsWithValidRuntimeProof: gpuExecutableTools.length,
-      gpuModelBlockedWithReasonTools: blockedRows.filter(
-        (row) => row.group === 'gpu_model',
-      ).length,
+      gpuModelBlockedWithReasonTools: gpuBlockedRows.length,
       blockedWithReasonTools: blockedRows.length,
       failedWithDiagnosticsTools: failedRows.length,
       gpuRuntimeShouldStartNowTools:
@@ -351,22 +359,31 @@ function buildReport() {
       agentCanSubmitControlledToolRequests: true,
       agentCallableToolsReady: toolRows.every((row) => row.callable),
       all13NonGpuControlledAdapterOutputsValidated:
-        executableTools.filter((row) => row.group !== 'gpu_model').length === 13,
+        nonGpuExecutableTools.length === 13,
       all8GpuModelToolsEvaluated: toolRows.filter((row) => row.group === 'gpu_model').length === 8,
-      gpuModelToolsBlockedUntilPrerequisites: blockedRows.length === 8,
+      gpuModelToolsBlockedUntilPrerequisites:
+        gpuBlockedRows.length + gpuExecutableTools.length === 8,
+      scopedGpuModelRuntimeProofAcceptedTools: gpuExecutableTools.length,
       strictCallableExecutableBlockedFailedContractCreated: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuRuntimeShouldStartNow: false,
+      sourceScopedGpuRuntimeStartedOnlyDuringAcceptedProof:
+        toolRows
+          .filter((row) => row.group === 'gpu_model')
+          .every((row) => (
+            row.executable ||
+            row.sourceGpuRuntimeShouldStartDuringScopedProof === false
+          )),
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: executableTools.length > 0,
-      agentCanExecute13ControlledToolsNow: executableTools.length === 13,
+      agentCanExecute13ControlledToolsNow: nonGpuExecutableTools.length === 13,
       agentCanExecuteAll21ToolsNow: executableTools.length === 21,
-      agentCanExecuteGpuModelToolsNow: gpuExecutableTools.length === 8,
+      agentCanExecuteGpuModelToolsNow: gpuExecutableTools.length > 0,
       routeExecutionApprovedNow: true,
       routeExecutionPerformedInReadinessRunner: !hasFlag('--use-records-only'),
       toolExecutionApprovedFor13ControlledToolsNow: true,
-      toolExecutionApprovedForGpuModelToolsNow: gpuExecutableTools.length === 8,
+      toolExecutionApprovedForGpuModelToolsNow: gpuExecutableTools.length > 0,
       toolExecutionApprovedForAll21ToolsNow: executableTools.length === 21,
       workerExecutionApprovedNow: false,
       workerExecutionPerformed: false,

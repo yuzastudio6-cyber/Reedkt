@@ -1,0 +1,69 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-DISPATCH-CLAIM-LEASE-1",
+  "decision": "completed_three_tool_external_agent_local_mock_worker_claim_lease_boundary",
+  "execution": "completed_local_mock_worker_claim_lease_no_worker_execution_or_tool_execution",
+  "validation": "passed",
+  "sourceChain": {
+    "approvedSnapshotJobExecutionMergeSha": "47a3a5f358f7a00f451b9fef277ed0b66251c9e0",
+    "approvedSnapshotJobExecutionRunId": "2026-07-03T03-41-30-494Z-41a3b873",
+    "approvedSnapshotJobExecutionChildRunId": "2026-07-03T03-41-30-650Z-41ce5185",
+    "persistedJobRuntimeHandoffMergeSha": "d2e52278ed840efeff6e87aee0de2ed876b9f580",
+    "persistedJobRouteInvocationMergeSha": "771b7eafef011874d582a96f3852d68987a2a84a",
+    "persistedJobRouteInvocationRunId": "2026-07-03T13-25-30-856Z-7ed163da",
+    "persistedJobRouteInvocationRuntimeDelegateRunId": "2026-07-03T13-25-30-924Z-648666a4",
+    "blockedExcludedPr": "#577 open/draft/blocked/excluded"
+  },
+  "route": {
+    "path": "/v1/external-beta/tracka/three-tool/generated-fixture-runtime/approved-snapshot/jobs/persisted-claim-lease",
+    "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_WORKER_DISPATCH_CLAIM_LEASE=true",
+    "claimLeaseMode": "local_mock_claim_lease_no_worker_execution",
+    "workerType": "tracka_three_tool_external_agent_generated_fixture_worker"
+  },
+  "result": {
+    "status": "completed_three_tool_worker_claim_lease_boundary",
+    "workerLeaseClaim": "completed_local_mock_claim_only"
+  },
+  "tools": [
+    "gstreamer_render_pipeline_support",
+    "mkvtoolnix_container_validation",
+    "gpac_mp4box_packaging_validation"
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "external_agent_local_mock_worker_claim_lease_passed",
+    "mkvtoolnix_container_validation": "external_agent_local_mock_worker_claim_lease_passed",
+    "gpac_mp4box_packaging_validation": "external_agent_local_mock_worker_claim_lease_passed"
+  },
+  "safety": {
+    "routeHandlerInvocation": "completed_guarded_three_tool_worker_claim_lease_handler",
+    "localMockWorkerLeaseClaim": "completed",
+    "runtimeRouteInvocation": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "persistentJobQueueWrite": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "gpacMp4boxExecution": false,
+    "mediaProcessing": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerExecution": false,
+    "dockerPushDeploy": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-PROCESS-APPROVED-SNAPSHOT-EXECUTION-1"
+}

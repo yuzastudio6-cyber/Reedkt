@@ -1,0 +1,80 @@
+{
+  "packet": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-ROUTE-DRY-RUN-1",
+  "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_job_route_dry_run",
+  "execution": "completed_confirmation_gated_approved_snapshot_job_route_contract_validation_no_route_registration_queue_write_worker_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_GSTREAMER_MKVTOOLNIX_EXTERNAL_AGENT_APPROVED_SNAPSHOT_JOB_ROUTE_DRY_RUN=true",
+  "runId": "2026-07-03T03-10-51-404Z-c37eaafa",
+  "outputDir": "/tmp/reeditpro-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-1/2026-07-03T03-10-51-404Z-c37eaafa",
+  "sourceApprovedSnapshotJobDryRun": {
+    "mergeSha": "1cb4b7458cf09fa20a95a83e295cc0b66e90fb0f",
+    "headSha": "d296b51f94f7ef5d7b5917280bd4105870c6a845",
+    "runId": "2026-07-03T03-00-07-116Z-cf848654",
+    "decision": "completed_gstreamer_mkvtoolnix_external_agent_approved_snapshot_job_execution_dry_run",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "routeDryRun": {
+    "routePath": "/api/internal-beta/tracka/gstreamer-mkvtoolnix/approved-snapshot-jobs/dry-run",
+    "routeMethod": "POST",
+    "routeRegistration": false,
+    "routeExecution": false,
+    "serviceRoleSecretAccess": false,
+    "persistentJobQueueWrite": false,
+    "requestEnvelopeValidation": "passed",
+    "responseEnvelopeValidation": "passed",
+    "authorizationBoundaryValidation": "passed",
+    "idempotencyKeyValidation": "passed",
+    "approvedSnapshotReferenceValidation": "passed",
+    "artifactManifestReferenceValidation": "passed",
+    "approvedSnapshotId": "approved-snapshot-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "jobId": "job-gstreamer-mkvtoolnix-external-agent-generated-fixture-post-qa-1",
+    "idempotencyKey": "edd9e5a10252c85e8f0b34867b08dad5c6f4a10fc2fa3038a278678911fe330b",
+    "sourceIdempotencyKey": "9462c9809eb45806596dbe914d83cffc1ddf4041973b6605682f53b4940c0bf3"
+  },
+  "artifacts": [
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-report.json",
+      "bytes": 4276,
+      "sha256": "e06500b1c2a17fdb5c9732d0ea202102d797c09aaf89cf9c54ffafb7aa3de094"
+    },
+    {
+      "fileName": "gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-route-dry-run-manifest.json",
+      "bytes": 1354,
+      "sha256": "5f1cfe2473834213bb597dacb29a32db051b1ad45e8ec2468ce3491e1d6906a1"
+    }
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_approved_snapshot_worker_lease_noop",
+    "mkvtoolnix_container_validation": "ready_for_approved_snapshot_worker_lease_noop",
+    "gpac_mp4box_packaging_validation": "blocked_pending_package_source_install_proof"
+  },
+  "safety": {
+    "routeRegistration": false,
+    "routeExecution": false,
+    "serviceRoleSecretAccess": false,
+    "persistentJobQueueWrite": false,
+    "realWorkerDispatch": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "toolExecution": false,
+    "gstreamerExecution": false,
+    "mkvtoolnixExecution": false,
+    "gpacMp4boxExecution": false,
+    "dockerExecution": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "productReadyEndToEndLocalOssTools": 0,
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "validation": "passed",
+  "nextMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-APPROVED-SNAPSHOT-WORKER-LEASE-NOOP-1"
+}

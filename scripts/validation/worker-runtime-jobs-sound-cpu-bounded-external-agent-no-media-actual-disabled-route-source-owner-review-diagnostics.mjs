@@ -300,23 +300,35 @@ for (const [key, value] of Object.entries(parsed.policy.claimsForbidden)) {
 assertNoop(parsed.policy.supabaseClassification, 'policy.supabaseClassification')
 
 const sourceText = read(sourceFile)
+const laterRegistrationSourceGatePresent = sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION')
 assert(sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH'), 'route path constant missing')
 assert(sourceText.includes(`'${routePath}'`), 'route path value missing')
 assert(sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_EXECUTION_ENABLED = false as const'), 'execution false constant missing')
-assert(sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false as const'), 'registered false constant missing')
+assert(
+  sourceText.includes(
+    laterRegistrationSourceGatePresent
+      ? 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = true as const'
+      : 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false as const',
+  ),
+  'registered constant mismatch',
+)
 assert(sourceText.includes('soundCpuNoMediaAgentCallDisabledRouteHandler'), 'disabled handler missing from source')
 assert(sourceText.includes('response.status(409).json'), 'blocked response missing')
 assert(sourceText.includes('acceptedToolCount: 15'), 'accepted tool count missing from source')
 assert(sourceText.includes('acceptedWorkerCount: 2'), 'accepted worker count missing from source')
 assert(sourceText.includes('acceptedImageCount: 2'), 'accepted image count missing from source')
 assert(sourceText.includes('acceptedJobTypeCount: 4'), 'accepted job type count missing from source')
-assert(!/^import\\s/m.test(sourceText), 'source route should not import runtime modules yet')
+if (!laterRegistrationSourceGatePresent) assert(!/^import\\s/m.test(sourceText), 'source route should not import runtime modules yet')
 for (const tool of expectedTools) assert(sourceText.includes(`'${tool}'`), `source missing tool ${tool}`)
 
 for (const file of candidateRegistrationFiles) {
   const full = path.join(process.cwd(), file)
   if (!fs.existsSync(full)) continue
   const text = fs.readFileSync(full, 'utf8')
+  if (laterRegistrationSourceGatePresent && file === 'server/app.ts') {
+    assert(text.includes('createSoundCpuNoMediaAgentCallRoutes'), 'server app missing later disabled route registration')
+    continue
+  }
   assert(!text.includes(routePath), `${file} already references disabled route path`)
   assert(!text.includes('soundCpuNoMediaAgentCallDisabledRouteHandler'), `${file} already registers disabled route handler`)
 }

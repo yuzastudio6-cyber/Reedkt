@@ -310,12 +310,12 @@ assertAllFalse(parsed.policy.blockedClaims, 'policy.blockedClaims')
 assertAllFalse(parsed.policy.runtimeActions, 'policy.runtimeActions')
 
 const sourceText = read(sourceFile)
+const laterRegistrationSourceGatePresent = sourceText.includes('SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION')
 for (const token of [
   'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH',
   routePath,
   decision,
   'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_EXECUTION_ENABLED = false',
-  'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false',
   'validateSoundCpuNoMediaAgentCallEnvelope',
   'createSoundCpuNoMediaAgentCallDisabledResult',
   'soundCpuNoMediaAgentCallDisabledRouteHandler',
@@ -327,6 +327,14 @@ for (const token of [
 ]) {
   assert(sourceText.includes(token), `source missing token ${token}`)
 }
+assert(
+  sourceText.includes(
+    laterRegistrationSourceGatePresent
+      ? 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = true'
+      : 'SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = false',
+  ),
+  'route registered source constant mismatch',
+)
 for (const tool of expectedTools) assert(sourceText.includes(`'${tool}'`), `source missing tool ${tool}`)
 for (const worker of expectedWorkers) assert(sourceText.includes(`'${worker}'`), `source missing worker ${worker}`)
 for (const image of expectedImages) assert(sourceText.includes(`'${image}'`), `source missing image ${image}`)
@@ -357,12 +365,17 @@ for (const forbiddenSource of [
   'ffmpeg',
   'ffprobe',
 ]) {
+  if (laterRegistrationSourceGatePresent && forbiddenSource === 'Router(') continue
   assert(!sourceText.includes(forbiddenSource), `source contains forbidden executable pattern: ${forbiddenSource}`)
 }
 
 const appText = fs.existsSync(path.join(process.cwd(), 'server/app.ts')) ? read('server/app.ts') : ''
-assert(!appText.includes(sourceFile), 'server app imports source file')
-assert(!appText.includes(routePath), 'server app registers route path')
+if (laterRegistrationSourceGatePresent) {
+  assert(appText.includes('createSoundCpuNoMediaAgentCallRoutes'), 'server app missing later disabled route factory mount')
+} else {
+  assert(!appText.includes(sourceFile), 'server app imports source file')
+  assert(!appText.includes(routePath), 'server app registers route path')
+}
 for (const adjacentFile of [
   'server/routes/sound-cpu-worker-routes.ts',
   'server/workers/sound-cpu/disabled-dispatch-route.ts',

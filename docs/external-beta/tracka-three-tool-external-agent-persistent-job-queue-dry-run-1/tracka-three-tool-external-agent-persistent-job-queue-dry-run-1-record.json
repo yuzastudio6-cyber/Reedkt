@@ -1,0 +1,92 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-PERSISTENT-JOB-QUEUE-DRY-RUN-1",
+  "decision": "completed_three_tool_external_agent_persistent_job_queue_dry_run",
+  "execution": "completed_confirmation_gated_three_tool_persistent_job_queue_payload_validation_no_queue_write_worker_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTENT_JOB_QUEUE_DRY_RUN=true",
+  "runId": "2026-07-03T01-37-36-983Z-e5cc7cbf",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-persistent-job-queue-dry-run-1/2026-07-03T01-37-36-983Z-e5cc7cbf",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-persistent-job-queue-dry-run-1/2026-07-03T01-37-36-983Z-e5cc7cbf/three-tool-external-agent-persistent-job-queue-dry-run-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-persistent-job-queue-dry-run-1/2026-07-03T01-37-36-983Z-e5cc7cbf/three-tool-external-agent-persistent-job-queue-dry-run-manifest.json",
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-persistent-job-queue-dry-run-report.json",
+      "bytes": 20705,
+      "sha256": "ddc499efc294e0814775d29ada3e5e7585fc3a7768de372dcb10257e77704903"
+    },
+    {
+      "fileName": "three-tool-external-agent-persistent-job-queue-dry-run-manifest.json",
+      "bytes": 1281,
+      "sha256": "5254ccbb672daac138103e1eb8583d9480d7ff44274b78f2c557771d7411476b"
+    }
+  ],
+  "sourceWorkerDispatchNoop": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-GUARDED-WORKER-DISPATCH-NOOP-INVOKE-1",
+    "mergeSha": "275a8010236f02dbc6640f8711d0bf64a29b4caf",
+    "headSha": "e45c99f5c476764359f382c27894bd0da05b3745",
+    "runId": "2026-07-03T01-28-17-653Z-f2a11fd7"
+  },
+  "queueDryRun": {
+    "queueName": "tracka-three-tool-external-agent-persistent-jobs",
+    "sourceNoopQueueName": "tracka-three-tool-external-agent-noop",
+    "workerDispatchSourceId": "externalBeta.trackaThreeTool.guardedNoopWorkerDispatchSource",
+    "workerKind": "tracka_three_tool_external_agent_worker",
+    "jobType": "tracka_three_tool_external_agent_generated_fixture_execution",
+    "queueWriteMode": "metadata_only_dry_run_no_persistent_write",
+    "idempotencyKey": "cfdedaba0ff1a6ea1f29ee0caf9a05f139ec7b157560b57ce439028ac4027dbf",
+    "payloadShapeValidation": "passed",
+    "idempotencyKeyValidation": "passed",
+    "leasePolicyValidation": "passed",
+    "artifactManifestPlaceholderValidation": "passed",
+    "persistentJobQueueWrite": false,
+    "workerLeaseClaim": false,
+    "workerDispatch": false,
+    "workerExecution": false
+  },
+  "response": {
+    "status": "accepted_three_tool_persistent_job_queue_dry_run_contract",
+    "queuePayloadValidation": "passed",
+    "idempotencyKeyValidation": "passed",
+    "persistentJobQueueWrite": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerLeaseClaim": false,
+    "toolExecution": false
+  },
+  "sourceEvidence": {
+    "threeToolBridgeMergeSha": "30f0b17287ca16b9da06930dd15e575bdb03de24",
+    "threeToolBridgeDryRunMergeSha": "9daab4250e172b9e941e094a5a8fc3dfd729c2ba",
+    "threeToolRouteWorkerDispatchDryRunMergeSha": "a5efbe7edf5ba791b303feac85412618528b387e",
+    "threeToolGuardedRouteHandlerNoopMergeSha": "470bf529e02e145607d085c8dc3a2f181c791d25",
+    "threeToolGuardedWorkerDispatchNoopMergeSha": "275a8010236f02dbc6640f8711d0bf64a29b4caf",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "safety": {
+    "persistentJobQueueWrite": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "workerLeaseClaim": false,
+    "gstreamerExecutionInThisQueueDryRun": false,
+    "mkvtoolnixExecutionInThisQueueDryRun": false,
+    "gpacMp4boxExecutionInThisQueueDryRun": false,
+    "dockerExecutionInThisQueueDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-LEASE-DRY-RUN-1"
+}

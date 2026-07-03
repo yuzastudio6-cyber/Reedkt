@@ -681,6 +681,7 @@
     "worker-runtime-jobs:sound-cpu-phase207-controlled-private-fixture-real-user-media-runtime-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase207-controlled-private-fixture-real-user-media-runtime-execution-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase208-private-fixture-source-selection-preflight:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase208-private-fixture-source-selection-preflight-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase209-private-fixture-path-approval-handoff:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase209-private-fixture-path-approval-handoff-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase210-private-fixture-path-input-and-boundary-intake:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase210-private-fixture-path-input-and-boundary-intake-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-agent-callable-no-media-tool-call-adapter:invoke": "node scripts/validation/worker-runtime-jobs-sound-cpu-agent-callable-no-media-tool-call-adapter.mjs",
     "worker-runtime-jobs:sound-cpu-agent-callable-no-media-tool-call-adapter:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-agent-callable-no-media-tool-call-adapter-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-agent-callable-no-media-adapter-integration-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-agent-callable-no-media-adapter-integration-review-diagnostics.mjs",

@@ -666,6 +666,8 @@
     "worker-runtime-jobs:sound-cpu-phase194-disabled-route-synthetic-preflight-static-validation-result-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase194-disabled-route-synthetic-preflight-static-validation-result-owner-review-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase195-controlled-disabled-route-preflight-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase195-controlled-disabled-route-preflight-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase196-controlled-disabled-route-preflight-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase196-controlled-disabled-route-preflight-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase197-controlled-disabled-route-preflight-static-validation:proof": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase197-controlled-disabled-route-preflight-static-validation-runner.mjs",
+    "worker-runtime-jobs:sound-cpu-phase197-controlled-disabled-route-preflight-static-validation:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase197-controlled-disabled-route-preflight-static-validation-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

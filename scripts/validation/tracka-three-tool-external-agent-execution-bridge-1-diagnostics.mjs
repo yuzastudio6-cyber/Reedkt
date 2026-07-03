@@ -37,7 +37,9 @@ const requiredFiles = [
 ]
 
 const supportChangedFiles = [
+  'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-execution-1-diagnostics.mjs',
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-worker-process-noop-invoke-1-diagnostics.mjs',
   'docs/activation-phase-tracka-three-tool-external-agent-execution-bridge-dry-run-1-results.md',
   'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/source-audit.md',
   'docs/external-beta/tracka-three-tool-external-agent-execution-bridge-dry-run-1/dry-run-result.md',
@@ -51,7 +53,21 @@ const supportChangedFiles = [
   'server/cli/tracka-three-tool-external-agent-execution-bridge-dry-run-1.ts',
 ]
 
-const allowedChangedFiles = new Set([...requiredFiles, ...supportChangedFiles])
+const approvedSnapshotJobExecutionFiles = [
+  'docs/activation-phase-tracka-three-tool-external-agent-approved-snapshot-job-execution-1-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/execution-result.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/command-matrix.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/artifact-manifest-summary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/tracka-three-tool-external-agent-approved-snapshot-job-execution-1-record.json',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-production-readiness-review-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1-diagnostics.mjs',
+]
+
+const allowedChangedFiles = new Set([...requiredFiles, ...supportChangedFiles, ...approvedSnapshotJobExecutionFiles])
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^src\//,

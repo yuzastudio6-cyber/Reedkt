@@ -47,14 +47,35 @@ const downstreamQaFiles = [
   'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-execution-bridge-1.md',
 ]
 
+const approvedSnapshotJobExecutionFiles = [
+  'docs/activation-phase-tracka-three-tool-external-agent-approved-snapshot-job-execution-1-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/execution-result.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/command-matrix.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/artifact-manifest-summary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-approved-snapshot-job-execution-1/tracka-three-tool-external-agent-approved-snapshot-job-execution-1-record.json',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-production-readiness-review-1.md',
+  'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1-diagnostics.mjs',
+]
+
 const implementationFiles = [
   'package.json',
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-execution-1.mjs',
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-execution-1-diagnostics.mjs',
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-execution-bridge-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-worker-process-noop-invoke-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...downstreamQaFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([
+  ...packetFiles,
+  ...downstreamQaFiles,
+  ...approvedSnapshotJobExecutionFiles,
+  ...implementationFiles,
+])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

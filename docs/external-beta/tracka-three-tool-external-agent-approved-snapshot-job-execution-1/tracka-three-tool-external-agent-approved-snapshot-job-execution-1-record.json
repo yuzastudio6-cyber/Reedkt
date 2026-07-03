@@ -1,0 +1,109 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-APPROVED-SNAPSHOT-JOB-EXECUTION-1",
+  "decision": "completed_three_tool_external_agent_approved_snapshot_job_execution",
+  "execution": "completed_confirmation_gated_three_tool_approved_snapshot_job_execution_generated_fixture_only",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_APPROVED_SNAPSHOT_JOB_EXECUTION=true",
+  "activeNativeContainerToolLaneCount": 3,
+  "runId": "2026-07-03T03-41-30-494Z-41a3b873",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-approved-snapshot-job-execution-1/2026-07-03T03-41-30-494Z-41a3b873",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-approved-snapshot-job-execution-1/2026-07-03T03-41-30-494Z-41a3b873/three-tool-external-agent-approved-snapshot-job-execution-1-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-approved-snapshot-job-execution-1/2026-07-03T03-41-30-494Z-41a3b873/three-tool-external-agent-approved-snapshot-job-execution-1-manifest.json",
+  "sourceWorkerProcessNoop": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-PROCESS-NOOP-INVOKE-1",
+    "mergeSha": "52d7cd2b4e7fac7f18c2c01ef6be1ac4a7da0f6b",
+    "runId": "2026-07-03T01-56-20-543Z-b12b79bf",
+    "entrypointId": "tracka-three-tool-external-agent-worker-process-noop-entrypoint-1",
+    "leaseId": "tracka-three-tool-external-agent-lease-dry-run-1",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "approvedSnapshotJobExecution": {
+    "approvedSnapshotId": "approved-snapshot-three-tool-external-agent-generated-fixture-post-qa-1",
+    "jobId": "job-three-tool-external-agent-generated-fixture-post-qa-1",
+    "sourceClass": "controlled_generated_fixture_only",
+    "childRunId": "2026-07-03T03-41-30-650Z-41ce5185",
+    "gstreamerExecution": "completed_controlled_generated_fixture_only",
+    "mkvtoolnixExecution": "completed_controlled_generated_fixture_only",
+    "gpacMp4boxExecution": "completed_controlled_generated_fixture_only",
+    "routeExecution": false,
+    "persistentJobQueueWrite": false,
+    "workerDispatch": false,
+    "workerLeaseClaim": false,
+    "workerProcessStart": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "finalRenderExport": false
+  },
+  "childThreeToolRuntime": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1",
+    "runId": "2026-07-03T03-41-30-650Z-41ce5185",
+    "decision": "completed_three_tool_external_agent_controlled_generated_fixture_execution",
+    "execution": "completed_confirmation_gated_three_tool_controlled_generated_fixture_runtime_execution",
+    "reportSha256": "b0a540a50e04eb60a5ef215a5a317b1f5395eb084389695c44e3a90ecb7e2f65",
+    "manifestSha256": "98aef52962c9475e5cda40fe8e95d41e1c5be953dddc08a67bfe0f332f13960e"
+  },
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-approved-snapshot-job-execution-1-report.json",
+      "bytes": 6942,
+      "sha256": "77d7e31b79258ef28155a7e5be2ae1adb14ac4868cf9006763a6da8d1d9defaf"
+    },
+    {
+      "fileName": "approved-snapshot-runtime-envelope.json",
+      "bytes": 2098,
+      "sha256": "391967ec13bd29c6ec3f69f74474ace181ee73fd91d20ab46a3da2e9281365a0"
+    },
+    {
+      "fileName": "output-manifest.json",
+      "bytes": 671,
+      "sha256": "1c08e08e41ee86546d490281dab165b3b6672a39e9f633cbb2203c431c7f7c15"
+    },
+    {
+      "fileName": "qa-report.json",
+      "bytes": 752,
+      "sha256": "48725a8f29e7853064554f5b6d3aa74ef42b4d82745b818870de73c7bae894f5"
+    },
+    {
+      "fileName": "three-tool-external-agent-approved-snapshot-job-execution-1-manifest.json",
+      "bytes": 1432,
+      "sha256": "f1628f0f59f9b60006ba3a30609592337a5cccaee4f8ae3441d1e96cef0ed353"
+    }
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "external_agent_approved_snapshot_job_execution_passed",
+    "mkvtoolnix_container_validation": "external_agent_approved_snapshot_job_execution_passed",
+    "gpac_mp4box_packaging_validation": "external_agent_approved_snapshot_job_execution_passed"
+  },
+  "safety": {
+    "routeExecution": false,
+    "persistentJobQueueWrite": false,
+    "workerDispatch": false,
+    "workerLeaseClaim": false,
+    "workerProcessStart": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "providerCall": false,
+    "modelCall": false,
+    "creditMutation": false,
+    "deployment": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false,
+    "finalRenderExport": false,
+    "packageInstallation": false,
+    "dependencyMutation": false,
+    "packageLockMutation": false,
+    "dockerPushDeploy": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-PRODUCTION-READINESS-REVIEW-1"
+}

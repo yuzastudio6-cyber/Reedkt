@@ -93,6 +93,26 @@ await assert.rejects(
   'persistent settlement RPC result should fail closed when returned workspace context mismatches',
 )
 
+const missingReservationAdmin = createFakeAdminClient({
+  existingRows: new Map(),
+  rpcRows: new Map(),
+})
+
+await assert.rejects(
+  settleToolCostWallet(buildPersistentContext(missingReservationAdmin), {
+    workspaceId: 'workspace-service-role-smoke',
+    projectId: 'project-service-role-smoke',
+    toolCostEventId: 'tool-cost-event-service-role-smoke',
+    toolCostCredits: 3,
+    billableToUser: true,
+    settlementType: 'spend',
+  }, 'service-role-smoke-missing-reservation'),
+  (error) => error instanceof ApiError && error.code === 'CREDITS_NOT_RESERVED',
+  'persistent billable settlement should require caller-supplied creditReservationId before RPC',
+)
+assert.equal(missingReservationAdmin.calls.from.length, 0, 'missing reservation should block before persistent replay lookup')
+assert.equal(missingReservationAdmin.calls.rpc.length, 0, 'missing reservation should block before settlement RPC')
+
 const missingRpcAdmin = createFakeAdminClient({
   existingRows: new Map(),
   rpcRows: new Map(),

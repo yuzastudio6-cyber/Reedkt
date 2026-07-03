@@ -68,6 +68,7 @@ export async function settleToolCostWallet(
   idempotencyKey: string,
 ): Promise<{ settlement: ToolCostWalletSettlement; replayed: boolean; warnings: string[] }> {
   assertNoSecretLikeCostPayload(input.metadata ?? {}, 'metadata')
+  assertSettlementRequestHasRequiredReservation(input)
 
   if (context.clients.admin && !context.env.mockOnly) {
     return settlePersistentToolCostWallet(context.clients.admin, input, idempotencyKey)
@@ -103,10 +104,6 @@ function buildMockSettlement(input: ToolCostWalletSettlementInput, idempotencyKe
   const normalizedCredits = Math.max(0, Math.ceil(input.toolCostCredits))
   const billableToUser = input.billableToUser && normalizedCredits > 0 && failureCategoryAllowsCharge(failureCategory)
 
-  if (billableToUser && !input.creditReservationId) {
-    throw new Error('Billable tool cost wallet settlement requires creditReservationId.')
-  }
-
   return {
     id: `tool-cost-wallet-settlement-${hashFragment(idempotencyKey, input.toolCostEventId)}`,
     workspaceId: input.workspaceId,
@@ -131,6 +128,23 @@ function buildMockSettlement(input: ToolCostWalletSettlementInput, idempotencyKe
       stripeCallAttempted: false,
       serviceFeeIncluded: false,
     },
+  }
+}
+
+function assertSettlementRequestHasRequiredReservation(input: ToolCostWalletSettlementInput): void {
+  const settlementType = input.settlementType ?? 'spend'
+  const failureCategory = input.failureCategory ?? 'none'
+  const normalizedCredits = Math.max(0, Math.ceil(input.toolCostCredits))
+  const billableToUser = input.billableToUser && normalizedCredits > 0 && failureCategoryAllowsCharge(failureCategory)
+  const creditsReturnToReservation = normalizedCredits > 0 && (settlementType === 'release' || settlementType === 'refund')
+
+  if ((billableToUser || creditsReturnToReservation) && !input.creditReservationId) {
+    throw new ApiError(
+      'CREDITS_NOT_RESERVED',
+      'Tool cost wallet settlement requires creditReservationId before billable spend, release, or refund can be recorded.',
+      409,
+      { settlementType, billableToUser, creditsReturnToReservation },
+    )
   }
 }
 

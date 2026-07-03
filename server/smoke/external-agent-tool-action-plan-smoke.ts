@@ -177,8 +177,14 @@ assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-bl
 assert.equal(broll.externalManualBlocker.includes('10P proved northamerica-northeast2-a'), true)
 assert.equal(broll.externalManualBlocker.includes('IAP SSH failed'), true)
 assert.equal(broll.externalManualBlocker.includes('10Q recorded an inconclusive read-only access diagnosis'), true)
-assert.equal(broll.externalManualBlocker.includes('10R no-GPU IAP SSH canary'), true)
+assert.equal(broll.externalManualBlocker.includes('10S exposed a runner flag conflict'), true)
+assert.equal(broll.externalManualBlocker.includes('10T repaired that flag conflict'), true)
+assert.equal(broll.externalManualBlocker.includes('10U no-GPU IAP SSH canary rerun'), true)
 assert.equal(broll.externalManualBlocker.includes('before another GPU VM attempt'), true)
+assert.equal(
+  broll.afterBlockerClears,
+  'run the separate 10U no-GPU IAP SSH canary rerun before any future bounded L4 payload/install proof retry',
+)
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)
 assert.equal(broll.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

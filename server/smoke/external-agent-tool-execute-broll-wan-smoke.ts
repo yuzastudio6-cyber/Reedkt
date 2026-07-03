@@ -88,7 +88,7 @@ for (const required of [
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'broll_gpus_all_regions_quota_not_sufficient',
-  'broll_10t_iap_ssh_flag_fix_required',
+  'broll_10u_no_gpu_iap_ssh_canary_rerun_required',
   'parseJsonOutput',
   'runtimeRunNow: false',
   'computeVmCreated: false',

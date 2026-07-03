@@ -95,6 +95,12 @@ assert.equal(
 const doc = read(DOC_PATH)
 const nextPrompt = read(NEXT_PROMPT_PATH)
 const cli = read(CLI_PATH)
+assert.equal(cli.includes("'--tunnel-through-iap'"), true, 'Runner CLI must keep the IAP tunnel flag')
+assert.equal(
+  cli.includes("'--internal-ip'"),
+  false,
+  'Runner CLI must not combine --internal-ip with --tunnel-through-iap',
+)
 for (const required of [
   DECISION,
   'Runner CLI: `server/cli/ai-video-broll-gen-10r-iap-ssh-canary-bounded-runner.ts`',
@@ -155,6 +161,7 @@ for (const forbidden of [
   'psql',
   'createdb',
   'dropdb',
+  "'--internal-ip'",
 ]) {
   assert.equal(cli.includes(forbidden), false, `Runner CLI must not include forbidden marker: ${forbidden}`)
 }

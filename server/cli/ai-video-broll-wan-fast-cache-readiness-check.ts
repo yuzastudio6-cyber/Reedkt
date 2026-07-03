@@ -201,6 +201,7 @@ function main() {
         readyForBoundedRetryAfterBlockerClears: spec.readyForBoundedRetryAfterBlockerClears,
         readyForNonGpuIapSshCanaryPrompt: spec.readyForNonGpuIapSshCanaryPrompt,
         readyForBroll10rBoundedRunnerFixPrompt: spec.readyForBroll10rBoundedRunnerFixPrompt,
+        readyForBroll10sFixedCanaryExecutePrompt: spec.readyForBroll10sFixedCanaryExecutePrompt,
         nextAction: spec.nextAction,
       },
       null,

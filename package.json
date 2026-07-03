@@ -91,6 +91,8 @@
     "smoke:ai-video-broll-gen-10p-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast2-a-result": "tsx server/smoke/ai-video-broll-gen-10p-no-idle-l4-iap-wheelhouse-payload-install-proof-northamerica-northeast2-a-result-smoke.ts",
     "smoke:ai-video-broll-gen-10q-iap-oslogin-access-fix-result": "tsx server/smoke/ai-video-broll-gen-10q-iap-oslogin-access-fix-result-smoke.ts",
     "smoke:ai-video-broll-gen-10r-no-gpu-iap-ssh-canary-result": "tsx server/smoke/ai-video-broll-gen-10r-no-gpu-iap-ssh-canary-result-smoke.ts",
+    "ai-video-broll-gen-10r-iap-ssh-canary-bounded-runner": "tsx server/cli/ai-video-broll-gen-10r-iap-ssh-canary-bounded-runner.ts",
+    "smoke:ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner": "tsx server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts",
     "ai-video-broll-gen-9j-vm-preflight-2:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-2-diagnostics.mjs",
     "ai-video-broll-gen-9j-gcp-iap-egress-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-gcp-iap-egress-fix-diagnostics.mjs",
     "ai-video-broll-gen-9j-vm-preflight-3:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-3-diagnostics.mjs",

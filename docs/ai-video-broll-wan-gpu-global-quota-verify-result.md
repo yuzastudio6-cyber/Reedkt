@@ -1,6 +1,6 @@
 # AI Video B-roll Wan GPU Global Quota Verify Result
 
-Decision: `ai_video_broll_wan_gpu_global_quota_verified_10r_bounded_runner_fix_required`.
+Decision: `ai_video_broll_wan_gpu_global_quota_verified_10s_fixed_canary_execute_required`.
 
 Recorded at: `2026-07-02T13:09:27Z`.
 
@@ -62,4 +62,4 @@ All runtime side-effect gates remained false:
 
 ## Recommended Next Prompt
 
-`AI-VIDEO-BROLL-GEN-10R-FIX-IAP-SSH-CANARY-BOUNDED-RUNNER: fix bounded no-GPU IAP SSH canary runner timeout and durable cleanup-summary capture, no GPU/no model/no inference`
+`AI-VIDEO-BROLL-GEN-10S-NO-GPU-IAP-SSH-CANARY-BOUNDED-RUNNER-EXECUTE: run the fixed bounded no-GPU IAP SSH canary with hard timeouts, durable summaries, and mandatory cleanup; no GPU/no model/no inference`

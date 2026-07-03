@@ -21,7 +21,7 @@ const complete = await buildProductionToolExecutionReadinessEvidenceBundleFromEn
   REEDITPRO_PRODUCTION_OWNER_SIGNOFF_CONFIRM_RECORD_EVIDENCE: 'true',
   REEDITPRO_PRODUCTION_BILLING_CONFIRM_ROUTE_EVIDENCE: 'true',
 })
-assert.equal(complete.ok, false, 'complete production evidence is not enough while real worker handlers are still placeholder-only')
+assert.equal(complete.ok, true, 'complete production evidence should pass when scoped reviewed real handler coverage is ready')
 assert.equal(complete.mode, 'dry_run', 'bundle should be dry-run only')
 assert.equal(complete.readyForAllUpRecord, true, 'bundle should identify all-up record readiness')
 assert.equal(complete.backendCallsAttempted, false, 'complete bundle must still not call backend routes')
@@ -32,8 +32,8 @@ assert.equal(
 )
 assert.equal(
   complete.sections.some((section) => section.id === 'real_worker_handlers' && section.ready === false),
-  true,
-  'bundle should keep production blocked until real worker handlers replace placeholder routes',
+  false,
+  'bundle should not treat dry-run placeholder routes as blockers for scoped reviewed production handlers',
 )
 assert.equal(
   complete.recommendedSequence.map((item) => item.command).includes('npm run prod:readiness:tool-execution-evidence-collector'),

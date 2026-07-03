@@ -1,0 +1,62 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-QA-ROLLUP-1",
+  "decision": "qa_passed_three_tool_external_agent_controlled_generated_fixture_execution_evidence",
+  "execution": "completed_docs_only_three_tool_execution_qa_no_new_runtime_execution",
+  "activeNativeContainerToolLaneCount": 3,
+  "sourceChain": {
+    "threeToolRuntimeReadyRollupMergeSha": "e8cf179250214f473da15d18203680fd37fb6b3a",
+    "threeToolExecutionMergeSha": "6ad10faf36bdc447e232044e3857d5d0220ffa54",
+    "threeToolExecutionPacket": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-CONTROLLED-GENERATED-FIXTURE-EXECUTION-1",
+    "combinedExecutionRunId": "2026-07-02T23-06-37-783Z-735edf80",
+    "gstreamerMkvtoolnixRunId": "2026-07-02T23-06-37-953Z-ee1ebbec",
+    "gstreamerMkvtoolnixGuardedRuntimeRunId": "2026-07-02T23-06-38-140Z-687e30fc",
+    "gpacMp4boxRunId": "2026-07-02T23-06-42-095Z-21ff9b93",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "qa": {
+    "acceptance": "ready_for_three_tool_external_agent_execution_bridge",
+    "sourceEvidenceReviewOnly": true,
+    "newRuntimeExecutionInThisQaPhase": false,
+    "generatedFixtureRuntimeEvidence": "accepted",
+    "privateMediaReadiness": "blocked",
+    "publicArtifactReadiness": "blocked",
+    "finalRenderExportReadiness": "blocked",
+    "paidProductionReadiness": "blocked"
+  },
+  "readiness": {
+    "gstreamer_render_pipeline_support": "ready_for_three_tool_external_agent_execution_bridge",
+    "mkvtoolnix_container_validation": "ready_for_three_tool_external_agent_execution_bridge",
+    "gpac_mp4box_packaging_validation": "ready_for_three_tool_external_agent_execution_bridge"
+  },
+  "acceptedArtifacts": {
+    "combinedReportSha256": "102828f889cff62f865f13a856582f07197e8a321032f7b651f14a46a7047df4",
+    "combinedManifestSha256": "d179b6140b65665ab25a647725d665607822cdb0c715ae19f77cd789aa1d0a35",
+    "gstreamerMkvtoolnixReportSha256": "0a60bd92ee776ccf0ba3eb78d8e25172206b331e44d70e0006b1d00c248e0b36",
+    "gstreamerMkvtoolnixManifestSha256": "9908497632c7931e85877deae2ec0debbed36141d0a2ee051991df184da31ac8",
+    "gpacMp4boxReportSha256": "476fa99ab7a07a467f7998f2877ce36144f2b37e4ff057b6baaa5ffb71e60870",
+    "gpacMp4boxManifestSha256": "2784900314498d7f5932f6a87bfcbf9cf286b01494b9da757153be24e71913d7"
+  },
+  "blockedScope": {
+    "arbitraryPrivateMediaBlocked": true,
+    "userMediaBlocked": true,
+    "publicUrlMediaBlocked": true,
+    "signedUrlSourceOfTruthBlocked": true,
+    "gcsPrivateArtifactAccessBlocked": true,
+    "broadServiceRoleHandlersBlocked": true,
+    "publicArtifactsBlocked": true,
+    "finalRenderExportBlocked": true,
+    "broadExternalBetaBlocked": true,
+    "paidProductionBlocked": true,
+    "supabaseMutationBlocked": true,
+    "sqlExecutionBlocked": true,
+    "ffmpegFfprobeExecutionBlocked": true,
+    "dockerPushDeployBlocked": true,
+    "packageInstallationBlocked": true,
+    "dependencyMutationBlocked": true
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-EXECUTION-BRIDGE-1"
+}

@@ -240,11 +240,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'broll_10w_iap_lookup_readiness_fix_required',
+  'broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10v-no-idle-l4-payload-install-retry-result',
+  'npm run smoke:ai-video-broll-gen-10w-iap-lookup-readiness-fix-result',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

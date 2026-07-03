@@ -97,6 +97,7 @@
     "smoke:ai-video-broll-gen-10t-iap-ssh-flag-fix-result": "tsx server/smoke/ai-video-broll-gen-10t-iap-ssh-flag-fix-result-smoke.ts",
     "smoke:ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun-result": "tsx server/smoke/ai-video-broll-gen-10u-no-gpu-iap-ssh-canary-rerun-result-smoke.ts",
     "smoke:ai-video-broll-gen-10v-no-idle-l4-payload-install-retry-result": "tsx server/smoke/ai-video-broll-gen-10v-no-idle-l4-payload-install-retry-result-smoke.ts",
+    "smoke:ai-video-broll-gen-10w-iap-lookup-readiness-fix-result": "tsx server/smoke/ai-video-broll-gen-10w-iap-lookup-readiness-fix-result-smoke.ts",
     "ai-video-broll-gen-9j-vm-preflight-2:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-2-diagnostics.mjs",
     "ai-video-broll-gen-9j-gcp-iap-egress-fix:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-gcp-iap-egress-fix-diagnostics.mjs",
     "ai-video-broll-gen-9j-vm-preflight-3:diagnostics": "node scripts/validation/ai-video-broll-gen-9j-vm-preflight-3-diagnostics.mjs",

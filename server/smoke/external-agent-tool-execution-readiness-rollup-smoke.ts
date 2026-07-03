@@ -82,7 +82,7 @@ const BROLL_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT =
 const BROLL_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-10S-NO-GPU-IAP-SSH-CANARY-BOUNDED-RUNNER-EXECUTE: run the fixed bounded no-GPU IAP SSH canary with hard timeouts, durable summaries, and mandatory cleanup; no GPU/no model/no inference'
 const BROLL_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT =
-  'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference'
+  'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS: retry bounded no-idle L4 payload/install readiness with post-create IAP lookup readiness and mandatory cleanup, no model import/no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -137,7 +137,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10w_iap_lookup_readiness_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10x_iap_lookup_readiness_retry_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -213,7 +213,7 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`broll_10w_iap_lookup_readiness_fix_required`',
+  '`broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required`',
   'docs/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.md',
   'server/smoke/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result-smoke.ts',
   'docs/implementation-prompts/prompt-ai-video-broll-gen-10t-iap-ssh-flag-fix.md',
@@ -402,7 +402,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10w_iap_lookup_readiness_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10x_iap_lookup_readiness_retry_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -675,7 +675,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, false)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_10w_iap_lookup_readiness_fix_required',
+  'broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),

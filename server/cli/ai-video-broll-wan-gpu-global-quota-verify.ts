@@ -249,7 +249,9 @@ function main() {
         readyForBroll10tIapSshFlagFixPrompt: false,
         readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
         readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
-        readyForBroll10wIapLookupReadinessFixPrompt: quotaSufficientForOneL4Vm,
+        readyForBroll10wIapLookupReadinessFixPrompt: false,
+        readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt:
+          quotaSufficientForOneL4Vm,
         readyForExternalAgentExecutionNow: false,
         noIdleLifecycleGate: spec.noIdleLifecycleGate,
         commandSummaries,

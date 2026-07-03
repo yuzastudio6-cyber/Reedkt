@@ -93,7 +93,7 @@ assert.equal(cliSource.includes('stat-only cache readiness check'), true)
 const spec = AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC
 assert.equal(
   spec.decision,
-  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10w_iap_lookup_readiness_fix',
+  'ai_video_broll_wan_fast_cache_readiness_stat_only_ready_for_10x_iap_lookup_readiness_retry',
 )
 assert.equal(spec.mode, 'stat_only_private_cache_readiness_check')
 assert.equal(spec.toolId, 'ai_video_broll_generation_wan')
@@ -126,7 +126,8 @@ assert.equal(spec.readyForBroll10sFixedCanaryExecutePrompt, false)
 assert.equal(spec.readyForBroll10tIapSshFlagFixPrompt, false)
 assert.equal(spec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, false)
 assert.equal(spec.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt, false)
-assert.equal(spec.readyForBroll10wIapLookupReadinessFixPrompt, true)
+assert.equal(spec.readyForBroll10wIapLookupReadinessFixPrompt, false)
+assert.equal(spec.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt, true)
 assert.equal(spec.manifest.length, spec.runtimeEssentialFileCount)
 assert.equal(
   spec.manifest.reduce((total, entry) => total + entry.expectedBytes, 0),
@@ -168,11 +169,12 @@ assert.equal(summary.readyForBroll10sFixedCanaryExecutePrompt, false)
 assert.equal(summary.readyForBroll10tIapSshFlagFixPrompt, false)
 assert.equal(summary.readyForBroll10uNoGpuIapSshCanaryRerunPrompt, false)
 assert.equal(summary.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt, false)
-assert.equal(summary.readyForBroll10wIapLookupReadinessFixPrompt, true)
+assert.equal(summary.readyForBroll10wIapLookupReadinessFixPrompt, false)
+assert.equal(summary.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt, true)
 assert.equal(summary.nextAction, spec.nextAction)
 assert.equal(
   summary.nextAction,
-  'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference',
+  'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS: retry bounded no-idle L4 payload/install readiness with post-create IAP lookup readiness and mandatory cleanup, no model import/no inference',
 )
 
 for (const [flag, value] of Object.entries(summary.runtimeSideEffects as Record<string, boolean>)) {

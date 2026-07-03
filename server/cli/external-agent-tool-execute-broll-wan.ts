@@ -9,7 +9,7 @@ const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const NEXT_AFTER_QUOTA =
-  'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference'
+  'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS: retry bounded no-idle L4 payload/install readiness with post-create IAP lookup readiness and mandatory cleanup, no model import/no inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -113,7 +113,7 @@ function validateReadiness(quota: JsonRecord | undefined, cache: JsonRecord | un
   if (cache?.modelIndexClassNameMatches !== true) blockers.push('broll_private_cache_model_index_mismatch')
   if (cache?.indexRefsLocal !== true) blockers.push('broll_private_cache_refs_not_local')
 
-  blockers.push('broll_10w_iap_lookup_readiness_fix_required')
+  blockers.push('broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required')
   return Array.from(new Set(blockers))
 }
 

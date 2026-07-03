@@ -10,6 +10,7 @@ import {
   AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER,
   AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
 } from '../../src/backend/mock/mock-ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner'
+import { AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_PROMPT } from '../../src/backend/mock/mock-ai-video-broll-gen-10w-iap-lookup-readiness-fix-result'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const ROOT = process.cwd()
@@ -191,14 +192,15 @@ const brollTool = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
   (tool) => tool.toolId === 'ai_video_broll_generation_wan',
 )
 assert.ok(brollTool, 'B-roll tool missing from rollup')
-assert.equal(brollTool.primaryBlocker, 'broll_10w_iap_lookup_readiness_fix_required')
-assert.equal(brollTool.nextAction, AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT)
+assert.equal(brollTool.primaryBlocker, 'broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required')
+assert.equal(brollTool.nextAction, AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_PROMPT)
 assert.equal(
   brollTool.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
+  AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_PROMPT,
 )
-assert.equal(rollupDoc.includes(AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT), true)
-assert.equal(rollupDoc.includes('broll_10w_iap_lookup_readiness_fix_required'), true)
+assert.equal(rollupDoc.includes('docs/ai-video-broll-gen-10w-iap-lookup-readiness-fix-result.md'), true)
+assert.equal(rollupDoc.includes(AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_PROMPT), true)
+assert.equal(rollupDoc.includes('broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required'), true)
 
 const forbiddenFindings = scanForbiddenValues({ doc, prompt, nextPrompt, result, rollupDoc })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

@@ -180,10 +180,11 @@ assert.equal(broll.externalManualBlocker.includes('10Q recorded an inconclusive 
 assert.equal(broll.externalManualBlocker.includes('10S exposed a runner flag conflict'), true)
 assert.equal(broll.externalManualBlocker.includes('10T repaired that flag conflict'), true)
 assert.equal(broll.externalManualBlocker.includes('10U proved the no-GPU IAP SSH canary'), true)
-assert.equal(broll.externalManualBlocker.includes('10W post-create IAP lookup readiness fix'), true)
+assert.equal(broll.externalManualBlocker.includes('10W recorded the no-execution post-create IAP lookup readiness fix'), true)
+assert.equal(broll.externalManualBlocker.includes('10X L4 payload/install retry'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run the separate 10W no-execution IAP lookup readiness fix before another L4 payload/install proof retry or any model import/inference attempt',
+  'run the separate 10X bounded L4 payload/install proof retry only with post-create instance visibility, RUNNING, private-only, boot-disk, and IAP lookup readiness before payload transfer',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)
@@ -195,6 +196,13 @@ assert.equal(broll.noIdleLifecycleGate.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(broll.noIdleLifecycleGate.minimumRegionalL4Quota, 1)
 assert.equal(broll.noIdleLifecycleGate.noPublicIpRequired, true)
 assert.equal(broll.noIdleLifecycleGate.externalIpAllowed, false)
+assert.equal(broll.noIdleLifecycleGate.postCreateInstanceRunningWaitRequired, true)
+assert.equal(broll.noIdleLifecycleGate.postCreatePrivateOnlyRecheckRequired, true)
+assert.equal(broll.noIdleLifecycleGate.postCreateBootDiskAutoDeleteRecheckRequired, true)
+assert.equal(broll.noIdleLifecycleGate.postCreateIapLookupReadinessBackoffRequired, true)
+assert.equal(broll.noIdleLifecycleGate.postCreateIapLookupMaxAttempts, 8)
+assert.equal(broll.noIdleLifecycleGate.postCreateIapLookupDelaySeconds, 10)
+assert.equal(broll.noIdleLifecycleGate.durableReadinessSummaryRequired, true)
 assert.equal(broll.noIdleLifecycleGate.cleanupVerificationRequired, true)
 assert.equal(broll.noIdleLifecycleGate.idleGpuAllowed, false)
 assert.equal(broll.noIdleLifecycleGate.vmCreateAllowedNow, false)

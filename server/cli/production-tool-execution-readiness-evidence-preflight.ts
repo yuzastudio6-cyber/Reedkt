@@ -119,7 +119,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightReport {
 export function buildProductionToolExecutionReadinessEvidencePreflight(
   env: ProductionToolExecutionReadinessEvidencePreflightEnv,
 ): ProductionToolExecutionReadinessEvidencePreflightReport {
-  const input = buildGateInput(env)
+  const input = buildProductionToolExecutionReadinessGateInput(env)
   const secretLikeInputPaths = collectSecretLikePaths(evidenceValues(env), 'productionToolExecutionReadinessEvidencePreflight')
   const missingConfiguration = [
     missingEnv(env, 'REEDITPRO_PRODUCTION_READINESS_SOURCE_ID'),
@@ -167,7 +167,7 @@ export function buildProductionToolExecutionReadinessEvidencePreflight(
   }
 }
 
-function buildGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEnv): ProductionToolExecutionReadinessGateInput {
+export function buildProductionToolExecutionReadinessGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEnv): ProductionToolExecutionReadinessGateInput {
   return {
     sourceId: clean(env.REEDITPRO_PRODUCTION_READINESS_SOURCE_ID) ?? 'production-tool-execution-readiness-evidence-preflight',
     sourceSha: clean(env.REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA),

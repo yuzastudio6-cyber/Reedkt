@@ -128,6 +128,9 @@ const fallbackChainByTool: Record<ProductionToolId, string[]> = {
   konva: [],
   vapoursynth: ['final_export_fallback'],
   revideo: ['final_export_fallback'],
+  gstreamer_render_pipeline_support: [],
+  mkvtoolnix_container_validation: [],
+  gpac_mp4box_packaging_validation: [],
 }
 
 export function getFallbackChainsForTool(toolId: ProductionToolId): ProductionFallbackChain[] {

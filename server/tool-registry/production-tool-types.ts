@@ -50,6 +50,9 @@ export type ProductionToolId =
   | 'konva'
   | 'vapoursynth'
   | 'revideo'
+  | 'gstreamer_render_pipeline_support'
+  | 'mkvtoolnix_container_validation'
+  | 'gpac_mp4box_packaging_validation'
 
 export const PRODUCTION_TOOL_IDS = [
   'ffmpeg',
@@ -101,7 +104,18 @@ export const PRODUCTION_TOOL_IDS = [
   'konva',
   'vapoursynth',
   'revideo',
+  'gstreamer_render_pipeline_support',
+  'mkvtoolnix_container_validation',
+  'gpac_mp4box_packaging_validation',
 ] as const satisfies readonly ProductionToolId[]
+
+export type ProductionToolIdAlias = 'streamer_render_pipeline_support'
+
+export const PRODUCTION_TOOL_ID_ALIASES = {
+  streamer_render_pipeline_support: 'gstreamer_render_pipeline_support',
+} as const satisfies Record<ProductionToolIdAlias, ProductionToolId>
+
+export type ProductionToolCallId = ProductionToolId | ProductionToolIdAlias
 
 export type ProductionToolStatus =
   | 'launch_core'

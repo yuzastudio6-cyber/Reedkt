@@ -6,6 +6,7 @@ import {
   getProductionToolProfile,
   getToolsNeedingLicenseReview,
   getToolsWithModelWeights,
+  normalizeProductionToolId,
   listProductionToolProfiles,
   summarizeProductionToolRegistry,
 } from '../tool-registry'
@@ -84,6 +85,25 @@ const revideo = requireProfile('revideo')
 check(revideo.productionStatus === 'evaluation_only', 'Revideo must remain evaluation-only.')
 check(!revideo.launchCore, 'Revideo must not be launch core.')
 expectThrows(() => assertToolAllowedForProduction('revideo'), 'Revideo must be blocked from production execution.')
+
+const gstreamerSupport = requireProfile('gstreamer_render_pipeline_support')
+check(gstreamerSupport.workerType === 'render_worker', 'GStreamer support must be owned by the render worker.')
+check(gstreamerSupport.executionMode === 'render_pipeline', 'GStreamer support must be modeled as render pipeline support.')
+check(gstreamerSupport.supportedActions.includes('gst_controlled_generated_fixture_pipeline_v1'), 'GStreamer support must expose the approved fixture pipeline action.')
+check(!gstreamerSupport.runtimeNotes.join(' ').includes('Frontend execution allowed'), 'GStreamer support must not imply frontend execution.')
+
+const mkvtoolnixValidation = requireProfile('mkvtoolnix_container_validation')
+check(mkvtoolnixValidation.workerType === 'render_worker', 'MKVToolNix validation must be owned by the render worker.')
+check(mkvtoolnixValidation.supportedActions.includes('mkvmerge_identify_generated_subtitle_only_v1'), 'MKVToolNix validation must expose identify validation.')
+check(mkvtoolnixValidation.notBestFor.includes('FFmpeg/ffprobe ownership'), 'MKVToolNix validation must preserve Track B FFmpeg/ffprobe ownership.')
+
+const gpacMp4boxValidation = requireProfile('gpac_mp4box_packaging_validation')
+check(gpacMp4boxValidation.workerType === 'render_worker', 'GPAC MP4Box validation must be owned by the render worker.')
+check(gpacMp4boxValidation.supportedActions.includes('mp4box_package_validation_metadata_v1'), 'GPAC MP4Box validation must expose package validation metadata.')
+check(gpacMp4boxValidation.notBestFor.includes('Bento4 fallback ownership'), 'GPAC MP4Box validation must keep Bento4 separate.')
+
+check(normalizeProductionToolId('streamer_render_pipeline_support') === 'gstreamer_render_pipeline_support', 'Streamer typo alias must normalize to canonical GStreamer support id.')
+check(getProductionToolProfile('streamer_render_pipeline_support')?.toolId === 'gstreamer_render_pipeline_support', 'Streamer typo alias must resolve to the canonical GStreamer profile.')
 
 const remotion = requireProfile('remotion')
 check(remotion.category === 'render_composition', 'Remotion must remain the primary render/composition profile.')

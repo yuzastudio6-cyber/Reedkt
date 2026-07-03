@@ -41,6 +41,23 @@ assert(validCpu.events.some((event) => event.eventName === 'job_claimed'), 'Vali
 assert(validCpu.events.some((event) => event.eventName === 'job_completed'), 'Valid CPU payload should complete.')
 assert(validCpu.output?.mockOnly === true, 'Valid CPU payload should route only to mock-safe placeholder output.')
 
+const trackaThreeToolPayload = withIdempotency({
+  ...basePayload,
+  jobId: 'prod-worker-tracka-three-tool-agent-call',
+  workerType: 'render_worker',
+  requestedToolIds: [
+    'streamer_render_pipeline_support',
+    'mkvtoolnix_container_validation',
+    'gpac_mp4box_packaging_validation',
+  ],
+  requestedRecipeIds: ['final_export_recipe'],
+  storageReferenceIds: ['worker_temp/workspaces/workspace-prod-smoke/projects/project-prod-smoke/generated-fixture-manifest.json'],
+})
+const trackaThreeTool = await runProductionWorkerRuntime({ payload: trackaThreeToolPayload })
+assert(trackaThreeTool.status === 'completed', 'Track A three-tool render-worker dry_run payload should be recognized by registry and complete placeholder orchestration.')
+assert(trackaThreeTool.output?.futureHandler === 'render_worker_placeholder', 'Track A three-tool payload should remain on the render-worker placeholder unless explicit runtime metadata is supplied.')
+assert(!trackaThreeTool.gateChecks.some((gate) => gate.gateName === 'registry_runtime' && gate.hardBlock), 'Track A three-tool payload must not fail as unknown or wrong-worker registry tools.')
+
 const missingSnapshotPayload = withIdempotency({ ...basePayload, jobId: 'prod-worker-missing-snapshot', approvedSnapshotId: '' })
 const missingSnapshot = await runProductionWorkerRuntime({ payload: missingSnapshotPayload })
 assert(missingSnapshot.status === 'blocked', 'Payload without approvedSnapshotId should block.')
@@ -160,6 +177,7 @@ console.log(JSON.stringify({
   ok: true,
   checks: [
     'valid_cpu_dry_run_completes',
+    'tracka_three_tool_render_worker_dry_run_registry_recognized',
     'missing_approved_snapshot_blocks',
     'missing_idempotency_blocks',
     'raw_prompt_blocks',

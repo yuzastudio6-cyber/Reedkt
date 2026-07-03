@@ -186,6 +186,23 @@ try {
     readinessReport: { overallStatus: 'blocked', blockers: ['ffmpeg_lgpl_pending'], blockerSummaries: [] },
   })
   check(productionReady.status === 'blocked', 'production_ready must remain blocked when readiness/manual-review blockers exist.')
+  const productionReadyMetadata = await runColorExecutionPipeline({
+    ...baseInput,
+    mode: 'production_ready',
+    mockAnalysis: {
+      ...baseInput.mockAnalysis,
+      skinToneRisk: 'low',
+      confidence: 0.88,
+    },
+    readinessReport: { overallStatus: 'passed', blockers: [], blockerSummaries: [] },
+    enableFfmpegColorPreview: false,
+    enableOpenColorIOExecution: false,
+    enableOpenImageIOExecution: false,
+  })
+  check(productionReadyMetadata.status === 'partial', 'production_ready metadata path should complete as partial metadata/QA when readiness passes.')
+  check(productionReadyMetadata.blocksFinalExport, 'production_ready metadata path must keep final export blocked.')
+  check(productionReadyMetadata.artifacts.some((artifact) => artifact.artifactType === 'color_analysis_json'), 'production_ready metadata path must create color analysis metadata.')
+  check(productionReadyMetadata.artifacts.some((artifact) => artifact.artifactType === 'color_grade_recipe'), 'production_ready metadata path must create grade recipe metadata.')
 
   const routed = await runProductionWorkerRuntime({
     payload: buildPayload('cpu_analysis_worker', {
@@ -220,6 +237,7 @@ try {
       'private_artifacts',
       'color_qa_gates',
       'production_blockers',
+      'production_ready_metadata',
       'worker_route',
       'no_revideo_runtime',
     ],

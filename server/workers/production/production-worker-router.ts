@@ -136,12 +136,26 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
 
       if (hasColorExecutionRequest(payload)) {
         const colorExecutionResult = await runColorExecutionPipeline(buildColorExecutionInput(payload))
+        const realColorMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'cpu_analysis_worker_color_metadata' &&
+          colorExecutionResult.mode === 'production_ready' &&
+          colorExecutionResult.status !== 'blocked' &&
+          colorExecutionResult.colorAnalysisSummary !== undefined &&
+          colorExecutionResult.colorGradeRecipeArtifact !== undefined &&
+          colorExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'color_analysis_json' && artifact.sourceOfTruth) &&
+          colorExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'color_grade_recipe' && artifact.sourceOfTruth) &&
+          colorExecutionResult.qaResults.length > 0 &&
+          colorExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 15B CPU analysis worker color execution route completed in explicit colorExecution mode.',
+          summary: realColorMetadataHandler
+            ? 'CPU color metadata production handler completed bounded color analysis, grade recipe, and QA-report metadata without native transforms or final export.'
+            : 'Milestone 15B CPU analysis worker color execution route completed in explicit colorExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_color_execution',
+          mockOnly: !realColorMetadataHandler,
+          realToolExecution: realColorMetadataHandler,
+          futureHandler: realColorMetadataHandler
+            ? 'cpu_analysis_worker_color_metadata_production_handler'
+            : 'cpu_analysis_worker_color_execution',
           colorExecutionResult,
         }
       }

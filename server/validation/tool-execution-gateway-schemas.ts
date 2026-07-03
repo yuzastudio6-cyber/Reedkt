@@ -27,6 +27,7 @@ const adapterSchema = z.enum([
   'cpu_analysis_worker_media_probe',
   'cpu_analysis_worker_media_proxy',
   'cpu_analysis_worker_media_representative_frames',
+  'cpu_analysis_worker_color_metadata',
   'cpu_analysis_worker_smart_cut_timeline',
   'cpu_analysis_worker_placeholder',
   'gpu_ai_worker_placeholder',

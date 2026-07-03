@@ -242,6 +242,30 @@ assert.ok(
   'mismatched production evidence should identify workspace mismatch',
 )
 
+const persistentInlineEvidenceContext: ServiceContext = {
+  ...context,
+  env: {
+    mockOnly: false,
+    allowMockWithoutSupabase: false,
+    hasSupabaseAdmin: true,
+  } as never,
+  clients: {
+    ...context.clients,
+    admin: createGatewayPersistentReadinessAdminClient(),
+  },
+  requestId: 'tool-execution-gateway-smoke:persistent-inline-evidence',
+}
+const persistentInlineEvidenceBlocked = await createToolExecutionGatewayService(persistentInlineEvidenceContext).dispatchApprovedToolCall(productionReadyToolReadinessInput({
+  jobId: 'job-production-ready-persistent-inline-evidence-blocked',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+assert.equal(persistentInlineEvidenceBlocked.gateway.status, 'blocked', 'persistent production_ready dispatch should reject inline readiness evidence')
+assert.equal(persistentInlineEvidenceBlocked.workerResult, undefined, 'persistent inline readiness evidence must block before worker dispatch')
+assert.ok(
+  persistentInlineEvidenceBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READINESS_EVIDENCE_PACKET_REQUIRED'),
+  'persistent production_ready dispatch should require a stored readiness evidence packet id',
+)
+
 const productionReadyPlaceholderBlocked = await service.dispatchApprovedToolCall({
   ...baseInput,
   jobId: 'job-production-ready-placeholder-blocked',
@@ -1200,6 +1224,7 @@ console.log(JSON.stringify({
     productionReadyBlockedEvidence.gateway.blockers[0]?.gateName,
     productionReadyAmbiguousEvidence.gateway.blockers[0]?.gateName,
     productionReadyMismatchedEvidence.gateway.blockers[0]?.gateName,
+    persistentInlineEvidenceBlocked.gateway.blockers[0]?.gateName,
   ],
   storedProductionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
   productionReadyPlaceholderBlocked: productionReadyPlaceholderBlocked.gateway.status,
@@ -1340,6 +1365,65 @@ function reviewedProductionEvidence(label: string) {
     reviewedAt: '2026-07-02T00:00:00.000Z',
     notes: [`${label} verified in tool execution gateway smoke fixture.`],
   }
+}
+
+function createGatewayPersistentReadinessAdminClient(): ServiceContext['clients']['admin'] {
+  return {
+    from(table: string) {
+      const filters: Record<string, unknown> = {}
+      const builder = {
+        select() {
+          return builder
+        },
+        eq(column: string, value: unknown) {
+          filters[column] = value
+          return builder
+        },
+        async maybeSingle() {
+          return { data: gatewayPersistentRow(table, filters), error: null }
+        },
+      }
+      return builder
+    },
+  } as never
+}
+
+function gatewayPersistentRow(table: string, filters: Record<string, unknown>) {
+  if (table === 'projects' && filters.id === baseInput.projectId && filters.workspace_id === baseInput.workspaceId) {
+    return {
+      id: baseInput.projectId,
+      workspace_id: baseInput.workspaceId,
+    }
+  }
+
+  if (table === 'workspace_members' && filters.workspace_id === baseInput.workspaceId && filters.user_id === 'user-smoke') {
+    return { user_id: 'user-smoke' }
+  }
+
+  if (table === 'approved_plan_snapshots' && filters.id === baseInput.approvedPlanSnapshotId) {
+    return {
+      id: baseInput.approvedPlanSnapshotId,
+      workspace_id: baseInput.workspaceId,
+      project_id: baseInput.projectId,
+      edit_plan_id: baseInput.editPlanId,
+      credit_estimate_id: baseInput.creditEstimateId,
+      credit_reservation_id: baseInput.creditReservationId,
+      snapshot_status: 'approved',
+    }
+  }
+
+  if (table === 'credit_reservations' && filters.id === baseInput.creditReservationId) {
+    return {
+      id: baseInput.creditReservationId,
+      workspace_id: baseInput.workspaceId,
+      project_id: baseInput.projectId,
+      edit_plan_id: baseInput.editPlanId,
+      credit_estimate_id: baseInput.creditEstimateId,
+      status: 'reserved',
+    }
+  }
+
+  return null
 }
 
 function productionReadyMediaProbeInput(input: {

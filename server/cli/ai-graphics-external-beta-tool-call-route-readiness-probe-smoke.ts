@@ -16,7 +16,7 @@ import {
 const decision =
   'ai_graphics_external_beta_tool_call_route_readiness_probe_smoke_passed'
 const status =
-  'canonical_tool_call_route_readiness_probe_reports_all_21_controlled_executable_with_gpu_on_demand'
+  'canonical_tool_call_route_readiness_probe_reports_all_21_route_callable_with_13_runtime_executable_and_8_gpu_proof_required'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-readiness-probe-smoke.json'
 const outputMdPath =
@@ -260,7 +260,15 @@ function validateReadiness(report: RouteReadinessReport) {
     )
     assert(tool.httpOutcomeIfCalledNow.statusCode === 200, `${toolId} should map to HTTP 200`)
     assert(tool.gpuRuntimeShouldStartNow === false, `${toolId} should not start GPU runtime`)
-    assert(tool.gpuModelUnblockPlan === null, `${toolId} should not expose an unblock plan now`)
+    assert(tool.gpuModelUnblockPlan !== null, `${toolId} should expose a GPU/model unblock plan`)
+    assert(
+      tool.gpuModelUnblockPlan.nativeGpuRuntimeProofRequired === true,
+      `${toolId} should require native GPU proof`,
+    )
+    assert(
+      tool.gpuModelUnblockPlan.nativeGpuRuntimeProofAccepted === false,
+      `${toolId} should not accept native GPU proof yet`,
+    )
     assert(tool.blockersBeforeExecution.length > 0, `${toolId} should expose future runtime blockers`)
     assert(
       tool.blockersBeforeExecution.some((blocker) => /NVIDIA L4 runtime proof/.test(blocker)),
@@ -279,16 +287,19 @@ function validateReadiness(report: RouteReadinessReport) {
   const expectedCounts: Record<string, number> = {
     totalAiGraphicsTools: 21,
     productFacingCapabilities: 12,
+    externalAgentRouteCallableNowTools: 21,
     externalAgentRouteExecutableNowTools: 21,
+    realRuntimeExecutableNowTools: 13,
     cpuStaticControlledExecutableNowTools: 6,
     browserRuntimeControlledExecutableNowTools: 7,
     gpuModelRuntimeAdmissionBlockedTools: 0,
     gpuModelRuntimeAdmissionEvaluatedFailClosedTools: 8,
-    gpuModelRuntimeUnblockPlanExposedTools: 0,
-    gpuModelNativeGpuProofRequiredTools: 0,
-    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools: 0,
-    gpuModelNativeGpuProofOnlyRequiredTools: 0,
-    gpuModelToolsReadyForExecutionAfterCurrentEvidence: 8,
+    gpuModelRuntimeUnblockPlanExposedTools: 8,
+    gpuModelNativeGpuProofRequiredTools: 8,
+    gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools: 5,
+    gpuModelNativeGpuProofOnlyRequiredTools: 3,
+    gpuModelRuntimeProofRequiredTools: 8,
+    gpuModelToolsReadyForExecutionAfterCurrentEvidence: 0,
     modelWeightManifestRequiredTools: 5,
     gpuRuntimeShouldStartNowTools: 0,
     workerDispatchApprovedNowTools: 0,
@@ -306,19 +317,22 @@ function validateReadiness(report: RouteReadinessReport) {
     'routeMountedByAppNow',
     'mockOnlyRuntimeModeEnforced',
     'agentCanSelectForPlanning',
+    'agentCanCallAll21ControlledRoutesNow',
     'externalAgentCanExecuteSomeToolsNow',
     'agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow',
-    'agentCanExecuteAll21ToolsNow',
-    'agentCanExecuteGpuModelToolsNow',
-    'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
-  ]) {
-    assert(report.booleans[key] === true, `${key} should be true`)
-  }
-  for (const key of [
+    'agentCanExecuteRealRuntimeFor13ToolsNow',
     'gpuModelUnblockPlanExposed',
     'allEightGpuModelToolsHaveActionableUnblockPlan',
     'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
     'threeFoundationGpuToolsRequireNativeGpuProofOnly',
+  ]) {
+    assert(report.booleans[key] === true, `${key} should be true`)
+  }
+  for (const key of [
+    'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+    'gpuModelRuntimeProofAcceptedNow',
+    'agentCanExecuteAll21ToolsNow',
+    'agentCanExecuteGpuModelToolsNow',
     'routeExecutionPerformedByReadinessProbe',
     'workerExecutionApprovedNow',
     'workerDispatchApprovedNow',
@@ -377,11 +391,11 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This smoke proves the canonical external-beta tool-call route exposes a safe readiness probe before an agent tries to call a tool. The probe covers all 21 AI graphics tools: 21 are callable through controlled local/mock canonical routes, including the eight GPU/model tools through the controlled on-demand adapter. GPU runtime still does not start during readiness probing.
+This smoke proves the canonical external-beta tool-call route exposes a safe readiness probe before an agent tries to call a tool. The probe covers all 21 AI graphics tools: 21 are callable through controlled local/mock canonical routes, 13 have real controlled adapter runtime proof, and the eight GPU/model tools remain blocked from real runtime execution pending native GPU/model proof. GPU runtime still does not start during readiness probing.
 
 ## Per-Tool Route Readiness
 
-| Tool | Route mode | Agent can execute this tool now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
+| Tool | Route mode | Route callable now | HTTP status if called now | Route status if called now | GPU starts now | GPU/model unblock plan | Next external-agent action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
@@ -395,7 +409,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 ## Boundary
 
-The readiness probe does not execute tools, dispatch Workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download or load model weights, mutate Supabase/GCS, create signed URLs, or create public artifacts. GPU/model tools remain on-demand only: the controlled adapter is callable, but GPU startup is still tied to an accepted tool call and never starts while idle.
+The readiness probe does not execute tools, dispatch Workers, call providers/models, start browser/WebGL/canvas or GPU runtime, download or load model weights, mutate Supabase/GCS, create signed URLs, or create public artifacts. GPU/model tools remain on-demand only: the controlled route is callable, but real GPU/model runtime execution remains blocked until native GPU proof and required private model-weight evidence are accepted.
 `
 }
 

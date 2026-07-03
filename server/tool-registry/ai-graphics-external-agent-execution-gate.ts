@@ -208,10 +208,13 @@ export interface AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket {
   status:
     | 'canonical_tool_call_route_readiness_probe_reports_13_executable_and_8_blocked'
     | 'canonical_tool_call_route_readiness_probe_reports_all_21_controlled_executable_with_gpu_on_demand'
+    | 'canonical_tool_call_route_readiness_probe_reports_all_21_route_callable_with_13_runtime_executable_and_8_gpu_proof_required'
   counts: {
     totalAiGraphicsTools: 21
     productFacingCapabilities: 12
+    externalAgentRouteCallableNowTools?: 21
     externalAgentRouteExecutableNowTools: 13 | 21
+    realRuntimeExecutableNowTools?: 13
     cpuStaticControlledExecutableNowTools: 6
     browserRuntimeControlledExecutableNowTools: 7
     gpuModelRuntimeAdmissionBlockedTools: 0 | 8
@@ -220,6 +223,7 @@ export interface AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket {
     gpuModelNativeGpuProofRequiredTools?: 0 | 8
     gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools?: 0 | 5
     gpuModelNativeGpuProofOnlyRequiredTools?: 0 | 3
+    gpuModelRuntimeProofRequiredTools?: 8
     gpuModelToolsReadyForExecutionAfterCurrentEvidence?: 0 | 8
     modelWeightManifestRequiredTools: 5
     gpuRuntimeShouldStartNowTools: 0
@@ -234,13 +238,16 @@ export interface AiGraphicsExternalBetaToolCallRouteReadinessProbeSmokePacket {
     routeMountedByAppNow: true
     mockOnlyRuntimeModeEnforced: true
     agentCanSelectForPlanning: true
+    agentCanCallAll21ControlledRoutesNow?: boolean
     externalAgentCanExecuteSomeToolsNow: true
     agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow: true
+    agentCanExecuteRealRuntimeFor13ToolsNow?: boolean
     gpuModelUnblockPlanExposed?: boolean
     allEightGpuModelToolsHaveActionableUnblockPlan?: boolean
     fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof?: boolean
     threeFoundationGpuToolsRequireNativeGpuProofOnly?: boolean
     gpuModelToolsReadyForExecutionAfterCurrentEvidence?: boolean
+    gpuModelRuntimeProofAcceptedNow?: boolean
     agentCanExecuteAll21ToolsNow: boolean
     agentCanExecuteGpuModelToolsNow: boolean
     routeExecutionPerformedByReadinessProbe: false
@@ -1696,38 +1703,41 @@ function sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted(
     (row) => row.canonicalRouteMode === 'gpu_model_controlled_execution' &&
       row.routeCanEvaluateFailClosedGpuModelAdmissionNow === true &&
       row.externalAgentCanExecuteThisToolNow === true &&
-      row.gpuModelUnblockPlanStatus === null &&
-      row.nextExternalAgentAction === null &&
-      row.nativeGpuRuntimeProofRequired === false &&
+      typeof row.gpuModelUnblockPlanStatus === 'string' &&
+      typeof row.nextExternalAgentAction === 'string' &&
+      row.nativeGpuRuntimeProofRequired === true &&
       row.nativeGpuRuntimeProofAccepted === false,
   )
   const gpuModelWeightRows = gpuControlledRows.filter(
     (row) => row.modelWeightManifestRequired === true &&
-      row.modelWeightPrivateEvidenceRequired === false &&
+      row.modelWeightPrivateEvidenceRequired === true &&
       row.modelWeightPrivateEvidenceAccepted === false,
   )
   const gpuNativeOnlyRows = gpuControlledRows.filter(
     (row) => row.modelWeightPrivateEvidenceRequired === false &&
-      row.nativeGpuRuntimeProofRequired === false &&
+      row.nativeGpuRuntimeProofRequired === true &&
       row.modelWeightManifestRequired === false,
   )
   return Boolean(packet) &&
     packet?.decision ===
       AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_READINESS_PROBE_SMOKE_DECISION &&
     packet.status ===
-      'canonical_tool_call_route_readiness_probe_reports_all_21_controlled_executable_with_gpu_on_demand' &&
+      'canonical_tool_call_route_readiness_probe_reports_all_21_route_callable_with_13_runtime_executable_and_8_gpu_proof_required' &&
     packet.counts?.totalAiGraphicsTools === 21 &&
     packet.counts?.productFacingCapabilities === 12 &&
+    packet.counts?.externalAgentRouteCallableNowTools === 21 &&
     packet.counts?.externalAgentRouteExecutableNowTools === 21 &&
+    packet.counts?.realRuntimeExecutableNowTools === 13 &&
     packet.counts?.cpuStaticControlledExecutableNowTools === 6 &&
     packet.counts?.browserRuntimeControlledExecutableNowTools === 7 &&
     packet.counts?.gpuModelRuntimeAdmissionBlockedTools === 0 &&
     packet.counts?.gpuModelRuntimeAdmissionEvaluatedFailClosedTools === 8 &&
-    packet.counts?.gpuModelRuntimeUnblockPlanExposedTools === 0 &&
-    packet.counts?.gpuModelNativeGpuProofRequiredTools === 0 &&
-    packet.counts?.gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools === 0 &&
-    packet.counts?.gpuModelNativeGpuProofOnlyRequiredTools === 0 &&
-    packet.counts?.gpuModelToolsReadyForExecutionAfterCurrentEvidence === 8 &&
+    packet.counts?.gpuModelRuntimeUnblockPlanExposedTools === 8 &&
+    packet.counts?.gpuModelNativeGpuProofRequiredTools === 8 &&
+    packet.counts?.gpuModelPrivateEvidenceAndNativeGpuProofRequiredTools === 5 &&
+    packet.counts?.gpuModelNativeGpuProofOnlyRequiredTools === 3 &&
+    packet.counts?.gpuModelRuntimeProofRequiredTools === 8 &&
+    packet.counts?.gpuModelToolsReadyForExecutionAfterCurrentEvidence === 0 &&
     packet.counts?.modelWeightManifestRequiredTools === 5 &&
     packet.counts?.gpuRuntimeShouldStartNowTools === 0 &&
     packet.counts?.workerDispatchApprovedNowTools === 0 &&
@@ -1738,16 +1748,19 @@ function sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted(
     packet.booleans?.externalBetaToolCallRouteReadinessProbeSafe === true &&
     packet.booleans?.routeMountedByAppNow === true &&
     packet.booleans?.mockOnlyRuntimeModeEnforced === true &&
+    packet.booleans?.agentCanCallAll21ControlledRoutesNow === true &&
     packet.booleans?.externalAgentCanExecuteSomeToolsNow === true &&
     packet.booleans?.agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow ===
       true &&
-    packet.booleans?.gpuModelUnblockPlanExposed === false &&
-    packet.booleans?.allEightGpuModelToolsHaveActionableUnblockPlan === false &&
-    packet.booleans?.fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof === false &&
-    packet.booleans?.threeFoundationGpuToolsRequireNativeGpuProofOnly === false &&
-    packet.booleans?.gpuModelToolsReadyForExecutionAfterCurrentEvidence === true &&
-    packet.booleans?.agentCanExecuteAll21ToolsNow === true &&
-    packet.booleans?.agentCanExecuteGpuModelToolsNow === true &&
+    packet.booleans?.agentCanExecuteRealRuntimeFor13ToolsNow === true &&
+    packet.booleans?.gpuModelUnblockPlanExposed === true &&
+    packet.booleans?.allEightGpuModelToolsHaveActionableUnblockPlan === true &&
+    packet.booleans?.fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof === true &&
+    packet.booleans?.threeFoundationGpuToolsRequireNativeGpuProofOnly === true &&
+    packet.booleans?.gpuModelToolsReadyForExecutionAfterCurrentEvidence === false &&
+    packet.booleans?.gpuModelRuntimeProofAcceptedNow === false &&
+    packet.booleans?.agentCanExecuteAll21ToolsNow === false &&
+    packet.booleans?.agentCanExecuteGpuModelToolsNow === false &&
     packet.booleans?.routeExecutionPerformedByReadinessProbe === false &&
     packet.booleans?.toolExecutionPerformedByReadinessProbe === false &&
     packet.booleans?.gpuRuntimeShouldStartNow === false &&
@@ -3413,8 +3426,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
   const gpuModelControlledAdapterReady =
     routeGpuModelProofRefQueueAdmissionSmokeAccepted &&
     externalAgentGpuModelRuntimeQueueServiceBridgeAccepted
-  const all21ScopedControlledRouteReady =
-    scopedControlledRouteReady && gpuModelControlledAdapterReady
+  // All 21 routes are callable, but only 13 have real runtime proof until GPU/model evidence lands.
+  const all21ScopedControlledRouteReady = false
   const tools = listAiGraphicsToolCallHandoffTools()
   const gpuRuntimeTargetedTools =
     tools.filter((tool) => tool.gpuRequiredForRuntime).length
@@ -3583,13 +3596,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       typeof gpuModelRuntimeQueueServiceBridgeRow.mockWorkerClaimId === 'string'
     const gpuModelExternalBetaReadinessBlocker =
       tool.gpuRequiredForRuntime
-        ? gpuModelControlledAdapterReady && gpuModelRuntimeQueueServiceBridgeAccepted
-          ? null
-          : gpuModelRuntimeQueueServiceBridgeAccepted
-          ? 'gpu_model_runtime_queue_service_bridge_accepted_non_production_service_role_queue_write_worker_dispatch_and_tool_execution_proof_pending'
-          : gpuModelProofRefQueueAdmissionAccepted
-          ? 'gpu_model_proof_ref_queue_admission_accepted_worker_dispatch_and_tool_execution_proof_pending'
-          : modelWeightPrivateEvidenceRequired
+        ? modelWeightPrivateEvidenceRequired
           ? 'private_model_weight_evidence_and_native_gpu_runtime_proof_pending'
           : nativeGpuRuntimeProofRequired
           ? 'native_gpu_runtime_proof_pending'
@@ -3597,7 +3604,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         : null
     const executionAllowedNow =
       tool.gpuRequiredForRuntime
-        ? gpuModelControlledAdapterReady
+        ? false
         : scopedControlledRouteReady
     return {
       toolId: tool.toolId,
@@ -3758,9 +3765,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         gpuModelRuntimeQueueServiceBridgeRow?.gpuRuntimeShouldStartNow === false,
       currentBlocker:
         tool.gpuRequiredForRuntime
-          ? gpuModelControlledAdapterReady
-            ? 'external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand'
-            : 'external_agent_execution_gate_fail_closed_runtime_blocked'
+          ? 'external_agent_execution_gate_gpu_model_runtime_proof_required'
           : scopedControlledRouteReady
           ? 'external_agent_execution_gate_scoped_controlled_route_ready'
           : 'external_agent_execution_gate_fail_closed_runtime_blocked',
@@ -4012,11 +4017,11 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       externalAgentToolAdapterAuthorizationAccepted,
     sourceSatoriFontRuntimeProofAccepted:
       satoriFontRuntimeProofAccepted,
-    readyForAnyExternalAgentExecutionNow: all21ScopedControlledRouteReady,
+    readyForAnyExternalAgentExecutionNow: scopedControlledRouteReady,
     readyForScopedControlledRouteExecutionNow: scopedControlledRouteReady,
-    executionAllowedNow: all21ScopedControlledRouteReady,
+    executionAllowedNow: scopedControlledRouteReady,
     scopedControlledRouteExecutionAllowedNow: scopedControlledRouteReady,
-    globalAll21ExecutionAllowedNow: all21ScopedControlledRouteReady,
+    globalAll21ExecutionAllowedNow: false,
     requireGoExitCodeWhenBlocked: 2,
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
@@ -4127,15 +4132,15 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       candidateTools,
     externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
       requestAdmissionReadyTools,
-    externalAgentExecutableNowTools: all21ScopedControlledRouteReady ? 21 : 0,
+    externalAgentExecutableNowTools: scopedControlledRouteReady ? 13 : 0,
     scopedControlledRouteExecutableNowTools:
-      scopedControlledRouteReady ? gpuModelControlledAdapterReady ? 21 : 13 : 0,
+      scopedControlledRouteReady ? 13 : 0,
     scopedControlledRouteCpuStaticExecutableNowTools:
       scopedControlledRouteReady ? 6 : 0,
     scopedControlledRouteBrowserRuntimeExecutableNowTools:
       scopedControlledRouteReady ? 7 : 0,
     scopedControlledRouteGpuModelBlockedTools:
-      scopedControlledRouteReady && !gpuModelControlledAdapterReady ? 8 : 0,
+      scopedControlledRouteReady ? 8 : 0,
     disabledRouteBlockedDetailCasesWithProvidedEvidence:
       routeReadinessProbeAccepted ? 21 : 0,
     externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence:
@@ -4229,22 +4234,22 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       externalAgentToolAdapterAuthorizationAccepted ? 21 : 0,
     externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: 0,
     externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence:
-      all21ScopedControlledRouteReady ? 21 : 0,
+      scopedControlledRouteReady ? 13 : 0,
     externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: 0,
     gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence:
       routeReadinessProbeAccepted && !gpuModelControlledAdapterReady ? 8 : 0,
     gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence:
-      routeReadinessProbeAccepted && !gpuModelControlledAdapterReady ? 8 : 0,
+      routeReadinessProbeAccepted ? 8 : 0,
     gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence:
-      routeReadinessProbeAccepted && !gpuModelControlledAdapterReady ? 8 : 0,
+      routeReadinessProbeAccepted ? 8 : 0,
     gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence:
-      routeReadinessProbeAccepted && !gpuModelControlledAdapterReady ? 8 : 0,
+      routeReadinessProbeAccepted ? 8 : 0,
     gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence:
-      routeReadinessProbeAccepted && !gpuModelControlledAdapterReady ? 5 : 0,
+      routeReadinessProbeAccepted ? 5 : 0,
     gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence:
-      routeReadinessProbeAccepted && !gpuModelControlledAdapterReady ? 3 : 0,
+      routeReadinessProbeAccepted ? 3 : 0,
     gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence:
-      gpuModelControlledAdapterReady ? 8 : 0,
+      0,
     routeReadinessProbeGpuRuntimeShouldStartNowTools: 0,
     apiRouteMountReadyToolsWithProvidedEvidence:
       routeMountAccepted ? 21 : 0,
@@ -4323,7 +4328,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       controlledOnDemandExternalBetaReadyWithProvidedEvidence:
         controlledOnDemandAccepted,
       controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked:
-        controlledOnDemandAccepted && !all21ScopedControlledRouteReady,
+        controlledOnDemandAccepted,
       all21ToolsCovered: toolRows.length === 21,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: gpuRuntimeTargetedTools === 8,
@@ -4481,8 +4486,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       gpuModelRuntimeQueueBridgeKeepsGpuRuntimeIdle:
         externalAgentGpuModelRuntimeQueueServiceBridgeAccepted,
       gpuModelRuntimeQueueBridgeKeepsLiveExecutionBlocked:
-        externalAgentGpuModelRuntimeQueueServiceBridgeAccepted &&
-        !gpuModelControlledAdapterReady,
+        externalAgentGpuModelRuntimeQueueServiceBridgeAccepted,
       all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence:
         routeMockQueueWorkerClaimSmokeAccepted,
       all21RouteAdmittedMockJobsClaimedWithProvidedEvidence:
@@ -4499,30 +4503,29 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         externalAgentToolAdapterAuthorizationAccepted &&
         !all21ScopedControlledRouteReady,
       controlledRouteExecutionSmokeKeepsBroadExecutionBlocked:
-        controlledRouteExecutionSmokeAccepted &&
-        !all21ScopedControlledRouteReady,
+        controlledRouteExecutionSmokeAccepted,
       gpuModelUnblockPlanAcceptedWithProvidedEvidence:
-        routeReadinessProbeAccepted && !gpuModelControlledAdapterReady,
+        routeReadinessProbeAccepted,
       allEightGpuModelToolsHaveActionableUnblockPlan:
-        routeReadinessProbeAccepted && !gpuModelControlledAdapterReady,
+        routeReadinessProbeAccepted,
       fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof:
-        routeReadinessProbeAccepted && !gpuModelControlledAdapterReady,
+        routeReadinessProbeAccepted,
       threeFoundationGpuToolsRequireNativeGpuProofOnly:
-        routeReadinessProbeAccepted && !gpuModelControlledAdapterReady,
+        routeReadinessProbeAccepted,
       gpuModelToolsReadyForExecutionAfterCurrentEvidence:
-        gpuModelControlledAdapterReady,
-      globalAll21ExecutionAllowedNow: all21ScopedControlledRouteReady,
-      agentCanExecuteAll21ToolsNow: all21ScopedControlledRouteReady,
-      agentCanExecuteGpuModelToolsNow: gpuModelControlledAdapterReady,
-      externalAgentCanInvokeAdapterNow: all21ScopedControlledRouteReady,
-      agentCanExecuteToolsNow: all21ScopedControlledRouteReady,
-      externalAgentExecutionAllowedNow: all21ScopedControlledRouteReady,
+        false,
+      globalAll21ExecutionAllowedNow: false,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteGpuModelToolsNow: false,
+      externalAgentCanInvokeAdapterNow: scopedControlledRouteReady,
+      agentCanExecuteToolsNow: scopedControlledRouteReady,
+      externalAgentExecutionAllowedNow: scopedControlledRouteReady,
       apiRouteMountedNow: false,
       apiRouteExecutionApprovedNow: false,
-      routeExecutionApprovedNow: all21ScopedControlledRouteReady,
+      routeExecutionApprovedNow: scopedControlledRouteReady,
       workerExecutionApprovedNow: false,
       workerQueueApprovedNow: false,
-      toolExecutionApprovedNow: all21ScopedControlledRouteReady,
+      toolExecutionApprovedNow: scopedControlledRouteReady,
       providerRuntimeApprovedNow: false,
       browserWebglCanvasRuntimeApprovedNow: false,
       gpuRuntimeApprovedNow: false,

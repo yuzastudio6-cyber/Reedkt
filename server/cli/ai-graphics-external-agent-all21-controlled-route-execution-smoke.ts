@@ -307,9 +307,13 @@ function buildReport(
     counts: {
       totalAiGraphicsTools: 21,
       controlledRouteHttp200Tools: results.filter((item) => item.statusCode === 200).length,
+      controlledRouteCallableTools:
+        results.filter((item) => item.statusCode === 200 && item.controlledAdapterInvokedNow).length,
       controlledRouteAdapterInvokedTools:
         results.filter((item) => item.controlledAdapterInvokedNow).length,
       controlledRouteAdapterExecutedTools:
+        results.filter((item) => item.controlledAdapterExecutedNow).length,
+      realRuntimeExecutedTools:
         results.filter((item) => item.controlledAdapterExecutedNow).length,
       cpuStaticControlledRouteExecutedTools:
         results.filter((item) => item.group === 'cpu_static' && item.controlledAdapterExecutedNow).length,
@@ -317,6 +321,8 @@ function buildReport(
         results.filter((item) => item.group === 'browser_runtime' && item.controlledAdapterExecutedNow).length,
       gpuModelControlledRouteInvokedTools:
         results.filter((item) => item.group === 'gpu_model' && item.controlledAdapterInvokedNow).length,
+      gpuModelRuntimeProofRequiredTools:
+        results.filter((item) => item.group === 'gpu_model' && !item.localGpuModelRuntimeExecutionPerformed).length,
       localPackageExecutionPerformedTools:
         results.filter((item) => item.localPackageExecutionPerformed).length,
       localGpuModelRuntimeExecutionPerformedTools:
@@ -340,9 +346,13 @@ function buildReport(
       cpuStaticControlledAdaptersExecuted: results.filter((item) => item.group === 'cpu_static').every((item) => item.controlledAdapterExecutedNow),
       browserRuntimeControlledAdaptersExecuted: results.filter((item) => item.group === 'browser_runtime').every((item) => item.controlledAdapterExecutedNow),
       gpuModelControlledAdaptersInvoked: results.filter((item) => item.group === 'gpu_model').every((item) => item.controlledAdapterInvokedNow),
-      agentCanExecuteToolsNow: true,
-      agentCanExecuteAll21ToolsNow: true,
-      agentCanExecuteGpuModelToolsNow: true,
+      agentCanCallAll21ControlledRoutesNow: true,
+      agentCanExecuteToolsNow: false,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteGpuModelToolsNow: false,
+      agentCanExecuteRealRuntimeFor13ToolsNow: true,
+      agentCanExecuteRealRuntimeForAll21ToolsNow: false,
+      gpuModelRuntimeProofAcceptedNow: false,
       routeExecutionApprovedNow: true,
       routeExecutionPerformed: true,
       controlledToolRouteExecutionPerformed: true,
@@ -388,7 +398,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This smoke starts the real Express app and POSTs all 21 AI graphics tool calls through \`${report.routePath}\` with the controlled CPU/static, browser-runtime, and GPU/model route flags enabled. It proves the agent-facing route can accept every tool call now while keeping GPU/model runtime on-demand and idle by default.
+This smoke starts the real Express app and POSTs all 21 AI graphics tool calls through \`${report.routePath}\` with the controlled CPU/static, browser-runtime, and GPU/model route flags enabled. It proves the agent-facing route can accept every tool call now. It does not claim all 21 tools have real runtime execution proof: CPU/static and browser-runtime adapters execute now, while GPU/model adapters are route-callable and remain blocked from runtime execution until native GPU proof and reviewed private model manifests are accepted.
 
 ## Tool Results
 
@@ -406,7 +416,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 ## Boundary
 
-This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, download model weights, unlock paid production, or mark runtime/beta/production ready. CPU/static and browser-runtime adapters execute in the explicit mock/local controlled route. GPU/model adapters are invoked and executable, but local GPU/model runtime does not start unless a future scoped request supplies explicit local-dev runtime inputs and approval refs.
+This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, download model weights, unlock paid production, or mark runtime/beta/production ready. CPU/static and browser-runtime adapters execute in the explicit mock/local controlled route. GPU/model adapters are invoked through the controlled route, but local GPU/model runtime does not start until a scoped request supplies explicit local-dev runtime inputs, reviewed private manifests, accepted native GPU proof, and approval refs.
 `
 }
 

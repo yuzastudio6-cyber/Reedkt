@@ -336,8 +336,17 @@ if (sourceAll21RouteSmoke.counts?.gpuModelControlledRouteInvokedTools !== 8) {
 if (sourceAll21RouteSmoke.counts?.localGpuModelRuntimeExecutionPerformedTools !== 0) {
   fail('source_all21_route_gpu_runtime_execution_count_mismatch')
 }
-if (sourceAll21RouteSmoke.booleans?.agentCanExecuteAll21ToolsNow !== true) {
+if (sourceAll21RouteSmoke.booleans?.agentCanCallAll21ControlledRoutesNow !== true) {
+  fail('source_all21_route_agent_can_call_all21_mismatch')
+}
+if (sourceAll21RouteSmoke.booleans?.agentCanExecuteAll21ToolsNow !== false) {
   fail('source_all21_route_agent_can_execute_all21_mismatch')
+}
+if (sourceAll21RouteSmoke.counts?.realRuntimeExecutedTools !== 13) {
+  fail('source_all21_route_real_runtime_executed_count_mismatch')
+}
+if (sourceAll21RouteSmoke.counts?.gpuModelRuntimeProofRequiredTools !== 8) {
+  fail('source_all21_route_gpu_runtime_proof_required_count_mismatch')
 }
 if (sourceAll21RouteSmoke.booleans?.gpuRuntimeShouldStartNow !== false) {
   fail('source_all21_route_gpu_start_mismatch')

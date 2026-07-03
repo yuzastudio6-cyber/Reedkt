@@ -1361,8 +1361,7 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
       disabledBlockers.push('mock-only runtime mode is required for controlled route execution')
     }
 
-    const gpuModelBlockers = mode === 'gpu_model_controlled_execution' &&
-      !gpuModelControlledExecutable
+    const gpuModelBlockers = mode === 'gpu_model_controlled_execution'
       ? [
           'native linux/amd64 NVIDIA L4 runtime proof is required',
           ...(modelWeightManifestRequired
@@ -1375,8 +1374,7 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
         ]
       : []
     const gpuModelUnblockPlan =
-      mode === 'gpu_model_controlled_execution' &&
-      !gpuModelControlledExecutable
+      mode === 'gpu_model_controlled_execution'
         ? buildAiGraphicsGpuModelUnblockPlan(
             toolId,
             modelWeightManifestRequired,
@@ -1475,6 +1473,12 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
   const executableTools = toolReadiness.filter(
     (tool) => tool.externalAgentCanExecuteThisToolNow,
   )
+  const realRuntimeExecutableTools = toolReadiness.filter(
+    (tool) => (
+      tool.externalAgentCanExecuteThisToolNow &&
+      !tool.gpuRequiredForRuntime
+    ),
+  )
   const gpuAdmissionTools = toolReadiness.filter(
     (tool) => tool.canonicalRouteMode === 'gpu_model_controlled_execution',
   )
@@ -1484,8 +1488,8 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
       'ai_graphics_external_beta_tool_call_route_readiness_probe_passed',
     routeStatus:
       executableTools.length === 21
-        ? 'canonical_tool_call_route_readiness_reports_all_twenty_one_controlled_executable'
-        : 'canonical_tool_call_route_readiness_reports_thirteen_executable_and_eight_gpu_model_blocked',
+        ? 'canonical_tool_call_route_readiness_reports_all_twenty_one_route_callable_and_eight_gpu_model_runtime_proof_required'
+        : 'canonical_tool_call_route_readiness_reports_thirteen_runtime_executable_and_eight_gpu_model_runtime_proof_required',
     schemaVersion:
       '2026-07-02.ai-graphics.external-beta-tool-call-route-readiness-probe',
     routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
@@ -1520,7 +1524,9 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
     counts: {
       totalAiGraphicsTools: toolReadiness.length,
       productFacingCapabilities: 12,
+      externalAgentRouteCallableNowTools: executableTools.length,
       externalAgentRouteExecutableNowTools: executableTools.length,
+      realRuntimeExecutableNowTools: realRuntimeExecutableTools.length,
       cpuStaticControlledExecutableNowTools:
         toolReadiness.filter((tool) => (
           tool.canonicalRouteMode === 'cpu_static_controlled_execution' &&
@@ -1554,8 +1560,15 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
             !tool.gpuModelUnblockPlan?.modelWeightPrivateEvidenceRequired
           ),
         ).length,
+      gpuModelRuntimeProofRequiredTools: gpuAdmissionTools.length,
       gpuModelToolsReadyForExecutionAfterCurrentEvidence:
-        gpuAdmissionTools.filter((tool) => tool.externalAgentCanExecuteThisToolNow).length,
+        gpuAdmissionTools.filter((tool) => (
+          tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofAccepted &&
+          (
+            !tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired ||
+            tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceAccepted
+          )
+        )).length,
       modelWeightManifestRequiredTools:
         toolReadiness.filter((tool) => tool.modelWeightManifestRequired).length,
       gpuRuntimeShouldStartNowTools:
@@ -1572,9 +1585,12 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
         serviceContext.env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
       mockOnlyRuntimeModeEnforced: serviceContext.env.mockOnly,
       agentCanSelectForPlanning: true,
+      agentCanCallAll21ControlledRoutesNow: executableTools.length === 21,
       externalAgentCanExecuteSomeToolsNow: executableTools.length > 0,
       agentCanExecuteControlledCpuStaticAndBrowserRuntimeToolsNow:
         executableTools.filter((tool) => !tool.gpuRequiredForRuntime).length === 13,
+      agentCanExecuteRealRuntimeFor13ToolsNow:
+        realRuntimeExecutableTools.length === 13,
       gpuModelUnblockPlanExposed:
         gpuAdmissionTools.filter((tool) => tool.gpuModelUnblockPlan).length === 8,
       allEightGpuModelToolsHaveActionableUnblockPlan:
@@ -1591,10 +1607,16 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
           ),
         ).length === 3,
       gpuModelToolsReadyForExecutionAfterCurrentEvidence:
-        gpuAdmissionTools.filter((tool) => tool.externalAgentCanExecuteThisToolNow).length === 8,
-      agentCanExecuteAll21ToolsNow: executableTools.length === 21,
-      agentCanExecuteGpuModelToolsNow:
-        gpuAdmissionTools.filter((tool) => tool.externalAgentCanExecuteThisToolNow).length === 8,
+        gpuAdmissionTools.every((tool) => (
+          tool.gpuModelUnblockPlan?.nativeGpuRuntimeProofAccepted &&
+          (
+            !tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired ||
+            tool.gpuModelUnblockPlan.modelWeightPrivateEvidenceAccepted
+          )
+        )),
+      gpuModelRuntimeProofAcceptedNow: false,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteGpuModelToolsNow: false,
       routeExecutionPerformedByReadinessProbe: false,
       workerExecutionApprovedNow: false,
       workerDispatchApprovedNow: false,

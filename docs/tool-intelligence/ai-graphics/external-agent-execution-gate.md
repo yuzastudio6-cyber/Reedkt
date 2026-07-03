@@ -2,13 +2,11 @@
 
 Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings`
 
-Status: `external_agent_execution_gate_all21_scoped_controlled_execution_ready_with_gpu_on_demand`
+Status: `external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked`
 
-This fail-closed gate now records scoped controlled execution as available for all 21 AI graphics tools. It keeps GPU startup as on-demand only, consumes route-mount readiness evidence, and preserves the proper-install audit boundary.
+This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/static and browser-runtime tools, keeps all 8 GPU/model tools blocked pending native GPU/model proof, and preserves GPU startup as on-demand only. It does not unlock runtime, beta, production, public artifacts, signed URLs, provider/model calls, or live worker execution.
 
-Scoped controlled execution is available for all 21 tools. Runtime, beta, and production remain blocked. GPU/model tools are callable through the controlled adapter, but GPU runtime must start only for an accepted on-demand tool call and must stay idle otherwise.
-
-## Key Counts
+## Counts
 
 - requireGoExitCodeWhenBlocked: `2`
 - totalAiGraphicsTools: `21`
@@ -70,11 +68,11 @@ Scoped controlled execution is available for all 21 tools. Runtime, beta, and pr
 - controlledToolExecutionProofRequiredTools: `0`
 - externalBetaCallableCandidateToolsWithProvidedEvidence: `21`
 - externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: `1`
-- externalAgentExecutableNowTools: `21`
-- scopedControlledRouteExecutableNowTools: `21`
+- externalAgentExecutableNowTools: `13`
+- scopedControlledRouteExecutableNowTools: `13`
 - scopedControlledRouteCpuStaticExecutableNowTools: `6`
 - scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`
-- scopedControlledRouteGpuModelBlockedTools: `0`
+- scopedControlledRouteGpuModelBlockedTools: `8`
 - disabledRouteBlockedDetailCasesWithProvidedEvidence: `21`
 - externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `21`
 - cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `6`
@@ -124,105 +122,126 @@ Scoped controlled execution is available for all 21 tools. Runtime, beta, and pr
 - externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`
 - externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`
 - externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`
-- externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `21`
+- externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `13`
 - externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence: `0`
-- gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence: `0`
-- gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence: `0`
-- gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `0`
-- gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `0`
-- gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence: `0`
-- gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `8`
+- gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence: `8`
+- gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence: `8`
+- gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `8`
+- gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `5`
+- gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence: `3`
+- gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `0`
 - routeReadinessProbeGpuRuntimeShouldStartNowTools: `0`
 - apiRouteMountReadyToolsWithProvidedEvidence: `21`
 - apiRouteMountedNowTools: `0`
 - externalBetaReadyNowTools: `0`
 - productionReadyNowTools: `0`
 
-## Evidence Notes
+## Boundary Summary
 
+- route-mount readiness evidence is accepted.
+- proper-install audit is accepted.
+- CPU/static live-adapter queue-service proof accepted: `true`
+- CPU/static exact execution admission accepted: `true`
 - CPU/static adapter/enqueue admission accepted: `true`
+- checked-in packet has no saved smoke result yet
+- scoped controlled execution is available for 13 tools
+- runtime, beta, and production remain blocked
+- tool/capability-specific blocked details remain available for denied runtime/beta/production paths.
+- apiRouteMountedNow=false
+- exit code `2` remains the blocked require-go exit for missing/incomplete source evidence.
+- agentCanExecute13ControlledRouteToolsNow=true
+- agentCanExecuteToolsNow=true
+- agentCanExecuteAll21ToolsNow=false
+- agentCanExecuteGpuModelToolsNow=false
+- satoriRemainsBlockedPendingApprovedFontFixture=false
+- satoriFontRuntimeProofAcceptedWithProvidedEvidence=true
+- satoriFontBlockResolvedForLocalRuntimeProof=true
+- allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true
+- gpuModelUnblockPlanAcceptedWithProvidedEvidence=true
+- gpuModelToolsReadyForExecutionAfterCurrentEvidence=false
 - CPU/static service-role queue-write smoke preflight accepted: `true`
-- guarded CPU/static non-production evidence sequence remains prepared, not live-executed.
+- guarded CPU/static non-production evidence sequence
 - CPU/static saved service-role queue-write smoke proof accepted: `false`
 - CPU/static worker claim/dispatch smoke proof accepted: `false`
 - Satori font runtime proof accepted: `true`
 - CPU/static tool execution dry-run proof accepted: `false`
 - CPU/static controlled tool execution proof accepted: `false`
+- native GPU proof collection
+- Satori font runtime proof diagnostics
+- browser runtime proof diagnostics
 - Representative disabled route blocked-detail cases covered: `21`
 - Controlled route-executable tools with readiness-probe evidence: `21`
 - CPU/static controlled route-executable tools with readiness-probe evidence: `6`
 - Browser runtime controlled route-executable tools with readiness-probe evidence: `7`
 - GPU/model route-admission blocked tools with readiness-probe evidence: `0`
-- GPU/model unblock plans exposed with readiness-probe evidence: `0`
-- GPU/model native GPU proof required with readiness-probe evidence: `0`
-- GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `0`
-- GPU/model native GPU proof-only required with readiness-probe evidence: `0`
-- GPU/model tools ready for execution after current evidence: `8`
+- GPU/model unblock plans exposed with readiness-probe evidence: `8`
+- GPU/model native GPU proof required with readiness-probe evidence: `8`
+- GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`
+- GPU/model native GPU proof-only required with readiness-probe evidence: `3`
+- GPU/model tools ready for execution after current evidence: `0`
 - Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`
 - Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`
 - Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`
 - Source/checksum review still required before private manifest authoring: `rembg` and `transparent_background`
 - Reviewed private model-weight manifests accepted now: `0`
-- `gpuModelExternalBetaReadinessBlocker` is null for controlled adapter-ready GPU/model rows; runtime, beta, and production gates remain false.
-- `modelWeightPrivateEvidenceRequired` remains represented per GPU/model tool for future proof tracking.
-- Route readiness probe evidence is accepted: `true`
+- gpuModelExternalBetaReadinessBlocker
+- modelWeightPrivateEvidenceRequired
+- Route readiness probe evidence is accepted
 - Controlled canonical route execution smoke accepted: `true`
 - Controlled worker-route execution smoke accepted: `true`
 - GPU/model proof-ref queue admission accepted: `true`
 - GPU/model runtime queue-service bridge accepted: `true`
 - Mock queue worker-claim smoke accepted: `true`
 - External-agent tool-adapter authorization accepted: `true`
-- CPU/static live-adapter queue-service proof accepted: `true`
-- CPU/static exact execution admission accepted: `true`
-- native GPU proof collection evidence remains cited for GPU/model runtime lanes.
-- Satori font runtime proof diagnostics remain cited for text-to-SVG layout readiness.
-- browser runtime proof diagnostics remain cited for browser/canvas/WebGL tools.
-- checked-in packet has no saved smoke result yet
-- tool/capability-specific blocked details remain available for denied runtime/beta/production paths.
-- scoped controlled execution is available for all 21 tools
-- runtime, beta, and production remain blocked
-- apiRouteMountedNow=false
-- exit code `2` remains the blocked require-go exit for missing/incomplete source evidence.
-- agentCanExecute13ControlledRouteToolsNow=true
-- agentCanExecuteToolsNow=true
-- agentCanExecuteAll21ToolsNow=true
-- agentCanExecuteGpuModelToolsNow=true
-- satoriRemainsBlockedPendingApprovedFontFixture=false
-- satoriFontRuntimeProofAcceptedWithProvidedEvidence=true
-- satoriFontBlockResolvedForLocalRuntimeProof=true
-- allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true
-- gpuModelUnblockPlanAcceptedWithProvidedEvidence=false
-- gpuModelToolsReadyForExecutionAfterCurrentEvidence=true
 
 ## Required Commands
 
-- `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence`
-- `npm run ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics`
-- `npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics`
-- `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
-- `npm run ai-graphics:browser-runtime-proof:diagnostics`
 - `npm run ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics`
 - `npm run ai-graphics:external-agent-controlled-worker-route-execution-smoke:diagnostics`
 - `npm run ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics`
-- `npm run ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics`
 - `npm run ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics`
 - `npm run ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics`
 - `npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics`
 - `npm run ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke:diagnostics`
 - `npm run ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics`
 - `npm run ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics`
+- `npm run ai-graphics:21-tool-proper-install-audit:diagnostics`
+- `npm run ai-graphics:external-agent-execution-gate`
+- `npm run ai-graphics:external-beta-callable-request-admission`
+- `npm run ai-graphics:external-beta-callable-scope`
+- `npm run ai-graphics:external-beta-tool-call-gateway`
+- `npm run ai-graphics:external-beta-runtime-admission`
+- `npm run ai-graphics:external-beta-worker-enqueue-adapter`
+- `npm run ai-graphics:external-beta-end-to-end-readiness:diagnostics`
+- `npm run ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics`
+- `npm run ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics`
+- `npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics`
+- `npm run ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics`
+- `npm run ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics`
+- `npm run ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics`
+- `npm run ai-graphics:satori-font-runtime-proof:diagnostics`
+- `npm run ai-graphics:browser-runtime-proof:diagnostics`
+- `npm run ai-graphics:external-beta-service-role-queue-smoke-preflight:diagnostics`
 
 ## Tool Rows
 
-- `torch_torchvision`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `transformers`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `sam2`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `birefnet`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `real_esrgan`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `kornia`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `rembg`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
-- `transparent_background`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_gpu_model_controlled_adapter_ready_on_demand`, gpuModelExternalBetaReadinessBlocker=`null`
+- `torch_torchvision`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`native_gpu_runtime_proof_pending`
+- `transformers`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`native_gpu_runtime_proof_pending`
+- `sam2`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
+- `birefnet`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
+- `real_esrgan`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
+- `kornia`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`native_gpu_runtime_proof_pending`
+- `rembg`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
+- `transparent_background`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
 - `d3`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `echarts`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `vega_lite`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
@@ -237,22 +256,171 @@ Scoped controlled execution is available for all 21 tools. Runtime, beta, and pr
 - `konva`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `babylonjs`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 
-## Runtime Boundary
+## Booleans
 
-- agent/tool execution
-- Tool Route execution
-- API route execution
-- live queue write
-- Worker queue enqueue
-- Worker execution
-- provider/model execution
-- browser/WebGL/canvas runtime execution
-- GPU/model runtime execution now
-- idle or always-on GPU runtime
-- model weight download or load
-- media processing
-- Supabase/GCS mutation
-- signed URL creation
-- public artifact creation
-- external beta traffic enablement
-- production unlock
+- externalAgentExecutionGatePrepared=true
+- source21ToolProperInstallAuditAccepted=true
+- sourceExternalBetaCallableRequestAdmissionAccepted=true
+- sourceExternalBetaApiRouteMountReadinessAccepted=true
+- sourceExternalBetaControlledOnDemandStatusBridgeAccepted=true
+- sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted=true
+- sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted=true
+- sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted=true
+- sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted=true
+- sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared=true
+- sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted=false
+- sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted=false
+- sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted=false
+- sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted=false
+- sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted=true
+- sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted=true
+- sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted=true
+- sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted=true
+- sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted=true
+- sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted=true
+- sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted=true
+- sourceExternalAgentToolAdapterAuthorizationAccepted=true
+- sourceSatoriFontRuntimeProofAccepted=true
+- properInstallAuditAccepted=true
+- all21ToolsProperlyInstalledForPlannedSurface=true
+- installAuditSeparatesPlannedSurfaceFromRuntimeCallable=true
+- externalBetaCallableInstallReadyNow=false
+- controlledOnDemandExternalBetaReadyWithProvidedEvidence=true
+- controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked=true
+- all21ToolsCovered=true
+- all12CapabilitiesCovered=true
+- all8GpuToolsTargetGpuRuntime=true
+- threeModelWeightToolsHaveExistingEvidenceForPrivateManifestAuthoring=true
+- twoModelWeightToolsRequireSourceChecksumReview=true
+- reviewedPrivateModelWeightManifestsAcceptedNow=false
+- externalBetaCallableCandidatesWithProvidedEvidence=true
+- externalBetaCallableRequestAdmissionReadyWithProvidedEvidence=true
+- routeMountReadyWithProvidedEvidence=true
+- routeMountPreparedButNotMounted=true
+- cpuStaticLiveAdapterQueueServiceProofAccepted=true
+- allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence=true
+- allFiveCpuStaticMockQueueServiceValidationsPassed=true
+- cpuStaticExactExecutionAdmissionAccepted=true
+- allFiveCpuStaticExactExecutionAdmissionsReady=true
+- allFiveCpuStaticExactRequestEnvelopesAccepted=true
+- allFiveCpuStaticApprovedPlanSnapshotsAccepted=true
+- allFiveCpuStaticPrivateArtifactManifestsAccepted=true
+- allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted=true
+- allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence=true
+- cpuStaticAdapterInvocationEnqueueAdmissionAccepted=true
+- allFiveCpuStaticAdapterInvocationEnqueueAdmissionsReady=true
+- allFiveCpuStaticAdapterInvocationEnvelopesPrepared=true
+- allFiveCpuStaticWorkerEnqueuePayloadsPrepared=true
+- allFiveCpuStaticProductionWorkerJobPayloadsAccepted=true
+- allFiveCpuStaticExternalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence=true
+- cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted=true
+- allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady=true
+- allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence=true
+- allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks=true
+- nonProductionEvidenceSequenceKeepsRuntimeBlocks=true
+- liveEvidenceSequenceExecutedNow=false
+- allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence=false
+- allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence=false
+- nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence=false
+- allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence=false
+- allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence=false
+- allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence=false
+- allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence=false
+- allFiveCpuStaticToolExecutionDryRunProofsPreparedWithProvidedEvidence=false
+- allFiveCpuStaticDryToolExecutionContractsPrepared=false
+- allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence=false
+- allFiveCpuStaticPhase0ExecutionEvidenceAccepted=false
+- satoriRemainsBlockedPendingApprovedFontFixture=false
+- satoriFontRuntimeProofAcceptedWithProvidedEvidence=true
+- satoriFontBlockResolvedForLocalRuntimeProof=true
+- allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true
+- fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes=true
+- nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution=true
+- nonProductionServiceRoleQueueWriteSmokeResultRequiredBeforeExecution=true
+- workerClaimAndDispatchSmokeProofRequiredBeforeExecution=false
+- toolExecutionDryRunProofRequiredBeforeExecution=false
+- controlledToolExecutionProofRequiredBeforeExecution=false
+- adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution=false
+- approvedPlanSnapshotRequired=true
+- creditReservationRequired=true
+- privateArtifactManifestRequired=true
+- structuredToolEnvelopeRequired=true
+- rawChatExecutionAllowed=false
+- gpuRuntimeOnDemandOnly=true
+- noIdleGpuRuntimeApproved=true
+- gpuStartsOnlyForApprovedWorkerOrToolCall=true
+- agentCanSelectForPlanning=true
+- readyForScopedControlledRouteExecutionNow=true
+- scopedControlledRouteExecutionAllowedNow=true
+- agentCanExecuteScopedControlledRouteToolsNow=true
+- agentCanExecute13ControlledRouteToolsNow=true
+- externalAgentCanExecuteControlledRouteToolsNow=true
+- routeReadinessProbeAcceptedWithProvidedEvidence=true
+- agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow=true
+- controlledCanonicalRouteExecutionSmokeAcceptedWithProvidedEvidence=true
+- thirteenControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence=true
+- sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence=true
+- sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence=true
+- sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted=true
+- externalAgentControlledWorkerRouteExecutionSmokeAcceptedWithProvidedEvidence=true
+- thirteenControlledToolsExecutedViaClaimedWorkerRouteWithProvidedEvidence=true
+- externalAgentCanExecuteControlledWorkerRouteToolsNow=true
+- eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence=true
+- allEightGpuModelProofRefQueueAdmissionsAcceptedWithProvidedEvidence=true
+- allEightGpuModelProofRefMockWorkerClaimsAcceptedWithProvidedEvidence=true
+- gpuModelProofRefQueueAdmissionKeepsGpuRuntimeIdle=true
+- gpuModelProofRefQueueAdmissionKeepsBroadExecutionBlocked=true
+- externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedWithProvidedEvidence=true
+- allEightGpuModelRuntimeQueueServiceBridgeJobsAcceptedWithProvidedEvidence=true
+- allEightGpuModelRuntimeQueueServiceBridgeWorkerClaimsAcceptedWithProvidedEvidence=true
+- gpuModelRuntimeQueueBridgeKeepsGpuRuntimeIdle=true
+- gpuModelRuntimeQueueBridgeKeepsLiveExecutionBlocked=true
+- all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence=true
+- all21RouteAdmittedMockJobsClaimedWithProvidedEvidence=true
+- mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked=true
+- externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence=true
+- all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks=true
+- all21ExternalAgentMappedProductionProfilesAccepted=true
+- externalAgentAdapterAuthorizationKeepsInvocationBlocked=true
+- controlledRouteExecutionSmokeKeepsBroadExecutionBlocked=true
+- gpuModelUnblockPlanAcceptedWithProvidedEvidence=true
+- allEightGpuModelToolsHaveActionableUnblockPlan=true
+- fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof=true
+- threeFoundationGpuToolsRequireNativeGpuProofOnly=true
+- gpuModelToolsReadyForExecutionAfterCurrentEvidence=false
+- globalAll21ExecutionAllowedNow=false
+- agentCanExecuteAll21ToolsNow=false
+- agentCanExecuteGpuModelToolsNow=false
+- externalAgentCanInvokeAdapterNow=true
+- agentCanExecuteToolsNow=true
+- externalAgentExecutionAllowedNow=true
+- apiRouteMountedNow=false
+- apiRouteExecutionApprovedNow=false
+- routeExecutionApprovedNow=true
+- workerExecutionApprovedNow=false
+- workerQueueApprovedNow=false
+- toolExecutionApprovedNow=true
+- providerRuntimeApprovedNow=false
+- browserWebglCanvasRuntimeApprovedNow=false
+- gpuRuntimeApprovedNow=false
+- gpuRuntimeShouldStartNow=false
+- runtimeReadyNow=false
+- internalBetaReadyNow=false
+- externalBetaReadyNow=false
+- productionReadyNow=false
+- dependencyInstallPerformed=false
+- packageLockMutationPerformed=false
+- toolExecutionPerformed=false
+- workerExecutionPerformed=false
+- workerEnqueuePerformed=false
+- routeExecutionPerformed=false
+- providerRuntimePerformed=false
+- browserWebglCanvasRuntimePerformed=false
+- gpuRuntimePerformed=false
+- modelWeightsDownloaded=false
+- modelWeightsLoaded=false
+- mediaProcessingPerformed=false
+- supabaseMutationPerformed=false
+- gcsUploadPerformed=false
+- publicArtifactCreated=false
+- signedUrlCreated=false

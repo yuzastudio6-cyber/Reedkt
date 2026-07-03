@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_all21_controlled_route_execution_smoke_pas
 
 Status: `external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand`
 
-This smoke starts the real Express app and POSTs all 21 AI graphics tool calls through `/api/ai-graphics/external-beta/tool-call` with the controlled CPU/static, browser-runtime, and GPU/model route flags enabled. It proves the agent-facing route can accept every tool call now while keeping GPU/model runtime on-demand and idle by default.
+This smoke starts the real Express app and POSTs all 21 AI graphics tool calls through `/api/ai-graphics/external-beta/tool-call` with the controlled CPU/static, browser-runtime, and GPU/model route flags enabled. It proves the agent-facing route can accept every tool call now. It does not claim all 21 tools have real runtime execution proof: CPU/static and browser-runtime adapters execute now, while GPU/model adapters are route-callable and remain blocked from runtime execution until native GPU proof and reviewed private model manifests are accepted.
 
 ## Tool Results
 
@@ -36,11 +36,14 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 
 - `totalAiGraphicsTools`: 21
 - `controlledRouteHttp200Tools`: 21
+- `controlledRouteCallableTools`: 21
 - `controlledRouteAdapterInvokedTools`: 21
 - `controlledRouteAdapterExecutedTools`: 13
+- `realRuntimeExecutedTools`: 13
 - `cpuStaticControlledRouteExecutedTools`: 6
 - `browserRuntimeControlledRouteExecutedTools`: 7
 - `gpuModelControlledRouteInvokedTools`: 8
+- `gpuModelRuntimeProofRequiredTools`: 8
 - `localPackageExecutionPerformedTools`: 13
 - `localGpuModelRuntimeExecutionPerformedTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
@@ -58,9 +61,13 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `cpuStaticControlledAdaptersExecuted`: true
 - `browserRuntimeControlledAdaptersExecuted`: true
 - `gpuModelControlledAdaptersInvoked`: true
-- `agentCanExecuteToolsNow`: true
-- `agentCanExecuteAll21ToolsNow`: true
-- `agentCanExecuteGpuModelToolsNow`: true
+- `agentCanCallAll21ControlledRoutesNow`: true
+- `agentCanExecuteToolsNow`: false
+- `agentCanExecuteAll21ToolsNow`: false
+- `agentCanExecuteGpuModelToolsNow`: false
+- `agentCanExecuteRealRuntimeFor13ToolsNow`: true
+- `agentCanExecuteRealRuntimeForAll21ToolsNow`: false
+- `gpuModelRuntimeProofAcceptedNow`: false
 - `routeExecutionApprovedNow`: true
 - `routeExecutionPerformed`: true
 - `controlledToolRouteExecutionPerformed`: true
@@ -92,4 +99,4 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 
 ## Boundary
 
-This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, download model weights, unlock paid production, or mark runtime/beta/production ready. CPU/static and browser-runtime adapters execute in the explicit mock/local controlled route. GPU/model adapters are invoked and executable, but local GPU/model runtime does not start unless a future scoped request supplies explicit local-dev runtime inputs and approval refs.
+This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS, create signed URLs, create public artifacts, download model weights, unlock paid production, or mark runtime/beta/production ready. CPU/static and browser-runtime adapters execute in the explicit mock/local controlled route. GPU/model adapters are invoked through the controlled route, but local GPU/model runtime does not start until a scoped request supplies explicit local-dev runtime inputs, reviewed private manifests, accepted native GPU proof, and approval refs.

@@ -205,11 +205,14 @@ function checkReport(label, report) {
   const expectedCounts = {
     totalAiGraphicsTools: 21,
     controlledRouteHttp200Tools: 21,
+    controlledRouteCallableTools: 21,
     controlledRouteAdapterInvokedTools: 21,
     controlledRouteAdapterExecutedTools: 13,
+    realRuntimeExecutedTools: 13,
     cpuStaticControlledRouteExecutedTools: 6,
     browserRuntimeControlledRouteExecutedTools: 7,
     gpuModelControlledRouteInvokedTools: 8,
+    gpuModelRuntimeProofRequiredTools: 8,
     localPackageExecutionPerformedTools: 13,
     localGpuModelRuntimeExecutionPerformedTools: 0,
     gpuRuntimeShouldStartNowTools: 0,
@@ -231,9 +234,8 @@ function checkReport(label, report) {
     'cpuStaticControlledAdaptersExecuted',
     'browserRuntimeControlledAdaptersExecuted',
     'gpuModelControlledAdaptersInvoked',
-    'agentCanExecuteToolsNow',
-    'agentCanExecuteAll21ToolsNow',
-    'agentCanExecuteGpuModelToolsNow',
+    'agentCanCallAll21ControlledRoutesNow',
+    'agentCanExecuteRealRuntimeFor13ToolsNow',
     'routeExecutionApprovedNow',
     'routeExecutionPerformed',
     'controlledToolRouteExecutionPerformed',
@@ -243,6 +245,11 @@ function checkReport(label, report) {
     if (booleans[key] !== true) fail(`${label}_${key}_not_true`)
   }
   for (const key of [
+    'agentCanExecuteToolsNow',
+    'agentCanExecuteAll21ToolsNow',
+    'agentCanExecuteGpuModelToolsNow',
+    'agentCanExecuteRealRuntimeForAll21ToolsNow',
+    'gpuModelRuntimeProofAcceptedNow',
     'workerExecutionApprovedNow',
     'workerExecutionPerformed',
     'workerDispatchApprovedNow',
@@ -333,11 +340,26 @@ for (const phrase of [
 if (readinessProbe.counts?.externalAgentRouteExecutableNowTools !== 21) {
   fail('readiness_probe_not_all21_executable')
 }
-if (readinessProbe.booleans?.agentCanExecuteAll21ToolsNow !== true) {
-  fail('readiness_probe_all21_boolean_not_true')
+if (readinessProbe.booleans?.agentCanCallAll21ControlledRoutesNow !== true) {
+  fail('readiness_probe_all21_callable_boolean_not_true')
 }
-if (executionGate.counts?.scopedControlledRouteExecutableNowTools !== 21) {
-  fail('execution_gate_not_all21_executable')
+if (readinessProbe.booleans?.agentCanExecuteAll21ToolsNow !== false) {
+  fail('readiness_probe_all21_runtime_boolean_not_false')
+}
+if (readinessProbe.counts?.realRuntimeExecutableNowTools !== 13) {
+  fail('readiness_probe_real_runtime_executable_not_13')
+}
+if (readinessProbe.counts?.gpuModelRuntimeProofRequiredTools !== 8) {
+  fail('readiness_probe_gpu_model_proof_required_not_8')
+}
+if (executionGate.counts?.scopedControlledRouteExecutableNowTools !== 13) {
+  fail('execution_gate_scoped_runtime_executable_not_13')
+}
+if (executionGate.counts?.scopedControlledRouteGpuModelBlockedTools !== 8) {
+  fail('execution_gate_gpu_model_blocked_not_8')
+}
+if (executionGate.booleans?.agentCanExecuteAll21ToolsNow !== false) {
+  fail('execution_gate_all21_runtime_boolean_not_false')
 }
 if (executionGate.booleans?.agentCanExecuteToolsNow !== true) {
   fail('execution_gate_agent_execution_not_true')
@@ -353,8 +375,17 @@ if (
 if (!scorecard.includes('controlledRouteHttp200Tools=21')) {
   fail('scorecard_missing_all21_http200_count')
 }
-if (!scorecard.includes('agentCanExecuteAll21ToolsNow=true')) {
-  fail('scorecard_missing_all21_execution_true')
+if (!scorecard.includes('agentCanCallAll21ControlledRoutesNow=true')) {
+  fail('scorecard_missing_all21_callable_true')
+}
+if (!scorecard.includes('agentCanExecuteAll21ToolsNow=false')) {
+  fail('scorecard_missing_all21_runtime_execution_false')
+}
+if (!scorecard.includes('realRuntimeExecutedTools=13')) {
+  fail('scorecard_missing_real_runtime_executed_13')
+}
+if (!scorecard.includes('gpuModelRuntimeProofRequiredTools=8')) {
+  fail('scorecard_missing_gpu_proof_required_8')
 }
 if (!scorecard.includes('gpuRuntimeShouldStartNow=false')) {
   fail('scorecard_missing_gpu_start_false')
@@ -404,8 +435,14 @@ console.log(JSON.stringify({
     docs.counts.controlledRouteAdapterInvokedTools,
   controlledRouteAdapterExecutedTools:
     docs.counts.controlledRouteAdapterExecutedTools,
+  realRuntimeExecutedTools:
+    docs.counts.realRuntimeExecutedTools,
   gpuModelControlledRouteInvokedTools:
     docs.counts.gpuModelControlledRouteInvokedTools,
+  gpuModelRuntimeProofRequiredTools:
+    docs.counts.gpuModelRuntimeProofRequiredTools,
+  agentCanCallAll21ControlledRoutesNow:
+    docs.booleans.agentCanCallAll21ControlledRoutesNow,
   agentCanExecuteAll21ToolsNow:
     docs.booleans.agentCanExecuteAll21ToolsNow,
   gpuRuntimeShouldStartNow:

@@ -12,6 +12,9 @@ export type ToolCallIntentCapabilityId =
   | 'qwen_visual_understanding'
   | 'sound_music_audio'
   | 'track_a_container_tools'
+  | 'streamer_render_pipeline_support'
+  | 'mkvtoolnix_container_validation'
+  | 'gpac_mp4box_packaging_validation'
   | 'storage_runtime'
   | 'credit_gate'
 

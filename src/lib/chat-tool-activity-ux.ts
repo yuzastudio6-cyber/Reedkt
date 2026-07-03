@@ -91,8 +91,11 @@ export const chatToolActivityRawNameDenylist = [
   'faster_whisper',
   'ffmpeg',
   'ffprobe',
+  'gpac',
+  'gpac/mp4box',
   'gstreamer',
   'libass',
+  'mp4box',
   'mkvtoolnix',
   'opencv',
   'opencolorio',
@@ -175,6 +178,12 @@ const activityCopyByCapability: Record<ToolCallIntentCapabilityId, ActivityCopy>
     output: 'Music/audio handoff report',
     qa: 'Checks cue timing, voice safety, style fit, and project-only audio handling.',
   },
+  streamer_render_pipeline_support: {
+    title: 'Native render pipeline support',
+    detail: 'Validate container-backed render pipeline support for the approved edit without exposing raw tooling.',
+    output: 'Render pipeline support report',
+    qa: 'Checks private fixture scope, backend boundary, and no unrelated media probing.',
+  },
   storage_runtime: {
     title: 'Private artifact handoff',
     detail: 'Keep source and generated outputs in private manifests instead of public links.',
@@ -192,6 +201,18 @@ const activityCopyByCapability: Record<ToolCallIntentCapabilityId, ActivityCopy>
     detail: 'Use separately approved native-container evidence only when a planned edit needs that support.',
     output: 'Native support report',
     qa: 'Checks source approval, private fixture boundaries, and no unrelated media probing.',
+  },
+  mkvtoolnix_container_validation: {
+    title: 'Container package validation',
+    detail: 'Validate subtitle/container packaging metadata for approved private outputs.',
+    output: 'Container validation report',
+    qa: 'Checks private fixture policy, package metadata, and artifact cleanup.',
+  },
+  gpac_mp4box_packaging_validation: {
+    title: 'MP4 packaging validation',
+    detail: 'Validate approved MP4 packaging/source metadata before any export packaging path is allowed.',
+    output: 'Packaging validation report',
+    qa: 'Checks owner-approved source, package provenance, and no public delivery.',
   },
   transcript: {
     title: 'Speech and caption source prep',

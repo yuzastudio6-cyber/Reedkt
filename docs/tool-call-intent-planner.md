@@ -19,6 +19,14 @@ The planner records:
 
 The intent plan is attached to mock edit plans and backend edit-plan records as `toolCallIntentPlan`.
 
+Agents and backend planners can request additional non-baseline capabilities with `requestedCapabilities`. That path is used for exact agent/tool-call capability IDs such as:
+
+- `streamer_render_pipeline_support`
+- `mkvtoolnix_container_validation`
+- `gpac_mp4box_packaging_validation`
+
+Those IDs remain audit/developer identifiers. Guided chat summarizes them as render pipeline support, container validation, and packaging validation rather than listing raw tool names.
+
 ## User-Facing Behavior
 
 The guided chat editor shows a `Planned edit work` card before approval. It summarizes edit activities, readiness, approval cost, progress, private results, blockers, and QA in user-facing edit language. Guided chat must not list raw execution tool names by default; exact identifiers stay available only in developer review.
@@ -50,6 +58,8 @@ Tool-call intents do not run tools. Every intent remains:
 - `frontendExecutionAllowed: false`
 
 Future execution still requires approved plan snapshot, credit estimate, credit reservation, idempotency, private artifact references, worker routing, owner/license/model evidence, and cost-event handling.
+
+Track A native container capabilities are backend-gated candidates only. They do not authorize frontend execution, public artifacts, external beta, paid production, or product-ready local OSS status by themselves.
 
 ## Validation
 

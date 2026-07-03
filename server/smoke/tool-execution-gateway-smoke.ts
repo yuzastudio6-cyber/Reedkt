@@ -329,6 +329,64 @@ assert.ok(
   'billing backend preflight should identify missing wallet settlement RPC',
 )
 
+const persistentOpsWorkspaceId = '11111111-1111-4111-8111-111111111111'
+const persistentOpsProjectId = '22222222-2222-4222-8222-222222222222'
+const persistentOpsJobId = '33333333-3333-4333-8333-333333333333'
+const persistentOpsLeaseConflictPacketId = 'production-readiness-evidence-persistent-ops-lease-conflict-smoke'
+const persistentOpsLeaseConflictContext: ServiceContext = {
+  ...context,
+  env: {
+    mockOnly: false,
+    allowMockWithoutSupabase: false,
+    hasSupabaseAdmin: true,
+    productionGlobalGenerationKillSwitchActive: false,
+    productionGpuWorkerKillSwitchActive: false,
+    productionRenderWorkerKillSwitchActive: false,
+    productionProviderKillSwitchActive: false,
+    productionFinalExportKillSwitchActive: false,
+  } as never,
+  clients: {
+    ...context.clients,
+    admin: createGatewayPersistentReadinessAdminClient({
+      workspaceId: persistentOpsWorkspaceId,
+      projectId: persistentOpsProjectId,
+      productionReadinessRows: [
+        productionReadinessPacketRow(
+          persistentOpsLeaseConflictPacketId,
+          productionEvidenceFixture(persistentOpsWorkspaceId, persistentOpsProjectId),
+        ),
+      ],
+      failWorkerLeaseInsert: true,
+    }),
+  },
+  requestId: 'tool-execution-gateway-smoke:persistent-ops-lease-conflict',
+}
+const persistentOpsLeaseConflictBlocked = await createToolExecutionGatewayService(persistentOpsLeaseConflictContext).dispatchApprovedToolCall({
+  ...productionReadyToolReadinessInput({
+    jobId: persistentOpsJobId,
+    productionReadinessEvidencePacketId: persistentOpsLeaseConflictPacketId,
+  }),
+  workspaceId: persistentOpsWorkspaceId,
+  projectId: persistentOpsProjectId,
+  artifactReferences: [{
+    ...baseInput.artifactReferences[0]!,
+    storageObjectPath: `workspaces/${persistentOpsWorkspaceId}/projects/${persistentOpsProjectId}/source/source-media.mp4`,
+  }],
+})
+assert.equal(persistentOpsLeaseConflictBlocked.gateway.status, 'blocked', 'persistent production_ready dispatch should block when durable worker lease creation fails')
+assert.equal(persistentOpsLeaseConflictBlocked.workerResult, undefined, 'durable ops admission failure must block before worker dispatch')
+assert.equal(persistentOpsLeaseConflictBlocked.toolCostEvents, undefined, 'durable ops admission failure must not emit tool-cost events')
+assert.equal(persistentOpsLeaseConflictBlocked.walletSettlements, undefined, 'durable ops admission failure must not create wallet settlements')
+assert.ok(
+  persistentOpsLeaseConflictBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_WORKER_LEASE_CLAIM_CONFLICT'),
+  'durable ops admission should identify worker lease claim conflicts',
+)
+assert.equal(
+  persistentOpsLeaseConflictBlocked.gateway.productionOpsControls?.snapshot.persistentBackendChecked,
+  true,
+  'durable ops admission failure should expose persistent backend mode',
+)
+
 const productionReadyPlaceholderBlocked = await service.dispatchApprovedToolCall({
   ...baseInput,
   jobId: 'job-production-ready-placeholder-blocked',
@@ -1418,6 +1476,7 @@ console.log(JSON.stringify({
     productionReadyAmbiguousEvidence.gateway.blockers[0]?.gateName,
     productionReadyMismatchedEvidence.gateway.blockers[0]?.gateName,
     persistentInlineEvidenceBlocked.gateway.blockers[0]?.gateName,
+    persistentOpsLeaseConflictBlocked.gateway.blockers[0]?.gateName,
   ],
   storedProductionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
   productionReadyPlaceholderBlocked: productionReadyPlaceholderBlocked.gateway.status,
@@ -1565,6 +1624,12 @@ function reviewedProductionEvidence(label: string) {
 interface GatewayPersistentReadinessAdminClientOptions {
   productionReadinessRows?: ReturnType<typeof productionReadinessPacketRow>[]
   missingBillingBackend?: boolean
+  failWorkerLeaseInsert?: boolean
+  workspaceId?: string
+  projectId?: string
+  editPlanId?: string
+  creditEstimateId?: string
+  creditReservationId?: string
 }
 
 function createGatewayPersistentReadinessAdminClient(
@@ -1573,8 +1638,20 @@ function createGatewayPersistentReadinessAdminClient(
   return {
     from(table: string) {
       const filters: Record<string, unknown> = {}
+      let insertPayload: Record<string, unknown> | undefined
+      let updatePayload: Record<string, unknown> | undefined
+      let selectedColumns = '*'
       const builder = {
-        select() {
+        select(columns = '*') {
+          selectedColumns = columns
+          return builder
+        },
+        insert(payload: Record<string, unknown>) {
+          insertPayload = payload
+          return builder
+        },
+        update(payload: Record<string, unknown>) {
+          updatePayload = payload
           return builder
         },
         eq(column: string, value: unknown) {
@@ -1598,7 +1675,33 @@ function createGatewayPersistentReadinessAdminClient(
           return builder
         },
         async maybeSingle() {
-          return { data: gatewayPersistentRow(table, filters), error: null }
+          return { data: gatewayPersistentRow(table, filters, options), error: null }
+        },
+        async single() {
+          if (table === 'worker_leases' && insertPayload) {
+            if (options.failWorkerLeaseInsert) {
+              return {
+                data: null,
+                error: {
+                  code: '23505',
+                  message: 'duplicate key value violates unique constraint "worker_leases_active_job_uidx"',
+                },
+              }
+            }
+            return {
+              data: selectedColumns === 'id'
+                ? { id: '44444444-4444-4444-8444-444444444444' }
+                : { id: '44444444-4444-4444-8444-444444444444', ...insertPayload },
+              error: null,
+            }
+          }
+          if (table === 'worker_leases' && updatePayload) {
+            return {
+              data: { id: filters.id ?? '44444444-4444-4444-8444-444444444444', ...updatePayload },
+              error: null,
+            }
+          }
+          return { data: null, error: null }
         },
         async order() {
           if (table === 'production_tool_execution_readiness_evidence_packets') {
@@ -1619,6 +1722,9 @@ function createGatewayPersistentReadinessAdminClient(
             return { data: null, error: { code: '42P01', message: 'relation "tool_cost_wallet_settlements" does not exist' } }
           }
           return { data: [], error: null }
+        },
+        then(resolve: (value: { count?: number; error: null }) => unknown, reject: (reason?: unknown) => unknown) {
+          return Promise.resolve({ count: 0, error: null }).then(resolve, reject)
         },
       }
       return builder
@@ -1651,37 +1757,47 @@ function productionReadinessPacketRow(
   }
 }
 
-function gatewayPersistentRow(table: string, filters: Record<string, unknown>) {
-  if (table === 'projects' && filters.id === baseInput.projectId && filters.workspace_id === baseInput.workspaceId) {
+function gatewayPersistentRow(
+  table: string,
+  filters: Record<string, unknown>,
+  options: GatewayPersistentReadinessAdminClientOptions = {},
+) {
+  const workspaceId = options.workspaceId ?? baseInput.workspaceId
+  const projectId = options.projectId ?? baseInput.projectId
+  const editPlanId = options.editPlanId ?? baseInput.editPlanId
+  const creditEstimateId = options.creditEstimateId ?? baseInput.creditEstimateId
+  const creditReservationId = options.creditReservationId ?? baseInput.creditReservationId
+
+  if (table === 'projects' && filters.id === projectId && filters.workspace_id === workspaceId) {
     return {
-      id: baseInput.projectId,
-      workspace_id: baseInput.workspaceId,
+      id: projectId,
+      workspace_id: workspaceId,
     }
   }
 
-  if (table === 'workspace_members' && filters.workspace_id === baseInput.workspaceId && filters.user_id === 'user-smoke') {
+  if (table === 'workspace_members' && filters.workspace_id === workspaceId && filters.user_id === 'user-smoke') {
     return { user_id: 'user-smoke' }
   }
 
   if (table === 'approved_plan_snapshots' && filters.id === baseInput.approvedPlanSnapshotId) {
     return {
       id: baseInput.approvedPlanSnapshotId,
-      workspace_id: baseInput.workspaceId,
-      project_id: baseInput.projectId,
-      edit_plan_id: baseInput.editPlanId,
-      credit_estimate_id: baseInput.creditEstimateId,
-      credit_reservation_id: baseInput.creditReservationId,
+      workspace_id: workspaceId,
+      project_id: projectId,
+      edit_plan_id: editPlanId,
+      credit_estimate_id: creditEstimateId,
+      credit_reservation_id: creditReservationId,
       snapshot_status: 'approved',
     }
   }
 
   if (table === 'credit_reservations' && filters.id === baseInput.creditReservationId) {
     return {
-      id: baseInput.creditReservationId,
-      workspace_id: baseInput.workspaceId,
-      project_id: baseInput.projectId,
-      edit_plan_id: baseInput.editPlanId,
-      credit_estimate_id: baseInput.creditEstimateId,
+      id: creditReservationId,
+      workspace_id: workspaceId,
+      project_id: projectId,
+      edit_plan_id: editPlanId,
+      credit_estimate_id: creditEstimateId,
       status: 'reserved',
     }
   }

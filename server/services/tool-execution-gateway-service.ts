@@ -316,13 +316,16 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
       }
 
       let workerResult: ProductionWorkerExecutionResult
+      let opsReleaseWarnings: string[] = []
       try {
         workerResult = await dispatchProductionWorkerJob({
           payload,
           executionPlan,
         })
       } finally {
-        opsAdmission?.release()
+        if (opsAdmission) {
+          opsReleaseWarnings = await opsAdmission.release()
+        }
       }
 
       if (workerResult.status === 'blocked') {
@@ -369,6 +372,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         warnings: [
           ...warnings,
           ...(opsAdmission?.warnings ?? []),
+          ...opsReleaseWarnings,
           ...billingAudit.warnings,
           ...workerRuntimeArtifactPipeline.warnings,
           workerResult.output?.mockOnly === false

@@ -243,7 +243,7 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'live_preflight_and_explicit_confirmation_required_before_broll_dependency_runner',
+  'live_preflight_and_explicit_confirmation_required_before_broll_11b_model_import_runner',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,

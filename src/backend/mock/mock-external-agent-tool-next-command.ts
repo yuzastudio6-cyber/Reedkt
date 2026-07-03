@@ -61,8 +61,10 @@ export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
   blocksWhenGpusAllRegionsQuotaInsufficient: true
   createsComputeVm: true
   deletesComputeVmAndVerifiesCleanup: true
-  dependencyInstallOnly: true
-  runsModel: false
+  dependencyInstallOnly: false
+  modelImportLoadProofOnly: true
+  runsModel: true
+  runsModelInference: false
   createsGeneratedAssets: false
   touchesSupabase: false
   touchesSql: false
@@ -206,8 +208,10 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     blocksWhenGpusAllRegionsQuotaInsufficient: true,
     createsComputeVm: true,
     deletesComputeVmAndVerifiesCleanup: true,
-    dependencyInstallOnly: true,
-    runsModel: false,
+    dependencyInstallOnly: false,
+    modelImportLoadProofOnly: true,
+    runsModel: true,
+    runsModelInference: false,
     createsGeneratedAssets: false,
     touchesSupabase: false,
     touchesSql: false,

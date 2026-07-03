@@ -213,7 +213,7 @@ export const AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT =
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_and_broll_dependency_runner_ready_for_explicit_gate',
+    'external_agent_tool_execution_readiness_qwen_and_broll_11b_model_import_runner_ready_for_explicit_gate',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -343,7 +343,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       runsModel: false,
       createsAssets: false,
       purpose:
-        'Fail-closed B-roll Wan wrapper static guard; execution mode only runs read-only quota/cache checks and blocks before VM or model work.',
+        'Fail-closed B-roll Wan wrapper static guard; execution mode requires confirmation before delegating to the bounded 11B no-inference model import/load runner.',
     },
     {
       id: 'sound_music_audio_external_agent_wrapper_static_guard',
@@ -438,19 +438,24 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'ready_for_explicit_tool_gate',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_passed_11a_model_import_plan_ready_for_11b_no_inference_proof',
+        'controlled_l4_no_idle_payload_install_proof_passed_11b_model_import_runner_ready_for_explicit_gate',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: true,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'broll_11b_model_import_proof_runner_required_before_wan_import',
+      primaryBlocker: 'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill',
       evidence: [
         'docs/ai-video-broll-gen-11a-model-import-plan.md',
         'src/backend/mock/mock-ai-video-broll-gen-11a-model-import-plan.ts',
         'server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-11b-model-import-proof.md',
         'package_json_script:smoke:ai-video-broll-gen-11a-model-import-plan',
+        'server/cli/ai-video-broll-gen-11b-l4-model-import-runner.ts',
+        'src/backend/mock/mock-ai-video-broll-gen-11b-model-import-runner.ts',
+        'server/smoke/ai-video-broll-gen-11b-model-import-runner-smoke.ts',
+        'package_json_script:ai-video-broll-gen-11b:l4-model-import-runner',
+        'package_json_script:smoke:ai-video-broll-gen-11b-model-import-runner',
         'server/cli/ai-video-broll-gen-10zb-l4-payload-install-runner.ts',
         'server/cli/external-agent-tool-execute-broll-wan.ts',
         'server/smoke/external-agent-tool-execute-broll-wan-smoke.ts',

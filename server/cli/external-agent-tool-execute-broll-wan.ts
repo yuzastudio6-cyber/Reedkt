@@ -6,13 +6,13 @@ import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-ex
 type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
-const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_10ZB_L4_PAYLOAD_INSTALL_RETRY'
+const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
-const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-10zb:l4-payload-install-runner'
-const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-10zb-l4-payload-install-runner.json'
-const NEXT_AFTER_DEPENDENCY_INSTALL =
-  'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference'
+const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
+const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
+const NEXT_AFTER_MODEL_IMPORT =
+  'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -89,7 +89,7 @@ function main() {
         blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
         blockers.includes('broll_live_quota_verify_missing')
           ? 'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
-          : 'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference',
+          : 'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference',
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -126,7 +126,7 @@ function main() {
 
   print({
     ok: delegated.ok && delegated.json?.ok === true,
-    mode: 'external_agent_broll_wan_execution_delegated_result',
+    mode: 'external_agent_broll_wan_execution_delegated_11b_model_import_result',
     status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
     blockers,
     brollQuota: summarizeBrollQuota(quota.json),
@@ -140,8 +140,8 @@ function main() {
     delegatedResult: delegated.json,
     stderrSummary: delegated.stderrSummary,
     nextPrompt: delegated.ok && delegated.json?.ok === true
-      ? NEXT_AFTER_DEPENDENCY_INSTALL
-      : 'AI-VIDEO-BROLL-GEN-10ZC-FIX-FIXED-DELIVERY-RETRY-FAILURE: fix the failing phase from the fixed-delivery payload/install retry, no model import/no inference',
+      ? NEXT_AFTER_MODEL_IMPORT
+      : 'AI-VIDEO-BROLL-GEN-11B-FIX-MODEL-IMPORT-PROOF: fix blocked bounded Wan model import proof, no inference',
     runtimeRunNow: true,
     computeVmCreated: delegated.json?.computeVmCreated === true,
     dockerRun: false,

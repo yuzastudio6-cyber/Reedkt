@@ -32,7 +32,8 @@ const PACKAGE_SCRIPT = 'smoke:ai-video-broll-gen-10y-runner-raw-json-cleanup-fix
 const DECISION =
   'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_applied_no_execution_10z_retry_ready'
 const HISTORICAL_10Y_BLOCKER = 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'
-const CURRENT_ROLLUP_BLOCKER = 'broll_11b_model_import_proof_runner_required_before_wan_import'
+const CURRENT_ROLLUP_BLOCKER =
+  'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill'
 const CURRENT_ROLLUP_NEXT_PROMPT =
   'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
 

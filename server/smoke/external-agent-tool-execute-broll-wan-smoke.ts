@@ -11,7 +11,7 @@ const SMOKE_PATH = 'server/smoke/external-agent-tool-execute-broll-wan-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-execute-broll-wan'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-execute-broll-wan'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
-const DELEGATED_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_10ZB_L4_PAYLOAD_INSTALL_RETRY'
+const DELEGATED_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -89,10 +89,10 @@ for (const required of [
   DELEGATED_CONFIRM_ENV,
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
-  'ai-video-broll-gen-10zb:l4-payload-install-runner',
-  '.tmp/external-agent-broll-wan-10zb-l4-payload-install-runner.json',
+  'ai-video-broll-gen-11b:l4-model-import-runner',
+  '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json',
   'broll_gpus_all_regions_quota_not_sufficient',
-  'external_agent_broll_wan_execution_delegated_result',
+  'external_agent_broll_wan_execution_delegated_11b_model_import_result',
   'parseJsonOutput',
   'runtimeRunNow: false',
   'runtimeRunNow: true',
@@ -125,7 +125,7 @@ assert.equal(staticReport.executeRequired, true)
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
 assert.equal(staticReport.delegatedRunnerConfirmationEnv, DELEGATED_CONFIRM_ENV)
-assert.equal(staticReport.delegatedRunnerScript, 'ai-video-broll-gen-10zb:l4-payload-install-runner')
+assert.equal(staticReport.delegatedRunnerScript, 'ai-video-broll-gen-11b:l4-model-import-runner')
 assert.deepEqual(
   staticReport.canonicalCommand,
   EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,

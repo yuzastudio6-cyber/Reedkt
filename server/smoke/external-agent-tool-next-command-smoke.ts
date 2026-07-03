@@ -130,8 +130,10 @@ assert.equal(spec.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate,
 assert.equal(spec.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
 assert.equal(spec.brollWanExternalAgentProofCommand.createsComputeVm, true)
 assert.equal(spec.brollWanExternalAgentProofCommand.deletesComputeVmAndVerifiesCleanup, true)
-assert.equal(spec.brollWanExternalAgentProofCommand.dependencyInstallOnly, true)
-assert.equal(spec.brollWanExternalAgentProofCommand.runsModel, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.dependencyInstallOnly, false)
+assert.equal(spec.brollWanExternalAgentProofCommand.modelImportLoadProofOnly, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.runsModel, true)
+assert.equal(spec.brollWanExternalAgentProofCommand.runsModelInference, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
@@ -280,7 +282,7 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'live_preflight_and_explicit_confirmation_required_before_broll_dependency_runner',
+  'live_preflight_and_explicit_confirmation_required_before_broll_11b_model_import_runner',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
@@ -364,8 +366,10 @@ assert.equal(decision.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegions
 assert.equal(decision.brollWanExternalAgentProofCommand.executionAllowedNow, false)
 assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.deletesComputeVmAndVerifiesCleanup, true)
-assert.equal(decision.brollWanExternalAgentProofCommand.dependencyInstallOnly, true)
-assert.equal(decision.brollWanExternalAgentProofCommand.runsModel, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.dependencyInstallOnly, false)
+assert.equal(decision.brollWanExternalAgentProofCommand.modelImportLoadProofOnly, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.runsModel, true)
+assert.equal(decision.brollWanExternalAgentProofCommand.runsModelInference, false)
 assert.equal(decision.brollWanExternalAgentProofCommand.createsGeneratedAssets, false)
 assert.equal(decision.brollWanExternalAgentProofCommand.touchesSupabase, false)
 assert.equal(decision.brollWanExternalAgentProofCommand.touchesSql, false)

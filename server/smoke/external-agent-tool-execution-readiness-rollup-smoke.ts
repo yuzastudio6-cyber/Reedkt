@@ -143,7 +143,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_and_broll_dependency_runner_ready_for_explicit_gate',
+  'external_agent_tool_execution_readiness_qwen_and_broll_11b_model_import_runner_ready_for_explicit_gate',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -219,7 +219,7 @@ for (const required of [
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
-  '`npm run ai-video-broll-gen-10zb:l4-payload-install-runner -- --execute`',
+  '`npm run ai-video-broll-gen-11b:l4-model-import-runner -- --execute`',
   'prompt-scoped no-public-IP L4 proof VM',
   'docs/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.md',
   'server/smoke/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result-smoke.ts',
@@ -233,8 +233,8 @@ for (const required of [
   BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
   BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
   BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
-  '11A now defines the narrower no-inference import/load proof',
-  'Wan model import/load proof, inference, generated video, generated assets, Supabase, SQL, signed URLs, credits, beta, and production remain blocked until 11B',
+  '11B adds the narrower no-inference import/load runner',
+  'Wan inference, prompt encoding, denoising, VAE decode, frame/video creation, generated assets, Supabase, SQL, signed URLs, credits, beta, and production remain blocked',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -414,7 +414,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_and_broll_dependency_runner_ready_for_explicit_gate',
+  'external_agent_tool_execution_readiness_qwen_and_broll_11b_model_import_runner_ready_for_explicit_gate',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -690,7 +690,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, true)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'broll_11b_model_import_proof_runner_required_before_wan_import',
+  'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1165,7 +1165,10 @@ assert.equal(
   true,
 )
 assert.equal(broll?.nextAction, BROLL_11B_MODEL_IMPORT_PROOF_PROMPT)
-assert.equal(broll?.primaryBlocker, 'broll_11b_model_import_proof_runner_required_before_wan_import')
+assert.equal(
+  broll?.primaryBlocker,
+  'broll_11b_model_import_proof_execution_pending_private_gcs_model_cache_may_need_cache_fill',
+)
 assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11a-model-import-plan.md'), true)
 assert.equal(broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11a-model-import-plan.ts'), true)
 assert.equal(broll?.evidence.includes('server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts'), true)
@@ -1174,6 +1177,26 @@ assert.equal(
   true,
 )
 assert.equal(broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11a-model-import-plan'), true)
+assert.equal(
+  broll?.evidence.includes('server/cli/ai-video-broll-gen-11b-l4-model-import-runner.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11b-model-import-runner.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-11b-model-import-runner-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:ai-video-broll-gen-11b:l4-model-import-runner'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11b-model-import-runner'),
+  true,
+)
 assert.equal(
   broll?.evidence.includes('server/cli/ai-video-broll-gen-10zb-l4-payload-install-runner.ts'),
   true,

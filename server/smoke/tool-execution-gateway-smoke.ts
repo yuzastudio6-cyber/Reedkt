@@ -290,6 +290,8 @@ const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyProxyDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
+let productionReadyKeyframesDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
+let productionReadyRepresentativeFramesDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyStoredPacketDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>>
 
 if (mediaProbeFixture.ok) {
@@ -436,6 +438,119 @@ if (mediaProbeFixture.ok) {
       'proxy wallet settlements should spend user credits only for the completed real handler',
     )
 
+    productionReadyKeyframesDispatch = await service.dispatchApprovedToolCall(productionReadyKeyframesInput({
+      jobId: 'job-production-ready-real-keyframes',
+      productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+      sourceLocalPath: mediaProbeFixture.fixture.sourceVideoPath,
+      outputRoot: path.join(mediaProbeFixture.fixture.tempDir, 'keyframes-output'),
+    }))
+    const keyframesResult = productionReadyKeyframesDispatch.workerResult?.output?.mediaFoundationResult as {
+      keyframes?: { status?: string; artifacts?: unknown[] }
+      artifactRecords?: Array<{
+        artifactType?: string
+        storageObjectPath?: string
+        isPrivate?: boolean
+        sourceOfTruth?: boolean
+      }>
+    } | undefined
+    const keyframeManifestArtifacts = productionReadyKeyframesDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+      .filter((artifact) => artifact.artifactType === 'keyframe_image') ?? []
+    assert.equal(productionReadyKeyframesDispatch.gateway.status, 'dispatched', 'complete evidence plus real keyframe adapter should allow backend gateway dispatch')
+    assert.equal(productionReadyKeyframesDispatch.workerResult?.status, 'completed', 'keyframe real handler should complete')
+    assert.equal(productionReadyKeyframesDispatch.workerResult?.output?.mockOnly, false, 'keyframe production handler should be non-mock')
+    assert.equal(productionReadyKeyframesDispatch.workerResult?.output?.realToolExecution, true, 'keyframe production handler should record real tool execution')
+    assert.equal(
+      productionReadyKeyframesDispatch.workerResult?.output?.futureHandler,
+      'cpu_analysis_worker_media_keyframes_production_handler',
+      'keyframe production handler should use the reviewed FFmpeg keyframe handler',
+    )
+    assert.equal(keyframesResult?.keyframes?.status, 'created', 'keyframe production handler should create private keyframe artifacts')
+    assert.ok((keyframesResult?.keyframes?.artifacts?.length ?? 0) > 0, 'keyframe result should include at least one keyframe artifact summary')
+    assert.ok(keyframesResult?.artifactRecords?.some((artifact) => artifact.artifactType === 'keyframe_image'), 'keyframe result should include keyframe artifact records')
+    assert.ok(keyframeManifestArtifacts.length > 0, 'worker runtime artifact manifest should include private keyframe artifacts')
+    assert.ok(
+      keyframeManifestArtifacts.every((artifact) => (
+        artifact.isPrivate === true &&
+        artifact.sourceOfTruth === true &&
+        artifact.previewAllowed === false &&
+        artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+        !artifact.storageObjectPath.includes('signed')
+      )),
+      'keyframe artifacts must stay private, source-of-truth, non-preview, project-scoped, and unsigned',
+    )
+    assert.equal(productionReadyKeyframesDispatch.toolCostEvents?.length, 2, 'keyframe dispatch should emit gateway cost events for ffmpeg and ffprobe')
+    assert.deepEqual(
+      productionReadyKeyframesDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+      ['ffmpeg', 'ffprobe'],
+      'keyframe dispatch should scope billing audit events to ffmpeg and ffprobe',
+    )
+    assert.ok(
+      productionReadyKeyframesDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+      'keyframe tool cost events should be billable tool-cost-only events after approval/reservation gates',
+    )
+    assert.equal(productionReadyKeyframesDispatch.walletSettlements?.length, 2, 'keyframe dispatch should create wallet settlements for both tool-cost events')
+    assert.ok(
+      productionReadyKeyframesDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+      'keyframe wallet settlements should spend user credits only for the completed real handler',
+    )
+
+    productionReadyRepresentativeFramesDispatch = await service.dispatchApprovedToolCall(productionReadyRepresentativeFramesInput({
+      jobId: 'job-production-ready-real-representative-frames',
+      productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+      sourceLocalPath: mediaProbeFixture.fixture.sourceVideoPath,
+      outputRoot: path.join(mediaProbeFixture.fixture.tempDir, 'representative-frames-output'),
+    }))
+    const representativeFramesResult = productionReadyRepresentativeFramesDispatch.workerResult?.output?.mediaFoundationResult as {
+      representativeFrames?: { status?: string; artifacts?: unknown[] }
+      artifactRecords?: Array<{
+        artifactType?: string
+        storageObjectPath?: string
+        isPrivate?: boolean
+        sourceOfTruth?: boolean
+        previewAllowed?: boolean
+      }>
+    } | undefined
+    const representativeManifestArtifacts = productionReadyRepresentativeFramesDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+      .filter((artifact) => artifact.artifactType === 'representative_frame') ?? []
+    assert.equal(productionReadyRepresentativeFramesDispatch.gateway.status, 'dispatched', 'complete evidence plus real representative-frame adapter should allow backend gateway dispatch')
+    assert.equal(productionReadyRepresentativeFramesDispatch.workerResult?.status, 'completed', 'representative-frame real handler should complete')
+    assert.equal(productionReadyRepresentativeFramesDispatch.workerResult?.output?.mockOnly, false, 'representative-frame production handler should be non-mock')
+    assert.equal(productionReadyRepresentativeFramesDispatch.workerResult?.output?.realToolExecution, true, 'representative-frame production handler should record real tool execution')
+    assert.equal(
+      productionReadyRepresentativeFramesDispatch.workerResult?.output?.futureHandler,
+      'cpu_analysis_worker_media_representative_frames_production_handler',
+      'representative-frame production handler should use the reviewed FFmpeg representative-frame handler',
+    )
+    assert.equal(representativeFramesResult?.representativeFrames?.status, 'created', 'representative-frame production handler should create private representative-frame artifacts')
+    assert.ok((representativeFramesResult?.representativeFrames?.artifacts?.length ?? 0) > 0, 'representative-frame result should include at least one frame artifact summary')
+    assert.ok(representativeFramesResult?.artifactRecords?.some((artifact) => artifact.artifactType === 'representative_frame'), 'representative-frame result should include frame artifact records')
+    assert.ok(representativeManifestArtifacts.length > 0, 'worker runtime artifact manifest should include private representative-frame artifacts')
+    assert.ok(
+      representativeManifestArtifacts.every((artifact) => (
+        artifact.isPrivate === true &&
+        artifact.sourceOfTruth === true &&
+        artifact.previewAllowed === true &&
+        artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+        !artifact.storageObjectPath.includes('signed')
+      )),
+      'representative-frame artifacts must stay private, source-of-truth, preview-eligible, project-scoped, and unsigned',
+    )
+    assert.equal(productionReadyRepresentativeFramesDispatch.toolCostEvents?.length, 2, 'representative-frame dispatch should emit gateway cost events for ffmpeg and ffprobe')
+    assert.deepEqual(
+      productionReadyRepresentativeFramesDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+      ['ffmpeg', 'ffprobe'],
+      'representative-frame dispatch should scope billing audit events to ffmpeg and ffprobe',
+    )
+    assert.ok(
+      productionReadyRepresentativeFramesDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+      'representative-frame tool cost events should be billable tool-cost-only events after approval/reservation gates',
+    )
+    assert.equal(productionReadyRepresentativeFramesDispatch.walletSettlements?.length, 2, 'representative-frame dispatch should create wallet settlements for both tool-cost events')
+    assert.ok(
+      productionReadyRepresentativeFramesDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+      'representative-frame wallet settlements should spend user credits only for the completed real handler',
+    )
+
     productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
       ...productionReadyMediaProbeInput({
         jobId: 'job-production-ready-stored-packet-dispatch',
@@ -577,6 +692,10 @@ console.log(JSON.stringify({
   realMediaAudioExtractHandler: productionReadyAudioExtractDispatch?.workerResult?.output?.futureHandler,
   realMediaProxyDispatchCovered: Boolean(productionReadyProxyDispatch),
   realMediaProxyHandler: productionReadyProxyDispatch?.workerResult?.output?.futureHandler,
+  realMediaKeyframesDispatchCovered: Boolean(productionReadyKeyframesDispatch),
+  realMediaKeyframesHandler: productionReadyKeyframesDispatch?.workerResult?.output?.futureHandler,
+  realMediaRepresentativeFramesDispatchCovered: Boolean(productionReadyRepresentativeFramesDispatch),
+  realMediaRepresentativeFramesHandler: productionReadyRepresentativeFramesDispatch?.workerResult?.output?.futureHandler,
 }, null, 2))
 
 function productionEvidenceFixture(
@@ -789,6 +908,80 @@ function productionReadyProxyInput(input: {
         ffprobeBin: 'ffprobe',
         ffmpegBin: 'ffmpeg',
         timeoutMs: 20_000,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyKeyframesInput(input: {
+  jobId: string
+  sourceLocalPath: string
+  outputRoot: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_media_keyframes',
+    requestedToolIds: ['ffmpeg', 'ffprobe'],
+    requestedRecipeIds: ['media-keyframes-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      mediaFoundation: {
+        mode: 'production_ready',
+        tasks: ['probe', 'extract_keyframes', 'build_analysis_report'],
+        sourceStorageObjectId: 'source-storage-object-smoke',
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        sourceLocalPath: input.sourceLocalPath,
+        outputRoot: input.outputRoot,
+        contentType: 'video/mp4',
+        ffprobeBin: 'ffprobe',
+        ffmpegBin: 'ffmpeg',
+        timeoutMs: 20_000,
+        maxKeyframeCount: 3,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyRepresentativeFramesInput(input: {
+  jobId: string
+  sourceLocalPath: string
+  outputRoot: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_media_representative_frames',
+    requestedToolIds: ['ffmpeg', 'ffprobe'],
+    requestedRecipeIds: ['media-representative-frames-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      mediaFoundation: {
+        mode: 'production_ready',
+        tasks: ['probe', 'extract_representative_frames', 'build_analysis_report'],
+        sourceStorageObjectId: 'source-storage-object-smoke',
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        sourceLocalPath: input.sourceLocalPath,
+        outputRoot: input.outputRoot,
+        contentType: 'video/mp4',
+        ffprobeBin: 'ffprobe',
+        ffmpegBin: 'ffmpeg',
+        timeoutMs: 20_000,
+        maxRepresentativeFrameCount: 3,
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

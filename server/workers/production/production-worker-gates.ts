@@ -145,6 +145,10 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
     gatewayAdapterId === 'cpu_analysis_worker_media_audio_extract'
   const mediaProxyCoreChecks = payload.workerType === 'cpu_analysis_worker' &&
     gatewayAdapterId === 'cpu_analysis_worker_media_proxy'
+  const mediaKeyframesCoreChecks = payload.workerType === 'cpu_analysis_worker' &&
+    gatewayAdapterId === 'cpu_analysis_worker_media_keyframes'
+  const mediaRepresentativeFramesCoreChecks = payload.workerType === 'cpu_analysis_worker' &&
+    gatewayAdapterId === 'cpu_analysis_worker_media_representative_frames'
 
   for (const toolId of payload.requestedToolIds) {
     if (trackBAdapterToolId === toolId) {
@@ -158,7 +162,11 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
       continue
     }
 
-    const result = toolReadinessCoreChecks || mediaAudioExtractCoreChecks || mediaProxyCoreChecks
+    const result = toolReadinessCoreChecks ||
+      mediaAudioExtractCoreChecks ||
+      mediaProxyCoreChecks ||
+      mediaKeyframesCoreChecks ||
+      mediaRepresentativeFramesCoreChecks
       ? evaluateRuntimePolicy(profile)
       : evaluateRuntimePolicy(profile, payload.workerType)
     const productionExecution = payload.executionMode === 'production_ready'

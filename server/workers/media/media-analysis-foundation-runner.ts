@@ -54,6 +54,14 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     gatewayAdapterId === 'cpu_analysis_worker_media_proxy' &&
     outputTasks.length === 1 &&
     outputTasks[0] === 'create_proxy'
+  const productionKeyframesAllowed = input.mode === 'production_ready' &&
+    gatewayAdapterId === 'cpu_analysis_worker_media_keyframes' &&
+    outputTasks.length === 1 &&
+    outputTasks[0] === 'extract_keyframes'
+  const productionRepresentativeFramesAllowed = input.mode === 'production_ready' &&
+    gatewayAdapterId === 'cpu_analysis_worker_media_representative_frames' &&
+    outputTasks.length === 1 &&
+    outputTasks[0] === 'extract_representative_frames'
 
   if (input.mode === 'production_blocked') {
     return {
@@ -73,7 +81,9 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     input.mode === 'production_ready' &&
     outputTasks.length > 0 &&
     !productionAudioExtractAllowed &&
-    !productionProxyAllowed
+    !productionProxyAllowed &&
+    !productionKeyframesAllowed &&
+    !productionRepresentativeFramesAllowed
   ) {
     return {
       mode: input.mode,
@@ -197,6 +207,16 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
             'Production-ready media foundation ran only bounded ffprobe plus FFmpeg proxy handler.',
             'No extracted audio, keyframe, representative-frame, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
           ]
+          : productionKeyframesAllowed
+            ? [
+              'Production-ready media foundation ran only bounded ffprobe plus FFmpeg keyframe extraction handler.',
+              'No proxy, extracted audio, representative-frame, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
+            ]
+            : productionRepresentativeFramesAllowed
+              ? [
+                'Production-ready media foundation ran only bounded ffprobe plus FFmpeg representative-frame extraction handler.',
+                'No proxy, extracted audio, keyframe, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
+              ]
         : [
           'Production-ready media foundation ran only the bounded ffprobe probe/report handler.',
           'No FFmpeg output tasks, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',

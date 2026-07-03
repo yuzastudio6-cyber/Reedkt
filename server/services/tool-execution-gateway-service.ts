@@ -55,8 +55,10 @@ import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from
 
 export type ToolExecutionGatewayAdapterId =
   | 'cpu_analysis_worker_media_audio_extract'
+  | 'cpu_analysis_worker_media_keyframes'
   | 'cpu_analysis_worker_media_probe'
   | 'cpu_analysis_worker_media_proxy'
+  | 'cpu_analysis_worker_media_representative_frames'
   | 'cpu_analysis_worker_placeholder'
   | 'gpu_ai_worker_placeholder'
   | 'render_worker_placeholder'
@@ -101,8 +103,10 @@ export interface ToolExecutionGatewayDispatchResult {
 
 const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerRuntimeType> = {
   cpu_analysis_worker_media_audio_extract: 'cpu_analysis_worker',
+  cpu_analysis_worker_media_keyframes: 'cpu_analysis_worker',
   cpu_analysis_worker_media_probe: 'cpu_analysis_worker',
   cpu_analysis_worker_media_proxy: 'cpu_analysis_worker',
+  cpu_analysis_worker_media_representative_frames: 'cpu_analysis_worker',
   cpu_analysis_worker_placeholder: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
   render_worker_placeholder: 'render_worker',
@@ -722,6 +726,114 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'cpu_analysis_worker_media_keyframes') {
+    const mediaFoundation = input.metadata?.mediaFoundation
+    const mediaFoundationRecord = mediaFoundation && typeof mediaFoundation === 'object'
+      ? mediaFoundation as Record<string, unknown>
+      : undefined
+    const mode = mediaFoundationRecord?.mode
+    const tasks = Array.isArray(mediaFoundationRecord?.tasks)
+      ? mediaFoundationRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['probe', 'extract_keyframes', 'build_analysis_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+
+    if (
+      input.requestedToolIds.length !== 2 ||
+      !input.requestedToolIds.includes('ffmpeg') ||
+      !input.requestedToolIds.includes('ffprobe')
+    ) {
+      blockers.push({
+        code: 'MEDIA_KEYFRAMES_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_keyframes may dispatch only the reviewed ffmpeg + ffprobe pair.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'MEDIA_KEYFRAMES_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_keyframes production dispatch requires metadata.mediaFoundation.mode=production_ready.',
+        details: { mediaFoundationMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'MEDIA_KEYFRAMES_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_keyframes is limited to probe, extract_keyframes, and build_analysis_report tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && typeof mediaFoundationRecord?.outputRoot !== 'string') {
+      blockers.push({
+        code: 'MEDIA_KEYFRAMES_OUTPUT_ROOT_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_keyframes production dispatch requires metadata.mediaFoundation.outputRoot for private keyframe artifacts.',
+      })
+    }
+  }
+
+  if (adapterId === 'cpu_analysis_worker_media_representative_frames') {
+    const mediaFoundation = input.metadata?.mediaFoundation
+    const mediaFoundationRecord = mediaFoundation && typeof mediaFoundation === 'object'
+      ? mediaFoundation as Record<string, unknown>
+      : undefined
+    const mode = mediaFoundationRecord?.mode
+    const tasks = Array.isArray(mediaFoundationRecord?.tasks)
+      ? mediaFoundationRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['probe', 'extract_representative_frames', 'build_analysis_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+
+    if (
+      input.requestedToolIds.length !== 2 ||
+      !input.requestedToolIds.includes('ffmpeg') ||
+      !input.requestedToolIds.includes('ffprobe')
+    ) {
+      blockers.push({
+        code: 'MEDIA_REPRESENTATIVE_FRAMES_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_representative_frames may dispatch only the reviewed ffmpeg + ffprobe pair.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'MEDIA_REPRESENTATIVE_FRAMES_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_representative_frames production dispatch requires metadata.mediaFoundation.mode=production_ready.',
+        details: { mediaFoundationMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'MEDIA_REPRESENTATIVE_FRAMES_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_representative_frames is limited to probe, extract_representative_frames, and build_analysis_report tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && typeof mediaFoundationRecord?.outputRoot !== 'string') {
+      blockers.push({
+        code: 'MEDIA_REPRESENTATIVE_FRAMES_OUTPUT_ROOT_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_media_representative_frames production dispatch requires metadata.mediaFoundation.outputRoot for private representative-frame artifacts.',
+      })
+    }
+  }
+
   if (adapterId === 'tool_readiness_worker_core_checks') {
     const toolReadiness = input.metadata?.toolReadiness
     const mode = toolReadiness && typeof toolReadiness === 'object'
@@ -782,6 +894,10 @@ function validateToolReadiness(
       adapterId === 'cpu_analysis_worker_media_audio_extract' && workerType === 'cpu_analysis_worker'
     ) || (
       adapterId === 'cpu_analysis_worker_media_proxy' && workerType === 'cpu_analysis_worker'
+    ) || (
+      adapterId === 'cpu_analysis_worker_media_keyframes' && workerType === 'cpu_analysis_worker'
+    ) || (
+      adapterId === 'cpu_analysis_worker_media_representative_frames' && workerType === 'cpu_analysis_worker'
     )
     const runtime = reviewedCrossWorkerAdapter
       ? evaluateRuntimePolicy(profile)
@@ -912,7 +1028,9 @@ function validateMetadataSafety(
   if (
     adapterId === 'cpu_analysis_worker_media_probe' ||
     adapterId === 'cpu_analysis_worker_media_audio_extract' ||
-    adapterId === 'cpu_analysis_worker_media_proxy'
+    adapterId === 'cpu_analysis_worker_media_proxy' ||
+    adapterId === 'cpu_analysis_worker_media_keyframes' ||
+    adapterId === 'cpu_analysis_worker_media_representative_frames'
   ) {
     allowedReservedKeys.add('mediaFoundation')
   }

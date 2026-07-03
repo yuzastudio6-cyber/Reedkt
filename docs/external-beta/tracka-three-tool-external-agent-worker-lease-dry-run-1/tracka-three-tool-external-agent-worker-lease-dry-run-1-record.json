@@ -1,0 +1,92 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-LEASE-DRY-RUN-1",
+  "decision": "completed_three_tool_external_agent_worker_lease_dry_run",
+  "execution": "completed_confirmation_gated_three_tool_worker_lease_envelope_validation_no_lease_claim_worker_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_WORKER_LEASE_DRY_RUN=true",
+  "runId": "2026-07-03T01-47-00-547Z-17432713",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-worker-lease-dry-run-1/2026-07-03T01-47-00-547Z-17432713",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-worker-lease-dry-run-1/2026-07-03T01-47-00-547Z-17432713/three-tool-external-agent-worker-lease-dry-run-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-worker-lease-dry-run-1/2026-07-03T01-47-00-547Z-17432713/three-tool-external-agent-worker-lease-dry-run-manifest.json",
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-worker-lease-dry-run-report.json",
+      "bytes": 24295,
+      "sha256": "b5973684fb467cdb75165d17b37fed8a2cf0a893b00c3a8981f47039df5acaf4"
+    },
+    {
+      "fileName": "three-tool-external-agent-worker-lease-dry-run-manifest.json",
+      "bytes": 1212,
+      "sha256": "51b4e1183711c8486e9848d862af32ffaf7014684c8dd0259c3c7b0bd6e35e7e"
+    }
+  ],
+  "sourceQueueDryRun": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-PERSISTENT-JOB-QUEUE-DRY-RUN-1",
+    "mergeSha": "3a076b78ea632efec1a36f08542bb45ec31d4c9f",
+    "headSha": "dd6e86a607dfce722eac13b9cb353cde6125763d",
+    "runId": "2026-07-03T01-37-36-983Z-e5cc7cbf"
+  },
+  "leaseDryRun": {
+    "leaseId": "tracka-three-tool-external-agent-lease-dry-run-1",
+    "queueName": "tracka-three-tool-external-agent-persistent-jobs",
+    "leaseMode": "metadata_only_dry_run_no_lease_claim",
+    "leaseTtlSeconds": 900,
+    "retryPolicy": "dry_run_exponential_backoff_metadata_only",
+    "cleanupPolicy": "dry_run_private_artifact_cleanup_metadata_only",
+    "failureCategories": [
+      "tool_unavailable",
+      "fixture_validation_failed",
+      "artifact_manifest_mismatch",
+      "safety_boundary_violation"
+    ],
+    "leaseEnvelopeValidation": "passed",
+    "retryPolicyValidation": "passed",
+    "cleanupPolicyValidation": "passed",
+    "workerLeaseClaim": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "persistentJobQueueWrite": false
+  },
+  "response": {
+    "status": "accepted_three_tool_worker_lease_dry_run_contract",
+    "leaseEnvelopeValidation": "passed",
+    "retryPolicyValidation": "passed",
+    "cleanupPolicyValidation": "passed",
+    "workerLeaseClaim": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "persistentJobQueueWrite": false,
+    "toolExecution": false
+  },
+  "sourceEvidence": {
+    "threeToolPersistentJobQueueDryRunMergeSha": "3a076b78ea632efec1a36f08542bb45ec31d4c9f",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "safety": {
+    "workerLeaseClaim": false,
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "persistentJobQueueWrite": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "gstreamerExecutionInThisLeaseDryRun": false,
+    "mkvtoolnixExecutionInThisLeaseDryRun": false,
+    "gpacMp4boxExecutionInThisLeaseDryRun": false,
+    "dockerExecutionInThisLeaseDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-PROCESS-NOOP-INVOKE-1"
+}

@@ -106,6 +106,7 @@ function nextGpuCommand(toolId: string): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
     '--attempt-local-runtime',
+    `--tool ${toolId}`,
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
     '--source-image <private-approved-frame.png>',
     toolId === 'sam2' ? '--sam2-checkpoint <private-sam2-checkpoint.pt>' : '',

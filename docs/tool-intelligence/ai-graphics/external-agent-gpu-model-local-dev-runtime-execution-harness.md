@@ -22,6 +22,7 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 ## Counts
 
 - `totalAiGraphicsTools`: 21
+- `requestedGpuModelTools`: 8
 - `gpuModelToolsCovered`: 8
 - `localDevAdapterBranchInvokedTools`: 8
 - `localDevPrerequisiteCheckOnlyTools`: 8
@@ -38,6 +39,8 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 ## Booleans
 
 - `externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared`: true
+- `scopedGpuModelToolSelectionSupported`: true
+- `scopedGpuModelToolSelectionActive`: false
 - `controlledAdapterSourceAccepted`: true
 - `controlledWorkerDispatchProofAccepted`: true
 - `nativeGpuRuntimeProofCommandPlanAccepted`: true
@@ -85,7 +88,7 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 
 ## Private runtime attempt command
 
-`npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>`
+`npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>`
 
 ## Next milestone
 

@@ -2,7 +2,7 @@
   "schemaVersion": "2026-07-03.ai-graphics.external-agent-gpu-model-local-dev-runtime-execution-harness",
   "decision": "ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks",
   "status": "local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute",
-  "summary": "Exercises the real GPU/model controlled adapter in explicit local_dev mode for the eight GPU/model AI graphics tools. The committed/default record is prerequisite-check only, so it proves the guarded runtime branches and exact missing local inputs without starting GPU runtime, loading model weights, processing media, creating public artifacts, or unlocking external beta/production.",
+  "summary": "Exercises the real GPU/model controlled adapter in explicit local_dev mode for the eight GPU/model AI graphics tools. The committed/default record is prerequisite-check only, so it proves the guarded runtime branches and exact missing local inputs without starting GPU runtime, loading model weights, processing media, creating public artifacts, or unlocking external beta/production. Private runtime proof can be scoped with --tool so GPU/model execution starts only for the actively requested tool call.",
   "sourceEvidence": {
     "controlledAdapter": {
       "path": "server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts",
@@ -26,7 +26,11 @@
     "diagnostic": "scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs",
     "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness",
     "committedRecordCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records",
-    "privateLocalRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>"
+    "privateLocalRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>",
+    "privateScopedRuntimeAttemptExamples": {
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --sam2-checkpoint <private-sam2-checkpoint.pt>"
+    }
   },
   "localRuntimePolicy": {
     "runMode": "explicit_local_dev_only",
@@ -43,6 +47,7 @@
   },
   "counts": {
     "totalAiGraphicsTools": 21,
+    "requestedGpuModelTools": 8,
     "gpuModelToolsCovered": 8,
     "localDevAdapterBranchInvokedTools": 8,
     "localDevPrerequisiteCheckOnlyTools": 8,
@@ -424,6 +429,8 @@
   ],
   "booleans": {
     "externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared": true,
+    "scopedGpuModelToolSelectionSupported": true,
+    "scopedGpuModelToolSelectionActive": false,
     "controlledAdapterSourceAccepted": true,
     "controlledWorkerDispatchProofAccepted": true,
     "nativeGpuRuntimeProofCommandPlanAccepted": true,

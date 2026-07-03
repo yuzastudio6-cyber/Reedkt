@@ -275,6 +275,9 @@ function checkReport(label, report) {
       if (!String(row.nextExactCommand ?? '').includes('--attempt-local-runtime')) {
         fail(`${label}_${toolId}_missing_gpu_next_command`)
       }
+      if (!String(row.nextExactCommand ?? '').includes(`--tool ${toolId}`)) {
+        fail(`${label}_${toolId}_gpu_next_command_not_tool_scoped`)
+      }
     } else {
       if (row.readinessState !== 'executable') {
         fail(`${label}_${toolId}_non_gpu_state_not_executable:${row.readinessState}`)

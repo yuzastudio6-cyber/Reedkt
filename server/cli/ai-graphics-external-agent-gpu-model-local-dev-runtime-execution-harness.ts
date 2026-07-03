@@ -23,6 +23,7 @@ const outputMdPath =
 
 type HarnessArgs = {
   attemptLocalRuntime: boolean
+  toolIds: AiGraphicsExternalAgentGpuModelControlledAdapterToolId[]
   outputDirectory?: string
   sourceImageLocalPath?: string
   sam2CheckpointLocalPath?: string
@@ -65,9 +66,42 @@ function numberFlag(flag: string): number | undefined {
   return parsed
 }
 
+function parseToolIds(): AiGraphicsExternalAgentGpuModelControlledAdapterToolId[] {
+  const rawTool = stringFlag('--tool')
+  const rawTools = stringFlag('--tools')
+  const raw = [rawTool, rawTools].filter(Boolean).join(',')
+  if (!raw) return [...AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS]
+
+  const requested = raw
+    .split(',')
+    .map((toolId) => toolId.trim())
+    .filter(Boolean)
+  if (requested.length === 0) {
+    throw new Error('--tool/--tools requires at least one GPU/model tool id')
+  }
+
+  const supported = new Set<string>(
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
+  )
+  const unique: AiGraphicsExternalAgentGpuModelControlledAdapterToolId[] = []
+  for (const toolId of requested) {
+    if (!supported.has(toolId)) {
+      throw new Error(
+        `Unsupported GPU/model tool id for --tool/--tools: ${toolId}`,
+      )
+    }
+    if (!unique.includes(toolId as AiGraphicsExternalAgentGpuModelControlledAdapterToolId)) {
+      unique.push(toolId as AiGraphicsExternalAgentGpuModelControlledAdapterToolId)
+    }
+  }
+
+  return unique
+}
+
 function parseArgs(): HarnessArgs {
   const args = {
     attemptLocalRuntime: hasFlag('--attempt-local-runtime'),
+    toolIds: parseToolIds(),
     outputDirectory: stringFlag('--output-dir'),
     sourceImageLocalPath: stringFlag('--source-image'),
     sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
@@ -83,6 +117,15 @@ function parseArgs(): HarnessArgs {
   if (args.writeRecords && args.attemptLocalRuntime) {
     throw new Error(
       '--write-records cannot be combined with --attempt-local-runtime; committed records must stay skip-safe.',
+    )
+  }
+
+  if (
+    args.writeRecords &&
+    args.toolIds.length !== AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.length
+  ) {
+    throw new Error(
+      '--write-records must cover all eight GPU/model tools; scoped --tool runs are local proof only.',
     )
   }
 
@@ -363,7 +406,7 @@ function outputJsonPathForResult(result: AiGraphicsExternalAgentGpuModelControll
 async function buildReport(args: HarnessArgs) {
   const rows = []
 
-  for (const toolId of AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS) {
+  for (const toolId of args.toolIds) {
     const request = buildRequest(toolId, args)
     const result = await executeAiGraphicsExternalAgentGpuModelControlledAdapter(request)
     const requirements = localInputRequirements(toolId)
@@ -401,6 +444,9 @@ async function buildReport(args: HarnessArgs) {
     rows.filter((row) => row.toolExecutionApprovedNow).length
   const gpuRuntimeShouldStartNowTools =
     rows.filter((row) => row.gpuRuntimeShouldStartNow).length
+  const all8GpuModelToolsCovered =
+    rows.length === AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.length
+  const scopedGpuModelToolSelectionActive = !all8GpuModelToolsCovered
 
   return {
     schemaVersion:
@@ -410,7 +456,7 @@ async function buildReport(args: HarnessArgs) {
       ? 'local_dev_runtime_executed_for_private_opt_in_subset_not_global_ready'
       : status,
     summary:
-      'Exercises the real GPU/model controlled adapter in explicit local_dev mode for the eight GPU/model AI graphics tools. The committed/default record is prerequisite-check only, so it proves the guarded runtime branches and exact missing local inputs without starting GPU runtime, loading model weights, processing media, creating public artifacts, or unlocking external beta/production.',
+      'Exercises the real GPU/model controlled adapter in explicit local_dev mode for the eight GPU/model AI graphics tools. The committed/default record is prerequisite-check only, so it proves the guarded runtime branches and exact missing local inputs without starting GPU runtime, loading model weights, processing media, creating public artifacts, or unlocking external beta/production. Private runtime proof can be scoped with --tool so GPU/model execution starts only for the actively requested tool call.',
     sourceEvidence: {
       controlledAdapter: {
         path:
@@ -447,7 +493,13 @@ async function buildReport(args: HarnessArgs) {
       committedRecordCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
       privateLocalRuntimeAttemptCommand:
-        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+      privateScopedRuntimeAttemptExamples: {
+        kornia:
+          'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>',
+        sam2:
+          'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --sam2-checkpoint <private-sam2-checkpoint.pt>',
+      },
     },
     localRuntimePolicy: {
       runMode: 'explicit_local_dev_only',
@@ -464,6 +516,7 @@ async function buildReport(args: HarnessArgs) {
     },
     counts: {
       totalAiGraphicsTools: 21,
+      requestedGpuModelTools: rows.length,
       gpuModelToolsCovered: rows.length,
       localDevAdapterBranchInvokedTools:
         rows.filter((row) => row.controlledAdapterInvokedNow).length,
@@ -488,11 +541,13 @@ async function buildReport(args: HarnessArgs) {
     gpuModelLocalDevRuntimeExecutionHarnessRows: rows,
     booleans: {
       externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared: true,
+      scopedGpuModelToolSelectionSupported: true,
+      scopedGpuModelToolSelectionActive,
       controlledAdapterSourceAccepted: true,
       controlledWorkerDispatchProofAccepted: true,
       nativeGpuRuntimeProofCommandPlanAccepted: true,
-      localDevAdapterBranchInvokedForAll8: true,
-      all8GpuModelToolsCovered: true,
+      localDevAdapterBranchInvokedForAll8: all8GpuModelToolsCovered,
+      all8GpuModelToolsCovered,
       exactLocalRuntimePrerequisitesDocumented: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,

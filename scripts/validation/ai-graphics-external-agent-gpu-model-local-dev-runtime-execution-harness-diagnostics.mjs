@@ -45,6 +45,7 @@ const expectedCounts = {
 
 const trueKeys = [
   'externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared',
+  'scopedGpuModelToolSelectionSupported',
   'controlledAdapterSourceAccepted',
   'controlledWorkerDispatchProofAccepted',
   'nativeGpuRuntimeProofCommandPlanAccepted',
@@ -218,8 +219,17 @@ if (report.localRuntimePolicy?.committedRecordsMustRemainSkipSafe !== true) {
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--attempt-local-runtime')) {
   fail('missing_private_runtime_attempt_command')
 }
+if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--tool <toolId>')) {
+  fail('private_runtime_attempt_command_not_scoped_to_tool')
+}
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime')) {
   fail('private_runtime_attempt_command_not_local_artifact_only')
+}
+if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.kornia ?? '').includes('--tool kornia')) {
+  fail('missing_scoped_kornia_runtime_attempt_example')
+}
+if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.sam2 ?? '').includes('--tool sam2')) {
+  fail('missing_scoped_sam2_runtime_attempt_example')
 }
 
 const rows = Array.isArray(report.gpuModelLocalDevRuntimeExecutionHarnessRows)
@@ -261,6 +271,26 @@ if (liveOutput.decision !== decision) fail('live_output_decision_mismatch')
 if (liveOutput.status !== status) fail('live_output_status_mismatch')
 checkCounts('live_output', liveOutput.counts)
 checkBooleans('live_output', liveOutput.booleans)
+
+const scopedOutput = JSON.parse(exec(`npm run --silent ${runScriptName} -- --tool kornia`))
+if (scopedOutput.decision !== decision) fail('scoped_output_decision_mismatch')
+if (scopedOutput.counts?.gpuModelToolsCovered !== 1) fail('scoped_output_tool_count_mismatch')
+if (scopedOutput.counts?.localDevAdapterBranchInvokedTools !== 1) fail('scoped_output_adapter_count_mismatch')
+if (scopedOutput.counts?.localRuntimeExecutionPerformedTools !== 0) fail('scoped_output_runtime_executed')
+if (scopedOutput.booleans?.scopedGpuModelToolSelectionActive !== true) fail('scoped_output_not_marked_scoped')
+if (scopedOutput.booleans?.all8GpuModelToolsCovered !== false) fail('scoped_output_claims_all8')
+if (scopedOutput.booleans?.localDevAdapterBranchInvokedForAll8 !== false) fail('scoped_output_claims_all8_invoked')
+if (scopedOutput.booleans?.gpuRuntimeShouldStartNow !== false) fail('scoped_output_started_gpu')
+if (scopedOutput.booleans?.toolExecutionApprovedNow !== false) fail('scoped_output_approved_tool_execution')
+const scopedRows = Array.isArray(scopedOutput.gpuModelLocalDevRuntimeExecutionHarnessRows)
+  ? scopedOutput.gpuModelLocalDevRuntimeExecutionHarnessRows
+  : []
+if (scopedRows.length !== 1 || scopedRows[0]?.toolId !== 'kornia') {
+  fail('scoped_output_not_limited_to_kornia')
+}
+if (scopedRows[0]?.skipReasonCode !== 'kornia_source_frame_missing') {
+  fail(`scoped_output_unexpected_skip_reason:${scopedRows[0]?.skipReasonCode}`)
+}
 
 const source = [
   read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'),

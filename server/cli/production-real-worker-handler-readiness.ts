@@ -52,6 +52,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     countOccurrences(sources.workerRouter, 'mockOnly: !realCaptionMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realCaptionQaMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realFinalRenderMetadataHandler') +
+    countOccurrences(sources.workerRouter, 'mockOnly: !realFinalRenderQaMetadataHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realToolReadinessHandler')
   const routerHasReviewedNonMockOutput = routerLiteralNonMockOutputs + routerConditionalNonMockOutputs > 0
@@ -67,6 +68,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     'render_worker_caption_metadata',
     'render_worker_final_render_metadata',
     'qa_worker_caption_metadata',
+    'qa_worker_final_render_qa_metadata',
     'tool_readiness_worker_core_checks',
   ].filter((adapterId) => sources.gatewaySchemas.includes(adapterId)).length
 
@@ -120,6 +122,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         captionMetadataAdapterPresent: sources.gatewaySchemas.includes('render_worker_caption_metadata'),
         finalRenderMetadataAdapterPresent: sources.gatewaySchemas.includes('render_worker_final_render_metadata'),
         captionQaMetadataAdapterPresent: sources.gatewaySchemas.includes('qa_worker_caption_metadata'),
+        finalRenderQaMetadataAdapterPresent: sources.gatewaySchemas.includes('qa_worker_final_render_qa_metadata'),
         toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
       },
@@ -138,6 +141,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         sources.gatewaySmoke.includes('render_worker_caption_metadata') ||
         sources.gatewaySmoke.includes('render_worker_final_render_metadata') ||
         sources.gatewaySmoke.includes('qa_worker_caption_metadata') ||
+        sources.gatewaySmoke.includes('qa_worker_final_render_qa_metadata') ||
         sources.gatewaySmoke.includes('tool_readiness_worker_core_checks')
       ) &&
         /production_ready[\s\S]{0,2400}output\?\.mockOnly[\s\S]{0,240}false/i.test(sources.gatewaySmoke),
@@ -156,6 +160,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         realCaptionMetadataAdapterMentions: countOccurrences(sources.gatewaySmoke, 'render_worker_caption_metadata'),
         realFinalRenderMetadataAdapterMentions: countOccurrences(sources.gatewaySmoke, 'render_worker_final_render_metadata'),
         realCaptionQaMetadataAdapterMentions: countOccurrences(sources.gatewaySmoke, 'qa_worker_caption_metadata'),
+        realFinalRenderQaMetadataAdapterMentions: countOccurrences(sources.gatewaySmoke, 'qa_worker_final_render_qa_metadata'),
         realToolReadinessAdapterMentions: countOccurrences(sources.gatewaySmoke, 'tool_readiness_worker_core_checks'),
         mockOnlyFalseAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, false'),
         mockOnlyTrueAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, true') + countOccurrences(sources.gatewaySmoke, 'mock-safe placeholder output'),

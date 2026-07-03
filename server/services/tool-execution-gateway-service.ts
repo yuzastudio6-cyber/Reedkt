@@ -68,6 +68,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'render_worker_final_render_metadata'
   | 'render_worker_placeholder'
   | 'qa_worker_caption_metadata'
+  | 'qa_worker_final_render_qa_metadata'
   | 'qa_worker_placeholder'
   | 'tool_readiness_worker_core_checks'
   | 'tool_readiness_worker_placeholder'
@@ -122,6 +123,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   render_worker_final_render_metadata: 'render_worker',
   render_worker_placeholder: 'render_worker',
   qa_worker_caption_metadata: 'qa_worker',
+  qa_worker_final_render_qa_metadata: 'qa_worker',
   qa_worker_placeholder: 'qa_worker',
   tool_readiness_worker_core_checks: 'tool_readiness_worker',
   tool_readiness_worker_placeholder: 'tool_readiness_worker',
@@ -1083,8 +1085,11 @@ function validateGatewayAdapter(
     }
   }
 
-  if (adapterId === 'render_worker_final_render_metadata') {
-    const finalRenderExecution = input.metadata?.finalRenderExecution
+  if (adapterId === 'render_worker_final_render_metadata' || adapterId === 'qa_worker_final_render_qa_metadata') {
+    const finalRenderMetadataKey = adapterId === 'qa_worker_final_render_qa_metadata'
+      ? 'finalRenderQA'
+      : 'finalRenderExecution'
+    const finalRenderExecution = input.metadata?.[finalRenderMetadataKey]
     const renderRecord = finalRenderExecution && typeof finalRenderExecution === 'object'
       ? finalRenderExecution as Record<string, unknown>
       : undefined
@@ -1106,7 +1111,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata may dispatch only the reviewed Remotion + FFmpeg + libass command-plan metadata adapter scope.',
+        message: `${adapterId} may dispatch only the reviewed Remotion + FFmpeg + libass command-plan metadata/QA adapter scope.`,
         details: { requestedToolIds: input.requestedToolIds },
       })
     }
@@ -1115,8 +1120,8 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_ADAPTER_METADATA_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata production dispatch requires metadata.finalRenderExecution.mode=production_ready.',
-        details: { finalRenderExecutionMode: mode },
+        message: `${adapterId} production dispatch requires metadata.${finalRenderMetadataKey}.mode=production_ready.`,
+        details: { finalRenderMetadataKey, finalRenderExecutionMode: mode },
       })
     }
 
@@ -1124,7 +1129,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata is limited to render-manifest, non-executing command-plan, render-QA, and delivery-QA metadata tasks.',
+        message: `${adapterId} is limited to render-manifest, non-executing command-plan, render-QA, and delivery-QA metadata tasks.`,
         details: { tasks, unexpectedTasks, missingTasks },
       })
     }
@@ -1133,7 +1138,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_COMMAND_PLAN_ONLY_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata may run only with renderMode=command_plan_only; preview and final_export remain separate execution gates.',
+        message: `${adapterId} may run only with renderMode=command_plan_only; preview and final_export remain separate execution gates.`,
         details: { renderMode: renderRecord?.renderMode },
       })
     }
@@ -1142,7 +1147,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_MANIFEST_IDS_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata requires approved timelineManifestId and renderManifestId references.',
+        message: `${adapterId} requires approved timelineManifestId and renderManifestId references.`,
         details: {
           hasTimelineManifestId: Boolean(renderRecord?.timelineManifestId),
           hasRenderManifestId: Boolean(renderRecord?.renderManifestId),
@@ -1158,7 +1163,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_SOURCE_ARTIFACT_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata requires a private source or proxy artifact reference.',
+        message: `${adapterId} requires a private source or proxy artifact reference.`,
       })
     }
 
@@ -1173,7 +1178,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_EXECUTION_FLAGS_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata is metadata-only and cannot enable local render, Remotion render, or libass caption burn-in execution.',
+        message: `${adapterId} is metadata-only and cannot enable local render, Remotion render, or libass caption burn-in execution.`,
         details: {
           enableLocalDevRender: renderRecord?.enableLocalDevRender,
           enableRemotionLocalRender: renderRecord?.enableRemotionLocalRender,
@@ -1186,7 +1191,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'FINAL_RENDER_METADATA_REVIDEO_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_final_render_metadata cannot use Revideo.',
+        message: `${adapterId} cannot use Revideo.`,
       })
     }
   }
@@ -1364,6 +1369,8 @@ function validateToolReadiness(
       adapterId === 'render_worker_caption_metadata' && workerType === 'render_worker'
     ) || (
       adapterId === 'qa_worker_caption_metadata' && workerType === 'qa_worker'
+    ) || (
+      adapterId === 'qa_worker_final_render_qa_metadata' && workerType === 'qa_worker'
     )
     const runtime = reviewedCrossWorkerAdapter
       ? evaluateRuntimePolicy(profile)
@@ -1511,6 +1518,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'render_worker_final_render_metadata') {
     allowedReservedKeys.add('finalRenderExecution')
+  }
+  if (adapterId === 'qa_worker_final_render_qa_metadata') {
+    allowedReservedKeys.add('finalRenderQA')
   }
   if (adapterId === 'render_worker_caption_metadata' || adapterId === 'qa_worker_caption_metadata') {
     allowedReservedKeys.add('speechCaptionExecution')

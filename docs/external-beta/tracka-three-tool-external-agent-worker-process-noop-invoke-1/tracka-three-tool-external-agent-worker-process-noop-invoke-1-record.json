@@ -1,0 +1,85 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-PROCESS-NOOP-INVOKE-1",
+  "decision": "completed_three_tool_external_agent_worker_process_noop_invoke",
+  "execution": "completed_confirmation_gated_three_tool_worker_process_noop_invoke_no_worker_process_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_WORKER_PROCESS_NOOP_INVOKE=true",
+  "runId": "2026-07-03T01-56-20-543Z-b12b79bf",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-worker-process-noop-invoke-1/2026-07-03T01-56-20-543Z-b12b79bf",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-worker-process-noop-invoke-1/2026-07-03T01-56-20-543Z-b12b79bf/three-tool-external-agent-worker-process-noop-invoke-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-worker-process-noop-invoke-1/2026-07-03T01-56-20-543Z-b12b79bf/three-tool-external-agent-worker-process-noop-invoke-manifest.json",
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-worker-process-noop-invoke-report.json",
+      "bytes": 27949,
+      "sha256": "28b1986aa5c144530ff64f3fe8cc5f1e448ea9a14530880a3467933a602eb26c"
+    },
+    {
+      "fileName": "three-tool-external-agent-worker-process-noop-invoke-manifest.json",
+      "bytes": 1258,
+      "sha256": "1b1eae16cc17dd8fc0f398251839d250a2847a7fe4dc05908ed189b656e6a2a6"
+    }
+  ],
+  "sourceLeaseDryRun": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-LEASE-DRY-RUN-1",
+    "mergeSha": "a517b398b081aaa6e728679812f492a65e34315e",
+    "headSha": "90d5c21d090369d9238895667e7c90149800ea37",
+    "runId": "2026-07-03T01-47-00-547Z-17432713"
+  },
+  "workerProcessNoop": {
+    "entrypointId": "tracka-three-tool-external-agent-worker-process-noop-entrypoint-1",
+    "leaseId": "tracka-three-tool-external-agent-lease-dry-run-1",
+    "processMode": "metadata_only_in_process_noop_worker_entrypoint",
+    "approvedSnapshotHandoffValidation": "passed",
+    "artifactManifestPlaceholderAssembly": "passed",
+    "workerEntrypointValidation": "passed",
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "toolExecution": false,
+    "persistentJobQueueWrite": false,
+    "workerLeaseClaim": false
+  },
+  "response": {
+    "status": "accepted_three_tool_worker_process_noop_contract",
+    "workerEntrypointValidation": "passed",
+    "approvedSnapshotHandoffValidation": "passed",
+    "artifactManifestPlaceholderAssembly": "passed",
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "toolExecution": false,
+    "persistentJobQueueWrite": false,
+    "workerLeaseClaim": false
+  },
+  "sourceEvidence": {
+    "threeToolWorkerLeaseDryRunMergeSha": "a517b398b081aaa6e728679812f492a65e34315e",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "safety": {
+    "workerProcessStart": false,
+    "workerExecution": false,
+    "toolExecution": false,
+    "persistentJobQueueWrite": false,
+    "workerLeaseClaim": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "gstreamerExecutionInThisWorkerProcessNoop": false,
+    "mkvtoolnixExecutionInThisWorkerProcessNoop": false,
+    "gpacMp4boxExecutionInThisWorkerProcessNoop": false,
+    "dockerExecutionInThisWorkerProcessNoop": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-GSTREAMER-MKVTOOLNIX-EXTERNAL-AGENT-GENERATED-FIXTURE-EXECUTION-1"
+}

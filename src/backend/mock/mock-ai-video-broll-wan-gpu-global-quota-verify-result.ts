@@ -1,5 +1,5 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
-  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10u_no_gpu_iap_ssh_canary_rerun_required',
+  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10v_no_idle_l4_payload_install_retry_required',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
@@ -37,7 +37,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     readyForBroll10rBoundedRunnerFixPrompt: false,
     readyForBroll10sFixedCanaryExecutePrompt: false,
     readyForBroll10tIapSshFlagFixPrompt: false,
-    readyForBroll10uNoGpuIapSshCanaryRerunPrompt: true,
+    readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
+    readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: true,
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
@@ -55,7 +56,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   readyForBroll10rBoundedRunnerFixPrompt: false,
   readyForBroll10sFixedCanaryExecutePrompt: false,
   readyForBroll10tIapSshFlagFixPrompt: false,
-  readyForBroll10uNoGpuIapSshCanaryRerunPrompt: true,
+  readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
+  readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: true,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
   runtimeSideEffects: {
@@ -85,7 +87,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10U-NO-GPU-IAP-SSH-CANARY-RERUN: rerun the bounded no-GPU IAP SSH canary after removing mutually exclusive flags; no GPU/no model/no inference',
+    'AI-VIDEO-BROLL-GEN-10V-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY: retry bounded no-idle L4 payload/install readiness after no-GPU IAP SSH canary passed; mandatory cleanup, no model import/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

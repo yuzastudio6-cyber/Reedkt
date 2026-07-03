@@ -1,6 +1,9 @@
 export const AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-10S-NO-GPU-IAP-SSH-CANARY-BOUNDED-RUNNER-EXECUTE: run the fixed bounded no-GPU IAP SSH canary with hard timeouts, durable summaries, and mandatory cleanup; no GPU/no model/no inference' as const
 
+export const AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10V-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY: retry bounded no-idle L4 payload/install readiness after no-GPU IAP SSH canary passed; mandatory cleanup, no model import/no inference' as const
+
 export const AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER = {
   decision:
     'ai_video_broll_gen_10r_fix_iap_ssh_canary_bounded_runner_packet_ready_no_execution',
@@ -89,8 +92,7 @@ export const AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER = {
       'AI-VIDEO-BROLL-GEN-10T-IAP-TUNNEL-FIREWALL-FIX: repair IAP tunnel or firewall evidence path, no GPU/no model/no inference',
     cleanupFailure:
       'AI-VIDEO-BROLL-GEN-10T-CANARY-CLEANUP-REPAIR: repair prompt-scoped no-GPU canary cleanup, no GPU/no model/no inference',
-    success:
-      'AI-VIDEO-BROLL-GEN-10U-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY: retry bounded no-idle L4 payload/install readiness with mandatory cleanup, no model import/no inference',
+    success: AI_VIDEO_BROLL_GEN_10V_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_PROMPT,
   },
   runtimeSideEffects: {
     runnerCliCreated: true,

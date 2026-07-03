@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10P proved northamerica-northeast2-a can create a no-public-IP L4 VM and clean it up, but IAP SSH failed with a publickey/OS Login blocker; 10Q recorded an inconclusive read-only access diagnosis, 10S exposed a runner flag conflict, and 10T repaired that flag conflict. The next controlled step is the 10U no-GPU IAP SSH canary rerun before another GPU VM attempt',
+        'B-roll 10P proved northamerica-northeast2-a can create a no-public-IP L4 VM and clean it up, but IAP SSH failed with a publickey/OS Login blocker; 10Q recorded an inconclusive read-only access diagnosis, 10S exposed a runner flag conflict, 10T repaired that flag conflict, and 10U proved the no-GPU IAP SSH canary with cleanup verified. The next controlled step is the 10V bounded no-idle L4 payload/install retry with mandatory cleanup and no model import or inference',
       afterBlockerClears:
-        'run the separate 10U no-GPU IAP SSH canary rerun before any future bounded L4 payload/install proof retry',
+        'run the separate 10V bounded no-idle L4 payload/install proof retry before any model import or inference attempt',
     }
   }
 

@@ -205,6 +205,8 @@ function main() {
         readyForBroll10tIapSshFlagFixPrompt: spec.readyForBroll10tIapSshFlagFixPrompt,
         readyForBroll10uNoGpuIapSshCanaryRerunPrompt:
           spec.readyForBroll10uNoGpuIapSshCanaryRerunPrompt,
+        readyForBroll10vNoIdleL4PayloadInstallRetryPrompt:
+          spec.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt,
         nextAction: spec.nextAction,
       },
       null,

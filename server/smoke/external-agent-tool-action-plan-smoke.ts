@@ -179,11 +179,11 @@ assert.equal(broll.externalManualBlocker.includes('IAP SSH failed'), true)
 assert.equal(broll.externalManualBlocker.includes('10Q recorded an inconclusive read-only access diagnosis'), true)
 assert.equal(broll.externalManualBlocker.includes('10S exposed a runner flag conflict'), true)
 assert.equal(broll.externalManualBlocker.includes('10T repaired that flag conflict'), true)
-assert.equal(broll.externalManualBlocker.includes('10U no-GPU IAP SSH canary rerun'), true)
-assert.equal(broll.externalManualBlocker.includes('before another GPU VM attempt'), true)
+assert.equal(broll.externalManualBlocker.includes('10U proved the no-GPU IAP SSH canary'), true)
+assert.equal(broll.externalManualBlocker.includes('10V bounded no-idle L4 payload/install retry'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run the separate 10U no-GPU IAP SSH canary rerun before any future bounded L4 payload/install proof retry',
+  'run the separate 10V bounded no-idle L4 payload/install proof retry before any model import or inference attempt',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

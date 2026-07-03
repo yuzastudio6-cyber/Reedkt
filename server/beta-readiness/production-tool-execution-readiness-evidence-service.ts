@@ -1,5 +1,6 @@
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
+import { getRequiredAuthUserId, throwOnSupabaseError } from '../services/service-helpers'
 import { evaluateProductionToolExecutionReadinessGate } from './production-tool-execution-readiness-gate'
 import type { ProductionToolExecutionReadinessGateInput } from './production-tool-execution-readiness-gate'
 import {
@@ -12,6 +13,7 @@ import {
 export function createProductionToolExecutionReadinessEvidenceService(context: ServiceContext) {
   return {
     async listEvidence(workspaceId: string) {
+      await assertWorkspaceEvidenceAccess(context, workspaceId)
       const packets = await listPackets(context, workspaceId)
       return {
         packets,
@@ -24,6 +26,7 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
     },
 
     async recordEvidence(input: ProductionToolExecutionReadinessGateInput, idempotencyKey: string) {
+      await assertProductionEvidenceRecordAccess(context, input)
       let report
       try {
         report = evaluateProductionToolExecutionReadinessGate(input)
@@ -77,6 +80,61 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
           ],
       }
     },
+  }
+}
+
+async function assertWorkspaceEvidenceAccess(context: ServiceContext, workspaceId: string): Promise<void> {
+  if (!context.clients.admin || context.env.mockOnly) return
+
+  const userId = getRequiredAuthUserId(context)
+  const { data: membership, error } = await context.clients.admin
+    .from('workspace_members')
+    .select('user_id, role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  throwOnSupabaseError(error, 'WORKSPACE_ACCESS_DENIED')
+  if (!membership) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Production readiness evidence readback requires workspace membership.', 403)
+  }
+}
+
+async function assertProductionEvidenceRecordAccess(
+  context: ServiceContext,
+  input: ProductionToolExecutionReadinessGateInput,
+): Promise<void> {
+  if (!context.clients.admin || context.env.mockOnly) return
+
+  const userId = getRequiredAuthUserId(context)
+  const { data: project, error: projectError } = await context.clients.admin
+    .from('projects')
+    .select('id, workspace_id')
+    .eq('id', input.projectId)
+    .eq('workspace_id', input.workspaceId)
+    .maybeSingle()
+
+  throwOnSupabaseError(projectError, 'WORKSPACE_ACCESS_DENIED')
+  if (!project) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Production readiness evidence recording requires an accessible project in the requested workspace.', 403)
+  }
+
+  const { data: membership, error: membershipError } = await context.clients.admin
+    .from('workspace_members')
+    .select('user_id, role')
+    .eq('workspace_id', input.workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  throwOnSupabaseError(membershipError, 'WORKSPACE_ACCESS_DENIED')
+  const role = typeof membership?.role === 'string' ? membership.role : undefined
+  if (role !== 'owner' && role !== 'admin') {
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'Production readiness evidence recording requires workspace owner/admin authorization.',
+      403,
+      { requiredRoles: ['owner', 'admin'], actualRole: role ?? 'none' },
+    )
   }
 }
 

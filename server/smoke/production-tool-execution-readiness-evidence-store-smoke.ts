@@ -4,12 +4,14 @@ import {
   evaluateProductionToolExecutionReadinessGate,
   type ProductionToolExecutionReadinessGateInput,
 } from '../beta-readiness'
+import { createProductionToolExecutionReadinessEvidenceService } from '../beta-readiness/production-tool-execution-readiness-evidence-service'
 import {
   listMockProductionToolExecutionReadinessEvidencePackets,
   listPersistentProductionToolExecutionReadinessEvidencePackets,
   recordMockProductionToolExecutionReadinessEvidencePacket,
   recordPersistentProductionToolExecutionReadinessEvidencePacket,
 } from '../beta-readiness/production-tool-execution-readiness-evidence-store'
+import type { ServiceContext } from '../types'
 
 const readinessInput = productionEvidenceFixture()
 const readinessReport = evaluateProductionToolExecutionReadinessGate(readinessInput)
@@ -62,6 +64,39 @@ await assert.rejects(
   'missing production evidence migration should fail closed',
 )
 
+const ownerServiceContext = createProductionReadinessEvidenceServiceContext('owner')
+const ownerService = createProductionToolExecutionReadinessEvidenceService(ownerServiceContext)
+const ownerRecord = await ownerService.recordEvidence(readinessInput, 'production-readiness-evidence-service-owner-record')
+const ownerReadback = await ownerService.listEvidence(readinessInput.workspaceId)
+assert.equal(ownerRecord.replayed, false, 'workspace owner should record persistent production evidence')
+assert.equal(ownerRecord.packet.createdByUserId, ownerServiceContext.auth?.userId, 'recorded packet should keep the authenticated owner user id')
+assert.equal(ownerReadback.evidencePacketCount, 1, 'workspace owner should read back recorded production evidence')
+
+const adminService = createProductionToolExecutionReadinessEvidenceService(createProductionReadinessEvidenceServiceContext('admin'))
+const adminReadback = await adminService.listEvidence(readinessInput.workspaceId)
+assert.equal(adminReadback.evidencePacketCount, 0, 'workspace admin membership should be authorized for persistent readback')
+
+const viewerService = createProductionToolExecutionReadinessEvidenceService(createProductionReadinessEvidenceServiceContext('viewer'))
+const viewerReadback = await viewerService.listEvidence(readinessInput.workspaceId)
+assert.equal(viewerReadback.evidencePacketCount, 0, 'workspace viewer membership should be authorized for persistent readback')
+await assert.rejects(
+  () => viewerService.recordEvidence(readinessInput, 'production-readiness-evidence-service-viewer-record'),
+  /owner\/admin authorization/,
+  'workspace viewer must not record production readiness evidence',
+)
+
+const outsiderService = createProductionToolExecutionReadinessEvidenceService(createProductionReadinessEvidenceServiceContext('none'))
+await assert.rejects(
+  () => outsiderService.listEvidence(readinessInput.workspaceId),
+  /workspace membership/,
+  'non-member must not read production readiness evidence',
+)
+await assert.rejects(
+  () => outsiderService.recordEvidence(readinessInput, 'production-readiness-evidence-service-outsider-record'),
+  /owner\/admin authorization|accessible project|workspace membership/i,
+  'non-member must not record production readiness evidence',
+)
+
 console.log(JSON.stringify({
   ok: true,
   mockPacketId: mockRecord.packet.id,
@@ -70,6 +105,10 @@ console.log(JSON.stringify({
   persistentReplay: persistentReplay.replayed,
   persistentRows: persistentList.length,
   missingMigrationFailsClosed: true,
+  ownerRecordAuthorized: true,
+  memberReadbackAuthorized: true,
+  viewerRecordBlocked: true,
+  outsiderAccessBlocked: true,
 }, null, 2))
 
 function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput {
@@ -257,4 +296,107 @@ function createMissingMigrationAdminClient(): SupabaseClient {
       }
     },
   } as unknown as SupabaseClient
+}
+
+function createProductionReadinessEvidenceServiceContext(
+  role: 'owner' | 'admin' | 'viewer' | 'none',
+): ServiceContext {
+  return {
+    env: {
+      mockOnly: false,
+      allowMockWithoutSupabase: false,
+      hasSupabaseAdmin: true,
+    } as never,
+    clients: {
+      admin: createFakeProductionReadinessServiceAdminClient(role),
+      public: null,
+    },
+    requestId: `production-readiness-evidence-store-smoke:${role}`,
+    auth: {
+      userId: `user-production-readiness-${role}`,
+      email: `${role}@reeditpro.local`,
+      isMockUser: false,
+    },
+  }
+}
+
+function createFakeProductionReadinessServiceAdminClient(
+  role: 'owner' | 'admin' | 'viewer' | 'none',
+): SupabaseClient {
+  const rows = new Map<string, Record<string, unknown>>()
+
+  return {
+    from(table: string) {
+      const filters: Record<string, string> = {}
+      const builder = {
+        select() {
+          return builder
+        },
+        eq(column: string, value: string) {
+          filters[column] = value
+          return builder
+        },
+        order: async () => ({
+          data: table === 'production_tool_execution_readiness_evidence_packets'
+            ? [...rows.values()].filter((row) => row.workspace_id === filters.workspace_id)
+            : [],
+          error: null,
+        }),
+        async maybeSingle() {
+          return {
+            data: fakeProductionReadinessServiceRow(table, filters, rows, role),
+            error: null,
+          }
+        },
+        insert(row: Record<string, unknown>) {
+          return {
+            select() {
+              return {
+                async single() {
+                  rows.set(`${row.workspace_id}:${row.idempotency_key}`, row)
+                  return { data: row, error: null }
+                },
+              }
+            },
+          }
+        },
+      }
+      return builder
+    },
+  } as unknown as SupabaseClient
+}
+
+function fakeProductionReadinessServiceRow(
+  table: string,
+  filters: Record<string, string>,
+  rows: Map<string, Record<string, unknown>>,
+  role: 'owner' | 'admin' | 'viewer' | 'none',
+) {
+  if (
+    table === 'projects' &&
+    filters.id === readinessInput.projectId &&
+    filters.workspace_id === readinessInput.workspaceId
+  ) {
+    return {
+      id: readinessInput.projectId,
+      workspace_id: readinessInput.workspaceId,
+    }
+  }
+
+  if (
+    table === 'workspace_members' &&
+    filters.workspace_id === readinessInput.workspaceId &&
+    role !== 'none'
+  ) {
+    return {
+      user_id: filters.user_id,
+      role,
+    }
+  }
+
+  if (table === 'production_tool_execution_readiness_evidence_packets') {
+    return rows.get(`${filters.workspace_id}:${filters.idempotency_key}`) ?? null
+  }
+
+  return null
 }

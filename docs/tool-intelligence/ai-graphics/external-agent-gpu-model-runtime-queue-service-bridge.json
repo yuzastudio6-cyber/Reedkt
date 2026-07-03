@@ -2,7 +2,7 @@
   "schemaVersion": "2026-07-02.ai-graphics.external-agent-gpu-model-runtime-queue-service-bridge",
   "decision": "ai_graphics_external_agent_gpu_model_runtime_queue_service_bridge_prepared_with_runtime_blocks",
   "status": "external_agent_gpu_model_runtime_queue_service_bridge_ready_for_eight_tools",
-  "summary": "Binds the eight external-agent GPU/model proof-ref route caller envelopes to the existing AI graphics runtime queue service in mock-only mode, creating one mock queue job and one mock worker lease per tool. This proves queue-service shape and canonical worker/runtime targeting without live queue writes, worker dispatch, tool execution, model loading, GPU startup, signed URLs, public artifacts, external beta readiness, or production readiness.",
+  "summary": "Binds the eight external-agent GPU/model proof-ref route caller envelopes to the existing AI graphics runtime queue service in mock-only mode, creating one mock queue job and one mock worker lease per tool. It also prepares one dry-run production worker payload per GPU/model tool and proves that each payload reaches a concrete production worker handler without live queue writes, live worker dispatch, tool execution, model loading, GPU startup, signed URLs, public artifacts, external beta readiness, or production readiness.",
   "sourceEvidence": {
     "gpuModelProofRefRouteCaller": {
       "path": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-proof-ref-route-caller.json",
@@ -32,6 +32,12 @@
     "mockRuntimeQueueServiceBatchesCreated": 8,
     "mockRuntimeQueueServiceJobsCreated": 8,
     "mockWorkerClaimsCreated": 8,
+    "productionWorkerPayloadsPrepared": 8,
+    "productionWorkerRouterDryRunsCompleted": 8,
+    "productionWorkerSpecificHandlerRoutesCompleted": 8,
+    "modelRuntimeFoundationWorkerRoutesCompleted": 2,
+    "maskCompositionWorkerRoutesCompleted": 5,
+    "enhancementWorkerRoutesCompleted": 1,
     "toolsValidatedThroughCanonicalReadiness": 8,
     "gpuModelRuntimeTargetedTools": 8,
     "liveQueueWritePerformedTools": 0,
@@ -84,6 +90,9 @@
           "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/torch_torchvision/accepted-result",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/torch_torchvision/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_ai_graphics_model_runtime_foundation",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -97,11 +106,88 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_3989375c-da4e-4f0e-9a85-a8955f9c35ea",
-      "mockRuntimeQueueJobId": "ai_graphics_job_torch_torchvision_cb269259-2577-4e0d-a47c-241f3d4e9c65",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_504f73e1-16c1-4dff-a3c3-b847a8130339",
+      "mockRuntimeQueueJobId": "ai_graphics_job_torch_torchvision_827d5420-79d3-4ca2-a009-31aa8815cc4f",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_c85c94e9-892b-439d-8bb2-545a32e9e17c",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_1245c504-55ee-4bca-99d6-ea36c823263a",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_torch_torchvision",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-torch_torchvision",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-torch_torchvision",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-torch_torchvision",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-torch_torchvision",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-torch_torchvision",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-torch_torchvision:tool-execution-plan-ai-graphics-gpu-model-torch_torchvision:gpu_ai_worker:57c2bfe644f075bbb2822d76",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "torch_torchvision"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_torch_torchvision_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_torch_torchvision_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-torch_torchvision",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-torch_torchvision-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "torch_torchvision",
+          "aiGraphicsCapabilityIds": [
+            "model_runtime_foundation"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-native-route-call-torch_torchvision",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-torch_torchvision",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/torch_torchvision/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/torch_torchvision/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/torch_torchvision/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/torch_torchvision/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/torch_torchvision/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/torch_torchvision/accepted-result",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/torch_torchvision/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-torch_torchvision",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "aiGraphicsFoundationRuntime": {
+            "mode": "dry_run",
+            "toolId": "torch_torchvision",
+            "enableFoundationRuntimeExecution": false,
+            "modelWeightsAvailableForDryRun": false,
+            "gpuRuntimeStartsForDryRun": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_ai_graphics_model_runtime_foundation",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -150,6 +236,9 @@
           "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/transformers/accepted-result",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/transformers/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_ai_graphics_model_runtime_foundation",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -163,11 +252,88 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_c52c52ad-46dc-4854-8b51-c59b1cd9dd51",
-      "mockRuntimeQueueJobId": "ai_graphics_job_transformers_fdd652bf-d1cb-4c61-a59c-e0f26d1b91fa",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_2aa926ac-f1b5-41a9-b6ea-e777d4890909",
+      "mockRuntimeQueueJobId": "ai_graphics_job_transformers_9a4660d1-73d8-4594-9320-6c3e6a76e68b",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_a33818e9-2a55-4fc5-a2cf-dc09271f0ee0",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_6a9f51bd-e939-4df7-a578-a26eb347fcca",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_transformers",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-transformers",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-transformers",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-transformers",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-transformers",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-transformers",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-transformers:tool-execution-plan-ai-graphics-gpu-model-transformers:gpu_ai_worker:8ba8e26b2e156801439644d2",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "transformers"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_transformers_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_transformers_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-transformers",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-transformers-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "transformers",
+          "aiGraphicsCapabilityIds": [
+            "model_runtime_foundation"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-native-route-call-transformers",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-transformers",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transformers/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transformers/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transformers/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transformers/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transformers/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/transformers/accepted-result",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/transformers/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-transformers",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "aiGraphicsFoundationRuntime": {
+            "mode": "dry_run",
+            "toolId": "transformers",
+            "enableFoundationRuntimeExecution": false,
+            "modelWeightsAvailableForDryRun": false,
+            "gpuRuntimeStartsForDryRun": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_ai_graphics_model_runtime_foundation",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -218,6 +384,9 @@
           "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/sam2/accepted-manifest",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/sam2/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_mask_composition_execution",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -231,11 +400,105 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_816c246b-10f9-4c75-998b-b83d865c8dad",
-      "mockRuntimeQueueJobId": "ai_graphics_job_sam2_8975b7ba-0d6a-4314-8040-29e6603af8f4",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_1b9bc582-ff4d-4abd-a719-ec8691156c24",
+      "mockRuntimeQueueJobId": "ai_graphics_job_sam2_ccdc4874-b009-4bb5-8193-ee61bb5e0aae",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_cffae410-7946-4c2d-bbdd-2e019fb1ef06",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_78b1bf3c-afee-4c84-9f1c-bec1d35dfef1",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_sam2",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-sam2",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-sam2",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-sam2",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-sam2",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-sam2",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-sam2:tool-execution-plan-ai-graphics-gpu-model-sam2:gpu_ai_worker:9e0a36af74aa6d78272c49a3",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "sam2"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_sam2_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_sam2_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-sam2",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-sam2-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "sam2",
+          "aiGraphicsCapabilityIds": [
+            "subject_segmentation"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-model-weight-route-call-sam2",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-sam2",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/sam2/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/sam2/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/sam2/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/sam2/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/sam2/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/sam2/accepted-result",
+          "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/sam2/accepted-manifest",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/sam2/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-sam2",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "maskComposition": {
+            "mode": "dry_run",
+            "sourceImageArtifactId": "private_artifact_ai_graphics_sam2_source_image",
+            "sourceVideoArtifactId": "private_artifact_ai_graphics_sam2_source_video",
+            "maskIntent": "subject_cutout",
+            "selectedPrimaryTool": "sam2",
+            "fallbackTools": [],
+            "modelWeightManifestIds": [
+              "model-weight-manifest-sam2"
+            ],
+            "subjectSelection": {
+              "strategy": "primary_subject",
+              "confidence": 0.8,
+              "evidence": "External-agent GPU/model worker routeability dry-run; no runtime execution."
+            },
+            "motionRequiresTracking": true,
+            "frameSamplingMaxFrames": 1,
+            "maskConfidenceHint": 0.8,
+            "enableModelMaskExecution": false,
+            "enableMaskPreview": false,
+            "allowModelDownload": false,
+            "allowFinalRender": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_mask_composition_execution",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -286,6 +549,9 @@
           "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/birefnet/accepted-manifest",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/birefnet/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_mask_composition_execution",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -299,11 +565,105 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_0aa252eb-890c-4c04-a39e-5a1b05df9aaa",
-      "mockRuntimeQueueJobId": "ai_graphics_job_birefnet_7268f1c7-8461-45cd-ad1a-6ee4b39d7c2a",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_2c6db5dd-53d9-48d0-98c1-56065a238050",
+      "mockRuntimeQueueJobId": "ai_graphics_job_birefnet_8349e5ab-3656-4aa6-a50f-998d5b89dd3b",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_27165a39-c4f2-482d-b99d-e01501653291",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_b085dd84-cd2c-40a8-98df-4608879006bd",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_birefnet",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-birefnet",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-birefnet",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-birefnet",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-birefnet",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-birefnet",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-birefnet:tool-execution-plan-ai-graphics-gpu-model-birefnet:gpu_ai_worker:1531e1e4e34251e0255c56c9",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "birefnet"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_birefnet_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_birefnet_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-birefnet",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-birefnet-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "birefnet",
+          "aiGraphicsCapabilityIds": [
+            "background_removal"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-model-weight-route-call-birefnet",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-birefnet",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/birefnet/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/birefnet/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/birefnet/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/birefnet/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/birefnet/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/birefnet/accepted-result",
+          "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/birefnet/accepted-manifest",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/birefnet/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-birefnet",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "maskComposition": {
+            "mode": "dry_run",
+            "sourceImageArtifactId": "private_artifact_ai_graphics_birefnet_source_image",
+            "sourceVideoArtifactId": "private_artifact_ai_graphics_birefnet_source_video",
+            "maskIntent": "background_removal_image",
+            "selectedPrimaryTool": "birefnet",
+            "fallbackTools": [],
+            "modelWeightManifestIds": [
+              "model-weight-manifest-birefnet"
+            ],
+            "subjectSelection": {
+              "strategy": "primary_subject",
+              "confidence": 0.8,
+              "evidence": "External-agent GPU/model worker routeability dry-run; no runtime execution."
+            },
+            "motionRequiresTracking": false,
+            "frameSamplingMaxFrames": 1,
+            "maskConfidenceHint": 0.8,
+            "enableModelMaskExecution": false,
+            "enableMaskPreview": false,
+            "allowModelDownload": false,
+            "allowFinalRender": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_mask_composition_execution",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -354,6 +714,9 @@
           "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/real_esrgan/accepted-manifest",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/real_esrgan/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_enhancement_slowmotion_execution",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -367,11 +730,103 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_a9d0731d-eb8b-42a5-9f67-f8f3a92340ed",
-      "mockRuntimeQueueJobId": "ai_graphics_job_real_esrgan_85ee3ba7-14e1-4a22-88fb-720a16752f44",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_1f4fed59-8b41-470e-8387-ebe81f015537",
+      "mockRuntimeQueueJobId": "ai_graphics_job_real_esrgan_bd7f43f1-38bb-454b-b751-4385da8938f7",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_e1b27ab6-e395-44da-9be3-ec60c30aa867",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_25adcbd9-88f4-4ece-a161-700ca78f267e",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_real_esrgan",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-real_esrgan",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-real_esrgan",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-real_esrgan",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-real_esrgan",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-real_esrgan",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-real_esrgan:tool-execution-plan-ai-graphics-gpu-model-real_esrgan:gpu_ai_worker:bbb226c46f32975c155c1f54",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "real_esrgan"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_real_esrgan_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_real_esrgan_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-real_esrgan",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-real_esrgan-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "real_esrgan",
+          "aiGraphicsCapabilityIds": [
+            "upscaling"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-model-weight-route-call-real_esrgan",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-real_esrgan",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/real_esrgan/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/real_esrgan/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/real_esrgan/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/real_esrgan/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/real_esrgan/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/real_esrgan/accepted-result",
+          "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/real_esrgan/accepted-manifest",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/real_esrgan/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-real_esrgan",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "enhancementSlowMotion": {
+            "mode": "dry_run",
+            "sourceImageArtifactId": "private_artifact_ai_graphics_real_esrgan_source_image",
+            "modelWeightManifestIds": [
+              "model-weight-manifest-real_esrgan"
+            ],
+            "buildEnhancement": true,
+            "buildSlowMotion": false,
+            "enhancement": {
+              "enhancementIntent": "upscale_image",
+              "targetScale": 2,
+              "sourceQualityIssueDetected": true,
+              "approvedEnhancementReason": "External-agent GPU/model worker routeability dry-run; no runtime execution.",
+              "sampleOnly": true,
+              "sampleCount": 1,
+              "enableModelEnhancementExecution": false,
+              "enableFfmpegFallbackPreview": false,
+              "allowModelDownload": false,
+              "allowFinalRender": false
+            }
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_enhancement_slowmotion_execution",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -420,6 +875,9 @@
           "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/kornia/accepted-result",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/kornia/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_mask_composition_execution",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -433,11 +891,101 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_d190bc7e-8843-4995-a891-d2b484a03e93",
-      "mockRuntimeQueueJobId": "ai_graphics_job_kornia_5d9ae2b6-a54a-41dc-acb0-3fc32a9b621d",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_8d5b554a-8596-45fe-a990-a946505a2b80",
+      "mockRuntimeQueueJobId": "ai_graphics_job_kornia_92638fac-434e-49b2-8d86-5a35ab59fd27",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_fe94e867-95b0-46fb-9fd8-a1cb9851b94f",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_17748002-34ac-43c2-b6ed-2b21553343e7",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_kornia",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-kornia",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-kornia",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-kornia",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-kornia",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-kornia",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-kornia:tool-execution-plan-ai-graphics-gpu-model-kornia:gpu_ai_worker:93129561391251eb8aabc79e",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "kornia"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_kornia_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_kornia_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-kornia",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-kornia-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "kornia",
+          "aiGraphicsCapabilityIds": [
+            "tensor_image_ops"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-native-route-call-kornia",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-kornia",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/kornia/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/kornia/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/kornia/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/kornia/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/kornia/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/kornia/accepted-result",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/kornia/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-kornia",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "maskComposition": {
+            "mode": "dry_run",
+            "sourceImageArtifactId": "private_artifact_ai_graphics_kornia_source_image",
+            "sourceVideoArtifactId": "private_artifact_ai_graphics_kornia_source_video",
+            "maskIntent": "background_removal_video",
+            "selectedPrimaryTool": "kornia",
+            "fallbackTools": [],
+            "subjectSelection": {
+              "strategy": "primary_subject",
+              "confidence": 0.8,
+              "evidence": "External-agent GPU/model worker routeability dry-run; no runtime execution."
+            },
+            "motionRequiresTracking": true,
+            "frameSamplingMaxFrames": 1,
+            "maskConfidenceHint": 0.8,
+            "enableModelMaskExecution": false,
+            "enableMaskPreview": false,
+            "allowModelDownload": false,
+            "allowFinalRender": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_mask_composition_execution",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -488,6 +1036,9 @@
           "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/rembg/accepted-manifest",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/rembg/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_mask_composition_execution",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -501,11 +1052,105 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_1aedd9b7-4be4-460d-9491-835600ce5576",
-      "mockRuntimeQueueJobId": "ai_graphics_job_rembg_cabb2c80-2aae-475d-9153-8b06921ef962",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_1a3b78dc-5535-42fc-a9f1-41108131225d",
+      "mockRuntimeQueueJobId": "ai_graphics_job_rembg_4be127e0-2ce9-4950-87a0-486995aa8783",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_018320ea-5a50-4f4c-803d-f43124ab8d74",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_5346585b-f439-4f92-80c7-893f70461c67",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_rembg",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-rembg",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-rembg",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-rembg",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-rembg",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-rembg",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-rembg:tool-execution-plan-ai-graphics-gpu-model-rembg:gpu_ai_worker:37a4a0f2f29edc67fbbf951a",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "rembg"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_rembg_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_rembg_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-rembg",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-rembg-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "rembg",
+          "aiGraphicsCapabilityIds": [
+            "background_removal"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-model-weight-route-call-rembg",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-rembg",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/rembg/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/rembg/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/rembg/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/rembg/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/rembg/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/rembg/accepted-result",
+          "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/rembg/accepted-manifest",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/rembg/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-rembg",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "maskComposition": {
+            "mode": "dry_run",
+            "sourceImageArtifactId": "private_artifact_ai_graphics_rembg_source_image",
+            "sourceVideoArtifactId": "private_artifact_ai_graphics_rembg_source_video",
+            "maskIntent": "background_removal_image",
+            "selectedPrimaryTool": "rembg",
+            "fallbackTools": [],
+            "modelWeightManifestIds": [
+              "model-weight-manifest-rembg"
+            ],
+            "subjectSelection": {
+              "strategy": "primary_subject",
+              "confidence": 0.8,
+              "evidence": "External-agent GPU/model worker routeability dry-run; no runtime execution."
+            },
+            "motionRequiresTracking": false,
+            "frameSamplingMaxFrames": 1,
+            "maskConfidenceHint": 0.8,
+            "enableModelMaskExecution": false,
+            "enableMaskPreview": false,
+            "allowModelDownload": false,
+            "allowFinalRender": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_mask_composition_execution",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -556,6 +1201,9 @@
           "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/transparent_background/accepted-manifest",
           "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/transparent_background/accepted-recheck",
           "externalAgentGpuModelRuntimeQueueServiceBridge": true,
+          "productionWorkerPayloadPrepared": true,
+          "productionWorkerExpectedFutureHandler": "gpu_ai_worker_mask_composition_execution",
+          "productionWorkerExecutionMode": "dry_run",
           "gpuRuntimeOnDemandOnly": true,
           "gpuRuntimeShouldStartNow": false,
           "liveQueueWritePerformed": false,
@@ -569,11 +1217,105 @@
           "signedUrlCreated": false
         }
       },
-      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_07c6082a-6629-4fa1-a20b-ca63e996ed0a",
-      "mockRuntimeQueueJobId": "ai_graphics_job_transparent_background_a2f9ef68-c112-498a-801d-53094293f1d4",
+      "mockRuntimeQueueBatchId": "ai_graphics_job_batch_141917a4-0d61-47b2-bff9-b32c9e05b506",
+      "mockRuntimeQueueJobId": "ai_graphics_job_transparent_background_af21b3dc-5c12-4b47-8ef4-ba035a647dd8",
       "mockRuntimeQueueServiceUsed": true,
-      "mockWorkerClaimId": "ai_graphics_worker_claim_3e895476-acb2-41a3-b3d5-3fd28d4e4466",
+      "mockWorkerClaimId": "ai_graphics_worker_claim_136247be-8f6c-4b93-9fbf-77bad40a69d8",
       "mockWorkerLeaseCreated": true,
+      "productionWorkerPayload": {
+        "jobId": "ai_graphics_gpu_model_worker_payload_transparent_background",
+        "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
+        "projectId": "project-ai-graphics-external-agent-gpu-model-worker-transparent_background",
+        "mediaAssetId": "media-asset-ai-graphics-gpu-model-transparent_background",
+        "approvedSnapshotId": "approved-snapshot-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-transparent_background",
+        "editPlanId": "edit-plan-ai-graphics-gpu-model-transparent_background",
+        "toolExecutionPlanId": "tool-execution-plan-ai-graphics-gpu-model-transparent_background",
+        "workerType": "gpu_ai_worker",
+        "executionMode": "dry_run",
+        "idempotencyKey": "prod-worker:workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller:project-ai-graphics-external-agent-gpu-model-worker-transparent_background:tool-execution-plan-ai-graphics-gpu-model-transparent_background:gpu_ai_worker:9bed2972491bca1de07f40f6",
+        "attempt": 1,
+        "maxAttempts": 1,
+        "requestedToolIds": [
+          "transparent_background"
+        ],
+        "requestedRecipeIds": [
+          "ai_graphics_transparent_background_gpu_model_worker_route_dry_run"
+        ],
+        "storageReferenceIds": [
+          "private_artifact_ai_graphics_transparent_background_source"
+        ],
+        "creditReservationId": "credit-reservation-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-transparent_background",
+        "renderMode": "qa_probe",
+        "requiredQualityGateIds": [
+          "qa-gate-ai-graphics-gpu-model-transparent_background-runtime-boundary"
+        ],
+        "createdAt": "2026-07-02T00:00:00.000Z",
+        "metadata": {
+          "aiGraphicsCanonicalToolId": "transparent_background",
+          "aiGraphicsCapabilityIds": [
+            "background_removal"
+          ],
+          "aiGraphicsRuntimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+          "aiGraphicsRuntimeActivationPolicy": {
+            "onDemandOnly": true,
+            "noIdleGpuRuntimeApproved": true,
+            "startsOnlyForApprovedWorkerOrToolCall": true,
+            "cpuFallbackAllowedForHeavyTools": false
+          },
+          "gpuRuntimeOnDemandOnly": true,
+          "noIdleGpuRuntimeApproved": true,
+          "startsOnlyForApprovedWorkerOrToolCall": true,
+          "cpuFallbackAllowedForHeavyTools": false,
+          "sourceRouteRequestId": "external-agent-gpu-model-proof-ref-model-weight-route-call-transparent_background",
+          "sourceTraceId": "trace-ai-graphics-external-agent-gpu-model-proof-ref-route-caller-transparent_background",
+          "sourceToolRouteApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transparent_background/tool-route-approval",
+          "sourceWorkerApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transparent_background/worker-approval",
+          "sourceRuntimeEnqueueApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transparent_background/runtime-enqueue-approval",
+          "sourceOwnerRuntimeApprovalRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transparent_background/owner-runtime-approval",
+          "privateArtifactManifestRef": "private://ai-graphics/external-agent/gpu-model-proof-ref-route-caller/transparent_background/artifact-manifest",
+          "nativeGpuRuntimeProofRef": "private://ai-graphics/external-beta/native-gpu-proof/transparent_background/accepted-result",
+          "modelWeightManifestRef": "private://ai-graphics/external-beta/model-weight-manifest/transparent_background/accepted-manifest",
+          "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/transparent_background/accepted-recheck",
+          "sourceRuntimeQueueJobId": "external-agent-gpu-model-runtime-queue-service-bridge-transparent_background",
+          "gpuRuntimeShouldStartNow": false,
+          "modelWeightsPreparedForDryRun": false,
+          "modelWeightsLoadedForDryRun": false,
+          "modelInferencePerformedInDryRun": false,
+          "mediaProcessingPerformedInDryRun": false,
+          "artifactVisibility": "private_worker_refs_only",
+          "publicArtifactPreparedForDryRun": false,
+          "maskComposition": {
+            "mode": "dry_run",
+            "sourceImageArtifactId": "private_artifact_ai_graphics_transparent_background_source_image",
+            "sourceVideoArtifactId": "private_artifact_ai_graphics_transparent_background_source_video",
+            "maskIntent": "background_removal_image",
+            "selectedPrimaryTool": "transparent_background",
+            "fallbackTools": [],
+            "modelWeightManifestIds": [
+              "model-weight-manifest-transparent_background"
+            ],
+            "subjectSelection": {
+              "strategy": "primary_subject",
+              "confidence": 0.8,
+              "evidence": "External-agent GPU/model worker routeability dry-run; no runtime execution."
+            },
+            "motionRequiresTracking": false,
+            "frameSamplingMaxFrames": 1,
+            "maskConfidenceHint": 0.8,
+            "enableModelMaskExecution": false,
+            "enableMaskPreview": false,
+            "allowModelDownload": false,
+            "allowFinalRender": false
+          }
+        }
+      },
+      "productionWorkerStatus": "completed",
+      "productionWorkerFutureHandler": "gpu_ai_worker_mask_composition_execution",
+      "productionWorkerGatesPassed": true,
+      "productionWorkerRouteableToSpecificHandler": true,
+      "productionWorkerMockOnly": true,
+      "productionWorkerExecutionMode": "dry_run",
+      "productionWorkerToolExecutionPerformed": false,
       "liveQueueWritePerformed": false,
       "workerDispatchPerformed": false,
       "workerExecutionPerformed": false,
@@ -594,6 +1336,12 @@
     "all8GpuModelProofRefRouteCallerRowsQueuedThroughRuntimeService": true,
     "all8MockRuntimeQueueJobsCreated": true,
     "all8MockWorkerClaimsCreated": true,
+    "all8GpuModelProductionWorkerPayloadsPrepared": true,
+    "all8GpuModelProductionWorkerRoutesDryRunCompleted": true,
+    "all8GpuModelProductionWorkerRoutesHitSpecificHandlers": true,
+    "twoFoundationWorkerRoutesHitModelRuntimeFoundationHandler": true,
+    "fiveMaskWorkerRoutesHitMaskCompositionHandler": true,
+    "oneEnhancementWorkerRouteHitEnhancementHandler": true,
     "all8ToolsValidatedThroughCanonicalReadiness": true,
     "usesExistingAiGraphicsRuntimeQueueService": true,
     "usesExistingRuntimeQueueServiceValidation": true,
@@ -640,5 +1388,5 @@
     "dependencyInstallPerformed": false,
     "packageLockMutationPerformed": false
   },
-  "nextRequiredImplementationStep": "turn the eight mock runtime queue jobs into an explicitly authorized non-production service-role queue write, then attach real worker claim and native model-runtime proof while preserving GPU startup only after an accepted job claim"
+  "nextRequiredImplementationStep": "turn the eight dry-run production worker payloads into an explicitly authorized non-production service-role queue write and worker-claim smoke, then attach native GPU local-dev proof while preserving GPU startup only after an accepted job claim"
 }

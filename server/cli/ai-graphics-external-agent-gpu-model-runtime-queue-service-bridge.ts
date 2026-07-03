@@ -9,6 +9,13 @@ import {
   getAiGraphicsToolCallReadiness,
   type AiGraphicsCanonicalToolId,
 } from '../tool-registry/ai-graphics-tool-call-readiness'
+import { buildWorkerIdempotencyKey } from '../workers/production/production-worker-idempotency'
+import { runProductionWorkerRuntime } from '../workers/production/production-worker-runtime'
+import type { ProductionToolId } from '../tool-registry'
+import type {
+  ProductionWorkerExecutionResult,
+  ProductionWorkerJobPayload,
+} from '../workers/production/production-worker-types'
 
 const decision =
   'ai_graphics_external_agent_gpu_model_runtime_queue_service_bridge_prepared_with_runtime_blocks'
@@ -87,6 +94,14 @@ interface QueueBridgeRow {
   mockRuntimeQueueServiceUsed: true
   mockWorkerClaimId: string
   mockWorkerLeaseCreated: true
+  productionWorkerPayload: ProductionWorkerJobPayload
+  productionWorkerStatus: string
+  productionWorkerFutureHandler: string
+  productionWorkerGatesPassed: boolean
+  productionWorkerRouteableToSpecificHandler: boolean
+  productionWorkerMockOnly: true
+  productionWorkerExecutionMode: 'dry_run'
+  productionWorkerToolExecutionPerformed: false
   liveQueueWritePerformed: false
   workerDispatchPerformed: false
   workerExecutionPerformed: false
@@ -175,6 +190,212 @@ function validateSourceEvidence(
   )
 }
 
+function expectedProductionWorkerFutureHandler(
+  toolId: AiGraphicsCanonicalToolId,
+): string {
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') {
+    return 'gpu_ai_worker_ai_graphics_model_runtime_foundation'
+  }
+  if (toolId === 'real_esrgan') {
+    return 'gpu_ai_worker_enhancement_slowmotion_execution'
+  }
+  return 'gpu_ai_worker_mask_composition_execution'
+}
+
+function gpuActivationMetadata() {
+  return {
+    onDemandOnly: true,
+    noIdleGpuRuntimeApproved: true,
+    startsOnlyForApprovedWorkerOrToolCall: true,
+    cpuFallbackAllowedForHeavyTools: false,
+  }
+}
+
+function modelWeightManifestIds(row: GpuModelProofRefCallerRow): string[] | undefined {
+  return row.requestEnvelope.modelWeightManifestRef
+    ? [`model-weight-manifest-${row.toolId}`]
+    : undefined
+}
+
+function maskToolId(toolId: AiGraphicsCanonicalToolId): string {
+  if (toolId === 'sam2') return 'sam2'
+  if (toolId === 'kornia') return 'kornia'
+  if (toolId === 'rembg') return 'rembg'
+  if (toolId === 'transparent_background') return 'transparent_background'
+  return 'birefnet'
+}
+
+function maskIntent(toolId: AiGraphicsCanonicalToolId): string {
+  if (toolId === 'sam2') return 'subject_cutout'
+  if (toolId === 'kornia') return 'background_removal_video'
+  return 'background_removal_image'
+}
+
+function toolSpecificWorkerMetadata(row: GpuModelProofRefCallerRow): JsonRecord {
+  if (row.toolId === 'torch_torchvision' || row.toolId === 'transformers') {
+    return {
+      aiGraphicsFoundationRuntime: {
+        mode: 'dry_run',
+        toolId: row.toolId,
+        enableFoundationRuntimeExecution: false,
+        modelWeightsAvailableForDryRun: false,
+        gpuRuntimeStartsForDryRun: false,
+      },
+    }
+  }
+
+  if (row.toolId === 'real_esrgan') {
+    return {
+      enhancementSlowMotion: {
+        mode: 'dry_run',
+        sourceImageArtifactId:
+          `private_artifact_ai_graphics_${row.toolId}_source_image`,
+        modelWeightManifestIds: modelWeightManifestIds(row),
+        buildEnhancement: true,
+        buildSlowMotion: false,
+        enhancement: {
+          enhancementIntent: 'upscale_image',
+          targetScale: 2,
+          sourceQualityIssueDetected: true,
+          approvedEnhancementReason:
+            'External-agent GPU/model worker routeability dry-run; no runtime execution.',
+          sampleOnly: true,
+          sampleCount: 1,
+          enableModelEnhancementExecution: false,
+          enableFfmpegFallbackPreview: false,
+          allowModelDownload: false,
+          allowFinalRender: false,
+        },
+      },
+    }
+  }
+
+  return {
+    maskComposition: {
+      mode: 'dry_run',
+      sourceImageArtifactId:
+        `private_artifact_ai_graphics_${row.toolId}_source_image`,
+      sourceVideoArtifactId:
+        `private_artifact_ai_graphics_${row.toolId}_source_video`,
+      maskIntent: maskIntent(row.toolId),
+      selectedPrimaryTool: maskToolId(row.toolId),
+      fallbackTools: [],
+      modelWeightManifestIds: modelWeightManifestIds(row),
+      subjectSelection: {
+        strategy: 'primary_subject',
+        confidence: 0.8,
+        evidence:
+          'External-agent GPU/model worker routeability dry-run; no runtime execution.',
+      },
+      motionRequiresTracking: row.toolId === 'sam2' || row.toolId === 'kornia',
+      frameSamplingMaxFrames: 1,
+      maskConfidenceHint: 0.8,
+      enableModelMaskExecution: false,
+      enableMaskPreview: false,
+      allowModelDownload: false,
+      allowFinalRender: false,
+    },
+  }
+}
+
+function buildProductionWorkerPayload(
+  row: GpuModelProofRefCallerRow,
+  jobInput: AiGraphicsToolRuntimeQueueJobInput,
+): ProductionWorkerJobPayload {
+  const readiness = getAiGraphicsToolCallReadiness(row.toolId)
+  assert(readiness?.productionToolId, `missing production readiness for ${row.toolId}`)
+
+  const payload: ProductionWorkerJobPayload = {
+    jobId:
+      `ai_graphics_gpu_model_worker_payload_${row.toolId}`,
+    workspaceId: row.requestEnvelope.workspaceId,
+    projectId:
+      `project-ai-graphics-external-agent-gpu-model-worker-${row.toolId}`,
+    mediaAssetId:
+      `media-asset-ai-graphics-gpu-model-${row.toolId}`,
+    approvedSnapshotId: row.requestEnvelope.approvedPlanSnapshotId,
+    editPlanId:
+      `edit-plan-ai-graphics-gpu-model-${row.toolId}`,
+    toolExecutionPlanId:
+      `tool-execution-plan-ai-graphics-gpu-model-${row.toolId}`,
+    workerType: 'gpu_ai_worker',
+    executionMode: 'dry_run',
+    idempotencyKey: 'pending-worker-idempotency-key',
+    attempt: 1,
+    maxAttempts: 1,
+    requestedToolIds: [readiness.productionToolId as ProductionToolId],
+    requestedRecipeIds: [
+      `ai_graphics_${row.toolId}_gpu_model_worker_route_dry_run`,
+    ],
+    storageReferenceIds: [
+      `private_artifact_ai_graphics_${row.toolId}_source`,
+    ],
+    creditReservationId: row.requestEnvelope.creditReservationId,
+    renderMode: 'qa_probe',
+    requiredQualityGateIds: [
+      `qa-gate-ai-graphics-gpu-model-${row.toolId}-runtime-boundary`,
+    ],
+    createdAt: '2026-07-02T00:00:00.000Z',
+    metadata: {
+      aiGraphicsCanonicalToolId: row.toolId,
+      aiGraphicsCapabilityIds: [row.capabilityId],
+      aiGraphicsRuntimeTarget: readiness.runtimeTarget,
+      aiGraphicsRuntimeActivationPolicy: gpuActivationMetadata(),
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      cpuFallbackAllowedForHeavyTools: false,
+      sourceRouteRequestId: row.requestEnvelope.requestId,
+      sourceTraceId: row.requestEnvelope.traceId,
+      sourceToolRouteApprovalRef: row.requestEnvelope.toolRouteApprovalRef,
+      sourceWorkerApprovalRef: row.requestEnvelope.workerApprovalRef,
+      sourceRuntimeEnqueueApprovalRef:
+        row.requestEnvelope.runtimeEnqueueApprovalRef,
+      sourceOwnerRuntimeApprovalRef:
+        row.requestEnvelope.ownerRuntimeApprovalRef,
+      privateArtifactManifestRef:
+        row.requestEnvelope.privateArtifactManifestRef,
+      nativeGpuRuntimeProofRef:
+        row.requestEnvelope.nativeGpuRuntimeProofRef,
+      modelWeightManifestRef:
+        row.requestEnvelope.modelWeightManifestRef,
+      externalBetaPerToolRuntimeProofRef:
+        row.requestEnvelope.externalBetaPerToolRuntimeProofRef,
+      sourceRuntimeQueueJobId: jobInput.idempotencyKey,
+      gpuRuntimeShouldStartNow: false,
+      modelWeightsPreparedForDryRun: false,
+      modelWeightsLoadedForDryRun: false,
+      modelInferencePerformedInDryRun: false,
+      mediaProcessingPerformedInDryRun: false,
+      artifactVisibility: 'private_worker_refs_only',
+      publicArtifactPreparedForDryRun: false,
+      ...toolSpecificWorkerMetadata(row),
+    },
+  }
+
+  return {
+    ...payload,
+    idempotencyKey: buildWorkerIdempotencyKey(payload),
+  }
+}
+
+function assertProductionWorkerRuntimeResult(
+  row: GpuModelProofRefCallerRow,
+  result: ProductionWorkerExecutionResult,
+): void {
+  const expectedFutureHandler = expectedProductionWorkerFutureHandler(row.toolId)
+  assert(result.status === 'completed', `${row.toolId} worker dry-run did not complete`)
+  assert(result.output?.mockOnly === true, `${row.toolId} worker output must be mock-only`)
+  assert(
+    result.output?.futureHandler === expectedFutureHandler,
+    `${row.toolId} routed to ${result.output?.futureHandler}, expected ${expectedFutureHandler}`,
+  )
+  assert(
+    !result.gateChecks.some((check) => check.hardBlock),
+    `${row.toolId} worker dry-run hit a hard gate block`,
+  )
+}
+
 function runtimeQueueJobInput(row: GpuModelProofRefCallerRow): AiGraphicsToolRuntimeQueueJobInput {
   const readiness = getAiGraphicsToolCallReadiness(row.toolId)
   assert(readiness, `missing tool-call readiness for ${row.toolId}`)
@@ -225,6 +446,10 @@ function runtimeQueueJobInput(row: GpuModelProofRefCallerRow): AiGraphicsToolRun
       externalBetaPerToolRuntimeProofRef:
         row.requestEnvelope.externalBetaPerToolRuntimeProofRef,
       externalAgentGpuModelRuntimeQueueServiceBridge: true,
+      productionWorkerPayloadPrepared: true,
+      productionWorkerExpectedFutureHandler:
+        expectedProductionWorkerFutureHandler(row.toolId),
+      productionWorkerExecutionMode: 'dry_run',
       gpuRuntimeOnDemandOnly: true,
       gpuRuntimeShouldStartNow: false,
       liveQueueWritePerformed: false,
@@ -278,6 +503,16 @@ async function bridgeRow(
   })
   assert(claimResult.claimResult.mockOnly === true, `worker claim must be mock-only for ${row.toolId}`)
 
+  const productionWorkerPayload = buildProductionWorkerPayload(row, jobInput)
+  const productionWorkerResult = await runProductionWorkerRuntime({
+    payload: productionWorkerPayload,
+    workerInstanceId:
+      `dry-run-worker-ai-graphics-external-agent-gpu-model-${row.toolId}`,
+  })
+  assertProductionWorkerRuntimeResult(row, productionWorkerResult)
+  const productionWorkerFutureHandler =
+    String(productionWorkerResult.output?.futureHandler ?? '')
+
   return {
     toolId: row.toolId,
     capabilityId: row.capabilityId,
@@ -300,6 +535,17 @@ async function bridgeRow(
     mockRuntimeQueueServiceUsed: true,
     mockWorkerClaimId: String(claimResult.claimResult.workerClaimId),
     mockWorkerLeaseCreated: true,
+    productionWorkerPayload,
+    productionWorkerStatus: productionWorkerResult.status,
+    productionWorkerFutureHandler,
+    productionWorkerGatesPassed:
+      !productionWorkerResult.gateChecks.some((check) => check.hardBlock),
+    productionWorkerRouteableToSpecificHandler:
+      productionWorkerFutureHandler ===
+        expectedProductionWorkerFutureHandler(row.toolId),
+    productionWorkerMockOnly: true,
+    productionWorkerExecutionMode: 'dry_run',
+    productionWorkerToolExecutionPerformed: false,
     liveQueueWritePerformed: false,
     workerDispatchPerformed: false,
     workerExecutionPerformed: false,
@@ -333,7 +579,7 @@ async function buildReport() {
     decision,
     status,
     summary:
-      'Binds the eight external-agent GPU/model proof-ref route caller envelopes to the existing AI graphics runtime queue service in mock-only mode, creating one mock queue job and one mock worker lease per tool. This proves queue-service shape and canonical worker/runtime targeting without live queue writes, worker dispatch, tool execution, model loading, GPU startup, signed URLs, public artifacts, external beta readiness, or production readiness.',
+      'Binds the eight external-agent GPU/model proof-ref route caller envelopes to the existing AI graphics runtime queue service in mock-only mode, creating one mock queue job and one mock worker lease per tool. It also prepares one dry-run production worker payload per GPU/model tool and proves that each payload reaches a concrete production worker handler without live queue writes, live worker dispatch, tool execution, model loading, GPU startup, signed URLs, public artifacts, external beta readiness, or production readiness.',
     sourceEvidence: {
       gpuModelProofRefRouteCaller: {
         path: sourceGpuModelProofRefRouteCallerPath,
@@ -367,6 +613,25 @@ async function buildReport() {
       mockRuntimeQueueServiceBatchesCreated: rows.length,
       mockRuntimeQueueServiceJobsCreated: rows.length,
       mockWorkerClaimsCreated: rows.length,
+      productionWorkerPayloadsPrepared: rows.length,
+      productionWorkerRouterDryRunsCompleted: rows.filter((row) => (
+        row.productionWorkerStatus === 'completed'
+      )).length,
+      productionWorkerSpecificHandlerRoutesCompleted: rows.filter((row) => (
+        row.productionWorkerRouteableToSpecificHandler
+      )).length,
+      modelRuntimeFoundationWorkerRoutesCompleted: rows.filter((row) => (
+        row.productionWorkerFutureHandler ===
+          'gpu_ai_worker_ai_graphics_model_runtime_foundation'
+      )).length,
+      maskCompositionWorkerRoutesCompleted: rows.filter((row) => (
+        row.productionWorkerFutureHandler ===
+          'gpu_ai_worker_mask_composition_execution'
+      )).length,
+      enhancementWorkerRoutesCompleted: rows.filter((row) => (
+        row.productionWorkerFutureHandler ===
+          'gpu_ai_worker_enhancement_slowmotion_execution'
+      )).length,
       toolsValidatedThroughCanonicalReadiness: rows.length,
       gpuModelRuntimeTargetedTools: rows.filter((row) => (
         row.workerType === 'gpu_ai_worker' &&
@@ -393,6 +658,12 @@ async function buildReport() {
       all8GpuModelProofRefRouteCallerRowsQueuedThroughRuntimeService: true,
       all8MockRuntimeQueueJobsCreated: true,
       all8MockWorkerClaimsCreated: true,
+      all8GpuModelProductionWorkerPayloadsPrepared: true,
+      all8GpuModelProductionWorkerRoutesDryRunCompleted: true,
+      all8GpuModelProductionWorkerRoutesHitSpecificHandlers: true,
+      twoFoundationWorkerRoutesHitModelRuntimeFoundationHandler: true,
+      fiveMaskWorkerRoutesHitMaskCompositionHandler: true,
+      oneEnhancementWorkerRouteHitEnhancementHandler: true,
       all8ToolsValidatedThroughCanonicalReadiness: true,
       usesExistingAiGraphicsRuntimeQueueService: true,
       usesExistingRuntimeQueueServiceValidation: true,
@@ -440,14 +711,14 @@ async function buildReport() {
       packageLockMutationPerformed: false,
     },
     nextRequiredImplementationStep:
-      'turn the eight mock runtime queue jobs into an explicitly authorized non-production service-role queue write, then attach real worker claim and native model-runtime proof while preserving GPU startup only after an accepted job claim',
+      'turn the eight dry-run production worker payloads into an explicitly authorized non-production service-role queue write and worker-claim smoke, then attach native GPU local-dev proof while preserving GPU startup only after an accepted job claim',
   }
 }
 
 function makeMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
   const rows = report.queueBridgeRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.productionToolId}\` | \`${row.workerType}\` | \`${row.runtimeTarget}\` | ${row.mockRuntimeQueueServiceUsed} | ${row.mockWorkerLeaseCreated} | ${row.gpuRuntimeShouldStartNow} | ${row.toolExecutionPerformed} |`
+      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.productionToolId}\` | \`${row.workerType}\` | \`${row.runtimeTarget}\` | ${row.mockRuntimeQueueServiceUsed} | ${row.mockWorkerLeaseCreated} | \`${row.productionWorkerFutureHandler}\` | ${row.productionWorkerRouteableToSpecificHandler} | ${row.gpuRuntimeShouldStartNow} | ${row.toolExecutionPerformed} |`
     ))
     .join('\n')
 
@@ -459,12 +730,14 @@ Status: \`${report.status}\`
 
 This bridge binds the eight external-agent GPU/model proof-ref request envelopes to the existing AI graphics runtime queue service. It creates mock-only runtime queue jobs and mock worker leases for the eight GPU/model tools, using the canonical production tool id, worker type, runtime target, private artifact manifest, approved snapshot, credit reservation, and private proof refs from the source caller packet.
 
-It does not perform live queue writes, route execution, worker dispatch, tool execution, model loading, GPU runtime startup, signed URLs, public artifacts, external beta readiness, or production readiness. GPU remains cold until a later accepted live worker job claim starts it on demand.
+It also prepares one dry-run production worker payload per GPU/model tool and proves each payload routes to a concrete worker handler: model-runtime foundation for \`torch_torchvision\` and \`transformers\`, mask/background composition for \`sam2\`, \`birefnet\`, \`kornia\`, \`rembg\`, and \`transparent_background\`, and enhancement for \`real_esrgan\`.
+
+It does not perform live queue writes, live worker dispatch, tool execution, model loading, GPU runtime startup, signed URLs, public artifacts, external beta readiness, or production readiness. GPU remains cold until a later accepted live worker job claim starts it on demand.
 
 ## Queue bridge rows
 
-| Tool | Capability | Production tool | Worker | Runtime target | Mock queue service | Mock worker lease | GPU starts now | Tool execution |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: |
+| Tool | Capability | Production tool | Worker | Runtime target | Mock queue service | Mock worker lease | Dry-run handler | Specific handler | GPU starts now | Tool execution |
+| --- | --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: | ---: |
 ${rows}
 
 ## Counts

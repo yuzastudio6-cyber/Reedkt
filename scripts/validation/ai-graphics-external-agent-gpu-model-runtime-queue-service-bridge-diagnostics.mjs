@@ -27,6 +27,16 @@ const gpuModelTools = [
   'transparent_background',
 ]
 
+function expectedFutureHandler(toolId) {
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') {
+    return 'gpu_ai_worker_ai_graphics_model_runtime_foundation'
+  }
+  if (toolId === 'real_esrgan') {
+    return 'gpu_ai_worker_enhancement_slowmotion_execution'
+  }
+  return 'gpu_ai_worker_mask_composition_execution'
+}
+
 const expectedCounts = {
   totalAiGraphicsTools: 21,
   totalProductFacingCapabilities: 12,
@@ -36,6 +46,12 @@ const expectedCounts = {
   mockRuntimeQueueServiceBatchesCreated: 8,
   mockRuntimeQueueServiceJobsCreated: 8,
   mockWorkerClaimsCreated: 8,
+  productionWorkerPayloadsPrepared: 8,
+  productionWorkerRouterDryRunsCompleted: 8,
+  productionWorkerSpecificHandlerRoutesCompleted: 8,
+  modelRuntimeFoundationWorkerRoutesCompleted: 2,
+  maskCompositionWorkerRoutesCompleted: 5,
+  enhancementWorkerRoutesCompleted: 1,
   toolsValidatedThroughCanonicalReadiness: 8,
   gpuModelRuntimeTargetedTools: 8,
   liveQueueWritePerformedTools: 0,
@@ -59,6 +75,12 @@ const trueBooleans = [
   'all8GpuModelProofRefRouteCallerRowsQueuedThroughRuntimeService',
   'all8MockRuntimeQueueJobsCreated',
   'all8MockWorkerClaimsCreated',
+  'all8GpuModelProductionWorkerPayloadsPrepared',
+  'all8GpuModelProductionWorkerRoutesDryRunCompleted',
+  'all8GpuModelProductionWorkerRoutesHitSpecificHandlers',
+  'twoFoundationWorkerRoutesHitModelRuntimeFoundationHandler',
+  'fiveMaskWorkerRoutesHitMaskCompositionHandler',
+  'oneEnhancementWorkerRouteHitEnhancementHandler',
   'all8ToolsValidatedThroughCanonicalReadiness',
   'usesExistingAiGraphicsRuntimeQueueService',
   'usesExistingRuntimeQueueServiceValidation',
@@ -118,6 +140,11 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-runtime-queue-service-bridge.json',
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
   'server/tool-registry/ai-graphics-tool-call-readiness.ts',
+  'server/workers/production/production-worker-runtime.ts',
+  'server/workers/production/production-worker-router.ts',
+  'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
+  'server/workers/mask-composition/mask-composition-pipeline.ts',
+  'server/workers/enhancement-slowmotion/enhancement-slowmotion-pipeline.ts',
   'package.json',
 ]
 
@@ -315,6 +342,27 @@ if (!Array.isArray(report.queueBridgeRows) || report.queueBridgeRows.length !== 
     if (!row.mockWorkerClaimId) fail(`mock_worker_claim_id_missing:${toolId}`)
     if (row.mockRuntimeQueueServiceUsed !== true) fail(`mock_queue_service_not_used:${toolId}`)
     if (row.mockWorkerLeaseCreated !== true) fail(`mock_worker_lease_not_created:${toolId}`)
+    if (row.productionWorkerStatus !== 'completed') {
+      fail(`production_worker_status_mismatch:${toolId}:${row.productionWorkerStatus}`)
+    }
+    if (row.productionWorkerFutureHandler !== expectedFutureHandler(toolId)) {
+      fail(`production_worker_future_handler_mismatch:${toolId}:${row.productionWorkerFutureHandler}`)
+    }
+    if (row.productionWorkerGatesPassed !== true) {
+      fail(`production_worker_gates_not_passed:${toolId}`)
+    }
+    if (row.productionWorkerRouteableToSpecificHandler !== true) {
+      fail(`production_worker_not_specific_handler:${toolId}`)
+    }
+    if (row.productionWorkerMockOnly !== true) {
+      fail(`production_worker_not_mock_only:${toolId}`)
+    }
+    if (row.productionWorkerExecutionMode !== 'dry_run') {
+      fail(`production_worker_execution_mode_mismatch:${toolId}:${row.productionWorkerExecutionMode}`)
+    }
+    if (row.productionWorkerToolExecutionPerformed !== false) {
+      fail(`production_worker_tool_execution_not_false:${toolId}`)
+    }
 
     const job = row.runtimeQueueJobInput ?? {}
     if (job.toolId !== toolId) fail(`job_tool_mismatch:${toolId}`)
@@ -332,6 +380,51 @@ if (!Array.isArray(report.queueBridgeRows) || report.queueBridgeRows.length !== 
     }
     if (job.inputPayload?.toolExecutionPerformed !== false) {
       fail(`job_tool_execution_not_false:${toolId}`)
+    }
+    if (job.inputPayload?.productionWorkerPayloadPrepared !== true) {
+      fail(`job_production_worker_payload_not_prepared:${toolId}`)
+    }
+    if (job.inputPayload?.productionWorkerExpectedFutureHandler !== expectedFutureHandler(toolId)) {
+      fail(`job_expected_handler_mismatch:${toolId}:${job.inputPayload?.productionWorkerExpectedFutureHandler}`)
+    }
+
+    const productionWorkerPayload = row.productionWorkerPayload ?? {}
+    if (productionWorkerPayload.workerType !== 'gpu_ai_worker') {
+      fail(`production_worker_payload_worker_mismatch:${toolId}`)
+    }
+    if (productionWorkerPayload.executionMode !== 'dry_run') {
+      fail(`production_worker_payload_mode_mismatch:${toolId}`)
+    }
+    if (!Array.isArray(productionWorkerPayload.requestedToolIds) || productionWorkerPayload.requestedToolIds.length !== 1) {
+      fail(`production_worker_payload_requested_tools_mismatch:${toolId}`)
+    }
+    if (productionWorkerPayload.requestedToolIds?.[0] !== row.productionToolId) {
+      fail(`production_worker_payload_production_tool_mismatch:${toolId}`)
+    }
+    if (!productionWorkerPayload.approvedSnapshotId) {
+      fail(`production_worker_payload_snapshot_missing:${toolId}`)
+    }
+    if (!productionWorkerPayload.creditReservationId) {
+      fail(`production_worker_payload_credit_missing:${toolId}`)
+    }
+    if (!String(productionWorkerPayload.idempotencyKey ?? '').startsWith('prod-worker:')) {
+      fail(`production_worker_payload_idempotency_missing:${toolId}`)
+    }
+    const metadata = productionWorkerPayload.metadata ?? {}
+    if (metadata.aiGraphicsCanonicalToolId !== toolId) {
+      fail(`production_worker_payload_canonical_tool_mismatch:${toolId}`)
+    }
+    if (metadata.gpuRuntimeOnDemandOnly !== true || metadata.noIdleGpuRuntimeApproved !== true) {
+      fail(`production_worker_payload_gpu_policy_missing:${toolId}`)
+    }
+    if (metadata.startsOnlyForApprovedWorkerOrToolCall !== true || metadata.cpuFallbackAllowedForHeavyTools !== false) {
+      fail(`production_worker_payload_activation_policy_mismatch:${toolId}`)
+    }
+    if (metadata.gpuRuntimeShouldStartNow !== false) {
+      fail(`production_worker_payload_gpu_start_not_false:${toolId}`)
+    }
+    if (metadata.modelWeightsLoadedForDryRun !== false || metadata.modelInferencePerformedInDryRun !== false) {
+      fail(`production_worker_payload_model_runtime_not_false:${toolId}`)
     }
 
     for (const forbidden of [
@@ -356,6 +449,11 @@ for (const phrase of [
   'existing AI graphics runtime queue service',
   'mock-only runtime queue jobs',
   'mock worker leases',
+  'dry-run production worker payload',
+  'concrete worker handler',
+  'model-runtime foundation',
+  'mask/background composition',
+  'enhancement',
   'GPU remains cold',
   'accepted live worker job claim starts it on demand',
 ]) {

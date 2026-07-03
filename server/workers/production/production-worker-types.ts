@@ -142,6 +142,7 @@ export interface ProductionWorkerRouteOutput {
   colorExecutionResult?: unknown
   maskCompositionResult?: unknown
   enhancementSlowMotionResult?: unknown
+  aiGraphicsFoundationRuntimeResult?: unknown
   finalRenderExecutionResult?: unknown
   aiGraphicsToolCallHandoffResult?: unknown
 }

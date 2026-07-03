@@ -281,7 +281,7 @@ if (
 }
 if (
   sourceControlledRouteCaller.decision !==
-  'ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks'
+  'ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_all21_with_gpu_model_on_demand'
 ) {
   fail('source_controlled_route_caller_decision_mismatch')
 }

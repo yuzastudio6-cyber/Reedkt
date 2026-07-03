@@ -25,6 +25,8 @@ import { runEnhancementSlowMotionPipeline } from '../enhancement-slowmotion'
 import type { EnhancementSlowMotionExecutionMode } from '../enhancement-slowmotion'
 import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
+import { runAiGraphicsFoundationRuntimeCheck } from '../model-runtime-foundation'
+import type { AiGraphicsFoundationRuntimeInput, AiGraphicsFoundationRuntimeToolId } from '../model-runtime-foundation'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 
@@ -146,6 +148,18 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'cpu_analysis_worker_placeholder',
       }
     case 'gpu_ai_worker':
+      if (hasAiGraphicsFoundationRuntimeRequest(payload)) {
+        const aiGraphicsFoundationRuntimeResult = await runAiGraphicsFoundationRuntimeCheck(buildAiGraphicsFoundationRuntimeInput(payload))
+        return {
+          summary: 'AI graphics GPU model-runtime foundation route completed in explicit aiGraphicsFoundationRuntime mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: true,
+          futureHandler: 'gpu_ai_worker_ai_graphics_model_runtime_foundation',
+          aiGraphicsFoundationRuntimeResult,
+        }
+      }
+
       if (hasEnhancementSlowMotionRequest(payload)) {
         const enhancementSlowMotionResult = await runEnhancementSlowMotionPipeline(buildEnhancementSlowMotionInput(payload))
         return {
@@ -472,6 +486,47 @@ function buildAiGraphicsToolCallHandoffResult(payload: ProductionWorkerJobPayloa
     publicArtifactCreated: false,
     signedUrlCreated: false,
   }
+}
+
+function hasAiGraphicsFoundationRuntimeRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.aiGraphicsFoundationRuntime
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return false
+  const record = request as Record<string, unknown>
+  return isAiGraphicsFoundationRuntimeMode(record.mode) &&
+    isAiGraphicsFoundationRuntimeToolId(record.toolId)
+}
+
+function buildAiGraphicsFoundationRuntimeInput(
+  payload: ProductionWorkerJobPayload,
+): AiGraphicsFoundationRuntimeInput {
+  const request = payload.metadata?.aiGraphicsFoundationRuntime as Record<string, unknown>
+  return {
+    mode: request.mode as AiGraphicsFoundationRuntimeInput['mode'],
+    toolId: request.toolId as AiGraphicsFoundationRuntimeToolId,
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    approvedSnapshotId: payload.approvedSnapshotId,
+    outputDirectory: stringValue(request.outputDirectory),
+    enableFoundationRuntimeExecution:
+      request.enableFoundationRuntimeExecution === true,
+    timeoutMs: numberValue(request.timeoutMs),
+  }
+}
+
+function isAiGraphicsFoundationRuntimeMode(
+  value: unknown,
+): value is AiGraphicsFoundationRuntimeInput['mode'] {
+  return value === 'dry_run' ||
+    value === 'local_dev' ||
+    value === 'container_ready' ||
+    value === 'production_blocked' ||
+    value === 'production_ready'
+}
+
+function isAiGraphicsFoundationRuntimeToolId(
+  value: unknown,
+): value is AiGraphicsFoundationRuntimeToolId {
+  return value === 'torch_torchvision' || value === 'transformers'
 }
 
 function hasFinalRenderExecutionRequest(payload: ProductionWorkerJobPayload): boolean {

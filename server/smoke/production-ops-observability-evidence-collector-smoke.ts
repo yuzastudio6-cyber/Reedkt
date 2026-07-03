@@ -173,8 +173,11 @@ function opsObservabilityEnv(): ProductionOpsObservabilityEvidenceCollectorEnv {
     REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_READBACK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_INCIDENT_RUNBOOK_APPROVED: yes,
-    REEDITPRO_PRODUCTION_OPERATIONS_NOTES: 'Production rollback, kill switch, rate limit, concurrency, and incident runbook evidence reviewed.',
+    REEDITPRO_PRODUCTION_OPERATIONS_NOTES: 'Production rollback, kill switch, rate limit, concurrency, atomic ops-admission RPC, and incident runbook evidence reviewed.',
   }
 }
 

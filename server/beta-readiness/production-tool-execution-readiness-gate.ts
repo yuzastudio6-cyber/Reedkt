@@ -72,6 +72,9 @@ export interface ProductionOperationsControlEvidence extends ProductionToolExecu
   killSwitchesVerified: boolean
   rateLimitsVerified: boolean
   concurrencyLimitsVerified: boolean
+  opsAdmissionRpcDeployed: boolean
+  opsAdmissionRpcServiceRoleOnlyVerified: boolean
+  opsAdmissionRpcReadbackVerified: boolean
   incidentRunbookApproved: boolean
 }
 
@@ -222,7 +225,13 @@ export function evaluateProductionToolExecutionReadinessGate(
     stripeBoundaryConfirmed: isStripeBoundaryReady(input),
     observabilityAlertsReady: isObservabilityReady(input),
     rollbackKillSwitchesReady: Boolean(input.operationsControls?.rollbackPlanApproved && input.operationsControls.killSwitchesVerified),
-    rateConcurrencyLimitsReady: Boolean(input.operationsControls?.rateLimitsVerified && input.operationsControls.concurrencyLimitsVerified),
+    rateConcurrencyLimitsReady: Boolean(
+      input.operationsControls?.rateLimitsVerified &&
+      input.operationsControls.concurrencyLimitsVerified &&
+      input.operationsControls.opsAdmissionRpcDeployed &&
+      input.operationsControls.opsAdmissionRpcServiceRoleOnlyVerified &&
+      input.operationsControls.opsAdmissionRpcReadbackVerified,
+    ),
     finalOwnerSignoffReady: isFinalOwnerSignoffReady(input),
     productionToolCount: PRODUCTION_TOOL_IDS.length,
     acceptedProductionToolCount: acceptedToolEvidence.length,
@@ -326,6 +335,9 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.operationsControls?.killSwitchesVerified, 'kill switches are unverified.'),
       requireBoolean(input.operationsControls?.rateLimitsVerified, 'rate limits are unverified.'),
       requireBoolean(input.operationsControls?.concurrencyLimitsVerified, 'concurrency limits are unverified.'),
+      requireBoolean(input.operationsControls?.opsAdmissionRpcDeployed, 'claim_production_gateway_worker_lease RPC deployment is unverified.'),
+      requireBoolean(input.operationsControls?.opsAdmissionRpcServiceRoleOnlyVerified, 'claim_production_gateway_worker_lease service-role-only execution is unverified.'),
+      requireBoolean(input.operationsControls?.opsAdmissionRpcReadbackVerified, 'claim_production_gateway_worker_lease deployed readback is unverified.'),
       requireBoolean(input.operationsControls?.incidentRunbookApproved, 'incident runbook approval is missing.'),
       ...costControlPolicyBlockers(),
       requireNotes(input.operationsControls?.notes, 'Operations control evidence notes are missing.'),
@@ -496,6 +508,9 @@ function isOperationsControlReady(input: ProductionToolExecutionReadinessGateInp
     evidence.killSwitchesVerified &&
     evidence.rateLimitsVerified &&
     evidence.concurrencyLimitsVerified &&
+    evidence.opsAdmissionRpcDeployed &&
+    evidence.opsAdmissionRpcServiceRoleOnlyVerified &&
+    evidence.opsAdmissionRpcReadbackVerified &&
     evidence.incidentRunbookApproved &&
     evidence.notes.length > 0 &&
     costControlPolicyBlockers().length === 0)

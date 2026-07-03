@@ -56,6 +56,7 @@ function extractOutputArtifactRecords(output?: ProductionWorkerRouteOutput): Too
     ...extractArtifactsFromResult(output?.audioExecutionResult, 'artifacts'),
     ...extractArtifactsFromResult(output?.colorExecutionResult, 'artifacts'),
     ...extractArtifactsFromResult(output?.finalRenderExecutionResult, 'renderArtifacts'),
+    ...extractArtifactsFromResult(output?.captionExecutionResult, 'artifacts'),
   ]
 }
 
@@ -65,6 +66,7 @@ function extractOutputQualityGateResults(output?: ProductionWorkerRouteOutput): 
     ...extractQualityGateResultsFromResult(output?.audioExecutionResult),
     ...extractQualityGateResultsFromResult(output?.colorExecutionResult),
     ...extractQualityGateResultsFromResult(output?.finalRenderExecutionResult),
+    ...extractQualityGateResultsFromResult(output?.captionExecutionResult),
   ]
 }
 

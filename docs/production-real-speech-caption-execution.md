@@ -7,3 +7,5 @@ Real transcription is explicit and gated. Dry-run uses a mock transcript fixture
 M13 does not deploy, run `gcloud`, call providers, download models, run smart cuts, run audio cleanup, run color/mask tools, render final exports, or make Revideo core.
 
 M16A final render/export consumes private transcript, caption segment, and caption file artifacts for caption layers and optional libass burn-in after render/export QA gates pass.
+
+The `render_worker_caption_metadata` production handler is narrower than real speech transcription. It accepts existing approved transcript timing, produces private caption metadata and QA records, and keeps faster-whisper, model weights, caption preview, libass burn-in, and final export blocked.

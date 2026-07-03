@@ -90,6 +90,10 @@ These routes produce audio plans, artifacts, and QA gates only. They do not down
 
 `render_worker` can route explicit `metadata.finalRenderExecution.mode` payloads to the final render/export pipeline for dry-run, local-dev, container-ready, and gated production modes. The reviewed `render_worker_final_render_metadata` gateway adapter is limited to production-ready command-plan-only metadata: it can record private render manifests, non-executing Remotion/FFmpeg/libass command plans, render QA, and delivery QA while keeping preview creation, final export, final delivery, Revideo, providers, and public artifacts blocked. `qa_worker` can route explicit `metadata.finalRenderQA.mode` payloads for render/export/final-delivery QA. Default worker placeholder behavior remains unchanged, and existing smokes do not require FFmpeg, Remotion, libass, final cloud jobs, providers, or Revideo.
 
+## Caption Metadata Production Handler
+
+`render_worker_caption_metadata` is a reviewed production-ready gateway adapter for private caption metadata only. It consumes approved transcript segments or word timestamps from `metadata.speechCaptionExecution`, builds SRT, WebVTT, ASS, caption segment, and caption QA artifact records, and keeps speech transcription, model downloads, local file writes, preview burn-in, final export, public delivery, and frontend execution blocked. The adapter scopes requested tool accounting to `libass` because it prepares the ASS/caption QA handoff for render, but it does not execute libass.
+
 ## Milestone 16B Full E2E Workflow Orchestrator
 
 The M16B E2E workflow orchestrator composes existing explicit stage runners and pipeline entrypoints instead of adding new production execution behavior. It builds approved payloads with idempotency keys, passes private artifacts between stages, summarizes QA/fallback/readiness blockers, and proves production-ready remains blocked while current readiness/model/manual-review blockers remain.

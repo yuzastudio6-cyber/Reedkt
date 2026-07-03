@@ -687,6 +687,7 @@
     "smoke:external-agent-tool-execute-broll-wan": "tsx server/smoke/external-agent-tool-execute-broll-wan-smoke.ts",
     "smoke:ai-video-broll-wan-external-agent-wrapper-blocked-result": "tsx server/smoke/ai-video-broll-wan-external-agent-wrapper-blocked-result-smoke.ts",
     "smoke:ai-video-broll-wan-external-agent-wrapper-execution-result": "tsx server/smoke/ai-video-broll-wan-external-agent-wrapper-execution-result-smoke.ts",
+    "smoke:ai-video-broll-gen-11a-model-import-plan": "tsx server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts",
     "external-agent-tool-execute-sound": "tsx server/cli/external-agent-tool-execute-sound.ts",
     "smoke:external-agent-tool-execute-sound": "tsx server/smoke/external-agent-tool-execute-sound-smoke.ts",
     "smoke:sound-music-audio-external-agent-wrapper-blocked-result": "tsx server/smoke/sound-music-audio-external-agent-wrapper-blocked-result-smoke.ts",

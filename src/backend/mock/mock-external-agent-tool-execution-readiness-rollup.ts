@@ -208,6 +208,8 @@ export const AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT =
   'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference' as const
 export const AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference' as const
+export const AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
@@ -436,14 +438,19 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'ready_for_explicit_tool_gate',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_10zb_fixed_delivery_passed_external_agent_wrapper_execution_passed',
+        'controlled_l4_no_idle_payload_install_proof_passed_11a_model_import_plan_ready_for_11b_no_inference_proof',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: true,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'none_explicit_gate_ready_live_preflight_required',
+      primaryBlocker: 'broll_11b_model_import_proof_runner_required_before_wan_import',
       evidence: [
+        'docs/ai-video-broll-gen-11a-model-import-plan.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11a-model-import-plan.ts',
+        'server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts',
+        'docs/implementation-prompts/prompt-ai-video-broll-gen-11b-model-import-proof.md',
+        'package_json_script:smoke:ai-video-broll-gen-11a-model-import-plan',
         'server/cli/ai-video-broll-gen-10zb-l4-payload-install-runner.ts',
         'server/cli/external-agent-tool-execute-broll-wan.ts',
         'server/smoke/external-agent-tool-execute-broll-wan-smoke.ts',
@@ -658,7 +665,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -688,7 +695,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
+          AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
       },
     },
     {
@@ -741,7 +748,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
+    AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

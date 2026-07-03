@@ -87,6 +87,8 @@ const BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference'
 const BROLL_11A_MODEL_IMPORT_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference'
+const BROLL_11B_MODEL_IMPORT_PROOF_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -230,6 +232,9 @@ for (const required of [
   BROLL_10Y_RUNNER_RAW_JSON_CLEANUP_FIX_PROMPT,
   BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
   BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
+  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
+  '11A now defines the narrower no-inference import/load proof',
+  'Wan model import/load proof, inference, generated video, generated assets, Supabase, SQL, signed URLs, credits, beta, and production remain blocked until 11B',
   'docs/ai-video-broll-wan-external-agent-wrapper-blocked-result.md',
   '`npm run external-agent-tool-execute-sound`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true`',
@@ -421,7 +426,7 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
+  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
 )
 assert.equal(rollup.safeNextCommands.length, 12)
 assert.equal(
@@ -685,7 +690,7 @@ assert.equal(broll?.readyForExternalAgentExecutionNow, true)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'none_explicit_gate_ready_live_preflight_required',
+  'broll_11b_model_import_proof_runner_required_before_wan_import',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1159,7 +1164,16 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_11A_MODEL_IMPORT_PLAN_PROMPT)
+assert.equal(broll?.nextAction, BROLL_11B_MODEL_IMPORT_PROOF_PROMPT)
+assert.equal(broll?.primaryBlocker, 'broll_11b_model_import_proof_runner_required_before_wan_import')
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11a-model-import-plan.md'), true)
+assert.equal(broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11a-model-import-plan.ts'), true)
+assert.equal(broll?.evidence.includes('server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts'), true)
+assert.equal(
+  broll?.evidence.includes('docs/implementation-prompts/prompt-ai-video-broll-gen-11b-model-import-proof.md'),
+  true,
+)
+assert.equal(broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11a-model-import-plan'), true)
 assert.equal(
   broll?.evidence.includes('server/cli/ai-video-broll-gen-10zb-l4-payload-install-runner.ts'),
   true,
@@ -1279,7 +1293,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
+  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

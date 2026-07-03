@@ -1,5 +1,6 @@
 import {
   AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
+  AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -128,7 +129,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10ZA payload delivery timeout fix must remain recorded with archive/chunk delivery selected before another paid GPU retry',
         '10ZB bounded fixed-delivery retry must remain passed with no-public-IP L4 VM, exact private GCS payload download, offline dependency install, dependency import readiness, and cleanup verified',
         'external-agent B-roll wrapper must delegate only to the 10ZB no-idle dependency/install runner after quota/cache preflight and explicit confirmation',
-        '11A model import proof plan must be completed before any Wan model import attempt',
+        '11A model import proof plan must remain completed before any Wan model import attempt',
+        '11B no-inference model import proof runner must be implemented before any Wan import/load runtime attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
       currentBlocker: 'live_preflight_and_explicit_confirmation_required_before_broll_dependency_runner',
@@ -179,7 +181,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
+  brollCompletedPlanPrompt: AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

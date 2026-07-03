@@ -44,6 +44,20 @@ const implementationFiles = [
   'scripts/validation/tracka-three-tool-external-agent-worker-process-noop-invoke-1-diagnostics.mjs',
   'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1.mjs',
   'scripts/validation/tracka-three-tool-external-agent-approved-snapshot-job-execution-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-persistent-job-queue-dry-run-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-worker-lease-dry-run-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1-diagnostics.mjs',
+  'server/services/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1.ts',
+  'server/routes/worker-routes.ts',
+  'server/validation/worker-schemas.ts',
+  'server/smoke/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1-smoke.ts',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1/persisted-job-runtime-handoff.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1-record.json',
+  'docs/activation-phase-tracka-three-tool-external-agent-persisted-job-runtime-handoff-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-persisted-job-route-invocation-1.md',
 ]
 
 const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])

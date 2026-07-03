@@ -8,20 +8,22 @@ This packet prepares an executable non-production service-role queue-write and w
 
 ## Tools
 
-| Tool | Runtime target | Capability | Queue smoke ready | GPU starts now |
-| --- | --- | --- | --- | --- |
-| `torch_torchvision` | `native_linux_amd64_nvidia_l4_gpu_worker` | `model_runtime_foundation` | `true` | `false` |
-| `transformers` | `native_linux_amd64_nvidia_l4_gpu_worker` | `model_runtime_foundation` | `true` | `false` |
-| `sam2` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `subject_segmentation` | `true` | `false` |
-| `birefnet` | `native_linux_amd64_nvidia_l4_birefnet_runtime` | `background_removal` | `true` | `false` |
-| `real_esrgan` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` | `upscaling` | `true` | `false` |
-| `kornia` | `native_linux_amd64_nvidia_l4_gpu_worker` | `tensor_image_ops` | `true` | `false` |
-| `rembg` | `native_linux_amd64_nvidia_l4_gpu_worker` | `background_removal` | `true` | `false` |
-| `transparent_background` | `native_linux_amd64_nvidia_l4_gpu_worker` | `background_removal` | `true` | `false` |
+| Tool | Runtime target | Capability | Source production-worker handler | Specific handler proven | Queue smoke ready | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `native_linux_amd64_nvidia_l4_gpu_worker` | `model_runtime_foundation` | `gpu_ai_worker_ai_graphics_model_runtime_foundation` | `true` | `true` | `false` |
+| `transformers` | `native_linux_amd64_nvidia_l4_gpu_worker` | `model_runtime_foundation` | `gpu_ai_worker_ai_graphics_model_runtime_foundation` | `true` | `true` | `false` |
+| `sam2` | `native_linux_amd64_nvidia_l4_sam2_runtime` | `subject_segmentation` | `gpu_ai_worker_mask_composition_execution` | `true` | `true` | `false` |
+| `birefnet` | `native_linux_amd64_nvidia_l4_birefnet_runtime` | `background_removal` | `gpu_ai_worker_mask_composition_execution` | `true` | `true` | `false` |
+| `real_esrgan` | `native_linux_amd64_nvidia_l4_real_esrgan_runtime` | `upscaling` | `gpu_ai_worker_enhancement_slowmotion_execution` | `true` | `true` | `false` |
+| `kornia` | `native_linux_amd64_nvidia_l4_gpu_worker` | `tensor_image_ops` | `gpu_ai_worker_mask_composition_execution` | `true` | `true` | `false` |
+| `rembg` | `native_linux_amd64_nvidia_l4_gpu_worker` | `background_removal` | `gpu_ai_worker_mask_composition_execution` | `true` | `true` | `false` |
+| `transparent_background` | `native_linux_amd64_nvidia_l4_gpu_worker` | `background_removal` | `gpu_ai_worker_mask_composition_execution` | `true` | `true` | `false` |
 
 ## Counts
 
 - GPU/model tools covered: `8`
+- Source production-worker payloads prepared: `8`
+- Source production-worker specific-handler routes accepted: `8`
 - Expected live queue rows before cleanup: `8`
 - Expected worker claim rows before cleanup: `8`
 - Expected persisted rows after cleanup: `0`
@@ -32,6 +34,8 @@ This packet prepares an executable non-production service-role queue-write and w
 ## Gates
 
 - `usesExistingAiGraphicsRuntimeQueueService`: `true`
+- `sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted`: `true`
+- `all8GpuModelProductionWorkerRoutesHitSpecificHandlersWithProvidedEvidence`: `true`
 - `newGpuWorkerCreated`: `false`
 - `gpuRuntimeOnDemandOnly`: `true`
 - `agentCanExecuteGpuModelToolsNow`: `false`

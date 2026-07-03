@@ -33,6 +33,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-beta-gpu-model-service-role-queue-smoke.json',
   'docs/tool-intelligence/ai-graphics/external-beta-gpu-model-service-role-queue-smoke.md',
   'docs/tool-intelligence/ai-graphics/external-beta-gpu-model-worker-boundary-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-queue-service-bridge.json',
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
   'docs/tool-intelligence/ai-graphics/external-beta-route-bound-service-role-queue-smoke-operator-preflight.json',
   'server/services/ai-graphics-tool-runtime-queue-service.ts',
@@ -183,6 +184,12 @@ function checkReport(label, report) {
     if (tool.queueSmokeReadyWithProvidedEvidence !== true) {
       fail(`${label}_${tool.toolId}_queue_smoke_not_ready`)
     }
+    if (tool.productionWorkerRouteableToSpecificHandler !== true) {
+      fail(`${label}_${tool.toolId}_production_worker_specific_handler_not_true`)
+    }
+    if (!String(tool.productionWorkerFutureHandler ?? '').startsWith('gpu_ai_worker_')) {
+      fail(`${label}_${tool.toolId}_production_worker_future_handler_missing`)
+    }
     if (tool.gpuRuntimeShouldStartNow !== false) {
       fail(`${label}_${tool.toolId}_gpu_start_now_not_false`)
     }
@@ -193,6 +200,12 @@ function checkReport(label, report) {
     totalAiGraphicsTools: 21,
     gpuModelToolsCovered: 8,
     sourceGpuModelWorkerBoundaryProofAcceptedTools: 8,
+    sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAcceptedTools: 8,
+    sourceProductionWorkerPayloadsPreparedWithProvidedEvidenceTools: 8,
+    sourceProductionWorkerSpecificHandlerRoutesWithProvidedEvidenceTools: 8,
+    sourceModelRuntimeFoundationWorkerRoutesWithProvidedEvidenceTools: 2,
+    sourceMaskCompositionWorkerRoutesWithProvidedEvidenceTools: 5,
+    sourceEnhancementWorkerRoutesWithProvidedEvidenceTools: 1,
     gpuModelServiceRoleQueueSmokeReadyTools: 8,
     gpuModelServiceRoleQueueSmokeExecutableWhenExplicitlyAuthorizedTools: 8,
     expectedLiveQueueRowsBeforeCleanup: 8,
@@ -217,6 +230,12 @@ function checkReport(label, report) {
   const requiredTrue = [
     'externalBetaGpuModelServiceRoleQueueSmokeHarnessPrepared',
     'sourceGpuModelWorkerBoundaryProofAccepted',
+    'sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted',
+    'all8GpuModelProductionWorkerPayloadsPreparedWithProvidedEvidence',
+    'all8GpuModelProductionWorkerRoutesHitSpecificHandlersWithProvidedEvidence',
+    'twoFoundationWorkerRoutesAcceptedWithProvidedEvidence',
+    'fiveMaskWorkerRoutesAcceptedWithProvidedEvidence',
+    'oneEnhancementWorkerRouteAcceptedWithProvidedEvidence',
     'sourceServiceRoleQueueSmokeAuthorizationRequired',
     'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightRequired',
     'all8GpuModelToolsCovered',
@@ -253,6 +272,32 @@ function checkSourcePackets() {
   if (boundary.counts?.gpuModelToolsCovered !== 8) fail('source_boundary_tool_count_mismatch')
   if (boundary.booleans?.newGpuWorkerCreated !== false) fail('source_boundary_new_gpu_worker_not_false')
   if (boundary.booleans?.gpuRuntimeShouldStartNow !== false) fail('source_boundary_gpu_start_not_false')
+
+  const bridge = json('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-queue-service-bridge.json')
+  if (bridge.decision !== 'ai_graphics_external_agent_gpu_model_runtime_queue_service_bridge_prepared_with_runtime_blocks') {
+    fail('source_runtime_queue_bridge_decision_mismatch')
+  }
+  if (bridge.counts?.productionWorkerPayloadsPrepared !== 8) {
+    fail('source_runtime_queue_bridge_payload_count_mismatch')
+  }
+  if (bridge.counts?.productionWorkerSpecificHandlerRoutesCompleted !== 8) {
+    fail('source_runtime_queue_bridge_specific_handler_count_mismatch')
+  }
+  if (bridge.counts?.modelRuntimeFoundationWorkerRoutesCompleted !== 2) {
+    fail('source_runtime_queue_bridge_foundation_handler_count_mismatch')
+  }
+  if (bridge.counts?.maskCompositionWorkerRoutesCompleted !== 5) {
+    fail('source_runtime_queue_bridge_mask_handler_count_mismatch')
+  }
+  if (bridge.counts?.enhancementWorkerRoutesCompleted !== 1) {
+    fail('source_runtime_queue_bridge_enhancement_handler_count_mismatch')
+  }
+  if (bridge.booleans?.all8GpuModelProductionWorkerRoutesHitSpecificHandlers !== true) {
+    fail('source_runtime_queue_bridge_specific_handler_boolean_not_true')
+  }
+  if (bridge.booleans?.gpuRuntimeShouldStartNow !== false) {
+    fail('source_runtime_queue_bridge_gpu_start_not_false')
+  }
 
   const authorization = json('docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json')
   if (authorization.decision !== 'ai_graphics_external_beta_service_role_queue_smoke_authorization_prepared_with_runtime_blocks') {
@@ -315,6 +360,8 @@ function runExpectedCredentialFailure() {
     'ai-graphics-external-beta-gpu-model-service-role-queue-smoke',
     '--source-gpu-model-worker-boundary-proof-packet',
     'docs/tool-intelligence/ai-graphics/external-beta-gpu-model-worker-boundary-proof.json',
+    '--external-agent-gpu-model-runtime-queue-service-bridge-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-queue-service-bridge.json',
     '--external-beta-service-role-queue-smoke-authorization-packet',
     'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json',
     '--route-bound-service-role-queue-smoke-operator-preflight-packet',
@@ -417,6 +464,8 @@ function checkRequiredSourceText() {
     'recordWorkerEvent',
     'recordAuditEvent',
     'cleanupSmokeRows',
+    'sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted',
+    'sourceProductionWorkerRouteableToSpecificHandler',
     'REEDITPRO_CONFIRM_AI_GRAPHICS_EXTERNAL_BETA_GPU_MODEL_QUEUE_SMOKE',
     'REEDITPRO_AI_GRAPHICS_EXTERNAL_BETA_GPU_MODEL_QUEUE_SMOKE_ENV',
     'gpuRuntimeShouldStartNow: false',

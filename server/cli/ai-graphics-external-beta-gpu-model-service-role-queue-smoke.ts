@@ -18,6 +18,8 @@ const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-beta-gpu-model-service-role-queue-smoke.md'
 const sourceGpuModelWorkerBoundaryProofPath =
   'docs/tool-intelligence/ai-graphics/external-beta-gpu-model-worker-boundary-proof.json'
+const sourceExternalAgentGpuModelRuntimeQueueServiceBridgePath =
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-queue-service-bridge.json'
 const sourceServiceRoleQueueSmokeAuthorizationPath =
   'docs/tool-intelligence/ai-graphics/external-beta-service-role-queue-smoke-authorization.json'
 const sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightPath =
@@ -83,6 +85,43 @@ interface SourceBoundaryProof {
   booleans?: Record<string, boolean>
 }
 
+interface SourceRuntimeQueueBridgeRow {
+  toolId: GpuModelToolId
+  productionToolId: string
+  workerType: string
+  runtimeTarget: string
+  capabilityId: string
+  runtimeQueueJobInput?: {
+    idempotencyKey?: string
+  }
+  productionWorkerPayload?: {
+    idempotencyKey?: string
+  }
+  productionWorkerFutureHandler: string
+  productionWorkerPayloadPrepared?: boolean
+  productionWorkerRouteableToSpecificHandler: boolean
+  productionWorkerMockOnly: boolean
+  productionWorkerExecutionMode: string
+  productionWorkerToolExecutionPerformed: boolean
+  liveQueueWritePerformed: boolean
+  workerDispatchPerformed: boolean
+  workerExecutionPerformed: boolean
+  toolExecutionPerformed: boolean
+  gpuRuntimeShouldStartNow: boolean
+  modelWeightsLoaded: boolean
+  modelInferencePerformed: boolean
+  publicArtifactCreated: boolean
+  signedUrlCreated: boolean
+}
+
+interface SourceRuntimeQueueBridge {
+  decision?: string
+  status?: string
+  queueBridgeRows?: SourceRuntimeQueueBridgeRow[]
+  counts?: Record<string, number>
+  booleans?: Record<string, boolean>
+}
+
 interface GpuModelServiceRoleQueueSmokeJob {
   toolId: GpuModelToolId
   productionToolId: string
@@ -125,6 +164,12 @@ function readRequiredJsonFlag<T>(flag: string): T {
 
 function sourceGpuModelWorkerBoundaryProof(): SourceBoundaryProof {
   return readJson<SourceBoundaryProof>(sourceGpuModelWorkerBoundaryProofPath)
+}
+
+function sourceExternalAgentGpuModelRuntimeQueueServiceBridge(): SourceRuntimeQueueBridge {
+  return readJson<SourceRuntimeQueueBridge>(
+    sourceExternalAgentGpuModelRuntimeQueueServiceBridgePath,
+  )
 }
 
 function ensureGpuModelWorkerBoundaryProofAccepted(packet: SourceBoundaryProof): SourceBoundaryProof {
@@ -188,6 +233,81 @@ function ensureGpuModelWorkerBoundaryProofAccepted(packet: SourceBoundaryProof):
     )
   }
   return packet
+}
+
+function ensureExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted(
+  packet: SourceRuntimeQueueBridge,
+): SourceRuntimeQueueBridge {
+  assert(
+    packet.decision ===
+      'ai_graphics_external_agent_gpu_model_runtime_queue_service_bridge_prepared_with_runtime_blocks',
+    'GPU/model queue smoke requires the accepted external-agent GPU/model runtime queue-service bridge packet.',
+  )
+  assert(
+    packet.status ===
+      'external_agent_gpu_model_runtime_queue_service_bridge_ready_for_eight_tools',
+    'External-agent GPU/model runtime queue-service bridge status is not accepted.',
+  )
+  assert(
+    packet.counts?.gpuModelRuntimeQueueServiceBridgeToolsNow === 8 &&
+      packet.counts?.productionWorkerPayloadsPrepared === 8 &&
+      packet.counts?.productionWorkerRouterDryRunsCompleted === 8 &&
+      packet.counts?.productionWorkerSpecificHandlerRoutesCompleted === 8 &&
+      packet.counts?.modelRuntimeFoundationWorkerRoutesCompleted === 2 &&
+      packet.counts?.maskCompositionWorkerRoutesCompleted === 5 &&
+      packet.counts?.enhancementWorkerRoutesCompleted === 1 &&
+      packet.counts?.liveQueueWritePerformedTools === 0 &&
+      packet.counts?.workerDispatchPerformedTools === 0 &&
+      packet.counts?.toolExecutionPerformedTools === 0 &&
+      packet.counts?.gpuRuntimeShouldStartNowTools === 0,
+    'External-agent GPU/model runtime queue-service bridge counts do not match the required concrete-handler boundary.',
+  )
+  assert(
+    packet.booleans?.all8GpuModelProductionWorkerPayloadsPrepared === true &&
+      packet.booleans?.all8GpuModelProductionWorkerRoutesDryRunCompleted === true &&
+      packet.booleans?.all8GpuModelProductionWorkerRoutesHitSpecificHandlers === true &&
+      packet.booleans?.twoFoundationWorkerRoutesHitModelRuntimeFoundationHandler === true &&
+      packet.booleans?.fiveMaskWorkerRoutesHitMaskCompositionHandler === true &&
+      packet.booleans?.oneEnhancementWorkerRouteHitEnhancementHandler === true &&
+      packet.booleans?.gpuRuntimeOnDemandOnly === true &&
+      packet.booleans?.agentCanExecuteGpuModelToolsNow === false &&
+      packet.booleans?.gpuRuntimeShouldStartNow === false,
+    'External-agent GPU/model runtime queue-service bridge booleans do not preserve required runtime gates.',
+  )
+
+  const rows = packet.queueBridgeRows ?? []
+  assert(rows.length === 8, 'External-agent GPU/model runtime queue-service bridge must contain exactly eight rows.')
+  const seen = new Set(rows.map((row) => row.toolId))
+  for (const toolId of gpuModelTools) {
+    assert(seen.has(toolId), `External-agent GPU/model runtime queue-service bridge is missing ${toolId}.`)
+  }
+  for (const row of rows) {
+    assert(
+      row.workerType === 'gpu_ai_worker' &&
+        row.runtimeTarget.includes('native_linux_amd64_nvidia_l4') &&
+        row.productionWorkerRouteableToSpecificHandler === true &&
+        row.productionWorkerMockOnly === true &&
+        row.productionWorkerExecutionMode === 'dry_run' &&
+        row.productionWorkerToolExecutionPerformed === false &&
+        row.liveQueueWritePerformed === false &&
+        row.workerDispatchPerformed === false &&
+        row.workerExecutionPerformed === false &&
+        row.toolExecutionPerformed === false &&
+        row.gpuRuntimeShouldStartNow === false &&
+        row.modelWeightsLoaded === false &&
+        row.modelInferencePerformed === false &&
+        row.publicArtifactCreated === false &&
+        row.signedUrlCreated === false,
+      `External-agent GPU/model runtime queue-service bridge row is not queue-smoke-ready for ${row.toolId}.`,
+    )
+  }
+  return packet
+}
+
+function bridgeRowsByToolId(
+  packet: SourceRuntimeQueueBridge,
+): Map<GpuModelToolId, SourceRuntimeQueueBridgeRow> {
+  return new Map((packet.queueBridgeRows ?? []).map((row) => [row.toolId, row]))
 }
 
 function countFromPacket(packet: Record<string, unknown>, key: string): number | undefined {
@@ -263,57 +383,86 @@ function requireAcceptedRouteBoundServiceRoleQueueSmokeOperatorPreflight(
 
 function buildGpuModelSmokeJobs(input: {
   source: SourceBoundaryProof
+  runtimeQueueBridge: SourceRuntimeQueueBridge
   idempotencyPrefix: string
   serviceRoleQueueSmokeAuthorizationRef: string
   serviceRoleQueueSmokeReadinessRef: string
   runtimeQueueServiceProofBridgeRef: string
 }): GpuModelServiceRoleQueueSmokeJob[] {
   const records = input.source.records ?? []
-  return records.map((record) => ({
-    toolId: record.toolId,
-    productionToolId: record.productionToolId,
-    workerType: record.workerType,
-    runtimeTarget: record.runtimeTarget,
-    capabilityIds: [record.capabilityId],
-    privateArtifactManifestRef:
-      `private://ai-graphics/external-beta/gpu-model-service-role-queue-smoke/${record.toolId}/manifest.json`,
-    idempotencyKey: `${input.idempotencyPrefix}:gpu-model-job:${record.toolId}`,
-    priority: 'high',
-    maxAttempts: 1,
-    inputPayload: {
-      smokeOnly: true,
-      externalBetaGpuModelServiceRoleQueueSmoke: true,
-      aiGraphicsCanonicalToolId: record.toolId,
+  const bridgeRows = bridgeRowsByToolId(input.runtimeQueueBridge)
+  return records.map((record) => {
+    const bridgeRow = bridgeRows.get(record.toolId)
+    assert(bridgeRow, `External-agent GPU/model runtime queue-service bridge missing row for ${record.toolId}.`)
+    assert(
+      bridgeRow.productionToolId === record.productionToolId &&
+        bridgeRow.workerType === record.workerType &&
+        bridgeRow.runtimeTarget === record.runtimeTarget &&
+        bridgeRow.capabilityId === record.capabilityId,
+      `External-agent GPU/model runtime queue-service bridge row does not align with worker-boundary proof for ${record.toolId}.`,
+    )
+    return {
+      toolId: record.toolId,
       productionToolId: record.productionToolId,
+      workerType: record.workerType,
       runtimeTarget: record.runtimeTarget,
-      capabilityId: record.capabilityId,
-      modelWeightManifestRequired: record.modelWeightManifestRequired,
-      serviceRoleQueueSmokeAuthorizationRef:
-        input.serviceRoleQueueSmokeAuthorizationRef,
-      serviceRoleQueueSmokeReadinessRef:
-        input.serviceRoleQueueSmokeReadinessRef,
-      runtimeQueueServiceProofBridgeRef:
-        input.runtimeQueueServiceProofBridgeRef,
-      sourceGpuModelWorkerBoundaryProofAccepted: true,
-      sourceRuntimeJobAdmissionReadyWithProvidedEvidence:
-        record.sourceRuntimeJobAdmissionReadyWithProvidedEvidence,
-      nativeGpuRuntimeProofRefAccepted: record.nativeGpuRuntimeProofRefAccepted,
-      modelWeightManifestRefAccepted: record.modelWeightManifestRefAccepted,
-      modelWeightPrivateEvidenceAccepted: record.modelWeightPrivateEvidenceAccepted,
-      gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
-        record.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
-      gpuRuntimeOnDemandOnly: true,
-      noIdleGpuRuntimeApproved: true,
-      gpuRuntimeShouldStartNow: false,
-      workerDispatchPerformed: false,
-      toolExecutionPerformed: false,
-      modelWeightsLoaded: false,
-    },
-  }))
+      capabilityIds: [record.capabilityId],
+      privateArtifactManifestRef:
+        `private://ai-graphics/external-beta/gpu-model-service-role-queue-smoke/${record.toolId}/manifest.json`,
+      idempotencyKey: `${input.idempotencyPrefix}:gpu-model-job:${record.toolId}`,
+      priority: 'high',
+      maxAttempts: 1,
+      inputPayload: {
+        smokeOnly: true,
+        externalBetaGpuModelServiceRoleQueueSmoke: true,
+        aiGraphicsCanonicalToolId: record.toolId,
+        productionToolId: record.productionToolId,
+        runtimeTarget: record.runtimeTarget,
+        capabilityId: record.capabilityId,
+        modelWeightManifestRequired: record.modelWeightManifestRequired,
+        serviceRoleQueueSmokeAuthorizationRef:
+          input.serviceRoleQueueSmokeAuthorizationRef,
+        serviceRoleQueueSmokeReadinessRef:
+          input.serviceRoleQueueSmokeReadinessRef,
+        runtimeQueueServiceProofBridgeRef:
+          input.runtimeQueueServiceProofBridgeRef,
+        sourceGpuModelWorkerBoundaryProofAccepted: true,
+        sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted: true,
+        sourceProductionWorkerPayloadPrepared: true,
+        sourceProductionWorkerFutureHandler: bridgeRow.productionWorkerFutureHandler,
+        sourceProductionWorkerRouteableToSpecificHandler:
+          bridgeRow.productionWorkerRouteableToSpecificHandler,
+        sourceProductionWorkerExecutionMode: bridgeRow.productionWorkerExecutionMode,
+        sourceRuntimeQueueJobInputIdempotencyKey:
+          bridgeRow.runtimeQueueJobInput?.idempotencyKey,
+        sourceProductionWorkerPayloadIdempotencyKey:
+          bridgeRow.productionWorkerPayload?.idempotencyKey,
+        sourceRuntimeJobAdmissionReadyWithProvidedEvidence:
+          record.sourceRuntimeJobAdmissionReadyWithProvidedEvidence,
+        nativeGpuRuntimeProofRefAccepted: record.nativeGpuRuntimeProofRefAccepted,
+        modelWeightManifestRefAccepted: record.modelWeightManifestRefAccepted,
+        modelWeightPrivateEvidenceAccepted: record.modelWeightPrivateEvidenceAccepted,
+        gpuRuntimeStartAllowedForAcceptedExternalBetaJob:
+          record.gpuRuntimeStartAllowedForAcceptedExternalBetaJob,
+        gpuRuntimeOnDemandOnly: true,
+        noIdleGpuRuntimeApproved: true,
+        gpuRuntimeShouldStartNow: false,
+        workerDispatchPerformed: false,
+        toolExecutionPerformed: false,
+        modelWeightsLoaded: false,
+      },
+    }
+  })
 }
 
-function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sourceGpuModelWorkerBoundaryProof())) {
+function preparedContract(
+  source = ensureGpuModelWorkerBoundaryProofAccepted(sourceGpuModelWorkerBoundaryProof()),
+  runtimeQueueBridge = ensureExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted(
+    sourceExternalAgentGpuModelRuntimeQueueServiceBridge(),
+  ),
+) {
   const records = source.records ?? []
+  const bridgeRows = bridgeRowsByToolId(runtimeQueueBridge)
   return {
     schemaVersion:
       '2026-07-02.ai-graphics.external-beta-gpu-model-service-role-queue-smoke',
@@ -332,6 +481,7 @@ function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sou
       '--credit-reservation-id',
       '--idempotency-prefix',
       '--source-gpu-model-worker-boundary-proof-packet',
+      '--external-agent-gpu-model-runtime-queue-service-bridge-packet',
       '--external-beta-service-role-queue-smoke-authorization-packet',
       '--route-bound-service-role-queue-smoke-operator-preflight-packet',
       '--service-role-queue-smoke-readiness-ref',
@@ -342,6 +492,8 @@ function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sou
     sourcePackets: {
       gpuModelWorkerBoundaryProof:
         sourceGpuModelWorkerBoundaryProofPath,
+      externalAgentGpuModelRuntimeQueueServiceBridge:
+        sourceExternalAgentGpuModelRuntimeQueueServiceBridgePath,
       serviceRoleQueueSmokeAuthorization:
         sourceServiceRoleQueueSmokeAuthorizationPath,
       routeBoundServiceRoleQueueSmokeOperatorPreflight:
@@ -356,6 +508,10 @@ function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sou
       modelWeightManifestRequired: record.modelWeightManifestRequired,
       nativeGpuRuntimeProofRefAccepted: record.nativeGpuRuntimeProofRefAccepted,
       modelWeightManifestRefAccepted: record.modelWeightManifestRefAccepted,
+      productionWorkerFutureHandler:
+        bridgeRows.get(record.toolId)?.productionWorkerFutureHandler ?? 'missing_source_future_handler',
+      productionWorkerRouteableToSpecificHandler:
+        bridgeRows.get(record.toolId)?.productionWorkerRouteableToSpecificHandler ?? false,
       queueSmokeReadyWithProvidedEvidence: true,
       gpuRuntimeShouldStartNow: false,
     })),
@@ -363,6 +519,12 @@ function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sou
       totalAiGraphicsTools: 21,
       gpuModelToolsCovered: 8,
       sourceGpuModelWorkerBoundaryProofAcceptedTools: 8,
+      sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAcceptedTools: 8,
+      sourceProductionWorkerPayloadsPreparedWithProvidedEvidenceTools: 8,
+      sourceProductionWorkerSpecificHandlerRoutesWithProvidedEvidenceTools: 8,
+      sourceModelRuntimeFoundationWorkerRoutesWithProvidedEvidenceTools: 2,
+      sourceMaskCompositionWorkerRoutesWithProvidedEvidenceTools: 5,
+      sourceEnhancementWorkerRoutesWithProvidedEvidenceTools: 1,
       gpuModelServiceRoleQueueSmokeReadyTools: 8,
       gpuModelServiceRoleQueueSmokeExecutableWhenExplicitlyAuthorizedTools: 8,
       expectedLiveQueueRowsBeforeCleanup: 8,
@@ -382,6 +544,12 @@ function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sou
     booleans: {
       externalBetaGpuModelServiceRoleQueueSmokeHarnessPrepared: true,
       sourceGpuModelWorkerBoundaryProofAccepted: true,
+      sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted: true,
+      all8GpuModelProductionWorkerPayloadsPreparedWithProvidedEvidence: true,
+      all8GpuModelProductionWorkerRoutesHitSpecificHandlersWithProvidedEvidence: true,
+      twoFoundationWorkerRoutesAcceptedWithProvidedEvidence: true,
+      fiveMaskWorkerRoutesAcceptedWithProvidedEvidence: true,
+      oneEnhancementWorkerRouteAcceptedWithProvidedEvidence: true,
       sourceServiceRoleQueueSmokeAuthorizationRequired: true,
       sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightRequired: true,
       all8GpuModelToolsCovered: true,
@@ -447,7 +615,7 @@ function preparedContract(source = ensureGpuModelWorkerBoundaryProofAccepted(sou
 function markdownFor(report: ReturnType<typeof preparedContract>): string {
   const rows = report.gpuModelTools
     .map((tool) => (
-      `| \`${tool.toolId}\` | \`${tool.runtimeTarget}\` | \`${tool.capabilityId}\` | \`${tool.queueSmokeReadyWithProvidedEvidence}\` | \`${tool.gpuRuntimeShouldStartNow}\` |`
+      `| \`${tool.toolId}\` | \`${tool.runtimeTarget}\` | \`${tool.capabilityId}\` | \`${tool.productionWorkerFutureHandler}\` | \`${tool.productionWorkerRouteableToSpecificHandler}\` | \`${tool.queueSmokeReadyWithProvidedEvidence}\` | \`${tool.gpuRuntimeShouldStartNow}\` |`
     ))
     .join('\n')
 
@@ -461,13 +629,15 @@ This packet prepares an executable non-production service-role queue-write and w
 
 ## Tools
 
-| Tool | Runtime target | Capability | Queue smoke ready | GPU starts now |
-| --- | --- | --- | --- | --- |
+| Tool | Runtime target | Capability | Source production-worker handler | Specific handler proven | Queue smoke ready | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts
 
 - GPU/model tools covered: \`${report.counts.gpuModelToolsCovered}\`
+- Source production-worker payloads prepared: \`${report.counts.sourceProductionWorkerPayloadsPreparedWithProvidedEvidenceTools}\`
+- Source production-worker specific-handler routes accepted: \`${report.counts.sourceProductionWorkerSpecificHandlerRoutesWithProvidedEvidenceTools}\`
 - Expected live queue rows before cleanup: \`${report.counts.expectedLiveQueueRowsBeforeCleanup}\`
 - Expected worker claim rows before cleanup: \`${report.counts.expectedWorkerClaimRowsBeforeCleanup}\`
 - Expected persisted rows after cleanup: \`${report.counts.expectedPersistedRowsAfterCleanup}\`
@@ -478,6 +648,8 @@ ${rows}
 ## Gates
 
 - \`usesExistingAiGraphicsRuntimeQueueService\`: \`${report.booleans.usesExistingAiGraphicsRuntimeQueueService}\`
+- \`sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted\`: \`${report.booleans.sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted}\`
+- \`all8GpuModelProductionWorkerRoutesHitSpecificHandlersWithProvidedEvidence\`: \`${report.booleans.all8GpuModelProductionWorkerRoutesHitSpecificHandlersWithProvidedEvidence}\`
 - \`newGpuWorkerCreated\`: \`${report.booleans.newGpuWorkerCreated}\`
 - \`gpuRuntimeOnDemandOnly\`: \`${report.booleans.gpuRuntimeOnDemandOnly}\`
 - \`agentCanExecuteGpuModelToolsNow\`: \`${report.booleans.agentCanExecuteGpuModelToolsNow}\`
@@ -570,6 +742,12 @@ async function executeGpuModelServiceRoleQueueSmoke() {
       '--source-gpu-model-worker-boundary-proof-packet',
     ),
   )
+  const runtimeQueueBridge =
+    ensureExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted(
+      readRequiredJsonFlag<SourceRuntimeQueueBridge>(
+        '--external-agent-gpu-model-runtime-queue-service-bridge-packet',
+      ),
+    )
   const serviceRoleQueueSmokeAuthorizationRef =
     requireAcceptedServiceRoleQueueSmokeAuthorization(
       readRequiredJsonFlag<Record<string, unknown>>(
@@ -619,6 +797,7 @@ async function executeGpuModelServiceRoleQueueSmoke() {
   const service = createAiGraphicsToolRuntimeQueueService(context)
   const jobs = buildGpuModelSmokeJobs({
     source,
+    runtimeQueueBridge,
     idempotencyPrefix,
     serviceRoleQueueSmokeAuthorizationRef,
     serviceRoleQueueSmokeReadinessRef,
@@ -666,6 +845,7 @@ async function executeGpuModelServiceRoleQueueSmoke() {
           serviceRoleQueueSmokeReadinessRef,
           runtimeQueueServiceProofBridgeRef,
           sourceGpuModelWorkerBoundaryProofAccepted: true,
+          sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted: true,
           gpuRuntimeOnDemandOnly: true,
           workerDispatchPerformed: false,
           toolExecutionApprovedNow: false,
@@ -684,6 +864,7 @@ async function executeGpuModelServiceRoleQueueSmoke() {
         serviceRoleQueueSmokeReadinessRef,
         runtimeQueueServiceProofBridgeRef,
         sourceGpuModelWorkerBoundaryProofAccepted: true,
+        sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted: true,
         jobBatchId: queueResult.jobBatchId,
         jobCount: jobIds.length,
         gpuRuntimeOnDemandOnly: true,
@@ -712,6 +893,7 @@ async function executeGpuModelServiceRoleQueueSmoke() {
     serviceRoleQueueSmokeAuthorizationRef,
     sourceGpuModelWorkerBoundaryProofAccepted: true,
     sourceRuntimeQueueServiceProofBridgeAccepted: true,
+    sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted: true,
     gpuRuntimeStartAllowedForAcceptedExternalBetaJobTools: 8,
     liveServiceRoleQueueSmokeExecutedNow: true,
     liveSupabaseQueueWritesNow: jobIds.length,

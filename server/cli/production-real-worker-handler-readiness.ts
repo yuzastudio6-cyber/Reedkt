@@ -45,10 +45,12 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     Object.entries(sourceFiles).map(([key, path]) => [key, readSource(path)]),
   ) as Record<keyof typeof sourceFiles, string>
   const routerLiteralNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: false')
-  const routerConditionalNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler') +
+  const routerConditionalNonMockOutputs = countOccurrences(sources.workerRouter, 'mockOnly: !realMediaHandler') +
+    countOccurrences(sources.workerRouter, 'mockOnly: !realMediaProbeHandler') +
     countOccurrences(sources.workerRouter, 'mockOnly: !realToolReadinessHandler')
   const routerHasReviewedNonMockOutput = routerLiteralNonMockOutputs + routerConditionalNonMockOutputs > 0
   const realAdapterCount = [
+    'cpu_analysis_worker_media_audio_extract',
     'cpu_analysis_worker_media_probe',
     'tool_readiness_worker_core_checks',
   ].filter((adapterId) => sources.gatewaySchemas.includes(adapterId)).length
@@ -92,6 +94,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       evidence: {
         file: sourceFiles.gatewaySchemas,
         realAdapterCount,
+        mediaAudioExtractAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_audio_extract'),
         mediaProbeAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
         toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
@@ -101,6 +104,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       id: 'gateway_smoke_proves_real_production_ready_handler',
       passed: (
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_probe') ||
+        sources.gatewaySmoke.includes('cpu_analysis_worker_media_audio_extract') ||
         sources.gatewaySmoke.includes('tool_readiness_worker_core_checks')
       ) &&
         /production_ready[\s\S]{0,2400}output\?\.mockOnly[\s\S]{0,240}false/i.test(sources.gatewaySmoke),
@@ -108,6 +112,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       evidence: {
         file: sourceFiles.gatewaySmoke,
         productionReadyMentions: countOccurrences(sources.gatewaySmoke, 'production_ready'),
+        realMediaAudioExtractAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_audio_extract'),
         realMediaProbeAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_probe'),
         realToolReadinessAdapterMentions: countOccurrences(sources.gatewaySmoke, 'tool_readiness_worker_core_checks'),
         mockOnlyFalseAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, false'),

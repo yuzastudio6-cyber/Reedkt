@@ -141,6 +141,8 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
     : undefined
   const toolReadinessCoreChecks = payload.workerType === 'tool_readiness_worker' &&
     gatewayAdapterId === 'tool_readiness_worker_core_checks'
+  const mediaAudioExtractCoreChecks = payload.workerType === 'cpu_analysis_worker' &&
+    gatewayAdapterId === 'cpu_analysis_worker_media_audio_extract'
 
   for (const toolId of payload.requestedToolIds) {
     if (trackBAdapterToolId === toolId) {
@@ -154,7 +156,7 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
       continue
     }
 
-    const result = toolReadinessCoreChecks
+    const result = toolReadinessCoreChecks || mediaAudioExtractCoreChecks
       ? evaluateRuntimePolicy(profile)
       : evaluateRuntimePolicy(profile, payload.workerType)
     const productionExecution = payload.executionMode === 'production_ready'

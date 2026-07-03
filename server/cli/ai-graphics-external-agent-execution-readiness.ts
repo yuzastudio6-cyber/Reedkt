@@ -180,6 +180,8 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
           'reviewed private proof refs',
           gpuRow?.skipReasonCode
             ? `adapter skip reason: ${gpuRow.skipReasonCode}`
+            : gpuRow?.errorMessage
+            ? `adapter error: ${gpuRow.errorMessage}`
             : 'local runtime not attempted',
         ].join('; ')
       : null
@@ -209,6 +211,9 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
       adapterStatus: group === 'gpu_model'
         ? gpuRow?.adapterStatus ?? routeRow.routeStatus ?? null
         : routeRow.routeStatus ?? null,
+      adapterErrorMessage: group === 'gpu_model'
+        ? gpuRow?.errorMessage ?? null
+        : null,
       gpuRuntimeShouldStartNow: false,
       sourceGpuRuntimeShouldStartDuringScopedProof:
         group === 'gpu_model'

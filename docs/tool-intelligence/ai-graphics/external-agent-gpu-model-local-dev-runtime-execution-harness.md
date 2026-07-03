@@ -8,16 +8,16 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 
 ## Tool rows
 
-| Tool | Capability | Harness mode | Adapter status | Skip reason | Local runtime executed | Tool execution approved | GPU starts now |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: |
-| `torch_torchvision` | `model_runtime_foundation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `foundation_runtime_output_directory_missing` | false | false | false |
-| `transformers` | `model_runtime_foundation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `foundation_runtime_output_directory_missing` | false | false | false |
-| `sam2` | `subject_segmentation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `sam2_checkpoint_missing` | false | false | false |
-| `birefnet` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `birefnet_model_missing` | false | false | false |
-| `real_esrgan` | `upscaling` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `real_esrgan_model_missing` | false | false | false |
-| `kornia` | `tensor_image_ops` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `kornia_source_frame_missing` | false | false | false |
-| `rembg` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `rembg_model_missing` | false | false | false |
-| `transparent_background` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `transparent_background_checkpoint_missing` | false | false | false |
+| Tool | Capability | Harness mode | Adapter status | Skip reason | Error message | Local runtime executed | Tool execution approved | GPU starts now |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
+| `torch_torchvision` | `model_runtime_foundation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `foundation_runtime_output_directory_missing` | `none` | false | false | false |
+| `transformers` | `model_runtime_foundation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `foundation_runtime_output_directory_missing` | `none` | false | false | false |
+| `sam2` | `subject_segmentation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `sam2_checkpoint_missing` | `none` | false | false | false |
+| `birefnet` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `birefnet_model_missing` | `none` | false | false | false |
+| `real_esrgan` | `upscaling` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `real_esrgan_model_missing` | `none` | false | false | false |
+| `kornia` | `tensor_image_ops` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `kornia_source_frame_missing` | `none` | false | false | false |
+| `rembg` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `rembg_model_missing` | `none` | false | false | false |
+| `transparent_background` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `transparent_background_checkpoint_missing` | `none` | false | false | false |
 
 ## Counts
 

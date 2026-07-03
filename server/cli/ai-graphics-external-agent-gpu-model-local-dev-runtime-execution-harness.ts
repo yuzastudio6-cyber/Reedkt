@@ -403,6 +403,21 @@ function outputJsonPathForResult(result: AiGraphicsExternalAgentGpuModelControll
   return null
 }
 
+function errorMessageForResult(result: AiGraphicsExternalAgentGpuModelControlledAdapterResult): string | null {
+  const runtimeResult = result.runtimeOutput.result
+  if (
+    runtimeResult &&
+    typeof runtimeResult === 'object' &&
+    'errorMessage' in runtimeResult
+  ) {
+    const errorMessage = (runtimeResult as { errorMessage?: unknown }).errorMessage
+    return typeof errorMessage === 'string' && errorMessage.length > 0
+      ? errorMessage
+      : null
+  }
+  return null
+}
+
 async function buildReport(args: HarnessArgs) {
   const rows = []
 
@@ -432,6 +447,7 @@ async function buildReport(args: HarnessArgs) {
       externalBetaReadyNow: result.externalBetaReadyNow,
       productionReadyNow: result.productionReadyNow,
       skipReasonCode: skipReasonCode(result),
+      errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
       localInputRequirements: requirements,
       warnings: result.warnings,
@@ -596,7 +612,7 @@ async function buildReport(args: HarnessArgs) {
 function makeMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
   const rows = report.gpuModelLocalDevRuntimeExecutionHarnessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.skipReasonCode ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
+      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.skipReasonCode ?? 'none'}\` | \`${row.errorMessage ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
     ))
     .join('\n')
 
@@ -610,8 +626,8 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 
 ## Tool rows
 
-| Tool | Capability | Harness mode | Adapter status | Skip reason | Local runtime executed | Tool execution approved | GPU starts now |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: |
+| Tool | Capability | Harness mode | Adapter status | Skip reason | Error message | Local runtime executed | Tool execution approved | GPU starts now |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
 ${rows}
 
 ## Counts

@@ -80,6 +80,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "foundation_runtime_output_directory_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -118,6 +119,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "foundation_runtime_output_directory_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -156,6 +158,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "sam2_checkpoint_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -200,6 +203,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "birefnet_model_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -250,6 +254,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "real_esrgan_model_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -300,6 +305,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "kornia_source_frame_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -344,6 +350,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "rembg_model_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {
@@ -394,6 +401,7 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "transparent_background_checkpoint_missing",
+      "errorMessage": null,
       "outputJsonPath": null,
       "localInputRequirements": [
         {

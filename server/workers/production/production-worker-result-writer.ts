@@ -53,15 +53,15 @@ function extractOutputArtifactRecords(output?: ProductionWorkerRouteOutput): Too
   return [
     ...extractArtifactsFromResult(output?.mediaFoundationResult, 'artifactRecords'),
     ...extractArtifactsFromResult(output?.smartCutTimelineExecutionResult, 'artifacts'),
+    ...extractArtifactsFromResult(output?.colorExecutionResult, 'artifacts'),
   ]
 }
 
 function extractOutputQualityGateResults(output?: ProductionWorkerRouteOutput): ProductionWorkerExecutionResult['qualityGateResults'] {
-  const qaResults = output?.smartCutTimelineExecutionResult && typeof output.smartCutTimelineExecutionResult === 'object'
-    ? (output.smartCutTimelineExecutionResult as { qaResults?: unknown }).qaResults
-    : undefined
-  if (!Array.isArray(qaResults)) return []
-  return qaResults.filter(isQualityGateResult)
+  return [
+    ...extractQualityGateResultsFromResult(output?.smartCutTimelineExecutionResult),
+    ...extractQualityGateResultsFromResult(output?.colorExecutionResult),
+  ]
 }
 
 function extractArtifactsFromResult(result: unknown, fieldName: 'artifactRecords' | 'artifacts'): ToolArtifact[] {
@@ -69,6 +69,13 @@ function extractArtifactsFromResult(result: unknown, fieldName: 'artifactRecords
   const artifactRecords = (result as Record<string, unknown>)[fieldName]
   if (!Array.isArray(artifactRecords)) return []
   return artifactRecords.filter(isToolArtifact)
+}
+
+function extractQualityGateResultsFromResult(result: unknown): ProductionWorkerExecutionResult['qualityGateResults'] {
+  if (!result || typeof result !== 'object') return []
+  const qaResults = (result as { qaResults?: unknown }).qaResults
+  if (!Array.isArray(qaResults)) return []
+  return qaResults.filter(isQualityGateResult)
 }
 
 function isToolArtifact(value: unknown): value is ToolArtifact {

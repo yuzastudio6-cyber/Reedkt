@@ -349,6 +349,83 @@ assert.equal(productionReadySmartCutTimelineDispatch.toolCostEvents?.[0]?.metada
 assert.equal(productionReadySmartCutTimelineDispatch.walletSettlements?.length, 1, 'smart-cut/timeline dispatch should create one wallet settlement audit row')
 assert.equal(productionReadySmartCutTimelineDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadySmartCutTimelineDispatch.toolCostEvents![0].toolCostCredits, 'smart-cut/timeline wallet settlement should spend the emitted tool-cost credits')
 
+const productionReadyColorMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyColorMetadataInput({
+  jobId: 'job-production-ready-color-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const colorMetadataResult = productionReadyColorMetadataDispatch.workerResult?.output?.colorExecutionResult as {
+  status?: string
+  colorAnalysisSummary?: unknown
+  colorGradeRecipeArtifact?: unknown
+  artifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+  }>
+  qaResults?: unknown[]
+  blocksFinalExport?: boolean
+  skippedReasons?: Array<{ tool?: string }>
+} | undefined
+const colorMetadataArtifacts = productionReadyColorMetadataDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'color_analysis_json' || artifact.artifactType === 'color_grade_recipe') ?? []
+assert.equal(productionReadyColorMetadataDispatch.gateway.status, 'dispatched', 'complete evidence plus color metadata adapter should allow backend gateway dispatch')
+assert.equal(productionReadyColorMetadataDispatch.workerResult?.status, 'completed', 'color metadata real handler should complete')
+assert.equal(productionReadyColorMetadataDispatch.workerResult?.output?.mockOnly, false, 'color metadata production handler should be non-mock')
+assert.equal(productionReadyColorMetadataDispatch.workerResult?.output?.realToolExecution, true, 'color metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
+  'cpu_analysis_worker_color_metadata_production_handler',
+  'color metadata production handler should use the reviewed color metadata handler',
+)
+assert.equal(colorMetadataResult?.status, 'partial', 'color metadata production handler should complete as partial metadata execution, not final export')
+assert.ok(colorMetadataResult?.colorAnalysisSummary, 'color metadata production handler should build a color analysis summary')
+assert.ok(colorMetadataResult?.colorGradeRecipeArtifact, 'color metadata production handler should build a color grade recipe artifact')
+assert.equal(colorMetadataResult?.blocksFinalExport, true, 'color metadata production handler must keep final export blocked')
+assert.ok((colorMetadataResult?.qaResults?.length ?? 0) > 0, 'color metadata production handler should emit color QA results')
+assert.ok(
+  colorMetadataResult?.artifacts?.some((artifact) => artifact.artifactType === 'color_analysis_json' && artifact.sourceOfTruth === true),
+  'color metadata result should include a source-of-truth color analysis artifact',
+)
+assert.ok(
+  colorMetadataResult?.artifacts?.some((artifact) => artifact.artifactType === 'color_grade_recipe' && artifact.sourceOfTruth === true),
+  'color metadata result should include a source-of-truth color grade recipe artifact',
+)
+assert.ok(colorMetadataArtifacts.length >= 2, 'worker runtime artifact manifest should include private color analysis and grade recipe artifacts')
+assert.ok(
+  colorMetadataArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'color metadata artifacts must stay private, source-of-truth, project-scoped, and unsigned',
+)
+assert.ok(
+  (productionReadyColorMetadataDispatch.workerResult?.qualityGateResults.length ?? 0) > 0,
+  'color metadata worker result should preserve QA gate results',
+)
+assert.ok(
+  colorMetadataResult?.skippedReasons?.some((reason) => reason.tool === 'opencolorio') &&
+    colorMetadataResult.skippedReasons.some((reason) => reason.tool === 'openimageio'),
+  'color metadata handler should record native OpenColorIO/OpenImageIO transform skips instead of running media transforms',
+)
+assert.equal(productionReadyColorMetadataDispatch.toolCostEvents?.length, 2, 'color metadata dispatch should emit gateway cost events for OpenColorIO and OpenImageIO metadata work')
+assert.deepEqual(
+  productionReadyColorMetadataDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+  ['opencolorio', 'openimageio'],
+  'color metadata dispatch should scope billing audit events to OpenColorIO and OpenImageIO',
+)
+assert.ok(
+  productionReadyColorMetadataDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+  'color metadata tool cost events should be billable tool-cost-only events after approval/reservation gates',
+)
+assert.equal(productionReadyColorMetadataDispatch.walletSettlements?.length, 2, 'color metadata dispatch should create wallet settlements for both tool-cost events')
+assert.ok(
+  productionReadyColorMetadataDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+  'color metadata wallet settlements should spend user credits only for the completed real handler',
+)
+
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
@@ -751,6 +828,8 @@ console.log(JSON.stringify({
   toolReadinessBillable: productionReadyToolReadinessDispatch.toolCostEvents?.map((event) => event.billableToUser),
   realSmartCutTimelineDispatchCovered: productionReadySmartCutTimelineDispatch.gateway.status === 'dispatched',
   realSmartCutTimelineHandler: productionReadySmartCutTimelineDispatch.workerResult?.output?.futureHandler,
+  realColorMetadataDispatchCovered: productionReadyColorMetadataDispatch.gateway.status === 'dispatched',
+  realColorMetadataHandler: productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
   realMediaAudioExtractDispatchCovered: Boolean(productionReadyAudioExtractDispatch),
@@ -941,6 +1020,65 @@ function productionReadySmartCutTimelineInput(input: {
           blockers: [],
           warnings: [],
         },
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyColorMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_color_metadata',
+    requestedToolIds: ['opencolorio', 'openimageio'],
+    requestedRecipeIds: ['color-metadata-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    requiredQualityGateTypes: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'],
+    metadata: {
+      gatewaySmoke: true,
+      colorExecution: {
+        mode: 'production_ready',
+        tasks: ['build_color_analysis', 'build_color_grade_recipe', 'build_color_qa_report'],
+        sourceVideoArtifactId: baseInput.artifactReferences[0]!.id,
+        representativeFrameArtifactIds: ['representative-frame-artifact-color-smoke-a', 'representative-frame-artifact-color-smoke-b'],
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        colorGradeStyle: 'premium_clean',
+        colorIntensity: 0.35,
+        lutStrength: 0.25,
+        mockAnalysis: {
+          representativeFrameCount: 2,
+          colorSpaceAssumption: 'bt709',
+          transferAssumption: 'bt709',
+          hdrDetected: false,
+          underexposed: false,
+          overexposed: false,
+          whiteBalanceIssue: true,
+          shotMismatch: true,
+          skinToneRisk: 'low',
+          highlightRisk: 'low',
+          shadowRisk: 'low',
+          saturationRisk: 'low',
+          confidence: 0.88,
+          advancedAnalysisRan: false,
+        },
+        readinessReport: {
+          overallStatus: 'passed',
+          blockerSummaries: [],
+          blockers: [],
+          warnings: [],
+        },
+        allowFinalExport: false,
+        enableFfmpegColorPreview: false,
+        enableOpenColorIOExecution: false,
+        enableOpenImageIOExecution: false,
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

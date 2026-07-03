@@ -100,7 +100,7 @@ export async function runColorExecution(input: ColorExecutionInput): Promise<Col
     ...(previewResult.gradedPreviewArtifact ? [previewResult.gradedPreviewArtifact] : []),
   ]
   const blockingQa = qaResults.some((gate) => gate.blocking)
-  const blocked = !combinedValidation.valid || blockingQa || input.mode === 'production_ready'
+  const blocked = !combinedValidation.valid || blockingQa
 
   return buildColorExecutionResult({
     mode: input.mode,
@@ -123,7 +123,7 @@ export async function runColorExecution(input: ColorExecutionInput): Promise<Col
       ...ocioResult.warnings,
       ...oiioResult.warnings,
       'Milestone 15B does not final export or full render.',
-      ...(input.mode === 'production_ready' ? ['Production-ready color execution remains blocked until readiness/manual-review gates pass.'] : []),
+      ...(input.mode === 'production_ready' ? ['Production-ready color metadata is bounded to analysis, grade recipe, and QA artifacts; native transforms, previews, and final export remain blocked.'] : []),
     ],
     blocksPreview: combinedValidation.issues.some((issue) => issue.severity === 'blocking') || blockingQa,
     blocksFinalExport: true,

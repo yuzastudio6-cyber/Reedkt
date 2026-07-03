@@ -60,6 +60,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'cpu_analysis_worker_media_proxy'
   | 'cpu_analysis_worker_media_representative_frames'
   | 'cpu_analysis_worker_placeholder'
+  | 'cpu_analysis_worker_color_metadata'
   | 'cpu_analysis_worker_smart_cut_timeline'
   | 'gpu_ai_worker_placeholder'
   | 'render_worker_placeholder'
@@ -109,6 +110,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   cpu_analysis_worker_media_proxy: 'cpu_analysis_worker',
   cpu_analysis_worker_media_representative_frames: 'cpu_analysis_worker',
   cpu_analysis_worker_placeholder: 'cpu_analysis_worker',
+  cpu_analysis_worker_color_metadata: 'cpu_analysis_worker',
   cpu_analysis_worker_smart_cut_timeline: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
   render_worker_placeholder: 'render_worker',
@@ -902,6 +904,84 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'cpu_analysis_worker_color_metadata') {
+    const colorExecution = input.metadata?.colorExecution
+    const colorRecord = colorExecution && typeof colorExecution === 'object'
+      ? colorExecution as Record<string, unknown>
+      : undefined
+    const mode = colorRecord?.mode
+    const tasks = Array.isArray(colorRecord?.tasks)
+      ? colorRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['build_color_analysis', 'build_color_grade_recipe', 'build_color_qa_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+
+    if (
+      input.requestedToolIds.length !== 2 ||
+      !input.requestedToolIds.includes('opencolorio') ||
+      !input.requestedToolIds.includes('openimageio')
+    ) {
+      blockers.push({
+        code: 'COLOR_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata may dispatch only the reviewed OpenColorIO + OpenImageIO metadata/QA adapter scope.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'COLOR_METADATA_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata production dispatch requires metadata.colorExecution.mode=production_ready.',
+        details: { colorExecutionMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'COLOR_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata is limited to color analysis, color grade recipe, and color QA report metadata tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && !colorRecord?.sourceVideoArtifactId && !colorRecord?.proxyVideoArtifactId && !Array.isArray(colorRecord?.representativeFrameArtifactIds)) {
+      blockers.push({
+        code: 'COLOR_METADATA_INPUT_ARTIFACT_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata production dispatch requires a private source, proxy, or representative-frame artifact reference.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && colorRecord?.allowFinalExport === true) {
+      blockers.push({
+        code: 'COLOR_METADATA_FINAL_EXPORT_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata cannot enable final export.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && colorRecord?.enableFfmpegColorPreview === true) {
+      blockers.push({
+        code: 'COLOR_METADATA_PREVIEW_EXECUTION_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata is metadata-only and cannot create FFmpeg color previews.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (colorRecord?.enableOpenColorIOExecution === true || colorRecord?.enableOpenImageIOExecution === true)) {
+      blockers.push({
+        code: 'COLOR_METADATA_NATIVE_EXECUTION_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_color_metadata is limited to metadata/QA and cannot run native OpenColorIO/OpenImageIO transforms.',
+      })
+    }
+  }
+
   if (adapterId === 'tool_readiness_worker_core_checks') {
     const toolReadiness = input.metadata?.toolReadiness
     const mode = toolReadiness && typeof toolReadiness === 'object'
@@ -1104,6 +1184,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'cpu_analysis_worker_smart_cut_timeline') {
     allowedReservedKeys.add('smartCutTimelineExecution')
+  }
+  if (adapterId === 'cpu_analysis_worker_color_metadata') {
+    allowedReservedKeys.add('colorExecution')
   }
   const reservedFound = reservedRouterKeys
     .filter((key) => !allowedReservedKeys.has(key))

@@ -1,4 +1,5 @@
 import {
+  AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -114,13 +115,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10O no-VM strategy result must remain recorded with northamerica-northeast2-a selected as the next bounded no-idle payload/install readiness proof target',
         '10P northamerica-northeast2-a payload/install readiness proof result must remain recorded as blocked by IAP/OS Login publickey failure after VM create success and cleanup verified',
         '10Q IAP/OS Login access fix result must remain recorded as inconclusive read-only evidence requiring a non-GPU canary',
-        '10R non-GPU no-public-IP IAP SSH canary prompt must run before any further GPU VM attempt',
+        '10R non-GPU no-public-IP IAP SSH canary result must remain recorded as interrupted with cleanup repaired and no durable SSH pass/fail evidence',
+        '10R bounded runner fix prompt must run before any further canary or GPU VM attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
       currentBlocker:
-        'non_gpu_iap_ssh_canary_required_after_10q_read_only_access_diagnosis',
-      safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10q-iap-oslogin-access-fix-result',
+        'broll_10r_iap_ssh_canary_runner_timeout_summary_capture_fix_required',
+      safeNextCommand: 'npm run smoke:ai-video-broll-gen-10r-no-gpu-iap-ssh-canary-result',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -167,6 +168,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

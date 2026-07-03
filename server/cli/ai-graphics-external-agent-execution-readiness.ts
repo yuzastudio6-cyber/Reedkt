@@ -125,6 +125,7 @@ function gpuModelHostRuntimeFlags(toolId: string): string[] {
   const flags = [
     `--tool ${toolId}`,
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+    '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
   ]
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push('--source-image <private-approved-frame.png>')

@@ -72,11 +72,13 @@ const trueKeys = [
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'committedRecordSkipSafe',
+  'privateLocalProofResultWriteSupported',
   'agentCanSelectForPlanning',
 ]
 
 const falseKeys = [
   'privateLocalRuntimeAttemptRequested',
+  'privateLocalProofResultWrittenNow',
   'agentCanExecuteGpuModelToolsNow',
   'agentCanExecuteAll21ToolsNow',
   'agentCanExecuteToolsNow',
@@ -267,6 +269,15 @@ if (report.localRuntimePolicy?.dockerContainerBackendMountsSourceAndModelPathsRe
 if (report.localRuntimePolicy?.dockerContainerBackendMountsOutputPathsReadWrite !== true) {
   fail('docker_container_readwrite_output_mounts_not_recorded')
 }
+if (report.localRuntimePolicy?.privateLocalProofResultWriteSupported !== true) {
+  fail('private_local_proof_result_write_not_supported')
+}
+if (report.localRuntimePolicy?.privateLocalProofResultWrittenNow !== false) {
+  fail('private_local_proof_result_written_in_committed_record')
+}
+if (!String(report.localRuntimePolicy?.privateLocalProofResultWritePath ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+  fail('private_local_proof_result_path_not_local_artifact')
+}
 
 const runtimeRunnerSource = read('server/workers/ai-graphics-runtime-script-runner.ts')
 for (const requiredSnippet of [
@@ -305,6 +316,9 @@ if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime')) {
   fail('private_runtime_attempt_command_not_local_artifact_only')
 }
+if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+  fail('private_runtime_attempt_command_missing_result_out')
+}
 if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-backend docker_container')) {
   fail('missing_private_container_runtime_backend_command')
 }
@@ -319,6 +333,9 @@ if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').incl
 }
 if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime')) {
   fail('private_container_runtime_command_not_local_artifact_only')
+}
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+  fail('private_container_runtime_command_missing_result_out')
 }
 if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.kornia ?? '').includes('--tool kornia')) {
   fail('missing_scoped_kornia_runtime_attempt_example')
@@ -350,6 +367,12 @@ for (const tool of tools) {
   }
   if (!hostCommand.includes('--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>')) {
     fail(`host_runtime_command_missing_local_output:${tool}`)
+  }
+  if (!hostCommand.includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+    fail(`host_runtime_command_missing_result_out:${tool}`)
+  }
+  if (!containerCommand.includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+    fail(`container_runtime_command_missing_result_out:${tool}`)
   }
   if (!containerCommand.includes('--runtime-backend docker_container')) {
     fail(`container_runtime_command_missing_backend:${tool}`)

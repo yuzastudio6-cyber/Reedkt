@@ -38,6 +38,7 @@ type HarnessArgs = {
   runtimeContainerPlatform?: string
   runtimeContainerGpu: boolean
   timeoutMs?: number
+  resultOut?: string
   writeRecords: boolean
 }
 
@@ -124,6 +125,7 @@ function parseArgs(): HarnessArgs {
     runtimeContainerPlatform: stringFlag('--runtime-container-platform'),
     runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
     timeoutMs: numberFlag('--timeout-ms'),
+    resultOut: stringFlag('--result-out'),
     writeRecords: hasFlag('--write-records'),
   }
 
@@ -131,6 +133,17 @@ function parseArgs(): HarnessArgs {
     throw new Error(
       '--write-records cannot be combined with --attempt-local-runtime; committed records must stay skip-safe.',
     )
+  }
+  if (args.writeRecords && args.resultOut) {
+    throw new Error(
+      '--write-records cannot be combined with --result-out; private proof results must stay local-only.',
+    )
+  }
+  if (args.resultOut && !args.attemptLocalRuntime) {
+    throw new Error('--result-out requires --attempt-local-runtime')
+  }
+  if (args.resultOut && !isLocalArtifactPath(args.resultOut)) {
+    throw new Error('--result-out must stay under .local-artifacts/')
   }
 
   if (
@@ -147,6 +160,12 @@ function parseArgs(): HarnessArgs {
   }
 
   return args
+}
+
+function isLocalArtifactPath(filePath: string): boolean {
+  const normalized = path.normalize(filePath)
+  return normalized === '.local-artifacts' ||
+    normalized.startsWith(`.local-artifacts${path.sep}`)
 }
 
 function productCapabilities(capabilityIds: readonly string[]): string[] {
@@ -318,6 +337,7 @@ function exactRuntimeAttemptCommand(
       : []),
     `--tool ${toolId}`,
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+    '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
     gpuModelRequiresSourceImage(toolId)
       ? '--source-image <private-approved-frame.png>'
       : '',
@@ -587,9 +607,9 @@ async function buildReport(args: HarnessArgs) {
       committedRecordCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
       privateLocalRuntimeAttemptCommand:
-        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> <per-tool-private-input-flags>',
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>',
       privateContainerRuntimeAttemptCommand:
-        `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> <per-tool-private-input-flags>`,
+        `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>`,
       privateRuntimeAttemptCommandsByTool:
         exactRuntimeAttemptCommandsByTool({ container: false }),
       privateContainerRuntimeAttemptCommandsByTool:
@@ -624,6 +644,10 @@ async function buildReport(args: HarnessArgs) {
       dockerContainerBackendAutoMountsPrivateRuntimePaths: true,
       dockerContainerBackendMountsSourceAndModelPathsReadOnly: true,
       dockerContainerBackendMountsOutputPathsReadWrite: true,
+      privateLocalProofResultWriteSupported: true,
+      privateLocalProofResultWritePath:
+        '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+      privateLocalProofResultWrittenNow: Boolean(args.resultOut),
     },
     counts: {
       totalAiGraphicsTools: 21,
@@ -665,6 +689,8 @@ async function buildReport(args: HarnessArgs) {
       gpuStartsOnlyForApprovedWorkerOrToolCall: true,
       committedRecordSkipSafe: !args.attemptLocalRuntime,
       privateLocalRuntimeAttemptRequested: args.attemptLocalRuntime,
+      privateLocalProofResultWriteSupported: true,
+      privateLocalProofResultWrittenNow: Boolean(args.resultOut),
       agentCanSelectForPlanning: true,
       agentCanExecuteGpuModelToolsNow: false,
       agentCanExecuteAll21ToolsNow: false,
@@ -748,6 +774,10 @@ ${report.nextMilestone}
 async function main() {
   const args = parseArgs()
   const report = await buildReport(args)
+  if (args.resultOut) {
+    fs.mkdirSync(path.dirname(args.resultOut), { recursive: true })
+    fs.writeFileSync(args.resultOut, `${JSON.stringify(report, null, 2)}\n`)
+  }
   if (args.writeRecords) {
     fs.mkdirSync(path.dirname(outputJsonPath), { recursive: true })
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)

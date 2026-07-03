@@ -54,6 +54,8 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 - `gpuStartsOnlyForApprovedWorkerOrToolCall`: true
 - `committedRecordSkipSafe`: true
 - `privateLocalRuntimeAttemptRequested`: false
+- `privateLocalProofResultWriteSupported`: true
+- `privateLocalProofResultWrittenNow`: false
 - `agentCanSelectForPlanning`: true
 - `agentCanExecuteGpuModelToolsNow`: false
 - `agentCanExecuteAll21ToolsNow`: false
@@ -90,7 +92,7 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 
 ## Private runtime attempt command
 
-`npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> <per-tool-private-input-flags>`
+`npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>`
 
 ## Next milestone
 

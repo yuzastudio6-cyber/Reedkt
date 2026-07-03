@@ -337,8 +337,17 @@ function checkReport(label, report) {
       if (!String(row.nextExactCommand ?? '').includes(`--tool ${toolId}`)) {
         fail(`${label}_${toolId}_gpu_next_command_not_tool_scoped`)
       }
+      if (!String(row.nextExactCommand ?? '').includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+        fail(`${label}_${toolId}_gpu_next_command_missing_result_out`)
+      }
       if (!String(row.nextExactContainerCommand ?? '').includes('--runtime-backend docker_container')) {
         fail(`${label}_${toolId}_missing_gpu_container_command`)
+      }
+      if (!String(row.nextExactHostPythonCommand ?? '').includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+        fail(`${label}_${toolId}_host_python_command_missing_result_out`)
+      }
+      if (!String(row.nextExactContainerCommand ?? '').includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
+        fail(`${label}_${toolId}_container_command_missing_result_out`)
       }
       if (!String(row.nextExactContainerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
         fail(`${label}_${toolId}_gpu_container_command_not_canonical_image`)
@@ -478,6 +487,13 @@ if (
   )
 ) {
   fail('fastest_gpu_unlock_candidate_not_using_canonical_image')
+}
+if (
+  !String(docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '').includes(
+    '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+  )
+) {
+  fail('fastest_gpu_unlock_candidate_missing_result_out')
 }
 if (
   !String(

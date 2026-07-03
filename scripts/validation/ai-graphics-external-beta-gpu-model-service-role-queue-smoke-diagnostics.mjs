@@ -415,6 +415,8 @@ function checkPackageJson() {
     '+    "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof-diagnostics.mjs",',
     '+    "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness": "tsx server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts",',
     '+    "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-execution-readiness": "tsx server/cli/ai-graphics-external-agent-execution-readiness.ts",',
+    '+    "ai-graphics:external-agent-execution-readiness:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-readiness-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.ts",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke-proof": "tsx server/cli/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-proof.ts",',

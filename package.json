@@ -83,6 +83,8 @@
     "ai-graphics:external-beta-callable-request-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-callable-request-admission-diagnostics.mjs",
     "ai-graphics:external-agent-execution-gate": "tsx server/cli/ai-graphics-external-agent-execution-gate.ts",
     "ai-graphics:external-agent-execution-gate:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs",
+    "ai-graphics:external-agent-execution-readiness": "tsx server/cli/ai-graphics-external-agent-execution-readiness.ts",
+    "ai-graphics:external-agent-execution-readiness:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-readiness-diagnostics.mjs",
     "ai-graphics:external-agent-controlled-route-require-go": "tsx server/cli/ai-graphics-external-agent-controlled-route-require-go.ts",
     "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",
     "ai-graphics:external-agent-controlled-route-caller": "tsx server/cli/ai-graphics-external-agent-controlled-route-caller.ts",

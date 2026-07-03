@@ -186,6 +186,8 @@ const allowedPackageDiffLines = [
   '+    "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness": "tsx server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts",',
   '+    "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-execution-readiness": "tsx server/cli/ai-graphics-external-agent-execution-readiness.ts",',
+  '+    "ai-graphics:external-agent-execution-readiness:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-readiness-diagnostics.mjs",',
 ]
 
 const failures = []

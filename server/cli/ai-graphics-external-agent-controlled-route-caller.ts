@@ -182,8 +182,9 @@ function buildReport() {
     'source all-21 controlled route smoke counts mismatch',
   )
   assert(
-    all21RouteSmoke.booleans?.agentCanExecuteAll21ToolsNow === true &&
-      all21RouteSmoke.booleans?.agentCanExecuteGpuModelToolsNow === true &&
+    all21RouteSmoke.booleans?.agentCanCallAll21ControlledRoutesNow === true &&
+      all21RouteSmoke.booleans?.agentCanExecuteAll21ToolsNow === false &&
+      all21RouteSmoke.booleans?.agentCanExecuteGpuModelToolsNow === false &&
       all21RouteSmoke.booleans?.gpuRuntimeShouldStartNow === false,
     'source all-21 controlled route smoke booleans mismatch',
   )
@@ -276,11 +277,17 @@ function buildReport() {
       privateOutputOnlyEnvelopes: controlledCallerRows.filter(
         (row) => row.expectedPrivateOutputOnly,
       ).length,
-      all21ControlledRouteExecutableNowTools: controlledCallerRows.length,
-      all21ExecutableNowTools: controlledCallerRows.length,
+      all21ControlledRouteCallableNowTools: controlledCallerRows.length,
+      controlledRouteRuntimeExecutableNowTools:
+        cpuStaticRows.length + browserRuntimeRows.length,
+      all21ControlledRouteExecutableNowTools:
+        cpuStaticRows.length + browserRuntimeRows.length,
+      all21ExecutableNowTools:
+        cpuStaticRows.length + browserRuntimeRows.length,
       controlledRouteLocalPackageExecutionExpectedTools:
         cpuStaticRows.length + browserRuntimeRows.length,
       localGpuModelRuntimeExecutionExpectedInDefaultCallerTools: 0,
+      gpuModelToolsBlockedFromRuntimeExecutionNow: gpuModelRows.length,
       gpuRuntimeShouldStartNowTools: 0,
       publicArtifactCreatedTools: 0,
       signedUrlCreatedTools: 0,
@@ -305,18 +312,19 @@ function buildReport() {
       controlledRouteCallerCanInvokeCanonicalRouteFor21ToolsNow: true,
       agentCanExecuteControlledRouteToolsNow: true,
       agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow: true,
-      agentCanExecuteControlledCpuStaticBrowserRuntimeAndGpuModelRouteToolsNow: true,
+      agentCanExecuteControlledCpuStaticBrowserRuntimeAndGpuModelRouteToolsNow: false,
       routeExecutionApprovedForControlled13ToolsNow: true,
       routeExecutionApprovedForControlled21ToolsNow: true,
       privateOutputOnly: true,
       eightGpuModelToolsRemainBlockedFromControlledRouteCaller: false,
+      eightGpuModelToolsRemainBlockedFromRuntimeExecutionNow: true,
       eightGpuModelToolsInvokeControlledOnDemandAdapter: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyForAcceptedExternalBetaToolCall: true,
       agentCanSelectForPlanning: true,
-      agentCanExecuteAll21ToolsNow: true,
-      agentCanExecuteGpuModelToolsNow: true,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteGpuModelToolsNow: false,
       agentCanExecuteToolsNow: true,
       routeExecutionApprovedNow: true,
       routeExecutionPerformedInThisLane: false,
@@ -370,7 +378,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This contract gives the external agent one scoped caller shape for all 21 controlled AI graphics tools that are executable through the canonical private route now. CPU/static and browser-runtime tools execute controlled local packages. GPU/model tools are callable through the controlled route and invoke the on-demand adapter, but GPU stays cold unless a scoped request supplies explicit approved local-dev runtime inputs and private proof refs.
+This contract gives the external agent one scoped caller shape for all 21 controlled AI graphics tools that are callable through the canonical private route now. CPU/static and browser-runtime tools execute controlled local packages. GPU/model tools are callable through the controlled route and invoke the on-demand adapter, but they are not runtime-executable until a scoped request supplies explicit approved local-dev runtime inputs and private proof refs. GPU stays cold by default.
 
 ## Controlled Caller Tools
 

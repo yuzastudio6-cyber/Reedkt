@@ -29,6 +29,10 @@ assert.ok(
   'preflight should document production readiness evidence packet migration evidence variable',
 )
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED'),
+  'preflight should document backend-only production readiness evidence access variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED'),
   'preflight should document wallet refund evidence variable',
 )
@@ -122,6 +126,7 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED: yes,

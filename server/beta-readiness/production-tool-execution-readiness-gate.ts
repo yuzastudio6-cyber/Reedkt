@@ -28,6 +28,7 @@ export interface ProductionSupabasePersistenceEvidence extends ProductionToolExe
   rlsMemberReadPathVerified: boolean
   explicitDataApiGrantsVerified: boolean
   betaEvidenceBackendOnlyAccessVerified: boolean
+  productionEvidenceBackendOnlyAccessVerified: boolean
   backupPitrApproved: boolean
   securityAdvisorReviewed: boolean
   performanceAdvisorReviewed: boolean
@@ -269,6 +270,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.supabasePersistence?.rlsMemberReadPathVerified, 'authenticated RLS member readback is unverified.'),
       requireBoolean(input.supabasePersistence?.explicitDataApiGrantsVerified, 'explicit Supabase Data API grants are unverified.'),
       requireBoolean(input.supabasePersistence?.betaEvidenceBackendOnlyAccessVerified, 'backend-only beta evidence access is unverified.'),
+      requireBoolean(input.supabasePersistence?.productionEvidenceBackendOnlyAccessVerified, 'backend-only production readiness evidence access is unverified.'),
       requireBoolean(input.supabasePersistence?.backupPitrApproved, 'backup/PITR approval is missing.'),
       requireBoolean(input.supabasePersistence?.securityAdvisorReviewed, 'Supabase Security Advisor review is missing.'),
       requireBoolean(input.supabasePersistence?.performanceAdvisorReviewed, 'Supabase Performance Advisor review is missing.'),
@@ -433,6 +435,7 @@ function isSupabasePersistenceReady(input: ProductionToolExecutionReadinessGateI
     evidence.rlsMemberReadPathVerified &&
     evidence.explicitDataApiGrantsVerified &&
     evidence.betaEvidenceBackendOnlyAccessVerified &&
+    evidence.productionEvidenceBackendOnlyAccessVerified &&
     evidence.backupPitrApproved &&
     evidence.securityAdvisorReviewed &&
     evidence.performanceAdvisorReviewed &&

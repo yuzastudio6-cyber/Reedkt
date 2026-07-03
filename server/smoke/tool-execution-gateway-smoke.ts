@@ -402,6 +402,7 @@ function productionEvidenceFixture(
       rlsMemberReadPathVerified: true,
       explicitDataApiGrantsVerified: true,
       betaEvidenceBackendOnlyAccessVerified: true,
+      productionEvidenceBackendOnlyAccessVerified: true,
       backupPitrApproved: true,
       securityAdvisorReviewed: true,
       performanceAdvisorReviewed: true,

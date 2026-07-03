@@ -4,7 +4,7 @@ Milestone 10 adds one auditable paid-production gate for tool execution. It does
 
 The gate can pass only when the production evidence packet proves:
 
-- Supabase production persistence is deployed and reviewed, including explicit Data API grants for the intended roles, backend-only beta evidence access, authenticated RLS member/non-member readback, and service-role write/readback evidence.
+- Supabase production persistence is deployed and reviewed, including explicit Data API grants for the intended roles, backend-only beta and production readiness evidence access, authenticated RLS member/non-member readback, and service-role write/readback evidence.
 - Tool cost ledger writes are durable, append-only, idempotent, and readable.
 - Wallet reserve, spend, release, refund, settlement replay, and service-role-only settlement RPC execution are verified.
 - Stripe remains separated from tool cost event recording and wallet settlement.
@@ -38,7 +38,7 @@ This is the bridge between beta readiness and paid production. It makes the rema
 
 Use `prod:readiness:tool-execution-gate-preflight` before the final gate report. The preflight reads non-secret operator evidence variables, checks for missing production evidence, rejects secret-like notes, and tells operators whether the supplied packet is ready to evaluate against the paid-production gate. It does not call Supabase, Stripe, workers, tools, media processors, deployments, or production routes.
 
-For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT` apply to the reviewed packet, while each evidence section has its own artifact ID, for example `REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID`, and `REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID`. Supabase persistence evidence must separately prove `tool_cost_events`, `beta_readiness_evidence_packets`, and `production_tool_execution_readiness_evidence_packets` deployment/readback with `REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED`, and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED`.
+For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT` apply to the reviewed packet, while each evidence section has its own artifact ID, for example `REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID`, and `REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID`. Supabase persistence evidence must separately prove `tool_cost_events`, `beta_readiness_evidence_packets`, and `production_tool_execution_readiness_evidence_packets` deployment/readback with `REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED`, and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED`. Backend-only packet access must be proven separately for beta evidence and production readiness evidence with `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED` and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED`.
 
 Backend callers can also evaluate the same evidence packet with:
 

@@ -209,6 +209,8 @@ function main() {
           spec.readyForBroll10vNoIdleL4PayloadInstallRetryPrompt,
         readyForBroll10wIapLookupReadinessFixPrompt:
           spec.readyForBroll10wIapLookupReadinessFixPrompt,
+        readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt:
+          spec.readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt,
         nextAction: spec.nextAction,
       },
       null,

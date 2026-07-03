@@ -1,5 +1,5 @@
 export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
-  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10w_iap_lookup_readiness_fix_required',
+  decision: 'ai_video_broll_wan_gpu_global_quota_verified_10x_iap_lookup_readiness_retry_required',
   mode: 'read_only_broll_wan_gpu_global_quota_verify_result',
   recordedAt: '2026-07-02T13:09:27Z',
   toolId: 'ai_video_broll_generation_wan',
@@ -39,10 +39,18 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     readyForBroll10tIapSshFlagFixPrompt: false,
     readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
     readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
-    readyForBroll10wIapLookupReadinessFixPrompt: true,
+    readyForBroll10wIapLookupReadinessFixPrompt: false,
+    readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt: true,
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
+    postCreateInstanceRunningWaitRequired: true,
+    postCreatePrivateOnlyRecheckRequired: true,
+    postCreateBootDiskAutoDeleteRecheckRequired: true,
+    postCreateIapLookupReadinessBackoffRequired: true,
+    postCreateIapLookupMaxAttempts: 8,
+    postCreateIapLookupDelaySeconds: 10,
+    durableReadinessSummaryRequired: true,
     preExistingResourceCheckRequired: true,
     deleteOnlyResourcesCreatedByPrompt: true,
     cleanupVerificationRequired: true,
@@ -59,7 +67,8 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
   readyForBroll10tIapSshFlagFixPrompt: false,
   readyForBroll10uNoGpuIapSshCanaryRerunPrompt: false,
   readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
-  readyForBroll10wIapLookupReadinessFixPrompt: true,
+  readyForBroll10wIapLookupReadinessFixPrompt: false,
+  readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt: true,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
   runtimeSideEffects: {
@@ -89,7 +98,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY_RESULT = {
     productionUnlocked: false,
   },
   recommendedNextPrompt:
-    'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference',
+    'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS: retry bounded no-idle L4 payload/install readiness with post-create IAP lookup readiness and mandatory cleanup, no model import/no inference',
 } as const
 
 export type AiVideoBrollWanGpuGlobalQuotaVerifyResult =

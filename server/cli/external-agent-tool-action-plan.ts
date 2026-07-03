@@ -46,9 +46,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10P proved northamerica-northeast2-a can create a no-public-IP L4 VM and clean it up, but IAP SSH failed with a publickey/OS Login blocker; 10Q recorded an inconclusive read-only access diagnosis, 10S exposed a runner flag conflict, 10T repaired that flag conflict, 10U proved the no-GPU IAP SSH canary with cleanup verified, and 10V proved the L4 VM create/no-public-IP/cleanup path but failed the first IAP SSH precheck with an instance lookup blocker before payload transfer. The next controlled step is the 10W post-create IAP lookup readiness fix with no VM, no model import, and no inference',
+        'B-roll 10P proved northamerica-northeast2-a can create a no-public-IP L4 VM and clean it up, but IAP SSH failed with a publickey/OS Login blocker; 10Q recorded an inconclusive read-only access diagnosis, 10S exposed a runner flag conflict, 10T repaired that flag conflict, 10U proved the no-GPU IAP SSH canary with cleanup verified, 10V proved the L4 VM create/no-public-IP/cleanup path but failed the first IAP SSH precheck with an instance lookup blocker before payload transfer, and 10W recorded the no-execution post-create IAP lookup readiness fix. The next controlled step is the 10X L4 payload/install retry with bounded post-create lookup readiness, mandatory cleanup, no model import, and no inference',
       afterBlockerClears:
-        'run the separate 10W no-execution IAP lookup readiness fix before another L4 payload/install proof retry or any model import/inference attempt',
+        'run the separate 10X bounded L4 payload/install proof retry only with post-create instance visibility, RUNNING, private-only, boot-disk, and IAP lookup readiness before payload transfer',
     }
   }
 

@@ -1,5 +1,5 @@
 import {
-  AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
+  AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -121,12 +121,13 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10T flag fix result must remain recorded with --tunnel-through-iap retained and --internal-ip removed',
         '10U no-GPU IAP SSH canary rerun result must remain recorded as passed with cleanup verified',
         '10V bounded no-idle L4 payload/install retry result must remain recorded as blocked by IAP instance lookup before payload transfer with cleanup verified',
-        '10W IAP lookup readiness fix must run before another L4 VM payload/install retry or any model import/inference attempt',
+        '10W IAP lookup readiness fix must remain recorded before another L4 VM payload/install retry or any model import/inference attempt',
+        '10X L4 payload/install retry must use bounded post-create instance visibility, RUNNING, private-only, boot-disk, and IAP lookup readiness before payload transfer',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'broll_10w_iap_lookup_readiness_fix_required',
+      currentBlocker: 'broll_10x_l4_payload_install_retry_with_iap_lookup_readiness_required',
       safeNextCommand:
-        'npm run smoke:ai-video-broll-gen-10v-no-idle-l4-payload-install-retry-result',
+        'npm run smoke:ai-video-broll-gen-10w-iap-lookup-readiness-fix-result',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -173,7 +174,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10W_IAP_LOOKUP_READINESS_FIX_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10X_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_WITH_IAP_LOOKUP_READINESS_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

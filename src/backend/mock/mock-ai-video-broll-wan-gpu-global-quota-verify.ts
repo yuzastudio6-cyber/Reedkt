@@ -32,7 +32,7 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY = {
   nextActionIfQuotaBlocked:
     'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
   nextActionIfQuotaCleared:
-    'AI-VIDEO-BROLL-GEN-10W-IAP-LOOKUP-READINESS-FIX: add bounded post-create IAP instance lookup readiness before the next L4 payload/install retry, no VM/no model/no inference',
+    'AI-VIDEO-BROLL-GEN-10X-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-IAP-LOOKUP-READINESS: retry bounded no-idle L4 payload/install readiness with post-create IAP lookup readiness and mandatory cleanup, no model import/no inference',
   allowedReadOnlyCommands: [
     {
       id: 'gcloud_path',
@@ -116,6 +116,13 @@ export const AI_VIDEO_BROLL_WAN_GPU_GLOBAL_QUOTA_VERIFY = {
     noPublicIpRequired: true,
     externalIpAllowed: false,
     bootDiskAutoDeleteRequired: true,
+    postCreateInstanceRunningWaitRequired: true,
+    postCreatePrivateOnlyRecheckRequired: true,
+    postCreateBootDiskAutoDeleteRecheckRequired: true,
+    postCreateIapLookupReadinessBackoffRequired: true,
+    postCreateIapLookupMaxAttempts: 8,
+    postCreateIapLookupDelaySeconds: 10,
+    durableReadinessSummaryRequired: true,
     preExistingResourceCheckRequired: true,
     deleteOnlyResourcesCreatedByPrompt: true,
     cleanupVerificationRequired: true,

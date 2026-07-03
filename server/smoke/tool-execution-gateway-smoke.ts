@@ -289,6 +289,7 @@ assert.ok(
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
+let productionReadyProxyDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyStoredPacketDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>>
 
 if (mediaProbeFixture.ok) {
@@ -377,6 +378,62 @@ if (mediaProbeFixture.ok) {
     assert.ok(
       productionReadyAudioExtractDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
       'audio-extract wallet settlements should spend user credits only for the completed real handler',
+    )
+
+    productionReadyProxyDispatch = await service.dispatchApprovedToolCall(productionReadyProxyInput({
+      jobId: 'job-production-ready-real-proxy',
+      productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+      sourceLocalPath: mediaProbeFixture.fixture.sourceVideoPath,
+      outputRoot: path.join(mediaProbeFixture.fixture.tempDir, 'proxy-output'),
+    }))
+    const proxyResult = productionReadyProxyDispatch.workerResult?.output?.mediaFoundationResult as {
+      proxy?: { status?: string }
+      artifactRecords?: Array<{
+        artifactType?: string
+        storageObjectPath?: string
+        isPrivate?: boolean
+        sourceOfTruth?: boolean
+        previewAllowed?: boolean
+      }>
+    } | undefined
+    const proxyManifestArtifacts = productionReadyProxyDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+      .filter((artifact) => artifact.artifactType === 'proxy_video') ?? []
+    assert.equal(productionReadyProxyDispatch.gateway.status, 'dispatched', 'complete evidence plus real proxy adapter should allow backend gateway dispatch')
+    assert.equal(productionReadyProxyDispatch.workerResult?.status, 'completed', 'proxy real handler should complete')
+    assert.equal(productionReadyProxyDispatch.workerResult?.output?.mockOnly, false, 'proxy production handler should be non-mock')
+    assert.equal(productionReadyProxyDispatch.workerResult?.output?.realToolExecution, true, 'proxy production handler should record real tool execution')
+    assert.equal(
+      productionReadyProxyDispatch.workerResult?.output?.futureHandler,
+      'cpu_analysis_worker_media_proxy_production_handler',
+      'proxy production handler should use the reviewed FFmpeg proxy handler',
+    )
+    assert.equal(proxyResult?.proxy?.status, 'created', 'proxy production handler should create a private proxy artifact')
+    assert.ok(proxyResult?.artifactRecords?.some((artifact) => artifact.artifactType === 'proxy_video'), 'proxy result should include a proxy artifact record')
+    assert.ok(proxyManifestArtifacts.length > 0, 'worker runtime artifact manifest should include the private proxy artifact')
+    assert.ok(
+      proxyManifestArtifacts.every((artifact) => (
+        artifact.isPrivate === true &&
+        artifact.sourceOfTruth === true &&
+        artifact.previewAllowed === true &&
+        artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+        !artifact.storageObjectPath.includes('signed')
+      )),
+      'proxy artifacts must stay private, source-of-truth, preview-eligible, project-scoped, and unsigned',
+    )
+    assert.equal(productionReadyProxyDispatch.toolCostEvents?.length, 2, 'proxy dispatch should emit gateway cost events for ffmpeg and ffprobe')
+    assert.deepEqual(
+      productionReadyProxyDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+      ['ffmpeg', 'ffprobe'],
+      'proxy dispatch should scope billing audit events to ffmpeg and ffprobe',
+    )
+    assert.ok(
+      productionReadyProxyDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+      'proxy tool cost events should be billable tool-cost-only events after approval/reservation gates',
+    )
+    assert.equal(productionReadyProxyDispatch.walletSettlements?.length, 2, 'proxy dispatch should create wallet settlements for both tool-cost events')
+    assert.ok(
+      productionReadyProxyDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+      'proxy wallet settlements should spend user credits only for the completed real handler',
     )
 
     productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
@@ -518,6 +575,8 @@ console.log(JSON.stringify({
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
   realMediaAudioExtractDispatchCovered: Boolean(productionReadyAudioExtractDispatch),
   realMediaAudioExtractHandler: productionReadyAudioExtractDispatch?.workerResult?.output?.futureHandler,
+  realMediaProxyDispatchCovered: Boolean(productionReadyProxyDispatch),
+  realMediaProxyHandler: productionReadyProxyDispatch?.workerResult?.output?.futureHandler,
 }, null, 2))
 
 function productionEvidenceFixture(
@@ -686,6 +745,42 @@ function productionReadyAudioExtractInput(input: {
       mediaFoundation: {
         mode: 'production_ready',
         tasks: ['probe', 'extract_audio', 'build_analysis_report'],
+        sourceStorageObjectId: 'source-storage-object-smoke',
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        sourceLocalPath: input.sourceLocalPath,
+        outputRoot: input.outputRoot,
+        contentType: 'video/mp4',
+        ffprobeBin: 'ffprobe',
+        ffmpegBin: 'ffmpeg',
+        timeoutMs: 20_000,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyProxyInput(input: {
+  jobId: string
+  sourceLocalPath: string
+  outputRoot: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_media_proxy',
+    requestedToolIds: ['ffmpeg', 'ffprobe'],
+    requestedRecipeIds: ['media-proxy-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      mediaFoundation: {
+        mode: 'production_ready',
+        tasks: ['probe', 'create_proxy', 'build_analysis_report'],
         sourceStorageObjectId: 'source-storage-object-smoke',
         sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
         sourceLocalPath: input.sourceLocalPath,

@@ -52,6 +52,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
   const realAdapterCount = [
     'cpu_analysis_worker_media_audio_extract',
     'cpu_analysis_worker_media_probe',
+    'cpu_analysis_worker_media_proxy',
     'tool_readiness_worker_core_checks',
   ].filter((adapterId) => sources.gatewaySchemas.includes(adapterId)).length
 
@@ -96,6 +97,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         realAdapterCount,
         mediaAudioExtractAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_audio_extract'),
         mediaProbeAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_probe'),
+        mediaProxyAdapterPresent: sources.gatewaySchemas.includes('cpu_analysis_worker_media_proxy'),
         toolReadinessAdapterPresent: sources.gatewaySchemas.includes('tool_readiness_worker_core_checks'),
         placeholderAdapterMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
       },
@@ -105,6 +107,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       passed: (
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_probe') ||
         sources.gatewaySmoke.includes('cpu_analysis_worker_media_audio_extract') ||
+        sources.gatewaySmoke.includes('cpu_analysis_worker_media_proxy') ||
         sources.gatewaySmoke.includes('tool_readiness_worker_core_checks')
       ) &&
         /production_ready[\s\S]{0,2400}output\?\.mockOnly[\s\S]{0,240}false/i.test(sources.gatewaySmoke),
@@ -114,6 +117,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
         productionReadyMentions: countOccurrences(sources.gatewaySmoke, 'production_ready'),
         realMediaAudioExtractAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_audio_extract'),
         realMediaProbeAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_probe'),
+        realMediaProxyAdapterMentions: countOccurrences(sources.gatewaySmoke, 'cpu_analysis_worker_media_proxy'),
         realToolReadinessAdapterMentions: countOccurrences(sources.gatewaySmoke, 'tool_readiness_worker_core_checks'),
         mockOnlyFalseAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, false'),
         mockOnlyTrueAssertions: countOccurrences(sources.gatewaySmoke, 'mockOnly, true') + countOccurrences(sources.gatewaySmoke, 'mock-safe placeholder output'),

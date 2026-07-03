@@ -24,6 +24,7 @@ const executionModeSchema = z.enum([
 const adapterSchema = z.enum([
   'cpu_analysis_worker_media_audio_extract',
   'cpu_analysis_worker_media_probe',
+  'cpu_analysis_worker_media_proxy',
   'cpu_analysis_worker_placeholder',
   'gpu_ai_worker_placeholder',
   'render_worker_placeholder',

@@ -44,9 +44,16 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mediaFoundationResult.status !== 'blocked' &&
           mediaFoundationResult.probe !== undefined &&
           mediaFoundationResult.audio?.status === 'created'
-        const realMediaHandler = realMediaProbeHandler || realMediaAudioExtractHandler
+        const realMediaProxyHandler = gatewayAdapterId === 'cpu_analysis_worker_media_proxy' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.proxy?.status === 'created'
+        const realMediaHandler = realMediaProbeHandler || realMediaAudioExtractHandler || realMediaProxyHandler
         return {
-          summary: realMediaAudioExtractHandler
+          summary: realMediaProxyHandler
+            ? 'CPU media proxy production handler completed bounded ffprobe plus FFmpeg private proxy execution.'
+            : realMediaAudioExtractHandler
             ? 'CPU media audio-extract production handler completed bounded ffprobe plus FFmpeg extracted-audio execution.'
             : realMediaProbeHandler
             ? 'CPU media probe production handler completed bounded ffprobe execution.'
@@ -55,7 +62,9 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           executionMode: payload.executionMode,
           mockOnly: !realMediaHandler,
           realToolExecution: realMediaHandler,
-          futureHandler: realMediaAudioExtractHandler
+          futureHandler: realMediaProxyHandler
+            ? 'cpu_analysis_worker_media_proxy_production_handler'
+            : realMediaAudioExtractHandler
             ? 'cpu_analysis_worker_media_audio_extract_production_handler'
             : realMediaProbeHandler
             ? 'cpu_analysis_worker_media_probe_production_handler'

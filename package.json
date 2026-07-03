@@ -663,6 +663,8 @@
     "tracka:three-tool-external-agent-execution-bridge-dry-run-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-execution-bridge-dry-run-1-diagnostics.mjs",
     "tracka:three-tool-external-agent-route-worker-dispatch-dry-run-1": "tsx server/cli/tracka-three-tool-external-agent-route-worker-dispatch-dry-run-1.ts",
     "tracka:three-tool-external-agent-route-worker-dispatch-dry-run-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-route-worker-dispatch-dry-run-1-diagnostics.mjs",
+    "tracka:three-tool-external-agent-guarded-route-handler-noop-invoke-1": "tsx server/cli/tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1.ts",
+    "tracka:three-tool-external-agent-guarded-route-handler-noop-invoke-1:diagnostics": "node scripts/validation/tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1-diagnostics.mjs",
     "tracka:gpac-mp4box-disabled-runtime-scaffold:diagnostics": "node scripts/validation/tracka-gpac-mp4box-disabled-runtime-scaffold-diagnostics.mjs",
     "smoke:tracka-gpac-mp4box-disabled-runtime-scaffold": "tsx server/smoke/tracka-gpac-mp4box-disabled-runtime-scaffold-smoke.ts",
     "tracka:gpac-mp4box-runtime-scaffold-negative-tests:diagnostics": "node scripts/validation/tracka-gpac-mp4box-runtime-scaffold-negative-tests-diagnostics.mjs",

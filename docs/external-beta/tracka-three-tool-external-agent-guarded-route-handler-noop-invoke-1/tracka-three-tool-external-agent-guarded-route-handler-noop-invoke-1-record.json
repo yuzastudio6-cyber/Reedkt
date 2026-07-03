@@ -1,0 +1,84 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-GUARDED-ROUTE-HANDLER-NOOP-INVOKE-1",
+  "decision": "completed_three_tool_external_agent_guarded_route_handler_noop_invoke",
+  "execution": "completed_confirmation_gated_three_tool_guarded_noop_route_handler_invoke_no_worker_tool_media_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_GUARDED_ROUTE_HANDLER_NOOP_INVOKE=true",
+  "runId": "2026-07-03T01-16-23-668Z-c161d492",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1/2026-07-03T01-16-23-668Z-c161d492",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1/2026-07-03T01-16-23-668Z-c161d492/three-tool-external-agent-guarded-route-handler-noop-invoke-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-guarded-route-handler-noop-invoke-1/2026-07-03T01-16-23-668Z-c161d492/three-tool-external-agent-guarded-route-handler-noop-invoke-manifest.json",
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-guarded-route-handler-noop-invoke-report.json",
+      "bytes": 13547,
+      "sha256": "8ae4573d75e28eb6560c9f6d07372f2142ebf998ab5d328aab0f6a25c36da0af"
+    },
+    {
+      "fileName": "three-tool-external-agent-guarded-route-handler-noop-invoke-manifest.json",
+      "bytes": 1503,
+      "sha256": "88acb2d44c3ad54065f9fe02a21f86d623ae57e9ebf03ef39a18fb7f57c79ad0"
+    }
+  ],
+  "sourceDispatchDryRun": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-ROUTE-WORKER-DISPATCH-DRY-RUN-1",
+    "mergeSha": "a5efbe7edf5ba791b303feac85412618528b387e",
+    "headSha": "a447c02b69b0bee7a29676fbe35cb0d606251a0e",
+    "runId": "2026-07-03T01-06-54-981Z-9c34363c"
+  },
+  "routeSource": {
+    "routeSourceId": "externalBeta.trackaThreeTool.guardedNoopRouteHandlerSource",
+    "routeSourcePath": "/api/external-beta/tracka/three-tool-agent/guarded-noop",
+    "routeOwner": "backend_service_role_only",
+    "sourceMode": "metadata_only_guarded_noop_source_handler",
+    "productionRouteFileCreated": false,
+    "routeRegisteredAtRuntime": false,
+    "routeRuntimeEnabled": false
+  },
+  "response": {
+    "status": "accepted_three_tool_guarded_noop_route_handler_contract",
+    "noopSourceHandlerInvocation": "completed_metadata_only_noop_source_handler_invocation",
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "persistentJobQueueWrite": false,
+    "toolExecution": false
+  },
+  "sourceEvidence": {
+    "threeToolBridgeMergeSha": "30f0b17287ca16b9da06930dd15e575bdb03de24",
+    "threeToolBridgeDryRunMergeSha": "9daab4250e172b9e941e094a5a8fc3dfd729c2ba",
+    "threeToolExecutionMergeSha": "6ad10faf36bdc447e232044e3857d5d0220ffa54",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "safety": {
+    "productionRouteFileCreated": false,
+    "routeRegisteredAtRuntime": false,
+    "routeRuntimeEnabled": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "workerLeaseClaim": false,
+    "persistentJobQueueWrite": false,
+    "gstreamerExecutionInThisNoopInvoke": false,
+    "mkvtoolnixExecutionInThisNoopInvoke": false,
+    "gpacMp4boxExecutionInThisNoopInvoke": false,
+    "dockerExecutionInThisNoopInvoke": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-GUARDED-WORKER-DISPATCH-NOOP-INVOKE-1"
+}

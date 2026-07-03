@@ -278,6 +278,15 @@ function main() {
       ...spec.brollWanExternalAgentProofCommand.args,
     ].join(' ')}`,
   }
+  const brollWanPrivateCachePrepareCommand = {
+    ...spec.brollWanPrivateCachePrepareCommand,
+    executionAllowedNow: false,
+    blocker: 'private_gcs_model_cache_marker_missing_or_unverified',
+    shellExample: `${spec.brollWanPrivateCachePrepareCommand.confirmationEnv}=${spec.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue} ${[
+      spec.brollWanPrivateCachePrepareCommand.command,
+      ...spec.brollWanPrivateCachePrepareCommand.args,
+    ].join(' ')}`,
+  }
   const soundMusicAudioEvidenceCommand = {
     ...spec.soundMusicAudioEvidenceCommand,
     executionAllowedNow: false,
@@ -344,6 +353,7 @@ function main() {
         qwenExternalAgentExecutionCommand,
         qwenBoundedExecutionCommand,
         brollWanExternalAgentProofCommand,
+        brollWanPrivateCachePrepareCommand,
         soundMusicAudioEvidenceCommand,
         supabaseLocalHarnessEvidenceCommand,
         chosenManualAction,

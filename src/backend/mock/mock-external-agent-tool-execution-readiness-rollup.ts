@@ -346,6 +346,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'Fail-closed B-roll Wan wrapper static guard; execution mode requires confirmation before delegating to the bounded 11B no-inference model import/load runner.',
     },
     {
+      id: 'broll_wan_private_cache_prepare_static_guard',
+      command: 'npm run external-agent-tool-prepare-broll-wan-cache',
+      liveReadOnly: false,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Fail-closed B-roll Wan private-cache preparation wrapper; execution mode requires a separate cache-fill confirmation before staging the model cache to private GCS and still creates no VM or inference.',
+    },
+    {
       id: 'sound_music_audio_external_agent_wrapper_static_guard',
       command: 'npm run external-agent-tool-execute-sound',
       liveReadOnly: false,

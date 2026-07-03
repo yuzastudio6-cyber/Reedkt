@@ -138,6 +138,27 @@ assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, fals
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.brollWanPrivateCachePrepareCommand.args, [
+  'run',
+  'external-agent-tool-prepare-broll-wan-cache',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.brollWanPrivateCachePrepareCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL',
+)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.brollWanPrivateCachePrepareCommand.delegatesTo11bRunnerCacheFillOnly, true)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.stagesPrivateGcsModelCacheOnly, true)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.createsComputeVm, false)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.runsModel, false)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.runsModelInference, false)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.createsGeneratedAssets, false)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.touchesSupabase, false)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.touchesSql, false)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.unlocksBetaOrProduction, false)
 assert.deepEqual(spec.soundMusicAudioEvidenceCommand.args, [
   'run',
   'external-agent-tool-execute-sound',
@@ -377,6 +398,33 @@ assert.equal(decision.brollWanExternalAgentProofCommand.unlocksBetaOrProduction,
 assert.equal(
   decision.brollWanExternalAgentProofCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
+)
+assert.equal(typeof decision.brollWanPrivateCachePrepareCommand, 'object')
+assert.deepEqual(decision.brollWanPrivateCachePrepareCommand.args, [
+  'run',
+  'external-agent-tool-prepare-broll-wan-cache',
+  '--',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.brollWanPrivateCachePrepareCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL',
+)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.brollWanPrivateCachePrepareCommand.delegatesTo11bRunnerCacheFillOnly, true)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.stagesPrivateGcsModelCacheOnly, true)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.executionAllowedNow, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.createsComputeVm, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.runsModel, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.runsModelInference, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.createsGeneratedAssets, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.touchesSupabase, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.touchesSql, false)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.unlocksBetaOrProduction, false)
+assert.equal(
+  decision.brollWanPrivateCachePrepareCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL=true npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json',
 )
 assert.equal(typeof decision.soundMusicAudioEvidenceCommand, 'object')
 assert.deepEqual(decision.soundMusicAudioEvidenceCommand.args, [

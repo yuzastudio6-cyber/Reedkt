@@ -218,6 +218,8 @@ for (const required of [
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
+  '`npm run external-agent-tool-prepare-broll-wan-cache`',
+  '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL=true`',
   '`REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true`',
   '`npm run ai-video-broll-gen-11b:l4-model-import-runner -- --execute`',
   'prompt-scoped no-public-IP L4 proof VM',
@@ -428,7 +430,7 @@ assert.equal(
   rollup.recommendedNextPrompt,
   BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
 )
-assert.equal(rollup.safeNextCommands.length, 12)
+assert.equal(rollup.safeNextCommands.length, 13)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -471,6 +473,10 @@ assert.equal(
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-execute-broll-wan'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-prepare-broll-wan-cache'),
   true,
 )
 assert.equal(

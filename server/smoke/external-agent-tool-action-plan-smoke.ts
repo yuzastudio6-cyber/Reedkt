@@ -176,19 +176,15 @@ assert.equal(broll.immediateSafeActions[0], 'npm run external-agent-tool-next-co
 assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
+assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-prepare-broll-wan-cache'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
-assert.equal(broll.externalManualBlocker.includes('10P proved northamerica-northeast2-a'), true)
-assert.equal(broll.externalManualBlocker.includes('IAP SSH failed'), true)
-assert.equal(broll.externalManualBlocker.includes('10Q recorded an inconclusive read-only access diagnosis'), true)
-assert.equal(broll.externalManualBlocker.includes('10S exposed a runner flag conflict'), true)
-assert.equal(broll.externalManualBlocker.includes('10T repaired that flag conflict'), true)
-assert.equal(broll.externalManualBlocker.includes('10U proved the no-GPU IAP SSH canary'), true)
-assert.equal(broll.externalManualBlocker.includes('10W recorded the no-execution post-create IAP lookup readiness fix'), true)
-assert.equal(broll.externalManualBlocker.includes('10Y fixed the source-controlled runner contract'), true)
-assert.equal(broll.externalManualBlocker.includes('10Z bounded no-idle L4 payload/install retry'), true)
+assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
+assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
+assert.equal(broll.externalManualBlocker.includes('11B added the no-inference model import/load runner'), true)
+assert.equal(broll.externalManualBlocker.includes('private GCS Wan model-cache marker is missing'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run the separate 10Z bounded no-idle L4 payload/install retry after the 10Y runner fix; stop before model import or inference and cleanup exact-name prompt resources after any create attempt',
+  'run npm run external-agent-tool-prepare-broll-wan-cache with its explicit cache-fill confirmation, then rerun npm run external-agent-tool-next-command before the bounded 11B no-idle L4 model import/load proof',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

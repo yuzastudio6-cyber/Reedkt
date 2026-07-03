@@ -71,6 +71,23 @@ export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
   unlocksBetaOrProduction: false
 }
 
+export type ExternalAgentToolBrollWanPrivateCachePrepareCommand = {
+  toolId: 'ai_video_broll_generation_wan'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-prepare-broll-wan-cache', '--', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
+  confirmationEnvRequiredValue: 'true'
+  delegatesTo11bRunnerCacheFillOnly: true
+  stagesPrivateGcsModelCacheOnly: true
+  createsComputeVm: false
+  runsModel: false
+  runsModelInference: false
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
 export type ExternalAgentToolSoundMusicAudioEvidenceCommand = {
   toolId: 'sound_music_audio'
   command: 'npm'
@@ -217,6 +234,22 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     touchesSql: false,
     unlocksBetaOrProduction: false,
   } satisfies ExternalAgentToolBrollWanExternalAgentProofCommand,
+  brollWanPrivateCachePrepareCommand: {
+    toolId: 'ai_video_broll_generation_wan',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-prepare-broll-wan-cache', '--', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL',
+    confirmationEnvRequiredValue: 'true',
+    delegatesTo11bRunnerCacheFillOnly: true,
+    stagesPrivateGcsModelCacheOnly: true,
+    createsComputeVm: false,
+    runsModel: false,
+    runsModelInference: false,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolBrollWanPrivateCachePrepareCommand,
   soundMusicAudioEvidenceCommand: {
     toolId: 'sound_music_audio',
     command: 'npm',

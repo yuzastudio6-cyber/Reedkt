@@ -6,19 +6,27 @@ import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-ex
 type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
+const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
 const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
+const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-private-cache-fill.json'
 const NEXT_AFTER_MODEL_IMPORT =
   'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
+  const prepareCache = process.argv.includes('--prepare-cache') || process.argv.includes('--cache-fill-only')
   const brollTool = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
     (tool) => tool.toolId === 'ai_video_broll_generation_wan',
   )
+
+  if (prepareCache) {
+    runPrepareCache(execute, brollTool)
+    return
+  }
 
   if (!execute) {
     print({
@@ -27,8 +35,10 @@ function main() {
       executeRequired: true,
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      cacheFillConfirmationEnv: CACHE_FILL_CONFIRM_ENV,
       delegatedRunnerConfirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
+      cachePreparationCommand: 'npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json',
       canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
       noIdleLifecycleGate: brollTool?.noIdleLifecycleGate,
       runtimeRunNow: false,
@@ -56,6 +66,7 @@ function main() {
       blockers: [`confirmation_env_required:${CONFIRM_ENV}=true`],
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      cacheFillConfirmationEnv: CACHE_FILL_CONFIRM_ENV,
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -153,6 +164,114 @@ function main() {
       asRecord(delegated.json.runtimeSideEffects).generatedVideoCreated === true,
     generatedAssetsCreated: delegated.json?.runtimeSideEffects &&
       asRecord(delegated.json.runtimeSideEffects).generatedAssetsCreated === true,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    generatedLocalFixturePassedClaimed: false,
+  })
+}
+
+function runPrepareCache(execute: boolean, brollTool: unknown) {
+  if (!execute) {
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_private_cache_prepare_static_guard',
+      executeRequired: true,
+      confirmationEnv: CACHE_FILL_CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      delegatedRunnerConfirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+      delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
+      delegatedRunnerArgs: ['--cache-fill-only', '--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH],
+      noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelInferenceRun: false,
+      privateGcsModelCacheStaged: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  if (process.env[CACHE_FILL_CONFIRM_ENV] !== 'true') {
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_private_cache_prepare_confirmation_blocked',
+      status: 'blocked',
+      blockers: [`confirmation_env_required:${CACHE_FILL_CONFIRM_ENV}=true`],
+      confirmationEnv: CACHE_FILL_CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelInferenceRun: false,
+      privateGcsModelCacheStaged: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  const delegated = runJson(
+    'broll_11b_private_model_cache_fill_runner',
+    'npm',
+    [
+      'run',
+      DELEGATED_RUNNER_SCRIPT,
+      '--',
+      '--cache-fill-only',
+      '--execute',
+      '--summary-path',
+      CACHE_FILL_SUMMARY_PATH,
+    ],
+    {
+      [DELEGATED_RUNNER_CONFIRM_ENV]: 'true',
+    },
+    1024 * 1024 * 24,
+  )
+  const runtimeSideEffects = asRecord(asRecord(delegated.json).runtimeSideEffects)
+
+  print({
+    ok: delegated.ok && delegated.json?.ok === true,
+    mode: 'external_agent_broll_wan_private_cache_prepare_delegated_result',
+    status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
+    delegatedRunner: {
+      script: DELEGATED_RUNNER_SCRIPT,
+      confirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+      summaryPath: CACHE_FILL_SUMMARY_PATH,
+      exitCode: delegated.exitCode,
+    },
+    delegatedResult: delegated.json,
+    stderrSummary: delegated.stderrSummary,
+    nextPrompt: delegated.ok && delegated.json?.ok === true
+      ? 'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
+      : 'AI-VIDEO-BROLL-GEN-11B-CACHE-FILL-FIX: fix private GCS Wan model cache staging, no VM/no inference',
+    runtimeRunNow: true,
+    computeVmCreated: false,
+    dockerRun: false,
+    modelImportRun: false,
+    modelInferenceRun: false,
+    privateGcsModelCacheStaged: runtimeSideEffects.privateGcsModelCacheStaged === true,
+    storageObjectsCreated: runtimeSideEffects.privateGcsModelCacheStaged === true,
+    generatedVideoCreated: false,
+    generatedAssetsCreated: false,
     supabaseTouched: false,
     sqlExecuted: false,
     creditMutationCreated: false,

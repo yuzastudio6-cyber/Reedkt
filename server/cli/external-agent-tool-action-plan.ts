@@ -43,12 +43,13 @@ function actionForTool(toolId: string) {
         ...externalAgentPreExecutionActions,
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run ai-video-broll-wan-gpu-global-quota:verify',
+        'npm run external-agent-tool-prepare-broll-wan-cache',
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10P proved northamerica-northeast2-a can create a no-public-IP L4 VM and clean it up, but IAP SSH failed with a publickey/OS Login blocker; 10Q recorded an inconclusive read-only access diagnosis, 10S exposed a runner flag conflict, 10T repaired that flag conflict, 10U proved the no-GPU IAP SSH canary with cleanup verified, 10V proved the L4 VM create/no-public-IP/cleanup path but failed the first IAP SSH precheck with an instance lookup blocker before payload transfer, 10W recorded the no-execution post-create IAP lookup readiness fix, 10X exposed a local runner bug where sanitized/truncated describe output was parsed instead of raw JSON before payload transfer, and 10Y fixed the source-controlled runner contract so future retries parse raw JSON before sanitizing logs and delete the prompt VM after any create attempt. The next controlled step is the 10Z bounded no-idle L4 payload/install retry after the runner fix',
+        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target and 11B added the no-inference model import/load runner. Current live preflight shows local model cache and private wheelhouse are ready, but the private GCS Wan model-cache marker is missing; prepare the private cache before the bounded L4 import proof can run.',
       afterBlockerClears:
-        'run the separate 10Z bounded no-idle L4 payload/install retry after the 10Y runner fix; stop before model import or inference and cleanup exact-name prompt resources after any create attempt',
+        'run npm run external-agent-tool-prepare-broll-wan-cache with its explicit cache-fill confirmation, then rerun npm run external-agent-tool-next-command before the bounded 11B no-idle L4 model import/load proof',
     }
   }
 

@@ -151,6 +151,8 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
     gatewayAdapterId === 'cpu_analysis_worker_media_representative_frames'
   const captionQaMetadataChecks = payload.workerType === 'qa_worker' &&
     gatewayAdapterId === 'qa_worker_caption_metadata'
+  const finalRenderQaMetadataChecks = payload.workerType === 'qa_worker' &&
+    gatewayAdapterId === 'qa_worker_final_render_qa_metadata'
 
   for (const toolId of payload.requestedToolIds) {
     if (trackBAdapterToolId === toolId) {
@@ -169,7 +171,8 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
       mediaProxyCoreChecks ||
       mediaKeyframesCoreChecks ||
       mediaRepresentativeFramesCoreChecks ||
-      captionQaMetadataChecks
+      captionQaMetadataChecks ||
+      finalRenderQaMetadataChecks
       ? evaluateRuntimePolicy(profile)
       : evaluateRuntimePolicy(profile, payload.workerType)
     const productionExecution = payload.executionMode === 'production_ready'

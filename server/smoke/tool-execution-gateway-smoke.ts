@@ -596,6 +596,79 @@ assert.ok(
   'final-render metadata wallet settlements should spend user credits only for the completed real handler',
 )
 
+const productionReadyFinalRenderQaMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyFinalRenderQaMetadataInput({
+  jobId: 'job-production-ready-final-render-qa-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const finalRenderQaMetadataResult = productionReadyFinalRenderQaMetadataDispatch.workerResult?.output?.finalRenderExecutionResult as {
+  status?: string
+  executionManifest?: { renderMode?: string; finalDeliveryCandidate?: boolean; revideoUsed?: boolean }
+  commandPlans?: Array<{ tool?: string; executes?: boolean }>
+  renderArtifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+    previewAllowed?: boolean
+  }>
+  previewArtifact?: unknown
+  finalExportArtifact?: unknown
+  qaResults?: Array<{ gateType?: string; status?: string; blocking?: boolean }>
+  finalDeliveryAllowed?: boolean
+  blocksFinalExport?: boolean
+  skippedReasons?: Array<{ tool?: string }>
+} | undefined
+const finalRenderQaManifestArtifacts = productionReadyFinalRenderQaMetadataDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'render_manifest') ?? []
+assert.equal(productionReadyFinalRenderQaMetadataDispatch.gateway.status, 'dispatched', 'complete evidence plus final-render QA metadata adapter should allow backend gateway dispatch')
+assert.equal(productionReadyFinalRenderQaMetadataDispatch.workerResult?.status, 'completed', 'final-render QA metadata real handler should complete')
+assert.equal(productionReadyFinalRenderQaMetadataDispatch.workerResult?.output?.mockOnly, false, 'final-render QA metadata production handler should be non-mock')
+assert.equal(productionReadyFinalRenderQaMetadataDispatch.workerResult?.output?.realToolExecution, true, 'final-render QA metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyFinalRenderQaMetadataDispatch.workerResult?.output?.futureHandler,
+  'qa_worker_final_render_qa_metadata_production_handler',
+  'final-render QA metadata production handler should use the reviewed QA metadata handler',
+)
+assert.equal(finalRenderQaMetadataResult?.status, 'partial', 'final-render QA metadata handler should complete as partial metadata execution, not preview/export')
+assert.equal(finalRenderQaMetadataResult?.executionManifest?.renderMode, 'command_plan_only', 'final-render QA metadata handler must use command_plan_only render mode')
+assert.equal(finalRenderQaMetadataResult?.executionManifest?.finalDeliveryCandidate, false, 'QA metadata must not become a final delivery candidate')
+assert.equal(finalRenderQaMetadataResult?.executionManifest?.revideoUsed, false, 'final-render QA metadata handler must not use Revideo')
+assert.ok((finalRenderQaMetadataResult?.commandPlans?.length ?? 0) >= 3, 'final-render QA metadata handler should build Remotion, FFmpeg, and libass command plans')
+assert.ok(
+  finalRenderQaMetadataResult?.commandPlans?.every((plan) => plan.executes === false),
+  'final-render QA metadata command plans must be non-executing',
+)
+assert.equal(finalRenderQaMetadataResult?.previewArtifact, undefined, 'final-render QA metadata handler must not create preview video artifacts')
+assert.equal(finalRenderQaMetadataResult?.finalExportArtifact, undefined, 'final-render QA metadata handler must not create final export artifacts')
+assert.equal(finalRenderQaMetadataResult?.finalDeliveryAllowed, false, 'final-render QA metadata handler must not allow final delivery')
+assert.equal(finalRenderQaMetadataResult?.blocksFinalExport, true, 'final-render QA metadata handler must keep final export blocked')
+assert.ok(
+  finalRenderQaMetadataResult?.qaResults?.some((gate) => gate.gateType === 'final_delivery' && gate.status !== 'passed' && gate.blocking === true),
+  'final-render QA metadata handler should preserve a blocking final_delivery gate',
+)
+assert.ok(finalRenderQaManifestArtifacts.length >= 1, 'worker runtime artifact manifest should include private final-render QA manifest metadata')
+assert.ok(
+  finalRenderQaManifestArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.previewAllowed === false &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'final-render QA metadata artifacts must stay private, source-of-truth, non-preview, project-scoped, and unsigned',
+)
+assert.deepEqual(
+  finalRenderQaMetadataResult?.skippedReasons?.map((reason) => reason.tool).sort(),
+  ['ffmpeg', 'libass', 'remotion'],
+  'final-render QA metadata handler should record command-plan skips instead of executing render tools',
+)
+assert.deepEqual(
+  productionReadyFinalRenderQaMetadataDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+  ['ffmpeg', 'libass', 'remotion'],
+  'final-render QA metadata dispatch should scope billing audit events to Remotion, FFmpeg, and libass',
+)
+assert.equal(productionReadyFinalRenderQaMetadataDispatch.walletSettlements?.length, 3, 'final-render QA metadata dispatch should create wallet settlements for render QA metadata cost events')
+
 const productionReadyCaptionMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyCaptionMetadataInput({
   jobId: 'job-production-ready-caption-metadata',
   productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
@@ -1144,6 +1217,8 @@ console.log(JSON.stringify({
   realCaptionQaMetadataHandler: productionReadyCaptionQaMetadataDispatch.workerResult?.output?.futureHandler,
   realFinalRenderMetadataDispatchCovered: productionReadyFinalRenderMetadataDispatch.gateway.status === 'dispatched',
   realFinalRenderMetadataHandler: productionReadyFinalRenderMetadataDispatch.workerResult?.output?.futureHandler,
+  realFinalRenderQaMetadataDispatchCovered: productionReadyFinalRenderQaMetadataDispatch.gateway.status === 'dispatched',
+  realFinalRenderQaMetadataHandler: productionReadyFinalRenderQaMetadataDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
   realMediaAudioExtractDispatchCovered: Boolean(productionReadyAudioExtractDispatch),
@@ -1541,6 +1616,24 @@ function productionReadyFinalRenderMetadataInput(input: {
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyFinalRenderQaMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  const request = productionReadyFinalRenderMetadataInput(input)
+  const metadata = { ...(request.metadata ?? {}) } as Record<string, unknown>
+  metadata.finalRenderQA = metadata.finalRenderExecution
+  delete metadata.finalRenderExecution
+  return {
+    ...request,
+    workerType: 'qa_worker',
+    adapterId: 'qa_worker_final_render_qa_metadata',
+    requestedRecipeIds: ['final-render-qa-metadata-production-handler-recipe'],
+    metadata,
   }
 }
 

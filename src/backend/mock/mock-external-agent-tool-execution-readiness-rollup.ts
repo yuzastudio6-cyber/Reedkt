@@ -181,10 +181,12 @@ export const AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT =
   'AI-VIDEO-BROLL-GEN-10R-FIX-IAP-SSH-CANARY-BOUNDED-RUNNER: fix bounded no-GPU IAP SSH canary runner timeout and durable cleanup-summary capture, no GPU/no model/no inference' as const
 export const AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-10S-NO-GPU-IAP-SSH-CANARY-BOUNDED-RUNNER-EXECUTE: run the fixed bounded no-GPU IAP SSH canary with hard timeouts, durable summaries, and mandatory cleanup; no GPU/no model/no inference' as const
+export const AI_VIDEO_BROLL_GEN_10T_IAP_SSH_FLAG_FIX_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10T-IAP-SSH-FLAG-FIX: remove mutually exclusive IAP SSH flags from the bounded no-GPU canary runner, no VM/no model/no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10s_fixed_canary_execute_required',
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10t_iap_ssh_flag_fix_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -409,14 +411,18 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_10r_bounded_runner_packet_ready_10s_canary_execute_required',
+        'controlled_l4_no_idle_payload_install_proof_10s_canary_blocked_by_ssh_flag_conflict_10t_fix_required',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
-      primaryBlocker: 'broll_10s_fixed_no_gpu_iap_ssh_canary_execution_required',
+      primaryBlocker: 'broll_10t_iap_ssh_flag_fix_required',
       evidence: [
+        'docs/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.md',
+        'docs/implementation-prompts/prompt-ai-video-broll-gen-10t-iap-ssh-flag-fix.md',
+        'src/backend/mock/mock-ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result.ts',
+        'server/smoke/ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-result-smoke.ts',
         'docs/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-result.md',
         'docs/implementation-prompts/prompt-ai-video-broll-gen-10s-no-gpu-iap-ssh-canary-bounded-runner-execute.md',
         'src/backend/mock/mock-ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner.ts',
@@ -584,7 +590,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_10T_IAP_SSH_FLAG_FIX_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -607,7 +613,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT,
+          AI_VIDEO_BROLL_GEN_10T_IAP_SSH_FLAG_FIX_PROMPT,
       },
     },
     {
@@ -660,7 +666,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT,
+    AI_VIDEO_BROLL_GEN_10T_IAP_SSH_FLAG_FIX_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

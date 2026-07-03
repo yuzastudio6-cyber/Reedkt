@@ -9,7 +9,7 @@ const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const NEXT_AFTER_QUOTA =
-  'AI-VIDEO-BROLL-GEN-10S-NO-GPU-IAP-SSH-CANARY-BOUNDED-RUNNER-EXECUTE: run the fixed bounded no-GPU IAP SSH canary with hard timeouts, durable summaries, and mandatory cleanup; no GPU/no model/no inference'
+  'AI-VIDEO-BROLL-GEN-10T-IAP-SSH-FLAG-FIX: remove mutually exclusive IAP SSH flags from the bounded no-GPU canary runner, no VM/no model/no inference'
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -113,7 +113,7 @@ function validateReadiness(quota: JsonRecord | undefined, cache: JsonRecord | un
   if (cache?.modelIndexClassNameMatches !== true) blockers.push('broll_private_cache_model_index_mismatch')
   if (cache?.indexRefsLocal !== true) blockers.push('broll_private_cache_refs_not_local')
 
-  blockers.push('broll_10s_fixed_no_gpu_iap_ssh_canary_execution_required')
+  blockers.push('broll_10t_iap_ssh_flag_fix_required')
   return Array.from(new Set(blockers))
 }
 

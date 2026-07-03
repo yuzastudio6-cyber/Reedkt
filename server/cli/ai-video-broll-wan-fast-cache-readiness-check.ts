@@ -202,6 +202,7 @@ function main() {
         readyForNonGpuIapSshCanaryPrompt: spec.readyForNonGpuIapSshCanaryPrompt,
         readyForBroll10rBoundedRunnerFixPrompt: spec.readyForBroll10rBoundedRunnerFixPrompt,
         readyForBroll10sFixedCanaryExecutePrompt: spec.readyForBroll10sFixedCanaryExecutePrompt,
+        readyForBroll10tIapSshFlagFixPrompt: spec.readyForBroll10tIapSshFlagFixPrompt,
         nextAction: spec.nextAction,
       },
       null,

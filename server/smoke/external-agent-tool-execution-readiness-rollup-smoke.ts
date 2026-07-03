@@ -832,6 +832,10 @@ assert.equal(
   true,
 )
 assert.equal(
+  broll?.evidence.includes('docs/ai-video-broll-wan-external-agent-wrapper-execution-result.md'),
+  true,
+)
+assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-generation-runtime-gpu-architecture-plan.md'),
   true,
 )
@@ -841,6 +845,10 @@ assert.equal(
 )
 assert.equal(
   broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-wan-external-agent-wrapper-blocked-result.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-wan-external-agent-wrapper-execution-result.ts'),
   true,
 )
 assert.equal(
@@ -939,6 +947,10 @@ assert.equal(
 )
 assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-wan-external-agent-wrapper-blocked-result-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-wan-external-agent-wrapper-execution-result-smoke.ts'),
   true,
 )
 assert.equal(

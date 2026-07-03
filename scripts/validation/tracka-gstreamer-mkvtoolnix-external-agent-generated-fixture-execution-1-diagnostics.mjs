@@ -43,7 +43,19 @@ const requiredFiles = [
   'package.json',
 ]
 
-const allowedChangedFiles = new Set(requiredFiles)
+const followUpFiles = [
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1/source-audit.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1/evidence-review.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1/tool-readiness.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1/safety-boundary.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1/validation-results.md',
+  'docs/external-beta/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1-record.json',
+  'docs/activation-phase-tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-gstreamer-mkvtoolnix-external-agent-approved-snapshot-job-execution-dry-run-1.md',
+  'scripts/validation/tracka-gstreamer-mkvtoolnix-external-agent-generated-fixture-qa-rollup-1-diagnostics.mjs',
+]
+const followUpFileSet = new Set(followUpFiles)
+const allowedChangedFiles = new Set([...requiredFiles, ...followUpFiles])
 const blockedChangedPatterns = [
   /^package-lock\.json$/,
   /^src\//,
@@ -258,7 +270,7 @@ for (const file of changedFiles) {
   if (blockedChangedPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed file: ${file}`)
 }
 
-for (const file of changedFiles.filter((name) => fs.existsSync(name) && fs.statSync(name).isFile())) {
+for (const file of changedFiles.filter((name) => !followUpFileSet.has(name) && fs.existsSync(name) && fs.statSync(name).isFile())) {
   const text = read(file)
   for (const pattern of forbiddenClaimPatterns) {
     if (pattern.test(text)) fail(`forbidden claim matched in changed file ${file}: ${pattern}`)

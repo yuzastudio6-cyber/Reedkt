@@ -251,6 +251,8 @@ function main() {
         readyForBroll10vNoIdleL4PayloadInstallRetryPrompt: false,
         readyForBroll10wIapLookupReadinessFixPrompt: false,
         readyForBroll10xNoIdleL4PayloadInstallRetryWithIapLookupReadinessPrompt:
+          false,
+        readyForBroll10yRunnerRawJsonCleanupFixPrompt:
           quotaSufficientForOneL4Vm,
         readyForExternalAgentExecutionNow: false,
         noIdleLifecycleGate: spec.noIdleLifecycleGate,

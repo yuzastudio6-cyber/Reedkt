@@ -313,12 +313,30 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
     case 'render_worker':
       if (hasFinalRenderExecutionRequest(payload)) {
         const finalRenderExecutionResult = await runFinalRenderExecutionPipeline(buildFinalRenderExecutionInput(payload))
+        const realFinalRenderMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_final_render_metadata' &&
+          finalRenderExecutionResult.mode === 'production_ready' &&
+          finalRenderExecutionResult.status !== 'blocked' &&
+          finalRenderExecutionResult.executionManifest !== undefined &&
+          finalRenderExecutionResult.executionManifest.renderMode === 'command_plan_only' &&
+          finalRenderExecutionResult.commandPlans.length >= 3 &&
+          finalRenderExecutionResult.commandPlans.every((plan) => plan.executes === false) &&
+          finalRenderExecutionResult.renderArtifacts.some((artifact) => artifact.artifactType === 'render_manifest' && artifact.sourceOfTruth) &&
+          finalRenderExecutionResult.qaResults.length > 0 &&
+          finalRenderExecutionResult.previewArtifact === undefined &&
+          finalRenderExecutionResult.finalExportArtifact === undefined &&
+          finalRenderExecutionResult.finalDeliveryAllowed === false &&
+          finalRenderExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 16A render worker final render/export execution route completed in explicit finalRenderExecution mode.',
+          summary: realFinalRenderMetadataHandler
+            ? 'Render worker final-render metadata production handler completed bounded render manifest, non-executing command plans, and QA metadata without preview, export, or media execution.'
+            : 'Milestone 16A render worker final render/export execution route completed in explicit finalRenderExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'render_worker_final_render_export_execution',
+          mockOnly: !realFinalRenderMetadataHandler,
+          realToolExecution: realFinalRenderMetadataHandler,
+          futureHandler: realFinalRenderMetadataHandler
+            ? 'render_worker_final_render_metadata_production_handler'
+            : 'render_worker_final_render_export_execution',
           finalRenderExecutionResult,
         }
       }

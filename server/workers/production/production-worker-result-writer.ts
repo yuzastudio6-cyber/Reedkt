@@ -55,6 +55,7 @@ function extractOutputArtifactRecords(output?: ProductionWorkerRouteOutput): Too
     ...extractArtifactsFromResult(output?.smartCutTimelineExecutionResult, 'artifacts'),
     ...extractArtifactsFromResult(output?.audioExecutionResult, 'artifacts'),
     ...extractArtifactsFromResult(output?.colorExecutionResult, 'artifacts'),
+    ...extractArtifactsFromResult(output?.finalRenderExecutionResult, 'renderArtifacts'),
   ]
 }
 
@@ -63,10 +64,11 @@ function extractOutputQualityGateResults(output?: ProductionWorkerRouteOutput): 
     ...extractQualityGateResultsFromResult(output?.smartCutTimelineExecutionResult),
     ...extractQualityGateResultsFromResult(output?.audioExecutionResult),
     ...extractQualityGateResultsFromResult(output?.colorExecutionResult),
+    ...extractQualityGateResultsFromResult(output?.finalRenderExecutionResult),
   ]
 }
 
-function extractArtifactsFromResult(result: unknown, fieldName: 'artifactRecords' | 'artifacts'): ToolArtifact[] {
+function extractArtifactsFromResult(result: unknown, fieldName: 'artifactRecords' | 'artifacts' | 'renderArtifacts'): ToolArtifact[] {
   if (!result || typeof result !== 'object') return []
   const artifactRecords = (result as Record<string, unknown>)[fieldName]
   if (!Array.isArray(artifactRecords)) return []

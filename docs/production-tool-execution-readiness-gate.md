@@ -35,12 +35,14 @@ npm run smoke:production-ops-observability-evidence-collector
 npm run smoke:production-final-owner-signoff-evidence-collector
 npm run smoke:production-supabase-persistence-evidence-collector
 npm run smoke:production-wallet-lifecycle-evidence-collector
+npm run smoke:production-stripe-boundary-evidence-collector
 npm run prod:readiness:tool-execution-gate-preflight
 npm run prod:readiness:tool-execution-evidence-collector
 npm run prod:readiness:ops-observability-evidence-collector
 npm run prod:readiness:final-owner-signoff-evidence-collector
 npm run prod:readiness:supabase-persistence-evidence-collector
 npm run prod:readiness:wallet-lifecycle-evidence-collector
+npm run prod:readiness:stripe-boundary-evidence-collector
 npm run prod:readiness:tool-execution-gate
 ```
 
@@ -53,6 +55,8 @@ For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDIT
 Use `prod:readiness:supabase-persistence-evidence-collector` to isolate the Supabase production persistence slice before final all-up recording. The collector verifies non-secret provenance for production environment, `tool_cost_events`, `beta_readiness_evidence_packets`, `production_tool_execution_readiness_evidence_packets`, service-role write path, authenticated RLS readback, explicit Data API grants, backend-only beta/production evidence access, backup/PITR approval, Security Advisor review, Performance Advisor review, and private storage policy verification. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_SUPABASE_PERSISTENCE_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires every other paid-production evidence section to pass; Supabase persistence evidence alone cannot unlock production. The collector never connects to Supabase, runs SQL, deploys migrations, changes grants, mutates storage, runs tools, dispatches workers, or activates beta/production.
 
 Use `prod:readiness:wallet-lifecycle-evidence-collector` to isolate the wallet lifecycle slice before final all-up recording. The collector verifies non-secret provenance for credit reservation, spend settlement, release settlement, refund settlement, settlement RPC deployment, service-role-only RPC execution, idempotent settlement replay, and no silent-charge behavior. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_WALLET_LIFECYCLE_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires every other paid-production evidence section to pass; wallet lifecycle evidence alone cannot unlock production. The collector never mutates wallets, writes ledgers directly, connects to Supabase directly, calls Stripe, runs tools, dispatches workers, processes media, or activates beta/production.
+
+Use `prod:readiness:stripe-boundary-evidence-collector` to isolate the Stripe boundary slice before final all-up recording. The collector verifies non-secret provenance for billing-owner approval, no Stripe calls from tool-cost surfaces, service-fee exclusion from tool events, and webhook separation from the tool ledger. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires every other paid-production evidence section to pass; Stripe boundary evidence alone cannot unlock production. The collector never imports Stripe, calls Stripe, mutates billing records, mutates wallets, writes Supabase directly, runs tools, dispatches workers, processes media, or activates beta/production.
 
 Use `prod:readiness:tool-execution-evidence-collector` only after the preflight is complete. The collector defaults to dry-run mode and performs no HTTP calls unless `REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE=true` is supplied with `REEDITPRO_PRODUCTION_READINESS_API_BASE_URL`, `REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN`, and `REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY`. When confirmed, it posts the passing evidence packet through the authenticated backend route, uses the idempotency key for replay safety, reads the workspace packet back through the backend route, and redacts the bearer token from the summary. The collector never writes Supabase directly and does not run tools, dispatch workers, mutate wallets, call Stripe, process media, deploy, or activate production.
 

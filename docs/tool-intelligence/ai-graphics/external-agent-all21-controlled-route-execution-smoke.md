@@ -54,8 +54,8 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `providerRuntimePerformedTools`: 0
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
-- `scopedGpuModelLocalDevRouteAttemptTools`: 1
-- `scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools`: 1
+- `scopedGpuModelLocalDevRouteAttemptTools`: 8
+- `scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools`: 8
 - `scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools`: 0
 
 ## Booleans
@@ -83,6 +83,8 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `controlledToolRouteExecutionPerformed`: true
 - `gpuRuntimeOnDemandOnly`: true
 - `noIdleGpuRuntimeApproved`: true
+- `all8ScopedGpuModelLocalDevRouteAttemptsAccepted`: true
+- `all8ScopedGpuModelRuntimeContainerPayloadsAccepted`: true
 - `scopedGpuModelLocalDevRouteAttemptAccepted`: true
 - `scopedGpuModelLocalDevRouteAttemptBlockedWithReason`: true
 - `scopedGpuModelRuntimeContainerPayloadAccepted`: true
@@ -110,13 +112,26 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `dependencyInstallPerformed`: false
 - `packageLockMutationPerformed`: false
 
-## Scoped GPU/model route attempt
+## Scoped GPU/model route attempts
+
+| Tool | External-agent state | Blocking reason | Runtime image provided | Runtime executed | GPU starts now | Next exact command |
+| --- | --- | --- | --- | --- | --- | --- |
+| `torch_torchvision` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision/private-approved-frame.ppm` |
+| `transformers` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers/private-approved-frame.ppm` |
+| `sam2` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt` |
+| `birefnet` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model` |
+| `real_esrgan` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-real-esrgan-model.pth` |
+| `kornia` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm` |
+| `rembg` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-approved-frame.ppm --scoped-gpu-rembg-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-rembg-model.onnx` |
+| `transparent_background` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-approved-frame.ppm --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-transparent-background-checkpoint.pth` |
+
+## Canonical fastest scoped GPU/model route attempt
 
 - `toolId`: `kornia`
 - `runtimeExecutionBackend`: `docker_container`
 - `runtimeContainerImageProvided`: `false`
 - `requestedRuntimeContainerImage`: `null`
-- `nextExactCommand`: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
+- `nextExactCommand`: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
 - `externalAgentExecutionState`: `blocked_with_reason`
 - `blockingReasonCode`: `gpu_model_runtime_container_image_missing`
 - `gpuRuntimeShouldStartNow`: `false`

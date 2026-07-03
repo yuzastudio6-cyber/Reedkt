@@ -288,6 +288,44 @@ function checkReport(label, report) {
       if (!String(row.nextExactHostPythonCommand ?? '').includes('--attempt-local-runtime')) {
         fail(`${label}_${toolId}_missing_gpu_host_python_command`)
       }
+      if (
+        !String(row.nextExactControlledRouteCommand ?? '').includes(
+          'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+        )
+      ) {
+        fail(`${label}_${toolId}_missing_gpu_controlled_route_command`)
+      }
+      if (!String(row.nextExactControlledRouteCommand ?? '').includes(`--scoped-gpu-tool ${toolId}`)) {
+        fail(`${label}_${toolId}_controlled_route_command_not_tool_scoped`)
+      }
+      for (const flag of [
+        '--scoped-gpu-runtime-container-image',
+        '--scoped-gpu-runtime-container-platform',
+        '--scoped-gpu-output-dir',
+        '--scoped-gpu-source-image',
+      ]) {
+        if (!String(row.nextExactControlledRouteCommand ?? '').includes(flag)) {
+          fail(`${label}_${toolId}_controlled_route_command_missing:${flag}`)
+        }
+      }
+      if (toolId === 'sam2' && !String(row.nextExactControlledRouteCommand ?? '').includes('--scoped-gpu-sam2-checkpoint')) {
+        fail(`${label}_${toolId}_controlled_route_command_missing_sam2_checkpoint`)
+      }
+      if (toolId === 'birefnet' && !String(row.nextExactControlledRouteCommand ?? '').includes('--scoped-gpu-birefnet-model')) {
+        fail(`${label}_${toolId}_controlled_route_command_missing_birefnet_model`)
+      }
+      if (toolId === 'real_esrgan' && !String(row.nextExactControlledRouteCommand ?? '').includes('--scoped-gpu-real-esrgan-model')) {
+        fail(`${label}_${toolId}_controlled_route_command_missing_real_esrgan_model`)
+      }
+      if (toolId === 'rembg' && !String(row.nextExactControlledRouteCommand ?? '').includes('--scoped-gpu-rembg-model')) {
+        fail(`${label}_${toolId}_controlled_route_command_missing_rembg_model`)
+      }
+      if (
+        toolId === 'transparent_background' &&
+        !String(row.nextExactControlledRouteCommand ?? '').includes('--scoped-gpu-transparent-background-checkpoint')
+      ) {
+        fail(`${label}_${toolId}_controlled_route_command_missing_transparent_background_checkpoint`)
+      }
       if (toolId === 'kornia') {
         if (row.fastestGpuModelUnlockCandidate !== true) {
           fail(`${label}_${toolId}_not_fastest_gpu_unlock_candidate`)
@@ -358,6 +396,7 @@ if (
   fail('fastest_gpu_unlock_candidate_missing_controlled_route_command')
 }
 for (const flag of [
+  '--scoped-gpu-tool kornia',
   '--scoped-gpu-runtime-container-image',
   '--scoped-gpu-runtime-container-platform',
   '--scoped-gpu-output-dir',

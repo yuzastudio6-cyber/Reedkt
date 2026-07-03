@@ -141,14 +141,34 @@ function containerGpuCommand(toolId: string): string {
   ].filter(Boolean).join(' ')
 }
 
-function controlledRouteGpuCommand(): string {
-  return [
+function controlledRouteGpuCommand(toolId: string): string {
+  const outputDir =
+    `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`
+  const sourceImage = `${outputDir}/private-approved-frame.ppm`
+  const parts = [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
+    `--scoped-gpu-tool ${toolId}`,
     `--scoped-gpu-runtime-container-image ${canonicalGpuWorkerProofImage}`,
     '--scoped-gpu-runtime-container-platform linux/amd64',
-    '--scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia',
-    '--scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm',
-  ].join(' ')
+    `--scoped-gpu-output-dir ${outputDir}`,
+    `--scoped-gpu-source-image ${sourceImage}`,
+    toolId === 'sam2'
+      ? `--scoped-gpu-sam2-checkpoint ${outputDir}/private-sam2-checkpoint.pt`
+      : '',
+    toolId === 'birefnet'
+      ? `--scoped-gpu-birefnet-model ${outputDir}/private-birefnet-model`
+      : '',
+    toolId === 'real_esrgan'
+      ? `--scoped-gpu-real-esrgan-model ${outputDir}/private-real-esrgan-model.pth`
+      : '',
+    toolId === 'rembg'
+      ? `--scoped-gpu-rembg-model ${outputDir}/private-rembg-model.onnx`
+      : '',
+    toolId === 'transparent_background'
+      ? `--scoped-gpu-transparent-background-checkpoint ${outputDir}/private-transparent-background-checkpoint.pth`
+      : '',
+  ]
+  return parts.filter(Boolean).join(' ')
 }
 
 function nextGpuCommand(toolId: string): string {
@@ -257,8 +277,8 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
       nextExactContainerCommand: group === 'gpu_model'
         ? containerGpuCommand(toolId)
         : null,
-      nextExactControlledRouteCommand: group === 'gpu_model' && toolId === 'kornia'
-        ? controlledRouteGpuCommand()
+      nextExactControlledRouteCommand: group === 'gpu_model'
+        ? controlledRouteGpuCommand(toolId)
         : null,
       routeStatus: routeRow.routeStatus ?? null,
       adapterStatus: group === 'gpu_model'
@@ -476,7 +496,7 @@ function buildReport() {
       recommendedBackend: 'docker_container',
       canonicalProofImage: canonicalGpuWorkerProofImage,
       nextExactCommand: containerGpuCommand('kornia'),
-      nextExactControlledRouteCommand: controlledRouteGpuCommand(),
+      nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
       expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
         'gpu_model_runtime_container_gpu_unavailable',
       remainsBlockedUntil:

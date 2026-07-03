@@ -250,8 +250,8 @@ function checkReport(label, report) {
     providerRuntimePerformedTools: 0,
     publicArtifactCreatedTools: 0,
     signedUrlCreatedTools: 0,
-    scopedGpuModelLocalDevRouteAttemptTools: 1,
-    scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools: 1,
+    scopedGpuModelLocalDevRouteAttemptTools: 8,
+    scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools: 8,
     scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools: 0,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
@@ -359,6 +359,119 @@ function checkReport(label, report) {
     }
   }
 
+  const scopedAttempts = Array.isArray(report.scopedGpuModelLocalDevRouteAttempts)
+    ? report.scopedGpuModelLocalDevRouteAttempts
+    : []
+  if (scopedAttempts.length !== 8) {
+    fail(`${label}_scoped_attempts_count_mismatch:${scopedAttempts.length}`)
+  }
+  for (const toolId of gpuModelTools) {
+    const attempt = scopedAttempts.find((item) => item.requestedToolId === toolId)
+    if (!attempt) {
+      fail(`${label}_missing_scoped_attempt:${toolId}`)
+      continue
+    }
+    const scopedResult = attempt.result ?? {}
+    if (scopedResult.toolId !== toolId) {
+      fail(`${label}_${toolId}_scoped_result_tool_mismatch:${scopedResult.toolId}`)
+    }
+    if (attempt.requestedRuntimeBackend !== 'docker_container') {
+      fail(`${label}_${toolId}_scoped_backend_mismatch:${attempt.requestedRuntimeBackend}`)
+    }
+    if (attempt.canonicalRuntimeContainerImage !== canonicalGpuModelRuntimeContainerImage) {
+      fail(`${label}_${toolId}_scoped_canonical_image_mismatch`)
+    }
+    if (attempt.runtimeContainerImageProvided !== false) {
+      fail(`${label}_${toolId}_scoped_default_image_provided_not_false`)
+    }
+    if (attempt.expectedBlockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
+      fail(`${label}_${toolId}_scoped_expected_block_code_mismatch:${attempt.expectedBlockingReasonCode}`)
+    }
+    if (scopedResult.statusCode !== 200) {
+      fail(`${label}_${toolId}_scoped_http_not_200:${scopedResult.statusCode}`)
+    }
+    if (scopedResult.ok !== true) fail(`${label}_${toolId}_scoped_ok_not_true`)
+    if (scopedResult.controlledAdapterInvokedNow !== true) {
+      fail(`${label}_${toolId}_scoped_adapter_not_invoked`)
+    }
+    if (scopedResult.externalAgentExecutionState !== 'blocked_with_reason') {
+      fail(`${label}_${toolId}_scoped_state_mismatch:${scopedResult.externalAgentExecutionState}`)
+    }
+    if (scopedResult.blockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
+      fail(`${label}_${toolId}_scoped_block_code_mismatch:${scopedResult.blockingReasonCode}`)
+    }
+    for (const key of [
+      'controlledAdapterExecutedNow',
+      'localPackageExecutionPerformed',
+      'localGpuModelRuntimeExecutionPerformed',
+      'gpuRuntimeShouldStartNow',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'workerDispatchPerformed',
+      'providerRuntimePerformed',
+      'runtimeReadyNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ]) {
+      if (scopedResult[key] !== false) {
+        fail(`${label}_${toolId}_scoped_${key}_not_false`)
+      }
+    }
+    if (!String(attempt.nextExactCommand ?? '').includes(`--scoped-gpu-tool ${toolId}`)) {
+      fail(`${label}_${toolId}_scoped_next_command_not_tool_scoped`)
+    }
+    for (const flag of [
+      '--scoped-gpu-runtime-container-image',
+      '--scoped-gpu-runtime-container-platform',
+      '--scoped-gpu-output-dir',
+      '--scoped-gpu-source-image',
+    ]) {
+      if (!String(attempt.nextExactCommand ?? '').includes(flag)) {
+        fail(`${label}_${toolId}_scoped_next_command_missing:${flag}`)
+      }
+    }
+    const inputRefs = attempt.privateRuntimeInputRefs ?? {}
+    if (toolId === 'sam2' && !inputRefs.sam2CheckpointLocalPath) {
+      fail(`${label}_${toolId}_missing_private_checkpoint_ref`)
+    }
+    if (toolId === 'birefnet' && !inputRefs.birefnetModelLocalPath) {
+      fail(`${label}_${toolId}_missing_private_model_ref`)
+    }
+    if (toolId === 'real_esrgan' && !inputRefs.realEsrganModelLocalPath) {
+      fail(`${label}_${toolId}_missing_private_model_ref`)
+    }
+    if (toolId === 'rembg' && !inputRefs.rembgModelLocalPath) {
+      fail(`${label}_${toolId}_missing_private_model_ref`)
+    }
+    if (
+      toolId === 'transparent_background' &&
+      !inputRefs.transparentBackgroundCheckpointLocalPath
+    ) {
+      fail(`${label}_${toolId}_missing_private_checkpoint_ref`)
+    }
+    for (const key of [
+      'scopedGpuModelLocalDevRouteAttemptPerformed',
+      'scopedGpuModelLocalDevRouteAttemptAccepted',
+      'scopedGpuModelLocalDevRouteAttemptBlockedWithReason',
+      'scopedGpuModelRuntimeContainerPayloadAccepted',
+    ]) {
+      if (attempt.booleans?.[key] !== true) {
+        fail(`${label}_${toolId}_scoped_boolean_not_true:${key}`)
+      }
+    }
+    for (const key of [
+      'scopedGpuModelRuntimeExecutionPerformed',
+      'scopedGpuModelRuntimeContainerImageProvided',
+      'scopedGpuModelGpuRuntimeShouldStartNow',
+      'scopedGpuModelPublicArtifactCreated',
+      'scopedGpuModelSignedUrlCreated',
+    ]) {
+      if (attempt.booleans?.[key] !== false) {
+        fail(`${label}_${toolId}_scoped_boolean_not_false:${key}`)
+      }
+    }
+  }
+
   const booleans = report.booleans ?? {}
   for (const key of [
     'all21ControlledRouteExecutionSmokePassed',
@@ -379,6 +492,8 @@ function checkReport(label, report) {
     'controlledToolRouteExecutionPerformed',
     'gpuRuntimeOnDemandOnly',
     'noIdleGpuRuntimeApproved',
+    'all8ScopedGpuModelLocalDevRouteAttemptsAccepted',
+    'all8ScopedGpuModelRuntimeContainerPayloadsAccepted',
     'scopedGpuModelLocalDevRouteAttemptAccepted',
     'scopedGpuModelLocalDevRouteAttemptBlockedWithReason',
     'scopedGpuModelRuntimeContainerPayloadAccepted',
@@ -460,10 +575,20 @@ for (const phrase of [
   'gpuRuntimeShouldStartNow',
   'all21ToolsReturnedHttp200',
   'scopedGpuModelLocalDevRouteAttemptRequest',
+  'scopedGpuModelToolIdsFromArgs',
+  'scopedGpuModelLocalDevRouteAttempts',
+  'all8ScopedGpuModelLocalDevRouteAttemptsAccepted',
+  '--scoped-gpu-tool',
   '--scoped-gpu-runtime-container-image',
   '--scoped-gpu-runtime-container-platform',
+  '--scoped-gpu-output-root',
   '--scoped-gpu-output-dir',
   '--scoped-gpu-source-image',
+  '--scoped-gpu-sam2-checkpoint',
+  '--scoped-gpu-birefnet-model',
+  '--scoped-gpu-real-esrgan-model',
+  '--scoped-gpu-rembg-model',
+  '--scoped-gpu-transparent-background-checkpoint',
   canonicalGpuModelRuntimeContainerImage,
   'runtimeExecutionBackend',
   'runtimeContainerImage',

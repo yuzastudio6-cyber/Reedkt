@@ -42,6 +42,7 @@ const requiredRequirementIds = [
   'beta_readiness_evidence_backend_only_deployment',
   'production_readiness_evidence_backend_only_deployment',
   'wallet_settlement_rpc_deployment',
+  'credit_reservation_hold_qa',
   'authenticated_rls_member_readback',
   'stripe_boundary_owner_approval',
   'monitoring_dashboard_alert_deployment',
@@ -59,6 +60,7 @@ assert.ok(manifest.requirements.some((requirement) => requirement.requiresOwnerA
 assert.ok(manifest.remainingRequiredEvidence.length >= manifest.requirements.length, 'manifest must name remaining evidence')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-rls-readback:sql'), 'manifest should include RLS readback local proof')
 assert.ok(manifest.localProofCommands.includes('smoke:tool-cost-wallet-settlement:sql'), 'manifest should include wallet settlement SQL proof')
+assert.ok(manifest.localProofCommands.includes('smoke:platform-credit-reservation-hold-qa'), 'manifest should include credit reservation hold QA local proof')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-stripe-boundary'), 'manifest should include Stripe boundary source proof')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-deployed-evidence-verifier'), 'manifest should include deployed evidence verifier proof')
 assert.ok(manifest.localProofCommands.includes('smoke:beta-platform-deployed-evidence-probes'), 'manifest should include deployed evidence probe transport proof')

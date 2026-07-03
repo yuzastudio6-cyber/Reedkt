@@ -237,6 +237,30 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
       requiresOwnerApproval: false,
     },
     {
+      id: 'credit_reservation_hold_qa',
+      label: 'credit reservation creation and hold QA is completed',
+      status: 'deployed_evidence_required',
+      localProofCommands: ['smoke:platform-credit-reservation-hold-qa'],
+      sourceFiles: [
+        'server/beta-readiness/platform-credit-reservation-hold-qa.ts',
+        'server/services/credit-gate-service.ts',
+        'server/smoke/platform-credit-reservation-hold-qa-smoke.ts',
+      ],
+      localEvidence: [
+        'Mock-safe reservation hold QA proves positive reserved credits, idempotent replay, wallet/approval/estimate linkage, Stripe isolation, and persistent-mode fail-closed behavior.',
+        'Fake service-role smoke proves the non-mock insert/replay shape without contacting remote Supabase.',
+      ],
+      remainingEvidence: [
+        'Deploy and verify the production credit reservation schema/RPC before paid production.',
+        'Record wallet balance before/after reservation hold readback evidence from staging or production.',
+        'Record service-role-only reservation mutation and authenticated RLS readback evidence.',
+      ],
+      nextSafeAction: 'Run staging credit reservation hold QA with approved wallet, approval, estimate, and positive reserved-credit fixtures after deployed schema/readback is ready.',
+      clearsPlatformGate: false,
+      requiresDeployedEvidence: true,
+      requiresOwnerApproval: false,
+    },
+    {
       id: 'authenticated_rls_member_readback',
       label: 'authenticated RLS member readback is verified in deployment',
       status: 'deployed_evidence_required',
@@ -268,6 +292,8 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
         'server/smoke/beta-platform-stripe-boundary-smoke.ts',
         'server/tool-cost-metering/tool-cost-wallet-settlement.ts',
         'server/beta-readiness/platform-billing-qa.ts',
+        'server/beta-readiness/platform-credit-reservation-hold-qa.ts',
+        'server/beta-readiness/platform-wallet-lifecycle-qa.ts',
       ],
       localEvidence: [
         'Source smoke verifies no Stripe dependency, import, instantiation, API call, or Stripe URL in tool-cost billing surfaces.',

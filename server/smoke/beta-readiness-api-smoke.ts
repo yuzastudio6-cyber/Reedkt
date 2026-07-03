@@ -236,6 +236,30 @@ try {
     'platform billing QA should still name wallet settlement as missing production evidence',
   )
 
+  const platformCreditReservationHoldQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-credit-reservation-hold-qa`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-credit-reservation-hold-qa' },
+    body: JSON.stringify({
+      workspaceId: smokeWorkspaceId,
+      projectId: 'beta-readiness-api-smoke-platform-project',
+      sourceId: 'beta-readiness-api-smoke:platform-credit-reservation-hold-qa',
+      sourceSha: '8888888888888888888888888888888888888888',
+      environment: 'local_mock',
+      reservedCredits: 12,
+      notes: ['Smoke runs platform credit reservation hold QA in mock-safe mode only.'],
+    }),
+  })
+  assert.equal(platformCreditReservationHoldQaResponse.ok, true, 'platform credit reservation hold QA route should return ok')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.persistenceMode, 'mock_memory', 'platform credit reservation hold QA smoke must use mock memory persistence')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.reservationHoldVerified, true, 'platform credit reservation hold QA should verify a positive reservation hold')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.idempotentReplayVerified, true, 'platform credit reservation hold QA should prove idempotent replay')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.wouldClearWalletReserveBlocker, false, 'platform credit reservation hold QA must not clear the production wallet reserve blocker by itself')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.stripeBoundaryPreserved, true, 'platform credit reservation hold QA must preserve Stripe isolation')
+  assert.ok(
+    platformCreditReservationHoldQaResponse.data.report.missingProductionEvidence.some((item: string) => item.includes('transactional reservation RPC')),
+    'platform credit reservation hold QA should still require transactional reservation evidence',
+  )
+
   const platformWalletLifecycleQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-wallet-lifecycle-qa`, {
     method: 'POST',
     headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-wallet-lifecycle-qa' },

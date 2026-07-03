@@ -32,9 +32,11 @@ npm run smoke:production-tool-execution-readiness-api
 npm run smoke:production-tool-execution-readiness-evidence-preflight
 npm run smoke:production-tool-execution-readiness-evidence-collector
 npm run smoke:production-ops-observability-evidence-collector
+npm run smoke:production-final-owner-signoff-evidence-collector
 npm run prod:readiness:tool-execution-gate-preflight
 npm run prod:readiness:tool-execution-evidence-collector
 npm run prod:readiness:ops-observability-evidence-collector
+npm run prod:readiness:final-owner-signoff-evidence-collector
 npm run prod:readiness:tool-execution-gate
 ```
 
@@ -47,6 +49,8 @@ For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDIT
 Use `prod:readiness:tool-execution-evidence-collector` only after the preflight is complete. The collector defaults to dry-run mode and performs no HTTP calls unless `REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE=true` is supplied with `REEDITPRO_PRODUCTION_READINESS_API_BASE_URL`, `REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN`, and `REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY`. When confirmed, it posts the passing evidence packet through the authenticated backend route, uses the idempotency key for replay safety, reads the workspace packet back through the backend route, and redacts the bearer token from the summary. The collector never writes Supabase directly and does not run tools, dispatch workers, mutate wallets, call Stripe, process media, deploy, or activate production.
 
 Use `prod:readiness:ops-observability-evidence-collector` to isolate the observability and operations-control slice before final all-up recording. The collector checks that dashboards, alerts, alert routing, billing QA monitoring, rollback approval, kill-switch verification, rate limits, concurrency limits, incident runbook approval, catalog coverage, and static cost-control policies are all backed by non-secret provenance. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_OPS_OBSERVABILITY_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires the complete paid-production evidence packet; ops/observability evidence alone cannot unlock production. The collector never deploys dashboards or alerts, mutates Supabase directly, runs tools, dispatches workers, mutates wallets, calls Stripe, processes media, or activates beta/production.
+
+Use `prod:readiness:final-owner-signoff-evidence-collector` to isolate the final owner signoff slice before final all-up recording. The collector verifies non-secret provenance and explicit approval for deployment, security, storage/privacy, legal, support, billing, operations, real-user-media beta, private media, artifact privacy, paid production, and final delivery/share. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_OWNER_SIGNOFF_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires every other paid-production evidence section to pass; owner signoff alone cannot unlock production. The collector never grants approvals by itself, deploys, mutates Supabase directly, runs tools, dispatches workers, mutates wallets, calls Stripe, processes media, or activates beta/production.
 
 Backend callers can also evaluate the same evidence packet with:
 

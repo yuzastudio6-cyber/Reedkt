@@ -27,6 +27,22 @@ const tools = [
   'transparent_background',
 ]
 
+const sourceImageRequiredTools = new Set([
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const toolSpecificFlagByTool = {
+  sam2: '--sam2-checkpoint',
+  birefnet: '--birefnet-model',
+  real_esrgan: '--real-esrgan-model',
+  rembg: '--rembg-model',
+  transparent_background: '--transparent-background-checkpoint',
+}
+
 const expectedCounts = {
   totalAiGraphicsTools: 21,
   gpuModelToolsCovered: 8,
@@ -318,6 +334,49 @@ if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContai
 }
 if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContainer ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
   fail('scoped_kornia_container_runtime_attempt_not_canonical_image')
+}
+
+const hostCommandsByTool = report.interfaces?.privateRuntimeAttemptCommandsByTool ?? {}
+const containerCommandsByTool =
+  report.interfaces?.privateContainerRuntimeAttemptCommandsByTool ?? {}
+for (const tool of tools) {
+  const hostCommand = String(hostCommandsByTool[tool] ?? '')
+  const containerCommand = String(containerCommandsByTool[tool] ?? '')
+  if (!hostCommand.includes(`--tool ${tool}`)) {
+    fail(`missing_exact_host_runtime_command:${tool}`)
+  }
+  if (!containerCommand.includes(`--tool ${tool}`)) {
+    fail(`missing_exact_container_runtime_command:${tool}`)
+  }
+  if (!hostCommand.includes('--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>')) {
+    fail(`host_runtime_command_missing_local_output:${tool}`)
+  }
+  if (!containerCommand.includes('--runtime-backend docker_container')) {
+    fail(`container_runtime_command_missing_backend:${tool}`)
+  }
+  if (!containerCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+    fail(`container_runtime_command_missing_canonical_image:${tool}`)
+  }
+  const requiresSource = sourceImageRequiredTools.has(tool)
+  if (requiresSource && !hostCommand.includes('--source-image <private-approved-frame.png>')) {
+    fail(`host_runtime_command_missing_source_image:${tool}`)
+  }
+  if (requiresSource && !containerCommand.includes('--source-image <private-approved-frame.png>')) {
+    fail(`container_runtime_command_missing_source_image:${tool}`)
+  }
+  if (!requiresSource && hostCommand.includes('--source-image')) {
+    fail(`host_runtime_command_unnecessary_source_image:${tool}`)
+  }
+  if (!requiresSource && containerCommand.includes('--source-image')) {
+    fail(`container_runtime_command_unnecessary_source_image:${tool}`)
+  }
+  const requiredToolSpecificFlag = toolSpecificFlagByTool[tool]
+  if (requiredToolSpecificFlag && !hostCommand.includes(requiredToolSpecificFlag)) {
+    fail(`host_runtime_command_missing_tool_specific_flag:${tool}`)
+  }
+  if (requiredToolSpecificFlag && !containerCommand.includes(requiredToolSpecificFlag)) {
+    fail(`container_runtime_command_missing_tool_specific_flag:${tool}`)
+  }
 }
 
 const rows = Array.isArray(report.gpuModelLocalDevRuntimeExecutionHarnessRows)

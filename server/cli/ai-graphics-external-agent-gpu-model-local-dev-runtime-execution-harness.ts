@@ -187,6 +187,12 @@ function modelWeightManifestRequired(toolId: AiGraphicsCanonicalToolId): boolean
   ].includes(toolId)
 }
 
+function gpuModelRequiresSourceImage(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+}
+
 function localInputRequirements(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): LocalInputRequirement[] {
@@ -292,6 +298,57 @@ function localInputRequirements(
             'Approved CUDA runtime for the scoped local worker call only.',
         },
       ]
+}
+
+function exactRuntimeAttemptCommand(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: {
+    container: boolean
+  },
+): string {
+  const parts = [
+    'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
+    '--attempt-local-runtime',
+    ...(options.container
+      ? [
+          '--runtime-backend docker_container',
+          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          '--runtime-container-platform linux/amd64',
+        ]
+      : []),
+    `--tool ${toolId}`,
+    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+    gpuModelRequiresSourceImage(toolId)
+      ? '--source-image <private-approved-frame.png>'
+      : '',
+    toolId === 'sam2'
+      ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
+      : '',
+    toolId === 'birefnet'
+      ? '--birefnet-model <private-birefnet-model>'
+      : '',
+    toolId === 'real_esrgan'
+      ? '--real-esrgan-model <private-real-esrgan-model.pth>'
+      : '',
+    toolId === 'rembg'
+      ? '--rembg-model <private-rembg-model.onnx>'
+      : '',
+    toolId === 'transparent_background'
+      ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+  ]
+
+  return parts.filter(Boolean).join(' ')
+}
+
+function exactRuntimeAttemptCommandsByTool(options: {
+  container: boolean
+}): Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string> {
+  return Object.fromEntries(
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
+      (toolId) => [toolId, exactRuntimeAttemptCommand(toolId, options)],
+    ),
+  ) as Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
 }
 
 function applyRuntimePayloadArgs(
@@ -530,16 +587,20 @@ async function buildReport(args: HarnessArgs) {
       committedRecordCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
       privateLocalRuntimeAttemptCommand:
-        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> <per-tool-private-input-flags>',
       privateContainerRuntimeAttemptCommand:
-        `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>`,
+        `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> <per-tool-private-input-flags>`,
+      privateRuntimeAttemptCommandsByTool:
+        exactRuntimeAttemptCommandsByTool({ container: false }),
+      privateContainerRuntimeAttemptCommandsByTool:
+        exactRuntimeAttemptCommandsByTool({ container: true }),
       privateScopedRuntimeAttemptExamples: {
         kornia:
-          'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>',
+          exactRuntimeAttemptCommand('kornia', { container: false }),
         korniaContainer:
-          `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>`,
+          exactRuntimeAttemptCommand('kornia', { container: true }),
         sam2:
-          'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --sam2-checkpoint <private-sam2-checkpoint.pt>',
+          exactRuntimeAttemptCommand('sam2', { container: false }),
       },
     },
     localRuntimePolicy: {

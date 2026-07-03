@@ -88,7 +88,7 @@ interface ScopedGpuModelLocalDevRouteAttempt {
   executableOnCudaHostWithPrivateInput: boolean
   nextExactCommand: string
   privateOutputDirectory: string
-  privateSourceImageLocalPath: string
+  privateSourceImageLocalPath: string | null
   privateRuntimeInputRefs: Record<string, string>
   result: ControlledRouteExecutionResult
   booleans: {
@@ -256,10 +256,17 @@ function scopedGpuModelPrivateOutputDirectory(
   return `${options.privateOutputRoot ?? defaultScopedGpuModelPrivateOutputRoot}/${toolId}`
 }
 
+function gpuModelRequiresSourceImage(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+}
+
 function scopedGpuModelPrivateSourceImageLocalPath(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: ScopedGpuModelLocalDevRouteAttemptOptions,
-): string {
+): string | null {
+  if (!gpuModelRequiresSourceImage(toolId)) return null
   return options.privateSourceImageLocalPath ??
     `${scopedGpuModelPrivateOutputDirectory(toolId, options)}/private-approved-frame.ppm`
 }
@@ -315,7 +322,7 @@ function scopedGpuModelCommand(
     `--scoped-gpu-runtime-container-image ${options.runtimeContainerImage ?? canonicalGpuModelRuntimeContainerImage}`,
     `--scoped-gpu-runtime-container-platform ${options.runtimeContainerPlatform ?? 'linux/amd64'}`,
     `--scoped-gpu-output-dir ${outputDirectory}`,
-    `--scoped-gpu-source-image ${sourceImage}`,
+    sourceImage ? `--scoped-gpu-source-image ${sourceImage}` : '',
     inputRefs.sam2CheckpointLocalPath
       ? `--scoped-gpu-sam2-checkpoint ${inputRefs.sam2CheckpointLocalPath}`
       : '',
@@ -361,8 +368,6 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     runtimeExecutionBackend: 'docker_container',
     runtimeContainerGpu: true,
     outputDirectory: privateOutputDirectory,
-    sourceImageLocalPath: privateSourceImageLocalPath,
-    representativeFrameLocalPath: privateSourceImageLocalPath,
     timeoutMs: 30_000,
     toolExecutionPerformed: false,
     gpuRuntimeShouldStartNow: false,
@@ -372,6 +377,10 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     publicArtifactCreated: false,
     signedUrlCreated: false,
     ...privateRuntimeInputRefs,
+  }
+  if (privateSourceImageLocalPath) {
+    payload.sourceImageLocalPath = privateSourceImageLocalPath
+    payload.representativeFrameLocalPath = privateSourceImageLocalPath
   }
   if (options.runtimeContainerImage) {
     payload.runtimeContainerImage = options.runtimeContainerImage

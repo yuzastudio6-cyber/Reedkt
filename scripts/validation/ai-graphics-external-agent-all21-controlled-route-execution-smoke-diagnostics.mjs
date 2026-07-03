@@ -46,6 +46,13 @@ const gpuModelTools = [
   'transparent_background',
 ]
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
+const sourceImageRequiredGpuModelTools = new Set([
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
 
 const requiredFiles = [
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
@@ -313,11 +320,22 @@ function checkReport(label, report) {
       '--scoped-gpu-runtime-container-image',
       '--scoped-gpu-runtime-container-platform',
       '--scoped-gpu-output-dir',
-      '--scoped-gpu-source-image',
     ]) {
       if (!String(scopedAttempt.nextExactCommand ?? '').includes(flag)) {
         fail(`${label}_scoped_attempt_next_command_missing:${flag}`)
       }
+    }
+    if (
+      sourceImageRequiredGpuModelTools.has(scopedAttempt.requestedToolId) &&
+      !String(scopedAttempt.nextExactCommand ?? '').includes('--scoped-gpu-source-image')
+    ) {
+      fail(`${label}_scoped_attempt_next_command_missing_source_image`)
+    }
+    if (
+      !sourceImageRequiredGpuModelTools.has(scopedAttempt.requestedToolId) &&
+      String(scopedAttempt.nextExactCommand ?? '').includes('--scoped-gpu-source-image')
+    ) {
+      fail(`${label}_scoped_attempt_next_command_unnecessary_source_image`)
     }
     if (scopedResult.statusCode !== 200) {
       fail(`${label}_scoped_attempt_http_not_200:${scopedResult.statusCode}`)
@@ -437,11 +455,34 @@ function checkReport(label, report) {
       '--scoped-gpu-runtime-container-image',
       '--scoped-gpu-runtime-container-platform',
       '--scoped-gpu-output-dir',
-      '--scoped-gpu-source-image',
     ]) {
       if (!String(attempt.nextExactCommand ?? '').includes(flag)) {
         fail(`${label}_${toolId}_scoped_next_command_missing:${flag}`)
       }
+    }
+    if (
+      sourceImageRequiredGpuModelTools.has(toolId) &&
+      !String(attempt.nextExactCommand ?? '').includes('--scoped-gpu-source-image')
+    ) {
+      fail(`${label}_${toolId}_scoped_next_command_missing_source_image`)
+    }
+    if (
+      !sourceImageRequiredGpuModelTools.has(toolId) &&
+      String(attempt.nextExactCommand ?? '').includes('--scoped-gpu-source-image')
+    ) {
+      fail(`${label}_${toolId}_scoped_next_command_unnecessary_source_image`)
+    }
+    if (
+      sourceImageRequiredGpuModelTools.has(toolId) &&
+      typeof attempt.privateSourceImageLocalPath !== 'string'
+    ) {
+      fail(`${label}_${toolId}_missing_private_source_image_path`)
+    }
+    if (
+      !sourceImageRequiredGpuModelTools.has(toolId) &&
+      attempt.privateSourceImageLocalPath !== null
+    ) {
+      fail(`${label}_${toolId}_unexpected_private_source_image_path`)
     }
     const inputRefs = attempt.privateRuntimeInputRefs ?? {}
     if (toolId === 'sam2' && !inputRefs.sam2CheckpointLocalPath) {

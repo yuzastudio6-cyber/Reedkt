@@ -605,9 +605,9 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision/private-approved-frame.ppm",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision",
-      "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision/private-approved-frame.ppm",
+      "privateSourceImageLocalPath": null,
       "privateRuntimeInputRefs": {},
       "result": {
         "toolId": "torch_torchvision",
@@ -659,9 +659,9 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers/private-approved-frame.ppm",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers",
-      "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers/private-approved-frame.ppm",
+      "privateSourceImageLocalPath": null,
       "privateRuntimeInputRefs": {},
       "result": {
         "toolId": "transformers",
@@ -713,9 +713,9 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2",
-      "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm",
+      "privateSourceImageLocalPath": null,
       "privateRuntimeInputRefs": {
         "sam2CheckpointLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt"
       },

@@ -216,6 +216,18 @@ if (report.localRuntimePolicy?.runMode !== 'explicit_local_dev_only') {
 if (report.localRuntimePolicy?.committedRecordsMustRemainSkipSafe !== true) {
   fail('committed_record_not_skip_safe')
 }
+if (report.localRuntimePolicy?.hostPythonBackendSupported !== true) {
+  fail('host_python_backend_not_supported')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendSupported !== true) {
+  fail('docker_container_backend_not_supported')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendRequiresRuntimeImage !== true) {
+  fail('docker_container_runtime_image_not_required')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendRequiresScopedGpuAttachment !== true) {
+  fail('docker_container_scoped_gpu_attachment_not_required')
+}
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--attempt-local-runtime')) {
   fail('missing_private_runtime_attempt_command')
 }
@@ -225,11 +237,29 @@ if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime')) {
   fail('private_runtime_attempt_command_not_local_artifact_only')
 }
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-backend docker_container')) {
+  fail('missing_private_container_runtime_backend_command')
+}
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-container-image')) {
+  fail('missing_private_container_runtime_image_command')
+}
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-container-platform')) {
+  fail('missing_private_container_runtime_platform_command')
+}
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime')) {
+  fail('private_container_runtime_command_not_local_artifact_only')
+}
 if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.kornia ?? '').includes('--tool kornia')) {
   fail('missing_scoped_kornia_runtime_attempt_example')
 }
 if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.sam2 ?? '').includes('--tool sam2')) {
   fail('missing_scoped_sam2_runtime_attempt_example')
+}
+if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContainer ?? '').includes('--runtime-backend docker_container')) {
+  fail('missing_scoped_kornia_container_runtime_attempt_example')
+}
+if (!String(report.interfaces?.privateScopedRuntimeAttemptExamples?.korniaContainer ?? '').includes('--tool kornia')) {
+  fail('scoped_kornia_container_runtime_attempt_not_scoped')
 }
 
 const rows = Array.isArray(report.gpuModelLocalDevRuntimeExecutionHarnessRows)
@@ -296,10 +326,28 @@ const source = [
   read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'),
   read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md'),
   read('server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts'),
+  read('server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts'),
+  read('server/workers/ai-graphics-runtime-script-runner.ts'),
 ]
 for (const [index, text] of source.entries()) {
   for (const pattern of forbiddenPatterns) {
     if (pattern.test(text)) fail(`forbidden_claim_${index}:${pattern}`)
+  }
+}
+
+const joinedSource = source.join('\n')
+for (const requiredSourceToken of [
+  'docker_container',
+  'runtimeContainerImage',
+  'runtimeContainerGpu',
+  'containerRuntimeEnv',
+  'gpu_model_runtime_container_image_missing',
+  'gpu_model_runtime_container_image_unavailable',
+  'gpu_model_runtime_container_gpu_not_requested',
+  'gpu_model_runtime_container_gpu_unavailable',
+]) {
+  if (!joinedSource.includes(requiredSourceToken)) {
+    fail(`missing_container_runtime_source_token:${requiredSourceToken}`)
   }
 }
 

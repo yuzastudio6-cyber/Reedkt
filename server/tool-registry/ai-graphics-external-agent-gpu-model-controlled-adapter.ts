@@ -129,6 +129,29 @@ function optionalBoolean(payload: Record<string, unknown>, key: string): boolean
   return payload[key] === true
 }
 
+function runtimeExecutionBackend(
+  payload: Record<string, unknown>,
+): 'host_python' | 'docker_container' {
+  return optionalString(payload, 'runtimeExecutionBackend') === 'docker_container' ||
+    optionalString(payload, 'runtimeBackend') === 'docker_container'
+    ? 'docker_container'
+    : 'host_python'
+}
+
+function runtimeContainerGpu(payload: Record<string, unknown>): boolean {
+  return payload.runtimeContainerGpu !== false
+}
+
+function runtimeContainerImage(payload: Record<string, unknown>): string | undefined {
+  return optionalString(payload, 'runtimeContainerImage') ??
+    optionalString(payload, 'containerImage')
+}
+
+function runtimeContainerPlatform(payload: Record<string, unknown>): string | undefined {
+  return optionalString(payload, 'runtimeContainerPlatform') ??
+    optionalString(payload, 'containerPlatform')
+}
+
 const runtimePythonModulesByTool: Record<
   AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   string[]
@@ -242,6 +265,153 @@ function runtimePrerequisiteBlock(
     return null
   }
   if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
+
+  if (runtimeExecutionBackend(payload) === 'docker_container') {
+    const image = runtimeContainerImage(payload)
+    if (!image) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['run', '--rm', '--gpus', 'all', '<runtime-image>', 'python3', '<runtime-script>'],
+            executes: false,
+            summary:
+              'GPU/model Docker runtime prerequisite blocked execution because no container image was provided.',
+          },
+          skipReason: {
+            code: 'gpu_model_runtime_container_image_missing',
+            message:
+              'runtimeExecutionBackend=docker_container requires runtimeContainerImage.',
+            tool: request.toolId,
+          },
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model Docker runtime did not start because runtimeContainerImage was not provided.',
+        ],
+      }
+    }
+    if (!runtimeContainerGpu(payload)) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['run', '--rm', '--gpus', 'all', image, 'python3', '<runtime-script>'],
+            executes: false,
+            summary:
+              'GPU/model Docker runtime prerequisite blocked execution because GPU attachment was disabled.',
+          },
+          skipReason: {
+            code: 'gpu_model_runtime_container_gpu_not_requested',
+            message:
+              'runtimeContainerGpu=false is not accepted for GPU/model local-dev runtime execution.',
+            tool: request.toolId,
+          },
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model Docker runtime did not start because the scoped tool call did not request GPU attachment.',
+        ],
+      }
+    }
+    try {
+      execFileSync('docker', ['image', 'inspect', image], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 30_000,
+      })
+    } catch (error) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['image', 'inspect', image],
+            executes: false,
+            summary:
+              'GPU/model Docker runtime prerequisite blocked execution because the runtime image was unavailable.',
+          },
+          skipReason: {
+            code: 'gpu_model_runtime_container_image_unavailable',
+            message:
+              error instanceof Error ? error.message : String(error),
+            tool: request.toolId,
+          },
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model Docker runtime did not start because the requested runtime container image is unavailable.',
+        ],
+      }
+    }
+    try {
+      const platform = runtimeContainerPlatform(payload)
+      execFileSync(
+        'docker',
+        [
+          'run',
+          '--rm',
+          ...(platform ? ['--platform', platform] : []),
+          '--gpus',
+          'all',
+          '--entrypoint',
+          'true',
+          image,
+        ],
+        {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+          timeout: 30_000,
+        },
+      )
+      return null
+    } catch (error) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['run', '--rm', '--gpus', 'all', '--entrypoint', 'true', image],
+            executes: false,
+            summary:
+              'GPU/model Docker runtime prerequisite blocked execution because Docker could not attach a GPU.',
+          },
+          skipReason: {
+            code: 'gpu_model_runtime_container_gpu_unavailable',
+            message:
+              error instanceof Error ? error.message : String(error),
+            tool: request.toolId,
+          },
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model Docker runtime did not start because Docker GPU attachment is unavailable on this host.',
+        ],
+      }
+    }
+  }
 
   const preflight = runtimePreflightPython(request.toolId)
   const missingModules = Array.isArray(preflight?.missingModules)
@@ -446,6 +616,10 @@ function maskInput(
     enableMaskPreview: false,
     allowModelDownload: false,
     allowFinalRender: false,
+    runtimeExecutionBackend: runtimeExecutionBackend(payload),
+    runtimeContainerImage: runtimeContainerImage(payload),
+    runtimeContainerPlatform: runtimeContainerPlatform(payload),
+    runtimeContainerGpu: runtimeContainerGpu(payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   }
 }
@@ -497,6 +671,10 @@ function enhancementInput(
     enableFfmpegFallbackPreview: false,
     allowModelDownload: false,
     allowFinalRender: false,
+    runtimeExecutionBackend: runtimeExecutionBackend(payload),
+    runtimeContainerImage: runtimeContainerImage(payload),
+    runtimeContainerPlatform: runtimeContainerPlatform(payload),
+    runtimeContainerGpu: runtimeContainerGpu(payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   }
 }
@@ -587,6 +765,10 @@ async function runFoundationTool(
     enableFoundationRuntimeExecution:
       optionalBoolean(payload, 'enableFoundationRuntimeExecution') ||
       executionEnabled(payload),
+    runtimeExecutionBackend: runtimeExecutionBackend(payload),
+    runtimeContainerImage: runtimeContainerImage(payload),
+    runtimeContainerPlatform: runtimeContainerPlatform(payload),
+    runtimeContainerGpu: runtimeContainerGpu(payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   })
   return {
@@ -729,6 +911,7 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
       ),
       ...(skipped &&
         !skipReasonCode?.startsWith('gpu_model_python') &&
+        !skipReasonCode?.startsWith('gpu_model_runtime_container') &&
         !skipReasonCode?.includes('cuda')
         ? ['GPU/model runtime did not start because explicit local-dev execution inputs were not provided.']
         : []),

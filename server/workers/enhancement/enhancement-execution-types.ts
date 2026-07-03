@@ -66,6 +66,10 @@ export interface EnhancementExecutionInput {
   allowModelDownload?: boolean
   allowFinalRender?: boolean
   ffmpegBin?: string
+  runtimeExecutionBackend?: 'host_python' | 'docker_container'
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  runtimeContainerGpu?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }
   rawPrompt?: unknown

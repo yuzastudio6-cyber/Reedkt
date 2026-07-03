@@ -11,6 +11,10 @@ export interface AiGraphicsFoundationRuntimeInput {
   approvedSnapshotId?: string
   outputDirectory?: string
   enableFoundationRuntimeExecution?: boolean
+  runtimeExecutionBackend?: 'host_python' | 'docker_container'
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  runtimeContainerGpu?: boolean
   timeoutMs?: number
 }
 
@@ -87,6 +91,10 @@ export async function runAiGraphicsFoundationRuntimeCheck(
       args: ['--tool-id', input.toolId, '--output-json', outputJsonPath],
       outputJsonPath,
       timeoutMs: input.timeoutMs,
+      runtimeBackend: input.runtimeExecutionBackend,
+      containerImage: input.runtimeContainerImage,
+      containerPlatform: input.runtimeContainerPlatform,
+      containerGpu: input.runtimeContainerGpu,
     })
     return {
       status: 'completed',

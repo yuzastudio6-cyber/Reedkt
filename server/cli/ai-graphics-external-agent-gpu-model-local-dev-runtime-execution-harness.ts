@@ -31,6 +31,10 @@ type HarnessArgs = {
   realEsrganModelLocalPath?: string
   rembgModelLocalPath?: string
   transparentBackgroundCheckpointLocalPath?: string
+  runtimeExecutionBackend?: 'host_python' | 'docker_container'
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  runtimeContainerGpu: boolean
   timeoutMs?: number
   writeRecords: boolean
 }
@@ -110,6 +114,13 @@ function parseArgs(): HarnessArgs {
     rembgModelLocalPath: stringFlag('--rembg-model'),
     transparentBackgroundCheckpointLocalPath:
       stringFlag('--transparent-background-checkpoint'),
+    runtimeExecutionBackend:
+      stringFlag('--runtime-backend') === 'docker_container'
+        ? 'docker_container'
+        : 'host_python',
+    runtimeContainerImage: stringFlag('--runtime-container-image'),
+    runtimeContainerPlatform: stringFlag('--runtime-container-platform'),
+    runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
     timeoutMs: numberFlag('--timeout-ms'),
     writeRecords: hasFlag('--write-records'),
   }
@@ -308,6 +319,14 @@ function applyRuntimePayloadArgs(
   if (args.sourceImageLocalPath) {
     payload.sourceImageLocalPath = args.sourceImageLocalPath
     payload.representativeFrameLocalPath = args.sourceImageLocalPath
+  }
+  payload.runtimeExecutionBackend = args.runtimeExecutionBackend
+  payload.runtimeContainerGpu = args.runtimeContainerGpu
+  if (args.runtimeContainerImage) {
+    payload.runtimeContainerImage = args.runtimeContainerImage
+  }
+  if (args.runtimeContainerPlatform) {
+    payload.runtimeContainerPlatform = args.runtimeContainerPlatform
   }
   if (toolId === 'sam2' && args.sam2CheckpointLocalPath) {
     payload.sam2CheckpointLocalPath = args.sam2CheckpointLocalPath
@@ -510,9 +529,13 @@ async function buildReport(args: HarnessArgs) {
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
       privateLocalRuntimeAttemptCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+      privateContainerRuntimeAttemptCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro-ai-graphics-gpu-install-proof:local --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
       privateScopedRuntimeAttemptExamples: {
         kornia:
           'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>',
+        korniaContainer:
+          'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro-ai-graphics-gpu-install-proof:local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>',
         sam2:
           'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --sam2-checkpoint <private-sam2-checkpoint.pt>',
       },
@@ -529,6 +552,10 @@ async function buildReport(args: HarnessArgs) {
       noPublicArtifacts: true,
       noSignedUrls: true,
       committedRecordsMustRemainSkipSafe: true,
+      hostPythonBackendSupported: true,
+      dockerContainerBackendSupported: true,
+      dockerContainerBackendRequiresRuntimeImage: true,
+      dockerContainerBackendRequiresScopedGpuAttachment: true,
     },
     counts: {
       totalAiGraphicsTools: 21,

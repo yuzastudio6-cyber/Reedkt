@@ -58,6 +58,10 @@ export async function runSam2Tracking(input: {
       ],
       outputJsonPath,
       timeoutMs: executionInput.timeoutMs,
+      runtimeBackend: executionInput.runtimeExecutionBackend,
+      containerImage: executionInput.runtimeContainerImage,
+      containerPlatform: executionInput.runtimeContainerPlatform,
+      containerGpu: executionInput.runtimeContainerGpu,
       extraEnv: {
         REAL_MEDIA_INPUT_ENABLED: 'false',
       },

@@ -68,6 +68,10 @@ export async function runTransparentBackgroundFallback(input: {
       ],
       outputJsonPath,
       timeoutMs: executionInput.timeoutMs,
+      runtimeBackend: executionInput.runtimeExecutionBackend,
+      containerImage: executionInput.runtimeContainerImage,
+      containerPlatform: executionInput.runtimeContainerPlatform,
+      containerGpu: executionInput.runtimeContainerGpu,
     })
     return {
       status: 'completed',

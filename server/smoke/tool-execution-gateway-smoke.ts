@@ -293,6 +293,42 @@ assert.ok(
   'persistent production_ready dispatch should require a stored readiness evidence packet id',
 )
 
+const persistentBillingPreflightPacketId = 'production-readiness-evidence-persistent-billing-preflight-smoke'
+const persistentBillingPreflightContext: ServiceContext = {
+  ...context,
+  env: {
+    mockOnly: false,
+    allowMockWithoutSupabase: false,
+    hasSupabaseAdmin: true,
+  } as never,
+  clients: {
+    ...context.clients,
+    admin: createGatewayPersistentReadinessAdminClient({
+      productionReadinessRows: [
+        productionReadinessPacketRow(persistentBillingPreflightPacketId, productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId)),
+      ],
+      missingBillingBackend: true,
+    }),
+  },
+  requestId: 'tool-execution-gateway-smoke:persistent-billing-preflight',
+}
+const persistentBillingPreflightBlocked = await createToolExecutionGatewayService(persistentBillingPreflightContext).dispatchApprovedToolCall(productionReadyToolReadinessInput({
+  jobId: 'job-production-ready-persistent-billing-preflight-blocked',
+  productionReadinessEvidencePacketId: persistentBillingPreflightPacketId,
+}))
+assert.equal(persistentBillingPreflightBlocked.gateway.status, 'blocked', 'persistent production_ready dispatch should block before worker dispatch when billing persistence is unavailable')
+assert.equal(persistentBillingPreflightBlocked.workerResult, undefined, 'billing backend preflight must block before worker dispatch')
+assert.equal(persistentBillingPreflightBlocked.toolCostEvents, undefined, 'billing backend preflight must not emit tool-cost events')
+assert.equal(persistentBillingPreflightBlocked.walletSettlements, undefined, 'billing backend preflight must not create wallet settlements')
+assert.ok(
+  persistentBillingPreflightBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_BILLING_TOOL_COST_EVENTS_BACKEND_UNAVAILABLE'),
+  'billing backend preflight should identify missing tool_cost_events persistence',
+)
+assert.ok(
+  persistentBillingPreflightBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_BILLING_WALLET_SETTLEMENT_RPC_UNAVAILABLE'),
+  'billing backend preflight should identify missing wallet settlement RPC',
+)
+
 const productionReadyPlaceholderBlocked = await service.dispatchApprovedToolCall({
   ...baseInput,
   jobId: 'job-production-ready-placeholder-blocked',
@@ -1526,7 +1562,14 @@ function reviewedProductionEvidence(label: string) {
   }
 }
 
-function createGatewayPersistentReadinessAdminClient(): ServiceContext['clients']['admin'] {
+interface GatewayPersistentReadinessAdminClientOptions {
+  productionReadinessRows?: ReturnType<typeof productionReadinessPacketRow>[]
+  missingBillingBackend?: boolean
+}
+
+function createGatewayPersistentReadinessAdminClient(
+  options: GatewayPersistentReadinessAdminClientOptions = {},
+): ServiceContext['clients']['admin'] {
   return {
     from(table: string) {
       const filters: Record<string, unknown> = {}
@@ -1538,13 +1581,74 @@ function createGatewayPersistentReadinessAdminClient(): ServiceContext['clients'
           filters[column] = value
           return builder
         },
+        gte(column: string, value: unknown) {
+          filters[column] = value
+          return builder
+        },
+        gt(column: string, value: unknown) {
+          filters[column] = value
+          return builder
+        },
+        ilike(column: string, value: unknown) {
+          filters[column] = value
+          return builder
+        },
+        in(column: string, value: unknown) {
+          filters[column] = value
+          return builder
+        },
         async maybeSingle() {
           return { data: gatewayPersistentRow(table, filters), error: null }
+        },
+        async order() {
+          if (table === 'production_tool_execution_readiness_evidence_packets') {
+            return {
+              data: (options.productionReadinessRows ?? [])
+                .filter((row) => row.workspace_id === filters.workspace_id)
+                .sort((a, b) => a.created_at.localeCompare(b.created_at)),
+              error: null,
+            }
+          }
+          return { data: [], error: null }
+        },
+        async limit() {
+          if (options.missingBillingBackend && table === 'tool_cost_events') {
+            return { data: null, error: { code: '42P01', message: 'relation "tool_cost_events" does not exist' } }
+          }
+          if (options.missingBillingBackend && table === 'tool_cost_wallet_settlements') {
+            return { data: null, error: { code: '42P01', message: 'relation "tool_cost_wallet_settlements" does not exist' } }
+          }
+          return { data: [], error: null }
         },
       }
       return builder
     },
+    async rpc(functionName: string) {
+      assert.equal(functionName, 'settle_tool_cost_event', 'gateway billing preflight should probe the settlement RPC by name')
+      if (options.missingBillingBackend) {
+        return { data: null, error: { code: '42883', message: 'function settle_tool_cost_event does not exist' } }
+      }
+      return { data: null, error: { code: 'P0001', message: 'tool cost event not found: billing preflight sentinel' } }
+    },
   } as never
+}
+
+function productionReadinessPacketRow(
+  packetId: string,
+  readinessInput: ProductionToolExecutionReadinessGateInput,
+) {
+  return {
+    id: packetId,
+    workspace_id: readinessInput.workspaceId,
+    project_id: readinessInput.projectId,
+    idempotency_key: `${packetId}:idempotency`,
+    source_id: readinessInput.sourceId,
+    source_sha: readinessInput.sourceSha ?? null,
+    created_at: '2026-07-03T00:00:00.000Z',
+    created_by_user_id: 'user-smoke',
+    readiness_input: readinessInput,
+    readiness_report: evaluateProductionToolExecutionReadinessGate(readinessInput),
+  }
 }
 
 function gatewayPersistentRow(table: string, filters: Record<string, unknown>) {

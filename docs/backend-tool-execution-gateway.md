@@ -77,6 +77,8 @@ Over-budget requests must go back through a revised estimate and reservation app
 
 For `production_ready`, post-dispatch billing audit uses the persistent service-role tool-cost path only after the supplied production evidence proves deployed Supabase migrations, explicit Data API grants, backend-only beta and production readiness evidence access, authenticated RLS readback, and service-role-only settlement RPC execution. Missing deployed persistence evidence blocks before worker dispatch or billing audit.
 
+The gateway also performs a live, mutation-free persistent billing backend preflight immediately before any `production_ready` worker dispatch in non-mock runtime. It must be able to read `tool_cost_events`, read `tool_cost_wallet_settlements`, and confirm the service-role-only `settle_tool_cost_event` RPC is deployed. A stale or incorrect readiness packet cannot by itself authorize worker execution if the deployed billing tables or settlement RPC are missing or unreachable; the request blocks before tool work starts.
+
 ## Production Ops Controls
 
 `production_ready` dispatch is not allowed to rely only on a user-supplied readiness packet. Immediately before a new worker dispatch, the gateway checks backend-owned operations controls:

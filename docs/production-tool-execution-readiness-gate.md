@@ -31,13 +31,17 @@ npm run smoke:production-tool-execution-readiness-gate
 npm run smoke:production-tool-execution-readiness-api
 npm run smoke:production-tool-execution-readiness-evidence-preflight
 npm run smoke:production-tool-execution-readiness-evidence-collector
+npm run smoke:production-tool-execution-readiness-evidence-bundle
+npm run smoke:production-billing-evidence-collector
 npm run smoke:production-ops-observability-evidence-collector
 npm run smoke:production-final-owner-signoff-evidence-collector
 npm run smoke:production-supabase-persistence-evidence-collector
 npm run smoke:production-wallet-lifecycle-evidence-collector
 npm run smoke:production-stripe-boundary-evidence-collector
 npm run prod:readiness:tool-execution-gate-preflight
+npm run prod:readiness:tool-execution-evidence-bundle
 npm run prod:readiness:tool-execution-evidence-collector
+npm run prod:readiness:billing-evidence-collector
 npm run prod:readiness:ops-observability-evidence-collector
 npm run prod:readiness:final-owner-signoff-evidence-collector
 npm run prod:readiness:supabase-persistence-evidence-collector
@@ -51,6 +55,8 @@ This is the bridge between beta readiness and paid production. It makes the rema
 Use `prod:readiness:tool-execution-gate-preflight` before the final gate report. The preflight reads non-secret operator evidence variables, checks for missing production evidence, rejects secret-like notes, and tells operators whether the supplied packet is ready to evaluate against the paid-production gate. It does not call Supabase, Stripe, workers, tools, media processors, deployments, or production routes.
 
 For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT` apply to the reviewed packet, while each evidence section has its own artifact ID, for example `REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID`, and `REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID`. Supabase persistence evidence must separately prove `tool_cost_events`, `beta_readiness_evidence_packets`, and `production_tool_execution_readiness_evidence_packets` deployment/readback with `REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED`, and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED`. Backend-only packet access must be proven separately for beta evidence and production readiness evidence with `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED` and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED`.
+
+Use `prod:readiness:tool-execution-evidence-bundle` as the dry-run operator runbook before collecting or recording production evidence. It forces all collector record confirmations off, runs the focused slice collectors in dry-run mode, reports section readiness and blockers, and prints the recommended sequence from Supabase persistence through final all-up evidence record/readback. The bundle never calls backend routes, Supabase, Stripe, workers, tools, media processors, deployments, or production.
 
 Use `prod:readiness:supabase-persistence-evidence-collector` to isolate the Supabase production persistence slice before final all-up recording. The collector verifies non-secret provenance for production environment, `tool_cost_events`, `beta_readiness_evidence_packets`, `production_tool_execution_readiness_evidence_packets`, service-role write path, authenticated RLS readback, explicit Data API grants, backend-only beta/production evidence access, backup/PITR approval, Security Advisor review, Performance Advisor review, and private storage policy verification. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_SUPABASE_PERSISTENCE_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires every other paid-production evidence section to pass; Supabase persistence evidence alone cannot unlock production. The collector never connects to Supabase, runs SQL, deploys migrations, changes grants, mutates storage, runs tools, dispatches workers, or activates beta/production.
 

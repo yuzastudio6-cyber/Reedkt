@@ -60,6 +60,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'cpu_analysis_worker_media_proxy'
   | 'cpu_analysis_worker_media_representative_frames'
   | 'cpu_analysis_worker_placeholder'
+  | 'cpu_analysis_worker_smart_cut_timeline'
   | 'gpu_ai_worker_placeholder'
   | 'render_worker_placeholder'
   | 'qa_worker_placeholder'
@@ -108,6 +109,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   cpu_analysis_worker_media_proxy: 'cpu_analysis_worker',
   cpu_analysis_worker_media_representative_frames: 'cpu_analysis_worker',
   cpu_analysis_worker_placeholder: 'cpu_analysis_worker',
+  cpu_analysis_worker_smart_cut_timeline: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
   render_worker_placeholder: 'render_worker',
   qa_worker_placeholder: 'qa_worker',
@@ -834,6 +836,72 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'cpu_analysis_worker_smart_cut_timeline') {
+    const smartCutTimelineExecution = input.metadata?.smartCutTimelineExecution
+    const smartCutRecord = smartCutTimelineExecution && typeof smartCutTimelineExecution === 'object'
+      ? smartCutTimelineExecution as Record<string, unknown>
+      : undefined
+    const mode = smartCutRecord?.mode
+    const tasks = Array.isArray(smartCutRecord?.tasks)
+      ? smartCutRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['build_execution_plan', 'build_timeline_manifest', 'build_otio_manifest', 'build_qa_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+
+    if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== 'opentimelineio') {
+      blockers.push({
+        code: 'SMART_CUT_TIMELINE_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_smart_cut_timeline may dispatch only the reviewed OpenTimelineIO timeline-manifest adapter scope.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'SMART_CUT_TIMELINE_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_smart_cut_timeline production dispatch requires metadata.smartCutTimelineExecution.mode=production_ready.',
+        details: { smartCutTimelineMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'SMART_CUT_TIMELINE_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_smart_cut_timeline is limited to execution-plan, timeline-manifest, OTIO-style manifest, and QA-report metadata tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (!smartCutRecord?.smartCutPlan || typeof smartCutRecord.smartCutPlan !== 'object')) {
+      blockers.push({
+        code: 'SMART_CUT_TIMELINE_PLAN_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_smart_cut_timeline production dispatch requires an approved smartCutPlan object; it must not invent production cuts.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && smartCutRecord?.allowFinalExport === true) {
+      blockers.push({
+        code: 'SMART_CUT_TIMELINE_FINAL_EXPORT_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_smart_cut_timeline cannot enable final export.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && smartCutRecord?.enableProxyPreview === true) {
+      blockers.push({
+        code: 'SMART_CUT_TIMELINE_PROXY_PREVIEW_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_smart_cut_timeline production dispatch is metadata-only and cannot create proxy previews.',
+      })
+    }
+  }
+
   if (adapterId === 'tool_readiness_worker_core_checks') {
     const toolReadiness = input.metadata?.toolReadiness
     const mode = toolReadiness && typeof toolReadiness === 'object'
@@ -1033,6 +1101,9 @@ function validateMetadataSafety(
     adapterId === 'cpu_analysis_worker_media_representative_frames'
   ) {
     allowedReservedKeys.add('mediaFoundation')
+  }
+  if (adapterId === 'cpu_analysis_worker_smart_cut_timeline') {
+    allowedReservedKeys.add('smartCutTimelineExecution')
   }
   const reservedFound = reservedRouterKeys
     .filter((key) => !allowedReservedKeys.has(key))

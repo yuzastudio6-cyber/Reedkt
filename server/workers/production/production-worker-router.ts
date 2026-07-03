@@ -99,12 +99,25 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
 
       if (hasSmartCutTimelineExecutionRequest(payload)) {
         const smartCutTimelineExecutionResult = await runSmartCutTimelineExecutionPipeline(buildSmartCutTimelineExecutionInput(payload))
+        const realSmartCutTimelineHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'cpu_analysis_worker_smart_cut_timeline' &&
+          smartCutTimelineExecutionResult.mode === 'production_ready' &&
+          smartCutTimelineExecutionResult.status !== 'blocked' &&
+          smartCutTimelineExecutionResult.executionPlan !== undefined &&
+          smartCutTimelineExecutionResult.timelineManifest !== undefined &&
+          smartCutTimelineExecutionResult.otioManifest !== undefined &&
+          smartCutTimelineExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'timeline_manifest' && artifact.sourceOfTruth) &&
+          smartCutTimelineExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'opentimelineio_manifest' && artifact.sourceOfTruth)
         return {
-          summary: 'Milestone 14 CPU analysis worker smart cut/timeline execution route completed in explicit smartCutTimelineExecution mode.',
+          summary: realSmartCutTimelineHandler
+            ? 'CPU smart-cut/timeline production handler completed bounded approved timeline metadata, OTIO-style manifest, and QA report generation without final export.'
+            : 'Milestone 14 CPU analysis worker smart cut/timeline execution route completed in explicit smartCutTimelineExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_smart_cut_timeline_execution',
+          mockOnly: !realSmartCutTimelineHandler,
+          realToolExecution: realSmartCutTimelineHandler,
+          futureHandler: realSmartCutTimelineHandler
+            ? 'cpu_analysis_worker_smart_cut_timeline_production_handler'
+            : 'cpu_analysis_worker_smart_cut_timeline_execution',
           smartCutTimelineExecutionResult,
         }
       }

@@ -17,6 +17,7 @@ import { resetMockToolCostStore, resetMockToolCostWalletSettlementStore } from '
 import type { ServiceContext } from '../types'
 import type { ToolExecutionGatewayDispatchBody } from '../validation/tool-execution-gateway-schemas'
 import { createMediaFoundationFixture } from '../workers/media'
+import type { SmartCutPlan } from '../workers/smart-cut'
 
 const context: ServiceContext = {
   env: {
@@ -285,6 +286,68 @@ assert.ok(
   productionReadyToolReadinessDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === false && settlement.creditsDelta === 0),
   'tool-readiness wallet settlement audit rows must not spend user credits',
 )
+
+const productionReadySmartCutTimelineDispatch = await service.dispatchApprovedToolCall(productionReadySmartCutTimelineInput({
+  jobId: 'job-production-ready-smart-cut-timeline',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const smartCutTimelineResult = productionReadySmartCutTimelineDispatch.workerResult?.output?.smartCutTimelineExecutionResult as {
+  status?: string
+  timelineManifest?: unknown
+  otioManifest?: unknown
+  artifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+  }>
+  qaResults?: unknown[]
+  blocksFinalExport?: boolean
+} | undefined
+const smartCutManifestArtifacts = productionReadySmartCutTimelineDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'timeline_manifest' || artifact.artifactType === 'opentimelineio_manifest') ?? []
+assert.equal(productionReadySmartCutTimelineDispatch.gateway.status, 'dispatched', 'complete evidence plus smart-cut/timeline adapter should allow backend gateway dispatch')
+assert.equal(productionReadySmartCutTimelineDispatch.workerResult?.status, 'completed', 'smart-cut/timeline real handler should complete')
+assert.equal(productionReadySmartCutTimelineDispatch.workerResult?.output?.mockOnly, false, 'smart-cut/timeline production handler should be non-mock')
+assert.equal(productionReadySmartCutTimelineDispatch.workerResult?.output?.realToolExecution, true, 'smart-cut/timeline production handler should record real backend handler execution')
+assert.equal(
+  productionReadySmartCutTimelineDispatch.workerResult?.output?.futureHandler,
+  'cpu_analysis_worker_smart_cut_timeline_production_handler',
+  'smart-cut/timeline production handler should use the reviewed timeline metadata handler',
+)
+assert.equal(smartCutTimelineResult?.status, 'partial', 'smart-cut/timeline production handler should complete as partial metadata execution, not final export')
+assert.ok(smartCutTimelineResult?.timelineManifest, 'smart-cut/timeline production handler should build a timeline manifest')
+assert.ok(smartCutTimelineResult?.otioManifest, 'smart-cut/timeline production handler should build an OTIO-style manifest')
+assert.equal(smartCutTimelineResult?.blocksFinalExport, true, 'smart-cut/timeline production handler must keep final export blocked')
+assert.ok((smartCutTimelineResult?.qaResults?.length ?? 0) > 0, 'smart-cut/timeline production handler should emit QA gate results')
+assert.ok(
+  smartCutTimelineResult?.artifacts?.some((artifact) => artifact.artifactType === 'timeline_manifest' && artifact.sourceOfTruth === true),
+  'smart-cut/timeline result should include a source-of-truth timeline manifest artifact',
+)
+assert.ok(
+  smartCutTimelineResult?.artifacts?.some((artifact) => artifact.artifactType === 'opentimelineio_manifest' && artifact.sourceOfTruth === true),
+  'smart-cut/timeline result should include a source-of-truth OTIO-style manifest artifact',
+)
+assert.ok(smartCutManifestArtifacts.length >= 2, 'worker runtime artifact manifest should include private timeline and OTIO-style artifacts')
+assert.ok(
+  smartCutManifestArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'smart-cut/timeline artifacts must stay private, source-of-truth, project-scoped, and unsigned',
+)
+assert.ok(
+  (productionReadySmartCutTimelineDispatch.workerResult?.qualityGateResults.length ?? 0) > 0,
+  'smart-cut/timeline worker result should preserve QA gate results',
+)
+assert.equal(productionReadySmartCutTimelineDispatch.toolCostEvents?.length, 1, 'smart-cut/timeline dispatch should emit one gateway tool-cost event for OpenTimelineIO metadata work')
+assert.equal(productionReadySmartCutTimelineDispatch.toolCostEvents?.[0]?.toolId, 'opentimelineio', 'smart-cut/timeline dispatch should scope billing audit to OpenTimelineIO')
+assert.equal(productionReadySmartCutTimelineDispatch.toolCostEvents?.[0]?.billableToUser, true, 'smart-cut/timeline event should be billable only after approval/reservation/readiness gates')
+assert.equal(productionReadySmartCutTimelineDispatch.toolCostEvents?.[0]?.metadata.serviceFeeIncluded, false, 'smart-cut/timeline cost event must exclude service fees')
+assert.equal(productionReadySmartCutTimelineDispatch.walletSettlements?.length, 1, 'smart-cut/timeline dispatch should create one wallet settlement audit row')
+assert.equal(productionReadySmartCutTimelineDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadySmartCutTimelineDispatch.toolCostEvents![0].toolCostCredits, 'smart-cut/timeline wallet settlement should spend the emitted tool-cost credits')
 
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
@@ -686,6 +749,8 @@ console.log(JSON.stringify({
   productionReadyPlaceholderBlocked: productionReadyPlaceholderBlocked.gateway.status,
   toolReadinessHandler: productionReadyToolReadinessDispatch.workerResult?.output?.futureHandler,
   toolReadinessBillable: productionReadyToolReadinessDispatch.toolCostEvents?.map((event) => event.billableToUser),
+  realSmartCutTimelineDispatchCovered: productionReadySmartCutTimelineDispatch.gateway.status === 'dispatched',
+  realSmartCutTimelineHandler: productionReadySmartCutTimelineDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
   realMediaAudioExtractDispatchCovered: Boolean(productionReadyAudioExtractDispatch),
@@ -842,6 +907,46 @@ function productionReadyMediaProbeInput(input: {
   }
 }
 
+function productionReadySmartCutTimelineInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_smart_cut_timeline',
+    requestedToolIds: ['opentimelineio'],
+    requestedRecipeIds: ['smart-cut-timeline-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    requiredQualityGateTypes: ['cut_smoothness', 'transcript_alignment', 'render_timeline_integrity', 'export_duration_sync'],
+    metadata: {
+      gatewaySmoke: true,
+      smartCutTimelineExecution: {
+        mode: 'production_ready',
+        tasks: ['build_execution_plan', 'build_timeline_manifest', 'build_otio_manifest', 'build_qa_report'],
+        smartCutPlan: buildGatewaySmokeSmartCutPlan(),
+        sourceVideoArtifactId: baseInput.artifactReferences[0]!.id,
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        mediaDurationSeconds: 7,
+        fps: 30,
+        allowFinalExport: false,
+        enableProxyPreview: false,
+        readinessReport: {
+          overallStatus: 'passed',
+          blockerSummaries: [],
+          blockers: [],
+          warnings: [],
+        },
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
 function productionReadyAudioExtractInput(input: {
   jobId: string
   sourceLocalPath: string
@@ -875,6 +980,129 @@ function productionReadyAudioExtractInput(input: {
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function buildGatewaySmokeSmartCutPlan(): SmartCutPlan {
+  return {
+    id: 'smart-cut-plan-gateway-smoke',
+    workspaceId: baseInput.workspaceId,
+    projectId: baseInput.projectId,
+    mediaAssetId: baseInput.mediaAssetId!,
+    sourceDurationSeconds: 7,
+    targetDurationSeconds: 6.2,
+    intent: ['remove_dead_space', 'preserve_story'],
+    aggressiveness: 'balanced',
+    pacingProfile: {
+      profileId: 'natural_clean',
+      maxSilenceSeconds: 1.2,
+      minSegmentDurationSeconds: 1.2,
+      targetCutsPerMinuteMin: 4,
+      targetCutsPerMinuteMax: 8,
+      emotionalPausePolicy: 'protect',
+      notes: [],
+    },
+    segmentCandidates: [{
+      candidateId: 'candidate-hook',
+      candidateType: 'transcript',
+      source: 'transcript',
+      startSeconds: 0,
+      endSeconds: 3,
+      text: 'This is the hook.',
+      transcriptSegmentIds: ['seg-hook'],
+      captionIds: [],
+      wordCount: 4,
+      evidence: {
+        hasTranscript: true,
+        hasWordTimestamps: false,
+        hasSilence: false,
+        hasSceneBoundary: false,
+        hasCaption: false,
+        fillerLabels: [],
+        repeatedTakeCandidateIds: [],
+      },
+      risks: ['none'],
+      protected: true,
+      reason: 'Approved hook candidate.',
+    }, {
+      candidateId: 'candidate-payoff',
+      candidateType: 'transcript',
+      source: 'transcript',
+      startSeconds: 3.8,
+      endSeconds: 7,
+      text: 'This is the payoff.',
+      transcriptSegmentIds: ['seg-payoff'],
+      captionIds: [],
+      wordCount: 4,
+      evidence: {
+        hasTranscript: true,
+        hasWordTimestamps: false,
+        hasSilence: false,
+        hasSceneBoundary: false,
+        hasCaption: false,
+        fillerLabels: [],
+        repeatedTakeCandidateIds: [],
+      },
+      risks: ['none'],
+      protected: false,
+      reason: 'Approved payoff candidate.',
+    }],
+    segmentScores: [],
+    keepSegments: [{
+      decisionId: 'keep-hook',
+      candidateId: 'candidate-hook',
+      startSeconds: 0,
+      endSeconds: 3,
+      reason: 'Preserve hook and context.',
+      score: 0.94,
+      confidence: 0.94,
+      protected: true,
+    }, {
+      decisionId: 'keep-payoff',
+      candidateId: 'candidate-payoff',
+      startSeconds: 3.8,
+      endSeconds: 7,
+      reason: 'Preserve payoff and call to action.',
+      score: 0.91,
+      confidence: 0.91,
+      protected: false,
+    }],
+    removeSegments: [{
+      decisionId: 'remove-pause',
+      candidateId: 'candidate-pause',
+      startSeconds: 3,
+      endSeconds: 3.8,
+      reason: 'Remove approved dead-space pause between hook and payoff.',
+      score: 0.88,
+      confidence: 0.87,
+      risks: ['none'],
+    }],
+    cutBoundaries: [{
+      boundaryId: 'boundary-hook-end',
+      sourceTimeSeconds: 3,
+      adjustedTimeSeconds: 3,
+      paddingBeforeSeconds: 0,
+      paddingAfterSeconds: 0,
+      risks: ['none'],
+      safe: true,
+      reason: 'Approved clean end of hook.',
+    }, {
+      boundaryId: 'boundary-payoff-start',
+      sourceTimeSeconds: 3.8,
+      adjustedTimeSeconds: 3.8,
+      paddingBeforeSeconds: 0,
+      paddingAfterSeconds: 0,
+      risks: ['none'],
+      safe: true,
+      reason: 'Approved start of payoff.',
+    }],
+    protectedSegments: [],
+    rejectedCandidates: [],
+    meaningFindings: [],
+    warnings: [],
+    confidence: 0.91,
+    qaChecks: ['cut_smoothness', 'transcript_alignment', 'render_timeline_integrity'],
+    requiredQualityGates: ['cut_smoothness', 'transcript_alignment', 'audio_sync', 'render_timeline_integrity'],
   }
 }
 

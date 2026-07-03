@@ -25,6 +25,12 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.md'
+const canonicalGpuModelRuntimeContainerImage =
+  'reeditpro/ai-graphics-gpu-worker:proof-local'
+const defaultScopedGpuModelPrivateOutputDirectory =
+  '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia'
+const defaultScopedGpuModelPrivateSourceImageLocalPath =
+  `${defaultScopedGpuModelPrivateOutputDirectory}/private-approved-frame.ppm`
 
 const cpuStaticTools = new Set<string>(
   AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_CONTROLLED_ADAPTER_TOOL_IDS,
@@ -72,7 +78,14 @@ interface ScopedGpuModelLocalDevRouteAttempt {
   summary: string
   requestedToolId: string
   requestedRuntimeBackend: 'docker_container'
+  canonicalRuntimeContainerImage: string
+  requestedRuntimeContainerImage: string | null
+  requestedRuntimeContainerPlatform: string | null
+  runtimeContainerImageProvided: boolean
   expectedBlockingReasonCode: string
+  expectedBlockingReasonCodes: string[]
+  executableOnCudaHostWithPrivateInput: boolean
+  nextExactCommand: string
   privateOutputDirectory: string
   privateSourceImageLocalPath: string
   result: ControlledRouteExecutionResult
@@ -81,15 +94,31 @@ interface ScopedGpuModelLocalDevRouteAttempt {
     scopedGpuModelLocalDevRouteAttemptAccepted: boolean
     scopedGpuModelLocalDevRouteAttemptBlockedWithReason: boolean
     scopedGpuModelRuntimeContainerPayloadAccepted: boolean
-    scopedGpuModelRuntimeExecutionPerformed: false
-    scopedGpuModelGpuRuntimeShouldStartNow: false
+    scopedGpuModelRuntimeContainerImageProvided: boolean
+    scopedGpuModelRuntimeExecutionPerformed: boolean
+    scopedGpuModelGpuRuntimeShouldStartNow: boolean
     scopedGpuModelPublicArtifactCreated: false
     scopedGpuModelSignedUrlCreated: false
   }
 }
 
+interface ScopedGpuModelLocalDevRouteAttemptOptions {
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  privateOutputDirectory?: string
+  privateSourceImageLocalPath?: string
+}
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
+}
+
+function stringArg(name: string): string | undefined {
+  const index = process.argv.indexOf(name)
+  const value = index >= 0 ? process.argv[index + 1] : undefined
+  return typeof value === 'string' && value.trim() && !value.startsWith('--')
+    ? value
+    : undefined
 }
 
 function groupForTool(toolId: string): ControlledToolGroup {
@@ -193,11 +222,41 @@ function controlledRequest(
 
 function scopedGpuModelLocalDevRouteAttemptRequest(
   request: AiGraphicsExternalBetaToolCallRequest,
+  options: ScopedGpuModelLocalDevRouteAttemptOptions = {},
 ): AiGraphicsExternalBetaToolCallRequest {
   const privateOutputDirectory =
-    '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia'
+    options.privateOutputDirectory ?? defaultScopedGpuModelPrivateOutputDirectory
   const privateSourceImageLocalPath =
-    `${privateOutputDirectory}/private-approved-frame.ppm`
+    options.privateSourceImageLocalPath ??
+    defaultScopedGpuModelPrivateSourceImageLocalPath
+  const payload: Record<string, unknown> = {
+    mode: 'local_dev',
+    enableGpuModelControlledExecution: true,
+    externalAgentAll21ControlledRouteExecutionSmoke: true,
+    scopedGpuModelLocalDevRouteAttempt: true,
+    privateOutputOnly: true,
+    gpuRuntimeOnDemandOnly: true,
+    noIdleGpuRuntimeApproved: true,
+    runtimeExecutionBackend: 'docker_container',
+    runtimeContainerGpu: true,
+    outputDirectory: privateOutputDirectory,
+    sourceImageLocalPath: privateSourceImageLocalPath,
+    representativeFrameLocalPath: privateSourceImageLocalPath,
+    timeoutMs: 30_000,
+    toolExecutionPerformed: false,
+    gpuRuntimeShouldStartNow: false,
+    modelWeightsDownloaded: false,
+    modelWeightsLoaded: false,
+    modelInferencePerformed: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+  }
+  if (options.runtimeContainerImage) {
+    payload.runtimeContainerImage = options.runtimeContainerImage
+  }
+  if (options.runtimeContainerPlatform) {
+    payload.runtimeContainerPlatform = options.runtimeContainerPlatform
+  }
 
   return {
     ...request,
@@ -222,28 +281,7 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
       'private://ai-graphics/external-agent/all21-controlled-route-execution-smoke/scoped-gpu-model-runtime-attempt/kornia/external-beta-per-tool-runtime-proof',
     traceId:
       'trace-all21-controlled-route-execution-scoped-gpu-model-runtime-attempt-kornia',
-    payload: {
-      mode: 'local_dev',
-      enableGpuModelControlledExecution: true,
-      externalAgentAll21ControlledRouteExecutionSmoke: true,
-      scopedGpuModelLocalDevRouteAttempt: true,
-      privateOutputOnly: true,
-      gpuRuntimeOnDemandOnly: true,
-      noIdleGpuRuntimeApproved: true,
-      runtimeExecutionBackend: 'docker_container',
-      runtimeContainerGpu: true,
-      outputDirectory: privateOutputDirectory,
-      sourceImageLocalPath: privateSourceImageLocalPath,
-      representativeFrameLocalPath: privateSourceImageLocalPath,
-      timeoutMs: 30_000,
-      toolExecutionPerformed: false,
-      gpuRuntimeShouldStartNow: false,
-      modelWeightsDownloaded: false,
-      modelWeightsLoaded: false,
-      modelInferencePerformed: false,
-      publicArtifactCreated: false,
-      signedUrlCreated: false,
-    },
+    payload,
   }
 }
 
@@ -320,31 +358,69 @@ async function runControlledCase(
 
 function buildScopedGpuModelLocalDevRouteAttempt(
   result: ControlledRouteExecutionResult,
+  options: ScopedGpuModelLocalDevRouteAttemptOptions = {},
 ): ScopedGpuModelLocalDevRouteAttempt {
+  const runtimeContainerImage = options.runtimeContainerImage ?? null
+  const runtimeContainerImageProvided = Boolean(runtimeContainerImage)
+  const expectedBlockingReasonCodes = runtimeContainerImageProvided
+    ? [
+        'gpu_model_runtime_container_image_unavailable',
+        'gpu_model_runtime_container_gpu_unavailable',
+        'kornia_source_frame_missing',
+      ]
+    : ['gpu_model_runtime_container_image_missing']
+  const expectedBlockingReasonCode = expectedBlockingReasonCodes[0]
+  const runtimeExecuted =
+    result.externalAgentExecutionState === 'executable' &&
+    result.localGpuModelRuntimeExecutionPerformed === true
+  const blockedWithExpectedReason =
+    result.externalAgentExecutionState === 'blocked_with_reason' &&
+    Boolean(
+      result.blockingReasonCode &&
+      expectedBlockingReasonCodes.includes(result.blockingReasonCode),
+    )
+  const privateOutputDirectory =
+    options.privateOutputDirectory ?? defaultScopedGpuModelPrivateOutputDirectory
+  const privateSourceImageLocalPath =
+    options.privateSourceImageLocalPath ??
+    defaultScopedGpuModelPrivateSourceImageLocalPath
+  const nextExactCommand =
+    `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-runtime-container-image ${runtimeContainerImage ?? canonicalGpuModelRuntimeContainerImage} --scoped-gpu-runtime-container-platform ${options.runtimeContainerPlatform ?? 'linux/amd64'} --scoped-gpu-output-dir ${privateOutputDirectory} --scoped-gpu-source-image ${privateSourceImageLocalPath}`
+
   return {
-    summary:
-      'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.',
+    summary: runtimeContainerImageProvided
+      ? 'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route with explicit private local input/output paths, runtimeExecutionBackend=docker_container, and runtimeContainerImage supplied. On this host it may block at image/GPU/source prerequisites; on a CUDA Docker host with a private source frame it can execute only this scoped tool call on demand.'
+      : 'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.',
     requestedToolId: result.toolId,
     requestedRuntimeBackend: 'docker_container',
-    expectedBlockingReasonCode: 'gpu_model_runtime_container_image_missing',
-    privateOutputDirectory:
-      '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia',
-    privateSourceImageLocalPath:
-      '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm',
+    canonicalRuntimeContainerImage: canonicalGpuModelRuntimeContainerImage,
+    requestedRuntimeContainerImage: runtimeContainerImage,
+    requestedRuntimeContainerPlatform: options.runtimeContainerPlatform ?? null,
+    runtimeContainerImageProvided,
+    expectedBlockingReasonCode,
+    expectedBlockingReasonCodes,
+    executableOnCudaHostWithPrivateInput: runtimeContainerImageProvided,
+    nextExactCommand,
+    privateOutputDirectory,
+    privateSourceImageLocalPath,
     result,
     booleans: {
       scopedGpuModelLocalDevRouteAttemptPerformed: true,
       scopedGpuModelLocalDevRouteAttemptAccepted:
         result.statusCode === 200 &&
         result.ok === true &&
-        result.controlledAdapterInvokedNow === true,
+        result.controlledAdapterInvokedNow === true &&
+        (blockedWithExpectedReason || runtimeExecuted),
       scopedGpuModelLocalDevRouteAttemptBlockedWithReason:
-        result.externalAgentExecutionState === 'blocked_with_reason' &&
-        result.blockingReasonCode === 'gpu_model_runtime_container_image_missing',
+        blockedWithExpectedReason,
       scopedGpuModelRuntimeContainerPayloadAccepted:
-        result.blockingReasonCode === 'gpu_model_runtime_container_image_missing',
-      scopedGpuModelRuntimeExecutionPerformed: false,
-      scopedGpuModelGpuRuntimeShouldStartNow: false,
+        runtimeContainerImageProvided
+          ? blockedWithExpectedReason || runtimeExecuted
+          : result.blockingReasonCode ===
+              'gpu_model_runtime_container_image_missing',
+      scopedGpuModelRuntimeContainerImageProvided: runtimeContainerImageProvided,
+      scopedGpuModelRuntimeExecutionPerformed: runtimeExecuted,
+      scopedGpuModelGpuRuntimeShouldStartNow: result.gpuRuntimeShouldStartNow,
       scopedGpuModelPublicArtifactCreated: false,
       scopedGpuModelSignedUrlCreated: false,
     },
@@ -363,19 +439,42 @@ function validateResults(
   assert(scopedResult.statusCode === 200, `scoped GPU/model route attempt did not return HTTP 200`)
   assert(scopedResult.ok === true, 'scoped GPU/model route attempt did not return ok envelope')
   assert(scopedResult.controlledAdapterInvokedNow === true, 'scoped GPU/model route attempt did not invoke adapter')
-  assert(scopedResult.controlledAdapterExecutedNow === false, 'scoped GPU/model route attempt should not execute runtime without container image')
-  assert(scopedResult.externalAgentExecutionState === 'blocked_with_reason', 'scoped GPU/model route attempt should block with reason')
-  assert(
-    scopedResult.blockingReasonCode === 'gpu_model_runtime_container_image_missing',
-    `scoped GPU/model route attempt blocking reason mismatch: ${scopedResult.blockingReasonCode}`,
-  )
+  if (scopedGpuModelLocalDevRouteAttempt.runtimeContainerImageProvided) {
+    const blockedWithExpectedReason =
+      scopedResult.externalAgentExecutionState === 'blocked_with_reason' &&
+      Boolean(
+        scopedResult.blockingReasonCode &&
+        scopedGpuModelLocalDevRouteAttempt.expectedBlockingReasonCodes.includes(
+          scopedResult.blockingReasonCode,
+        ),
+      )
+    const runtimeExecuted =
+      scopedResult.externalAgentExecutionState === 'executable' &&
+      scopedResult.localGpuModelRuntimeExecutionPerformed === true
+    assert(
+      blockedWithExpectedReason || runtimeExecuted,
+      `scoped GPU/model route attempt should block with expected prerequisite or execute on CUDA host, got state=${scopedResult.externalAgentExecutionState} block=${scopedResult.blockingReasonCode}`,
+    )
+  } else {
+    assert(scopedResult.controlledAdapterExecutedNow === false, 'scoped GPU/model route attempt should not execute runtime without container image')
+    assert(scopedResult.externalAgentExecutionState === 'blocked_with_reason', 'scoped GPU/model route attempt should block with reason')
+    assert(
+      scopedResult.blockingReasonCode === 'gpu_model_runtime_container_image_missing',
+      `scoped GPU/model route attempt blocking reason mismatch: ${scopedResult.blockingReasonCode}`,
+    )
+    assert(scopedResult.localGpuModelRuntimeExecutionPerformed === false, 'scoped GPU/model route attempt performed runtime unexpectedly')
+    assert(scopedResult.gpuRuntimeShouldStartNow === false, 'scoped GPU/model route attempt started GPU unexpectedly')
+  }
   assert(scopedResult.failureDiagnostics === null, 'scoped GPU/model route attempt should not fail')
-  assert(scopedResult.localGpuModelRuntimeExecutionPerformed === false, 'scoped GPU/model route attempt performed runtime unexpectedly')
-  assert(scopedResult.gpuRuntimeShouldStartNow === false, 'scoped GPU/model route attempt started GPU unexpectedly')
   assert(scopedResult.publicArtifactCreated === false, 'scoped GPU/model route attempt created public artifact')
   assert(scopedResult.signedUrlCreated === false, 'scoped GPU/model route attempt created signed URL')
   assert(scopedGpuModelLocalDevRouteAttempt.booleans.scopedGpuModelLocalDevRouteAttemptAccepted === true, 'scoped GPU/model route attempt was not accepted')
-  assert(scopedGpuModelLocalDevRouteAttempt.booleans.scopedGpuModelLocalDevRouteAttemptBlockedWithReason === true, 'scoped GPU/model route attempt did not block with expected reason')
+  if (
+    !scopedGpuModelLocalDevRouteAttempt.booleans
+      .scopedGpuModelRuntimeExecutionPerformed
+  ) {
+    assert(scopedGpuModelLocalDevRouteAttempt.booleans.scopedGpuModelLocalDevRouteAttemptBlockedWithReason === true, 'scoped GPU/model route attempt did not block with expected reason')
+  }
   assert(scopedGpuModelLocalDevRouteAttempt.booleans.scopedGpuModelRuntimeContainerPayloadAccepted === true, 'scoped GPU/model route attempt did not reach container runtime branch')
 
   for (const result of results) {
@@ -508,7 +607,11 @@ function buildReport(
           .scopedGpuModelLocalDevRouteAttemptBlockedWithReason
           ? 1
           : 0,
-      scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools: 0,
+      scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools:
+        scopedGpuModelLocalDevRouteAttempt.booleans
+          .scopedGpuModelRuntimeExecutionPerformed
+          ? 1
+          : 0,
     },
     booleans: {
       all21ControlledRouteExecutionSmokePassed: true,
@@ -558,8 +661,12 @@ function buildReport(
       providerRuntimeApprovedNow: false,
       providerRuntimePerformed: false,
       browserWebglCanvasRuntimePerformedOutsideControlledAdapter: false,
-      gpuRuntimePerformed: false,
-      gpuRuntimeShouldStartNow: false,
+      gpuRuntimePerformed:
+        scopedGpuModelLocalDevRouteAttempt.booleans
+          .scopedGpuModelRuntimeExecutionPerformed,
+      gpuRuntimeShouldStartNow:
+        scopedGpuModelLocalDevRouteAttempt.booleans
+          .scopedGpuModelGpuRuntimeShouldStartNow,
       modelWeightsDownloaded: false,
       modelWeightsLoaded: false,
       modelInferencePerformed: false,
@@ -611,6 +718,9 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 - \`toolId\`: \`${report.scopedGpuModelLocalDevRouteAttempt.requestedToolId}\`
 - \`runtimeExecutionBackend\`: \`${report.scopedGpuModelLocalDevRouteAttempt.requestedRuntimeBackend}\`
+- \`runtimeContainerImageProvided\`: \`${report.scopedGpuModelLocalDevRouteAttempt.runtimeContainerImageProvided}\`
+- \`requestedRuntimeContainerImage\`: \`${report.scopedGpuModelLocalDevRouteAttempt.requestedRuntimeContainerImage}\`
+- \`nextExactCommand\`: \`${report.scopedGpuModelLocalDevRouteAttempt.nextExactCommand}\`
 - \`externalAgentExecutionState\`: \`${report.scopedGpuModelLocalDevRouteAttempt.result.externalAgentExecutionState}\`
 - \`blockingReasonCode\`: \`${report.scopedGpuModelLocalDevRouteAttempt.result.blockingReasonCode}\`
 - \`gpuRuntimeShouldStartNow\`: \`${report.scopedGpuModelLocalDevRouteAttempt.result.gpuRuntimeShouldStartNow}\`
@@ -624,6 +734,13 @@ This smoke does not dispatch Workers, call providers/models, mutate Supabase/GCS
 }
 
 async function main() {
+  const scopedGpuModelOptions: ScopedGpuModelLocalDevRouteAttemptOptions = {
+    runtimeContainerImage: stringArg('--scoped-gpu-runtime-container-image'),
+    runtimeContainerPlatform:
+      stringArg('--scoped-gpu-runtime-container-platform'),
+    privateOutputDirectory: stringArg('--scoped-gpu-output-dir'),
+    privateSourceImageLocalPath: stringArg('--scoped-gpu-source-image'),
+  }
   const cases = listAiGraphicsExternalBetaToolCallBlockedReadinessCases()
     .map((item) => controlledRequest(item.request))
   const gpuCase = cases.find((item) => groupForTool(item.toolId) === 'gpu_model')
@@ -650,12 +767,13 @@ async function main() {
         ...gpuCase,
         toolId: 'kornia',
         capabilityId: 'tensor_image_ops',
-      }),
+      }, scopedGpuModelOptions),
     ),
   )
   const scopedGpuModelLocalDevRouteAttempt =
     buildScopedGpuModelLocalDevRouteAttempt(
       scopedGpuModelLocalDevRouteAttemptResult,
+      scopedGpuModelOptions,
     )
 
   validateResults(results, disabledGpuStatus, scopedGpuModelLocalDevRouteAttempt)

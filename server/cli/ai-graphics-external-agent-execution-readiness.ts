@@ -141,6 +141,16 @@ function containerGpuCommand(toolId: string): string {
   ].filter(Boolean).join(' ')
 }
 
+function controlledRouteGpuCommand(): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
+    `--scoped-gpu-runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    '--scoped-gpu-runtime-container-platform linux/amd64',
+    '--scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia',
+    '--scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm',
+  ].join(' ')
+}
+
 function nextGpuCommand(toolId: string): string {
   return toolId === 'kornia'
     ? containerGpuCommand(toolId)
@@ -246,6 +256,9 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
         : null,
       nextExactContainerCommand: group === 'gpu_model'
         ? containerGpuCommand(toolId)
+        : null,
+      nextExactControlledRouteCommand: group === 'gpu_model' && toolId === 'kornia'
+        ? controlledRouteGpuCommand()
         : null,
       routeStatus: routeRow.routeStatus ?? null,
       adapterStatus: group === 'gpu_model'
@@ -463,6 +476,7 @@ function buildReport() {
       recommendedBackend: 'docker_container',
       canonicalProofImage: canonicalGpuWorkerProofImage,
       nextExactCommand: containerGpuCommand('kornia'),
+      nextExactControlledRouteCommand: controlledRouteGpuCommand(),
       expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
         'gpu_model_runtime_container_gpu_unavailable',
       remainsBlockedUntil:
@@ -509,7 +523,8 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Canonical proof image: \`${report.fastestGpuModelUnlockCandidate.canonicalProofImage}\`
 - Reason: ${report.fastestGpuModelUnlockCandidate.reason}
 - Expected current-host blocker without attached NVIDIA GPU: \`${report.fastestGpuModelUnlockCandidate.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached}\`
-- Next command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
+- Next direct harness command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
+- Next controlled route command: \`${report.fastestGpuModelUnlockCandidate.nextExactControlledRouteCommand}\`
 
 ## Booleans
 

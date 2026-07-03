@@ -350,6 +350,27 @@ if (
 ) {
   fail('fastest_gpu_unlock_candidate_not_using_canonical_image')
 }
+if (
+  !String(
+    docs.fastestGpuModelUnlockCandidate?.nextExactControlledRouteCommand ?? '',
+  ).includes('ai-graphics:external-agent-all21-controlled-route-execution-smoke')
+) {
+  fail('fastest_gpu_unlock_candidate_missing_controlled_route_command')
+}
+for (const flag of [
+  '--scoped-gpu-runtime-container-image',
+  '--scoped-gpu-runtime-container-platform',
+  '--scoped-gpu-output-dir',
+  '--scoped-gpu-source-image',
+]) {
+  if (
+    !String(
+      docs.fastestGpuModelUnlockCandidate?.nextExactControlledRouteCommand ?? '',
+    ).includes(flag)
+  ) {
+    fail(`fastest_gpu_unlock_candidate_controlled_route_command_missing:${flag}`)
+  }
+}
 
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
@@ -386,6 +407,7 @@ for (const phrase of [
   'GPU runtime is on-demand only',
   '13 tools execute controlled local adapters now',
   'Fastest GPU/Model Unlock Candidate',
+  'Next controlled route command',
   'gpu_model_runtime_container_gpu_unavailable',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)

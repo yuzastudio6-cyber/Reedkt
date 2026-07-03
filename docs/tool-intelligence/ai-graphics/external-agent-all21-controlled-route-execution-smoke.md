@@ -114,6 +114,9 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 
 - `toolId`: `kornia`
 - `runtimeExecutionBackend`: `docker_container`
+- `runtimeContainerImageProvided`: `false`
+- `requestedRuntimeContainerImage`: `null`
+- `nextExactCommand`: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
 - `externalAgentExecutionState`: `blocked_with_reason`
 - `blockingReasonCode`: `gpu_model_runtime_container_image_missing`
 - `gpuRuntimeShouldStartNow`: `false`

@@ -541,7 +541,16 @@
     "summary": "POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.",
     "requestedToolId": "kornia",
     "requestedRuntimeBackend": "docker_container",
+    "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
+    "requestedRuntimeContainerImage": null,
+    "requestedRuntimeContainerPlatform": null,
+    "runtimeContainerImageProvided": false,
     "expectedBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+    "expectedBlockingReasonCodes": [
+      "gpu_model_runtime_container_image_missing"
+    ],
+    "executableOnCudaHostWithPrivateInput": false,
+    "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm",
     "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia",
     "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm",
     "result": {
@@ -574,6 +583,7 @@
       "scopedGpuModelLocalDevRouteAttemptAccepted": true,
       "scopedGpuModelLocalDevRouteAttemptBlockedWithReason": true,
       "scopedGpuModelRuntimeContainerPayloadAccepted": true,
+      "scopedGpuModelRuntimeContainerImageProvided": false,
       "scopedGpuModelRuntimeExecutionPerformed": false,
       "scopedGpuModelGpuRuntimeShouldStartNow": false,
       "scopedGpuModelPublicArtifactCreated": false,

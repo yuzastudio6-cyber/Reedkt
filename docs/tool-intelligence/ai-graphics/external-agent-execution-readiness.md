@@ -15,29 +15,29 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 
 ## Tool Rows
 
-| Tool | Group | Readiness state | Callable | Executable | Blocking prerequisite |
-| --- | --- | --- | ---: | ---: | --- |
-| `torch_torchvision` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
-| `transformers` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
-| `sam2` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; sam2CheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing` |
-| `birefnet` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; sourceImageLocalPath; birefnetModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: birefnet_model_missing` |
-| `real_esrgan` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; sourceImageLocalPath; realEsrganModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing` |
-| `kornia` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing` |
-| `rembg` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; sourceImageLocalPath; rembgModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: rembg_model_missing` |
-| `transparent_background` | `gpu_model` | `blocked_with_reason` | true | false | `approved native CUDA host; outputDirectory; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing` |
-| `d3` | `cpu_static` | `executable` | true | true | `none` |
-| `echarts` | `browser_runtime` | `executable` | true | true | `none` |
-| `vega_lite` | `cpu_static` | `executable` | true | true | `none` |
-| `vega` | `cpu_static` | `executable` | true | true | `none` |
-| `satori` | `cpu_static` | `executable` | true | true | `none` |
-| `svgdotjs_svg_js` | `cpu_static` | `executable` | true | true | `none` |
-| `viz_js` | `cpu_static` | `executable` | true | true | `none` |
-| `lottie_web` | `browser_runtime` | `executable` | true | true | `none` |
-| `animejs` | `browser_runtime` | `executable` | true | true | `none` |
-| `three_js` | `browser_runtime` | `executable` | true | true | `none` |
-| `pixi_js` | `browser_runtime` | `executable` | true | true | `none` |
-| `konva` | `browser_runtime` | `executable` | true | true | `none` |
-| `babylonjs` | `browser_runtime` | `executable` | true | true | `none` |
+| Tool | Group | Readiness state | Callable | Executable | Minimum private runtime inputs | Blocking prerequisite |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| `torch_torchvision` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime` | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
+| `transformers` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime` | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
+| `sam2` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sam2CheckpointLocalPath` | `approved native CUDA host; outputDirectory; sam2CheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing` |
+| `birefnet` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, birefnetModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; birefnetModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: birefnet_model_missing` |
+| `real_esrgan` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, realEsrganModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; realEsrganModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing` |
+| `kornia` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing` |
+| `rembg` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, rembgModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; rembgModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: rembg_model_missing` |
+| `transparent_background` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, transparentBackgroundCheckpointLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing` |
+| `d3` | `cpu_static` | `executable` | true | true | `none` | `none` |
+| `echarts` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| `vega_lite` | `cpu_static` | `executable` | true | true | `none` | `none` |
+| `vega` | `cpu_static` | `executable` | true | true | `none` | `none` |
+| `satori` | `cpu_static` | `executable` | true | true | `none` | `none` |
+| `svgdotjs_svg_js` | `cpu_static` | `executable` | true | true | `none` | `none` |
+| `viz_js` | `cpu_static` | `executable` | true | true | `none` | `none` |
+| `lottie_web` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| `animejs` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| `three_js` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| `pixi_js` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| `konva` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| `babylonjs` | `browser_runtime` | `executable` | true | true | `none` | `none` |
 
 ## Counts
 

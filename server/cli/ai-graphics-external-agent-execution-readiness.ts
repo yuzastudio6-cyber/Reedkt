@@ -104,21 +104,79 @@ function localInputKeys(row: JsonRecord | undefined): string[] {
     .map((requirement: JsonRecord) => requirement.key)
 }
 
+function gpuModelRequiresSourceImage(toolId: string): boolean {
+  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+}
+
+function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
+  const keys = ['outputDirectory', 'nativeCudaRuntime']
+  if (gpuModelRequiresSourceImage(toolId)) keys.push('sourceImageLocalPath')
+  if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
+  if (toolId === 'birefnet') keys.push('birefnetModelLocalPath')
+  if (toolId === 'real_esrgan') keys.push('realEsrganModelLocalPath')
+  if (toolId === 'rembg') keys.push('rembgModelLocalPath')
+  if (toolId === 'transparent_background') {
+    keys.push('transparentBackgroundCheckpointLocalPath')
+  }
+  return keys
+}
+
+function gpuModelHostRuntimeFlags(toolId: string): string[] {
+  const flags = [
+    `--tool ${toolId}`,
+    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+  ]
+  if (gpuModelRequiresSourceImage(toolId)) {
+    flags.push('--source-image <private-approved-frame.png>')
+  }
+  if (toolId === 'sam2') flags.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
+  if (toolId === 'birefnet') flags.push('--birefnet-model <private-birefnet-model>')
+  if (toolId === 'real_esrgan') {
+    flags.push('--real-esrgan-model <private-real-esrgan-model.pth>')
+  }
+  if (toolId === 'rembg') flags.push('--rembg-model <private-rembg-model.onnx>')
+  if (toolId === 'transparent_background') {
+    flags.push('--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>')
+  }
+  return flags
+}
+
+function gpuModelControlledRouteFlags(toolId: string): string[] {
+  const outputDir =
+    `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`
+  const flags = [
+    `--scoped-gpu-tool ${toolId}`,
+    `--scoped-gpu-runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    '--scoped-gpu-runtime-container-platform linux/amd64',
+    `--scoped-gpu-output-dir ${outputDir}`,
+  ]
+  if (gpuModelRequiresSourceImage(toolId)) {
+    flags.push(`--scoped-gpu-source-image ${outputDir}/private-approved-frame.ppm`)
+  }
+  if (toolId === 'sam2') {
+    flags.push(`--scoped-gpu-sam2-checkpoint ${outputDir}/private-sam2-checkpoint.pt`)
+  }
+  if (toolId === 'birefnet') {
+    flags.push(`--scoped-gpu-birefnet-model ${outputDir}/private-birefnet-model`)
+  }
+  if (toolId === 'real_esrgan') {
+    flags.push(`--scoped-gpu-real-esrgan-model ${outputDir}/private-real-esrgan-model.pth`)
+  }
+  if (toolId === 'rembg') {
+    flags.push(`--scoped-gpu-rembg-model ${outputDir}/private-rembg-model.onnx`)
+  }
+  if (toolId === 'transparent_background') {
+    flags.push(`--scoped-gpu-transparent-background-checkpoint ${outputDir}/private-transparent-background-checkpoint.pth`)
+  }
+  return flags
+}
+
 function hostPythonGpuCommand(toolId: string): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
     '--attempt-local-runtime',
-    `--tool ${toolId}`,
-    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
-    '--source-image <private-approved-frame.png>',
-    toolId === 'sam2' ? '--sam2-checkpoint <private-sam2-checkpoint.pt>' : '',
-    toolId === 'birefnet' ? '--birefnet-model <private-birefnet-model>' : '',
-    toolId === 'real_esrgan' ? '--real-esrgan-model <private-real-esrgan-model.pth>' : '',
-    toolId === 'rembg' ? '--rembg-model <private-rembg-model.onnx>' : '',
-    toolId === 'transparent_background'
-      ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
-      : '',
-  ].filter(Boolean).join(' ')
+    ...gpuModelHostRuntimeFlags(toolId),
+  ].join(' ')
 }
 
 function containerGpuCommand(toolId: string): string {
@@ -128,47 +186,15 @@ function containerGpuCommand(toolId: string): string {
     '--runtime-backend docker_container',
     `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
     '--runtime-container-platform linux/amd64',
-    `--tool ${toolId}`,
-    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
-    '--source-image <private-approved-frame.png>',
-    toolId === 'sam2' ? '--sam2-checkpoint <private-sam2-checkpoint.pt>' : '',
-    toolId === 'birefnet' ? '--birefnet-model <private-birefnet-model>' : '',
-    toolId === 'real_esrgan' ? '--real-esrgan-model <private-real-esrgan-model.pth>' : '',
-    toolId === 'rembg' ? '--rembg-model <private-rembg-model.onnx>' : '',
-    toolId === 'transparent_background'
-      ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
-      : '',
-  ].filter(Boolean).join(' ')
+    ...gpuModelHostRuntimeFlags(toolId),
+  ].join(' ')
 }
 
 function controlledRouteGpuCommand(toolId: string): string {
-  const outputDir =
-    `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`
-  const sourceImage = `${outputDir}/private-approved-frame.ppm`
-  const parts = [
+  return [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
-    `--scoped-gpu-tool ${toolId}`,
-    `--scoped-gpu-runtime-container-image ${canonicalGpuWorkerProofImage}`,
-    '--scoped-gpu-runtime-container-platform linux/amd64',
-    `--scoped-gpu-output-dir ${outputDir}`,
-    `--scoped-gpu-source-image ${sourceImage}`,
-    toolId === 'sam2'
-      ? `--scoped-gpu-sam2-checkpoint ${outputDir}/private-sam2-checkpoint.pt`
-      : '',
-    toolId === 'birefnet'
-      ? `--scoped-gpu-birefnet-model ${outputDir}/private-birefnet-model`
-      : '',
-    toolId === 'real_esrgan'
-      ? `--scoped-gpu-real-esrgan-model ${outputDir}/private-real-esrgan-model.pth`
-      : '',
-    toolId === 'rembg'
-      ? `--scoped-gpu-rembg-model ${outputDir}/private-rembg-model.onnx`
-      : '',
-    toolId === 'transparent_background'
-      ? `--scoped-gpu-transparent-background-checkpoint ${outputDir}/private-transparent-background-checkpoint.pth`
-      : '',
-  ]
-  return parts.filter(Boolean).join(' ')
+    ...gpuModelControlledRouteFlags(toolId),
+  ].join(' ')
 }
 
 function nextGpuCommand(toolId: string): string {
@@ -267,6 +293,15 @@ function buildToolRows(routeSmoke: JsonRecord, gpuHarness: JsonRecord) {
           ? 'docker_container'
           : 'host_python_or_docker_container'
         : null,
+      minimumPrivateRuntimeInputKeys: group === 'gpu_model'
+        ? gpuModelMinimumPrivateRuntimeInputKeys(toolId)
+        : [],
+      minimumHostRuntimeFlags: group === 'gpu_model'
+        ? gpuModelHostRuntimeFlags(toolId)
+        : [],
+      minimumControlledRouteFlags: group === 'gpu_model'
+        ? gpuModelControlledRouteFlags(toolId)
+        : [],
       fastestGpuModelUnlockCandidate: toolId === 'kornia',
       nextExactCommand: group === 'gpu_model'
         ? nextGpuCommand(toolId)
@@ -510,7 +545,7 @@ function buildReport() {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolReadinessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | \`${row.blockingPrerequisite ?? 'none'}\` |`
+      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
 
@@ -528,8 +563,8 @@ ${Object.entries(report.stateDefinitions).map(([key, value]) => `- \`${key}\`: $
 
 ## Tool Rows
 
-| Tool | Group | Readiness state | Callable | Executable | Blocking prerequisite |
-| --- | --- | --- | ---: | ---: | --- |
+| Tool | Group | Readiness state | Callable | Executable | Minimum private runtime inputs | Blocking prerequisite |
+| --- | --- | --- | ---: | ---: | --- | --- |
 ${rows}
 
 ## Counts

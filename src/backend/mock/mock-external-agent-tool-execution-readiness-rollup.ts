@@ -204,10 +204,12 @@ export const AI_VIDEO_BROLL_GEN_10Z_NO_IDLE_L4_PAYLOAD_INSTALL_RETRY_AFTER_RUNNE
   'AI-VIDEO-BROLL-GEN-10Z-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-AFTER-RUNNER-FIX: retry bounded no-idle L4 payload/install readiness after raw JSON cleanup runner fix, no model import/no inference' as const
 export const AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-10ZA-PAYLOAD-DELIVERY-TIMEOUT-FIX: fix B-roll L4 dependency payload delivery after IAP wheelhouse transfer timeout, no VM/no model/no inference' as const
+export const AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT =
+  'AI-VIDEO-BROLL-GEN-10ZB-NO-IDLE-L4-PAYLOAD-INSTALL-RETRY-WITH-FIXED-DELIVERY: retry bounded L4 payload/install readiness with fixed payload delivery, no model import/no inference' as const
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10za_payload_delivery_timeout_fix_required',
+    'external_agent_tool_execution_readiness_qwen_ready_for_explicit_gate_broll_10zb_fixed_delivery_retry_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -432,14 +434,18 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
       lane: 'open_source_generated_broll',
       status: 'auth_verified_runtime_blocked',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_10z_retry_recorded_payload_delivery_timeout_fix_required',
+        'controlled_l4_no_idle_payload_install_proof_10za_payload_delivery_fix_applied_10zb_retry_required',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: false,
-      primaryBlocker: 'broll_10za_payload_delivery_timeout_fix_required',
+      primaryBlocker: 'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required',
       evidence: [
+        'docs/ai-video-broll-gen-10za-payload-delivery-timeout-fix-result.md',
+        'src/backend/mock/mock-ai-video-broll-gen-10za-payload-delivery-timeout-fix-result.ts',
+        'server/smoke/ai-video-broll-gen-10za-payload-delivery-timeout-fix-result-smoke.ts',
+        'docs/implementation-prompts/prompt-ai-video-broll-gen-10zb-no-idle-l4-payload-install-retry-with-fixed-delivery.md',
         'docs/ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result.md',
         'src/backend/mock/mock-ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result.ts',
         'server/smoke/ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result-smoke.ts',
@@ -641,7 +647,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -671,7 +677,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+          AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
       },
     },
     {
@@ -724,7 +730,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
+    AI_VIDEO_BROLL_GEN_10ZB_FIXED_DELIVERY_RETRY_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

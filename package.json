@@ -1164,7 +1164,8 @@
     "smoke:ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness-result": "tsx server/smoke/ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness-result-smoke.ts",
     "smoke:ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result": "tsx server/smoke/ai-video-broll-gen-10y-runner-raw-json-cleanup-fix-result-smoke.ts",
     "ai-video-broll-gen-10z:l4-payload-install-runner": "tsx server/cli/ai-video-broll-gen-10z-l4-payload-install-runner.ts",
-    "smoke:ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result": "tsx server/smoke/ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result-smoke.ts"
+    "smoke:ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result": "tsx server/smoke/ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result-smoke.ts",
+    "smoke:ai-video-broll-gen-10za-payload-delivery-timeout-fix-result": "tsx server/smoke/ai-video-broll-gen-10za-payload-delivery-timeout-fix-result-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

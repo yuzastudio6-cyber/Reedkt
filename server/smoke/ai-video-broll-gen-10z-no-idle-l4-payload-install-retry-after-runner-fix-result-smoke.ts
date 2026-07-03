@@ -20,7 +20,7 @@ const RUNNER_PATH = 'server/cli/ai-video-broll-gen-10z-l4-payload-install-runner
 const PACKAGE_SCRIPT = 'smoke:ai-video-broll-gen-10z-no-idle-l4-payload-install-retry-after-runner-fix-result'
 const DECISION =
   'ai_video_broll_gen_10z_no_idle_l4_payload_install_retry_blocked_iap_wheelhouse_transfer_timeout_cleanup_verified'
-const ACTIVE_BLOCKER = 'broll_10za_payload_delivery_timeout_fix_required'
+const ACTIVE_BLOCKER = 'broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')

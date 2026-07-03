@@ -130,7 +130,7 @@ for (const required of [
 }
 
 assert.equal(rollupDoc.includes('10W no-execution post-create IAP lookup readiness fix'), true)
-assert.equal(rollupDoc.includes('broll_10za_payload_delivery_timeout_fix_required'), true)
+assert.equal(rollupDoc.includes('broll_10zb_no_idle_l4_payload_install_retry_with_fixed_delivery_required'), true)
 assert.equal(
   rollupDoc.includes(
     'docs/implementation-prompts/prompt-ai-video-broll-gen-10x-no-idle-l4-payload-install-retry-with-iap-lookup-readiness.md',

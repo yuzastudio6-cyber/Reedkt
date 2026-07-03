@@ -53,6 +53,7 @@ function extractOutputArtifactRecords(output?: ProductionWorkerRouteOutput): Too
   return [
     ...extractArtifactsFromResult(output?.mediaFoundationResult, 'artifactRecords'),
     ...extractArtifactsFromResult(output?.smartCutTimelineExecutionResult, 'artifacts'),
+    ...extractArtifactsFromResult(output?.audioExecutionResult, 'artifacts'),
     ...extractArtifactsFromResult(output?.colorExecutionResult, 'artifacts'),
   ]
 }
@@ -60,6 +61,7 @@ function extractOutputArtifactRecords(output?: ProductionWorkerRouteOutput): Too
 function extractOutputQualityGateResults(output?: ProductionWorkerRouteOutput): ProductionWorkerExecutionResult['qualityGateResults'] {
   return [
     ...extractQualityGateResultsFromResult(output?.smartCutTimelineExecutionResult),
+    ...extractQualityGateResultsFromResult(output?.audioExecutionResult),
     ...extractQualityGateResultsFromResult(output?.colorExecutionResult),
   ]
 }

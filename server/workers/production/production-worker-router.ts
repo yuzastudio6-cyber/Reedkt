@@ -124,12 +124,27 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
 
       if (hasAudioExecutionRequest(payload)) {
         const audioExecutionResult = await runAudioExecutionPipeline(buildAudioExecutionInput(payload))
+        const realAudioMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'cpu_analysis_worker_audio_metadata' &&
+          audioExecutionResult.mode === 'production_ready' &&
+          audioExecutionResult.status !== 'blocked' &&
+          audioExecutionResult.executionPlan !== undefined &&
+          audioExecutionResult.soundSyncArtifact !== undefined &&
+          audioExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'audio_analysis_json' && artifact.sourceOfTruth) &&
+          audioExecutionResult.qaResults.length > 0 &&
+          audioExecutionResult.cleanedAudioArtifact === undefined &&
+          audioExecutionResult.separatedStemArtifacts.length === 0 &&
+          audioExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 15A CPU analysis worker audio execution route completed in explicit audioExecution mode.',
+          summary: realAudioMetadataHandler
+            ? 'CPU audio metadata production handler completed bounded audio analysis, loudness command metadata, SoundSync cue metadata, and QA report generation without cleanup, stems, final mux, or export.'
+            : 'Milestone 15A CPU analysis worker audio execution route completed in explicit audioExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_audio_execution',
+          mockOnly: !realAudioMetadataHandler,
+          realToolExecution: realAudioMetadataHandler,
+          futureHandler: realAudioMetadataHandler
+            ? 'cpu_analysis_worker_audio_metadata_production_handler'
+            : 'cpu_analysis_worker_audio_execution',
           audioExecutionResult,
         }
       }

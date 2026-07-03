@@ -60,6 +60,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'cpu_analysis_worker_media_proxy'
   | 'cpu_analysis_worker_media_representative_frames'
   | 'cpu_analysis_worker_placeholder'
+  | 'cpu_analysis_worker_audio_metadata'
   | 'cpu_analysis_worker_color_metadata'
   | 'cpu_analysis_worker_smart_cut_timeline'
   | 'gpu_ai_worker_placeholder'
@@ -110,6 +111,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   cpu_analysis_worker_media_proxy: 'cpu_analysis_worker',
   cpu_analysis_worker_media_representative_frames: 'cpu_analysis_worker',
   cpu_analysis_worker_placeholder: 'cpu_analysis_worker',
+  cpu_analysis_worker_audio_metadata: 'cpu_analysis_worker',
   cpu_analysis_worker_color_metadata: 'cpu_analysis_worker',
   cpu_analysis_worker_smart_cut_timeline: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
@@ -982,6 +984,99 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'cpu_analysis_worker_audio_metadata') {
+    const audioExecution = input.metadata?.audioExecution
+    const audioRecord = audioExecution && typeof audioExecution === 'object'
+      ? audioExecution as Record<string, unknown>
+      : undefined
+    const mode = audioRecord?.mode
+    const tasks = Array.isArray(audioRecord?.tasks)
+      ? audioRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['build_audio_analysis', 'build_loudness_plan', 'build_soundsync_cues', 'build_audio_qa_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+    const audioCleanupPlan = audioRecord?.audioCleanupPlan && typeof audioRecord.audioCleanupPlan === 'object'
+      ? audioRecord.audioCleanupPlan as Record<string, unknown>
+      : undefined
+    const fallbackTools = Array.isArray(audioCleanupPlan?.fallbackTools)
+      ? audioCleanupPlan.fallbackTools
+      : []
+
+    if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== 'audioflux') {
+      blockers.push({
+        code: 'AUDIO_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata may dispatch only the reviewed AudioFlux analysis/SoundSync metadata adapter scope.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'AUDIO_METADATA_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata production dispatch requires metadata.audioExecution.mode=production_ready.',
+        details: { audioExecutionMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'AUDIO_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata is limited to audio analysis, loudness plan, SoundSync cue, and audio QA report metadata tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && !audioRecord?.sourceAudioArtifactId) {
+      blockers.push({
+        code: 'AUDIO_METADATA_INPUT_ARTIFACT_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata production dispatch requires a private source audio artifact reference.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && audioRecord?.allowFinalMux === true) {
+      blockers.push({
+        code: 'AUDIO_METADATA_FINAL_MUX_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata cannot enable final mux/export.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && audioRecord?.enableFfmpegAudioExecution === true) {
+      blockers.push({
+        code: 'AUDIO_METADATA_FFMPEG_EXECUTION_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata is metadata-only and cannot run FFmpeg audio commands.',
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (audioRecord?.enableModelAudioExecution === true || audioRecord?.allowModelDownload === true)) {
+      blockers.push({
+        code: 'AUDIO_METADATA_MODEL_EXECUTION_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata cannot run model audio tools or download model weights.',
+      })
+    }
+
+    if (
+      input.executionMode === 'production_ready' &&
+      audioCleanupPlan &&
+      (audioCleanupPlan.selectedPrimaryTool !== 'none' || fallbackTools.some((tool) => tool === 'deepfilternet' || tool === 'rnnoise' || tool === 'demucs'))
+    ) {
+      blockers.push({
+        code: 'AUDIO_METADATA_CLEANUP_EXECUTION_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'cpu_analysis_worker_audio_metadata is limited to analysis/QA metadata and cannot request cleanup, denoise, or separation tools.',
+        details: { selectedPrimaryTool: audioCleanupPlan.selectedPrimaryTool, fallbackTools },
+      })
+    }
+  }
+
   if (adapterId === 'tool_readiness_worker_core_checks') {
     const toolReadiness = input.metadata?.toolReadiness
     const mode = toolReadiness && typeof toolReadiness === 'object'
@@ -1187,6 +1282,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'cpu_analysis_worker_color_metadata') {
     allowedReservedKeys.add('colorExecution')
+  }
+  if (adapterId === 'cpu_analysis_worker_audio_metadata') {
+    allowedReservedKeys.add('audioExecution')
   }
   const reservedFound = reservedRouterKeys
     .filter((key) => !allowedReservedKeys.has(key))

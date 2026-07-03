@@ -18,7 +18,7 @@ import {
   validateAudioExecutionInput,
   validateAudioExecutionPolicy,
 } from '../workers/audio'
-import type { AudioCleanupPlan, AudioExecutionInput } from '../workers/audio'
+import type { AudioAnalysisSummary, AudioCleanupPlan, AudioExecutionInput } from '../workers/audio'
 import { runAudioExecutionPipeline } from '../workers/audio-execution'
 
 const execFileAsync = promisify(execFile)
@@ -260,6 +260,43 @@ try {
     readinessReport: { overallStatus: 'blocked', blockers: ['ffmpeg_missing'], blockerSummaries: [] },
   })
   check(productionReady.status === 'blocked', 'production_ready must remain blocked when readiness/model-weight blockers exist.')
+  const productionReadyMetadata = await runAudioExecutionPipeline({
+    ...baseInput,
+    mode: 'production_ready',
+    audioAnalysis: {
+      ...(baseInput.audioAnalysis as AudioAnalysisSummary),
+      integratedLufs: -16,
+      musicSpeechOverlap: false,
+    },
+    audioCleanupPlan: buildMockCleanupPlan({ selectedPrimaryTool: 'none' }),
+    loudnessPlan: {
+      targetLufs: -16,
+      truePeakDb: -1,
+      shouldNormalize: false,
+      reason: 'Production metadata smoke already matches target loudness.',
+      warnings: [],
+    },
+    musicDuckingPlan: {
+      enabled: false,
+      duckingDb: 0,
+      attackMs: 120,
+      releaseMs: 350,
+      reason: 'No music/speech overlap in metadata-only production fixture.',
+      voiceFirst: true,
+      warnings: [],
+    },
+    readinessReport: { overallStatus: 'passed', blockers: [], blockerSummaries: [] },
+    enableFfmpegAudioExecution: false,
+    enableModelAudioExecution: false,
+    allowModelDownload: false,
+    allowFinalMux: false,
+  })
+  check(productionReadyMetadata.status === 'partial', 'production_ready metadata path should complete as partial metadata/QA when readiness passes.')
+  check(productionReadyMetadata.blocksFinalExport, 'production_ready metadata path must keep final mux/export blocked.')
+  check(!productionReadyMetadata.cleanedAudioArtifact, 'production_ready metadata path must not create cleaned audio.')
+  check(productionReadyMetadata.separatedStemArtifacts.length === 0, 'production_ready metadata path must not create separated stems.')
+  check(productionReadyMetadata.artifacts.some((artifact) => artifact.artifactType === 'audio_analysis_json'), 'production_ready metadata path must create audio analysis metadata.')
+  check(productionReadyMetadata.artifacts.some((artifact) => artifact.artifactType === 'qa_report'), 'production_ready metadata path must create QA metadata.')
 
   const routed = await runProductionWorkerRuntime({
     payload: buildPayload('cpu_analysis_worker', {
@@ -290,6 +327,7 @@ try {
       'private_artifacts',
       'audio_qa_gates',
       'production_blockers',
+      'production_ready_metadata',
       'worker_route',
       'no_revideo_runtime',
     ],

@@ -349,6 +349,86 @@ assert.equal(productionReadySmartCutTimelineDispatch.toolCostEvents?.[0]?.metada
 assert.equal(productionReadySmartCutTimelineDispatch.walletSettlements?.length, 1, 'smart-cut/timeline dispatch should create one wallet settlement audit row')
 assert.equal(productionReadySmartCutTimelineDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadySmartCutTimelineDispatch.toolCostEvents![0].toolCostCredits, 'smart-cut/timeline wallet settlement should spend the emitted tool-cost credits')
 
+const productionReadyAudioMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyAudioMetadataInput({
+  jobId: 'job-production-ready-audio-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const audioMetadataResult = productionReadyAudioMetadataDispatch.workerResult?.output?.audioExecutionResult as {
+  status?: string
+  executionPlan?: unknown
+  cleanedAudioArtifact?: unknown
+  separatedStemArtifacts?: unknown[]
+  soundSyncArtifact?: unknown
+  artifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+  }>
+  qaResults?: unknown[]
+  blocksFinalExport?: boolean
+  skippedReasons?: Array<{ tool?: string }>
+} | undefined
+const audioMetadataArtifacts = productionReadyAudioMetadataDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'audio_analysis_json') ?? []
+assert.equal(
+  productionReadyAudioMetadataDispatch.gateway.status,
+  'dispatched',
+  `complete evidence plus audio metadata adapter should allow backend gateway dispatch: ${JSON.stringify(productionReadyAudioMetadataDispatch.gateway.blockers)}`,
+)
+assert.equal(productionReadyAudioMetadataDispatch.workerResult?.status, 'completed', 'audio metadata real handler should complete')
+assert.equal(productionReadyAudioMetadataDispatch.workerResult?.output?.mockOnly, false, 'audio metadata production handler should be non-mock')
+assert.equal(productionReadyAudioMetadataDispatch.workerResult?.output?.realToolExecution, true, 'audio metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyAudioMetadataDispatch.workerResult?.output?.futureHandler,
+  'cpu_analysis_worker_audio_metadata_production_handler',
+  'audio metadata production handler should use the reviewed audio metadata handler',
+)
+assert.equal(audioMetadataResult?.status, 'partial', 'audio metadata production handler should complete as partial metadata execution, not final mux/export')
+assert.ok(audioMetadataResult?.executionPlan, 'audio metadata production handler should build an audio execution plan')
+assert.ok(audioMetadataResult?.soundSyncArtifact, 'audio metadata production handler should build SoundSync cue metadata')
+assert.equal(audioMetadataResult?.cleanedAudioArtifact, undefined, 'audio metadata production handler must not create cleaned audio')
+assert.equal(audioMetadataResult?.separatedStemArtifacts?.length ?? 0, 0, 'audio metadata production handler must not create separated stems')
+assert.equal(audioMetadataResult?.blocksFinalExport, true, 'audio metadata production handler must keep final mux/export blocked')
+assert.ok((audioMetadataResult?.qaResults?.length ?? 0) > 0, 'audio metadata production handler should emit audio QA results')
+assert.ok(
+  audioMetadataResult?.artifacts?.some((artifact) => artifact.artifactType === 'audio_analysis_json' && artifact.sourceOfTruth === true),
+  'audio metadata result should include source-of-truth audio analysis metadata',
+)
+assert.ok(audioMetadataArtifacts.length >= 1, 'worker runtime artifact manifest should include private audio metadata artifacts')
+assert.ok(
+  audioMetadataArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'audio metadata artifacts must stay private, source-of-truth, project-scoped, and unsigned',
+)
+assert.ok(
+  (productionReadyAudioMetadataDispatch.workerResult?.qualityGateResults.length ?? 0) > 0,
+  'audio metadata worker result should preserve QA gate results',
+)
+assert.ok(
+  audioMetadataResult?.skippedReasons?.some((reason) => reason.tool === 'ffmpeg'),
+  'audio metadata handler should record FFmpeg command metadata skips instead of running audio commands',
+)
+assert.equal(productionReadyAudioMetadataDispatch.toolCostEvents?.length, 1, 'audio metadata dispatch should emit one gateway cost event for AudioFlux metadata work')
+assert.deepEqual(
+  productionReadyAudioMetadataDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+  ['audioflux'],
+  'audio metadata dispatch should scope billing audit events to AudioFlux',
+)
+assert.ok(
+  productionReadyAudioMetadataDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+  'audio metadata tool cost events should be billable tool-cost-only events after approval/reservation gates',
+)
+assert.equal(productionReadyAudioMetadataDispatch.walletSettlements?.length, 1, 'audio metadata dispatch should create a wallet settlement for the AudioFlux tool-cost event')
+assert.ok(
+  productionReadyAudioMetadataDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+  'audio metadata wallet settlements should spend user credits only for the completed real handler',
+)
+
 const productionReadyColorMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyColorMetadataInput({
   jobId: 'job-production-ready-color-metadata',
   productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
@@ -828,6 +908,8 @@ console.log(JSON.stringify({
   toolReadinessBillable: productionReadyToolReadinessDispatch.toolCostEvents?.map((event) => event.billableToUser),
   realSmartCutTimelineDispatchCovered: productionReadySmartCutTimelineDispatch.gateway.status === 'dispatched',
   realSmartCutTimelineHandler: productionReadySmartCutTimelineDispatch.workerResult?.output?.futureHandler,
+  realAudioMetadataDispatchCovered: productionReadyAudioMetadataDispatch.gateway.status === 'dispatched',
+  realAudioMetadataHandler: productionReadyAudioMetadataDispatch.workerResult?.output?.futureHandler,
   realColorMetadataDispatchCovered: productionReadyColorMetadataDispatch.gateway.status === 'dispatched',
   realColorMetadataHandler: productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
@@ -1020,6 +1102,99 @@ function productionReadySmartCutTimelineInput(input: {
           blockers: [],
           warnings: [],
         },
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyAudioMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_audio_metadata',
+    requestedToolIds: ['audioflux'],
+    requestedRecipeIds: ['audio-metadata-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    requiredQualityGateTypes: ['audio_loudness', 'audio_sync', 'audio_naturalness', 'music_over_voice'],
+    metadata: {
+      gatewaySmoke: true,
+      audioExecution: {
+        mode: 'production_ready',
+        tasks: ['build_audio_analysis', 'build_loudness_plan', 'build_soundsync_cues', 'build_audio_qa_report'],
+        sourceAudioArtifactId: baseInput.artifactReferences[0]!.id,
+        sourceAudioStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        audioAnalysis: {
+          durationSeconds: 7,
+          peakDb: -3,
+          integratedLufs: -16,
+          truePeakDb: -1.2,
+          clippingDetected: false,
+          silenceSegments: [],
+          noiseLevel: 0.04,
+          speechPresence: 'present',
+          musicDetected: false,
+          musicSpeechOverlap: false,
+          advancedAnalysisRan: true,
+          issues: [],
+        },
+        audioCleanupPlan: {
+          id: 'audio-metadata-cleanup-none-smoke',
+          cleanupStrength: 'none',
+          selectedPrimaryTool: 'none',
+          fallbackTools: [],
+          operations: [],
+          reasons: ['Metadata-only production handler does not request cleanup.'],
+          risks: [],
+          expectedArtifacts: ['audio_analysis_json', 'qa_report'],
+          requiredQAGates: ['audio_loudness', 'audio_sync', 'audio_naturalness', 'music_over_voice'],
+        },
+        loudnessPlan: {
+          targetLufs: -16,
+          truePeakDb: -1,
+          shouldNormalize: false,
+          reason: 'Audio metadata fixture already matches target loudness.',
+          warnings: [],
+        },
+        musicDuckingPlan: {
+          enabled: false,
+          duckingDb: 0,
+          attackMs: 120,
+          releaseMs: 350,
+          reason: 'No music/speech overlap in metadata-only fixture.',
+          voiceFirst: true,
+          warnings: [],
+        },
+        soundSyncCuePlan: {
+          cues: [{
+            cueId: 'audio-metadata-cue-smoke',
+            cueType: 'caption_emphasis',
+            timeSeconds: 0.5,
+            durationSeconds: 1.1,
+            reason: 'Approved metadata-only SoundSync cue.',
+            confidence: 0.8,
+            source: 'manual_metadata',
+          }],
+          beatDetectionRan: false,
+          warnings: [],
+        },
+        readinessReport: {
+          overallStatus: 'passed',
+          blockerSummaries: [],
+          blockers: [],
+          warnings: [],
+        },
+        enableFfmpegAudioExecution: false,
+        enableModelAudioExecution: false,
+        allowModelDownload: false,
+        allowFinalMux: false,
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

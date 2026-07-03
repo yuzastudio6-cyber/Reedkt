@@ -1,4 +1,6 @@
 import { existsSync } from 'node:fs'
+import path from 'node:path'
+import { runAiGraphicsPythonRuntimeScript } from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
 
@@ -38,23 +40,61 @@ export async function runSam2Tracking(input: {
   if (!executionInput.sam2CheckpointLocalPath || !existsSync(executionInput.sam2CheckpointLocalPath)) {
     return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_checkpoint_missing', message: 'SAM2 checkpoint is not available locally; no download attempted.', tool: 'sam2' }, warnings: [] }
   }
-  const sourcePath = executionInput.proxyVideoLocalPath ?? executionInput.sourceVideoLocalPath
-  if (!sourcePath || !existsSync(sourcePath)) {
-    return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_video_source_missing', message: 'Safe local video/proxy source is missing.', tool: 'sam2' }, warnings: [] }
+  if (!executionInput.outputDirectory) {
+    return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_output_directory_missing', message: 'SAM2 execution requires a private local worker output directory.', tool: 'sam2' }, warnings: [] }
   }
-  return {
-    status: 'planned',
-    tool: 'sam2',
-    commandPlan,
-    artifact: buildMaskArtifactRecord({
-      workspaceId: executionInput.workspaceId,
-      projectId: executionInput.projectId,
-      mediaAssetId: executionInput.mediaAssetId,
-      artifactType: 'mask_sequence',
-      fileName: 'sam2-tracking-mask-sequence.json',
-      sourceOfTruth: true,
-      metadata: { tool: 'sam2', trackingPlan: true, plannedOnly: true },
-    }),
-    warnings: ['SAM2 local-dev execution is scaffolded only; no tracking inference is run by M15C smoke paths.'],
+  const workDir = path.join(executionInput.outputDirectory, 'sam2-runtime')
+  const outputJsonPath = path.join(workDir, 'sam2-runtime-result.json')
+  try {
+    const runtimeResult = await runAiGraphicsPythonRuntimeScript({
+      scriptRelativePath: 'docker/prod/sam2-runtime/sam2_runtime_local.py',
+      args: [
+        '--work-dir',
+        workDir,
+        '--checkpoint-path',
+        executionInput.sam2CheckpointLocalPath,
+        '--output-json',
+        outputJsonPath,
+      ],
+      outputJsonPath,
+      timeoutMs: executionInput.timeoutMs,
+      extraEnv: {
+        REAL_MEDIA_INPUT_ENABLED: 'false',
+      },
+    })
+    return {
+      status: 'completed',
+      tool: 'sam2',
+      commandPlan: { ...commandPlan, executes: true, summary: 'SAM2 local runtime script executed with private checkpoint and generated fixture; no model download.' },
+      artifacts: [
+        buildMaskArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'mask_sequence',
+          fileName: 'sam2-mask-sequence.json',
+          sourceOfTruth: true,
+          metadata: { tool: 'sam2', runtimeExecuted: true, generatedFixtureOnly: true },
+        }),
+        buildMaskArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'qa_report',
+          fileName: 'sam2-runtime-result.json',
+          sourceOfTruth: true,
+          metadata: { tool: 'sam2', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+        }),
+      ],
+      warnings: ['SAM2 runtime executed against the approved generated fixture only; real-video temporal execution still requires a later real-media worker milestone.'],
+    }
+  } catch (error) {
+    return {
+      status: 'failed',
+      tool: 'sam2',
+      commandPlan,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      warnings: ['SAM2 runtime script failed before producing accepted local proof output.'],
+    }
   }
 }

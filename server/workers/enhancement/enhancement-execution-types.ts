@@ -124,7 +124,7 @@ export interface EnhancementToolCommandPlan {
   command?: string
   args: string[]
   expectedOutputPath?: string
-  executes: false
+  executes: boolean
   summary: string
 }
 

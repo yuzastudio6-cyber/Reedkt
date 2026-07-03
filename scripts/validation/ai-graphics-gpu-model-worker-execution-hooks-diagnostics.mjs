@@ -1,0 +1,162 @@
+#!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
+import path from 'node:path'
+
+const repoRoot = process.cwd()
+
+const requiredFiles = [
+  'server/workers/ai-graphics-runtime-script-runner.ts',
+  'server/workers/masks/sam2-execution-runner.ts',
+  'server/workers/masks/birefnet-execution-runner.ts',
+  'server/workers/enhancement/real-esrgan-execution-runner.ts',
+  'docker/prod/sam2-runtime/sam2_runtime_local.py',
+  'docker/prod/birefnet-runtime/birefnet_local.py',
+  'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
+]
+
+const failures = []
+
+function requireFile(relativePath) {
+  const absolutePath = path.join(repoRoot, relativePath)
+  if (!existsSync(absolutePath)) {
+    failures.push(`Missing required file: ${relativePath}`)
+    return ''
+  }
+  return readFileSync(absolutePath, 'utf8')
+}
+
+for (const relativePath of requiredFiles) {
+  requireFile(relativePath)
+}
+
+const helper = requireFile('server/workers/ai-graphics-runtime-script-runner.ts')
+for (const token of [
+  'execFileAsync',
+  "MODEL_DOWNLOADS_ENABLED: 'false'",
+  "PROVIDER_EXECUTION_ENABLED: 'false'",
+  "HF_HUB_OFFLINE: '1'",
+  "TRANSFORMERS_OFFLINE: '1'",
+  'must be a local/private filesystem path or command argument, not a URL',
+]) {
+  if (!helper.includes(token)) {
+    failures.push(`Runtime script helper is missing expected guard: ${token}`)
+  }
+}
+
+const runnerExpectations = [
+  {
+    file: 'server/workers/masks/sam2-execution-runner.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/sam2-runtime/sam2_runtime_local.py',
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'sam2_output_directory_missing',
+      'generatedFixtureOnly: true',
+    ],
+  },
+  {
+    file: 'server/workers/masks/birefnet-execution-runner.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/birefnet-runtime/birefnet_local.py',
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'birefnet_output_directory_missing',
+      "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+    ],
+  },
+  {
+    file: 'server/workers/enhancement/real-esrgan-execution-runner.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'real_esrgan_output_directory_missing',
+      "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+    ],
+  },
+]
+
+for (const expectation of runnerExpectations) {
+  const source = requireFile(expectation.file)
+  for (const token of expectation.tokens) {
+    if (!source.includes(token)) {
+      failures.push(`${expectation.file} is missing expected execution hook token: ${token}`)
+    }
+  }
+  for (const blockedPhrase of [
+    'scaffolded only; no inference is run',
+    'plannedOnly: true',
+  ]) {
+    if (source.includes(blockedPhrase)) {
+      failures.push(`${expectation.file} still contains planned-only blocker phrase: ${blockedPhrase}`)
+    }
+  }
+}
+
+const packageLockDiff = execGit(['diff', '--name-only', '--', 'package-lock.json']).trim()
+if (packageLockDiff) {
+  failures.push('package-lock.json has unstaged modifications.')
+}
+
+const stagedPackageLockDiff = execGit(['diff', '--cached', '--name-only', '--', 'package-lock.json']).trim()
+if (stagedPackageLockDiff) {
+  failures.push('package-lock.json has staged modifications.')
+}
+
+const trackedLocalArtifacts = execGit(['ls-files', '.local-artifacts']).trim()
+if (trackedLocalArtifacts) {
+  failures.push(`.local-artifacts paths are tracked:\n${trackedLocalArtifacts}`)
+}
+
+const stagedGeneratedOutputs = execGit(['diff', '--cached', '--name-only']).split('\n').filter((line) => (
+  line.includes('.local-artifacts/')
+  || line.includes('/generated/')
+  || line.includes('/render/')
+  || line.includes('/browser/')
+  || line.includes('/canvas/')
+  || line.includes('/webgl/')
+  || line.includes('/public/')
+)).filter(Boolean)
+if (stagedGeneratedOutputs.length > 0) {
+  failures.push(`Generated/runtime output paths are staged:\n${stagedGeneratedOutputs.join('\n')}`)
+}
+
+if (failures.length > 0) {
+  console.error(JSON.stringify({
+    ok: false,
+    diagnostic: 'ai_graphics_gpu_model_worker_execution_hooks_diagnostics',
+    failures,
+  }, null, 2))
+  process.exit(1)
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  diagnostic: 'ai_graphics_gpu_model_worker_execution_hooks_diagnostics',
+  executionHooks: {
+    sam2: 'guarded_local_runtime_script_invocation',
+    birefnet: 'guarded_local_runtime_script_invocation',
+    real_esrgan: 'guarded_local_runtime_script_invocation',
+  },
+  packageLockUnchanged: true,
+  localArtifactsTracked: false,
+}, null, 2))
+
+function execGit(args) {
+  return execFileSync('git', args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+}

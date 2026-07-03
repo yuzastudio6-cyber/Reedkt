@@ -1,4 +1,6 @@
 import { existsSync } from 'node:fs'
+import path from 'node:path'
+import { runAiGraphicsPythonRuntimeScript } from '../ai-graphics-runtime-script-runner'
 import { buildEnhancementArtifactRecord } from './enhancement-artifact-writer'
 import type { EnhancementExecutionInput, EnhancementTaskPlan, EnhancementToolCommandPlan, EnhancementToolExecutionResult } from './enhancement-execution-types'
 
@@ -41,23 +43,72 @@ export async function runRealEsrganEnhancement(input: {
   if (!executionInput.realEsrganModelLocalPath || !existsSync(executionInput.realEsrganModelLocalPath)) {
     return { status: 'skipped', tool: 'real_esrgan', commandPlan, skipReason: { code: 'real_esrgan_model_missing', message: 'Real-ESRGAN model is not available locally; no download attempted.', tool: 'real_esrgan' }, warnings: [] }
   }
-  const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.proxyVideoLocalPath ?? executionInput.sourceVideoLocalPath
+  const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
   if (!sourcePath || !existsSync(sourcePath)) {
-    return { status: 'skipped', tool: 'real_esrgan', commandPlan, skipReason: { code: 'real_esrgan_source_missing', message: 'Safe local source media/frame is missing.', tool: 'real_esrgan' }, warnings: [] }
+    return { status: 'skipped', tool: 'real_esrgan', commandPlan, skipReason: { code: 'real_esrgan_source_frame_missing', message: 'Safe local source image or representative frame is missing.', tool: 'real_esrgan' }, warnings: [] }
   }
-  return {
-    status: 'planned',
-    tool: 'real_esrgan',
-    commandPlan,
-    artifact: buildEnhancementArtifactRecord({
-      workspaceId: executionInput.workspaceId,
-      projectId: executionInput.projectId,
-      mediaAssetId: executionInput.mediaAssetId,
-      artifactType: input.taskPlan.expectedArtifacts.includes('enhanced_video') ? 'enhanced_video' : 'representative_frame',
-      fileName: input.taskPlan.expectedArtifacts.includes('enhanced_video') ? 'real-esrgan-enhanced-sample.mp4' : 'real-esrgan-enhanced-frame.png',
-      sourceOfTruth: true,
-      metadata: { tool: 'real_esrgan', plannedOnly: true, sampleFirst: true },
-    }),
-    warnings: ['Real-ESRGAN local-dev execution is scaffolded only; no inference is run by M15D smoke paths.'],
+  if (!executionInput.outputDirectory) {
+    return { status: 'skipped', tool: 'real_esrgan', commandPlan, skipReason: { code: 'real_esrgan_output_directory_missing', message: 'Real-ESRGAN execution requires a private local worker output directory.', tool: 'real_esrgan' }, warnings: [] }
+  }
+
+  const runtimeDir = path.join(executionInput.outputDirectory, 'real-esrgan-runtime')
+  const samplePath = path.join(runtimeDir, 'real-esrgan-sample.png')
+  const enhancedPath = path.join(runtimeDir, 'real-esrgan-enhanced.png')
+  const outputJsonPath = path.join(runtimeDir, 'real-esrgan-runtime-result.json')
+
+  try {
+    const runtimeResult = await runAiGraphicsPythonRuntimeScript({
+      scriptRelativePath: 'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
+      args: [
+        '--mode',
+        'real_video_sample',
+        '--model-path',
+        executionInput.realEsrganModelLocalPath,
+        '--input-image-path',
+        sourcePath,
+        '--sample-path',
+        samplePath,
+        '--enhanced-path',
+        enhancedPath,
+        '--output-json',
+        outputJsonPath,
+      ],
+      outputJsonPath,
+      timeoutMs: executionInput.timeoutMs,
+    })
+    return {
+      status: 'completed',
+      tool: 'real_esrgan',
+      commandPlan: { ...commandPlan, executes: true, summary: 'Real-ESRGAN local runtime script executed with private model path and bounded private source sample; no model download.' },
+      artifacts: [
+        buildEnhancementArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'representative_frame',
+          fileName: 'real-esrgan-enhanced.png',
+          sourceOfTruth: true,
+          metadata: { tool: 'real_esrgan', runtimeExecuted: true, sampleFirst: true },
+        }),
+        buildEnhancementArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'qa_report',
+          fileName: 'real-esrgan-runtime-result.json',
+          sourceOfTruth: true,
+          metadata: { tool: 'real_esrgan', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+        }),
+      ],
+      warnings: ['Real-ESRGAN executed against a bounded private local sample; full-video/frame-batch upscaling remains a later worker milestone.'],
+    }
+  } catch (error) {
+    return {
+      status: 'failed',
+      tool: 'real_esrgan',
+      commandPlan,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      warnings: ['Real-ESRGAN runtime script failed before producing accepted local proof output.'],
+    }
   }
 }

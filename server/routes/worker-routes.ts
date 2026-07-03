@@ -34,6 +34,10 @@ import {
   TRACKA_GPAC_MP4BOX_EXECUTION_READY_ROUTE_WORKER_BRIDGE_ROUTE_PATH,
   runGpacMp4boxExecutionReadyRouteWorkerBridge,
 } from '../services/tracka-gpac-mp4box-execution-ready-route-worker-bridge-1'
+import {
+  TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTED_JOB_RUNTIME_HANDOFF_ROUTE_PATH,
+  runThreeToolExternalAgentPersistedJobRuntimeHandoff,
+} from '../services/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
@@ -50,6 +54,7 @@ import {
   recordToolRuntimeCheckSchema,
   releaseWorkerJobSchema,
   runWorkerJobSchema,
+  threeToolExternalAgentPersistedJobRuntimeHandoffSchema,
   toolReadinessCheckSchema,
 } from '../validation/worker-schemas'
 import { validateBody } from '../validation/common-schemas'
@@ -241,6 +246,20 @@ export function createWorkerRoutes(): Router {
         routeIdempotencyKey: body.routeIdempotencyKey || getIdempotencyKey(request),
       })
       sendOk(response, { result }, [], result.ok ? 201 : 409)
+    }),
+  )
+
+  router.post(
+    TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTED_JOB_RUNTIME_HANDOFF_ROUTE_PATH,
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(threeToolExternalAgentPersistedJobRuntimeHandoffSchema, request.body)
+      const result = await runThreeToolExternalAgentPersistedJobRuntimeHandoff({
+        ...body,
+        routeIdempotencyKey: getIdempotencyKey(request),
+      }, getServiceContext(request))
+      sendOk(response, { result }, result.warnings, result.ok ? 201 : 409)
     }),
   )
 

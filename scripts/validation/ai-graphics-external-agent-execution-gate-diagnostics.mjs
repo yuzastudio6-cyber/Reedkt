@@ -165,6 +165,7 @@ const falseBooleanKeys = [
   'agentCanExecuteAll21ToolsNow',
   'agentCanExecuteGpuModelToolsNow',
   'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+  'globalAll21ExecutionAllowedNow',
   'externalAgentCanInvokeAdapterNow',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
@@ -237,6 +238,10 @@ const trueBooleanKeys = [
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'agentCanSelectForPlanning',
+  'readyForScopedControlledRouteExecutionNow',
+  'scopedControlledRouteExecutionAllowedNow',
+  'agentCanExecuteScopedControlledRouteToolsNow',
+  'agentCanExecute13ControlledRouteToolsNow',
   'sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted',
   'sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted',
   'sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted',
@@ -1001,6 +1006,18 @@ if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
   fail('docs_disabled_route_blocked_detail_cases_not_21')
 }
 if (docs.counts?.externalAgentExecutableNowTools !== 0) fail('docs_executable_now_not_0')
+if (docs.counts?.scopedControlledRouteExecutableNowTools !== 13) {
+  fail('docs_scoped_controlled_route_executable_not_13')
+}
+if (docs.counts?.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
+  fail('docs_scoped_controlled_route_cpu_static_executable_not_6')
+}
+if (docs.counts?.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
+  fail('docs_scoped_controlled_route_browser_runtime_executable_not_7')
+}
+if (docs.counts?.scopedControlledRouteGpuModelBlockedTools !== 8) {
+  fail('docs_scoped_controlled_route_gpu_model_blocked_not_8')
+}
 if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
   fail('docs_route_executable_with_readiness_probe_not_13')
 }
@@ -1196,6 +1213,11 @@ for (const phrase of [
   'cpuStaticMockQueueServiceValidationPassedTools: `5`',
   'cpuStaticExactExecutionAdmissionReadyTools: `5`',
   'externalAgentExactRequestAdmittedWithProvidedEvidenceTools: `5`',
+  'scopedControlledRouteExecutableNowTools: `13`',
+  'scopedControlledRouteCpuStaticExecutableNowTools: `6`',
+  'scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`',
+  'scopedControlledRouteGpuModelBlockedTools: `8`',
+  'agentCanExecute13ControlledRouteToolsNow',
   'CPU/static adapter/enqueue admission accepted: `true`',
   'cpuStaticAdapterInvocationEnqueueAdmissionReadyTools: `5`',
   'externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools: `5`',
@@ -1509,6 +1531,15 @@ if (acceptedSourceReport.executionAllowedNow !== false) fail('accepted_report_ex
 if (acceptedSourceReport.readyForAnyExternalAgentExecutionNow !== false) {
   fail('accepted_report_ready_any_not_false')
 }
+if (acceptedSourceReport.readyForScopedControlledRouteExecutionNow !== true) {
+  fail('accepted_report_ready_scoped_controlled_route_not_true')
+}
+if (acceptedSourceReport.scopedControlledRouteExecutionAllowedNow !== true) {
+  fail('accepted_report_scoped_controlled_route_allowed_not_true')
+}
+if (acceptedSourceReport.globalAll21ExecutionAllowedNow !== false) {
+  fail('accepted_report_global_all21_execution_allowed_not_false')
+}
 if (acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence !== 21) {
   fail('accepted_report_candidate_tools_not_21')
 }
@@ -1670,6 +1701,18 @@ if (acceptedSourceReport.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 0) {
 }
 if (acceptedSourceReport.sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted !== true) {
   fail('accepted_report_route_readiness_probe_source_not_true')
+}
+if (acceptedSourceReport.scopedControlledRouteExecutableNowTools !== 13) {
+  fail('accepted_report_scoped_controlled_route_executable_not_13')
+}
+if (acceptedSourceReport.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
+  fail('accepted_report_scoped_controlled_route_cpu_static_executable_not_6')
+}
+if (acceptedSourceReport.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
+  fail('accepted_report_scoped_controlled_route_browser_runtime_executable_not_7')
+}
+if (acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools !== 8) {
+  fail('accepted_report_scoped_controlled_route_gpu_model_blocked_not_8')
 }
 if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
   fail('accepted_report_route_executable_with_readiness_probe_not_13')
@@ -2447,8 +2490,20 @@ console.log(JSON.stringify({
   apiRouteMountReadyToolsWithProvidedEvidence:
     acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence,
   apiRouteMountedNowTools: acceptedSourceReport.apiRouteMountedNowTools,
+  readyForScopedControlledRouteExecutionNow:
+    acceptedSourceReport.readyForScopedControlledRouteExecutionNow,
+  scopedControlledRouteExecutableNowTools:
+    acceptedSourceReport.scopedControlledRouteExecutableNowTools,
+  scopedControlledRouteCpuStaticExecutableNowTools:
+    acceptedSourceReport.scopedControlledRouteCpuStaticExecutableNowTools,
+  scopedControlledRouteBrowserRuntimeExecutableNowTools:
+    acceptedSourceReport.scopedControlledRouteBrowserRuntimeExecutableNowTools,
+  scopedControlledRouteGpuModelBlockedTools:
+    acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools,
   executionAllowedNow: acceptedSourceReport.executionAllowedNow,
   requireGoBlockedExitCode: requireGo.status,
+  agentCanExecute13ControlledRouteToolsNow:
+    acceptedSourceReport.booleans.agentCanExecute13ControlledRouteToolsNow,
   agentCanExecuteToolsNow: acceptedSourceReport.booleans.agentCanExecuteToolsNow,
   gpuRuntimeShouldStartNow: acceptedSourceReport.booleans.gpuRuntimeShouldStartNow,
   packageLockChanged: false,

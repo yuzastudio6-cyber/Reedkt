@@ -6,6 +6,8 @@ Status: `external_agent_execution_gate_controlled_route_ready_direct_global_exec
 
 Controlled-route-ready external-agent execution gate for all 21 AI graphics tools. It now accepts claimed-worker controlled route execution for the 13 CPU/static and browser/runtime tools, plus GPU/model proof-ref queue admission and runtime queue-service bridge evidence for all eight GPU/model tools, while preserving direct/global execution, live worker dispatch, GPU/model runtime, public artifacts, beta, and production blocks.
 
+Scoped controlled-route execution is ready for 13 tools: six CPU/static tools and seven browser/runtime tools. The global all-21 execution flag remains blocked because the eight GPU/model tools still require private model-weight/native GPU proof and must keep GPU startup on-demand only.
+
 This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route-mount readiness evidence, and preserves the proper-install audit boundary.
 
 ## Key Counts
@@ -67,6 +69,10 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - externalBetaCallableCandidateToolsWithProvidedEvidence: `21`
 - externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: `1`
 - externalAgentExecutableNowTools: `0`
+- scopedControlledRouteExecutableNowTools: `13`
+- scopedControlledRouteCpuStaticExecutableNowTools: `6`
+- scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`
+- scopedControlledRouteGpuModelBlockedTools: `8`
 - disabledRouteBlockedDetailCasesWithProvidedEvidence: `21`
 - externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `13`
 - cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `6`
@@ -294,6 +300,10 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - `noIdleGpuRuntimeApproved`: true
 - `gpuStartsOnlyForApprovedWorkerOrToolCall`: true
 - `agentCanSelectForPlanning`: true
+- `readyForScopedControlledRouteExecutionNow`: true
+- `scopedControlledRouteExecutionAllowedNow`: true
+- `agentCanExecuteScopedControlledRouteToolsNow`: true
+- `agentCanExecute13ControlledRouteToolsNow`: true
 - `externalAgentCanExecuteControlledRouteToolsNow`: true
 - `routeReadinessProbeAcceptedWithProvidedEvidence`: true
 - `agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow`: true
@@ -323,6 +333,7 @@ This gate is fail-closed. It keeps GPU startup as on-demand only, consumes route
 - `fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof`: true
 - `threeFoundationGpuToolsRequireNativeGpuProofOnly`: true
 - `gpuModelToolsReadyForExecutionAfterCurrentEvidence`: false
+- `globalAll21ExecutionAllowedNow`: false
 - `agentCanExecuteAll21ToolsNow`: false
 - `agentCanExecuteGpuModelToolsNow`: false
 - `externalAgentCanInvokeAdapterNow`: false

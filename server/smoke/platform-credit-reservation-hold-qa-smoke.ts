@@ -102,6 +102,10 @@ assert.equal(persistentReport.reservationEvidence?.reservedCredits, 14, 'Persist
 assert.equal(persistentReport.reservationEvidence?.creditWalletId, persistentFixture.creditWalletId, 'Persistent reservation should preserve wallet fixture.')
 assert.equal(persistentReport.reservationEvidence?.creditApprovalId, persistentFixture.creditApprovalId, 'Persistent reservation should preserve approval fixture.')
 assert.equal(fakePersistent.reservations.length, 1, 'Explicit persistent reservation hold QA should write exactly one reservation because replay is idempotent.')
+assert.equal(fakePersistent.rpcCalls.length, 1, 'Explicit persistent reservation hold QA should call reserve_credit_hold once because replay is idempotent.')
+assert.equal(fakePersistent.ledgerEntries.length, 1, 'Explicit persistent reservation hold QA should write one reservation ledger entry.')
+assert.equal(fakePersistent.wallets[0]?.cached_available_credits, 86, 'Explicit persistent reservation hold QA should reduce wallet available credits.')
+assert.equal(fakePersistent.wallets[0]?.cached_reserved_credits, 14, 'Explicit persistent reservation hold QA should increase wallet reserved credits.')
 assert.ok(
   persistentReport.missingProductionEvidence.some((item) => item.includes('transactional reservation RPC')),
   'Persistent reservation hold QA should still require separate transactional reservation RPC evidence.',
@@ -114,6 +118,8 @@ console.log(JSON.stringify({
   persistentPersistenceMode: persistentReport.persistenceMode,
   persistentReservedCredits: persistentReport.reservationEvidence?.reservedCredits,
   persistentReservationRows: fakePersistent.reservations.length,
+  persistentRpcCalls: fakePersistent.rpcCalls.length,
+  persistentLedgerRows: fakePersistent.ledgerEntries.length,
   remoteSupabaseTouched: false,
 }, null, 2))
 
@@ -124,16 +130,98 @@ interface FakeQueryFilter {
 
 interface FakeCreditAdminState {
   reservations: Record<string, unknown>[]
+  wallets: Record<string, unknown>[]
+  approvals: Record<string, unknown>[]
+  ledgerEntries: Record<string, unknown>[]
+  rpcCalls: { name: string; params: Record<string, unknown> }[]
 }
 
 function createFakePersistentCreditAdmin(): FakeCreditAdminState & { admin: any } {
   const state: FakeCreditAdminState = {
     reservations: [],
+    wallets: [{
+      id: persistentFixture.creditWalletId,
+      workspace_id: persistentFixture.workspaceId,
+      cached_available_credits: 100,
+      cached_reserved_credits: 0,
+    }],
+    approvals: [{
+      id: persistentFixture.creditApprovalId,
+      workspace_id: persistentFixture.workspaceId,
+      project_id: persistentFixture.projectId,
+      credit_estimate_id: persistentFixture.creditEstimateId,
+      edit_plan_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+      status: 'approved',
+    }],
+    ledgerEntries: [],
+    rpcCalls: [],
   }
 
   const admin = {
     from(table: string) {
       return createTableBuilder(state, table)
+    },
+    async rpc(name: string, params: Record<string, unknown>) {
+      state.rpcCalls.push({ name, params })
+      if (name !== 'reserve_credit_hold') {
+        return { data: null, error: { code: '42883', message: `unsupported rpc ${name}` } }
+      }
+
+      const existing = state.reservations.find((row) => row.idempotency_key === params.p_idempotency_key)
+      if (existing) return { data: existing, error: null }
+
+      const wallet = state.wallets.find((row) =>
+        row.id === params.p_credit_wallet_id &&
+        row.workspace_id === params.p_workspace_id)
+      if (!wallet) return { data: null, error: { code: 'P0001', message: 'credit wallet not found or workspace mismatch' } }
+
+      const approval = state.approvals.find((row) =>
+        row.id === params.p_credit_approval_id &&
+        row.workspace_id === params.p_workspace_id &&
+        row.project_id === params.p_project_id &&
+        row.credit_estimate_id === params.p_credit_estimate_id &&
+        row.status === 'approved')
+      if (!approval) return { data: null, error: { code: 'P0001', message: 'approved credit estimate record not found or scope mismatch' } }
+
+      const reservedCredits = Number(params.p_reserved_credits)
+      wallet.cached_available_credits = Number(wallet.cached_available_credits) - reservedCredits
+      wallet.cached_reserved_credits = Number(wallet.cached_reserved_credits) + reservedCredits
+      const saved = {
+        id: `99999999-9999-4999-8999-${String(state.reservations.length + 1).padStart(12, '0')}`,
+        credit_wallet_id: params.p_credit_wallet_id,
+        workspace_id: params.p_workspace_id,
+        project_id: params.p_project_id,
+        credit_approval_id: params.p_credit_approval_id,
+        edit_plan_id: params.p_edit_plan_id,
+        credit_estimate_id: params.p_credit_estimate_id,
+        reserved_credits: reservedCredits,
+        status: 'reserved',
+        idempotency_key: params.p_idempotency_key,
+        reserved_at: '2026-06-27T00:04:00.000Z',
+        metadata: {
+          ...(isRecord(params.p_metadata) ? params.p_metadata : {}),
+          credit_reservation_hold_rpc: true,
+          stripe_call_attempted: false,
+          service_fee_included: false,
+        },
+        created_at: '2026-06-27T00:04:00.000Z',
+      }
+      state.reservations.push(saved)
+      state.ledgerEntries.push({
+        id: `88888888-8888-4888-8888-${String(state.ledgerEntries.length + 1).padStart(12, '0')}`,
+        credit_wallet_id: params.p_credit_wallet_id,
+        workspace_id: params.p_workspace_id,
+        entry_type: 'reservation',
+        amount: -reservedCredits,
+        related_reservation_id: saved.id,
+        idempotency_key: `${params.p_idempotency_key}:reservation-ledger`,
+        metadata: {
+          credit_reservation_hold_rpc: true,
+          stripe_call_attempted: false,
+          service_fee_included: false,
+        },
+      })
+      return { data: saved, error: null }
     },
   }
 
@@ -187,4 +275,8 @@ function rowsForTable(state: FakeCreditAdminState, table: string): Record<string
 
 function matchesFilters(row: Record<string, unknown>, filters: FakeQueryFilter[]): boolean {
   return filters.every((filter) => row[filter.column] === filter.value)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }

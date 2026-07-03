@@ -529,12 +529,26 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
 
       if (hasColorExecutionQARequest(payload)) {
         const colorExecutionResult = await runColorExecutionPipeline(buildColorExecutionInput(payload, { qaOnly: true }))
+        const realColorQaMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'qa_worker_color_metadata' &&
+          colorExecutionResult.mode === 'production_ready' &&
+          colorExecutionResult.status !== 'blocked' &&
+          colorExecutionResult.colorAnalysisSummary !== undefined &&
+          colorExecutionResult.colorGradeRecipeArtifact !== undefined &&
+          colorExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'color_analysis_json' && artifact.sourceOfTruth) &&
+          colorExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'color_grade_recipe' && artifact.sourceOfTruth) &&
+          colorExecutionResult.qaResults.length > 0 &&
+          colorExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 15B QA worker color execution QA route completed in explicit colorExecutionQA mode.',
+          summary: realColorQaMetadataHandler
+            ? 'QA worker color metadata production handler completed bounded color analysis, grade-recipe review, and color QA metadata without native transforms, preview, or final export.'
+            : 'Milestone 15B QA worker color execution QA route completed in explicit colorExecutionQA mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'qa_worker_color_execution_qa',
+          mockOnly: !realColorQaMetadataHandler,
+          realToolExecution: realColorQaMetadataHandler,
+          futureHandler: realColorQaMetadataHandler
+            ? 'qa_worker_color_metadata_production_handler'
+            : 'qa_worker_color_execution_qa',
           colorExecutionResult,
         }
       }

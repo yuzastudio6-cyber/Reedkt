@@ -68,6 +68,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'render_worker_final_render_metadata'
   | 'render_worker_placeholder'
   | 'qa_worker_caption_metadata'
+  | 'qa_worker_color_metadata'
   | 'qa_worker_final_render_qa_metadata'
   | 'qa_worker_placeholder'
   | 'tool_readiness_worker_core_checks'
@@ -123,6 +124,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   render_worker_final_render_metadata: 'render_worker',
   render_worker_placeholder: 'render_worker',
   qa_worker_caption_metadata: 'qa_worker',
+  qa_worker_color_metadata: 'qa_worker',
   qa_worker_final_render_qa_metadata: 'qa_worker',
   qa_worker_placeholder: 'qa_worker',
   tool_readiness_worker_core_checks: 'tool_readiness_worker',
@@ -914,8 +916,9 @@ function validateGatewayAdapter(
     }
   }
 
-  if (adapterId === 'cpu_analysis_worker_color_metadata') {
-    const colorExecution = input.metadata?.colorExecution
+  if (adapterId === 'cpu_analysis_worker_color_metadata' || adapterId === 'qa_worker_color_metadata') {
+    const colorMetadataKey = adapterId === 'qa_worker_color_metadata' ? 'colorExecutionQA' : 'colorExecution'
+    const colorExecution = input.metadata?.[colorMetadataKey]
     const colorRecord = colorExecution && typeof colorExecution === 'object'
       ? colorExecution as Record<string, unknown>
       : undefined
@@ -936,7 +939,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata may dispatch only the reviewed OpenColorIO + OpenImageIO metadata/QA adapter scope.',
+        message: `${adapterId} may dispatch only the reviewed OpenColorIO + OpenImageIO metadata/QA adapter scope.`,
         details: { requestedToolIds: input.requestedToolIds },
       })
     }
@@ -945,7 +948,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_ADAPTER_METADATA_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata production dispatch requires metadata.colorExecution.mode=production_ready.',
+        message: `${adapterId} production dispatch requires metadata.${colorMetadataKey}.mode=production_ready.`,
         details: { colorExecutionMode: mode },
       })
     }
@@ -954,7 +957,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata is limited to color analysis, color grade recipe, and color QA report metadata tasks.',
+        message: `${adapterId} is limited to color analysis, color grade recipe, and color QA report metadata tasks.`,
         details: { tasks, unexpectedTasks, missingTasks },
       })
     }
@@ -963,7 +966,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_INPUT_ARTIFACT_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata production dispatch requires a private source, proxy, or representative-frame artifact reference.',
+        message: `${adapterId} production dispatch requires a private source, proxy, or representative-frame artifact reference.`,
       })
     }
 
@@ -971,7 +974,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_FINAL_EXPORT_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata cannot enable final export.',
+        message: `${adapterId} cannot enable final export.`,
       })
     }
 
@@ -979,7 +982,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_PREVIEW_EXECUTION_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata is metadata-only and cannot create FFmpeg color previews.',
+        message: `${adapterId} is metadata-only and cannot create FFmpeg color previews.`,
       })
     }
 
@@ -987,7 +990,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'COLOR_METADATA_NATIVE_EXECUTION_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'cpu_analysis_worker_color_metadata is limited to metadata/QA and cannot run native OpenColorIO/OpenImageIO transforms.',
+        message: `${adapterId} is limited to metadata/QA and cannot run native OpenColorIO/OpenImageIO transforms.`,
       })
     }
   }
@@ -1366,6 +1369,8 @@ function validateToolReadiness(
     ) || (
       adapterId === 'cpu_analysis_worker_media_representative_frames' && workerType === 'cpu_analysis_worker'
     ) || (
+      adapterId === 'qa_worker_color_metadata' && workerType === 'qa_worker'
+    ) || (
       adapterId === 'render_worker_caption_metadata' && workerType === 'render_worker'
     ) || (
       adapterId === 'qa_worker_caption_metadata' && workerType === 'qa_worker'
@@ -1512,6 +1517,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'cpu_analysis_worker_color_metadata') {
     allowedReservedKeys.add('colorExecution')
+  }
+  if (adapterId === 'qa_worker_color_metadata') {
+    allowedReservedKeys.add('colorExecutionQA')
   }
   if (adapterId === 'cpu_analysis_worker_audio_metadata') {
     allowedReservedKeys.add('audioExecution')

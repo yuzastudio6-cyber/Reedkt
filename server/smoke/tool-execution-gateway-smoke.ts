@@ -506,6 +506,67 @@ assert.ok(
   'color metadata wallet settlements should spend user credits only for the completed real handler',
 )
 
+const productionReadyColorQaMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyColorQaMetadataInput({
+  jobId: 'job-production-ready-color-qa-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const colorQaMetadataResult = productionReadyColorQaMetadataDispatch.workerResult?.output?.colorExecutionResult as {
+  status?: string
+  colorAnalysisSummary?: unknown
+  colorGradeRecipeArtifact?: unknown
+  artifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+  }>
+  qaResults?: unknown[]
+  blocksFinalExport?: boolean
+  skippedReasons?: Array<{ tool?: string }>
+} | undefined
+assert.equal(productionReadyColorQaMetadataDispatch.gateway.status, 'dispatched', 'complete evidence plus color QA metadata adapter should allow backend gateway dispatch')
+assert.equal(productionReadyColorQaMetadataDispatch.workerResult?.status, 'completed', 'color QA metadata real handler should complete')
+assert.equal(productionReadyColorQaMetadataDispatch.workerResult?.output?.mockOnly, false, 'color QA metadata production handler should be non-mock')
+assert.equal(productionReadyColorQaMetadataDispatch.workerResult?.output?.realToolExecution, true, 'color QA metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyColorQaMetadataDispatch.workerResult?.output?.futureHandler,
+  'qa_worker_color_metadata_production_handler',
+  'color QA metadata production handler should use the reviewed QA color metadata handler',
+)
+assert.equal(colorQaMetadataResult?.status, 'partial', 'color QA metadata production handler should complete as partial metadata execution, not final export')
+assert.ok(colorQaMetadataResult?.colorAnalysisSummary, 'color QA metadata production handler should build a color analysis summary')
+assert.ok(colorQaMetadataResult?.colorGradeRecipeArtifact, 'color QA metadata production handler should build a color grade recipe artifact')
+assert.equal(colorQaMetadataResult?.blocksFinalExport, true, 'color QA metadata production handler must keep final export blocked')
+assert.ok((colorQaMetadataResult?.qaResults?.length ?? 0) > 0, 'color QA metadata production handler should emit color QA results')
+assert.ok(
+  colorQaMetadataResult?.artifacts?.some((artifact) => artifact.artifactType === 'color_analysis_json' && artifact.sourceOfTruth === true),
+  'color QA metadata result should include a source-of-truth color analysis artifact',
+)
+assert.ok(
+  colorQaMetadataResult?.artifacts?.some((artifact) => artifact.artifactType === 'color_grade_recipe' && artifact.sourceOfTruth === true),
+  'color QA metadata result should include a source-of-truth color grade recipe artifact',
+)
+assert.ok(
+  colorQaMetadataResult?.skippedReasons?.some((reason) => reason.tool === 'opencolorio') &&
+    colorQaMetadataResult.skippedReasons.some((reason) => reason.tool === 'openimageio'),
+  'color QA metadata handler should record native OpenColorIO/OpenImageIO transform skips instead of running media transforms',
+)
+assert.equal(productionReadyColorQaMetadataDispatch.toolCostEvents?.length, 2, 'color QA metadata dispatch should emit gateway cost events for OpenColorIO and OpenImageIO metadata work')
+assert.deepEqual(
+  productionReadyColorQaMetadataDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+  ['opencolorio', 'openimageio'],
+  'color QA metadata dispatch should scope billing audit events to OpenColorIO and OpenImageIO',
+)
+assert.ok(
+  productionReadyColorQaMetadataDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+  'color QA metadata tool cost events should be billable tool-cost-only events after approval/reservation gates',
+)
+assert.equal(productionReadyColorQaMetadataDispatch.walletSettlements?.length, 2, 'color QA metadata dispatch should create wallet settlements for both tool-cost events')
+assert.ok(
+  productionReadyColorQaMetadataDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+  'color QA metadata wallet settlements should spend user credits only for the completed real handler',
+)
+
 const productionReadyFinalRenderMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyFinalRenderMetadataInput({
   jobId: 'job-production-ready-final-render-metadata',
   productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
@@ -1211,6 +1272,8 @@ console.log(JSON.stringify({
   realAudioMetadataHandler: productionReadyAudioMetadataDispatch.workerResult?.output?.futureHandler,
   realColorMetadataDispatchCovered: productionReadyColorMetadataDispatch.gateway.status === 'dispatched',
   realColorMetadataHandler: productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
+  realColorQaMetadataDispatchCovered: productionReadyColorQaMetadataDispatch.gateway.status === 'dispatched',
+  realColorQaMetadataHandler: productionReadyColorQaMetadataDispatch.workerResult?.output?.futureHandler,
   realCaptionMetadataDispatchCovered: productionReadyCaptionMetadataDispatch.gateway.status === 'dispatched',
   realCaptionMetadataHandler: productionReadyCaptionMetadataDispatch.workerResult?.output?.futureHandler,
   realCaptionQaMetadataDispatchCovered: productionReadyCaptionQaMetadataDispatch.gateway.status === 'dispatched',
@@ -1562,6 +1625,27 @@ function productionReadyColorMetadataInput(input: {
         enableOpenColorIOExecution: false,
         enableOpenImageIOExecution: false,
       },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyColorQaMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  const baseColorInput = productionReadyColorMetadataInput(input)
+  const colorExecution = baseColorInput.metadata?.colorExecution
+  return {
+    ...baseColorInput,
+    workerType: 'qa_worker',
+    adapterId: 'qa_worker_color_metadata',
+    requestedRecipeIds: ['color-qa-metadata-production-handler-recipe'],
+    requiredQualityGateTypes: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'],
+    metadata: {
+      gatewaySmoke: true,
+      colorExecutionQA: colorExecution,
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
   }

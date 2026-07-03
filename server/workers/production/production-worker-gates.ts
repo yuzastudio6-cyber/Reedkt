@@ -151,6 +151,8 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
     gatewayAdapterId === 'cpu_analysis_worker_media_representative_frames'
   const captionQaMetadataChecks = payload.workerType === 'qa_worker' &&
     gatewayAdapterId === 'qa_worker_caption_metadata'
+  const colorQaMetadataChecks = payload.workerType === 'qa_worker' &&
+    gatewayAdapterId === 'qa_worker_color_metadata'
   const finalRenderQaMetadataChecks = payload.workerType === 'qa_worker' &&
     gatewayAdapterId === 'qa_worker_final_render_qa_metadata'
 
@@ -172,6 +174,7 @@ export function registryRuntimeGate(payload: ProductionWorkerJobPayload): Produc
       mediaKeyframesCoreChecks ||
       mediaRepresentativeFramesCoreChecks ||
       captionQaMetadataChecks ||
+      colorQaMetadataChecks ||
       finalRenderQaMetadataChecks
       ? evaluateRuntimePolicy(profile)
       : evaluateRuntimePolicy(profile, payload.workerType)

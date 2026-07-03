@@ -1,0 +1,68 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-ROUTE-WORKER-DISPATCH-DRY-RUN-1",
+  "decision": "completed_three_tool_external_agent_route_worker_dispatch_dry_run",
+  "execution": "completed_confirmation_gated_three_tool_route_worker_dispatch_envelope_validation_no_route_worker_tool_execution",
+  "confirmationGate": "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_ROUTE_WORKER_DISPATCH_DRY_RUN=true",
+  "runId": "2026-07-03T01-06-54-981Z-9c34363c",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-route-worker-dispatch-dry-run-1/2026-07-03T01-06-54-981Z-9c34363c",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-route-worker-dispatch-dry-run-1/2026-07-03T01-06-54-981Z-9c34363c/three-tool-external-agent-route-worker-dispatch-dry-run-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-route-worker-dispatch-dry-run-1/2026-07-03T01-06-54-981Z-9c34363c/three-tool-external-agent-route-worker-dispatch-dry-run-manifest.json",
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-route-worker-dispatch-dry-run-report.json",
+      "bytes": 13452,
+      "sha256": "4e878a4c8d94979536229ba1e6ce5409f267a94e6183a5d1f884af0e4aadc86b"
+    },
+    {
+      "fileName": "three-tool-external-agent-route-worker-dispatch-dry-run-manifest.json",
+      "bytes": 1121,
+      "sha256": "6c6fa3941879f0b63e20331d98887911d15ff80b72805883c683b9f3f55a716a"
+    }
+  ],
+  "sourceBridgeDryRun": {
+    "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-EXECUTION-BRIDGE-DRY-RUN-1",
+    "mergeSha": "9daab4250e172b9e941e094a5a8fc3dfd729c2ba",
+    "headSha": "d2dcfae106654cdb42a6e2abef4579b6cb823fdd",
+    "runId": "2026-07-03T00-58-17-632Z-4d15bfd3"
+  },
+  "sourceEvidence": {
+    "threeToolBridgeMergeSha": "30f0b17287ca16b9da06930dd15e575bdb03de24",
+    "threeToolQaRollupMergeSha": "13c922b3cc8d40223920c45bb800729dbbe3e7b5",
+    "threeToolExecutionMergeSha": "6ad10faf36bdc447e232044e3857d5d0220ffa54",
+    "combinedExecutionRunId": "2026-07-02T23-06-37-783Z-735edf80",
+    "excludedRemotionPr": "#577 open_draft_blocked_excluded"
+  },
+  "dispatchValidation": {
+    "routeWorkerDispatchEnvelopeValidation": "passed",
+    "gstreamerMkvtoolnixChildDispatchMetadata": "passed",
+    "gpacMp4boxChildDispatchMetadata": "passed",
+    "rawCommandStringsAllowed": false
+  },
+  "safety": {
+    "routeHandlerInvocation": false,
+    "routeExecution": false,
+    "workerDispatch": false,
+    "workerExecution": false,
+    "persistentJobQueueWrite": false,
+    "workerLeaseClaim": false,
+    "gstreamerExecutionInThisDispatchDryRun": false,
+    "mkvtoolnixExecutionInThisDispatchDryRun": false,
+    "gpacMp4boxExecutionInThisDispatchDryRun": false,
+    "dockerExecutionInThisDispatchDryRun": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaExpansion": false,
+    "productionUnlock": false
+  },
+  "validation": "passed",
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-GUARDED-ROUTE-HANDLER-NOOP-INVOKE-1"
+}

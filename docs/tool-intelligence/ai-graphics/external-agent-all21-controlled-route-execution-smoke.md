@@ -54,6 +54,9 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `providerRuntimePerformedTools`: 0
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
+- `scopedGpuModelLocalDevRouteAttemptTools`: 1
+- `scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools`: 1
+- `scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools`: 0
 
 ## Booleans
 
@@ -80,6 +83,9 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `controlledToolRouteExecutionPerformed`: true
 - `gpuRuntimeOnDemandOnly`: true
 - `noIdleGpuRuntimeApproved`: true
+- `scopedGpuModelLocalDevRouteAttemptAccepted`: true
+- `scopedGpuModelLocalDevRouteAttemptBlockedWithReason`: true
+- `scopedGpuModelRuntimeContainerPayloadAccepted`: true
 - `workerExecutionApprovedNow`: false
 - `workerExecutionPerformed`: false
 - `workerDispatchApprovedNow`: false
@@ -103,6 +109,16 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `productionReadyNow`: false
 - `dependencyInstallPerformed`: false
 - `packageLockMutationPerformed`: false
+
+## Scoped GPU/model route attempt
+
+- `toolId`: `kornia`
+- `runtimeExecutionBackend`: `docker_container`
+- `externalAgentExecutionState`: `blocked_with_reason`
+- `blockingReasonCode`: `gpu_model_runtime_container_image_missing`
+- `gpuRuntimeShouldStartNow`: `false`
+
+POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.
 
 ## Boundary
 

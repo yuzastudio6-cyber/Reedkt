@@ -248,9 +248,81 @@ function checkReport(label, report) {
     providerRuntimePerformedTools: 0,
     publicArtifactCreatedTools: 0,
     signedUrlCreatedTools: 0,
+    scopedGpuModelLocalDevRouteAttemptTools: 1,
+    scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools: 1,
+    scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools: 0,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_${key}_mismatch:${counts[key]}`)
+  }
+
+  const scopedAttempt = report.scopedGpuModelLocalDevRouteAttempt
+  if (!scopedAttempt || typeof scopedAttempt !== 'object') {
+    fail(`${label}_missing_scoped_gpu_model_local_dev_route_attempt`)
+  } else {
+    const scopedResult = scopedAttempt.result ?? {}
+    if (scopedAttempt.requestedToolId !== 'kornia') {
+      fail(`${label}_scoped_attempt_tool_mismatch:${scopedAttempt.requestedToolId}`)
+    }
+    if (scopedAttempt.requestedRuntimeBackend !== 'docker_container') {
+      fail(`${label}_scoped_attempt_backend_mismatch:${scopedAttempt.requestedRuntimeBackend}`)
+    }
+    if (
+      scopedAttempt.expectedBlockingReasonCode !==
+      'gpu_model_runtime_container_image_missing'
+    ) {
+      fail(`${label}_scoped_attempt_expected_block_code_mismatch`)
+    }
+    if (scopedResult.statusCode !== 200) {
+      fail(`${label}_scoped_attempt_http_not_200:${scopedResult.statusCode}`)
+    }
+    if (scopedResult.ok !== true) fail(`${label}_scoped_attempt_ok_not_true`)
+    if (scopedResult.routeStatus !== 'controlled_gpu_model_route_blocked_with_reason') {
+      fail(`${label}_scoped_attempt_route_status_mismatch:${scopedResult.routeStatus}`)
+    }
+    if (scopedResult.externalAgentExecutionState !== 'blocked_with_reason') {
+      fail(`${label}_scoped_attempt_state_mismatch:${scopedResult.externalAgentExecutionState}`)
+    }
+    if (scopedResult.blockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
+      fail(`${label}_scoped_attempt_block_code_mismatch:${scopedResult.blockingReasonCode}`)
+    }
+    for (const key of [
+      'controlledAdapterExecutedNow',
+      'localPackageExecutionPerformed',
+      'localGpuModelRuntimeExecutionPerformed',
+      'gpuRuntimeShouldStartNow',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'workerDispatchPerformed',
+      'providerRuntimePerformed',
+      'runtimeReadyNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ]) {
+      if (scopedResult[key] !== false) {
+        fail(`${label}_scoped_attempt_${key}_not_false`)
+      }
+    }
+    for (const key of [
+      'scopedGpuModelLocalDevRouteAttemptPerformed',
+      'scopedGpuModelLocalDevRouteAttemptAccepted',
+      'scopedGpuModelLocalDevRouteAttemptBlockedWithReason',
+      'scopedGpuModelRuntimeContainerPayloadAccepted',
+    ]) {
+      if (scopedAttempt.booleans?.[key] !== true) {
+        fail(`${label}_scoped_attempt_boolean_not_true:${key}`)
+      }
+    }
+    for (const key of [
+      'scopedGpuModelRuntimeExecutionPerformed',
+      'scopedGpuModelGpuRuntimeShouldStartNow',
+      'scopedGpuModelPublicArtifactCreated',
+      'scopedGpuModelSignedUrlCreated',
+    ]) {
+      if (scopedAttempt.booleans?.[key] !== false) {
+        fail(`${label}_scoped_attempt_boolean_not_false:${key}`)
+      }
+    }
   }
 
   const booleans = report.booleans ?? {}
@@ -273,6 +345,9 @@ function checkReport(label, report) {
     'controlledToolRouteExecutionPerformed',
     'gpuRuntimeOnDemandOnly',
     'noIdleGpuRuntimeApproved',
+    'scopedGpuModelLocalDevRouteAttemptAccepted',
+    'scopedGpuModelLocalDevRouteAttemptBlockedWithReason',
+    'scopedGpuModelRuntimeContainerPayloadAccepted',
   ]) {
     if (booleans[key] !== true) fail(`${label}_${key}_not_true`)
   }
@@ -350,6 +425,9 @@ for (const phrase of [
   'controlledAdapterInvokedNow',
   'gpuRuntimeShouldStartNow',
   'all21ToolsReturnedHttp200',
+  'scopedGpuModelLocalDevRouteAttemptRequest',
+  'runtimeExecutionBackend',
+  'gpu_model_runtime_container_image_missing',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
 }

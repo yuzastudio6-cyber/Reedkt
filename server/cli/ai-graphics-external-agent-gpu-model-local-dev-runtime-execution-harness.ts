@@ -103,7 +103,7 @@ function parseToolIds(): AiGraphicsExternalAgentGpuModelControlledAdapterToolId[
 }
 
 function parseArgs(): HarnessArgs {
-  const args = {
+  const args: HarnessArgs = {
     attemptLocalRuntime: hasFlag('--attempt-local-runtime'),
     toolIds: parseToolIds(),
     outputDirectory: stringFlag('--output-dir'),

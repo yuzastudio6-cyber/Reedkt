@@ -537,6 +537,49 @@
       "productionReadyNow": false
     }
   ],
+  "scopedGpuModelLocalDevRouteAttempt": {
+    "summary": "POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.",
+    "requestedToolId": "kornia",
+    "requestedRuntimeBackend": "docker_container",
+    "expectedBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+    "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia",
+    "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm",
+    "result": {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "group": "gpu_model",
+      "statusCode": 200,
+      "ok": true,
+      "routeStatus": "controlled_gpu_model_route_blocked_with_reason",
+      "externalAgentExecutionState": "blocked_with_reason",
+      "blockingReasonCode": "gpu_model_runtime_container_image_missing",
+      "failureDiagnostics": null,
+      "controlledAdapterExecutedNow": false,
+      "controlledAdapterInvokedNow": true,
+      "localPackageExecutionPerformed": false,
+      "localGpuModelRuntimeExecutionPerformed": false,
+      "gpuRuntimeShouldStartNow": false,
+      "outputKind": null,
+      "outputSha256": null,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "workerDispatchPerformed": false,
+      "providerRuntimePerformed": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    "booleans": {
+      "scopedGpuModelLocalDevRouteAttemptPerformed": true,
+      "scopedGpuModelLocalDevRouteAttemptAccepted": true,
+      "scopedGpuModelLocalDevRouteAttemptBlockedWithReason": true,
+      "scopedGpuModelRuntimeContainerPayloadAccepted": true,
+      "scopedGpuModelRuntimeExecutionPerformed": false,
+      "scopedGpuModelGpuRuntimeShouldStartNow": false,
+      "scopedGpuModelPublicArtifactCreated": false,
+      "scopedGpuModelSignedUrlCreated": false
+    }
+  },
   "counts": {
     "totalAiGraphicsTools": 21,
     "controlledRouteHttp200Tools": 21,
@@ -557,7 +600,10 @@
     "workerDispatchPerformedTools": 0,
     "providerRuntimePerformedTools": 0,
     "publicArtifactCreatedTools": 0,
-    "signedUrlCreatedTools": 0
+    "signedUrlCreatedTools": 0,
+    "scopedGpuModelLocalDevRouteAttemptTools": 1,
+    "scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools": 1,
+    "scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools": 0
   },
   "booleans": {
     "all21ControlledRouteExecutionSmokePassed": true,
@@ -583,6 +629,9 @@
     "controlledToolRouteExecutionPerformed": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
+    "scopedGpuModelLocalDevRouteAttemptAccepted": true,
+    "scopedGpuModelLocalDevRouteAttemptBlockedWithReason": true,
+    "scopedGpuModelRuntimeContainerPayloadAccepted": true,
     "workerExecutionApprovedNow": false,
     "workerExecutionPerformed": false,
     "workerDispatchApprovedNow": false,

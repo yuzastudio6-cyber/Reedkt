@@ -11,8 +11,8 @@ This contract gives the external agent one scoped caller shape for the 13 contro
 | Tool | Group | Capability | Route | Expected status |
 | --- | --- | --- | --- | --- |
 | `d3` | `cpu_static_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `vega_lite` | `cpu_static_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `vega` | `cpu_static_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `vega_lite` | `cpu_static_controlled_route` | `data_visualization` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `vega` | `cpu_static_controlled_route` | `data_visualization` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
 | `satori` | `cpu_static_controlled_route` | `svg_graphics` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
 | `svgdotjs_svg_js` | `cpu_static_controlled_route` | `svg_graphics` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
 | `viz_js` | `cpu_static_controlled_route` | `diagram_graphics` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |

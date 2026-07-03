@@ -96,6 +96,37 @@ const aiGraphicsCapabilitySchema = z.enum([
   'model_runtime_foundation',
 ])
 
+type AiGraphicsExternalBetaToolCallCapability = z.infer<
+  typeof aiGraphicsCapabilitySchema
+>
+
+const aiGraphicsExternalBetaToolCallPrimaryCapabilityByToolId: Record<
+  string,
+  AiGraphicsExternalBetaToolCallCapability
+> = {
+  torch_torchvision: 'model_runtime_foundation',
+  transformers: 'model_runtime_foundation',
+  sam2: 'subject_segmentation',
+  birefnet: 'background_removal',
+  real_esrgan: 'upscaling',
+  kornia: 'tensor_image_ops',
+  rembg: 'background_removal',
+  transparent_background: 'background_removal',
+  d3: 'chart_overlay',
+  echarts: 'chart_overlay',
+  vega_lite: 'data_visualization',
+  vega: 'data_visualization',
+  satori: 'svg_graphics',
+  svgdotjs_svg_js: 'svg_graphics',
+  viz_js: 'diagram_graphics',
+  lottie_web: 'animation_overlay',
+  animejs: 'animation_overlay',
+  three_js: 'webgl_3d_scene',
+  pixi_js: 'canvas_scene',
+  konva: 'canvas_scene',
+  babylonjs: 'webgl_3d_scene',
+}
+
 const privateRefSchema = z.string().min(1).regex(/^private:\/\//)
 
 const aiGraphicsGpuModelRuntimeAdmissionToolIds = new Set<string>([
@@ -1125,14 +1156,34 @@ function buildRepresentativeToolCallRequest(
   }
 }
 
+function getAiGraphicsExternalBetaToolCallPrimaryCapability(
+  toolId: string,
+  capabilities: readonly string[],
+) {
+  const primaryCapability =
+    aiGraphicsExternalBetaToolCallPrimaryCapabilityByToolId[toolId]
+  if (
+    primaryCapability &&
+    capabilities.includes(primaryCapability)
+  ) {
+    return primaryCapability
+  }
+
+  const routeCapability = capabilities.find(
+    (capabilityId) => aiGraphicsCapabilitySchema.safeParse(capabilityId).success,
+  )
+  if (!routeCapability) {
+    throw new Error(`AI graphics route capability is missing for ${toolId}`)
+  }
+  return routeCapability
+}
+
 export function listAiGraphicsExternalBetaToolCallBlockedReadinessCases() {
   return listAiGraphicsToolCallHandoffTools().map((tool) => {
-    const routeCapability = tool.capabilities.find(
-      (capabilityId) => aiGraphicsCapabilitySchema.safeParse(capabilityId).success,
+    const routeCapability = getAiGraphicsExternalBetaToolCallPrimaryCapability(
+      tool.toolId,
+      tool.capabilities,
     )
-    if (!routeCapability) {
-      throw new Error(`AI graphics route capability is missing for ${tool.toolId}`)
-    }
 
     const request = buildRepresentativeToolCallRequest(tool.toolId, routeCapability)
     return {
@@ -1144,12 +1195,13 @@ export function listAiGraphicsExternalBetaToolCallBlockedReadinessCases() {
 
 function getAiGraphicsExternalBetaToolCallRouteCapability(toolId: string) {
   const readiness = getAiGraphicsToolCallReadiness(toolId)
-  const routeCapability = readiness?.capabilities.find(
-    (capabilityId) => aiGraphicsCapabilitySchema.safeParse(capabilityId).success,
-  )
-  if (!readiness || !routeCapability) {
+  if (!readiness) {
     throw new Error(`AI graphics route readiness mapping is missing for ${toolId}`)
   }
+  const routeCapability = getAiGraphicsExternalBetaToolCallPrimaryCapability(
+    toolId,
+    readiness.capabilities,
+  )
   return { readiness, routeCapability }
 }
 

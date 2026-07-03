@@ -45,6 +45,30 @@ const gpuModelTools = [
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
 const routePath = '/api/ai-graphics/external-beta/tool-call'
 
+const expectedPrimaryCapabilityByTool = {
+  torch_torchvision: 'model_runtime_foundation',
+  transformers: 'model_runtime_foundation',
+  sam2: 'subject_segmentation',
+  birefnet: 'background_removal',
+  real_esrgan: 'upscaling',
+  kornia: 'tensor_image_ops',
+  rembg: 'background_removal',
+  transparent_background: 'background_removal',
+  d3: 'chart_overlay',
+  echarts: 'chart_overlay',
+  vega_lite: 'data_visualization',
+  vega: 'data_visualization',
+  satori: 'svg_graphics',
+  svgdotjs_svg_js: 'svg_graphics',
+  viz_js: 'diagram_graphics',
+  lottie_web: 'animation_overlay',
+  animejs: 'animation_overlay',
+  three_js: 'webgl_3d_scene',
+  pixi_js: 'canvas_scene',
+  konva: 'canvas_scene',
+  babylonjs: 'webgl_3d_scene',
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-controlled-route-caller.ts',
   'scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs',
@@ -307,6 +331,13 @@ if (!Array.isArray(report.controlledCallerRows) || report.controlledCallerRows.l
     if (row?.group !== 'browser_runtime_controlled_route') fail(`browser_group_mismatch:${toolId}`)
   }
   for (const row of report.controlledCallerRows) {
+    const expectedCapability = expectedPrimaryCapabilityByTool[row.toolId]
+    if (!expectedCapability) fail(`missing_expected_capability:${row.toolId}`)
+    if (row.capabilityId !== expectedCapability) {
+      fail(
+        `primary_capability_mismatch:${row.toolId}:${row.capabilityId}:${expectedCapability}`,
+      )
+    }
     if (row.routePath !== routePath) fail(`route_path_mismatch:${row.toolId}`)
     if (row.method !== 'POST') fail(`method_mismatch:${row.toolId}`)
     if (row.expectedHttpStatusIfInvoked !== 200) fail(`status_mismatch:${row.toolId}`)
@@ -317,6 +348,11 @@ if (!Array.isArray(report.controlledCallerRows) || report.controlledCallerRows.l
     const envelope = row.requestEnvelope ?? {}
     if (envelope.toolId !== row.toolId) fail(`request_tool_mismatch:${row.toolId}`)
     if (envelope.capabilityId !== row.capabilityId) fail(`request_capability_mismatch:${row.toolId}`)
+    if (envelope.capabilityId !== expectedCapability) {
+      fail(
+        `request_primary_capability_mismatch:${row.toolId}:${envelope.capabilityId}:${expectedCapability}`,
+      )
+    }
     for (const key of [
       'privateArtifactManifestRef',
       'toolRouteApprovalRef',
@@ -343,7 +379,18 @@ if (!Array.isArray(report.blockedGpuModelRows) || report.blockedGpuModelRows.len
   const rowsByTool = new Map(report.blockedGpuModelRows.map((row) => [row.toolId, row]))
   for (const toolId of gpuModelTools) {
     const row = rowsByTool.get(toolId)
+    const expectedCapability = expectedPrimaryCapabilityByTool[toolId]
     if (!row) fail(`missing_blocked_gpu_row:${toolId}`)
+    if (row?.capabilityId !== expectedCapability) {
+      fail(
+        `gpu_primary_capability_mismatch:${toolId}:${row?.capabilityId}:${expectedCapability}`,
+      )
+    }
+    if (row?.requestEnvelope?.capabilityId !== expectedCapability) {
+      fail(
+        `gpu_request_primary_capability_mismatch:${toolId}:${row?.requestEnvelope?.capabilityId}:${expectedCapability}`,
+      )
+    }
     if (row?.expectedHttpStatusIfInvoked !== 409) fail(`gpu_expected_status_mismatch:${toolId}`)
     if (row?.blockedFromControlledRouteCallerNow !== true) fail(`gpu_not_blocked:${toolId}`)
     if (row?.gpuRuntimeShouldStartNow !== false) fail(`gpu_start_not_false:${toolId}`)

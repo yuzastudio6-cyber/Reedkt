@@ -47,6 +47,8 @@ The gateway keeps mock-safe placeholder adapters for planning and dry-run routes
 
 Each adapter must match its worker type and exact reviewed tool scope. Unfinished lanes, frontend-preview-only tools, planning-only tools, evaluation-only tools, blocked tools, worker-owner mismatches, and over-budget requests return blockers.
 
+Dry-run placeholder adapters are excluded from production handler coverage. They stay in the schema for planning and mock-safe validation only, and the gateway hard-blocks them before worker dispatch whenever `executionMode` is `production_ready`.
+
 Gateway metadata is not allowed to contain lower-level worker router selector keys such as `mediaFoundation`, `finalRenderExecution`, `audioExecution`, `colorExecution`, `maskComposition`, `trackANativeValidation`, or QA equivalents unless an explicitly reviewed adapter allowlists the exact key. Current exceptions are limited to `mediaFoundation` for reviewed media-foundation handlers, `smartCutTimelineExecution` for the smart-cut/timeline metadata handler, `audioExecution` for the bounded audio metadata/QA handler, `colorExecution` for the bounded color metadata/QA handler, `finalRenderExecution` for the bounded render-manifest/command-plan/QA metadata handler, `speechCaptionExecution` for reviewed caption metadata/QA handlers, and `trackANativeValidation` for the three Track A native validation adapters. Other keys remain reserved for later explicitly approved adapter milestones.
 
 The Track A native validation adapters produce private QA report artifacts and QA gate results only. They do not run GStreamer, MKVToolNix, GPAC/MP4Box media commands, process user media, create public artifacts, or approve final export/product delivery by themselves.
@@ -94,7 +96,7 @@ When the `production_ready` operations-control step runs, the gateway response i
 
 ## Non-Goals
 
-This milestone does not enable live provider calls, direct worker execution from the browser, real tool binaries, media processing, Docker, Supabase writes, billing mutation, Stripe, external beta, or production execution.
+This gateway does not by itself enable live provider calls, direct worker execution from the browser, Docker builds, Stripe checkout, external beta, or ungated production execution. Reviewed production adapters may run only after approved snapshots, credit reservations, production readiness evidence, persistent billing preflight, and backend ops admission all pass.
 
 ## Validation
 

@@ -207,7 +207,7 @@ export async function buildProductionToolExecutionReadinessEvidenceBundleFromEnv
     warnings: [
       'This bundle is dry-run only and forces all record confirmations off before invoking collectors.',
       'It does not call backend routes, Supabase, Stripe, workers, tools, media processors, deployments, or production.',
-      'All-up production evidence must still be paired with the real-worker handler readiness report; production dispatch stays scoped to reviewed real backend adapters and placeholder adapters remain blocked.',
+      'All-up production evidence must still be paired with the real-worker handler readiness report; production dispatch is limited to reviewed real backend adapters and dry-run placeholder adapters remain blocked for production_ready.',
       'Use the focused collectors to collect slice evidence, then use prod:readiness:tool-execution-evidence-collector for the final authenticated all-up record/readback.',
     ],
   }

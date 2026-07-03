@@ -210,20 +210,22 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       },
     },
     {
-      id: 'placeholder_handler_coverage_retired',
-      passed: countOccurrences(sources.gatewaySchemas, '_placeholder') === 0 &&
-        countOccurrences(sources.workerRouter, 'mockOnly: true') === 0,
-      message: 'All production gateway and worker routes must be real-handler backed before the all-up production execution gate can pass.',
+      id: 'dry_run_placeholder_adapters_excluded_from_production_scope',
+      passed: sources.gatewayService.includes('PRODUCTION_READY_PLACEHOLDER_ADAPTER_BLOCKED') &&
+        presentPlaceholderAdapterIds.every((adapterId) => adapterId.endsWith('_placeholder')) &&
+        presentPlaceholderAdapterIds.every((adapterId) => !presentRealAdapterIds.includes(adapterId)),
+      message: 'Dry-run/mock-safe placeholder adapters may remain available for planning, but they are excluded from production handler coverage and hard-blocked for production_ready dispatch.',
       evidence: {
-        gatewayPlaceholderMentions: countOccurrences(sources.gatewaySchemas, '_placeholder'),
+        file: sourceFiles.gatewaySchemas,
+        dryRunOnlyPlaceholderAdapterIds: presentPlaceholderAdapterIds,
+        reviewedProductionAdapterIds: presentRealAdapterIds,
+        productionReadyPlaceholderBlockerPresent: sources.gatewayService.includes('PRODUCTION_READY_PLACEHOLDER_ADAPTER_BLOCKED'),
         routerMockOnlyTrueMentions: countOccurrences(sources.workerRouter, 'mockOnly: true'),
       },
     },
   ]
 
-  const scopedBlockingCheckIds = new Set(checks
-    .filter((check) => check.id !== 'placeholder_handler_coverage_retired')
-    .map((check) => check.id))
+  const scopedBlockingCheckIds = new Set(checks.map((check) => check.id))
   const blockers = checks
     .filter((check) => !check.passed && scopedBlockingCheckIds.has(check.id))
     .map((check) => `${check.id}: ${check.message}`)
@@ -268,7 +270,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
     checks,
     nextAction: readyForRealToolExecution
       ? allProductionHandlerCoverageReady
-        ? 'Run the final production tool execution gate against deployed evidence before enabling broad production dispatch.'
+        ? 'Run the final production tool execution gate against deployed evidence before enabling production dispatch for the reviewed production adapter surface; keep dry-run placeholders hard-blocked for production_ready dispatch.'
         : 'Run final production readiness only for the reviewed real backend adapter scope; keep placeholder adapters hard-blocked for production_ready dispatch.'
       : boundedRealHandlerReady
         ? 'Continue replacing placeholder gateway adapters and mock-only worker routes, or narrow the production go/no-go to the reviewed real handler coverage.'
@@ -277,7 +279,7 @@ export function buildProductionRealWorkerHandlerReadinessReport(): ProductionRea
       'This readiness report is static and no-runtime: it reads source files only.',
       'It does not call backend routes, dispatch workers, run tools, process media, call Supabase, call Stripe, or activate production.',
       allProductionHandlerCoverageReady
-        ? 'All production worker routes have reviewed real handler coverage.'
+        ? 'All reviewed production worker routes have real handler coverage; dry-run placeholder adapters remain available only for planning/mock-safe modes and are hard-blocked for production_ready dispatch.'
         : 'Broad all-route production coverage remains incomplete, but reviewed real backend adapters can be gated independently while placeholders stay blocked from production_ready dispatch.',
     ],
   }

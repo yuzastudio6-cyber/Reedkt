@@ -8,4 +8,4 @@ M13 does not deploy, run `gcloud`, call providers, download models, run smart cu
 
 M16A final render/export consumes private transcript, caption segment, and caption file artifacts for caption layers and optional libass burn-in after render/export QA gates pass.
 
-The `render_worker_caption_metadata` production handler is narrower than real speech transcription. It accepts existing approved transcript timing, produces private caption metadata and QA records, and keeps faster-whisper, model weights, caption preview, libass burn-in, and final export blocked.
+The `render_worker_caption_metadata` and `qa_worker_caption_metadata` production handlers are narrower than real speech transcription. They accept existing approved transcript timing, produce private caption metadata and QA records, and keep faster-whisper, model weights, caption preview, libass burn-in, and final export blocked.

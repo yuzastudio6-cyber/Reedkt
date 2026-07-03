@@ -67,6 +67,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'render_worker_caption_metadata'
   | 'render_worker_final_render_metadata'
   | 'render_worker_placeholder'
+  | 'qa_worker_caption_metadata'
   | 'qa_worker_placeholder'
   | 'tool_readiness_worker_core_checks'
   | 'tool_readiness_worker_placeholder'
@@ -120,6 +121,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   render_worker_caption_metadata: 'render_worker',
   render_worker_final_render_metadata: 'render_worker',
   render_worker_placeholder: 'render_worker',
+  qa_worker_caption_metadata: 'qa_worker',
   qa_worker_placeholder: 'qa_worker',
   tool_readiness_worker_core_checks: 'tool_readiness_worker',
   tool_readiness_worker_placeholder: 'tool_readiness_worker',
@@ -1189,7 +1191,7 @@ function validateGatewayAdapter(
     }
   }
 
-  if (adapterId === 'render_worker_caption_metadata') {
+  if (adapterId === 'render_worker_caption_metadata' || adapterId === 'qa_worker_caption_metadata') {
     const captionExecution = input.metadata?.speechCaptionExecution
     const captionRecord = captionExecution && typeof captionExecution === 'object'
       ? captionExecution as Record<string, unknown>
@@ -1220,7 +1222,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata may dispatch only the reviewed libass caption metadata/QA adapter scope.',
+        message: `${adapterId} may dispatch only the reviewed libass caption metadata/QA adapter scope.`,
         details: { requestedToolIds: input.requestedToolIds },
       })
     }
@@ -1229,7 +1231,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_ADAPTER_METADATA_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata production dispatch requires metadata.speechCaptionExecution.mode=production_ready.',
+        message: `${adapterId} production dispatch requires metadata.speechCaptionExecution.mode=production_ready.`,
         details: { speechCaptionExecutionMode: mode },
       })
     }
@@ -1238,7 +1240,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata is limited to caption segmentation, caption file text, and caption QA metadata tasks.',
+        message: `${adapterId} is limited to caption segmentation, caption file text, and caption QA metadata tasks.`,
         details: { tasks, unexpectedTasks, missingTasks },
       })
     }
@@ -1247,7 +1249,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_TRANSCRIPT_TIMING_REQUIRED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata requires approved transcript segments or word timestamps and cannot invent captions from mock text.',
+        message: `${adapterId} requires approved transcript segments or word timestamps and cannot invent captions from mock text.`,
       })
     }
 
@@ -1255,7 +1257,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_FORMAT_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata must build only the reviewed SRT, WebVTT, and ASS private caption file metadata set.',
+        message: `${adapterId} must build only the reviewed SRT, WebVTT, and ASS private caption file metadata set.`,
         details: { captionFormats, missingFormats, unexpectedFormats },
       })
     }
@@ -1273,7 +1275,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_SPEECH_MODEL_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata cannot run speech transcription, use model weights, or download models.',
+        message: `${adapterId} cannot run speech transcription, use model weights, or download models.`,
       })
     }
 
@@ -1289,7 +1291,7 @@ function validateGatewayAdapter(
       blockers.push({
         code: 'CAPTION_METADATA_RENDER_PREVIEW_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
-        message: 'render_worker_caption_metadata cannot run preview burn-in, use local source video paths, or write local output files.',
+        message: `${adapterId} cannot run preview burn-in, use local source video paths, or write local output files.`,
       })
     }
   }
@@ -1360,6 +1362,8 @@ function validateToolReadiness(
       adapterId === 'cpu_analysis_worker_media_representative_frames' && workerType === 'cpu_analysis_worker'
     ) || (
       adapterId === 'render_worker_caption_metadata' && workerType === 'render_worker'
+    ) || (
+      adapterId === 'qa_worker_caption_metadata' && workerType === 'qa_worker'
     )
     const runtime = reviewedCrossWorkerAdapter
       ? evaluateRuntimePolicy(profile)
@@ -1508,7 +1512,7 @@ function validateMetadataSafety(
   if (adapterId === 'render_worker_final_render_metadata') {
     allowedReservedKeys.add('finalRenderExecution')
   }
-  if (adapterId === 'render_worker_caption_metadata') {
+  if (adapterId === 'render_worker_caption_metadata' || adapterId === 'qa_worker_caption_metadata') {
     allowedReservedKeys.add('speechCaptionExecution')
   }
   const reservedFound = reservedRouterKeys

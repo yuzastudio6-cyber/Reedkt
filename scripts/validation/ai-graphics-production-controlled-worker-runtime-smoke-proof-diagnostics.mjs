@@ -182,6 +182,8 @@ const allowedPackageDiffLines = [
   '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof": "tsx server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts",',
   '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-traffic-enablement-proof-diagnostics.mjs",',
   '+    "ai-graphics:gpu-model-worker-execution-hooks:diagnostics": "node scripts/validation/ai-graphics-gpu-model-worker-execution-hooks-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof": "tsx server/cli/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof.ts",',
+  '+    "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof-diagnostics.mjs",',
 ]
 
 const failures = []

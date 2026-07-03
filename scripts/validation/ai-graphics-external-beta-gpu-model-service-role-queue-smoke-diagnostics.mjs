@@ -411,6 +411,8 @@ function checkPackageJson() {
     '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs",',
     '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge": "tsx server/cli/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge.ts",',
     '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof": "tsx server/cli/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof.ts",',
+    '+    "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.ts",',
     '+    "ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-diagnostics.mjs",',
     '+    "ai-graphics:external-beta-gpu-model-service-role-queue-smoke-proof": "tsx server/cli/ai-graphics-external-beta-gpu-model-service-role-queue-smoke-proof.ts",',

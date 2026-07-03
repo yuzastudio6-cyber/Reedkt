@@ -1026,6 +1026,13 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 - Result: `gpu_ai_worker` jobs can now opt into `metadata.aiGraphicsGpuModelControlledAdapter`, which invokes the existing guarded GPU/model controlled adapter instead of stopping at planning-only AI graphics handoff metadata. The route preserves private refs, approved snapshot, credit reservation, runtime enqueue approval, owner runtime approval, and per-tool payloads before invoking the adapter. The adapter remains on-demand only: default dry-run metadata skips runtime, while explicit local-dev worker inputs can call the underlying private Python runtime hooks for the matching tool.
 - Runtime/beta/production: no global unlock; this route does not make the eight GPU/model tools external-beta-ready now. Native NVIDIA runtime proof, reviewed model-weight manifests where required, live non-production service-role queue write proof, worker claim/dispatch proof, private artifact isolation, and require-go authorization remain required before external beta execution.
 
+## AI Graphics GPU Model Controlled Worker Dispatch Proof
+
+- Decision: `ai_graphics_external_agent_gpu_model_controlled_worker_dispatch_proof_passed_with_runtime_blocks`.
+- Scope: production-worker dispatcher proof for the eight GPU/model AI graphics tools after the proof-ref route-caller and worker-hook packets.
+- Result: all eight GPU/model tools dispatch through `dispatchProductionWorkerJob`, pass production worker gates, create and release in-memory leases, select `gpu_ai_worker_ai_graphics_gpu_model_controlled_adapter`, and invoke the guarded GPU/model controlled adapter. The default adapter status is `controlled_gpu_model_adapter_invoked_runtime_skipped` for all eight tools.
+- Runtime/beta/production: no unlock; `localGpuModelRuntimeExecutionPerformedTools=0`, `toolExecutionApprovedNowTools=0`, `gpuRuntimeApprovedForScopedControlledToolCallTools=0`, `gpuRuntimeShouldStartNowTools=0`, `publicArtifactCreatedTools=0`, `signedUrlCreatedTools=0`, `externalBetaReadyNowTools=0`, and `productionReadyNowTools=0`.
+
 ## AI Graphics Tool Call Readiness Contract
 
 - Decision: `ai_graphics_tool_call_readiness_contract_prepared_with_warnings`.

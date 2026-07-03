@@ -506,6 +506,96 @@ assert.ok(
   'color metadata wallet settlements should spend user credits only for the completed real handler',
 )
 
+const productionReadyFinalRenderMetadataDispatch = await service.dispatchApprovedToolCall(productionReadyFinalRenderMetadataInput({
+  jobId: 'job-production-ready-final-render-metadata',
+  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+}))
+const finalRenderMetadataResult = productionReadyFinalRenderMetadataDispatch.workerResult?.output?.finalRenderExecutionResult as {
+  status?: string
+  executionManifest?: { renderMode?: string; finalDeliveryCandidate?: boolean; revideoUsed?: boolean }
+  commandPlans?: Array<{ tool?: string; executes?: boolean }>
+  renderArtifacts?: Array<{
+    artifactType?: string
+    storageObjectPath?: string
+    isPrivate?: boolean
+    sourceOfTruth?: boolean
+    previewAllowed?: boolean
+  }>
+  previewArtifact?: unknown
+  finalExportArtifact?: unknown
+  qaResults?: Array<{ gateType?: string; status?: string; blocking?: boolean }>
+  finalDeliveryAllowed?: boolean
+  blocksFinalExport?: boolean
+  skippedReasons?: Array<{ tool?: string }>
+} | undefined
+const finalRenderManifestArtifacts = productionReadyFinalRenderMetadataDispatch.workerRuntimeArtifactPipeline?.mergedOutputManifest.artifactRecords
+  .filter((artifact) => artifact.artifactType === 'render_manifest') ?? []
+assert.equal(productionReadyFinalRenderMetadataDispatch.gateway.status, 'dispatched', 'complete evidence plus final-render metadata adapter should allow backend gateway dispatch')
+assert.equal(productionReadyFinalRenderMetadataDispatch.workerResult?.status, 'completed', 'final-render metadata real handler should complete')
+assert.equal(productionReadyFinalRenderMetadataDispatch.workerResult?.output?.mockOnly, false, 'final-render metadata production handler should be non-mock')
+assert.equal(productionReadyFinalRenderMetadataDispatch.workerResult?.output?.realToolExecution, true, 'final-render metadata production handler should record real backend handler execution')
+assert.equal(
+  productionReadyFinalRenderMetadataDispatch.workerResult?.output?.futureHandler,
+  'render_worker_final_render_metadata_production_handler',
+  'final-render metadata production handler should use the reviewed render metadata handler',
+)
+assert.equal(finalRenderMetadataResult?.status, 'partial', 'final-render metadata production handler should complete as partial metadata execution, not preview/export')
+assert.equal(finalRenderMetadataResult?.executionManifest?.renderMode, 'command_plan_only', 'final-render metadata handler must use command_plan_only render mode')
+assert.equal(finalRenderMetadataResult?.executionManifest?.finalDeliveryCandidate, false, 'command-plan metadata must not become a final delivery candidate')
+assert.equal(finalRenderMetadataResult?.executionManifest?.revideoUsed, false, 'final-render metadata handler must not use Revideo')
+assert.ok((finalRenderMetadataResult?.commandPlans?.length ?? 0) >= 3, 'final-render metadata handler should build Remotion, FFmpeg, and libass command plans')
+assert.ok(
+  finalRenderMetadataResult?.commandPlans?.every((plan) => plan.executes === false),
+  'final-render metadata command plans must be non-executing',
+)
+assert.ok(
+  finalRenderMetadataResult?.renderArtifacts?.some((artifact) => artifact.artifactType === 'render_manifest' && artifact.sourceOfTruth === true),
+  'final-render metadata result should include a source-of-truth render manifest artifact',
+)
+assert.equal(finalRenderMetadataResult?.previewArtifact, undefined, 'final-render metadata handler must not create preview video artifacts')
+assert.equal(finalRenderMetadataResult?.finalExportArtifact, undefined, 'final-render metadata handler must not create final export artifacts')
+assert.equal(finalRenderMetadataResult?.finalDeliveryAllowed, false, 'final-render metadata handler must not allow final delivery')
+assert.equal(finalRenderMetadataResult?.blocksFinalExport, true, 'final-render metadata handler must keep final export blocked')
+assert.ok(
+  finalRenderMetadataResult?.qaResults?.some((gate) => gate.gateType === 'final_delivery' && gate.status !== 'passed' && gate.blocking === true),
+  'final-render metadata handler should preserve a blocking final_delivery gate',
+)
+assert.ok(finalRenderManifestArtifacts.length >= 1, 'worker runtime artifact manifest should include private render manifest metadata')
+assert.ok(
+  finalRenderManifestArtifacts.every((artifact) => (
+    artifact.isPrivate === true &&
+    artifact.sourceOfTruth === true &&
+    artifact.previewAllowed === false &&
+    artifact.storageObjectPath.startsWith(`workspaces/${baseInput.workspaceId}/projects/${baseInput.projectId}/`) &&
+    !artifact.storageObjectPath.includes('signed')
+  )),
+  'final-render metadata artifacts must stay private, source-of-truth, non-preview, project-scoped, and unsigned',
+)
+assert.ok(
+  (productionReadyFinalRenderMetadataDispatch.workerResult?.qualityGateResults.length ?? 0) > 0,
+  'final-render metadata worker result should preserve QA gate results',
+)
+assert.deepEqual(
+  finalRenderMetadataResult?.skippedReasons?.map((reason) => reason.tool).sort(),
+  ['ffmpeg', 'libass', 'remotion'],
+  'final-render metadata handler should record command-plan skips instead of executing render tools',
+)
+assert.equal(productionReadyFinalRenderMetadataDispatch.toolCostEvents?.length, 3, 'final-render metadata dispatch should emit gateway cost events for Remotion, FFmpeg, and libass metadata work')
+assert.deepEqual(
+  productionReadyFinalRenderMetadataDispatch.toolCostEvents?.map((event) => event.toolId).sort(),
+  ['ffmpeg', 'libass', 'remotion'],
+  'final-render metadata dispatch should scope billing audit events to Remotion, FFmpeg, and libass',
+)
+assert.ok(
+  productionReadyFinalRenderMetadataDispatch.toolCostEvents?.every((event) => event.billableToUser === true && event.metadata.serviceFeeIncluded === false),
+  'final-render metadata tool cost events should be billable tool-cost-only events after approval/reservation gates',
+)
+assert.equal(productionReadyFinalRenderMetadataDispatch.walletSettlements?.length, 3, 'final-render metadata dispatch should create wallet settlements for render metadata cost events')
+assert.ok(
+  productionReadyFinalRenderMetadataDispatch.walletSettlements?.every((settlement) => settlement.billableToUser === true && settlement.creditsDelta < 0),
+  'final-render metadata wallet settlements should spend user credits only for the completed real handler',
+)
+
 const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
 let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
 let productionReadyAudioExtractDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
@@ -912,6 +1002,8 @@ console.log(JSON.stringify({
   realAudioMetadataHandler: productionReadyAudioMetadataDispatch.workerResult?.output?.futureHandler,
   realColorMetadataDispatchCovered: productionReadyColorMetadataDispatch.gateway.status === 'dispatched',
   realColorMetadataHandler: productionReadyColorMetadataDispatch.workerResult?.output?.futureHandler,
+  realFinalRenderMetadataDispatchCovered: productionReadyFinalRenderMetadataDispatch.gateway.status === 'dispatched',
+  realFinalRenderMetadataHandler: productionReadyFinalRenderMetadataDispatch.workerResult?.output?.futureHandler,
   realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
   realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
   realMediaAudioExtractDispatchCovered: Boolean(productionReadyAudioExtractDispatch),
@@ -1254,6 +1346,58 @@ function productionReadyColorMetadataInput(input: {
         enableFfmpegColorPreview: false,
         enableOpenColorIOExecution: false,
         enableOpenImageIOExecution: false,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
+  }
+}
+
+function productionReadyFinalRenderMetadataInput(input: {
+  jobId: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    workerType: 'render_worker',
+    renderMode: 'qa_probe',
+    executionMode: 'production_ready',
+    adapterId: 'render_worker_final_render_metadata',
+    requestedToolIds: ['remotion', 'ffmpeg', 'libass'],
+    requestedRecipeIds: ['final-render-metadata-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    requiredQualityGateTypes: ['render_asset_integrity', 'render_timeline_integrity', 'export_codec_format', 'export_duration_sync', 'final_delivery'],
+    metadata: {
+      gatewaySmoke: true,
+      finalRenderExecution: {
+        mode: 'production_ready',
+        tasks: ['build_render_manifest', 'build_command_plans', 'build_render_qa_report', 'build_delivery_qa_report'],
+        timelineManifestId: 'timeline-manifest-gateway-smoke',
+        renderManifestId: 'render-manifest-gateway-smoke',
+        sourceVideoArtifactIds: [baseInput.artifactReferences[0]!.id],
+        proxyVideoArtifactIds: ['proxy-video-artifact-gateway-smoke'],
+        captionArtifactIds: ['caption-artifact-gateway-smoke'],
+        audioArtifactIds: ['audio-artifact-gateway-smoke'],
+        colorArtifactIds: ['color-artifact-gateway-smoke'],
+        renderEngine: 'hybrid',
+        renderMode: 'command_plan_only',
+        canvas: { width: 1920, height: 1080, aspectRatio: '16:9' },
+        fps: 30,
+        durationSeconds: 7,
+        exportSettings: { container: 'mp4', videoCodec: 'h264', audioCodec: 'aac', pixelFormat: 'yuv420p' },
+        enableLocalDevRender: false,
+        enableRemotionLocalRender: false,
+        enableCaptionBurnIn: false,
+        allowRevideo: false,
+        readinessReport: {
+          overallStatus: 'passed',
+          blockerSummaries: [],
+          blockers: [],
+          warnings: [],
+        },
       },
     },
     apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,

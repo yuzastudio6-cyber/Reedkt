@@ -87,9 +87,18 @@ export async function runFinalRenderExecution(input: FinalRenderExecutionInput):
     outputArtifactIds: renderArtifacts.map((artifact) => artifact.id),
   })
   const qaResults = [...renderQaResults, ...exportQaResults]
+  const productionCommandPlanOnly = input.mode === 'production_ready' &&
+    input.renderMode === 'command_plan_only' &&
+    input.enableLocalDevRender !== true &&
+    input.enableRemotionLocalRender !== true &&
+    input.enableCaptionBurnIn !== true &&
+    input.allowRevideo !== true &&
+    commandPlans.length > 0 &&
+    commandPlans.every((plan) => plan.executes === false) &&
+    !finalExportArtifact
   const blocked = !combinedValidation.valid ||
-    qaResults.some((gate) => gate.blocking) ||
-    input.mode === 'production_ready'
+    qaResults.some((gate) => gate.blocking && !(productionCommandPlanOnly && gate.gateType === 'final_delivery')) ||
+    (input.mode === 'production_ready' && !productionCommandPlanOnly)
   return buildRenderExecutionResult({
     executionInput: input,
     executionManifest,
@@ -103,7 +112,11 @@ export async function runFinalRenderExecution(input: FinalRenderExecutionInput):
       ...combinedValidation.issues.filter((issue) => issue.severity === 'warning').map((issue) => issue.message),
       ...toolResults.flatMap((result) => result.warnings),
       'M16A final exports remain private until a later delivery/share policy.',
-      ...(input.mode === 'production_ready' ? ['Production-ready final render/export remains blocked until readiness and QA gates pass.'] : []),
+      ...(productionCommandPlanOnly
+        ? ['Production-ready render metadata completed command-plan-only checks; preview, final export, and delivery remain blocked.']
+        : input.mode === 'production_ready'
+          ? ['Production-ready final render/export remains blocked until readiness and QA gates pass.']
+          : []),
     ],
   })
 }

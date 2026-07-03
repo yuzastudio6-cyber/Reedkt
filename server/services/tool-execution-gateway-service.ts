@@ -64,6 +64,7 @@ export type ToolExecutionGatewayAdapterId =
   | 'cpu_analysis_worker_color_metadata'
   | 'cpu_analysis_worker_smart_cut_timeline'
   | 'gpu_ai_worker_placeholder'
+  | 'render_worker_final_render_metadata'
   | 'render_worker_placeholder'
   | 'qa_worker_placeholder'
   | 'tool_readiness_worker_core_checks'
@@ -115,6 +116,7 @@ const adapterWorkerType: Record<ToolExecutionGatewayAdapterId, ProductionWorkerR
   cpu_analysis_worker_color_metadata: 'cpu_analysis_worker',
   cpu_analysis_worker_smart_cut_timeline: 'cpu_analysis_worker',
   gpu_ai_worker_placeholder: 'gpu_ai_worker',
+  render_worker_final_render_metadata: 'render_worker',
   render_worker_placeholder: 'render_worker',
   qa_worker_placeholder: 'qa_worker',
   tool_readiness_worker_core_checks: 'tool_readiness_worker',
@@ -1077,6 +1079,114 @@ function validateGatewayAdapter(
     }
   }
 
+  if (adapterId === 'render_worker_final_render_metadata') {
+    const finalRenderExecution = input.metadata?.finalRenderExecution
+    const renderRecord = finalRenderExecution && typeof finalRenderExecution === 'object'
+      ? finalRenderExecution as Record<string, unknown>
+      : undefined
+    const mode = renderRecord?.mode
+    const tasks = Array.isArray(renderRecord?.tasks)
+      ? renderRecord.tasks
+      : []
+    const taskSet = new Set(tasks)
+    const expectedTasks = ['build_render_manifest', 'build_command_plans', 'build_render_qa_report', 'build_delivery_qa_report']
+    const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
+    const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
+
+    if (
+      input.requestedToolIds.length !== 3 ||
+      !input.requestedToolIds.includes('remotion') ||
+      !input.requestedToolIds.includes('ffmpeg') ||
+      !input.requestedToolIds.includes('libass')
+    ) {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata may dispatch only the reviewed Remotion + FFmpeg + libass command-plan metadata adapter scope.',
+        details: { requestedToolIds: input.requestedToolIds },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && mode !== 'production_ready') {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_ADAPTER_METADATA_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata production dispatch requires metadata.finalRenderExecution.mode=production_ready.',
+        details: { finalRenderExecutionMode: mode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (tasks.length !== expectedTasks.length || unexpectedTasks.length > 0 || missingTasks.length > 0)) {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_ADAPTER_TASK_SCOPE_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata is limited to render-manifest, non-executing command-plan, render-QA, and delivery-QA metadata tasks.',
+        details: { tasks, unexpectedTasks, missingTasks },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && renderRecord?.renderMode !== 'command_plan_only') {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_COMMAND_PLAN_ONLY_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata may run only with renderMode=command_plan_only; preview and final_export remain separate execution gates.',
+        details: { renderMode: renderRecord?.renderMode },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && (!renderRecord?.timelineManifestId || !renderRecord?.renderManifestId)) {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_MANIFEST_IDS_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata requires approved timelineManifestId and renderManifestId references.',
+        details: {
+          hasTimelineManifestId: Boolean(renderRecord?.timelineManifestId),
+          hasRenderManifestId: Boolean(renderRecord?.renderManifestId),
+        },
+      })
+    }
+
+    if (
+      input.executionMode === 'production_ready' &&
+      !Array.isArray(renderRecord?.sourceVideoArtifactIds) &&
+      !Array.isArray(renderRecord?.proxyVideoArtifactIds)
+    ) {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_SOURCE_ARTIFACT_REQUIRED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata requires a private source or proxy artifact reference.',
+      })
+    }
+
+    if (
+      input.executionMode === 'production_ready' &&
+      (
+        renderRecord?.enableLocalDevRender === true ||
+        renderRecord?.enableRemotionLocalRender === true ||
+        renderRecord?.enableCaptionBurnIn === true
+      )
+    ) {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_EXECUTION_FLAGS_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata is metadata-only and cannot enable local render, Remotion render, or libass caption burn-in execution.',
+        details: {
+          enableLocalDevRender: renderRecord?.enableLocalDevRender,
+          enableRemotionLocalRender: renderRecord?.enableRemotionLocalRender,
+          enableCaptionBurnIn: renderRecord?.enableCaptionBurnIn,
+        },
+      })
+    }
+
+    if (input.executionMode === 'production_ready' && renderRecord?.allowRevideo === true) {
+      blockers.push({
+        code: 'FINAL_RENDER_METADATA_REVIDEO_BLOCKED',
+        gateName: 'adapter_dispatch',
+        message: 'render_worker_final_render_metadata cannot use Revideo.',
+      })
+    }
+  }
+
   if (adapterId === 'tool_readiness_worker_core_checks') {
     const toolReadiness = input.metadata?.toolReadiness
     const mode = toolReadiness && typeof toolReadiness === 'object'
@@ -1285,6 +1395,9 @@ function validateMetadataSafety(
   }
   if (adapterId === 'cpu_analysis_worker_audio_metadata') {
     allowedReservedKeys.add('audioExecution')
+  }
+  if (adapterId === 'render_worker_final_render_metadata') {
+    allowedReservedKeys.add('finalRenderExecution')
   }
   const reservedFound = reservedRouterKeys
     .filter((key) => !allowedReservedKeys.has(key))

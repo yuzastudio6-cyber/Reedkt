@@ -41,7 +41,7 @@ Milestone 4 intentionally allows only mock-safe placeholder adapters:
 
 Each adapter must match its worker type. Unfinished lanes, frontend-preview-only tools, planning-only tools, evaluation-only tools, blocked tools, worker-owner mismatches, and over-budget requests return blockers.
 
-Gateway metadata is not allowed to contain lower-level worker router selector keys such as `mediaFoundation`, `finalRenderExecution`, `audioExecution`, `colorExecution`, `maskComposition`, or QA equivalents unless an explicitly reviewed adapter allowlists the exact key. Current exceptions are limited to `mediaFoundation` for reviewed media-foundation handlers, `smartCutTimelineExecution` for the smart-cut/timeline metadata handler, `audioExecution` for the bounded audio metadata/QA handler, and `colorExecution` for the bounded color metadata/QA handler. Other keys remain reserved for later explicitly approved adapter milestones.
+Gateway metadata is not allowed to contain lower-level worker router selector keys such as `mediaFoundation`, `finalRenderExecution`, `audioExecution`, `colorExecution`, `maskComposition`, or QA equivalents unless an explicitly reviewed adapter allowlists the exact key. Current exceptions are limited to `mediaFoundation` for reviewed media-foundation handlers, `smartCutTimelineExecution` for the smart-cut/timeline metadata handler, `audioExecution` for the bounded audio metadata/QA handler, `colorExecution` for the bounded color metadata/QA handler, and `finalRenderExecution` for the bounded render-manifest/command-plan/QA metadata handler. Other keys remain reserved for later explicitly approved adapter milestones.
 
 The lower production worker dispatcher remains mock-safe in this milestone. Its outputs are placeholder/future-handler records, not real media processing.
 
@@ -101,4 +101,4 @@ npm run smoke:prod-runtime-contracts
 npm run typecheck:server
 ```
 
-The smoke tests verify successful backend-only placeholder dispatch and blockers for over-budget requests, adapter mismatch, unfinished lanes, unsafe artifact references, raw prompt metadata, and missing auth.
+The smoke tests verify successful backend-only placeholder dispatch, reviewed bounded production handlers, and blockers for over-budget requests, adapter mismatch, unfinished lanes, unsafe artifact references, raw prompt metadata, and missing auth. The render metadata handler proves private render manifest and non-executing command-plan/QA records only; it does not create previews, final exports, or public delivery.

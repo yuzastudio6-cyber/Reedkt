@@ -32,6 +32,7 @@ const adapterSchema = z.enum([
   'cpu_analysis_worker_smart_cut_timeline',
   'cpu_analysis_worker_placeholder',
   'gpu_ai_worker_placeholder',
+  'render_worker_final_render_metadata',
   'render_worker_placeholder',
   'qa_worker_placeholder',
   'tool_readiness_worker_core_checks',

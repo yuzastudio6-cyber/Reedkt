@@ -200,6 +200,7 @@ function main() {
         readyForExternalAgentExecutionNow: spec.readyForExternalAgentExecutionNow,
         readyForBoundedRetryAfterBlockerClears: spec.readyForBoundedRetryAfterBlockerClears,
         readyForNonGpuIapSshCanaryPrompt: spec.readyForNonGpuIapSshCanaryPrompt,
+        readyForBroll10rBoundedRunnerFixPrompt: spec.readyForBroll10rBoundedRunnerFixPrompt,
         nextAction: spec.nextAction,
       },
       null,

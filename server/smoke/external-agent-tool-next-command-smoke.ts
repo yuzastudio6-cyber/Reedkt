@@ -278,11 +278,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, false)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'non_gpu_iap_ssh_canary_required_after_10q_read_only_access_diagnosis',
+  'broll_10r_iap_ssh_canary_runner_timeout_summary_capture_fix_required',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-10q-iap-oslogin-access-fix-result',
+  'npm run smoke:ai-video-broll-gen-10r-no-gpu-iap-ssh-canary-result',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

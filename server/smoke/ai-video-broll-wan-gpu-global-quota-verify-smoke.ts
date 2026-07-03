@@ -64,7 +64,7 @@ for (const file of [DOC_PATH, SPEC_PATH, RESULT_SPEC_PATH, CLI_PATH, SMOKE_PATH,
 const doc = read(DOC_PATH)
 for (const required of [
   '# AI Video B-roll Wan GPU Global Quota Verify Result',
-  'Decision: `ai_video_broll_wan_gpu_global_quota_verified_non_gpu_iap_canary_required`',
+  'Decision: `ai_video_broll_wan_gpu_global_quota_verified_10r_bounded_runner_fix_required`',
   'Recorded at: `2026-07-02T13:09:27Z`',
   'This packet records a read-only B-roll quota verification result',
   'Project: `reeditpro`',
@@ -93,7 +93,7 @@ for (const required of [
   '10O no-VM strategy result selected `northamerica-northeast2-a`',
   '10P proof then successfully created and deleted the no-public-IP',
   '`Permission denied (publickey)`',
-  'AI-VIDEO-BROLL-GEN-10R-NO-GPU-IAP-SSH-CANARY',
+  'AI-VIDEO-BROLL-GEN-10R-FIX-IAP-SSH-CANARY-BOUNDED-RUNNER',
 ]) {
   assert.equal(doc.includes(required), true, `quota verify result doc missing ${required}`)
 }
@@ -127,12 +127,12 @@ assert.equal(spec.regionalQuotaMetric, 'NVIDIA_L4_GPUS')
 assert.equal(spec.nextActionIfQuotaBlocked.includes('GPU-GLOBAL-QUOTA-USER'), true)
 assert.equal(
   spec.nextActionIfQuotaCleared.includes(
-    '10R-NO-GPU-IAP-SSH-CANARY',
+    '10R-FIX-IAP-SSH-CANARY-BOUNDED-RUNNER',
   ),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length, 7)
-assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_non_gpu_iap_canary_required')
+assert.equal(resultSpec.decision, 'ai_video_broll_wan_gpu_global_quota_verified_10r_bounded_runner_fix_required')
 assert.equal(resultSpec.mode, 'read_only_broll_wan_gpu_global_quota_verify_result')
 assert.equal(resultSpec.recordedAt, '2026-07-02T13:09:27Z')
 assert.equal(resultSpec.toolId, spec.toolId)
@@ -150,12 +150,14 @@ assert.equal(resultSpec.quota.regionalL4GpuQuotaLimit, 1)
 assert.equal(resultSpec.quota.regionalL4GpuQuotaUsage, 0)
 assert.equal(resultSpec.quota.quotaSufficientForOneL4Vm, true)
 assert.equal(resultSpec.noIdleLifecycleGate.readyForBrollNoIdleProofPrompt, false)
-assert.equal(resultSpec.noIdleLifecycleGate.readyForNonGpuIapSshCanaryPrompt, true)
+assert.equal(resultSpec.noIdleLifecycleGate.readyForNonGpuIapSshCanaryPrompt, false)
+assert.equal(resultSpec.noIdleLifecycleGate.readyForBroll10rBoundedRunnerFixPrompt, true)
 assert.equal(resultSpec.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(resultSpec.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 assert.equal(resultSpec.readyForExternalAgentExecutionNow, false)
 assert.equal(resultSpec.readyForBrollNoIdleProofPrompt, false)
-assert.equal(resultSpec.readyForNonGpuIapSshCanaryPrompt, true)
+assert.equal(resultSpec.readyForNonGpuIapSshCanaryPrompt, false)
+assert.equal(resultSpec.readyForBroll10rBoundedRunnerFixPrompt, true)
 assert.equal(resultSpec.dryRunPassedClaimed, false)
 assert.equal(resultSpec.generatedLocalFixturePassedClaimed, false)
 assert.equal(resultSpec.recommendedNextPrompt, spec.nextActionIfQuotaCleared)
@@ -247,7 +249,8 @@ assert.equal(live.globalQuotaMetric, spec.globalQuotaMetric)
 assert.equal(live.regionalQuotaMetric, spec.regionalQuotaMetric)
 assert.equal(typeof live.quotaSufficientForOneL4Vm, 'boolean')
 assert.equal(live.readyForBrollNoIdleProofPrompt, false)
-assert.equal(live.readyForNonGpuIapSshCanaryPrompt, live.quotaSufficientForOneL4Vm)
+assert.equal(live.readyForNonGpuIapSshCanaryPrompt, false)
+assert.equal(live.readyForBroll10rBoundedRunnerFixPrompt, live.quotaSufficientForOneL4Vm)
 assert.equal(typeof live.recommendedNextPrompt, 'string')
 assert.equal(Array.isArray(live.commandSummaries), true)
 assert.equal(Array.isArray(live.skippedCommandSummaries), true)

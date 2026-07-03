@@ -37,6 +37,12 @@ const defaultTasks: MediaFoundationTask[] = [
 export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInput): Promise<MediaFoundationResult> {
   validateRunnerInput(input)
   const expectedActions = input.tasks ?? defaultTasks
+  const outputTasks = expectedActions.filter((task) => (
+    task === 'create_proxy' ||
+    task === 'extract_audio' ||
+    task === 'extract_keyframes' ||
+    task === 'extract_representative_frames'
+  ))
 
   if (input.mode === 'production_blocked') {
     return {
@@ -46,9 +52,24 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
       artifactRecords: [],
       skipReasons: [{
         code: 'production_execution_blocked',
-        message: 'Milestone 6 media foundation real execution is local/dev only until a future deployment milestone approves production runtime.',
+        message: 'Media foundation production execution is blocked unless a later approved production_ready handler path is selected.',
       }],
       warnings: ['No FFmpeg/FFprobe command was executed.'],
+    }
+  }
+
+  if (input.mode === 'production_ready' && outputTasks.length > 0) {
+    return {
+      mode: input.mode,
+      status: 'blocked',
+      expectedActions,
+      artifactRecords: [],
+      skipReasons: [{
+        code: 'production_media_output_tasks_blocked',
+        message: 'Production-ready media foundation is currently limited to bounded ffprobe probe/report execution; FFmpeg output tasks require a separate approved handler gate.',
+        tool: 'ffmpeg',
+      }],
+      warnings: ['No FFmpeg output command was executed.'],
     }
   }
 
@@ -67,8 +88,8 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
   }
 
   const outputRoot = input.outputRoot
-  if (!outputRoot) {
-    throw new Error('local_dev media foundation requires outputRoot.')
+  if (!outputRoot && outputTasks.length > 0) {
+    throw new Error(`${input.mode} media foundation requires outputRoot for output-producing tasks.`)
   }
 
   const resolvedSource = resolveLocalMediaPathFromStorageRef({
@@ -98,16 +119,16 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     throw new Error('Milestone 6 local_dev runner requires probe task before artifacts/report assembly.')
   }
 
-  const proxy = expectedActions.includes('create_proxy')
+  const proxy = outputRoot && expectedActions.includes('create_proxy')
     ? await runProxyTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries)
     : undefined
-  const audio = expectedActions.includes('extract_audio')
+  const audio = outputRoot && expectedActions.includes('extract_audio')
     ? await runAudioTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, probe.audioStreams.length > 0, summaries)
     : undefined
-  const keyframes = expectedActions.includes('extract_keyframes')
+  const keyframes = outputRoot && expectedActions.includes('extract_keyframes')
     ? await runFrameTask('keyframes', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries)
     : undefined
-  const representativeFrames = expectedActions.includes('extract_representative_frames')
+  const representativeFrames = outputRoot && expectedActions.includes('extract_representative_frames')
     ? await runFrameTask('representative', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries, probe.durationSeconds)
     : undefined
 
@@ -149,11 +170,20 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
       ...(keyframes?.skipReason ? [keyframes.skipReason] : []),
       ...(representativeFrames?.skipReason ? [representativeFrames.skipReason] : []),
     ],
-    warnings: ['Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.'],
+    warnings: input.mode === 'production_ready'
+      ? [
+        'Production-ready media foundation ran only the bounded ffprobe probe/report handler.',
+        'No FFmpeg output tasks, transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render ran.',
+      ]
+      : ['Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.'],
   }
 }
 
 function validateRunnerInput(input: MediaFoundationRunnerInput): void {
+  if (input.mode === 'production_ready' && !input.workerPayload) {
+    throw new Error('production_ready media foundation requires the approved worker payload context.')
+  }
+
   if (input.workerPayload) {
     assertWorkerPayloadHasApprovedSnapshot(input.workerPayload)
     assertWorkerPayloadHasIdempotencyKey(input.workerPayload)

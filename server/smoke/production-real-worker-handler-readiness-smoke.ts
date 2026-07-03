@@ -8,22 +8,20 @@ assert.equal(report.backendCallsAttempted, false, 'real worker handler readiness
 assert.equal(report.toolExecutionAttempted, false, 'real worker handler readiness must not run tools')
 assert.equal(report.mediaProcessingAttempted, false, 'real worker handler readiness must not process media')
 assert.equal(report.readyForRealToolExecution, false, 'current production worker handlers should remain blocked until mock-only routes are replaced')
+assert.equal(report.boundedRealHandlerReady, true, 'bounded ffprobe handler coverage should be recognized as ready')
+assert.equal(report.allProductionHandlerCoverageReady, false, 'all-up production handler coverage should remain blocked while placeholders remain')
 assert.equal(
   report.decision,
-  'production_real_worker_handler_readiness_blocked_by_mock_safe_placeholder_dispatch',
-  'current decision should name the placeholder dispatch blocker',
+  'production_real_worker_handler_readiness_blocked_by_partial_handler_coverage',
+  'current decision should name partial real handler coverage',
 )
 assert.ok(
-  report.blockers.some((blocker) => blocker.includes('route_output_type_allows_real_handlers')),
-  'report should identify the mock-only route output type blocker',
+  report.status === 'partial_real_handler_coverage',
+  'report should identify partial real handler coverage status',
 )
 assert.ok(
-  report.blockers.some((blocker) => blocker.includes('gateway_adapters_are_real_not_placeholder')),
-  'report should identify placeholder gateway adapters',
-)
-assert.ok(
-  report.blockers.some((blocker) => blocker.includes('gateway_smoke_no_longer_expects_mock_only_production_ready')),
-  'report should identify production_ready smoke coverage accepting mock-only output',
+  report.blockers.some((blocker) => blocker.includes('placeholder_handler_coverage_retired')),
+  'report should identify remaining placeholder handler coverage blocker',
 )
 
 const packageJson = readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
@@ -42,14 +40,16 @@ assert.ok(
   'production readiness docs should include the real worker handler readiness command',
 )
 assert.ok(
-  productionGateDoc.includes('production_real_worker_handler_readiness_blocked_by_mock_safe_placeholder_dispatch'),
-  'production readiness docs should name the current real-worker-handler blocker decision',
+  productionGateDoc.includes('production_real_worker_handler_readiness_blocked_by_partial_handler_coverage'),
+  'production readiness docs should name the current partial real-handler coverage decision',
 )
 
 console.log(JSON.stringify({
   ok: true,
   status: report.status,
   decision: report.decision,
+  boundedRealHandlerReady: report.boundedRealHandlerReady,
+  allProductionHandlerCoverageReady: report.allProductionHandlerCoverageReady,
   blockerCount: report.blockers.length,
   backendCallsAttempted: report.backendCallsAttempted,
   toolExecutionAttempted: report.toolExecutionAttempted,

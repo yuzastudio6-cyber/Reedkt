@@ -182,6 +182,7 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
     mockOnly: true,
   }
 
+  const workerOutputMockOnly = input.workerResult.output?.mockOnly !== false
   const pipeline: WorkerRuntimeArtifactPipelineResult = {
     job,
     outputManifest,
@@ -189,7 +190,9 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
     replayed: false,
     warnings: uniqueWarnings([
       'Worker runtime artifact pipeline recorded private output manifests in mock-safe storage.',
-      'No signed URLs, public artifacts, Supabase writes, provider calls, or media execution occurred in the artifact pipeline.',
+      workerOutputMockOnly
+        ? 'No signed URLs, public artifacts, Supabase writes, provider calls, or media execution occurred in the artifact pipeline.'
+        : 'No signed URLs, public artifacts, Supabase writes, or provider calls occurred in the artifact pipeline; media/tool execution evidence remains scoped to the worker result.',
       ...(input.trackBAdapterResult?.warnings ?? []),
     ]),
   }

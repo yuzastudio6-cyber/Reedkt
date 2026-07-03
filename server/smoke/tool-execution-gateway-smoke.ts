@@ -15,6 +15,7 @@ import { createToolExecutionGatewayService } from '../services/tool-execution-ga
 import { resetMockToolCostStore, resetMockToolCostWalletSettlementStore } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
 import type { ToolExecutionGatewayDispatchBody } from '../validation/tool-execution-gateway-schemas'
+import { createMediaFoundationFixture } from '../workers/media'
 
 const context: ServiceContext = {
   env: {
@@ -239,49 +240,93 @@ assert.ok(
   'mismatched production evidence should identify workspace mismatch',
 )
 
-const productionReadyDispatch = await service.dispatchApprovedToolCall({
+const productionReadyPlaceholderBlocked = await service.dispatchApprovedToolCall({
   ...baseInput,
-  jobId: 'job-production-ready-dispatch',
+  jobId: 'job-production-ready-placeholder-blocked',
   executionMode: 'production_ready',
   productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
 })
-assert.equal(productionReadyDispatch.gateway.status, 'dispatched', 'complete production readiness evidence should allow the backend gateway path')
-assert.equal(productionReadyDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'dispatched production_ready request should include the passing readiness report')
-assert.equal(productionReadyDispatch.workerResult?.status, 'completed', 'complete production readiness evidence should reach only the placeholder worker route')
-assert.equal(productionReadyDispatch.workerResult?.output?.mockOnly, true, 'production_ready smoke must still use the mock-safe placeholder output')
-assert.equal(productionReadyDispatch.toolCostEvents?.length, 1, 'production_ready dispatch should emit one gateway tool-cost event for the requested tool')
-assert.equal(productionReadyDispatch.toolCostEvents?.[0]?.toolId, 'ffprobe', 'gateway tool-cost event should be scoped to the requested tool')
-assert.equal(productionReadyDispatch.toolCostEvents?.[0]?.billableToUser, true, 'completed production_ready gateway event should be billable after approval/reservation gates')
-assert.equal(productionReadyDispatch.toolCostEvents?.[0]?.metadata.serviceFeeIncluded, false, 'gateway billing metadata must keep service fees excluded')
-assert.equal(productionReadyDispatch.walletSettlements?.length, 1, 'production_ready dispatch should create one wallet settlement audit row')
-assert.equal(productionReadyDispatch.walletSettlements?.[0]?.toolCostEventId, productionReadyDispatch.toolCostEvents?.[0]?.id, 'wallet settlement should reference the emitted tool-cost event')
-assert.equal(productionReadyDispatch.walletSettlements?.[0]?.stripeCallAttempted, false, 'gateway wallet settlement must preserve Stripe isolation')
-assert.equal(productionReadyDispatch.walletSettlements?.[0]?.serviceFeeIncluded, false, 'gateway wallet settlement must exclude service fees')
-assert.equal(productionReadyDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyDispatch.toolCostEvents![0].toolCostCredits, 'completed production_ready gateway settlement should spend the tool event credits')
+assert.equal(productionReadyPlaceholderBlocked.gateway.status, 'blocked', 'production_ready dispatch should not allow placeholder adapters')
+assert.equal(productionReadyPlaceholderBlocked.workerResult, undefined, 'placeholder adapter must block before worker dispatch')
+assert.equal(productionReadyPlaceholderBlocked.toolCostEvents, undefined, 'placeholder adapter must block before billing audit events')
+assert.ok(
+  productionReadyPlaceholderBlocked.gateway.blockers.some((blocker) => blocker.code === 'PRODUCTION_READY_PLACEHOLDER_ADAPTER_BLOCKED'),
+  'placeholder adapter blocker should be explicit',
+)
 
-const productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
-  ...baseInput,
-  jobId: 'job-production-ready-stored-packet-dispatch',
-  toolExecutionPlanId: 'tool-execution-plan-stored-packet-dispatch',
-  executionMode: 'production_ready',
-  productionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
-})
-assert.equal(productionReadyStoredPacketDispatch.gateway.status, 'dispatched', 'stored production readiness evidence packet should allow the backend gateway path')
-assert.equal(productionReadyStoredPacketDispatch.gateway.productionReadinessEvidencePacketId, storedProductionEvidencePacket.id, 'gateway result should echo the durable evidence packet id')
-assert.equal(productionReadyStoredPacketDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'stored production readiness packet should include the passing readiness report')
-assert.equal(productionReadyStoredPacketDispatch.workerResult?.status, 'completed', 'stored production readiness packet should reach the placeholder worker route')
-assert.equal(productionReadyStoredPacketDispatch.toolCostEvents?.length, 1, 'stored production readiness packet dispatch should emit one gateway tool-cost event')
-assert.equal(
-  productionReadyStoredPacketDispatch.workerResult?.output?.mockOnly,
-  true,
-  'stored production readiness packet dispatch should still use only mock-safe worker output',
-)
-assert.equal(
-  productionReadyStoredPacketDispatch.workerRuntimeArtifactPipeline?.job.productionReadinessEvidencePacketId,
-  storedProductionEvidencePacket.id,
-  'worker runtime job record should preserve the durable production readiness evidence packet id',
-)
-assert.equal(productionReadyStoredPacketDispatch.walletSettlements?.length, 1, 'stored production readiness packet dispatch should create one wallet settlement audit row')
+const mediaProbeFixture = await createMediaFoundationFixture({ timeoutMs: 20_000 })
+let productionReadyRealDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>> | undefined
+let productionReadyStoredPacketDispatch: Awaited<ReturnType<typeof service.dispatchApprovedToolCall>>
+
+if (mediaProbeFixture.ok) {
+  try {
+    productionReadyRealDispatch = await service.dispatchApprovedToolCall(productionReadyMediaProbeInput({
+      jobId: 'job-production-ready-real-media-probe',
+      productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+      sourceLocalPath: mediaProbeFixture.fixture.sourceVideoPath,
+    }))
+    assert.equal(productionReadyRealDispatch.gateway.status, 'dispatched', 'complete evidence plus real media-probe adapter should allow backend gateway dispatch')
+    assert.equal(productionReadyRealDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'real production_ready request should include the passing readiness report')
+    assert.equal(productionReadyRealDispatch.workerResult?.status, 'completed', 'real media-probe handler should complete')
+    assert.equal(productionReadyRealDispatch.workerResult?.output?.mockOnly, false, 'production_ready media probe should use non-mock backend handler output')
+    assert.equal(productionReadyRealDispatch.workerResult?.output?.realToolExecution, true, 'production_ready media probe should record real tool execution')
+    assert.equal(
+      productionReadyRealDispatch.workerResult?.output?.futureHandler,
+      'cpu_analysis_worker_media_probe_production_handler',
+      'production_ready media probe should use the reviewed media-probe handler',
+    )
+    assert.ok(
+      productionReadyRealDispatch.workerResult?.output?.mediaFoundationResult &&
+        typeof productionReadyRealDispatch.workerResult.output.mediaFoundationResult === 'object' &&
+        'probe' in productionReadyRealDispatch.workerResult.output.mediaFoundationResult,
+      'production_ready media probe should include ffprobe result evidence',
+    )
+    assert.equal(productionReadyRealDispatch.toolCostEvents?.length, 1, 'real production_ready dispatch should emit one gateway tool-cost event for the requested tool')
+    assert.equal(productionReadyRealDispatch.toolCostEvents?.[0]?.toolId, 'ffprobe', 'gateway tool-cost event should be scoped to the requested tool')
+    assert.equal(productionReadyRealDispatch.toolCostEvents?.[0]?.billableToUser, true, 'completed real production_ready gateway event should be billable after approval/reservation gates')
+    assert.equal(productionReadyRealDispatch.toolCostEvents?.[0]?.metadata.serviceFeeIncluded, false, 'gateway billing metadata must keep service fees excluded')
+    assert.equal(productionReadyRealDispatch.walletSettlements?.length, 1, 'real production_ready dispatch should create one wallet settlement audit row')
+    assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.toolCostEventId, productionReadyRealDispatch.toolCostEvents?.[0]?.id, 'wallet settlement should reference the emitted tool-cost event')
+    assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.stripeCallAttempted, false, 'gateway wallet settlement must preserve Stripe isolation')
+    assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.serviceFeeIncluded, false, 'gateway wallet settlement must exclude service fees')
+    assert.equal(productionReadyRealDispatch.walletSettlements?.[0]?.creditsDelta, -productionReadyRealDispatch.toolCostEvents![0].toolCostCredits, 'completed real production_ready gateway settlement should spend the tool event credits')
+
+    productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
+      ...productionReadyMediaProbeInput({
+        jobId: 'job-production-ready-stored-packet-dispatch',
+        sourceLocalPath: mediaProbeFixture.fixture.sourceVideoPath,
+      }),
+      productionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
+    })
+    assert.equal(productionReadyStoredPacketDispatch.gateway.status, 'dispatched', 'stored production readiness evidence packet should allow the real backend gateway path')
+    assert.equal(productionReadyStoredPacketDispatch.gateway.productionReadinessEvidencePacketId, storedProductionEvidencePacket.id, 'gateway result should echo the durable evidence packet id')
+    assert.equal(productionReadyStoredPacketDispatch.productionReadinessReport?.status, 'ready_for_paid_production', 'stored production readiness packet should include the passing readiness report')
+    assert.equal(productionReadyStoredPacketDispatch.workerResult?.status, 'completed', 'stored production readiness packet should reach the real media-probe handler')
+    assert.equal(productionReadyStoredPacketDispatch.toolCostEvents?.length, 1, 'stored production readiness packet dispatch should emit one gateway tool-cost event')
+    assert.equal(
+      productionReadyStoredPacketDispatch.workerResult?.output?.mockOnly,
+      false,
+      'stored production readiness packet dispatch should use non-mock media-probe handler output',
+    )
+    assert.equal(
+      productionReadyStoredPacketDispatch.workerRuntimeArtifactPipeline?.job.productionReadinessEvidencePacketId,
+      storedProductionEvidencePacket.id,
+      'worker runtime job record should preserve the durable production readiness evidence packet id',
+    )
+    assert.equal(productionReadyStoredPacketDispatch.walletSettlements?.length, 1, 'stored production readiness packet dispatch should create one wallet settlement audit row')
+  } finally {
+    await mediaProbeFixture.fixture.cleanup()
+  }
+} else {
+  productionReadyStoredPacketDispatch = await service.dispatchApprovedToolCall({
+    ...productionReadyMediaProbeInput({
+      jobId: 'job-production-ready-stored-packet-dispatch',
+      sourceLocalPath: '/tmp/reeditpro-production-media-probe-not-run.mp4',
+    }),
+    productionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
+  })
+  assert.equal(productionReadyStoredPacketDispatch.gateway.status, 'blocked', 'stored packet real dispatch should not run when fixture tools are unavailable')
+}
 
 setMockProductionGatewayOpsControlState({
   activeKillSwitches: {
@@ -289,11 +334,10 @@ setMockProductionGatewayOpsControlState({
   },
 })
 const productionReadyKillSwitchBlocked = await service.dispatchApprovedToolCall({
-  ...baseInput,
-  jobId: 'job-production-ready-kill-switch-blocked',
-  toolExecutionPlanId: 'tool-execution-plan-kill-switch-blocked',
-  executionMode: 'production_ready',
-  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  ...productionReadyMediaProbeInput({
+    jobId: 'job-production-ready-kill-switch-blocked',
+    productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  }),
 })
 assert.equal(productionReadyKillSwitchBlocked.gateway.status, 'blocked', 'active production kill switch should block production_ready gateway dispatch')
 assert.equal(productionReadyKillSwitchBlocked.workerResult, undefined, 'active production kill switch should block before worker dispatch')
@@ -311,11 +355,10 @@ setMockProductionGatewayOpsControlState({
   })),
 })
 const productionReadyRateLimitBlocked = await service.dispatchApprovedToolCall({
-  ...baseInput,
-  jobId: 'job-production-ready-rate-limit-blocked',
-  toolExecutionPlanId: 'tool-execution-plan-rate-limit-blocked',
-  executionMode: 'production_ready',
-  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  ...productionReadyMediaProbeInput({
+    jobId: 'job-production-ready-rate-limit-blocked',
+    productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  }),
 })
 assert.equal(productionReadyRateLimitBlocked.gateway.status, 'blocked', 'workspace production rate limit should block production_ready gateway dispatch')
 assert.equal(productionReadyRateLimitBlocked.workerResult, undefined, 'workspace production rate limit should block before worker dispatch')
@@ -335,11 +378,10 @@ setMockProductionGatewayOpsControlState({
   }],
 })
 const productionReadyConcurrencyBlocked = await service.dispatchApprovedToolCall({
-  ...baseInput,
-  jobId: 'job-production-ready-concurrency-blocked',
-  toolExecutionPlanId: 'tool-execution-plan-concurrency-blocked',
-  executionMode: 'production_ready',
-  productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  ...productionReadyMediaProbeInput({
+    jobId: 'job-production-ready-concurrency-blocked',
+    productionReadinessEvidence: productionEvidenceFixture(baseInput.workspaceId, baseInput.projectId),
+  }),
 })
 assert.equal(productionReadyConcurrencyBlocked.gateway.status, 'blocked', 'production concurrency limits should block production_ready gateway dispatch')
 assert.equal(productionReadyConcurrencyBlocked.workerResult, undefined, 'production concurrency limits should block before worker dispatch')
@@ -381,6 +423,9 @@ console.log(JSON.stringify({
     productionReadyMismatchedEvidence.gateway.blockers[0]?.gateName,
   ],
   storedProductionReadinessEvidencePacketId: storedProductionEvidencePacket.id,
+  productionReadyPlaceholderBlocked: productionReadyPlaceholderBlocked.gateway.status,
+  realMediaProbeDispatchCovered: Boolean(productionReadyRealDispatch),
+  realMediaProbeHandler: productionReadyRealDispatch?.workerResult?.output?.futureHandler,
 }, null, 2))
 
 function productionEvidenceFixture(
@@ -491,5 +536,38 @@ function reviewedProductionEvidence(label: string) {
     reviewedBy: 'tool-execution-gateway-smoke-reviewer',
     reviewedAt: '2026-07-02T00:00:00.000Z',
     notes: [`${label} verified in tool execution gateway smoke fixture.`],
+  }
+}
+
+function productionReadyMediaProbeInput(input: {
+  jobId: string
+  sourceLocalPath?: string
+  productionReadinessEvidence?: ProductionToolExecutionReadinessGateInput
+  productionReadinessEvidencePacketId?: string
+}): ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string } {
+  return {
+    ...baseInput,
+    jobId: input.jobId,
+    toolExecutionPlanId: `${baseInput.toolExecutionPlanId}-${input.jobId}`,
+    executionMode: 'production_ready',
+    adapterId: 'cpu_analysis_worker_media_probe',
+    requestedToolIds: ['ffprobe'],
+    requestedRecipeIds: ['media-probe-production-handler-recipe'],
+    productionReadinessEvidence: input.productionReadinessEvidence,
+    productionReadinessEvidencePacketId: input.productionReadinessEvidencePacketId,
+    metadata: {
+      gatewaySmoke: true,
+      mediaFoundation: {
+        mode: 'production_ready',
+        tasks: ['probe', 'build_analysis_report'],
+        sourceStorageObjectId: 'source-storage-object-smoke',
+        sourceStorageObjectPath: baseInput.artifactReferences[0]!.storageObjectPath,
+        sourceLocalPath: input.sourceLocalPath ?? '/tmp/reeditpro-production-media-probe-not-run.mp4',
+        contentType: 'video/mp4',
+        ffprobeBin: 'ffprobe',
+        timeoutMs: 20_000,
+      },
+    },
+    apiIdempotencyKey: `${baseInput.apiIdempotencyKey}-${input.jobId}`,
   }
 }

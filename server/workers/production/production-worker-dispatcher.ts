@@ -39,7 +39,7 @@ export async function dispatchProductionWorkerJob(input: {
   const payload = input.payload
   const startedAt = new Date().toISOString()
   const events = [
-    pushEvent(state, payload, 'job_created', 'Production worker job accepted by mock-safe dispatcher.', 0),
+    pushEvent(state, payload, 'job_created', 'Production worker job accepted by backend dispatcher.', 0),
     pushEvent(state, payload, 'gates_started', 'Production worker gates started.', 5),
   ]
   const gateChecks = runProductionWorkerGates(payload, input.executionPlan)
@@ -98,17 +98,29 @@ export async function dispatchProductionWorkerJob(input: {
   events.push(pushEvent(state, payload, 'heartbeat', 'Production worker lease heartbeat recorded.', 30, {
     leaseId: lease.leaseId,
   }))
-  events.push(pushEvent(state, payload, 'job_started', 'Production worker placeholder route started.', 40))
-  events.push(pushEvent(state, payload, 'step_started', 'Production worker placeholder step started.', 50))
+  events.push(pushEvent(state, payload, 'job_started', 'Production worker route started.', 40))
+  events.push(pushEvent(state, payload, 'step_started', 'Production worker step started.', 50))
 
   const output = await routeProductionWorkerJob(payload)
 
-  events.push(pushEvent(state, payload, 'step_completed', 'Production worker placeholder step completed without running real tools.', 80, {
+  events.push(pushEvent(
+    state,
+    payload,
+    'step_completed',
+    output.mockOnly
+      ? 'Production worker mock-safe step completed without running real tools.'
+      : 'Production worker real backend handler step completed.',
+    80,
+    {
     futureHandler: output.futureHandler,
+    mockOnly: output.mockOnly,
   }))
   releaseWorkerLease(state, lease.leaseId)
-  events.push(pushEvent(state, payload, 'job_completed', 'Production worker placeholder job completed.', 100, {
+  events.push(pushEvent(state, payload, 'job_completed', output.mockOnly
+    ? 'Production worker mock-safe job completed.'
+    : 'Production worker real backend handler job completed.', 100, {
     leaseId: lease.leaseId,
+    mockOnly: output.mockOnly,
   }))
 
   return createProductionWorkerResult({
